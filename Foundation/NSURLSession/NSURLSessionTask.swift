@@ -548,7 +548,16 @@ fileprivate extension URLSessionTask {
         
         // HTTP Options:
         easyHandle.set(followLocation: false)
-        easyHandle.set(customHeaders: curlHeaders(for: request))
+
+        let customHeaders: [String]
+        let headersForRequest = curlHeaders(for: request)
+        if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+            customHeaders = headersForRequest + ["Content-Type:application/x-www-form-urlencoded"]
+        } else {
+            customHeaders = headersForRequest
+        }
+
+        easyHandle.set(customHeaders: customHeaders)
 
         //Options unavailable on Ubuntu 14.04 (libcurl 7.36)
         //TODO: Introduce something like an #if
@@ -571,8 +580,6 @@ fileprivate extension URLSessionTask {
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
         if request.httpMethod == "HEAD" {
             easyHandle.set(noBody: true)
-        } else if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
-            easyHandle.set(customHeaders: ["Content-Type:application/x-www-form-urlencoded"])
         }
     }
 }
