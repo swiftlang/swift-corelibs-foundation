@@ -191,6 +191,14 @@ struct _HTTPRequest {
         body = lines.last!
     }
 
+    public func getCommaSeparatedHeaders() -> String {
+        var allHeaders = ""
+        for header in headers {
+            allHeaders += header + ","
+        }
+        return allHeaders
+    }
+
 }
 
 struct _HTTPResponse {
@@ -240,16 +248,22 @@ public class TestURLSessionServer {
     }
 
     func process(request: _HTTPRequest) -> _HTTPResponse {
-        if request.method == .GET {
-            return getResponse(uri: request.uri)
+        if request.method == .GET || request.method == .POST {
+            return getResponse(request: request)
         } else {
             fatalError("Unsupported method!")
         }
     }
 
-    func getResponse(uri: String) -> _HTTPResponse {
+    func getResponse(request: _HTTPRequest) -> _HTTPResponse {
+        let uri = request.uri
         if uri == "/country.txt" {
             let text = capitals[String(uri.characters.dropFirst())]!
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
+        }
+
+        if uri == "/requestHeaders" {
+            let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
         }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.characters.dropFirst())]!) 
