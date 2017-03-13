@@ -48,7 +48,7 @@ class TestURLSession : XCTestCase {
                 try test.readAndRespond()
                 test.stop()
             } catch let e as ServerError {
-                if e.operation != "bind" { continue }
+                if e.operation == "bind" { continue }
                 throw e
             }
         }

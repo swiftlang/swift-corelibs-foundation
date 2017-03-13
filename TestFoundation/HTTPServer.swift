@@ -77,6 +77,7 @@ class _TCPSocket {
             return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: INADDR_ANY), sin_zero: (0,0,0,0,0,0,0,0) )
         #endif
     }
+
     func acceptConnection(notify: ServerSemaphore) throws {
         _ = try attempt("listen", valid: isZero, listen(listenSocket, SOMAXCONN))
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
@@ -112,7 +113,6 @@ class _TCPSocket {
             for item in texts {
                 sleep(UInt32(sendDelay))
                 var bytes = Array(item.utf8)
-                print(item)
                 _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, bytes.count)))
             }
         } else {
@@ -160,7 +160,7 @@ class _HTTPServer {
         } else {
             deadlineTime = .now()
         }
-        
+
         DispatchQueue.main.asyncAfter(deadline: deadlineTime) {
             do {
                 try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)

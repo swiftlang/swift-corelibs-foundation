@@ -571,7 +571,14 @@ fileprivate extension URLSessionTask {
         //set the request timeout
         //TODO: the timeout value needs to be reset on every data transfer
         let s = session as! URLSession
-        easyHandle.set(timeout: Int(s.configuration.timeoutIntervalForRequest))
+        let timeoutInterval = Int(s.configuration.timeoutIntervalForRequest) * 1000
+        let timeoutHandler = DispatchWorkItem { [weak self] in
+            guard let currentTask = self else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
+            currentTask.internalState = .transferFailed
+            let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
+            currentTask.completeTask(withError: urlError)
+        }
+        easyHandle.timeoutTimer = _TimeoutSource(queue: workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
 
         easyHandle.set(automaticBodyDecompression: true)
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
@@ -830,6 +837,9 @@ extension URLSessionTask {
         }
         self.response = response
 
+        //We don't want a timeout to be triggered after this. The timeout timer needs to be cancelled.
+        easyHandle.timeoutTimer = nil
+
         //because we deregister the task with the session on internalState being set to taskCompleted
         //we need to do the latter after the delegate/handler was notified/invoked
         switch session.behaviour(for: self) {
@@ -881,6 +891,10 @@ extension URLSessionTask {
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
+
+        //We don't want a timeout to be triggered after this. The timeout timer needs to be cancelled.
+        easyHandle.timeoutTimer = nil
+
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
