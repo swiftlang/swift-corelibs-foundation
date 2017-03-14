@@ -391,6 +391,16 @@ open class NSMutableOrderedSet : NSOrderedSet {
         _storage.remove(value)
         _orderedStorage.remove(at: index(of: object))
     }
+
+    open override subscript(idx: Int) -> Any {
+        get {
+            return object(at: idx)
+        }
+        set {
+            replaceObject(at: idx, with: newValue)
+        }
+    }
+    
 }
 
 extension NSMutableOrderedSet {

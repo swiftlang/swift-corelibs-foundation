@@ -207,10 +207,11 @@ class TestNSOrderedSet : XCTestCase {
     func test_ReplaceObject() {
         let set = NSMutableOrderedSet(arrayLiteral: "foo", "bar", "baz")
         set.replaceObject(at: 1, with: "123")
+        set[2] = "456"
         XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set[0] as? String, "foo")
         XCTAssertEqual(set[1] as? String, "123")
-        XCTAssertEqual(set[2] as? String, "baz")
+        XCTAssertEqual(set[2] as? String, "456")
     }
 
     func test_ExchangeObjects() {
