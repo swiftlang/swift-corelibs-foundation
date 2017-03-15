@@ -1301,10 +1301,10 @@ extension NSString {
         let readResult = try NSData(contentsOf: url, options:[])
 
         let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
-        if bytePtr[0] == 254 && bytePtr[1] == 255 {
+        if readResult.length >= 2 && bytePtr[0] == 254 && bytePtr[1] == 255 {
           enc?.pointee = String.Encoding.utf16BigEndian.rawValue
         }
-        else if bytePtr[0] == 255 && bytePtr[1] == 254 {
+        else if readResult.length >= 2 && bytePtr[0] == 255 && bytePtr[1] == 254 {
           enc?.pointee = String.Encoding.utf16LittleEndian.rawValue
         }
         else {
