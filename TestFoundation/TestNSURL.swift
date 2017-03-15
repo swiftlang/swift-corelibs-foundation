@@ -61,6 +61,7 @@ class TestNSURL : XCTestCase {
             ("test_fileURLWithPath", test_fileURLWithPath),
             ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
             ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
+            ("test_reachable", test_reachable),
             ("test_copy", test_copy),
             ("test_itemNSCoding", test_itemNSCoding),
         ]
@@ -420,6 +421,58 @@ class TestNSURL : XCTestCase {
             let url = URL(fileURLWithPath: "/tmp/ABC/..")
             let result = url.resolvingSymlinksInPath().absoluteString
             XCTAssertEqual(result, "file:///tmp/")
+        }
+    }
+    
+    func test_reachable() {
+        var url = URL(fileURLWithPath: "/usr")
+        XCTAssertEqual(true, try? url.checkResourceIsReachable())
+        
+        url = URL(string: "https://www.swift.org")!
+        do {
+            _ = try url.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
+        }
+        
+        url = URL(fileURLWithPath: "/some_random_path")
+        do {
+            _ = try url.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileReadNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
+        }
+        
+        var nsURL = NSURL(fileURLWithPath: "/usr")
+        XCTAssertEqual(true, try? nsURL.checkResourceIsReachable())
+        
+        nsURL = NSURL(string: "https://www.swift.org")!
+        do {
+            _ = try nsURL.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
+        }
+        
+        nsURL = NSURL(fileURLWithPath: "/some_random_path")
+        do {
+            _ = try nsURL.checkResourceIsReachable()
+            XCTFail()
+        } catch let error as NSError {
+            XCTAssertEqual(NSCocoaErrorDomain, error.domain)
+            XCTAssertEqual(CocoaError.Code.fileReadNoSuchFile.rawValue, error.code)
+        } catch {
+            XCTFail()
         }
     }
 

@@ -26,9 +26,19 @@ CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 CF_ASSUME_NONNULL_BEGIN
 
+#ifndef CF_SWIFT_EXPORT
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define CF_SWIFT_EXPORT extern
+#else
+#define CF_SWIFT_EXPORT static __attribute__((used))
+#endif
+#endif
+
 typedef struct __CFURLComponents *CFURLComponentsRef;
 
 CF_EXPORT CFTypeID _CFURLComponentsGetTypeID(void);
+
+CF_SWIFT_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef);
 
 // URLComponents are always mutable.
 CF_EXPORT _Nullable CFURLComponentsRef _CFURLComponentsCreate(CFAllocatorRef alloc);

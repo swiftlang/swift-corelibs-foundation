@@ -90,6 +90,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFBooleanGetTypeID(), unsafeBitCast(__NSCFBoolean.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
@@ -216,6 +217,10 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSMutableCharacterSet.formUnionWithCharacterSet = _CFSwiftMutableSetFormUnionWithCharacterSet
     __CFSwiftBridge.NSMutableCharacterSet.formIntersectionWithCharacterSet = _CFSwiftMutableSetFormIntersectionWithCharacterSet
     __CFSwiftBridge.NSMutableCharacterSet.invert = _CFSwiftMutableSetInvert
+    
+    __CFSwiftBridge.NSNumber._cfNumberGetType = _CFSwiftNumberGetType
+    __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
+    __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }

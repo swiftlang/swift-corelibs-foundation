@@ -97,6 +97,7 @@ class TestNSString : XCTestCase {
             ("test_reflection", { _ in test_reflection }),
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
+            ("test_substringWithRange", test_substringWithRange),
         ]
     }
 
@@ -1079,6 +1080,43 @@ class TestNSString : XCTestCase {
         let testString = "hello"
         XCTAssertTrue(testString.hasPrefix(""))
         XCTAssertTrue(testString.hasSuffix(""))
+    }
+
+    func test_substringWithRange() {
+        let trivial = NSString(string: "swift.org")
+        XCTAssertEqual(trivial.substring(with: NSMakeRange(0, 5)), "swift")
+
+        let surrogatePairSuffix = NSString(string: "Hurray🎉")
+        XCTAssertEqual(surrogatePairSuffix.substring(with: NSMakeRange(0, 7)), "Hurray�")
+
+        let surrogatePairPrefix = NSString(string: "🐱Cat")
+        XCTAssertEqual(surrogatePairPrefix.substring(with: NSMakeRange(1, 4)), "�Cat")
+
+        let singleChar = NSString(string: "😹")
+        XCTAssertEqual(singleChar.substring(with: NSMakeRange(0,1)), "�")
+
+        let crlf = NSString(string: "\r\n")
+        XCTAssertEqual(crlf.substring(with: NSMakeRange(0,1)), "\r")
+        XCTAssertEqual(crlf.substring(with: NSMakeRange(1,1)), "\n")
+        XCTAssertEqual(crlf.substring(with: NSMakeRange(1,0)), "")
+
+        let bothEnds1 = NSString(string: "😺😺")
+        XCTAssertEqual(bothEnds1.substring(with: NSMakeRange(1,2)), "��") 
+
+        let s1 = NSString(string: "😺\r\n")
+        XCTAssertEqual(s1.substring(with: NSMakeRange(1,2)), "�\r")
+
+        let s2 = NSString(string: "\r\n😺")
+        XCTAssertEqual(s2.substring(with: NSMakeRange(1,2)), "\n�")
+
+        let s3 = NSString(string: "😺cats😺")
+        XCTAssertEqual(s3.substring(with: NSMakeRange(1,6)), "�cats�")
+
+        let s4 = NSString(string: "😺cats\r\n")
+        XCTAssertEqual(s4.substring(with: NSMakeRange(1,6)), "�cats\r")
+
+        let s5 = NSString(string: "\r\ncats😺")
+        XCTAssertEqual(s5.substring(with: NSMakeRange(1,6)), "\ncats�")
     }
 }
 

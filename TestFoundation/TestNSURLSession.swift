@@ -33,20 +33,22 @@ class TestURLSession : XCTestCase {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
+            ("test_taskTimeout", test_taskTimeout),
+            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
         ]
     }
 
-    private func runServer(with condition: ServerSemaphore) throws {
+    private func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         let start = 21961
         for port in start...(start+100) { //we must find at least one port to bind
             do {
                 serverPort = port
-                let test = try TestURLSessionServer(port: UInt16(port))
+                let test = try TestURLSessionServer(port: UInt16(port), startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
                 try test.start(started: condition)
                 try test.readAndRespond()
                 test.stop()
             } catch let e as ServerError {
-                if e.operation != "bind" { continue }
+                if e.operation == "bind" { continue }
                 throw e
             }
         }
@@ -65,14 +67,14 @@ class TestURLSession : XCTestCase {
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/Nepal"
         let url = URL(string: urlString)!
-        let d = DataTask(with: expectation(description: "data task"))                         
+        let d = DataTask(with: expectation(description: "data task"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if !d.error {
             XCTAssertEqual(d.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
         }
     }
-    
+
     func test_dataTaskWithURLCompletionHandler() {
         let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
@@ -80,7 +82,7 @@ class TestURLSession : XCTestCase {
                 try self.runServer(with: serverReady)
             } catch {
                 XCTAssertTrue(true)
-                return 
+                return
             }
         }
         serverReady.wait()
@@ -99,7 +101,7 @@ class TestURLSession : XCTestCase {
             }
 
             let httpResponse = response as! HTTPURLResponse?
-            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200") 
+            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200")
             expectedResult = String(data: data!, encoding: String.Encoding.utf8)!
             XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
             expect.fulfill()
@@ -121,7 +123,7 @@ class TestURLSession : XCTestCase {
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/Peru"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DataTask(with: expectation(description: "data task"))     
+        let d = DataTask(with: expectation(description: "data task"))
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
         if !d.error {
@@ -175,7 +177,7 @@ class TestURLSession : XCTestCase {
         }
         serverReady.wait()
         let urlString = "http://127.0.0.1:\(serverPort)/country.txt"
-        let url = URL(string: urlString)!   
+        let url = URL(string: urlString)!
         let d = DownloadTask(with: expectation(description: "download task with delegate"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
@@ -250,7 +252,7 @@ class TestURLSession : XCTestCase {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-    
+
     func test_finishTasksAndInvalidate() {
         let invalidateExpectation = expectation(description: "URLSession wasn't invalidated")
         let delegate = SessionDelegate(invalidateExpectation: invalidateExpectation)
@@ -265,7 +267,7 @@ class TestURLSession : XCTestCase {
         session.finishTasksAndInvalidate()
         waitForExpectations(timeout: 12)
     }
-    
+
     func test_taskError() {
         let url = URL(string: "http://127.0.0.1:\(serverPort)/Nepal")!
         let session = URLSession(configuration: URLSessionConfiguration.default,
@@ -280,22 +282,22 @@ class TestURLSession : XCTestCase {
         }
         //should result in Bad URL error
         task.resume()
-        
+
         waitForExpectations(timeout: 5) { error in
             XCTAssertNil(error)
-            
+
             XCTAssertNotNil(task.error)
             XCTAssertEqual((task.error as? URLError)?.code, .badURL)
         }
     }
-    
+
     func test_taskCopy() {
         let url = URL(string: "http://127.0.0.1:\(serverPort)/Nepal")!
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: nil,
                                  delegateQueue: nil)
         let task = session.dataTask(with: url)
-        
+
         XCTAssert(task.isEqual(task.copy()))
     }
 
@@ -318,6 +320,59 @@ class TestURLSession : XCTestCase {
         waitForExpectations(timeout: 12)
     }
 
+    func test_verifyRequestHeaders() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "download task with handler")
+        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/requestHeaders")!)
+        let headers = ["header1": "value1"]
+        req.httpMethod = "POST"
+        req.allHTTPHeaderFields = headers
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            let headers = String(data: data!, encoding: String.Encoding.utf8)!
+            XCTAssertNotNil(headers.range(of: "header1: value1"))
+        }
+        task.resume()
+
+        waitForExpectations(timeout: 30)
+    }
+
+    func test_taskTimeout() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady, startDelay: 3, sendDelay: 3, bodyChunks: 3)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "download task with handler")
+        let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/Peru")!)
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNil(error)
+        }
+        task.resume()
+
+        waitForExpectations(timeout: 30)
+    }
 }
 
 class SessionDelegate: NSObject, URLSessionDelegate {
@@ -340,7 +395,7 @@ class DataTask : NSObject {
     public var error = false
 
     init(with expectation: XCTestExpectation) {
-       dataTaskExpectation = expectation 
+       dataTaskExpectation = expectation
     }
 
     func run(with request: URLRequest) {
@@ -350,7 +405,7 @@ class DataTask : NSObject {
         task = session.dataTask(with: request)
         task.resume()
     }
-    
+
     func run(with url: URL) {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
@@ -380,7 +435,7 @@ extension DataTask : URLSessionTaskDelegate {
          }
          self.error = true
      }
-} 
+}
 
 class DownloadTask : NSObject {
     var totalBytesWritten: Int64 = 0
@@ -410,12 +465,12 @@ class DownloadTask : NSObject {
 }
 
 extension DownloadTask : URLSessionDownloadDelegate {
-    
+
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
                            totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) -> Void {
         self.totalBytesWritten = totalBytesWritten
     }
-    
+
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         do {
             let attr = try FileManager.default.attributesOfItem(atPath: location.path)

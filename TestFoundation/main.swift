@@ -25,6 +25,7 @@ XCTMain([
     testCase(TestNSArray.allTests),
     testCase(TestNSBundle.allTests),
     testCase(TestNSByteCountFormatter.allTests),
+    testCase(TestNSCache.allTests),
     testCase(TestNSCalendar.allTests),
     testCase(TestNSCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
@@ -77,8 +78,7 @@ XCTMain([
     testCase(TestURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
     testCase(TestNSHTTPURLResponse.allTests),
-    // FIXME: SR-3464 Assertion failure in TestURLSession.test_dataTaskWithURL
-    // testCase(TestURLSession.allTests),
+    testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),

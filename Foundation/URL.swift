@@ -927,6 +927,13 @@ public struct URL : ReferenceConvertible, Equatable {
         _url.removeCachedResourceValue(forKey: key)
     }
     
+    /// Returns whether the URL's resource exists and is reachable.
+    ///
+    /// This method synchronously checks if the resource's backing store is reachable. Checking reachability is appropriate when making decisions that do not require other immediate operations on the resource, e.g. periodic maintenance of UI state that depends on the existence of a specific document. When performing operations such as opening a file or copying resource properties, it is more efficient to simply try the operation and handle failures. This method is currently applicable only to URLs for file system resources. For other URL types, `false` is returned.
+    public func checkResourceIsReachable() throws -> Bool {
+        return try _url.checkResourceIsReachable()
+    }
+    
     // MARK: - Bridging Support
     
     /// We must not store an NSURL without running it through this function. This makes sure that we do not hold a file reference URL, which changes the nullability of many NSURL functions.

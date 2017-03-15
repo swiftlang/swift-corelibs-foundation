@@ -65,6 +65,26 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: false).doubleValue, Double(0))
     }
     
+    func test_CFBoolean() {
+        guard let plist = try? PropertyListSerialization.data(fromPropertyList: ["test" : true], format: .binary, options: 0) else {
+            XCTFail()
+            return
+        }
+        guard let obj = (try? PropertyListSerialization.propertyList(from: plist, format: nil)) as? [String : Any] else {
+            XCTFail()
+            return
+        }
+        guard let value = obj["test"] else {
+            XCTFail()
+            return
+        }
+        guard let boolValue = value as? Bool else {
+            XCTFail("Expected de-serialization as round-trip boolean value")
+            return
+        }
+        XCTAssertTrue(boolValue)
+    }
+    
     func test_numberWithChar() {
         XCTAssertEqual(NSNumber(value: Int8(0)).boolValue, false)
         XCTAssertEqual(NSNumber(value: Int8(0)).int8Value, Int8(0))

@@ -346,7 +346,49 @@ extension NSString {
             let start = _storage.utf16.startIndex
             let min = start.advanced(by: range.location)
             let max = start.advanced(by: range.location + range.length)
-            return String(_storage.utf16[min..<max])!
+            if let substr = String(_storage.utf16[min..<max]) {
+                return substr
+            }
+            //If we come here, then the range has created unpaired surrogates on either end.
+            //An unpaired surrogate is replaced by OXFFFD - the Unicode Replacement Character.
+            //The CRLF ("\r\n") sequence is also treated like a surrogate pair, but its constinuent
+            //characters "\r" and "\n" can exist outside the pair!
+
+            let replacementCharacter = String(describing: UnicodeScalar(0xFFFD)!)
+            let CR: UInt16 = 13  //carriage return
+            let LF: UInt16 = 10  //new line
+
+            //make sure the range is of non-zero length
+            guard range.length > 0 else { return "" }
+
+            //if the range is pointing to a single unpaired surrogate
+            if range.length == 1 {
+                switch _storage.utf16[min] {
+                case CR: return "\r"
+                case LF: return "\n"
+                default: return replacementCharacter
+                }
+            }
+
+            //set the prefix and suffix characters
+            let prefix = _storage.utf16[min] == LF ? "\n" : replacementCharacter
+            let suffix = _storage.utf16[max.advanced(by: -1)] == CR ? "\r" : replacementCharacter
+
+            //if the range breaks a surrogate pair at the beginning of the string
+            if let substrSuffix = String(_storage.utf16[min.advanced(by: 1)..<max]) {
+                return prefix + substrSuffix
+            }
+
+            //if the range breaks a surrogate pair at the end of the string
+            if let substrPrefix = String(_storage.utf16[min..<max.advanced(by: -1)]) {
+                return substrPrefix + suffix
+            }
+
+            //the range probably breaks surrogate pairs at both the ends
+            guard min.advanced(by: 1) <= max.advanced(by: -1) else { return prefix + suffix }
+
+            let substr =  String(_storage.utf16[min.advanced(by: 1)..<max.advanced(by: -1)])!
+            return prefix + substr + suffix
         } else {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)

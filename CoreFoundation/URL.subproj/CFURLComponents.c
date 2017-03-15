@@ -66,9 +66,8 @@ static CFStringRef __CFURLComponentsCopyDescription(CFTypeRef cf) {
     return CFSTR("A really nice CFURLComponents object");
 }
 
-static void __CFURLComponentsDeallocate(CFTypeRef cf) {
-    CFURLComponentsRef instance = (CFURLComponentsRef)cf;
-    __CFGenericValidateType(cf, _CFURLComponentsGetTypeID());
+CF_SWIFT_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
+    __CFGenericValidateType(instance, _CFURLComponentsGetTypeID());
     
     if (instance->_urlString) CFRelease(instance->_urlString);
     if (instance->_schemeComponent) CFRelease(instance->_schemeComponent);
@@ -78,6 +77,7 @@ static void __CFURLComponentsDeallocate(CFTypeRef cf) {
     if (instance->_pathComponent) CFRelease(instance->_pathComponent);
     if (instance->_queryComponent) CFRelease(instance->_queryComponent);
     if (instance->_fragmentComponent) CFRelease(instance->_fragmentComponent);
+    if (instance) CFAllocatorDeallocate(kCFAllocatorSystemDefault, instance);
 }
 
 static const CFRuntimeClass __CFURLComponentsClass = {

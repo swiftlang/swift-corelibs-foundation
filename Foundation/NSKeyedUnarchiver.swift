@@ -74,14 +74,14 @@ open class NSKeyedUnarchiver : NSCoder {
             return nil
         }
         
+        defer { CFReadStreamClose(readStream) }
+        
         let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(readStream))
         do {
             try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
             keyedUnarchiver.finishDecoding()
         } catch {
         }
-        
-        CFReadStreamClose(readStream)
         
         return root
     }
@@ -675,11 +675,11 @@ open class NSKeyedUnarchiver : NSCoder {
     
     /**
         Note that unlike decodePropertyList(forKey:), _decodePropertyListForKey() decodes
-        a property list in the current decoding context rather than as an object. It's
-        also able to return value types.
+        a property list in the current decoding context rather than as an object. It also 
+        is able to return value types.
      */
-    internal override func _decodePropertyListForKey(_ key: String) -> Any {
-        return _decodeValue(forKey: key)!
+    internal override func _decodePropertyListForKey(_ key: String) -> Any? {
+        return _decodeValue(forKey: key)
     }
     
     open override func decodeBool(forKey key: String) -> Bool {

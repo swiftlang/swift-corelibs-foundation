@@ -57,7 +57,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSMutableURLRequest`        | Mostly Complete | Incomplete    |                                                                                                                    |
     | `URLResponse`                | Mostly Complete | Incomplete    |                                                                                                                    |
     | `NSHTTPURLResponse`          | Mostly Complete | Substantial   |                                                                                                                    |
-    | `NSURL`                      | Mostly Complete | Substantial   | `checkResourceIsReachable()`, and resource values remain unimplemented 											|
+    | `NSURL`                      | Mostly Complete | Substantial   | Resource values remain unimplemented                                                                               |
     | `NSURLQueryItem`             | Mostly Complete | N/A           |                                                                                                                    |
     | `URLResourceKey`             | Complete        | N/A           |                                                                                                                    |
     | `URLFileResourceType`        | Complete        | N/A           |                                                                                                                    |
@@ -100,7 +100,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `MassFormatter`                 | Unimplemented   | None          |                                                                                           |
     | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
     | `PersonNameComponentsFormatter` | Unimplemented   | None          |                                                                                           |
-    | `ByteCountFormatter`            | Unimplemented   | Incomplete    |                                                                                           |
+    | `ByteCountFormatter`            | Mostly Complete | Substantial   | `init?(coder:)` remains unimplemented                                                     |
     | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` remain unimplemented 										 |
     | `Formatter`                     | Complete        | N/A           |                                                                                           |
     | `MeasurementFormatter`          | Unimplemented   | None          |                                                                                           |
@@ -168,7 +168,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSMutableSet`        | Mostly Complete | Incomplete    | `init?(coder:)` remains unimplemented                                                                                                                               |
     | `NSCountedSet`        | Mostly Complete | Incomplete    | `init?(coder:)` remains unimplemented                                                                                                                               |
     | `NSCFSet`             | N/A             | N/A           | For internal use only                                                                                                                                               |
-    | `NSCache`             | Complete        | None          |                                                                                                                                                                     |
+    | `NSCache`             | Complete        | Incomplete    |                                                                                                                                                                     |
     | `NSSortDescriptor`    | Unimplemented   | None          |                                                                                                                                                                     |
 
 * **RunLoop**: Timers, streams and run loops.

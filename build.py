@@ -312,6 +312,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSCache.swift',
 	'Foundation/NSCalendar.swift',
 	'Foundation/NSCFArray.swift',
+	'Foundation/NSCFBoolean.swift',
 	'Foundation/NSCFDictionary.swift',
 	'Foundation/NSCFSet.swift',
 	'Foundation/NSCFString.swift',
