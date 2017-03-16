@@ -1298,7 +1298,33 @@ extension NSString {
     }
     
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        NSUnimplemented()    
+        let readResult = try NSData(contentsOf: url, options:[])
+
+        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
+        if readResult.length >= 2 && bytePtr[0] == 254 && bytePtr[1] == 255 {
+          enc?.pointee = String.Encoding.utf16BigEndian.rawValue
+        }
+        else if readResult.length >= 2 && bytePtr[0] == 255 && bytePtr[1] == 254 {
+          enc?.pointee = String.Encoding.utf16LittleEndian.rawValue
+        }
+        else {
+          //Need to work on more conditions. This should be the default
+          enc?.pointee = String.Encoding.utf8.rawValue
+        }
+
+        guard let enc = enc, let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(enc.pointee), true) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to create a string using the specified encoding."
+                ])
+        }
+        var str: String?
+        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
+            self.init(str!)
+        } else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to bridge CFString to String."
+                ])
+        }    
     }
     
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
