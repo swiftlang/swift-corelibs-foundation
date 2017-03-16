@@ -251,12 +251,12 @@ extension NSRegularExpression {
         var count = 0
         var offset = 0
         for result in results {
-            var currentRnage = result.range
+            var currentRange = result.range
             let replacement = replacementString(for: result, in: string._swiftObject, offset: offset, template: templ)
-            currentRnage.location += offset
+            currentRange.location += offset
             
-            string.replaceCharacters(in: currentRnage, with: replacement)
-            offset += replacement.length - currentRnage.length
+            string.replaceCharacters(in: currentRange, with: replacement)
+            offset += replacement.length - currentRange.length
             count += 1
         }
         return count
