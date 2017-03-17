@@ -20,7 +20,7 @@ class TestNSNotificationQueue : XCTestCase {
     static var allTests : [(String, (TestNSNotificationQueue) -> () throws -> Void)] {
         return [
 /*
-FIXME rdar://31106944 timeouts in TestNSNotificationQueue tests
+FIXME SR-4280 timeouts in TestNSNotificationQueue tests
 
             ("test_defaultQueue", test_defaultQueue),
             ("test_postNowToDefaultQueueWithoutCoalescing", test_postNowToDefaultQueueWithoutCoalescing),
