@@ -716,21 +716,24 @@ private struct JSONReader {
                 defer { intEndPointer.deallocate(capacity: 1) }
                 let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
                 defer { doubleEndPointer.deallocate(capacity: 1) }
-                
                 let intResult = strtol(startPointer, intEndPointer, 10)
                 let intDistance = startPointer.distance(to: intEndPointer[0]!)
                 let doubleResult = strtod(startPointer, doubleEndPointer)
                 let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
-                
+
                 guard intDistance > 0 || doubleDistance > 0 else {
                     return nil
                 }
-                
+
                 if intDistance == doubleDistance {
                     return (intResult, intDistance)
                 }
                 guard doubleDistance > 0 else {
                     return nil
+                }
+
+                if doubleResult == doubleResult.rounded() {
+                    return (Int(doubleResult), doubleDistance)
                 }
                 return (doubleResult, doubleDistance)
             }
