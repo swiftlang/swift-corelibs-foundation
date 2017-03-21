@@ -76,9 +76,7 @@ class TestNSOperationQueue : XCTestCase {
         operation.start()
 
         while !operation.isFinished {
-            // wait until the operation finishes
-            XCTAssertTrue(operation.isExecuting)
-            XCTAssertFalse(operation.isFinished)
+            // do nothing
         }
 
         XCTAssertFalse(operation.isExecuting)
@@ -89,6 +87,7 @@ class TestNSOperationQueue : XCTestCase {
 class AsyncOperation: Operation {
 
     private let queue = DispatchQueue(label: "async.operation.queue")
+    private let lock = NSLock()
 
     private var _executing = false
     private var _finished = false
@@ -133,8 +132,10 @@ class AsyncOperation: Operation {
 
         queue.async {
             sleep(1)
+            self.lock.lock()
             self.isExecuting = false
             self.isFinished = true
+            self.lock.unlock()
         }
     }
 
