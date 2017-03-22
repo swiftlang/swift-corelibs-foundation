@@ -149,7 +149,13 @@ open class URLSessionTask : NSObject, NSCopying {
         set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
     }
     fileprivate var _response: URLResponse? = nil
-    
+
+    internal var setResponse : URLResponse? {
+        get {
+            return taskAttributesIsolation.sync { self._response }
+        }
+        set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
+    }
     /* Byte count properties may be zero if no body is expected,
      * or URLSessionTransferSizeUnknown if it is not possible
      * to know how many bytes will be transferred.

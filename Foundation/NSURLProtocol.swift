@@ -142,6 +142,25 @@ public protocol URLProtocolClient : NSObjectProtocol {
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge)
 }
 
+internal class ProtocolClient : NSObject, URLProtocolClient {
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) { `protocol`.task?.setResponse = response }
+
+    func urlProtocolDidFinishLoading(_ protocol: URLProtocol) { `protocol`.task?.completeTask() }
+
+    func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) { NSUnimplemented() }
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) { NSUnimplemented() }
+
+    func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) { NSUnimplemented() }
+
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) { NSUnimplemented() }
+
+    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) { NSUnimplemented() }
+
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) { NSUnimplemented() }
+}
+
 /*!
     @class NSURLProtocol
  
@@ -152,6 +171,12 @@ public protocol URLProtocolClient : NSObjectProtocol {
 */
 open class URLProtocol : NSObject {
     
+    private static var registeredProtocolClasses = [AnyClass]()
+
+    private var _request : URLRequest
+    private var _cachedResponse : CachedURLResponse?
+    private var _client : URLProtocolClient?
+
     /*! 
         @method initWithRequest:cachedResponse:client:
         @abstract Initializes an NSURLProtocol given request, 
@@ -165,7 +190,15 @@ open class URLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
+    public init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { 
+        self._request = request
+        self._cachedResponse = cachedResponse
+        if (client != nil) {
+            self._client = client
+        } else {
+            self._client = ProtocolClient()
+        }
+    }
     
     /*! 
         @method client
@@ -323,7 +356,11 @@ open class URLProtocol : NSObject {
         The only way that failure can occur is if the given class is not a
         subclass of NSURLProtocol.
     */
-    open class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
+    open class func registerClass(_ protocolClass: AnyClass) -> Bool { 
+        guard !registeredProtocolClasses.contains(where: { $0 === protocolClass }) else { return false }
+        registeredProtocolClasses.append(protocolClass)
+        return true
+    }
     
     /*! 
         @method unregisterClass:
@@ -332,10 +369,22 @@ open class URLProtocol : NSObject {
         consulted in calls to NSURLProtocol class methods.
         @param protocolClass The class to unregister.
     */
-    open class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
+    open class func unregisterClass(_ protocolClass: AnyClass) {
+        if let idx = registeredProtocolClasses.index(where: { $0 === protocolClass }) {
+            registeredProtocolClasses.remove(at: idx)
+        }
+    }
 
     open class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
-    public convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
-    /*@NSCopying*/ open var task: URLSessionTask? { NSUnimplemented() }
+    public convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+        let urlRequest = task.currentRequest!
+        self.init(request: urlRequest, cachedResponse: nil, client: nil)
+    }
+    /*@NSCopying*/ open var task: URLSessionTask? {
+         set { self._task = newValue }
+        get { return self._task }
+    }
+
+    private var _task : URLSessionTask? = nil
 }
 
