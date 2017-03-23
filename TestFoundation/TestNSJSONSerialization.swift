@@ -863,6 +863,10 @@ extension TestNSJSONSerialization {
             ("test_nested_array", test_nested_array),
             ("test_nested_dictionary", test_nested_dictionary),
             ("test_serialize_number", test_serialize_number),
+            ("test_serialize_IntMax", test_serialize_IntMax),
+            ("test_serialize_IntMin", test_serialize_IntMin),
+            ("test_serialize_UIntMax", test_serialize_UIntMax),
+            ("test_serialize_UIntMin", test_serialize_UIntMin),
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
@@ -1052,6 +1056,26 @@ extension TestNSJSONSerialization {
         // Cannot generate "true"/"false" currently
         json = [NSNumber(value:false),NSNumber(value:true)]
         XCTAssertEqual(try trySerialize(json), "[false,true]")
+    }
+    
+    func test_serialize_IntMax() {
+        let json: [Any] = [Int.max]
+        XCTAssertEqual(try trySerialize(json), "[9223372036854775807]")
+    }
+    
+    func test_serialize_IntMin() {
+        let json: [Any] = [Int.min]
+        XCTAssertEqual(try trySerialize(json), "[-9223372036854775808]")
+    }
+    
+    func test_serialize_UIntMax() {
+        let json: [Any] = [UInt.max]
+        XCTAssertEqual(try trySerialize(json), "[18446744073709551615]")
+    }
+    
+    func test_serialize_UIntMin() {
+        let json: [Any] = [UInt.min]
+        XCTAssertEqual(try trySerialize(json), "[0]")
     }
     
     func test_serialize_stringEscaping() {
