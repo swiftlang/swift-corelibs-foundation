@@ -35,7 +35,7 @@ class TestNSRegularExpression : XCTestCase {
         do {
             let str = NSString(string: searchString)
             var range = NSMakeRange(0, str.length)
-            let regex = try NSRegularExpression(pattern: patternString, options: [])
+            let regex = try NSRegularExpression(pattern: patternString)
             do {
                 let lookingRange = regex.rangeOfFirstMatch(in: searchString, options: .anchored, range: range)
                 let matchRange = regex.rangeOfFirstMatch(in: searchString, options: [], range: range)
