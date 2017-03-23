@@ -219,7 +219,8 @@ internal protocol _BitShiftable {
     static func <<(lhs: Self, rhs: Self) -> Self
 }
 
-internal protocol _IntegerLike : Integer, _BitShiftable {
+// FIXME(integers): replace this protocol with just a FixedWidthInteger
+internal protocol _IntegerLike : FixedWidthInteger, _BitShiftable {
     init(_ value: Int)
     static var max: Self { get }
     static var min: Self { get }

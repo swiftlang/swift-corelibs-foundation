@@ -372,13 +372,13 @@ public protocol __BridgedNSError : Error {
 // Allow two bridged NSError types to be compared.
 extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
-        return lhs.rawValue.toIntMax() == rhs.rawValue.toIntMax()
+        return lhs.rawValue == rhs.rawValue
     }
 }
 
 public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
     public final var _domain: String { return Self._nsErrorDomain }
-    public final var _code: Int { return Int(rawValue.toIntMax()) }
+    public final var _code: Int { return Int(rawValue) }
     
     public init?(rawValue: RawValue) {
         self = unsafeBitCast(rawValue, to: Self.self)
@@ -398,14 +398,14 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: S
 // Allow two bridged NSError types to be compared.
 extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
-        return lhs.rawValue.toUIntMax() == rhs.rawValue.toUIntMax()
+        return lhs.rawValue == rhs.rawValue
     }
 }
 
 public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
     public final var _domain: String { return Self._nsErrorDomain }
     public final var _code: Int {
-        return Int(bitPattern: UInt(rawValue.toUIntMax()))
+        return Int(bitPattern: UInt(rawValue))
     }
     
     public init?(rawValue: RawValue) {
