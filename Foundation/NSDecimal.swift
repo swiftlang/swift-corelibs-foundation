@@ -166,25 +166,6 @@ extension Decimal {
         if !self.isFinite { return Decimal.nan }
         return Decimal(_exponent: _exponent, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
     }
-    public mutating func add(_ other: Decimal) {
-        var rhs = other
-        _ = NSDecimalAdd(&self, &self, &rhs, .plain)
-    }
-    public mutating func subtract(_ other: Decimal) {
-        var rhs = other
-        _ = NSDecimalSubtract(&self, &self, &rhs, .plain)
-    }
-    public mutating func multiply(by other: Decimal) {
-        var rhs = other
-        _ = NSDecimalMultiply(&self, &self, &rhs, .plain)
-    }
-    public mutating func divide(by other: Decimal) {
-        var rhs = other
-        _ = NSDecimalDivide(&self, &self, &rhs, .plain)
-    }
-    public mutating func negate() {
-        _isNegative = _isNegative == 0 ? 1 : 0
-    }
     public func isEqual(to other: Decimal) -> Bool {
         return self.compare(to: other) == .orderedSame
     }
@@ -215,26 +196,6 @@ extension Decimal {
     }
     public var nextDown: Decimal {
         return self - Decimal(_exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
-    }
-    public static func +(lhs: Decimal, rhs: Decimal) -> Decimal {
-        var answer = lhs
-        answer.add(rhs)
-        return answer;
-    }
-    public static func -(lhs: Decimal, rhs: Decimal) -> Decimal {
-        var answer = lhs
-        answer.subtract(rhs)
-        return answer;
-    }
-    public static func /(lhs: Decimal, rhs: Decimal) -> Decimal {
-        var answer = lhs
-        answer.divide(by: rhs)
-        return answer;
-    }
-    public static func *(lhs: Decimal, rhs: Decimal) -> Decimal {
-        var answer = lhs
-        answer.multiply(by: rhs)
-        return answer;
     }
 }
 
@@ -320,7 +281,63 @@ extension Decimal : ExpressibleByIntegerLiteral {
     }
 }
 
-extension Decimal : SignedNumber {
+extension Decimal : SignedNumeric {
+    public var magnitude: Decimal {
+        return Decimal(_exponent: _exponent, _length: _length, _isNegative: 0, _isCompact: _isCompact, _reserved: 0, _mantissa: _mantissa)
+    }
+
+    // FIXME(integers): implement properly
+    public init?<T : BinaryInteger>(exactly source: T) {
+        fatalError()
+    }
+
+    public static func +=(_ lhs: inout Decimal, _ rhs: Decimal) {
+        var rhs = rhs
+        _ = NSDecimalAdd(&lhs, &lhs, &rhs, .plain)
+    }
+
+    public static func -=(_ lhs: inout Decimal, _ rhs: Decimal) {
+        var rhs = rhs
+        _ = NSDecimalSubtract(&lhs, &lhs, &rhs, .plain)
+    }
+
+    public static func *=(_ lhs: inout Decimal, _ rhs: Decimal) {
+        var rhs = rhs
+        _ = NSDecimalMultiply(&lhs, &lhs, &rhs, .plain)
+    }
+
+    public static func /=(_ lhs: inout Decimal, _ rhs: Decimal) {
+        var rhs = rhs
+        _ = NSDecimalDivide(&lhs, &lhs, &rhs, .plain)
+    }
+
+    public static func +(lhs: Decimal, rhs: Decimal) -> Decimal {
+        var answer = lhs
+        answer += rhs
+        return answer;
+    }
+
+    public static func -(lhs: Decimal, rhs: Decimal) -> Decimal {
+        var answer = lhs
+        answer -= rhs
+        return answer;
+    }
+
+    public static func /(lhs: Decimal, rhs: Decimal) -> Decimal {
+        var answer = lhs
+        answer /= rhs
+        return answer;
+    }
+
+    public static func *(lhs: Decimal, rhs: Decimal) -> Decimal {
+        var answer = lhs
+        answer *= rhs
+        return answer;
+    }
+
+    public mutating func negate() {
+        _isNegative = _isNegative == 0 ? 1 : 0
+    }
 }
 
 extension Decimal : Strideable {
@@ -329,12 +346,6 @@ extension Decimal : Strideable {
     }
     public func advanced(by n: Decimal) -> Decimal {
         return self + n
-    }
-}
-
-extension Decimal : AbsoluteValuable {
-    public static func abs(_ x: Decimal) -> Decimal {
-        return Decimal(_exponent: x._exponent, _length: x._length, _isNegative: 0, _isCompact: x._isCompact, _reserved: 0, _mantissa: x._mantissa)
     }
 }
 
