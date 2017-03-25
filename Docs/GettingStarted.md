@@ -38,9 +38,10 @@ You will need:
 
 To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
-The default build script does not include Foundation. To build Foundation and XCTest as well, pass `--xctest --foundation` to the build script.
+The default build script does not include Foundation. To build Foundation and XCTest as well, pass `--xctest --foundation` to the build script. If you are using Ubuntu 14.04, you will first need to install `libcurl`:
 
 ```
+sudo apt-get install libcurl3-dev # Only on Ubuntu 14.04
 swift/utils/build-script --xctest --foundation -t
 ```
 
