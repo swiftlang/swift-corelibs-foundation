@@ -284,6 +284,8 @@ internal extension JSONSerialization {
 //MARK: - JSONSerializer
 private struct JSONWriter {
     
+    private let maxUIntLength = String(describing: UInt.max).characters.count
+    private let maxIntLength = String(describing: Int.max).characters.count
     var indent = 0
     let pretty: Bool
     let writer: (String?) -> Void
@@ -334,8 +336,8 @@ private struct JSONWriter {
         var array: [UInt] = []
         var stringResult = ""
         //Maximum length of an UInt
-        array.reserveCapacity(20)
-        stringResult.reserveCapacity(20)
+        array.reserveCapacity(maxUIntLength)
+        stringResult.reserveCapacity(maxUIntLength)
         var number = value
         
         while number != 0 {
@@ -375,10 +377,9 @@ private struct JSONWriter {
         }
         var array: [Int] = []
         var stringResult = ""
-        //Maximum length of an Int
-        array.reserveCapacity(19)
+        array.reserveCapacity(maxIntLength)
         //Account for a negative sign
-        stringResult.reserveCapacity(20)
+        stringResult.reserveCapacity(maxIntLength + 1)
         var number = value
         
         while number != 0 {

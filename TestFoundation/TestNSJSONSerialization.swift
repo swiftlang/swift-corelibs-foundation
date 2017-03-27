@@ -1060,22 +1060,22 @@ extension TestNSJSONSerialization {
     
     func test_serialize_IntMax() {
         let json: [Any] = [Int.max]
-        XCTAssertEqual(try trySerialize(json), "[9223372036854775807]")
+        XCTAssertEqual(try trySerialize(json), "[\(Int.max)]")
     }
     
     func test_serialize_IntMin() {
         let json: [Any] = [Int.min]
-        XCTAssertEqual(try trySerialize(json), "[-9223372036854775808]")
+        XCTAssertEqual(try trySerialize(json), "[\(Int.min)]")
     }
     
     func test_serialize_UIntMax() {
         let json: [Any] = [UInt.max]
-        XCTAssertEqual(try trySerialize(json), "[18446744073709551615]")
+        XCTAssertEqual(try trySerialize(json), "[\(Int.max)]")
     }
     
     func test_serialize_UIntMin() {
         let json: [Any] = [UInt.min]
-        XCTAssertEqual(try trySerialize(json), "[0]")
+        XCTAssertEqual(try trySerialize(json), "[\(Int.min)]")
     }
     
     func test_serialize_stringEscaping() {
