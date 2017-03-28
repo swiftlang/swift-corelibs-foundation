@@ -292,8 +292,8 @@ open class Progress : NSObject {
     open var pausingHandler: (() -> Void)? {
         didSet {
             guard let handler = pausingHandler else { return }
-            // If we're already cancelled, then invoke it - asynchronously
-            if isCancelled {
+            // If we're already paused, then invoke it - asynchronously
+            if isPaused {
                 DispatchQueue.global().async {
                     handler()
                 }
