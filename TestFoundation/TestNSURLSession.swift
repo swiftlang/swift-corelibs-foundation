@@ -35,6 +35,7 @@ class TestURLSession : XCTestCase {
             ("test_cancelTask", test_cancelTask),
             ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
+            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
         ]
     }
 
@@ -346,6 +347,41 @@ class TestURLSession : XCTestCase {
         }
         task.resume()
 
+        waitForExpectations(timeout: 30)
+    }
+
+    // Verify httpAdditionalHeaders from session configuration are added to the request
+    // and whether it is overriden by Request.allHTTPHeaderFields.
+    
+    func test_verifyHttpAdditionalHeaders() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3"]
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "download task with handler")
+        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/requestHeaders")!)
+        let headers = ["header1": "rvalue1", "header2": "rvalue2"]
+        req.httpMethod = "POST"
+        req.allHTTPHeaderFields = headers
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            let headers = String(data: data!, encoding: String.Encoding.utf8)!
+            XCTAssertNotNil(headers.range(of: "header1: rvalue1"))
+            XCTAssertNotNil(headers.range(of: "header2: rvalue2"))
+            XCTAssertNotNil(headers.range(of: "header3: svalue3"))
+        }
+        task.resume()
+        
         waitForExpectations(timeout: 30)
     }
 
