@@ -148,7 +148,7 @@ extension NSOrderedSet {
     open func objects(at indexes: IndexSet) -> [Any] {
         var entries = [Any]()
         for idx in indexes {
-            if idx >= count && idx < 0 {
+            if idx >= count || idx < 0 {
                 fatalError("\(self): Index out of bounds")
             }
             entries.append(object(at: idx))
