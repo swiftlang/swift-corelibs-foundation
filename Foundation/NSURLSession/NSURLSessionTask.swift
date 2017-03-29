@@ -548,9 +548,31 @@ fileprivate extension URLSessionTask {
         
         // HTTP Options:
         easyHandle.set(followLocation: false)
+        
+        // The httpAdditionalHeaders from session configuration has to be added to the request.
+        // The request.allHTTPHeaders can override the httpAdditionalHeaders elements. Add the
+        // httpAdditionalHeaders from session configuration first and then append/update the
+        // request.allHTTPHeaders so that request.allHTTPHeaders can override httpAdditionalHeaders.
+        
+        let httpSession = session as! URLSession
+        var httpHeaders: [AnyHashable : Any]?
+        
+        if let hh = httpSession.configuration.httpAdditionalHeaders {
+            httpHeaders = hh
+        }
+        
+        if let hh = currentRequest?.allHTTPHeaderFields {
+            if httpHeaders == nil {
+                httpHeaders = hh
+            } else {
+                hh.forEach {
+                    httpHeaders![$0] = $1
+                }
+            }
+        }
 
         let customHeaders: [String]
-        let headersForRequest = curlHeaders(for: request)
+        let headersForRequest = curlHeaders(for: httpHeaders)
         if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
             customHeaders = headersForRequest + ["Content-Type:application/x-www-form-urlencoded"]
         } else {
@@ -566,8 +588,7 @@ fileprivate extension URLSessionTask {
 
         //set the request timeout
         //TODO: the timeout value needs to be reset on every data transfer
-        let s = session as! URLSession
-        let timeoutInterval = Int(s.configuration.timeoutIntervalForRequest) * 1000
+        let timeoutInterval = Int(httpSession.configuration.timeoutIntervalForRequest) * 1000
         let timeoutHandler = DispatchWorkItem { [weak self] in
             guard let currentTask = self else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
             currentTask.internalState = .transferFailed
@@ -593,10 +614,11 @@ fileprivate extension URLSessionTask {
     /// expects.
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
-    func curlHeaders(for request: URLRequest) -> [String] {
+    func curlHeaders(for httpHeaders: [AnyHashable : Any]?) -> [String] {
         var result: [String] = []
         var names = Set<String>()
-        if let hh = currentRequest?.allHTTPHeaderFields {
+        if httpHeaders != nil {
+            let hh = httpHeaders as! [String:String]
             hh.forEach {
                 let name = $0.0.lowercased()
                 guard !names.contains(name) else { return }
