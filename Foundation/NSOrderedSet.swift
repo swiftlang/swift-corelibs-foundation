@@ -148,7 +148,7 @@ extension NSOrderedSet {
     open func objects(at indexes: IndexSet) -> [Any] {
         var entries = [Any]()
         for idx in indexes {
-            if idx >= count && idx < 0 {
+            guard idx < count && idx >= 0 else {
                 fatalError("\(self): Index out of bounds")
             }
             entries.append(object(at: idx))
@@ -338,12 +338,12 @@ extension NSOrderedSet {
 open class NSMutableOrderedSet : NSOrderedSet {
     
     open func insert(_ object: Any, at idx: Int) {
-        guard idx < count && idx >= 0 else {
+        guard idx <= count && idx >= 0 else {
             fatalError("\(self): Index out of bounds")
         }
 
         let value = _SwiftValue.store(object)
-        
+
         if contains(value) {
             return
         }

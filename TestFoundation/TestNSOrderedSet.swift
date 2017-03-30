@@ -43,7 +43,8 @@ class TestNSOrderedSet : XCTestCase {
             ("test_ReplaceObject", test_ReplaceObject),
             ("test_ExchangeObjects", test_ExchangeObjects),
             ("test_MoveObjects", test_MoveObjects),
-            ("test_InserObjects", test_InsertObjects),
+            ("test_InsertObjects", test_InsertObjects),
+            ("test_Insert", test_Insert),
             ("test_SetObjectAtIndex", test_SetObjectAtIndex),
             ("test_RemoveObjectsInRange", test_RemoveObjectsInRange),
             ("test_ReplaceObjectsAtIndexes", test_ReplaceObjectsAtIndexes),
@@ -250,6 +251,16 @@ class TestNSOrderedSet : XCTestCase {
         XCTAssertEqual(set[2] as? String, "bar")
         XCTAssertEqual(set[3] as? String, "456")
         XCTAssertEqual(set[4] as? String, "baz")
+    }
+
+    func test_Insert() {
+        let set = NSMutableOrderedSet()
+        set.insert("foo", at: 0)
+        XCTAssertEqual(set.count, 1)
+        XCTAssertEqual(set[0] as? String, "foo")
+        set.insert("bar", at: 1)
+        XCTAssertEqual(set.count, 2)
+        XCTAssertEqual(set[1] as? String, "bar")
     }
 
     func test_SetObjectAtIndex() {
