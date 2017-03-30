@@ -377,8 +377,8 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedIn
 }
 
 public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
-    public final var _domain: String { return Self._nsErrorDomain }
-    public final var _code: Int { return Int(rawValue.toIntMax()) }
+    public var _domain: String { return Self._nsErrorDomain }
+    public var _code: Int { return Int(rawValue.toIntMax()) }
     
     public init?(rawValue: RawValue) {
         self = unsafeBitCast(rawValue, to: Self.self)
@@ -392,7 +392,7 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: S
         self.init(rawValue: RawValue(IntMax(_bridgedNSError.code)))
     }
     
-    public final var hashValue: Int { return _code }
+    public var hashValue: Int { return _code }
 }
 
 // Allow two bridged NSError types to be compared.
@@ -403,8 +403,8 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: Unsigned
 }
 
 public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
-    public final var _domain: String { return Self._nsErrorDomain }
-    public final var _code: Int {
+    public var _domain: String { return Self._nsErrorDomain }
+    public var _code: Int {
         return Int(bitPattern: UInt(rawValue.toUIntMax()))
     }
     
@@ -420,7 +420,7 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: U
         self.init(rawValue: RawValue(UIntMax(UInt(_bridgedNSError.code))))
     }
     
-    public final var hashValue: Int { return _code }
+    public var hashValue: Int { return _code }
 }
 
 /// Describes a raw representable type that is bridged to a particular
