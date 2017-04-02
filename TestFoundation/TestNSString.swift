@@ -68,6 +68,8 @@ class TestNSString : XCTestCase {
             ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
             ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
+            ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
+            ("test_FromContentsOfURLUsedEncodingUTF32LE", test_FromContentsOfURLUsedEncodingUTF32LE),
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             // This test takes forever on build servers; it has been seen up to 1852.084 seconds
@@ -329,6 +331,38 @@ class TestNSString : XCTestCase {
           let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
           XCTAssertEqual(string, "NSString fromURL usedEncoding test with UTF16 LE file", "Wrong result when reading UTF16LE file")
           XCTAssertEqual(encoding, String.Encoding.utf16LittleEndian.rawValue, "Wrong encoding detected from UTF16LE file")
+      } catch {
+          XCTFail("Unable to init NSString from contentOf:usedEncoding:")
+      }
+    }
+
+    func test_FromContentsOfURLUsedEncodingUTF32BE() {
+      guard let testFileURL = testBundle().url(forResource: "NSString-UTF32-BE-data", withExtension: "txt") else {
+        XCTFail("URL for NSString-UTF32-BE-data.txt is nil")
+        return
+      }
+
+      do {
+         var encoding: UInt = 0
+         let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
+         XCTAssertEqual(string, "NSString fromURL usedEncoding test with UTF32 BE file", "Wrong result when reading UTF32BE file")
+         XCTAssertEqual(encoding, String.Encoding.utf32BigEndian.rawValue, "Wrong encoding detected from UTF32BE file")
+      } catch {
+          XCTFail("Unable to init NSString from contentOf:usedEncoding:")
+      }
+    }
+
+    func test_FromContentsOfURLUsedEncodingUTF32LE() {
+      guard let testFileURL = testBundle().url(forResource: "NSString-UTF32-LE-data", withExtension: "txt") else {
+        XCTFail("URL for NSString-UTF32-LE-data.txt is nil")
+        return
+      }
+
+      do {
+         var encoding: UInt = 0
+         let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
+         XCTAssertEqual(string, "NSString fromURL usedEncoding test with UTF32 LE file", "Wrong result when reading UTF32LE file")
+         XCTAssertEqual(encoding, String.Encoding.utf32LittleEndian.rawValue, "Wrong encoding detected from UTF32LE file")
       } catch {
           XCTFail("Unable to init NSString from contentOf:usedEncoding:")
       }
