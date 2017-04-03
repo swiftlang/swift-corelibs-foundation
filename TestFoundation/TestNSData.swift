@@ -96,6 +96,7 @@ class TestNSData: XCTestCase {
             ("test_sliceAppending", test_sliceAppending),
             ("test_replaceSubrange", test_replaceSubrange),
             ("test_sliceWithUnsafeBytes", test_sliceWithUnsafeBytes),
+            ("test_sliceIteration", test_sliceIteration),
         ]
     }
     
@@ -1090,6 +1091,17 @@ extension TestNSData {
             return [ptr.pointee, ptr.advanced(by: 1).pointee]
         }
         XCTAssertEqual(segment, [UInt8(2), UInt8(3)])
+    }
+    
+    func test_sliceIteration() {
+        let base = Data([0, 1, 2, 3, 4, 5])
+        let slice = base[2..<4]
+        var found = [UInt8]()
+        for byte in slice {
+            found.append(byte)
+        }
+        XCTAssertEqual(found[0], 2)
+        XCTAssertEqual(found[1], 3)
     }
 }
 
