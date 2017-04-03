@@ -350,11 +350,11 @@ public final class _DataStorage {
     
     // fast-path for appending directly from another data storage
     @inline(__always)
-    public func append(_ otherData: _DataStorage) {
+    public func append(_ otherData: _DataStorage, startingAt start: Int) {
         let otherLength = otherData.length
         if otherLength == 0 { return }
         if let bytes = otherData.bytes {
-            append(bytes, length: otherLength)
+            append(bytes.advanced(by: start), length: otherLength)
         }
     }
     
@@ -1089,7 +1089,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - warning: The byte pointer argument should not be stored and used outside of the lifetime of the call to the closure.
     @inline(__always)
     public func withUnsafeBytes<ResultType, ContentType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
-        let bytes =  _backing.bytes ?? UnsafeRawPointer(bitPattern: 0xBAD0)!
+        let bytes =  _backing.bytes?.advanced(by: _sliceRange.lowerBound) ?? UnsafeRawPointer(bitPattern: 0xBAD0)!
         let contentPtr = bytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
         return try body(contentPtr)
     }
@@ -1104,7 +1104,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy(_sliceRange)
         }
-        let mutableBytes = _backing.mutableBytes ?? UnsafeMutableRawPointer(bitPattern: 0xBAD0)!
+        let mutableBytes = _backing.mutableBytes?.advanced(by: _sliceRange.lowerBound) ?? UnsafeMutableRawPointer(bitPattern: 0xBAD0)!
         let contentPtr = mutableBytes.bindMemory(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride)
         return try body(UnsafeMutablePointer(contentPtr))
     }
@@ -1256,7 +1256,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy(_sliceRange)
         }
-        _backing.append(other._backing)
+        _backing.append(other._backing, startingAt: other._sliceRange.lowerBound)
         _sliceRange = _sliceRange.lowerBound..<(_sliceRange.upperBound + other.count)
     }
     
@@ -1271,15 +1271,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
         _backing.append(buffer.baseAddress!, length: buffer.count * MemoryLayout<SourceType>.stride)
         _sliceRange = _sliceRange.lowerBound..<(_sliceRange.upperBound + buffer.count * MemoryLayout<SourceType>.stride)
-    }
-    
-    @inline(__always)
-    public mutating func append(_ other: MutableRangeReplaceableRandomAccessSlice<Data>) {
-        let count = other.count
-        if count == 0 { return }
-        other.base.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
-            append(bytes, count: count)
-        }
     }
     
     @inline(__always)
@@ -1337,12 +1328,12 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if !isKnownUniquelyReferenced(&_backing) {
             _backing = _backing.mutableCopy(_sliceRange)
         }
-        data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Void in
+        let resultingLength = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Int in
             let currentLength = _backing.length
             _backing.replaceBytes(in: nsRange, with: bytes, length: cnt)
-            let resultingLength = currentLength - nsRange.length + cnt
-            _sliceRange = _sliceRange.lowerBound..<(_sliceRange.lowerBound + resultingLength)
+            return currentLength - nsRange.length + cnt
         }
+        _sliceRange = _sliceRange.lowerBound..<(_sliceRange.lowerBound + resultingLength)
     }
     
     /// Replace a region of bytes in the data with new bytes from a buffer.
@@ -1489,9 +1480,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public subscript(index: Index) -> UInt8 {
         @inline(__always)
         get {
-            return withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> UInt8 in
-                return bytes.advanced(by: index).pointee
-            }
+            return _backing.bytes!.advanced(by: _sliceRange.lowerBound + index).assumingMemoryBound(to: UInt8.self).pointee
         }
         @inline(__always)
         set {

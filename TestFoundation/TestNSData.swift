@@ -92,6 +92,10 @@ class TestNSData: XCTestCase {
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
             ("test_repeatingValueInitialization", test_repeatingValueInitialization),
+            
+            ("test_sliceAppending", test_sliceAppending),
+            ("test_replaceSubrange", test_replaceSubrange),
+            ("test_sliceWithUnsafeBytes", test_sliceWithUnsafeBytes),
         ]
     }
     
@@ -1058,6 +1062,34 @@ extension TestNSData {
         XCTAssertEqual(d[3], 0x02)
         XCTAssertEqual(d[4], 0x02)
         XCTAssertEqual(d[5], 0x02)
+    }
+    
+    func test_sliceAppending() {
+        // https://bugs.swift.org/browse/SR-4473
+        var fooData = Data()
+        let barData = Data([0, 1, 2, 3, 4, 5])
+        let slice = barData.suffix(from: 3)
+        fooData.append(slice)
+        XCTAssertEqual(fooData[0], 0x03)
+        XCTAssertEqual(fooData[1], 0x04)
+        XCTAssertEqual(fooData[2], 0x05)
+    }
+    
+    func test_replaceSubrange() {
+        // https://bugs.swift.org/browse/SR-4462
+        let data = Data(bytes: [0x01, 0x02])
+        var dataII = Data(base64Encoded: data.base64EncodedString())!
+        dataII.replaceSubrange(0..<1, with: Data())
+        XCTAssertEqual(dataII[0], 0x02)
+    }
+    
+    func test_sliceWithUnsafeBytes() {
+        let base = Data([0, 1, 2, 3, 4, 5])
+        let slice = base[2..<4]
+        let segment = slice.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> [UInt8] in
+            return [ptr.pointee, ptr.advanced(by: 1).pointee]
+        }
+        XCTAssertEqual(segment, [UInt8(2), UInt8(3)])
     }
 }
 
