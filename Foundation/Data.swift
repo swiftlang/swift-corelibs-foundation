@@ -1126,7 +1126,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inline(__always)
     private func _copyBytesHelper(to pointer: UnsafeMutableRawPointer, from range: NSRange) {
         if range.length == 0 { return }
-        memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!.advanced(by: range.location + _sliceRange.lowerBound), range.length)
+        memcpy(UnsafeMutableRawPointer(pointer), _backing.bytes!.advanced(by: range.location), range.length)
     }
     
     /// Copy a subset of the contents of the data to a pointer.
