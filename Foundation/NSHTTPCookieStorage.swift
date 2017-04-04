@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 import Dispatch
+import CoreFoundation
 
 /*!
     @enum NSHTTPCookieAcceptPolicy
@@ -46,8 +47,7 @@ open class HTTPCookieStorage: NSObject {
         allCookies = [:]
         cookieAcceptPolicy = .always
         super.init()
-        //TODO: cookieFilePath = filePath(path: _CFXDGCreateConfigHomePath()._swiftObject, fileName: "/.cookies." + cookieStorageName)
-        cookieFilePath = filePath(path: NSHomeDirectory() + "/.config", fileName: "/.cookies." + cookieStorageName)
+        cookieFilePath = filePath(path: _CFXDGCreateConfigHomePath()._swiftObject, fileName: "/.cookies." + cookieStorageName)
         loadPersistedCookies()
     }
 
