@@ -350,10 +350,11 @@ open class FileManager : NSObject {
         
         var result = [FileAttributeKey : Any]()
         let blockSize = UInt64(s.f_bsize)
-        result[.systemSize] = NSNumber(value: blockSize * s.f_blocks)
-        result[.systemFreeSize] = NSNumber(value: blockSize * s.f_bavail)
-        result[.systemNodes] = NSNumber(value: s.f_files)
-        result[.systemFreeNodes] = NSNumber(value: s.f_ffree)
+        result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
+        result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
+        result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
+        result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
+        result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
         
         return result
     }

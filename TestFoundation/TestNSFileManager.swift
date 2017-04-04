@@ -124,16 +124,24 @@ class TestNSFileManager : XCTestCase {
             
             XCTAssertTrue(attrs.count > 0)
             
+            let systemNumber = attrs[.systemNumber] as? NSNumber
+            XCTAssertNotNil(systemNumber)
+            XCTAssertGreaterThan(systemNumber!.int64Value, 0)
+            
             let systemFreeSize = attrs[.systemFreeSize] as? NSNumber
+            XCTAssertNotNil(systemFreeSize)
             XCTAssertGreaterThan(systemFreeSize!.int64Value, 0)
             
             let systemSize = attrs[.systemSize] as? NSNumber
+            XCTAssertNotNil(systemSize)
             XCTAssertGreaterThan(systemSize!.int64Value, systemFreeSize!.int64Value)
             
             let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
+            XCTAssertNotNil(systemFreeNodes)
             XCTAssertGreaterThan(systemFreeNodes!.int64Value, 0)
             
             let systemNodes = attrs[.systemNodes] as? NSNumber
+            XCTAssertNotNil(systemNodes)
             XCTAssertGreaterThan(systemNodes!.int64Value, systemFreeNodes!.int64Value)
             
         } catch let err {
