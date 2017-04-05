@@ -158,7 +158,7 @@ class TestNSURL : XCTestCase {
                         differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
                     }
                 } else {
-                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(String(describing:got[key]))'")
                 }
             } else if let expectedValue = obj as? [String] {
                 if let testedValue = got[key] as? [String] {
@@ -166,7 +166,7 @@ class TestNSURL : XCTestCase {
                         differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
                     }
                 } else {
-                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(String(describing:got[key]))'")
                 }
             } else if let expectedValue = obj as? Int {
                 if let testedValue = got[key] as? Int {
@@ -174,7 +174,7 @@ class TestNSURL : XCTestCase {
                         differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(testedValue)'")
                     }
                 } else {
-                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(got[key])'")
+                    differences.append(" \(key)  Expected = '\(expectedValue)',  Got = '\(String(describing:got[key]))'")
                 }
             }
             
