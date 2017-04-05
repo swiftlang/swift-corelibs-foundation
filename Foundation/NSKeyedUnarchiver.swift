@@ -387,7 +387,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[_SwiftValue.store(decodedObject)]
+        object = self._replacementMap[_SwiftValue.store(decodedObject!)]
         if object != nil {
             return object
         }

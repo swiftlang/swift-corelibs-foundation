@@ -376,7 +376,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[_SwiftValue.store(objv)] != nil
+            return self._objRefMap[_SwiftValue.store(objv!)] != nil
         }
     }
     
