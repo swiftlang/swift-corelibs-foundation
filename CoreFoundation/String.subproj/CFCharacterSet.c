@@ -216,10 +216,10 @@ static Boolean __CFCSetIsBitmapEqualToRange(const UInt32 *bits, UniChar firstCha
         UInt32 lastCharMask;
 
         length = firstCharIndex % sizeof(UInt32);
-        firstCharMask = (((((UInt32)0xFF) << (firstChar & (BITSPERBYTE - 1))) & 0xFF) << (((sizeof(UInt32) - 1) - length) * BITSPERBYTE)) | (((UInt32)0xFFFFFFFF) >> ((length + 1) * BITSPERBYTE));
+        firstCharMask = (((((UInt32)0xFF) << (firstChar & (BITSPERBYTE - 1))) & 0xFF) << (((sizeof(UInt32) - 1) - length) * BITSPERBYTE)) | (UInt32)(((UInt64)0xFFFFFFFF) >> ((length + 1) * BITSPERBYTE));
         
         length = lastCharIndex % sizeof(UInt32);
-        lastCharMask = ((((UInt32)0xFF) >> ((BITSPERBYTE - 1) - (lastChar & (BITSPERBYTE - 1)))) << (((sizeof(UInt32) - 1) - length) * BITSPERBYTE)) | (((UInt32)0xFFFFFFFF) << ((sizeof(UInt32) - length) * BITSPERBYTE));
+        lastCharMask = ((((UInt32)0xFF) >> ((BITSPERBYTE - 1) - (lastChar & (BITSPERBYTE - 1)))) << (((sizeof(UInt32) - 1) - length) * BITSPERBYTE)) | (UInt32)(((UInt64)0xFFFFFFFF) << ((sizeof(UInt32) - length) * BITSPERBYTE));
 
         firstCharIndex = firstChar >> LOG_BPLW;
         lastCharIndex = lastChar >> LOG_BPLW;
