@@ -454,7 +454,7 @@ open class NSKeyedUnarchiver : NSCoder {
 
                 guard let classReference = innerDecodingContext.dict["$class"] as? _NSKeyedArchiverUID else {
                     throw _decodingError(CocoaError.coderReadCorrupt,
-                                         withDescription: "Invalid class reference \(String(describing:innerDecodingContext.dict["$class"])). The data may be corrupt.")
+                                         withDescription: "Invalid class reference \(String(describing: innerDecodingContext.dict["$class"])). The data may be corrupt.")
                 }
 
                 var classToConstruct : AnyClass? = try _validateAndMapClassReference(classReference,

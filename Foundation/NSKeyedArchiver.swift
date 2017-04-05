@@ -612,7 +612,7 @@ open class NSKeyedArchiver : NSCoder {
 
             if _isContainer(object) {
                 guard let codable = object as? NSCoding else {
-                    fatalError("Object \(String(describing:object)) does not conform to NSCoding")
+                    fatalError("Object \(String(describing: object)) does not conform to NSCoding")
                 }
 
                 let innerEncodingContext = EncodingContext()

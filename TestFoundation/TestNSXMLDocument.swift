@@ -67,9 +67,9 @@ class TestNSXMLDocument : XCTestCase {
 
     func test_basicCreation() {
         let doc = XMLDocument(rootElement: nil)
-        XCTAssert(doc.version == "1.0", "expected 1.0, got \(String(describing:doc.version))")
+        XCTAssert(doc.version == "1.0", "expected 1.0, got \(String(describing: doc.version))")
         doc.version = "1.1"
-        XCTAssert(doc.version == "1.1", "expected 1.1, got \(String(describing:doc.version))")
+        XCTAssert(doc.version == "1.1", "expected 1.1, got \(String(describing: doc.version))")
         let node = XMLElement(name: "Hello", uri: "http://www.example.com")
 
         doc.setRootElement(node)
