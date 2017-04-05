@@ -75,7 +75,7 @@ extension Measurement where UnitType : Dimension {
 /// Add two measurements of the same Unit.
 /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
 /// - returns: A measurement of value `lhs.value + rhs.value` and unit `lhs.unit`.
-public func +<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+public func +<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
     if lhs.unit.isEqual(rhs.unit) {
         return Measurement(value: lhs.value + rhs.value, unit: lhs.unit)
     } else {
@@ -100,7 +100,7 @@ public func +<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measurement
 /// Subtract two measurements of the same Unit.
 /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
 /// - returns: A measurement of value `lhs.value - rhs.value` and unit `lhs.unit`.
-public func -<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+public func -<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
     if lhs.unit.isEqual(rhs.unit) {
         return Measurement(value: lhs.value - rhs.value, unit: lhs.unit)
     } else {
@@ -124,31 +124,31 @@ public func -<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measurement
 
 /// Multiply a measurement by a scalar value.
 /// - returns: A measurement of value `lhs.value * rhs` with the same unit as `lhs`.
-public func *<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Double) -> Measurement<UnitType> {
+public func *<UnitType>(lhs: Measurement<UnitType>, rhs: Double) -> Measurement<UnitType> {
     return Measurement(value: lhs.value * rhs, unit: lhs.unit)
 }
 
 /// Multiply a scalar value by a measurement.
 /// - returns: A measurement of value `lhs * rhs.value` with the same unit as `rhs`.
-public func *<UnitType : Unit>(lhs: Double, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+public func *<UnitType>(lhs: Double, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
     return Measurement(value: lhs * rhs.value, unit: rhs.unit)
 }
 
 /// Divide a measurement by a scalar value.
 /// - returns: A measurement of value `lhs.value / rhs` with the same unit as `lhs`.
-public func /<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Double) -> Measurement<UnitType> {
+public func /<UnitType>(lhs: Measurement<UnitType>, rhs: Double) -> Measurement<UnitType> {
     return Measurement(value: lhs.value / rhs, unit: lhs.unit)
 }
 
 /// Divide a scalar value by a measurement.
 /// - returns: A measurement of value `lhs / rhs.value` with the same unit as `rhs`.
-public func /<UnitType : Unit>(lhs: Double, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+public func /<UnitType>(lhs: Double, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
     return Measurement(value: lhs / rhs.value, unit: rhs.unit)
 }
 
 /// Compare two measurements of the same `Unit`.
 /// - returns: `true` if `lhs.value == rhs.value && lhs.unit == rhs.unit`.
-public func ==<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+public func ==<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
     return lhs.value == rhs.value && lhs.unit == rhs.unit
 }
 
@@ -168,7 +168,7 @@ public func ==<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measuremen
 /// Compare two measurements of the same `Unit`.
 /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
 /// - returns: `lhs.value < rhs.value`
-public func <<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+public func <<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
     return lhs.value < rhs.value
 }
 
@@ -188,7 +188,7 @@ public func <<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measurement
 /// Compare two measurements of the same `Unit`.
 /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
 /// - returns: `lhs.value > rhs.value`
-public func ><UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+public func ><UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
     return lhs.value > rhs.value
 }
 
@@ -208,7 +208,7 @@ public func ><UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measurement
 /// Compare two measurements of the same `Unit`.
 /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
 /// - returns: `lhs.value <= rhs.value`
-public func <=<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+public func <=<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
     return lhs.value <= rhs.value
 }
 
@@ -228,7 +228,7 @@ public func <=<UnitType : Dimension>(lhs: Measurement<UnitType>, rhs: Measuremen
 /// Compare two measurements of the same `Unit`.
 /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
 /// - returns: `lhs.value >= rhs.value`
-public func >=<UnitType : Unit>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+public func >=<UnitType>(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
     return lhs.value >= rhs.value
 }
 

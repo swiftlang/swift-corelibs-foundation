@@ -79,5 +79,5 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
 }
 
 extension MeasurementFormatter {
-    public func string<UnitType : Unit>(from measurement: Measurement<UnitType>) -> String { NSUnimplemented() }
+    public func string<UnitType>(from measurement: Measurement<UnitType>) -> String { NSUnimplemented() }
 }
