@@ -28,11 +28,11 @@ typedef CF_ENUM(CFIndex, URLPredefinedCharacterSet) {
     kURLAllowedCharacterSetIllegal  = 6
 };
 
-// IMPORTANT: the kURLxxxxAllowedCharacters definitions MUST match sURLAllowedCharacters (except for the '[', ':' and ']' characters in kURLHostAllowedCharacters are not kURLHostAllowed, and ';' is not in kURLPathAllowedCharacters, but is special cased in kURLPathAllowed)
+// IMPORTANT: the kURLxxxxAllowedCharacters definitions MUST match sURLAllowedCharacters (except for the '[', ':' and ']' characters in kURLHostAllowedCharacters are not kURLHostAllowed)
 #define kURLUserAllowedCharacters       "!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
 #define kURLPasswordAllowedCharacters   "!$&'()*+,-.0123456789;=ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
 #define kURLHostAllowedCharacters       "!$&'()*+,-.0123456789:;=ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"
-#define kURLPathAllowedCharacters       "!$&'()*+,-./0123456789:=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~" // ";" is disallowed in paths for compatibility with API which uses rfc1808 parsing where ";" was the separator between path and param. ":" is allowed only after a "/" (it cannot be in the first segment in some cases)
+#define kURLPathAllowedCharacters       "!$&'()*+,-./0123456789:;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~" // ";" is allowed in paths. But for compatibility with API which uses rfc1808 parsing it should be encoded, where ";" was the separator between path and param. ":" is allowed only after a "/" (it cannot be in the first segment in some cases)
 #define kURLQueryAllowedCharacters      "!$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
 #define kURLFragmentAllowedCharacters   "!$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
 
@@ -347,8 +347,7 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                         for ( idx = 0; idx < inLen; ++idx ) {
                             UInt8 ch = *inBytePtr++;
                             if ( pastSlash ) {
-                                // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
-                                Boolean allowed = (ch <= 127) && (ch != ';') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                Boolean allowed = (ch <= 127) && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
                                 if ( allowed ) {
                                     *outBytePtr++ = ch;
                                 }
@@ -362,8 +361,7 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
                                 if ( ch == '/' ) {
                                     pastSlash = true;
                                 }
-                                // !!!: percent encode ';' for backwards compatibility with API which uses rfc1808 parsing
-                                Boolean allowed = (ch <= 127) && (ch != ';') && (ch != ':') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
+                                Boolean allowed = (ch <= 127) && (ch != ':') && ((sURLAllowedCharacters[ch] & allowedMask) != 0);
                                 if ( allowed ) {
                                     *outBytePtr++ = ch;
                                 }
