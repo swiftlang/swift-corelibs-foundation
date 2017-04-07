@@ -10,6 +10,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if os(macOS) || os(iOS)
+    import Darwin
+#elseif os(Linux) || os(Android)
+    import Glibc
+#endif
 
 import CoreFoundation
 
