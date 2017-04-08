@@ -135,12 +135,7 @@ public func NSGetSizeAndAlignment(_ typePtr: UnsafePointer<Int8>,
     return typePtr.advanced(by: 1)
 }
 
-public enum ComparisonResult : Int {
-    
-    case orderedAscending = -1
-    case orderedSame
-    case orderedDescending
-    
+extension ComparisonResult {    
     internal static func _fromCF(_ val: CFComparisonResult) -> ComparisonResult {
         if val == kCFCompareLessThan {
             return .orderedAscending
