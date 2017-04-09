@@ -182,21 +182,21 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
 
     public static func <(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedAscending
+        return lhs.compare(rhs) == .orderedAscending
     }
 
     public static func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
         let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedAscending || order == ComparisonResult.orderedSame
+        return order == .orderedAscending || order == .orderedSame
     }
 
     public static func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedDescending
+        return lhs.compare(rhs) == .orderedDescending
     }
 
     public static func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
         let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedDescending || order == ComparisonResult.orderedSame
+        return order == .orderedDescending || order == .orderedSame
     }
 }
 
