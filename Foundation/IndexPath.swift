@@ -186,8 +186,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
 
     public static func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        let order = lhs.compare(rhs)
-        return order == .orderedAscending || order == .orderedSame
+        return !(lhs > rhs)
     }
 
     public static func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
@@ -195,8 +194,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
 
     public static func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        let order = lhs.compare(rhs)
-        return order == .orderedDescending || order == .orderedSame
+        return !(lhs < rhs)
     }
 }
 
