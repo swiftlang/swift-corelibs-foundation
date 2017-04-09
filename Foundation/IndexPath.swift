@@ -21,10 +21,10 @@
 public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableCollection, RandomAccessCollection, Comparable, ExpressibleByArrayLiteral {
     public typealias ReferenceType = NSIndexPath
     public typealias Element = Int
-    public typealias Index = Array<Int>.Index
+    public typealias Index = Array<Element>.Index
     public typealias Indices = DefaultRandomAccessIndices<IndexPath>
     
-    fileprivate var _indexes : Array<Int>
+    fileprivate var _indexes : Array<Element>
     
     /// Initialize an empty index path.
     public init() {
