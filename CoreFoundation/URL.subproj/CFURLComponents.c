@@ -74,6 +74,7 @@ CF_SWIFT_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
     if (instance->_userComponent) CFRelease(instance->_userComponent);
     if (instance->_passwordComponent) CFRelease(instance->_passwordComponent);
     if (instance->_hostComponent) CFRelease(instance->_hostComponent);
+    if (instance->_portComponent) CFRelease(instance->_portComponent);
     if (instance->_pathComponent) CFRelease(instance->_pathComponent);
     if (instance->_queryComponent) CFRelease(instance->_queryComponent);
     if (instance->_fragmentComponent) CFRelease(instance->_fragmentComponent);
@@ -197,10 +198,12 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateCopy(CFAllocatorRef alloc, CF
     __CFLock(&components->_lock);
     memory->_lock = CFLockInit;
     memory->_urlString = components->_urlString ? CFStringCreateCopy(alloc, components->_urlString) : NULL;
+    memory->_parseInfo = components->_parseInfo;
     
     memory->_schemeComponentValid = components->_schemeComponentValid;
     memory->_userComponentValid = components->_userComponentValid;
     memory->_hostComponentValid = components->_hostComponentValid;
+    memory->_passwordComponentValid = components->_passwordComponentValid;
     memory->_portComponentValid = components->_portComponentValid;
     memory->_pathComponentValid = components->_pathComponentValid;
     memory->_queryComponentValid = components->_queryComponentValid;
@@ -305,7 +308,9 @@ CF_EXPORT CFURLRef _CFURLComponentsCopyURL(CFURLComponentsRef components) {
 CF_EXPORT CFURLRef _CFURLComponentsCopyURLRelativeToURL(CFURLComponentsRef components, CFURLRef relativeToURL) {
     CFStringRef urlString = _CFURLComponentsCopyString(components);
     if (urlString) {
-        return CFURLCreateWithString(kCFAllocatorSystemDefault, urlString, relativeToURL);
+        CFURLRef url = CFURLCreateWithString(kCFAllocatorSystemDefault, urlString, relativeToURL);
+        CFRelease(urlString);
+        return url;
     } else {
         return NULL;
     }
@@ -1135,6 +1140,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                 CFArrayAppendValue(intermediateResult, entry);
                 CFRelease(entry);
                 CFRelease(nameString);
+                CFRelease(valueString);
             }
             else {
                 // at end of query while parsing the name string
