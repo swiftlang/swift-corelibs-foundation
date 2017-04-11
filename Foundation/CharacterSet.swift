@@ -486,7 +486,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSCharacterSet {
-        return _wrapped
+        return unsafeBitCast(_wrapped, to: NSCharacterSet.self)
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSCharacterSet, result: inout CharacterSet?) {
