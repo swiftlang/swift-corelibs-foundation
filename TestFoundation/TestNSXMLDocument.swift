@@ -36,8 +36,8 @@ class TestNSXMLDocument : XCTestCase {
                 ("test_processingInstruction", test_processingInstruction),
                 ("test_parseXMLString", test_parseXMLString),
                 ("test_prefixes", test_prefixes),
-                ("test_validation_success", test_validation_success),
-                ("test_validation_failure", test_validation_failure),
+                //                ("test_validation_success", test_validation_success),
+                //                ("test_validation_failure", test_validation_failure),
                 ("test_dtd", test_dtd),
                 ("test_documentWithDTD", test_documentWithDTD),
                 ("test_dtd_attributes", test_dtd_attributes)
@@ -56,7 +56,7 @@ class TestNSXMLDocument : XCTestCase {
                 ("test_processingInstruction", test_processingInstruction),
                 ("test_parseXMLString", test_parseXMLString),
                 ("test_prefixes", test_prefixes),
-                ("test_validation_success", test_validation_success),
+                //                ("test_validation_success", test_validation_success),
                 //                ("test_validation_failure", test_validation_failure),
                 ("test_dtd", test_dtd),
                 //                ("test_documentWithDTD", test_documentWithDTD),
@@ -289,6 +289,8 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.localName, "root")
     }
 
+    /*
+     * <rdar://31567922> Re-enable these tests in a way that does not depend on the internet.
     func test_validation_success() throws {
         let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
         do {
@@ -330,7 +332,7 @@ class TestNSXMLDocument : XCTestCase {
         } catch let error as NSError {
             XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element true was declared EMPTY this one has content"))
         }
-    }
+    }*/
 
     func test_dtd() throws {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
