@@ -97,7 +97,7 @@ extension NSLocale {
     open class var availableLocaleIdentifiers: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyAvailableLocaleIdentifiers()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }

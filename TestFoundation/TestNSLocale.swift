@@ -20,7 +20,8 @@ class TestNSLocale : XCTestCase {
         return [
             ("test_constants", test_constants),
             ("test_Identifier", test_Identifier),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
+            ("test_availableIdentifiers", test_availableIdentifiers),
         ]
     }
 
@@ -106,5 +107,9 @@ class TestNSLocale : XCTestCase {
         let localeCopy = locale
 
         XCTAssertTrue(locale == localeCopy)
+    }
+
+     func test_availableIdentifiers() {
+        XCTAssertNoThrow(Locale.availableIdentifiers)
     }
 }
