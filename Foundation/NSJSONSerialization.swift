@@ -284,6 +284,8 @@ internal extension JSONSerialization {
 //MARK: - JSONSerializer
 private struct JSONWriter {
     
+    private let maxUIntLength = String(describing: UInt.max).characters.count
+    private let maxIntLength = String(describing: Int.max).characters.count
     var indent = 0
     let pretty: Bool
     let writer: (String?) -> Void
@@ -309,6 +311,10 @@ private struct JSONWriter {
             try serializeString(str)
         case let boolValue as Bool:
             serializeBool(boolValue)
+        case let num as Int:
+            try serializeInt(value: num)
+        case let num as UInt:
+            try serializeUInt(value: num)
         case let array as Array<Any>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any>:
@@ -322,6 +328,92 @@ private struct JSONWriter {
         }
     }
 
+    private func serializeUInt(value: UInt) throws {
+        if value == 0 {
+            writer("0")
+            return
+        }
+        var array: [UInt] = []
+        var stringResult = ""
+        //Maximum length of an UInt
+        array.reserveCapacity(maxUIntLength)
+        stringResult.reserveCapacity(maxUIntLength)
+        var number = value
+        
+        while number != 0 {
+            array.append(number % 10)
+            number /= 10
+        }
+        
+        /*
+         Step backwards through the array and append the values to the string. This way the values are appended in the correct order.
+         */
+        var counter = array.count
+        while counter > 0 {
+            counter -= 1
+            let digit: UInt = array[counter]
+            switch digit {
+            case 0: stringResult.append("0")
+            case 1: stringResult.append("1")
+            case 2: stringResult.append("2")
+            case 3: stringResult.append("3")
+            case 4: stringResult.append("4")
+            case 5: stringResult.append("5")
+            case 6: stringResult.append("6")
+            case 7: stringResult.append("7")
+            case 8: stringResult.append("8")
+            case 9: stringResult.append("9")
+            default: fatalError()
+            }
+        }
+        
+        writer(stringResult)
+    }
+    
+    private func serializeInt(value: Int) throws {
+        if value == 0 {
+            writer("0")
+            return
+        }
+        var array: [Int] = []
+        var stringResult = ""
+        array.reserveCapacity(maxIntLength)
+        //Account for a negative sign
+        stringResult.reserveCapacity(maxIntLength + 1)
+        var number = value
+        
+        while number != 0 {
+            array.append(number % 10)
+            number /= 10
+        }
+        //If negative add minus sign before adding any values
+        if value < 0 {
+            stringResult.append("-")
+        }
+        /*
+         Step backwards through the array and append the values to the string. This way the values are appended in the correct order.
+         */
+        var counter = array.count
+        while counter > 0 {
+            counter -= 1
+            let digit = array[counter]
+            switch digit {
+            case 0: stringResult.append("0")
+            case 1, -1: stringResult.append("1")
+            case 2, -2: stringResult.append("2")
+            case 3, -3: stringResult.append("3")
+            case 4, -4: stringResult.append("4")
+            case 5, -5: stringResult.append("5")
+            case 6, -6: stringResult.append("6")
+            case 7, -7: stringResult.append("7")
+            case 8, -8: stringResult.append("8")
+            case 9, -9: stringResult.append("9")
+            default: fatalError()
+            }
+        }
+        writer(stringResult)
+    }
+    
     func serializeString(_ str: String) throws {
         writer("\"")
         for scalar in str.unicodeScalars {
