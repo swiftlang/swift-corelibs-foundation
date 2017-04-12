@@ -428,7 +428,7 @@ extension DataTask : URLSessionDataDelegate {
 
 extension DataTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-         guard let e = error as? URLError else { return }
+         guard (error as? URLError) != nil else { return }
          dataTaskExpectation.fulfill()
          if let cancellation = cancelExpectation {
              cancellation.fulfill()

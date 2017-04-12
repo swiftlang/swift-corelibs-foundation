@@ -1284,6 +1284,7 @@ static bool (*CAS32)(int32_t, int32_t, volatile int32_t *) = OSAtomicCompareAndS
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 extern void swift_retain(void *);
+extern void swift_release(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".
@@ -1399,7 +1400,6 @@ Boolean _CFIsDeallocating(CFTypeRef cf) {
 static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 #if DEPLOYMENT_RUNTIME_SWIFT
     // We always call through to swift_release, since all CFTypeRefs are at least _NSCFType objects
-    extern void swift_release(void *);
     swift_release((void *)cf);
 #else
 

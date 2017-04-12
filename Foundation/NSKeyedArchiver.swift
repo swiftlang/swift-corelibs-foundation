@@ -376,7 +376,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[_SwiftValue.store(objv)] != nil
+            return self._objRefMap[_SwiftValue.store(objv!)] != nil
         }
     }
     
@@ -612,7 +612,7 @@ open class NSKeyedArchiver : NSCoder {
 
             if _isContainer(object) {
                 guard let codable = object as? NSCoding else {
-                    fatalError("Object \(object) does not conform to NSCoding")
+                    fatalError("Object \(String(describing: object)) does not conform to NSCoding")
                 }
 
                 let innerEncodingContext = EncodingContext()

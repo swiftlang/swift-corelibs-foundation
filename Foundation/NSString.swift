@@ -286,7 +286,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     internal var _fastContents: UnsafePointer<UniChar>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if !_storage._core.isASCII {
-                return unsafeBitCast(_storage._core.startUTF16, to: UnsafePointer<UniChar>.self)
+                return UnsafePointer<UniChar>(_storage._core.startUTF16)
             }
         }
         return nil
