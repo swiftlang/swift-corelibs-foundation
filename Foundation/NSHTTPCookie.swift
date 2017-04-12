@@ -184,10 +184,8 @@ open class HTTPCookie : NSObject {
     /// <tr>
     ///     <td>HTTPCookiePropertyKey.path</td>
     ///     <td>NSString</td>
-    ///     <td>NO</td>
-    ///     <td>Path for the cookie. Inferred from the value for
-    ///     HTTPCookiePropertyKey.originURL if not provided. Default is "/".
-    ///     </td>
+    ///     <td>YES</td>
+    ///     <td>Path for the cookie</td>
     /// </tr>
     /// <tr>
     ///     <td>HTTPCookiePropertyKey.port</td>
