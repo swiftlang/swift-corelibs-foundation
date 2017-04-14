@@ -198,7 +198,11 @@ static Boolean __CFLocaleEqual(CFTypeRef cf1, CFTypeRef cf2) {
     if (__CFLocaleGetType(locale1) != __CFLocaleGetType(locale2)) return false;
     if (!CFEqual(locale1->_identifier, locale2->_identifier)) return false;
     if (__kCFLocaleUser == __CFLocaleGetType(locale1)) {
-        return CFEqual(locale1->_prefs, locale2->_prefs);
+        if (locale1->_prefs && locale2->_prefs) {
+            return CFEqual(locale1->_prefs, locale2->_prefs);
+        } else {
+            return locale1->_prefs == locale2->_prefs;
+        }
     }
     return true;
 }
@@ -447,6 +451,7 @@ CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     uint32_t size = sizeof(struct __CFLocale) - sizeof(CFRuntimeBase);
     locale = (struct __CFLocale *)_CFRuntimeCreateInstance(allocator, CFLocaleGetTypeID(), size, NULL);
     if (NULL == locale) {
+        __CFUnlock(&__CFLocaleCacheLock);
         if (localeIdentifier) { CFRelease(localeIdentifier); }
 	return NULL;
     }
@@ -1171,7 +1176,7 @@ static void __CFLocaleGetMeasurementSystemGuts(CFLocaleRef locale, bool user, UM
     UMeasurementSystem output = UMS_SI;    // Default is Metric
     bool done = false;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-    if (user) {
+    if (user && locale->_prefs) {
         CFTypeRef metricPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleMetricUnits"));
         CFTypeRef measurementPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleMeasurementUnits"));
         if (metricPref || measurementPref) {
@@ -1252,7 +1257,7 @@ static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeR
     bool celsius = true;    // Default is Celsius
     bool done = false;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-    if (user) {
+    if (user && locale->_prefs) {
         CFTypeRef temperatureUnitPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleTemperatureUnit"));
         if (temperatureUnitPref) {
             if (CFEqual(temperatureUnitPref, kCFLocaleTemperatureUnitFahrenheit)) {
@@ -1426,7 +1431,7 @@ static bool __CFLocaleFullName(const char *locale, const char *value, CFStringRe
         int32_t localSize;
         UChar localName[kMaxICUNameSize];
         localSize = uloc_getDisplayLanguage(value, locale, localName, kMaxICUNameSize, &localStatus);
-        if (U_FAILURE(localStatus) || size <= 0 || localStatus == U_USING_DEFAULT_WARNING)
+        if (U_FAILURE(localStatus) || localSize <= 0 || localStatus == U_USING_DEFAULT_WARNING)
             return false;
     }
 
