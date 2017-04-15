@@ -130,7 +130,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
 //        }
         let cnt = array.count
         let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: cnt)
-        buffer.initialize(from: optionalArray)
+        _ = UnsafeMutableBufferPointer(start: buffer, count: cnt).initialize(from: optionalArray)
         self.init(objects: buffer, count: cnt)
         buffer.deinitialize(count: cnt)
         buffer.deallocate(capacity: cnt)
