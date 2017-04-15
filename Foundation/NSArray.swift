@@ -365,16 +365,17 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open var sortedArrayHint: Data {
-        let size = count
-        let buffer = UnsafeMutablePointer<Int32>.allocate(capacity: size)
-        for idx in 0..<count {
-            let item = object(at: idx) as! NSObject
-            let hash = item.hash
-            buffer.advanced(by: idx).pointee = Int32(hash).littleEndian
+        let size = MemoryLayout<Int32>.size * count
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: size)
+        buffer.withMemoryRebound(to: Int32.self, capacity: count) { (ptr) in
+            for idx in 0..<count {
+                let item = object(at: idx) as! NSObject
+                let hash = item.hash
+                ptr.advanced(by: idx).pointee = Int32(hash).littleEndian
+            }
         }
-        return Data(bytesNoCopy: unsafeBitCast(buffer, to: UnsafeMutablePointer<UInt8>.self), count: count * MemoryLayout<Int>.size, deallocator: .custom({ _ in
+        return Data(bytesNoCopy: buffer, count: size, deallocator: .custom({ _ in
             buffer.deallocate(capacity: size)
-            buffer.deinitialize(count: size)
         }))
     }
     
