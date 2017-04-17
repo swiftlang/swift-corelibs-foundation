@@ -406,6 +406,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         if remaining != 0 {
+            free(data)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
         
