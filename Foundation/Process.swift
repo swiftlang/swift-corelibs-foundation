@@ -223,9 +223,7 @@ open class Process: NSObject {
         let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
             let array : UnsafeBufferPointer<String> = $0
             let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: array.count + 1)
-            _ = UnsafeMutableBufferPointer(start: buffer, count: array.count + 1).initialize(from: array.map {
-                $0.withCString(strdup)
-            })
+            buffer.initialize(from: array.map { $0.withCString(strdup) }, count: array.count)
             buffer[array.count] = nil
             return buffer
         }
@@ -243,9 +241,7 @@ open class Process: NSObject {
         if let env = environment {
             let nenv = env.count
             envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
-            _ = UnsafeMutableBufferPointer(start: envp, count: 1 + nenv).initialize(from: env.map {
-                strdup("\($0)=\($1)")
-            })
+            envp.initialize(from: env.map { strdup("\($0)=\($1)") }, count: 1 + nenv)
             envp[env.count] = nil
         } else {
             envp = _CFEnviron()
