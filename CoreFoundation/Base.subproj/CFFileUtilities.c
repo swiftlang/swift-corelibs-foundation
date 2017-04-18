@@ -1221,14 +1221,21 @@ CFArrayRef _CFXDGCreateDataDirectoriesPaths(void) {
     // $XDG_DATA_DIRS defines the preference-ordered set of base directories to search for data files in addition to the $XDG_DATA_HOME base directory. The directories in $XDG_DATA_DIRS should be seperated with a colon ':'.
     // If $XDG_DATA_DIRS is either not set or empty, a value equal to /usr/local/share/:/usr/share/ should be used.
     const char *dataDirectoriesPaths = __CFgetenv("XDG_DATA_DIRS");
+    CFStringRef defaultPath[2];
+    defaultPath[0] = CFSTR("/usr/local/share");
+    defaultPath[1] = CFSTR("/usr/share");
     if ((dataDirectoriesPaths == NULL) || (dataDirectoriesPaths[0] == '\0')) {
         // Environmental variable not set. Return default value.
-        CFStringRef defaultPath[2];
-        defaultPath[0] = CFStringCreateWithCString(kCFAllocatorSystemDefault, "/usr/local/share/", _kCFXDGStringEncoding);
-        defaultPath[1] = CFStringCreateWithCString(kCFAllocatorSystemDefault, "/usr/share/", _kCFXDGStringEncoding);
         return CFArrayCreate(kCFAllocatorSystemDefault, (const void **)defaultPath, 2, &kCFTypeArrayCallBacks);
     }
-    return _CFTokenizeStringToCFArrayOfCFStrings(dataDirectoriesPaths, ':');
+    CFArrayRef dataDirPathsArray = _CFCreateCFArrayByTokenizingString(dataDirectoriesPaths, ':');
+    if(CFArrayGetCount(dataDirPathsArray) == 0) {
+        CFStringRef logMessage = CFSTR("Value set in XDG_DATA_DIRS variable not honoured. Returning the default.");
+        CFLog(kCFLogLevelWarning, CFSTR("%@"), logMessage);
+        CFRelease(dataDirPathsArray);
+        return CFArrayCreate(kCFAllocatorSystemDefault, (const void **)defaultPath, 2, &kCFTypeArrayCallBacks);
+    }
+    return dataDirPathsArray;
 }
 
 
@@ -1238,13 +1245,20 @@ CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void) {
     // $XDG_CONFIG_DIRS defines the preference-ordered set of base directories to search for configuration files in addition to the $XDG_CONFIG_HOME base directory. The directories in $XDG_CONFIG_DIRS should be seperated with a colon ':'.
     // If $XDG_CONFIG_DIRS is either not set or empty, a value equal to /etc/xdg should be used.
     const char *configDirectoriesPaths = __CFgetenv("XDG_CONFIG_DIRS");
+    CFStringRef defaultPath[1];
+    defaultPath[0] = CFSTR("/etc/xdg");
     if ((configDirectoriesPaths == NULL) || (configDirectoriesPaths[0] == '\0')) {
         //Environmental variable not set. Return default value.
-        CFStringRef defaultPath[1];
-        defaultPath[0] = CFStringCreateWithCString(kCFAllocatorSystemDefault, "/etc/xdg", _kCFXDGStringEncoding);
         return CFArrayCreate(kCFAllocatorSystemDefault, (const void **)defaultPath, 1, &kCFTypeArrayCallBacks);
     }
-    return _CFTokenizeStringToCFArrayOfCFStrings(configDirectoriesPaths, ':');
+    CFArrayRef configDirPathsArray = _CFCreateCFArrayByTokenizingString(configDirectoriesPaths, ':');
+    if(CFArrayGetCount(configDirPathsArray) == 0) {
+        CFStringRef logMessage = CFSTR("Value set in XDG_CONFIG_DIRS variable not honoured. Returning the default.");
+        CFLog(kCFLogLevelWarning, CFSTR("%@"), logMessage);
+        CFRelease(configDirPathsArray);
+        return CFArrayCreate(kCFAllocatorSystemDefault, (const void **)defaultPath, 1, &kCFTypeArrayCallBacks);
+    }
+    return configDirPathsArray;
 }
 
 /// a single base directory relative to which user-specific non-essential (cached) data should be written. This directory is defined by the environment variable $XDG_CACHE_HOME.
@@ -1276,7 +1290,7 @@ CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) {
 }
 
 
-CF_PRIVATE CFArrayRef _CFTokenizeStringToCFArrayOfCFStrings(const char *values, char delimiter) {
+CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, char delimiter) {
     size_t pathCount = 0;
     char* tmpDirectoriesPaths = (char*)values;
     char* last_colon = 0;
@@ -1292,6 +1306,9 @@ CF_PRIVATE CFArrayRef _CFTokenizeStringToCFArrayOfCFStrings(const char *values, 
     }
     // Add count for trailing path unless ending with colon.
     pathCount += last_colon < (values + strlen(values) - 1);
+    if (pathCount > 64) {
+        return CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
+    }
     if (pathCount > 0)
     {
         size_t validPathCount  = 0;
@@ -1304,16 +1321,25 @@ CF_PRIVATE CFArrayRef _CFTokenizeStringToCFArrayOfCFStrings(const char *values, 
         while (path)
         {
             assert(validPathCount < pathCount);
-            CFStringRef dirPath = CFStringCreateWithCString(kCFAllocatorSystemDefault, strdup(path), _kCFXDGStringEncoding);
+            char* pathString  = strdup(path);
+            CFStringRef dirPath = CFStringCreateWithCString(kCFAllocatorSystemDefault, pathString, _kCFXDGStringEncoding);
             CFStringRef slash = CFSTR("/");
             CFStringRef tilde = CFSTR("~");
             // Check for absolutePath, if not ignore.
             if (CFStringHasPrefix(dirPath, slash) || CFStringHasPrefix(dirPath, tilde) ) {
                 pathList[validPathCount++] = dirPath;
+            } else {
+                CFRelease(dirPath);
             }
-            path = strtok(0, delimiterStr);
+            path = strtok(NULL, delimiterStr);
+            free(pathString);
         }
-        return CFArrayCreate(kCFAllocatorSystemDefault, (const void **)pathList, validPathCount, &kCFTypeArrayCallBacks);
+        free(copyDirPath);
+        CFArrayRef pathArray = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)pathList  , validPathCount, &kCFTypeArrayCallBacks);
+        for(int i = 0; i < validPathCount; i ++) {
+            CFRelease(pathList[i]);
+        }
+        return pathArray;
     }
     return CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
 }

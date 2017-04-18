@@ -599,7 +599,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension2(CFStringRef path);
 CF_EXPORT CFIndex _CFStartOfPathExtension(UniChar *unichars, CFIndex length);
 CF_PRIVATE CFIndex _CFStartOfPathExtension2(CFStringRef path);
 CF_EXPORT CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFIndex length);
-CF_PRIVATE CFArrayRef _CFTokenizeStringToCFArrayOfCFStrings(const char *values, char delimiter);
+CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, char delimiter);
 
 #if __BLOCKS__
 #if DEPLOYMENT_TARGET_WINDOWS
