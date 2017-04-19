@@ -39,7 +39,11 @@ extension URLSession {
         let group = DispatchGroup()
         fileprivate var easyHandles: [_EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
-        
+
+        //SR-4567: we need to synchronize the register/unregister commands to the epoll machinery in libdispatch
+        fileprivate let commandQueue: DispatchQueue = DispatchQueue(label: "Register-unregister synchronization")
+        fileprivate var cancelInProgress: DispatchSemaphore? = nil
+
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
@@ -99,25 +103,33 @@ fileprivate extension URLSession._MultiHandle {
         // through libdispatch (DispatchSource) and store the source(s) inside
         // a `SocketSources` which we in turn store inside libcurl's multi handle
         // by means of curl_multi_assign() -- we retain the object fist.
-        let action = _SocketRegisterAction(rawValue: CFURLSessionPoll(value: what))
-        var socketSources = _SocketSources.from(socketSourcePtr: socketSourcePtr)
-        if socketSources == nil && action.needsSource {
-            let s = _SocketSources()
-            let p = Unmanaged.passRetained(s).toOpaque()
-            CFURLSessionMultiHandleAssign(rawHandle, socket, UnsafeMutableRawPointer(p))
-            socketSources = s
-        } else if socketSources != nil && action == .unregister {
-            // We need to release the stored pointer:
-            if let opaque = socketSourcePtr {
-                Unmanaged<_SocketSources>.fromOpaque(opaque).release()
+        commandQueue.async {
+            self.cancelInProgress?.wait()
+            self.cancelInProgress = nil
+
+            let action = _SocketRegisterAction(rawValue: CFURLSessionPoll(value: what))
+            var socketSources = _SocketSources.from(socketSourcePtr: socketSourcePtr)
+            if socketSources == nil && action.needsSource {
+                let s = _SocketSources()
+                let p = Unmanaged.passRetained(s).toOpaque()
+                CFURLSessionMultiHandleAssign(self.rawHandle, socket, UnsafeMutableRawPointer(p))
+                socketSources = s
+            } else if socketSources != nil && action == .unregister {
+                //the beginning of an unregister operation
+                self.cancelInProgress = DispatchSemaphore(value: 0)
+                // We need to release the stored pointer:
+                if let opaque = socketSourcePtr {
+                    Unmanaged<_SocketSources>.fromOpaque(opaque).release()
+                }
+                socketSources?.tearDown(self.cancelInProgress)
+                socketSources = nil
             }
-            socketSources = nil
-        }
-        if let ss = socketSources {
-            let handler = DispatchWorkItem { [weak self] in
-                self?.performAction(for: socket)
+            if let ss = socketSources {
+                let handler = DispatchWorkItem { [weak self] in
+                    self?.performAction(for: socket)
+                }
+                ss.createSources(with: action, fileDescriptor: Int(socket), queue: self.queue, handler: handler)
             }
-            ss.createSources(with: action, fileDescriptor: Int(socket), queue: queue, handler: handler)
         }
         return 0
     }
@@ -398,12 +410,18 @@ fileprivate class _SocketSources {
         s.resume()
     }
 
-    func tearDown() {
+    func tearDown(_ cancelInProgress: DispatchSemaphore?) {
+        let cancelHandler = DispatchWorkItem {
+            //the real end of an unregister operation!
+            cancelInProgress?.signal()
+        }
         if let s = readSource {
+            s.setCancelHandler(handler: cancelHandler)
             s.cancel()
         }
         readSource = nil
         if let s = writeSource {
+            s.setCancelHandler(handler: cancelHandler)
             s.cancel()
         }
         writeSource = nil
