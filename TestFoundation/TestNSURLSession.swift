@@ -28,7 +28,10 @@ class TestURLSession : XCTestCase {
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+
+            // Disabled because of https://bugs.swift.org/browse/SR-4647
+            // ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+
             ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
