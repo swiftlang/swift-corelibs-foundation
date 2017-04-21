@@ -172,6 +172,8 @@ build """ + self.output.relative() + """: CompileSwift """ + self.path.relative(
         generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
         generated += " -I" + Configuration.current.build_directory.relative()
         swiftflags = TargetConditional.value(self.product.SWIFTCFLAGS)
+        # Force building in Swift 3 compatibility mode.
+        swiftflags += " -swift-version 3"
         if swiftflags is not None:
             generated += " " + swiftflags
         return generated
