@@ -40,6 +40,7 @@ XCTMain([
     testCase(TestNSFileManager.allTests),
     testCase(TestNSGeometry.allTests),
     testCase(TestNSHTTPCookie.allTests),
+    testCase(TestNSHTTPCookieStorage.allTests),
     testCase(TestNSIndexPath.allTests),
     testCase(TestNSIndexSet.allTests),
     testCase(TestNSJSONSerialization.allTests),
