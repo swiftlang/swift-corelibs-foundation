@@ -102,6 +102,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/swift',
+		'-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs',
 		'-Xcc -fblocks'
 	])
 	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
