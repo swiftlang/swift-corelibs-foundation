@@ -271,10 +271,10 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name      | Status          | Test Coverage | Notes                                                                                                                     |
     |------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
-    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding`, `nullDevice`, and background operations remain unimplemented                                                  |
+    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding`, and background operations remain unimplemented                                                                |
     | `Pipe`           | Complete        | Incomplete    |                                                                                                                           |
     | `FileManager`    | Incomplete      | Incomplete    | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
-    | `Task`           | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, `resume()`, and `terminationReason` remain unimplemented                       |
+    | `Process`        | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, and `resume()` remain unimplemented                                            |
     | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
     | `ProcessInfo`    | Complete        | Substantial   |                                                                                                                           |
     | `Thread`         | Incomplete      | Incomplete    | `isMainThread`, `mainThread`, `name`, `callStackReturnAddresses`, and `callStackSymbols` remain unimplemented             |

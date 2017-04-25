@@ -24,6 +24,7 @@ class TestProcess : XCTestCase {
                    ("test_exit100" , test_exit100),
                    ("test_sleep2", test_sleep2),
                    ("test_sleep2_exit1", test_sleep2_exit1),
+                   ("test_terminationReason_uncaughtSignal", test_terminationReason_uncaughtSignal),
                    ("test_pipe_stdin", test_pipe_stdin),
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
@@ -47,6 +48,7 @@ class TestProcess : XCTestCase {
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(process.terminationReason, .exit)
     }
     
     func test_exit1() {
@@ -59,6 +61,7 @@ class TestProcess : XCTestCase {
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
+        XCTAssertEqual(process.terminationReason, .exit)
     }
     
     func test_exit100() {
@@ -71,6 +74,7 @@ class TestProcess : XCTestCase {
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 100)
+        XCTAssertEqual(process.terminationReason, .exit)
     }
     
     func test_sleep2() {
@@ -83,6 +87,7 @@ class TestProcess : XCTestCase {
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(process.terminationReason, .exit)
     }
     
     func test_sleep2_exit1() {
@@ -95,8 +100,20 @@ class TestProcess : XCTestCase {
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
+        XCTAssertEqual(process.terminationReason, .exit)
     }
 
+    func test_terminationReason_uncaughtSignal() {
+        let process = Process()
+
+        process.launchPath = "/bin/bash"
+        process.arguments = ["-c", "kill -TERM $$"]
+
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 15)
+        XCTAssertEqual(process.terminationReason, .uncaughtSignal)
+    }
 
     func test_pipe_stdin() {
         let process = Process()
