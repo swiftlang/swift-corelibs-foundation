@@ -417,6 +417,7 @@ class SwiftExecutable(BuildPhase):
     def __init__(self, executableName, sources):
         BuildAction.__init__(self, output=executableName)
         self.executableName = executableName
+        self.name = executableName
         self.sources = sources
     
     def generate(self):
