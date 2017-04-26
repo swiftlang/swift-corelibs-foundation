@@ -239,7 +239,7 @@ class TestNSHTTPCookieStorage: XCTestCase {
         //Test by setting the environmental variable
         let bundle = Bundle.main
         let bundlePath = bundle.bundlePath
-        var pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
+        let pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
         let task = Process()
         task.launchPath = bundlePath.substring(to: pathIndex!) + "/xdgTestHelper/xdgTestHelper"
         var environment = ProcessInfo.processInfo.environment
