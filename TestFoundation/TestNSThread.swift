@@ -21,10 +21,67 @@ import CoreFoundation
 class TestNSThread : XCTestCase {
     static var allTests: [(String, (TestNSThread) -> () throws -> Void)] {
         return [
-            ("test_currentThread", test_currentThread ),
+            ("test_mainThread", test_mainThread),
+            ("test_mainThreadFirstAccess", test_mainThreadFirstAccess),
+            ("test_currentThread", test_currentThread),
             ("test_threadStart", test_threadStart),
             ("test_threadName", test_threadName),
         ]
+    }
+
+    func test_mainThread() {
+        let main = Thread.main
+        XCTAssertNotNil(main)
+        XCTAssertTrue(main.isMainThread)
+        XCTAssertTrue(Thread.isMainThread)
+        XCTAssertEqual(Thread.current, Thread.main)
+
+        var started = false
+        let condition = NSCondition()
+
+        let thread = Thread() {
+            let current = Thread.current
+            XCTAssertNotEqual(main, current)
+            XCTAssertFalse(current.isMainThread)
+
+            condition.lock()
+            started = true
+            condition.broadcast()
+            condition.unlock()
+        }
+        thread.start()
+
+        condition.lock()
+        if !started {
+            condition.wait()
+        }
+        condition.unlock()
+        XCTAssertTrue(started)
+    }
+
+    func test_mainThreadFirstAccess() {
+        var started = false
+        let condition = NSCondition()
+
+        var main: Thread? = nil
+        let thread = Thread() {
+            main = Thread.main
+            XCTAssertNotEqual(main, Thread.current)
+
+            condition.lock()
+            started = true
+            condition.broadcast()
+            condition.unlock()
+        }
+        thread.start()
+
+        condition.lock()
+        if !started {
+            condition.wait()
+        }
+        condition.unlock()
+        XCTAssertTrue(started)
+        XCTAssertEqual(main, Thread.current)
     }
 
     func test_currentThread() {
