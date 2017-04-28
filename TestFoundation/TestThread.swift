@@ -18,8 +18,8 @@
 
 import CoreFoundation
 
-class TestNSThread : XCTestCase {
-    static var allTests: [(String, (TestNSThread) -> () throws -> Void)] {
+class TestThread : XCTestCase {
+    static var allTests: [(String, (TestThread) -> () throws -> Void)] {
         return [
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),
