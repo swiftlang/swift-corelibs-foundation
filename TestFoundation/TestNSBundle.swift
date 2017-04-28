@@ -30,11 +30,16 @@ class TestNSBundle : XCTestCase {
             ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
             ("test_bundleLoad", test_bundleLoad),
             ("test_bundleLoadWithError", test_bundleLoadWithError),
+            ("test_bundleUnload", test_bundleUnload),
             ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
             ("test_bundlePreflight", test_bundlePreflight),
         ]
     }
-    
+
+    override func tearDown() {
+        _ = Bundle.main.unload()
+    }
+
     func test_paths() {
         let bundle = Bundle.main
         
@@ -156,10 +161,13 @@ class TestNSBundle : XCTestCase {
         
         _cleanupPlayground(playground)
     }
-    
-    func test_bundleLoad(){
+
+    func test_bundleLoad() {
         let bundle = Bundle.main
-        let _ = bundle.load()
+        XCTAssertFalse(bundle.isLoaded)
+
+        let result = bundle.load()
+        XCTAssertTrue(result)
         XCTAssertTrue(bundle.isLoaded)
     }
     
@@ -176,6 +184,18 @@ class TestNSBundle : XCTestCase {
         let bundle = Bundle(path: playground + _bundleName)
         XCTAssertThrowsError(try bundle!.loadAndReturnError())
         _cleanupPlayground(playground)
+    }
+
+    func test_bundleUnload() {
+        let bundle = Bundle.main
+        XCTAssertFalse(bundle.isLoaded)
+        XCTAssertTrue(bundle.unload())
+
+        _ = bundle.load()
+
+        let result = bundle.unload()
+        XCTAssertTrue(result)
+        XCTAssertFalse(bundle.isLoaded)
     }
     
     func test_bundleWithInvalidPath(){

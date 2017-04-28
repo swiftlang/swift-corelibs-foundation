@@ -276,7 +276,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `Pipe`           | Complete        | Incomplete    |                                                                                                                           |
     | `FileManager`    | Incomplete      | Incomplete    | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
     | `Process`        | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, and `resume()` remain unimplemented                                            |
-    | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
+    | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `classNamed()`, and `principalClass` remain unimplemented                                     |
     | `ProcessInfo`    | Complete        | Substantial   |                                                                                                                           |
     | `Thread`         | Incomplete      | Incomplete    | `isMainThread`, `mainThread`, `name`, `callStackReturnAddresses`, and `callStackSymbols` remain unimplemented             |
     | `Operation`      | Complete        | Incomplete    |                                                                                                                           |
