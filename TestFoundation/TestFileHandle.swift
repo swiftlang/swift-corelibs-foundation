@@ -15,8 +15,8 @@
     import SwiftXCTest
 #endif
 
-class TestNSFileHandle : XCTestCase {
-    static var allTests : [(String, (TestNSFileHandle) -> () throws -> ())] {
+class TestFileHandle : XCTestCase {
+    static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
         return [
             ("test_constants", test_constants),
             ("test_pipe", test_pipe),
