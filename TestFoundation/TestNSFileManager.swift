@@ -23,6 +23,7 @@ class TestNSFileManager : XCTestCase {
             ("test_createFile", test_createFile ),
             ("test_moveFile", test_moveFile),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
+            ("test_fileSystemAttributes", test_fileSystemAttributes),
             ("test_fileAttributes", test_fileAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
             ("test_directoryEnumerator", test_directoryEnumerator),
@@ -112,6 +113,40 @@ class TestNSFileManager : XCTestCase {
         XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
         XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
         XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
+    }
+    
+    func test_fileSystemAttributes() {
+        let fm = FileManager.default
+        let path = NSTemporaryDirectory()
+        
+        do {
+            let attrs = try fm.attributesOfFileSystem(forPath: path)
+            
+            XCTAssertTrue(attrs.count > 0)
+            
+            let systemNumber = attrs[.systemNumber] as? NSNumber
+            XCTAssertNotNil(systemNumber)
+            XCTAssertGreaterThan(systemNumber!.int64Value, 0)
+            
+            let systemFreeSize = attrs[.systemFreeSize] as? NSNumber
+            XCTAssertNotNil(systemFreeSize)
+            XCTAssertGreaterThan(systemFreeSize!.int64Value, 0)
+            
+            let systemSize = attrs[.systemSize] as? NSNumber
+            XCTAssertNotNil(systemSize)
+            XCTAssertGreaterThan(systemSize!.int64Value, systemFreeSize!.int64Value)
+            
+            let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
+            XCTAssertNotNil(systemFreeNodes)
+            XCTAssertGreaterThan(systemFreeNodes!.int64Value, 0)
+            
+            let systemNodes = attrs[.systemNodes] as? NSNumber
+            XCTAssertNotNil(systemNodes)
+            XCTAssertGreaterThan(systemNodes!.int64Value, systemFreeNodes!.int64Value)
+            
+        } catch let err {
+            XCTFail("\(err)")
+        }
     }
     
     func test_fileAttributes() {
