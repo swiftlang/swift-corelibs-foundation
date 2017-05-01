@@ -17,9 +17,9 @@
 #endif
 
 
-class TestNSProcessInfo : XCTestCase {
+class TestProcessInfo : XCTestCase {
     
-    static var allTests: [(String, (TestNSProcessInfo) -> () throws -> Void)] {
+    static var allTests: [(String, (TestProcessInfo) -> () throws -> Void)] {
         return [
             ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),
