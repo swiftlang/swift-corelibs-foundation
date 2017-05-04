@@ -56,6 +56,8 @@ internal final class _EasyHandle {
     fileprivate var headerList: _CurlStringList?
     fileprivate var pauseState: _PauseState = []
     internal var fileLength: Int64 = 0
+    internal var timeoutTimer: _TimeoutSource!
+
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
         setupCallbacks()
@@ -66,8 +68,8 @@ internal final class _EasyHandle {
 }
 
 extension _EasyHandle: Equatable {}
-    internal func ==(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
-        return lhs.rawHandle == rhs.rawHandle
+internal func ==(lhs: _EasyHandle, rhs: _EasyHandle) -> Bool {
+    return lhs.rawHandle == rhs.rawHandle
 }
 
 extension _EasyHandle {
@@ -167,9 +169,8 @@ extension _EasyHandle {
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPROTOCOLS, protocols).asError()
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionREDIR_PROTOCOLS, protocols).asError()
         //TODO: Added in libcurl 7.45.0
-        // "https".withCString {
-        //     try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionDEFAULT_PROTOCOL, UnsafeMutablePointer($0)).asError()
-        //}
+        //TODO: Set default protocol for schemeless URLs
+        //CURLOPT_DEFAULT_PROTOCOL available only in libcurl 7.45.0
     }
     
     //TODO: Proxy setting, namely CFURLSessionOptionPROXY, CFURLSessionOptionPROXYPORT,
@@ -189,27 +190,20 @@ extension _EasyHandle {
         // We need to retain the list for as long as the rawHandle is in use.
         headerList = list
     }
-    /// Wait for pipelining/multiplexing
+    ///TODO: Wait for pipelining/multiplexing. Unavailable on Ubuntu 14.0
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_PIPEWAIT.html
-    //func set(waitForPipeliningAndMultiplexing flag: Bool) {
-    //    try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPIPEWAIT, flag ? 1 : 0).asError()
-    //}
-    
+
     //TODO: The public API does not allow us to use CFURLSessionOptionSTREAM_DEPENDS / CFURLSessionOptionSTREAM_DEPENDS_E
     // Might be good to add support for it, though.
     
-    /// set numerical stream weight
+    ///TODO: Set numerical stream weight when CURLOPT_PIPEWAIT is enabled
     /// - Parameter weight: values are clamped to lie between 0 and 1
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_STREAM_WEIGHT.html
     /// - SeeAlso: http://httpwg.org/specs/rfc7540.html#StreamPriority
-    //func set(streamWeight weight: Float) {
-    //    // Scale and clamp such that the range 0->1 ends up 1->256
-    //    let w = 1 + max(0, min(255, Int(round(weight * 255))))
-    //    try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPIPEWAIT, w).asError()
-    //}
     /// Enable automatic decompression of HTTP downloads
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTP_CONTENT_DECODING.html
+
     func set(automaticBodyDecompression flag: Bool) {
         if flag {
             "".withCString {
@@ -245,9 +239,9 @@ extension _EasyHandle {
         try! CFURLSession_easy_setopt_int64(rawHandle, CFURLSessionOptionINFILESIZE_LARGE, length).asError()
     }
 
-   func set(timeout value: Int) {
-       try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, value).asError()
-   }
+    func set(timeout value: Int) {
+        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, value).asError()
+    }
 }
 
 fileprivate func printLibcurlDebug(handle: CFURLSessionEasyHandle, type: CInt, data: UnsafeMutablePointer<Int8>, size: Int, userInfo: UnsafeMutableRawPointer?) -> CInt {
@@ -394,6 +388,13 @@ fileprivate extension _EasyHandle {
 }
 
 fileprivate extension _EasyHandle {
+
+    func resetTimer() {
+        //simply create a new timer with the same queue, timeout and handler
+        //this must cancel the old handler and reset the timer
+        timeoutTimer = _TimeoutSource(queue: timeoutTimer.queue, milliseconds: timeoutTimer.milliseconds, handler: timeoutTimer.handler)
+    }
+
     /// Forward the libcurl callbacks into Swift methods
     func setupCallbacks() {
         // write
@@ -401,6 +402,9 @@ fileprivate extension _EasyHandle {
         
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionWRITEFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             return handle.didReceive(data: data, size: size, nmemb: nmemb)
             }.asError()
         
@@ -408,13 +412,19 @@ fileprivate extension _EasyHandle {
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionREADDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionREADFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             return handle.fill(writeBuffer: data, size: size, nmemb: nmemb)
             }.asError()
-         
+
         // header
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionHEADERDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_wc(rawHandle, CFURLSessionOptionHEADERFUNCTION) { (data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, userdata: UnsafeMutableRawPointer?) -> Int in
             guard let handle = _EasyHandle.from(callbackUserData: userdata) else { return 0 }
+            defer {
+                handle.resetTimer()
+            }
             var length = Double()
             try! CFURLSession_easy_getinfo_double(handle.rawHandle, CFURLSessionInfoCONTENT_LENGTH_DOWNLOAD, &length).asError()
             return handle.didReceive(headerData: data, size: size, nmemb: nmemb, fileLength: length)
@@ -501,7 +511,7 @@ fileprivate extension _EasyHandle {
             case .abort:
                 return Int(CFURLSessionReadFuncAbort)
             case .bytes(let length):
-                return length 
+                return length
             }
         }()
         return d

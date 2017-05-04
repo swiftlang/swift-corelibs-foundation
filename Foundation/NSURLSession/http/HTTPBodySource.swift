@@ -24,9 +24,9 @@ import Dispatch
 internal func createDispatchData(_ data: Data) -> DispatchData {
     //TODO: Avoid copying data
     let count = data.count
-    return data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> DispatchData in    
-               return DispatchData(bytes: UnsafeBufferPointer<UInt8>(start: ptr, count: count)) 
-           }
+    return data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> DispatchData in
+        return DispatchData(bytes: UnsafeBufferPointer<UInt8>(start: ptr, count: count))
+    }
 }
 
 /// Copy data from `dispatch_data_t` into memory pointed to by an `UnsafeMutableBufferPointer`.
@@ -37,10 +37,6 @@ internal func copyDispatchData<T>(_ data: DispatchData, infoBuffer buffer: Unsaf
 
 /// Split `dispatch_data_t` into `(head, tail)` pair.
 internal func splitData(dispatchData data: DispatchData, atPosition position: Int) -> (DispatchData,DispatchData) {
-    /*let length = dispatch_data_get_size(data)
-    let head = dispatch_data_create_subrange(data, 0, position)
-    let tail = dispatch_data_create_subrange(data, position, length - position)
-    return (head, tail)*/
     return (data.subdata(in: 0..<position), data.subdata(in: position..<data.count))
 }
 
@@ -64,7 +60,7 @@ internal enum _HTTPBodySourceDataChunk {
 
 /// A HTTP body data source backed by `dispatch_data_t`.
 internal final class _HTTPBodyDataSource {
-    var data: DispatchData! 
+    var data: DispatchData!
     init(data: DispatchData) {
         self.data = data
     }
@@ -74,14 +70,14 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
     enum _Error : Error {
         case unableToRewindData
     }
-
+ 
     func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {
         let remaining = data.count
         if remaining == 0 {
             return .done
         } else if remaining <= length {
             let r: DispatchData! = data
-            data = DispatchData.empty 
+            data = DispatchData.empty
             return .data(r)
         } else {
             let (chunk, remainder) = splitData(dispatchData: data, atPosition: length)
@@ -105,8 +101,8 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
 /// have to be thread safe.
 internal final class _HTTPBodyFileSource {
     fileprivate let fileURL: URL
-    fileprivate let channel: DispatchIO 
-    fileprivate let workQueue: DispatchQueue 
+    fileprivate let channel: DispatchIO
+    fileprivate let workQueue: DispatchQueue
     fileprivate let dataAvailableHandler: () -> Void
     fileprivate var hasActiveReadHandler = false
     fileprivate var availableChunk: _Chunk = .empty
@@ -129,11 +125,11 @@ internal final class _HTTPBodyFileSource {
         var fileSystemRepresentation: UnsafePointer<Int8>! = nil
         fileURL.withUnsafeFileSystemRepresentation {
             fileSystemRepresentation = $0
-        } 
+        }
         self.channel = DispatchIO(type: .stream, path: fileSystemRepresentation, oflag: O_RDONLY, mode: 0, queue: workQueue, cleanupHandler: {_ in })
         self.channel.setLimit(highWater: CFURLSessionMaxWriteSize)
     }
-
+ 
     fileprivate enum _Chunk {
         /// Nothing has been read, yet
         case empty
@@ -167,7 +163,7 @@ fileprivate extension _HTTPBodyFileSource {
             switch (done, data, errno) {
             case (true, _, errno) where errno != 0:
                 self.availableChunk = .errorDetected(Int(errno))
-            case (true, .some(let d), 0) where d.count == 0:
+            case (true, .some(let d), 0) where d.isEmpty:
                 self.append(data: d, endOfFile: true)
             case (true, .some(let d), 0):
                 self.append(data: d, endOfFile: false)
@@ -182,7 +178,7 @@ fileprivate extension _HTTPBodyFileSource {
             }
         }
     }
-
+ 
     fileprivate func append(data: DispatchData, endOfFile: Bool) {
         switch availableChunk {
         case .empty:
@@ -209,7 +205,7 @@ fileprivate extension _HTTPBodyFileSource {
 }
 
 extension _HTTPBodyFileSource : _HTTPBodySource {
-    func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {    
+    func getNextChunk(withLength length: Int) -> _HTTPBodySourceDataChunk {
         switch availableChunk {
         case .empty:
             readNextChunk()
@@ -220,10 +216,10 @@ extension _HTTPBodyFileSource : _HTTPBodySource {
             let l = min(length, data.count)
             let (head, tail) = splitData(dispatchData: data, atPosition: l)
             
-            availableChunk = (tail.count == 0) ? .empty : .data(tail)
+            availableChunk = tail.isEmpty ? .empty : .data(tail)
             readNextChunk()
             
-            if head.count == 0 {
+            if head.isEmpty {
                 return .retryLater
             } else {
                 return .data(head)
@@ -231,8 +227,8 @@ extension _HTTPBodyFileSource : _HTTPBodySource {
         case .done(.some(let data)):
             let l = min(length, data.count)
             let (head, tail) = splitData(dispatchData: data, atPosition: l)
-            availableChunk = (tail.count == 0) ? .done(nil) : .done(tail)
-            if (head.count == 0) {
+            availableChunk = tail.isEmpty ? .done(nil) : .done(tail)
+            if head.isEmpty {
                 return .done
             } else {
                 return .data(head)

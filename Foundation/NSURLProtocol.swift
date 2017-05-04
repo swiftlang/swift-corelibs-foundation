@@ -6,6 +6,8 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+import CoreFoundation
+import Dispatch
 
 /*!
     @header NSURLProtocol.h
@@ -49,8 +51,7 @@ loading system that is intended for use by NSURLProtocol
 implementors.
 */
 public protocol URLProtocolClient : NSObjectProtocol {
-    
-    
+
     /*!
      @method URLProtocol:wasRedirectedToRequest:
      @abstract Indicates to an NSURLProtocolClient that a redirect has
@@ -60,8 +61,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      has redirected.
      */
     func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse)
-    
-    
+
+
     /*!
      @method URLProtocol:cachedResponseIsValid:
      @abstract Indicates to an NSURLProtocolClient that the protocol
@@ -72,8 +73,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      examined and is valid.
      */
     func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse)
-    
-    
+
+
     /*!
      @method URLProtocol:didReceiveResponse:
      @abstract Indicates to an NSURLProtocolClient that the protocol
@@ -86,8 +87,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      response is to be stored in a cache.
      */
     func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy)
-    
-    
+
+
     /*!
      @method URLProtocol:didLoadData:
      @abstract Indicates to an NSURLProtocolClient that the protocol
@@ -99,8 +100,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param data URL load data being made available.
      */
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data)
-    
-    
+
+
     /*!
      @method URLProtocolDidFinishLoading:
      @abstract Indicates to an NSURLProtocolClient that the protocol
@@ -108,8 +109,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param URLProtocol the NSURLProtocol object sending the message.
      */
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol)
-    
-    
+
+
     /*!
      @method URLProtocol:didFailWithError:
      @abstract Indicates to an NSURLProtocolClient that the protocol
@@ -118,8 +119,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      @param error The error that caused the load to fail.
      */
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error)
-    
-    
+
+
     /*!
      @method URLProtocol:didReceiveAuthenticationChallenge:
      @abstract Start authentication for the specified request
@@ -131,8 +132,8 @@ public protocol URLProtocolClient : NSObjectProtocol {
      if the protocol did not provide one.
      */
     func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge)
-    
-    
+
+
     /*!
      @method URLProtocol:didCancelAuthenticationChallenge:
      @abstract Cancel authentication for the specified request
@@ -141,6 +142,97 @@ public protocol URLProtocolClient : NSObjectProtocol {
      */
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge)
 }
+
+internal class _ProtocolClient : NSObject, URLProtocolClient {
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) {
+        `protocol`.task?.response = response
+    }
+
+    func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            guard let s = session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                delegate.urlSession(s, task: task, didCompleteWithError: nil)
+                task.state = .completed
+            }
+        case .noDelegate:
+            task.state = .completed
+        case .dataCompletionHandler(let completion):
+             let data = Data()
+             guard let client = `protocol`.client else { fatalError() }
+             client.urlProtocol(`protocol`, didLoad: data)
+             return
+        case .downloadCompletionHandler(let completion):
+            guard let s = session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                completion(task.currentRequest?.url, task.response, nil)
+                task.state = .completed
+            }
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .dataCompletionHandler(let completion):
+            guard let s = task.session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                completion(data, task.response, nil)
+                task.state = .completed
+            }
+        default: return
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            guard let s = session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                delegate.urlSession(s, task: task, didCompleteWithError: error as Error)
+                task.state = .completed
+            }
+        case .noDelegate:
+            task.state = .completed
+        case .dataCompletionHandler(let completion):
+            guard let s = session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                completion(nil, nil, error)
+                task.state = .completed
+            }
+        case .downloadCompletionHandler(let completion):
+            guard let s = session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                completion(nil, nil, error)
+                task.state = .completed
+            }
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
+        NSUnimplemented()
+    }
+}
+
 
 /*!
     @class NSURLProtocol
@@ -151,8 +243,10 @@ public protocol URLProtocolClient : NSObjectProtocol {
     or more protocols or URL schemes.
 */
 open class URLProtocol : NSObject {
-    
-    /*! 
+
+    private static var _registeredProtocolClasses = [AnyClass]()
+    private static var _classesLock = NSLock()
+    /*!
         @method initWithRequest:cachedResponse:client:
         @abstract Initializes an NSURLProtocol given request, 
         cached response, and client.
@@ -165,36 +259,51 @@ open class URLProtocol : NSObject {
         interface the protocol implementation can use to report results back
         to the URL loading system.
     */
-    public init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
-    
-    /*! 
+    public required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+        self._request = request
+        self._cachedResponse = cachedResponse
+        self._client = client ?? _ProtocolClient()
+    }
+
+    private var _request : URLRequest
+    private var _cachedResponse : CachedURLResponse?
+    private var _client : URLProtocolClient?
+
+    /*!
         @method client
         @abstract Returns the NSURLProtocolClient of the receiver. 
         @result The NSURLProtocolClient of the receiver.  
     */
-    open var client: URLProtocolClient? { NSUnimplemented() }
-    
+    open var client: URLProtocolClient? {
+        set { self._client = newValue }
+        get { return self._client }
+    }
+
     /*! 
         @method request
         @abstract Returns the NSURLRequest of the receiver. 
         @result The NSURLRequest of the receiver. 
     */
-    /*@NSCopying*/ open var request: URLRequest { NSUnimplemented() }
-    
+    /*@NSCopying*/ open var request: URLRequest {
+        return _request
+     }
+
     /*! 
         @method cachedResponse
         @abstract Returns the NSCachedURLResponse of the receiver.  
         @result The NSCachedURLResponse of the receiver. 
     */
-    /*@NSCopying*/ open var cachedResponse: CachedURLResponse? { NSUnimplemented() }
-    
+    /*@NSCopying*/ open var cachedResponse: CachedURLResponse? {
+        return _cachedResponse
+    }
+
     /*======================================================================
       Begin responsibilities for protocol implementors
     
       The methods between this set of begin-end markers must be
       implemented in order to create a working protocol.
       ======================================================================*/
-    
+
     /*! 
         @method canInitWithRequest:
         @abstract This method determines whether this protocol can handle
@@ -207,8 +316,10 @@ open class URLProtocol : NSObject {
         @param request A request to inspect.
         @result YES if the protocol can handle the given request, NO if not.
     */
-    open class func canInit(with request: URLRequest) -> Bool { NSUnimplemented() }
-    
+    open class func canInit(with request: URLRequest) -> Bool {
+        NSRequiresConcreteImplementation()
+    }
+
     /*! 
         @method canonicalRequestForRequest:
         @abstract This method returns a canonical version of the given
@@ -228,7 +339,7 @@ open class URLProtocol : NSObject {
         @result The canonical form of the given request. 
     */
     open class func canonicalRequest(for request: URLRequest) -> URLRequest { NSUnimplemented() }
-    
+
     /*!
         @method requestIsCacheEquivalent:toRequest:
         @abstract Compares two requests for equivalence with regard to caching.
@@ -239,15 +350,17 @@ open class URLProtocol : NSObject {
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
     open class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool { NSUnimplemented() }
-    
+
     /*! 
         @method startLoading
         @abstract Starts protocol-specific loading of a request. 
         @discussion When this method is called, the protocol implementation
         should start loading a request.
     */
-    open func startLoading() { NSUnimplemented() }
-    
+    open func startLoading() {
+        NSRequiresConcreteImplementation()
+    }
+
     /*! 
         @method stopLoading
         @abstract Stops protocol-specific loading of a request. 
@@ -256,8 +369,10 @@ open class URLProtocol : NSObject {
         to a cancel operation, so protocol implementations must be able to
         handle this call while a load is in progress.
     */
-    open func stopLoading() { NSUnimplemented() }
-    
+    open func stopLoading() {
+        NSRequiresConcreteImplementation()
+    }
+
     /*======================================================================
       End responsibilities for protocol implementors
       ======================================================================*/
@@ -274,9 +389,9 @@ open class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    open class func property(forKey key: String, in request: URLRequest) -> AnyObject? { NSUnimplemented() }
-    
-    /*! 
+    open class func property(forKey key: String, in request: URLRequest) -> Any? { NSUnimplemented() }
+
+    /*!
         @method setProperty:forKey:inRequest:
         @abstract Stores the given property in the given request using the
         given key.
@@ -287,8 +402,8 @@ open class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    open class func setProperty(_ value: AnyObject, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
-    
+    open class func setProperty(_ value: Any, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented()}
+
     /*!
         @method removePropertyForKey:inRequest:
         @abstract Remove any property stored under the given key
@@ -299,8 +414,8 @@ open class URLProtocol : NSObject {
         @param request The request to be modified
     */
     open class func removeProperty(forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
-    
-    /*! 
+
+    /*!
         @method registerClass:
         @abstract This method registers a protocol class, making it visible
         to several other NSURLProtocol class methods.
@@ -323,8 +438,40 @@ open class URLProtocol : NSObject {
         The only way that failure can occur is if the given class is not a
         subclass of NSURLProtocol.
     */
-    open class func registerClass(_ protocolClass: AnyClass) -> Bool { NSUnimplemented() }
-    
+    open class func registerClass(_ protocolClass: AnyClass) -> Bool {
+        if protocolClass is URLProtocol.Type {
+            _classesLock.lock()
+            guard !_registeredProtocolClasses.contains(where: { $0 === protocolClass }) else {
+                _classesLock.unlock()
+                return true
+            }
+            _registeredProtocolClasses.append(protocolClass)
+            _classesLock.unlock()
+            return true
+        }
+        return false
+    }
+
+    internal class func getProtocolClass(protocols: [AnyClass], request: URLRequest) -> AnyClass? {
+        // Registered protocols are consulted in reverse order.
+        // This behaviour makes the latest registered protocol to be consulted first
+        _classesLock.lock()
+        let protocolClasses = protocols.reversed()
+        for protocolClass in protocolClasses {
+            let urlProtocolClass: AnyClass = protocolClass
+            guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+            if urlProtocol.canInit(with: request) {
+                _classesLock.unlock()
+                return urlProtocol
+            }
+        }
+        _classesLock.unlock()
+        return nil
+    }
+
+    internal class func getProtocols() -> [AnyClass]? {
+        return _registeredProtocolClasses
+    }
     /*! 
         @method unregisterClass:
         @abstract This method unregisters a protocol. 
@@ -332,10 +479,26 @@ open class URLProtocol : NSObject {
         consulted in calls to NSURLProtocol class methods.
         @param protocolClass The class to unregister.
     */
-    open class func unregisterClass(_ protocolClass: AnyClass) { NSUnimplemented() }
+    open class func unregisterClass(_ protocolClass: AnyClass) {
+        _classesLock.lock()
+        if let idx = _registeredProtocolClasses.index(where: { $0 === protocolClass }) {
+            _registeredProtocolClasses.remove(at: idx)
+        }
+        _classesLock.unlock()
+    }
 
     open class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
-    public convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) { NSUnimplemented() }
-    /*@NSCopying*/ open var task: URLSessionTask? { NSUnimplemented() }
-}
 
+    public required convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+        let urlRequest = task.originalRequest
+        self.init(request: urlRequest!, cachedResponse: cachedResponse, client: client)
+        self.task = task
+    }
+
+    /*@NSCopying*/ open var task: URLSessionTask? {
+        set { self._task = newValue }
+        get { return self._task }
+    }
+
+    private var _task : URLSessionTask? = nil
+}
