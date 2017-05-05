@@ -79,8 +79,7 @@ XCTMain([
     testCase(TestURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
     testCase(TestNSHTTPURLResponse.allTests),
-//Disabling because of https://bugs.swift.org/browse/SR-4655 and https://bugs.swift.org/browse/SR-4647
-//    testCase(TestURLSession.allTests),
+    testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),

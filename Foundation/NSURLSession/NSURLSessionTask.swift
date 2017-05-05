@@ -71,10 +71,10 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     /// All operations must run on this queue.
     fileprivate let workQueue: DispatchQueue 
-    /// This queue is used to make public attributes thread safe. It's a
-    /// **concurrent** queue and must be used with a barries when writing. This
-    /// allows multiple concurrent readers or a single writer.
-    fileprivate let taskAttributesIsolation: DispatchQueue 
+    /// Using dispatch semaphore to make public attributes thread safe.
+    /// A semaphore is a simpler option against the usage of concurrent queue
+    /// as the critical sections are very short.
+    fileprivate let semaphore = DispatchSemaphore(value: 1)
     
     public override init() {
         // Darwin Foundation oddly allows calling this initializer, even though
@@ -88,7 +88,6 @@ open class URLSessionTask : NSObject, NSCopying {
         originalRequest = nil
         body = .none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
-        taskAttributesIsolation = DispatchQueue(label: "URLSessionTask.notused.1", attributes: DispatchQueue.Attributes.concurrent)
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
         self.tempFileURL = URL(fileURLWithPath: fileName)
@@ -105,7 +104,6 @@ open class URLSessionTask : NSObject, NSCopying {
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
         self.workQueue = session.workQueue
-        self.taskAttributesIsolation = session.taskAttributesIsolation
         self.taskIdentifier = taskIdentifier
         self.originalRequest = request
         self.body = body
@@ -136,17 +134,32 @@ open class URLSessionTask : NSObject, NSCopying {
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open fileprivate(set) var currentRequest: URLRequest? {
         get {
-            return taskAttributesIsolation.sync { self._currentRequest }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._currentRequest
         }
-        //TODO: dispatch_barrier_async
-        set { taskAttributesIsolation.async(flags: .barrier) { self._currentRequest = newValue } }
+        set {
+            semaphore.wait()
+            self._currentRequest = newValue
+            semaphore.signal()
+        }
     }
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open fileprivate(set) var response: URLResponse? {
         get {
-            return taskAttributesIsolation.sync { self._response }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._response
         }
-        set { taskAttributesIsolation.async(flags: .barrier) { self._response = newValue } }
+        set {
+            semaphore.wait()
+            self._response = newValue
+            semaphore.signal()
+        }
     }
     fileprivate var _response: URLResponse? = nil
     
@@ -158,20 +171,35 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already received
    open fileprivate(set) var countOfBytesReceived: Int64 {
         get {
-            return taskAttributesIsolation.sync { self._countOfBytesReceived }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._countOfBytesReceived
         }
-        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesReceived = newValue } }
+        set {
+            semaphore.wait()
+            self._countOfBytesReceived = newValue
+            semaphore.signal()
+        }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
     
     /// Number of body bytes already sent */
     open fileprivate(set) var countOfBytesSent: Int64 {
         get {
-            return taskAttributesIsolation.sync { self._countOfBytesSent }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._countOfBytesSent
         }
-        set { taskAttributesIsolation.async(flags: .barrier) { self._countOfBytesSent = newValue } }
+        set {
+            semaphore.wait()
+            self._countOfBytesSent = newValue
+            semaphore.signal()
+        }
     }
-
     fileprivate var _countOfBytesSent: Int64 = 0
     
     /// Number of body bytes we expect to send, derived from the Content-Length of the HTTP request */
@@ -207,9 +235,17 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open var state: URLSessionTask.State {
         get {
-            return taskAttributesIsolation.sync { self._state }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._state
         }
-        set { taskAttributesIsolation.async(flags: .barrier) { self._state = newValue } }
+        set {
+            semaphore.wait()
+            self._state = newValue
+            semaphore.signal()
+        }
     }
     fileprivate var _state: URLSessionTask.State = .suspended
     
@@ -289,10 +325,16 @@ open class URLSessionTask : NSObject, NSCopying {
     /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
-            return taskAttributesIsolation.sync { self._priority }
+            semaphore.wait()
+            defer {
+                semaphore.signal()
+            }
+            return self._priority
         }
         set {
-            taskAttributesIsolation.async(flags: .barrier) { self._priority = newValue }
+            semaphore.wait()
+            self._priority = newValue
+            semaphore.signal()
         }
     }
     fileprivate var _priority: Float = URLSessionTask.defaultPriority
