@@ -1205,7 +1205,8 @@ CFNumberRef CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, const vo
 	}
     }
 
-    CFIndex size = 8 + ((!__CFNumberTypeTable[type].floatBit && __CFNumberTypeTable[type].storageBit) ? 8 : 0);
+    CFIndex size = sizeof(struct __CFNumber) - sizeof(CFRuntimeBase);
+    if (!__CFNumberTypeTable[type].floatBit && __CFNumberTypeTable[type].storageBit) size += 8;
 #if OLD_CRAP_TOO
     size += 2 * sizeof(void *);
 #endif
