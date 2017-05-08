@@ -174,8 +174,7 @@ import Dispatch
 
 fileprivate var sessionCounter = Int32(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
-    //TODO: find an alternative for this on Linux
-    //return OSAtomicIncrement32Barrier(&sessionCounter)
+    //TODO: find an alternative for OSAtomicIncrement32Barrier() on Linux
     sessionCounter += 1
     return sessionCounter
 }
@@ -185,20 +184,20 @@ open class URLSession : NSObject {
     fileprivate let _configuration: _Configuration
     fileprivate let multiHandle: _MultiHandle
     fileprivate var nextTaskIdentifier = 1
-    internal let workQueue: DispatchQueue 
+    internal let workQueue: DispatchQueue
     /// This queue is used to make public attributes on `URLSessionTask` instances thread safe.
     /// - Note: It's a **concurrent** queue.
-    internal let taskAttributesIsolation: DispatchQueue 
+    internal let taskAttributesIsolation: DispatchQueue
     internal let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
     fileprivate var invalidated = false
-    
+
     /*
      * The shared session uses the currently set global NSURLCache,
      * NSHTTPCookieStorage and NSURLCredentialStorage objects.
      */
     open class var shared: URLSession { NSUnimplemented() }
-    
+
     /*
      * Customization of URLSession occurs during creation of a new session.
      * If you only need to use the convenience routines with custom
@@ -220,7 +219,10 @@ open class URLSession : NSObject {
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
+        // registering all the protocol classes with URLProtocol
+        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
     }
+
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
@@ -235,8 +237,9 @@ open class URLSession : NSObject {
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
+        // registering all the protocol classes with URLProtocol
+        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
     }
-    
     open let delegateQueue: OperationQueue
     open var delegate: URLSessionDelegate?
     open let configuration: URLSessionConfiguration
@@ -260,27 +263,27 @@ open class URLSession : NSObject {
      * been issued.
      */
     open func finishTasksAndInvalidate() {
-       //we need to return immediately
-       workQueue.async {
-           //don't allow creation of new tasks from this point onwards
-           self.invalidated = true
+        //we need to return immediately
+        workQueue.async {
+            //don't allow creation of new tasks from this point onwards
+            self.invalidated = true
 
-           let invalidateSessionCallback = { [weak self] in
-               //invoke the delegate method and break the delegate link
-               guard let `self` = self, let sessionDelegate = self.delegate else { return }
-               self.delegateQueue.addOperation {
-                   sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
-                   self.delegate = nil
-               }
-           }
+            let invalidateSessionCallback = { [weak self] in
+                //invoke the delegate method and break the delegate link
+                guard let `self` = self, let sessionDelegate = self.delegate else { return }
+                self.delegateQueue.addOperation {
+                    sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
+                    self.delegate = nil
+                }
+            }
 
-           //wait for running tasks to finish
-           if !self.taskRegistry.isEmpty {
-               self.taskRegistry.notify(on: invalidateSessionCallback)
-           } else {
-               invalidateSessionCallback()
-           }
-       }
+            //wait for running tasks to finish
+            if !self.taskRegistry.isEmpty {
+                self.taskRegistry.notify(on: invalidateSessionCallback)
+            } else {
+                invalidateSessionCallback()
+            }
+        }
     }
     
     /* -invalidateAndCancel acts as -finishTasksAndInvalidate, but issues
@@ -295,53 +298,53 @@ open class URLSession : NSObject {
     open func flush(completionHandler: @escaping () -> Void)  { NSUnimplemented() }/* flush storage to disk and clear transient network caches.  Invokes completionHandler() on the delegate queue if not nil. */
     
     open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  { NSUnimplemented() }/* invokes completionHandler with outstanding data, upload and download tasks. */
-    
+
     open func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void)  { NSUnimplemented() }/* invokes completionHandler with all outstanding tasks. */
-    
+
     /*
      * URLSessionTask objects are always created in a suspended state and
      * must be sent the -resume message before they will execute.
      */
-    
+
     /* Creates a data task with the given request.  The request may have a body stream. */
     open func dataTask(with request: URLRequest) -> URLSessionDataTask {
         return dataTask(with: _Request(request), behaviour: .callDelegate)
     }
-    
+
     /* Creates a data task to retrieve the contents of the given URL. */
     open func dataTask(with url: URL) -> URLSessionDataTask {
         return dataTask(with: _Request(url), behaviour: .callDelegate)
     }
-    
+
     /* Creates an upload task with the given request.  The body of the request will be created from the file referenced by fileURL */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .file(fileURL), behaviour: .callDelegate)
     }
-    
+
     /* Creates an upload task with the given request.  The body of the request is provided from the bodyData. */
     open func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
         let r = URLSession._Request(request)
         return uploadTask(with: r, body: .data(createDispatchData(bodyData)), behaviour: .callDelegate)
     }
-    
+
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
     open func uploadTask(withStreamedRequest request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
-    
+
     /* Creates a download task with the given request. */
     open func downloadTask(with request: URLRequest) -> URLSessionDownloadTask {
         let r = URLSession._Request(request)
         return downloadTask(with: r, behavior: .callDelegate)
     }
-    
+
     /* Creates a download task to download the contents of the given URL. */
     open func downloadTask(with url: URL) -> URLSessionDownloadTask {
         return downloadTask(with: _Request(url), behavior: .callDelegate)
     }
-    
+
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
     open func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask { NSUnimplemented() }
-    
+
     /* Creates a bidirectional stream task to a given host and port.
      */
     open func streamTask(withHostName hostname: String, port: Int) -> URLSessionStreamTask { NSUnimplemented() }
@@ -399,7 +402,7 @@ fileprivate extension URLSession {
         }
         return task
     }
-    
+
     /// Create an upload task.
     ///
     /// All public methods funnel into this one.
@@ -413,7 +416,7 @@ fileprivate extension URLSession {
         }
         return task
     }
-    
+
     /// Create a download task
     func downloadTask(with request: _Request, behavior: _TaskRegistry._Behaviour) -> URLSessionDownloadTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
@@ -453,19 +456,19 @@ extension URLSession {
     open func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
         return dataTask(with: _Request(url), behaviour: .dataCompletionHandler(completionHandler))
     }
-    
+
     /*
      * upload convenience method.
      */
     open func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
-        let fileData = try! Data(contentsOf: fileURL) 
+        let fileData = try! Data(contentsOf: fileURL)
         return uploadTask(with: request, from: fileData, completionHandler: completionHandler)
     }
 
     open func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
         return uploadTask(with: _Request(request), body: .data(createDispatchData(bodyData!)), behaviour: .dataCompletionHandler(completionHandler))
     }
-    
+
     /*
      * download task convenience methods.  When a download successfully
      * completes, the URL will point to a file that must be read or
@@ -477,7 +480,7 @@ extension URLSession {
     }
 
     open func downloadTask(with url: URL, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
-       return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
+        return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler))
     }
 
     open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }

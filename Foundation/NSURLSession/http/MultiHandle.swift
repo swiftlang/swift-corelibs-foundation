@@ -36,13 +36,15 @@ extension URLSession {
     internal final class _MultiHandle {
         let rawHandle = CFURLSessionMultiHandleInit()
         let queue: DispatchQueue
-        //let queue = DispatchQueue(label: "MultiHandle.isolation", attributes: .serial)
         let group = DispatchGroup()
         fileprivate var easyHandles: [_EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
         
+        //SR-4567: we need to synchronize the register/unregister commands to the epoll machinery in libdispatch
+        fileprivate let commandQueue: DispatchQueue = DispatchQueue(label: "Register-unregister synchronization")
+        fileprivate var cancelInProgress: DispatchSemaphore? = nil
+
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
-            //queue.setTarget(queue: workQueue)
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
             setupCallbacks()
             configure(with: configuration)
@@ -101,29 +103,37 @@ fileprivate extension URLSession._MultiHandle {
         // through libdispatch (DispatchSource) and store the source(s) inside
         // a `SocketSources` which we in turn store inside libcurl's multi handle
         // by means of curl_multi_assign() -- we retain the object fist.
-        let action = _SocketRegisterAction(rawValue: CFURLSessionPoll(value: what))
-        var socketSources = _SocketSources.from(socketSourcePtr: socketSourcePtr)
-        if socketSources == nil && action.needsSource {
-            let s = _SocketSources()
-            let p = Unmanaged.passRetained(s).toOpaque()
-            CFURLSessionMultiHandleAssign(rawHandle, socket, UnsafeMutableRawPointer(p))
-            socketSources = s
-        } else if socketSources != nil && action == .unregister {
-            // We need to release the stored pointer:
-            if let opaque = socketSourcePtr {
-                Unmanaged<_SocketSources>.fromOpaque(opaque).release()
+        commandQueue.async {
+            self.cancelInProgress?.wait()
+            self.cancelInProgress = nil
+
+            let action = _SocketRegisterAction(rawValue: CFURLSessionPoll(value: what))
+            var socketSources = _SocketSources.from(socketSourcePtr: socketSourcePtr)
+            if socketSources == nil && action.needsSource {
+                let s = _SocketSources()
+                let p = Unmanaged.passRetained(s).toOpaque()
+                CFURLSessionMultiHandleAssign(self.rawHandle, socket, UnsafeMutableRawPointer(p))
+                socketSources = s
+            } else if socketSources != nil && action == .unregister {
+                //the beginning of an unregister operation
+                self.cancelInProgress = DispatchSemaphore(value: 0)
+                // We need to release the stored pointer:
+                if let opaque = socketSourcePtr {
+                    Unmanaged<_SocketSources>.fromOpaque(opaque).release()
+                }
+                socketSources?.tearDown(self.cancelInProgress)
+                socketSources = nil
             }
-            socketSources = nil
-        }
-        if let ss = socketSources {
-            let handler = DispatchWorkItem { [weak self] in
-                self?.performAction(for: socket)
+            if let ss = socketSources {
+                let handler = DispatchWorkItem { [weak self] in
+                    self?.performAction(for: socket)
+                }
+                ss.createSources(with: action, fileDescriptor: Int(socket), queue: self.queue, handler: handler)
             }
-            ss.createSources(with: action, fileDescriptor: Int(socket), queue: queue, handler: handler)
         }
         return 0
     }
-
+    
     /// What read / write ready event to register / unregister.
     ///
     /// This re-maps `CFURLSessionPoll` / `CURL_POLL`.
@@ -302,21 +312,24 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
 
 /// A helper class that wraps a libdispatch timer.
 ///
-/// Used to implement the timeout of `URLSession.MultiHandle`.
-fileprivate class _TimeoutSource {
-    let rawSource: DispatchSource 
+/// Used to implement the timeout of `URLSession.MultiHandle` and `URLSession.EasyHandle`
+class _TimeoutSource {
+    let rawSource: DispatchSource
     let milliseconds: Int
+    let queue: DispatchQueue        //needed to restart the timer for EasyHandles
+    let handler: DispatchWorkItem   //needed to restart the timer for EasyHandles
     init(queue: DispatchQueue, milliseconds: Int, handler: DispatchWorkItem) {
+        self.queue = queue
+        self.handler = handler
         self.milliseconds = milliseconds
         self.rawSource = DispatchSource.makeTimerSource(queue: queue) as! DispatchSource
         
-        let delay = UInt64(max(1, milliseconds - 1)) 
-        //let leeway: UInt64 = (milliseconds == 1) ? NSEC_PER_USEC : NSEC_PER_MSEC
+        let delay = UInt64(max(1, milliseconds - 1))
         let start = DispatchTime.now() + DispatchTimeInterval.milliseconds(Int(delay))
         
         rawSource.scheduleRepeating(deadline: start, interval: .milliseconds(Int(delay)), leeway: (milliseconds == 1) ? .microseconds(Int(1)) : .milliseconds(Int(1)))
         rawSource.setEventHandler(handler: handler)
-        rawSource.resume() 
+        rawSource.resume()
     }
     deinit {
         rawSource.cancel()
@@ -397,12 +410,18 @@ fileprivate class _SocketSources {
         s.resume()
     }
 
-    func tearDown() {
+    func tearDown(_ cancelInProgress: DispatchSemaphore?) {
+        let cancelHandler = DispatchWorkItem {
+            //the real end of an unregister operation!
+            cancelInProgress?.signal()
+        }
         if let s = readSource {
+            s.setCancelHandler(handler: cancelHandler)
             s.cancel()
         }
         readSource = nil
         if let s = writeSource {
+            s.setCancelHandler(handler: cancelHandler)
             s.cancel()
         }
         writeSource = nil
