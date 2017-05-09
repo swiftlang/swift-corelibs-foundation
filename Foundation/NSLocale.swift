@@ -194,7 +194,7 @@ extension NSLocale {
 
 extension NSLocale {
 
-    public struct Key : RawRepresentable, Equatable, Hashable, Comparable {
+    public struct Key : RawRepresentable, Equatable, Hashable {
         public private(set) var rawValue: String
         public init(rawValue: String) {
             self.rawValue = rawValue
@@ -239,10 +239,6 @@ extension NSLocale {
 extension NSLocale.Key {
     public static func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-
-    public static func <(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 }
 

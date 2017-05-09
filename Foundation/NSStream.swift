@@ -18,7 +18,7 @@ internal extension UInt {
 #endif
 
 extension Stream {
-    public struct PropertyKey : RawRepresentable, Equatable, Hashable, Comparable {
+    public struct PropertyKey : RawRepresentable, Equatable, Hashable {
         public private(set) var rawValue: String
         
         public init(_ rawValue: String) {
@@ -35,10 +35,6 @@ extension Stream {
         
         public static func ==(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
             return lhs.rawValue == rhs.rawValue
-        }
-        
-        public static func <(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
-            return lhs.rawValue < rhs.rawValue
         }
     }
     
@@ -262,7 +258,7 @@ extension Stream.PropertyKey {
 }
 
 // MARK: -
-public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable, Comparable {
+public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -272,9 +268,6 @@ public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable,
     }
     public static func ==(lhs: StreamSocketSecurityLevel, rhs: StreamSocketSecurityLevel) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-    public static func <(lhs: StreamSocketSecurityLevel, rhs: StreamSocketSecurityLevel) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 }
 extension StreamSocketSecurityLevel {
@@ -287,7 +280,7 @@ extension StreamSocketSecurityLevel {
 
 
 // MARK: -
-public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hashable, Comparable {
+public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -297,9 +290,6 @@ public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hasha
     }
     public static func ==(lhs: StreamSOCKSProxyConfiguration, rhs: StreamSOCKSProxyConfiguration) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-    public static func <(lhs: StreamSOCKSProxyConfiguration, rhs: StreamSOCKSProxyConfiguration) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 }
 extension StreamSOCKSProxyConfiguration {
@@ -312,7 +302,7 @@ extension StreamSOCKSProxyConfiguration {
 
 
 // MARK: -
-public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable, Comparable {
+public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -323,9 +313,6 @@ public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable, C
     public static func ==(lhs: StreamSOCKSProxyVersion, rhs: StreamSOCKSProxyVersion) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
-    public static func <(lhs: StreamSOCKSProxyVersion, rhs: StreamSOCKSProxyVersion) -> Bool {
-        return lhs.rawValue < rhs.rawValue
-    }
 }
 extension StreamSOCKSProxyVersion {
     public static let version4 = StreamSOCKSProxyVersion(rawValue: "kCFStreamSocketSOCKSVersion4")
@@ -334,7 +321,7 @@ extension StreamSOCKSProxyVersion {
 
 
 // MARK: - Supported network service types
-public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hashable, Comparable {
+public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -344,9 +331,6 @@ public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hasha
     }
     public static func ==(lhs: StreamNetworkServiceTypeValue, rhs: StreamNetworkServiceTypeValue) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-    public static func <(lhs: StreamNetworkServiceTypeValue, rhs: StreamNetworkServiceTypeValue) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 }
 extension StreamNetworkServiceTypeValue {

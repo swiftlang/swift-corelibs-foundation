@@ -19,7 +19,7 @@ import CoreFoundation
     internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 #endif
 
-public struct RunLoopMode : RawRepresentable, Equatable, Hashable, Comparable {
+public struct RunLoopMode : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     
     public init(_ rawValue: String) {
@@ -36,10 +36,6 @@ public struct RunLoopMode : RawRepresentable, Equatable, Hashable, Comparable {
 
     public static func ==(_ lhs: RunLoopMode, _ rhs: RunLoopMode) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-
-    public static func <(_ lhs: RunLoopMode, _ rhs: RunLoopMode) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 }
 

@@ -774,7 +774,7 @@ extension FileManager {
     }
 }
 
-public struct FileAttributeKey : RawRepresentable, Equatable, Hashable, Comparable {
+public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     
     public init(_ rawValue: String) {
@@ -793,10 +793,6 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable, Comparab
         return lhs.rawValue == rhs.rawValue
     }
     
-    public static func <(_ lhs: FileAttributeKey, _ rhs: FileAttributeKey) -> Bool {
-        return lhs.rawValue < rhs.rawValue
-    }
-
     public static let type = FileAttributeKey(rawValue: "NSFileType")
     public static let size = FileAttributeKey(rawValue: "NSFileSize")
     public static let modificationDate = FileAttributeKey(rawValue: "NSFileModificationDate")
@@ -822,7 +818,7 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable, Comparab
     public static let systemFreeNodes = FileAttributeKey(rawValue: "NSFileSystemFreeNodes")
 }
 
-public struct FileAttributeType : RawRepresentable, Equatable, Hashable, Comparable {
+public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
 
     public init(_ rawValue: String) {
@@ -839,10 +835,6 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable, Compara
 
     public static func ==(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-
-    public static func <(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {
-        return lhs.rawValue < rhs.rawValue
     }
 
     public static let typeDirectory = FileAttributeType(rawValue: "NSFileTypeDirectory")
