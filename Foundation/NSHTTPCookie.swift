@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable, Comparable {
+public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     
     public init(_ rawValue: String) {
@@ -24,10 +24,6 @@ public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable, Com
     
     public static func ==(_ lhs: HTTPCookiePropertyKey, _ rhs: HTTPCookiePropertyKey) -> Bool {
         return lhs.rawValue == rhs.rawValue
-    }
-    
-    public static func <(_ lhs: HTTPCookiePropertyKey, _ rhs: HTTPCookiePropertyKey) -> Bool {
-        return rhs.rawValue == rhs.rawValue
     }
 }
 
