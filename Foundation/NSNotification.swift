@@ -8,7 +8,7 @@
 //
 
 open class NSNotification: NSObject, NSCopying, NSCoding {
-    public struct Name : RawRepresentable, Equatable, Hashable, Comparable {
+    public struct Name : RawRepresentable, Equatable, Hashable {
         public private(set) var rawValue: String
         public init(rawValue: String) {
             self.rawValue = rawValue
@@ -20,10 +20,6 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         
         public static func ==(lhs: Name, rhs: Name) -> Bool {
             return lhs.rawValue == rhs.rawValue
-        }
-        
-        public static func <(lhs: Name, rhs: Name) -> Bool {
-            return lhs.rawValue < rhs.rawValue
         }
     }
 

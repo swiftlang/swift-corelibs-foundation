@@ -401,13 +401,12 @@ open class Progress : NSObject {
     /// If the value of the `localizedDescription` property has not been set, then the default implementation of `localizedDescription` uses the progress kind to determine how to use the values of other properties, as well as values in the user info dictionary, to create a string that is presentable to the user.
     open var kind: ProgressKind?
     
-    public struct FileOperationKind : RawRepresentable, Equatable, Hashable, Comparable {
+    public struct FileOperationKind : RawRepresentable, Equatable, Hashable {
         public let rawValue: String
         public init(_ rawValue: String) { self.rawValue = rawValue }
         public init(rawValue: String) { self.rawValue = rawValue }
         public var hashValue: Int { return self.rawValue.hashValue }
         public static func ==(_ lhs: FileOperationKind, _ rhs: FileOperationKind) -> Bool { return lhs.rawValue == rhs.rawValue }
-        public static func <(_ lhs: FileOperationKind, _ rhs: FileOperationKind) -> Bool { return lhs.rawValue < rhs.rawValue }
         
         /// Use for indicating the progress represents a download.
         public static let downloading = FileOperationKind(rawValue: "NSProgressFileOperationKindDownloading")
@@ -481,13 +480,12 @@ public protocol ProgressReporting : NSObjectProtocol {
     var progress: Progress { get }
 }
 
-public struct ProgressKind : RawRepresentable, Equatable, Hashable, Comparable {
+public struct ProgressKind : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
     public var hashValue: Int { return self.rawValue.hashValue }
     public static func ==(_ lhs: ProgressKind, _ rhs: ProgressKind) -> Bool { return lhs.rawValue == rhs.rawValue }
-    public static func <(_ lhs: ProgressKind, _ rhs: ProgressKind) -> Bool { return lhs.rawValue < rhs.rawValue }
     
     /// Indicates that the progress being performed is related to files.
     ///
@@ -495,13 +493,12 @@ public struct ProgressKind : RawRepresentable, Equatable, Hashable, Comparable {
     public static let file = ProgressKind(rawValue: "NSProgressKindFile")
 }
 
-public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable, Comparable {
+public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
     public var hashValue: Int { return self.rawValue.hashValue }
     public static func ==(_ lhs: ProgressUserInfoKey, _ rhs: ProgressUserInfoKey) -> Bool { return lhs.rawValue == rhs.rawValue }
-    public static func <(_ lhs: ProgressUserInfoKey, _ rhs: ProgressUserInfoKey) -> Bool { return lhs.rawValue < rhs.rawValue }
     
     /// How much time is probably left in the operation, as an NSNumber containing a number of seconds.
     ///
