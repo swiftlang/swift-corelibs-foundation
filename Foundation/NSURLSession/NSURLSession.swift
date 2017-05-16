@@ -211,6 +211,7 @@ open class URLSession : NSObject {
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
         self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
         self.delegateQueue = OperationQueue()
+        self.delegateQueue.maxConcurrentOperationCount = 1
         self.delegate = nil
         //TODO: Make sure this one can't be written to?
         // Could create a subclass of URLSessionConfiguration that wraps the
@@ -220,12 +221,22 @@ open class URLSession : NSObject {
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
     }
+
+    /*
+     * A delegate queue should be serial to ensure correct ordering of callbacks.
+     * However, if user supplies a concurrent delegateQueue it is not converted to serial.
+     */
     public /*not inherited*/ init(configuration: URLSessionConfiguration, delegate: URLSessionDelegate?, delegateQueue queue: OperationQueue?) {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
         self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
-        self.delegateQueue = queue ?? OperationQueue()
+        if let _queue = queue {
+           self.delegateQueue = _queue
+        } else {
+           self.delegateQueue = OperationQueue()
+           self.delegateQueue.maxConcurrentOperationCount = 1
+        }
         self.delegate = delegate
         //TODO: Make sure this one can't be written to?
         // Could create a subclass of URLSessionConfiguration that wraps the
