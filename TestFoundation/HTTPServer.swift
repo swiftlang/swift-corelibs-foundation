@@ -77,6 +77,7 @@ class _TCPSocket {
             return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: INADDR_ANY), sin_zero: (0,0,0,0,0,0,0,0) )
         #endif
     }
+
     func acceptConnection(notify: ServerSemaphore) throws {
         _ = try attempt("listen", valid: isZero, listen(listenSocket, SOMAXCONN))
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
@@ -92,10 +93,32 @@ class _TCPSocket {
         _ = try attempt("read", valid: isNotNegative, CInt(read(connectionSocket, &buffer, 4096)))
         return String(cString: &buffer)
     }
+    
+    func split(_ str: String, _ count: Int) -> [String] {
+        return stride(from: 0, to: str.characters.count, by: count).map { i -> String in
+            let startIndex = str.index(str.startIndex, offsetBy: i)
+            let endIndex   = str.index(startIndex, offsetBy: count, limitedBy: str.endIndex) ?? str.endIndex
+            return str[startIndex..<endIndex]
+        }
+    }
    
-    func writeData(data: String) throws {
-        var bytes = Array(data.utf8)
-        _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, data.utf8.count))) 
+    func writeData(header: String, body: String, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
+        var header = Array(header.utf8)
+        _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &header, header.count)))
+        
+        if let sendDelay = sendDelay, let bodyChunks = bodyChunks {
+            let count = max(1, Int(Double(body.utf8.count) / Double(bodyChunks)))
+            let texts = split(body, count)
+            
+            for item in texts {
+                sleep(UInt32(sendDelay))
+                var bytes = Array(item.utf8)
+                _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, bytes.count)))
+            }
+        } else {
+            var bytes = Array(body.utf8)
+            _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, bytes.count)))
+        }
     }
 
     func shutdown() {
@@ -128,8 +151,24 @@ class _HTTPServer {
        return _HTTPRequest(request: try socket.readData()) 
     }
 
-    public func respond(with response: _HTTPResponse) throws {
-        try socket.writeData(data: response.description)
+    public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
+        let semaphore = DispatchSemaphore(value: 0)
+        let deadlineTime: DispatchTime
+            
+        if let startDelay = startDelay {
+           deadlineTime = .now() + .seconds(Int(startDelay))
+        } else {
+            deadlineTime = .now()
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: deadlineTime) {
+            do {
+                try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)
+                semaphore.signal()
+            } catch { }
+        }
+        semaphore.wait()
+        
     } 
 }
 
@@ -152,6 +191,14 @@ struct _HTTPRequest {
         body = lines.last!
     }
 
+    public func getCommaSeparatedHeaders() -> String {
+        var allHeaders = ""
+        for header in headers {
+            allHeaders += header + ","
+        }
+        return allHeaders
+    }
+
 }
 
 struct _HTTPResponse {
@@ -160,7 +207,7 @@ struct _HTTPResponse {
     }
     private let responseCode: Response
     private let headers: String
-    private let body: String
+    public let body: String
 
     public init(response: Response, headers: String = _HTTPUtils.EMPTY, body: String) {
         self.responseCode = response
@@ -168,9 +215,9 @@ struct _HTTPResponse {
         self.body = body
     }
    
-    public var description: String {
+    public var header: String {
         let statusLine = _HTTPUtils.VERSION + _HTTPUtils.SPACE + "\(responseCode.rawValue)" + _HTTPUtils.SPACE + "\(responseCode)"
-        return statusLine + (headers != _HTTPUtils.EMPTY ? _HTTPUtils.CRLF + headers : _HTTPUtils.EMPTY) + _HTTPUtils.CRLF2 + body
+        return statusLine + (headers != _HTTPUtils.EMPTY ? _HTTPUtils.CRLF + headers : _HTTPUtils.EMPTY) + _HTTPUtils.CRLF2
     }
 }
 
@@ -181,9 +228,15 @@ public class TestURLSessionServer {
                                      "USA":"Washington, D.C.",
                                      "country.txt": "A country is a region that is identified as a distinct national entity in political geography"]
     let httpServer: _HTTPServer
+    let startDelay: TimeInterval?
+    let sendDelay: TimeInterval?
+    let bodyChunks: Int?
     
-    public init (port: UInt16) throws {
+    public init (port: UInt16, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         httpServer = try _HTTPServer.create(port: port)
+        self.startDelay = startDelay
+        self.sendDelay = sendDelay
+        self.bodyChunks = bodyChunks
     }
     public func start(started: ServerSemaphore) throws {
         started.signal()
@@ -191,20 +244,26 @@ public class TestURLSessionServer {
     }
    
     public func readAndRespond() throws {
-        try httpServer.respond(with: process(request: httpServer.request()))
-    } 
+        try httpServer.respond(with: process(request: httpServer.request()), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
+    }
 
     func process(request: _HTTPRequest) -> _HTTPResponse {
-        if request.method == .GET {
-            return getResponse(uri: request.uri)
+        if request.method == .GET || request.method == .POST {
+            return getResponse(request: request)
         } else {
             fatalError("Unsupported method!")
         }
     }
 
-    func getResponse(uri: String) -> _HTTPResponse {
+    func getResponse(request: _HTTPRequest) -> _HTTPResponse {
+        let uri = request.uri
         if uri == "/country.txt" {
             let text = capitals[String(uri.characters.dropFirst())]!
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
+        }
+
+        if uri == "/requestHeaders" {
+            let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
         }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.characters.dropFirst())]!) 

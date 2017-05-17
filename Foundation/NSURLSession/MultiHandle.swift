@@ -314,11 +314,15 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
 
 /// A helper class that wraps a libdispatch timer.
 ///
-/// Used to implement the timeout of `URLSession.MultiHandle`.
-fileprivate class _TimeoutSource {
+/// Used to implement the timeout of `URLSession.MultiHandle` and `URLSession.EasyHandle`
+class _TimeoutSource {
     let rawSource: DispatchSource 
     let milliseconds: Int
+    let queue: DispatchQueue        //needed to restart the timer for EasyHandles
+    let handler: DispatchWorkItem   //needed to restart the timer for EasyHandles
     init(queue: DispatchQueue, milliseconds: Int, handler: DispatchWorkItem) {
+        self.queue = queue
+        self.handler = handler
         self.milliseconds = milliseconds
         self.rawSource = DispatchSource.makeTimerSource(queue: queue) as! DispatchSource
         

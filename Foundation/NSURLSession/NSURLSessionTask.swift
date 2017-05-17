@@ -590,7 +590,38 @@ fileprivate extension URLSessionTask {
         
         // HTTP Options:
         easyHandle.set(followLocation: false)
-        easyHandle.set(customHeaders: curlHeaders(for: request))
+        
+        // The httpAdditionalHeaders from session configuration has to be added to the request.
+        // The request.allHTTPHeaders can override the httpAdditionalHeaders elements. Add the
+        // httpAdditionalHeaders from session configuration first and then append/update the
+        // request.allHTTPHeaders so that request.allHTTPHeaders can override httpAdditionalHeaders.
+        
+        let httpSession = session as! URLSession
+        var httpHeaders: [AnyHashable : Any]?
+        
+        if let hh = httpSession.configuration.httpAdditionalHeaders {
+            httpHeaders = hh
+        }
+        
+        if let hh = currentRequest?.allHTTPHeaderFields {
+            if httpHeaders == nil {
+                httpHeaders = hh
+            } else {
+                hh.forEach {
+                    httpHeaders![$0] = $1
+                }
+            }
+        }
+
+        let customHeaders: [String]
+        let headersForRequest = curlHeaders(for: httpHeaders)
+        if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
+            customHeaders = headersForRequest + ["Content-Type:application/x-www-form-urlencoded"]
+        } else {
+            customHeaders = headersForRequest
+        }
+
+        easyHandle.set(customHeaders: customHeaders)
 
         //Options unavailable on Ubuntu 14.04 (libcurl 7.36)
         //TODO: Introduce something like an #if
@@ -599,15 +630,19 @@ fileprivate extension URLSessionTask {
 
         //set the request timeout
         //TODO: the timeout value needs to be reset on every data transfer
-        let s = session as! URLSession
-        easyHandle.set(timeout: Int(s.configuration.timeoutIntervalForRequest))
+        let timeoutInterval = Int(httpSession.configuration.timeoutIntervalForRequest) * 1000
+        let timeoutHandler = DispatchWorkItem { [weak self] in
+            guard let currentTask = self else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
+            currentTask.internalState = .transferFailed
+            let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
+            currentTask.completeTask(withError: urlError)
+        }
+        easyHandle.timeoutTimer = _TimeoutSource(queue: workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
 
         easyHandle.set(automaticBodyDecompression: true)
         easyHandle.set(requestMethod: request.httpMethod ?? "GET")
         if request.httpMethod == "HEAD" {
             easyHandle.set(noBody: true)
-        } else if ((request.httpMethod == "POST") && (request.value(forHTTPHeaderField: "Content-Type") == nil)) {
-            easyHandle.set(customHeaders: ["Content-Type:application/x-www-form-urlencoded"])
         }
     }
 }
@@ -621,10 +656,11 @@ fileprivate extension URLSessionTask {
     /// expects.
     ///
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
-    func curlHeaders(for request: URLRequest) -> [String] {
+    func curlHeaders(for httpHeaders: [AnyHashable : Any]?) -> [String] {
         var result: [String] = []
         var names = Set<String>()
-        if let hh = currentRequest?.allHTTPHeaderFields {
+        if httpHeaders != nil {
+            let hh = httpHeaders as! [String:String]
             hh.forEach {
                 let name = $0.0.lowercased()
                 guard !names.contains(name) else { return }
@@ -861,6 +897,9 @@ extension URLSessionTask {
         }
         self.response = response
 
+        //We don't want a timeout to be triggered after this. The timeout timer needs to be cancelled.
+        easyHandle.timeoutTimer = nil
+
         //because we deregister the task with the session on internalState being set to taskCompleted
         //we need to do the latter after the delegate/handler was notified/invoked
         switch session.behaviour(for: self) {
@@ -912,6 +951,10 @@ extension URLSessionTask {
         guard case .transferFailed = internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
         }
+
+        //We don't want a timeout to be triggered after this. The timeout timer needs to be cancelled.
+        easyHandle.timeoutTimer = nil
+
         switch session.behaviour(for: self) {
         case .taskDelegate(let delegate):
             guard let s = session as? URLSession else { fatalError() }
