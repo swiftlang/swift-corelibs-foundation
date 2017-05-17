@@ -22,6 +22,7 @@ class TestNSError : XCTestCase {
     static var allTests: [(String, (TestNSError) -> () throws -> Void)] {
         return [
             ("test_LocalizedError_errorDescription", test_LocalizedError_errorDescription),
+            ("test_NSErrorAsError_localizedDescription", test_NSErrorAsError_localizedDescription),
         ]
     }
     
@@ -32,5 +33,11 @@ class TestNSError : XCTestCase {
 
         let error = Error()
         XCTAssertEqual(error.localizedDescription, "error description")
+    }
+
+    func test_NSErrorAsError_localizedDescription() {
+        let nsError = NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Localized!"])
+        let error = nsError as Error
+        XCTAssertEqual(error.localizedDescription, "Localized!")
     }
 }
