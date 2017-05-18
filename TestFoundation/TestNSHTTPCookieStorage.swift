@@ -243,7 +243,8 @@ class TestNSHTTPCookieStorage: XCTestCase {
         let task = Process()
         task.launchPath = bundlePath.substring(to: pathIndex!) + "/xdgTestHelper/xdgTestHelper"
         var environment = ProcessInfo.processInfo.environment
-        environment["XDG_DATA_HOME"] =  NSHomeDirectory() + "/TestXDG"
+        let testPath = NSHomeDirectory() + "/TestXDG"
+        environment["XDG_CONFIG_HOME"] = testPath
         task.environment = environment
         // Launch the task
         task.launch()
@@ -252,5 +253,6 @@ class TestNSHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(status, 0)
         let terminationReason = task.terminationReason
         XCTAssertEqual(terminationReason, Process.TerminationReason.exit)
+        try? fm.removeItem(atPath: testPath)
     }
 }
