@@ -421,6 +421,12 @@ class TestNSArray : XCTestCase {
 
         XCTAssertFalse(array1.isEqual(nil))
         XCTAssertFalse(array1.isEqual(NSObject()))
+
+        let objectsArray1 = NSArray(array: [NSArray(array: [0])])
+        let objectsArray2 = NSArray(array: [NSArray(array: [1])])
+        XCTAssertFalse(objectsArray1 == objectsArray2)
+        XCTAssertFalse(objectsArray1.isEqual(objectsArray2))
+        XCTAssertFalse(objectsArray1.isEqual(to: Array(objectsArray2)))
     }
 
     /// - Note: value type conversion will destroy identity. So use index(of:) instead of indexOfObjectIdentical(to:)
