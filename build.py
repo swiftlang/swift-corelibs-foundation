@@ -490,7 +490,9 @@ foundation_tests = SwiftExecutable('TestFoundation', [
 Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
 
 foundation_tests.add_dependency(foundation_tests_resources)
-xdgTestHelper = SwiftExecutable('xdgTestHelper', ['TestFoundation/XDGTestHelper.swift'])
+xdgTestHelper = SwiftExecutable('xdgTestHelper',
+ ['TestFoundation/xdgTestHelper/main.swift',
+ 'TestFoundation/XDGTestHelper.swift'])
 foundation_tests.add_dependency(xdgTestHelper)
 foundation.add_phase(xdgTestHelper)
 foundation.add_phase(foundation_tests_resources)
