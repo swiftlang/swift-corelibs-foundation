@@ -26,6 +26,7 @@ class TestNSScanner : XCTestCase {
             ("test_scanInteger", test_scanInteger),
             ("test_scanFloat", test_scanFloat),
             ("test_scanString", test_scanString),
+            ("test_charactersToBeSkipped", test_charactersToBeSkipped),
         ]
     }
 
@@ -56,6 +57,14 @@ class TestNSScanner : XCTestCase {
         XCTAssertFalse(scanner.atEnd)
 
         let _ = scanner.scanString(string: "sauce")
+        XCTAssertTrue(scanner.atEnd)
+    }
+
+    func test_charactersToBeSkipped() {
+        let scanner = Scanner(string: "xyz  ")
+        scanner.charactersToBeSkipped = .whitespaces
+
+        let _ = scanner.scanString(string: "xyz")
         XCTAssertTrue(scanner.atEnd)
     }
 }
