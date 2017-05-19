@@ -776,10 +776,15 @@ internal extension _HTTPURLProtocol {
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
             guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
-                    URLSession.printDebug("warning: Ignoring disposition from completion handler.")
-                })
+            switch response.statusCode {
+            case 301, 302, 303, 307:
+                break
+            default:
+                s.delegateQueue.addOperation {
+                    delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
+                        URLSession.printDebug("warning: Ignoring disposition from completion handler.")
+                    })
+                }
             }
         case .taskDelegate:
             break
@@ -859,7 +864,7 @@ internal extension _HTTPURLProtocol {
         //TODO: Do we ever want to redirect for HEAD requests?
         func methodAndURL() -> (String, URL)? {
             guard
-                let location = response.value(forHeaderField: .location),
+                let location = response.value(forHeaderField: .location, response: response),
                 let targetURL = URL(string: location)
                 else {
                     // Can't redirect when there's no location to redirect to.
@@ -882,8 +887,24 @@ internal extension _HTTPURLProtocol {
         guard let (method, targetURL) = methodAndURL() else { return nil }
         var request = fromRequest
         request.httpMethod = method
-        request.url = targetURL
-        return request
+ 
+        // If targetURL has only relative path of url, create a new valid url with relative path
+        // Otherwise, return request with targetURL ie.url from location field
+        guard targetURL.scheme == nil || targetURL.host == nil else {
+            request.url = targetURL
+            return request
+        }
+    
+        let scheme = request.url?.scheme
+        let host = request.url?.host
+
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = host
+        components.path = targetURL.relativeString
+        guard let urlString = components.string else { fatalError("Invalid URL") }
+        request.url = URL(string: urlString)
+	return request
     }
 }
 
@@ -894,7 +915,12 @@ fileprivate extension HTTPURLResponse {
         /// - SeeAlso: RFC 2616 section 14.30 <https://tools.ietf.org/html/rfc2616#section-14.30>
         case location = "Location"
     }
-    func value(forHeaderField field: _Field) -> String? {
-        return field.rawValue
+    func value(forHeaderField field: _Field, response: HTTPURLResponse?) -> String? {
+        let value = field.rawValue
+	guard let response = response else { fatalError("Response is nil") }
+        if let location = response.allHeaderFields[value] as? String {
+            return location
+        }
+        return nil
     }
 }
