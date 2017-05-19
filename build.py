@@ -210,8 +210,6 @@ project = [
 foundation.add_phase(headers)
 
 sources = CompileSources([
-    'closure/data.c',
-    'closure/runtime.c',
     'uuid/uuid.c',
 	# 'CoreFoundation/AppServices.subproj/CFUserNotification.c',
 	'CoreFoundation/Base.subproj/CFBase.c',
@@ -298,6 +296,11 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFRunArray.c',
 	'CoreFoundation/URL.subproj/CFURLSessionInterface.c',
 ])
+
+# This code is already in libdispatch so is only needed if libdispatch is
+# NOT being used
+if "LIBDISPATCH_SOURCE_DIR" not in Configuration.current.variables:
+    sources += (['closure/data.c', 'closure/runtime.c'])
 
 sources.add_dependency(headers)
 foundation.add_phase(sources)
