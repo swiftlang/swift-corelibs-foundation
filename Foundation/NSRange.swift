@@ -181,7 +181,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
     let scanner = Scanner(string: aString)
     let digitSet = CharacterSet.decimalDigits
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
-    if scanner.atEnd {
+    if scanner.isAtEnd {
         // fail early if there are no decimal digits
         return emptyRange
     }
@@ -189,12 +189,12 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         return emptyRange
     }
     let partialRange = NSMakeRange(location, 0)
-    if scanner.atEnd {
+    if scanner.isAtEnd {
         // return early if there are no more characters after the first int in the string
         return partialRange
     }
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
-    if scanner.atEnd {
+    if scanner.isAtEnd {
         // return early if there are no integer characters after the first int in the string
         return partialRange
     }
