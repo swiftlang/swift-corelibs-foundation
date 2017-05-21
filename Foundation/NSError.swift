@@ -393,7 +393,7 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: S
             return nil
         }
         
-        self.init(rawValue: RawValue(IntMax(_bridgedNSError.code)))
+        self.init(rawValue: RawValue(Int(_bridgedNSError.code)))
     }
     
     public var hashValue: Int { return _code }
@@ -421,7 +421,7 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: U
             return nil
         }
         
-        self.init(rawValue: RawValue(UIntMax(UInt(_bridgedNSError.code))))
+        self.init(rawValue: RawValue(UInt(_bridgedNSError.code)))
     }
     
     public var hashValue: Int { return _code }
