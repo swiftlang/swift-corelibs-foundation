@@ -292,23 +292,27 @@ extension Decimal : SignedNumeric {
     }
 
     public static func +=(_ lhs: inout Decimal, _ rhs: Decimal) {
-        var rhs = rhs
-        _ = NSDecimalAdd(&lhs, &lhs, &rhs, .plain)
+        var leftOp = lhs
+        var rightOp = rhs
+        _ = NSDecimalAdd(&lhs, &leftOp, &rightOp, .plain)
     }
 
     public static func -=(_ lhs: inout Decimal, _ rhs: Decimal) {
-        var rhs = rhs
-        _ = NSDecimalSubtract(&lhs, &lhs, &rhs, .plain)
+        var leftOp = lhs
+        var rightOp = rhs
+        _ = NSDecimalSubtract(&lhs, &leftOp, &rightOp, .plain)
     }
 
     public static func *=(_ lhs: inout Decimal, _ rhs: Decimal) {
-        var rhs = rhs
-        _ = NSDecimalMultiply(&lhs, &lhs, &rhs, .plain)
+        var leftOp = lhs
+        var rightOp = rhs
+        _ = NSDecimalMultiply(&lhs, &leftOp, &rightOp, .plain)
     }
 
     public static func /=(_ lhs: inout Decimal, _ rhs: Decimal) {
-        var rhs = rhs
-        _ = NSDecimalDivide(&lhs, &lhs, &rhs, .plain)
+        var leftOp = lhs
+        var rightOp = rhs
+        _ = NSDecimalDivide(&lhs, &leftOp, &rightOp, .plain)
     }
 
     public static func +(lhs: Decimal, rhs: Decimal) -> Decimal {
@@ -1849,7 +1853,8 @@ extension Decimal {
         while power > 1 {
             if power % 2 == 1 {
                 let previousError = error
-                error = NSDecimalMultiply(&temporary,&temporary,&self,roundingMode)
+                var leftOp = temporary
+                error = NSDecimalMultiply(&temporary, &leftOp, &self, roundingMode)
 
                 if previousError != .noError { // FIXME is this the intent?
                     error = previousError
@@ -1863,7 +1868,9 @@ extension Decimal {
             }
             if power != 0 {
                 let previousError = error
-                error = NSDecimalMultiply(&self,&self,&self,roundingMode)
+                var leftOp = self
+                var rightOp = self
+                error = NSDecimalMultiply(&self, &leftOp, &rightOp, roundingMode)
 
                 if previousError != .noError { // FIXME is this the intent?
                     error = previousError
@@ -1877,8 +1884,8 @@ extension Decimal {
             }
         }
         let previousError = error
-
-        error = NSDecimalMultiply(&self, &temporary, &self, roundingMode)
+        var rightOp = self
+        error = NSDecimalMultiply(&self, &temporary, &rightOp, roundingMode)
 
         if previousError != .noError { // FIXME is this the intent?
             error = previousError
