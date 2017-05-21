@@ -325,29 +325,29 @@ public struct AlignmentOptions : OptionSet {
     public var rawValue : UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     
-    public static let alignMinXInward = AlignmentOptions(rawValue: 1 << 0)
-    public static let alignMinYInward = AlignmentOptions(rawValue: 1 << 1)
-    public static let alignMaxXInward = AlignmentOptions(rawValue: 1 << 2)
-    public static let alignMaxYInward = AlignmentOptions(rawValue: 1 << 3)
-    public static let alignWidthInward = AlignmentOptions(rawValue: 1 << 4)
-    public static let alignHeightInward = AlignmentOptions(rawValue: 1 << 5)
-    
-    public static let alignMinXOutward = AlignmentOptions(rawValue: 1 << 8)
-    public static let alignMinYOutward = AlignmentOptions(rawValue: 1 << 9)
-    public static let alignMaxXOutward = AlignmentOptions(rawValue: 1 << 10)
-    public static let alignMaxYOutward = AlignmentOptions(rawValue: 1 << 11)
-    public static let alignWidthOutward = AlignmentOptions(rawValue: 1 << 12)
-    public static let alignHeightOutward = AlignmentOptions(rawValue: 1 << 13)
-    
-    public static let alignMinXNearest = AlignmentOptions(rawValue: 1 << 16)
-    public static let alignMinYNearest = AlignmentOptions(rawValue: 1 << 17)
-    public static let alignMaxXNearest = AlignmentOptions(rawValue: 1 << 18)
-    public static let alignMaxYNearest = AlignmentOptions(rawValue: 1 << 19)
-    public static let alignWidthNearest = AlignmentOptions(rawValue: 1 << 20)
-    public static let alignHeightNearest = AlignmentOptions(rawValue: 1 << 21)
+    public static let alignMinXInward = AlignmentOptions(rawValue: UInt64(1) << 0)
+    public static let alignMinYInward = AlignmentOptions(rawValue: UInt64(1) << 1)
+    public static let alignMaxXInward = AlignmentOptions(rawValue: UInt64(1) << 2)
+    public static let alignMaxYInward = AlignmentOptions(rawValue: UInt64(1) << 3)
+    public static let alignWidthInward = AlignmentOptions(rawValue: UInt64(1) << 4)
+    public static let alignHeightInward = AlignmentOptions(rawValue: UInt64(1) << 5)
+
+    public static let alignMinXOutward = AlignmentOptions(rawValue: UInt64(1) << 8)
+    public static let alignMinYOutward = AlignmentOptions(rawValue: UInt64(1) << 9)
+    public static let alignMaxXOutward = AlignmentOptions(rawValue: UInt64(1) << 10)
+    public static let alignMaxYOutward = AlignmentOptions(rawValue: UInt64(1) << 11)
+    public static let alignWidthOutward = AlignmentOptions(rawValue: UInt64(1) << 12)
+    public static let alignHeightOutward = AlignmentOptions(rawValue: UInt64(1) << 13)
+
+    public static let alignMinXNearest = AlignmentOptions(rawValue: UInt64(1) << 16)
+    public static let alignMinYNearest = AlignmentOptions(rawValue: UInt64(1) << 17)
+    public static let alignMaxXNearest = AlignmentOptions(rawValue: UInt64(1) << 18)
+    public static let alignMaxYNearest = AlignmentOptions(rawValue: UInt64(1) << 19)
+    public static let alignWidthNearest = AlignmentOptions(rawValue: UInt64(1) << 20)
+    public static let alignHeightNearest = AlignmentOptions(rawValue: UInt64(1) << 21)
 
     // pass this if the rect is in a flipped coordinate system. This allows 0.5 to be treated in a visually consistent way.
-    public static let alignRectFlipped = AlignmentOptions(rawValue: 1 << 63)
+    public static let alignRectFlipped = AlignmentOptions(rawValue: UInt64(1) << 63)
     
     // convenience combinations
     public static let alignAllEdgesInward: AlignmentOptions = [.alignMinXInward, .alignMaxXInward, .alignMinYInward, .alignMaxYInward]

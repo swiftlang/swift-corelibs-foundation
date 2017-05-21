@@ -68,7 +68,7 @@ public struct Decimal {
         set {
             __lengthAndFlags =
                 (__lengthAndFlags & 0b0011_1111) |
-                UInt8(UInt32(newValue & (0b11 << 16)) >> 10)
+                UInt8(UInt32(newValue & (UInt32(0b11) << 16)) >> 10)
             __reserved = UInt16(newValue & 0b1111_1111_1111_1111)
         }
     }
@@ -583,7 +583,7 @@ fileprivate func divideByShort<T:VariableLengthNumber>(_ d: inout T, _ divisor:U
     // note the below is not the same as from length to 0 by -1
     var carry: UInt32 = 0
     for i in (0..<d._length).reversed() {
-        let accumulator = UInt32(d[i]) + carry * (1<<16)
+        let accumulator = UInt32(d[i]) + carry * (UInt32(1) << 16)
         d[i] = UInt16(accumulator / UInt32(divisor))
         carry = accumulator % UInt32(divisor)
     }
@@ -842,7 +842,7 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
     //
     // I could probably use something smarter to get d to be a power of 2.
     // In this case the multiply below became only a shift.
-    let d: UInt32 = UInt32((1 << 16) / Int(cv[cv._length - 1] + 1))
+    let d: UInt32 = (UInt32(1) << 16) / UInt32(cv[cv._length - 1] + 1)
 
     // This is to make the whole algorithm work and u*d/v*d == u/v
     _ = multiplyByShort(&u, UInt16(d))
