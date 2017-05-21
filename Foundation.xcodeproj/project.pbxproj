@@ -309,8 +309,8 @@
 		61E0117F1C1B5990000037DD /* CFRunLoop.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D81BBC9AD800234F36 /* CFRunLoop.c */; };
 		61E011811C1B5998000037DD /* CFMessagePort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88DC1BBC9AEC00234F36 /* CFMessagePort.c */; };
 		61E011821C1B599A000037DD /* CFMachPort.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */; };
-		63DCE9D21EAA430100E9CB02 /* NSISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D11EAA430100E9CB02 /* NSISO8601DateFormatter.swift */; };
-		63DCE9D41EAA432400E9CB02 /* TestNSISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D31EAA432400E9CB02 /* TestNSISO8601DateFormatter.swift */; };
+		63DCE9D21EAA430100E9CB02 /* ISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */; };
+		63DCE9D41EAA432400E9CB02 /* TestISO8601DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DCE9D31EAA432400E9CB02 /* TestISO8601DateFormatter.swift */; };
 		6EB768281D18C12C00D4B719 /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EB768271D18C12C00D4B719 /* UUID.swift */; };
 		7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */; };
 		7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7900433A1CACD33E00ECCBF1 /* TestNSPredicate.swift */; };
@@ -750,8 +750,8 @@
 		61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSTimer.swift; sourceTree = "<group>"; };
 		61E0117B1C1B554D000037DD /* TestNSRunLoop.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRunLoop.swift; sourceTree = "<group>"; };
 		61F8AE7C1C180FC600FB62F0 /* TestNSNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNotificationCenter.swift; sourceTree = "<group>"; };
-		63DCE9D11EAA430100E9CB02 /* NSISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSISO8601DateFormatter.swift; sourceTree = "<group>"; };
-		63DCE9D31EAA432400E9CB02 /* TestNSISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSISO8601DateFormatter.swift; sourceTree = "<group>"; };
+		63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO8601DateFormatter.swift; sourceTree = "<group>"; };
+		63DCE9D31EAA432400E9CB02 /* TestISO8601DateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestISO8601DateFormatter.swift; sourceTree = "<group>"; };
 		6E203B8C1C1303BB003B2576 /* TestBundle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestBundle.swift; sourceTree = "<group>"; };
 		6EB768271D18C12C00D4B719 /* UUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUID.swift; sourceTree = "<group>"; };
 		790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCompoundPredicate.swift; sourceTree = "<group>"; };
@@ -1413,7 +1413,7 @@
 				BDFDF0A61DFF5B3E00C04CC5 /* TestNSPersonNameComponents.swift */,
 				CD1C7F7C1E303B47008E331C /* TestNSError.swift */,
 				90E645DE1E4C89A400D0D47C /* TestNSCache.swift */,
-				63DCE9D31EAA432400E9CB02 /* TestNSISO8601DateFormatter.swift */,
+				63DCE9D31EAA432400E9CB02 /* TestISO8601DateFormatter.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1509,7 +1509,7 @@
 				5BDC3F351BCC5DCB00ED97BB /* NSDateFormatter.swift */,
 				5BDC3F391BCC5DCB00ED97BB /* NSFormatter.swift */,
 				5B628EDE1D1C995C00CA9570 /* NSMeasurementFormatter.swift */,
-				63DCE9D11EAA430100E9CB02 /* NSISO8601DateFormatter.swift */,
+				63DCE9D11EAA430100E9CB02 /* ISO8601DateFormatter.swift */,
 			);
 			name = Formatters;
 			sourceTree = "<group>";
@@ -2003,7 +2003,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63DCE9D21EAA430100E9CB02 /* NSISO8601DateFormatter.swift in Sources */,
+				63DCE9D21EAA430100E9CB02 /* ISO8601DateFormatter.swift in Sources */,
 				5BF7AE831BCD50CD008F214A /* NSArray.swift in Sources */,
 				EADE0B991BD15DFF00C49C64 /* NSEnergyFormatter.swift in Sources */,
 				EADE0BBF1BD15E0000C49C64 /* NSURLError.swift in Sources */,
@@ -2262,7 +2262,7 @@
 				5B13B3281C582D4C00651CE2 /* TestBundle.swift in Sources */,
 				5B13B32A1C582D4C00651CE2 /* TestNSCharacterSet.swift in Sources */,
 				BF8E65311DC3B3CB005AB5C3 /* TestNotification.swift in Sources */,
-				63DCE9D41EAA432400E9CB02 /* TestNSISO8601DateFormatter.swift in Sources */,
+				63DCE9D41EAA432400E9CB02 /* TestISO8601DateFormatter.swift in Sources */,
 				EA01AAEC1DA839C4008F4E07 /* TestProgress.swift in Sources */,
 				5B13B3411C582D4C00651CE2 /* TestNSRegularExpression.swift in Sources */,
 				5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */,
