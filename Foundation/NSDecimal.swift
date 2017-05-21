@@ -24,7 +24,7 @@ public struct Decimal {
             return Int32(__exponent)
         }
         set {
-            __exponent = Int8(truncatingBitPattern: newValue)
+            __exponent = Int8(extendingOrTruncating: newValue)
         }
     }
     // length == 0 && isNegative -> NaN
@@ -90,7 +90,7 @@ public struct Decimal {
 
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)){
         self._mantissa = _mantissa
-        self.__exponent = Int8(truncatingBitPattern: _exponent)
+        self.__exponent = Int8(extendingOrTruncating: _exponent)
         self.__lengthAndFlags = UInt8(_length & 0b1111)
         self.__reserved = 0
         self._isNegative = _isNegative
@@ -421,21 +421,21 @@ extension Decimal {
             while mantissa != 0 && i < NSDecimalMaxSize {
                 switch i {
                 case 0:
-                    _mantissa.0 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.0 = UInt16(extendingOrTruncating:mantissa)
                 case 1:
-                    _mantissa.1 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.1 = UInt16(extendingOrTruncating:mantissa)
                 case 2:
-                    _mantissa.2 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.2 = UInt16(extendingOrTruncating:mantissa)
                 case 3:
-                    _mantissa.3 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.3 = UInt16(extendingOrTruncating:mantissa)
                 case 4:
-                    _mantissa.4 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.4 = UInt16(extendingOrTruncating:mantissa)
                 case 5:
-                    _mantissa.5 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.5 = UInt16(extendingOrTruncating:mantissa)
                 case 6:
-                    _mantissa.6 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.6 = UInt16(extendingOrTruncating:mantissa)
                 case 7:
-                    _mantissa.7 = UInt16(truncatingBitPattern:mantissa)
+                    _mantissa.7 = UInt16(extendingOrTruncating:mantissa)
                 default:
                     fatalError("initialization overflow")
                 }
@@ -601,13 +601,13 @@ fileprivate func multiplyByShort<T:VariableLengthNumber>(_ d: inout T, _ mul:UIn
     for i in 0..<d._length {
         let accumulator: UInt32 = UInt32(d[i]) * UInt32(mul) + carry
         carry = accumulator >> 16
-        d[i] = UInt16(truncatingBitPattern: accumulator)
+        d[i] = UInt16(extendingOrTruncating: accumulator)
     }
     if carry != 0 {
         if d._length >= Decimal.maxSize {
             return .overflow
         }
-        d[d._length] = UInt16(truncatingBitPattern: carry)
+        d[d._length] = UInt16(extendingOrTruncating: carry)
         d._length += 1
     }
     return .noError
@@ -618,13 +618,13 @@ fileprivate func addShort<T:VariableLengthNumber>(_ d: inout T, _ add:UInt16) ->
     for i in 0..<d._length {
         let accumulator: UInt32 = UInt32(d[i]) + carry
         carry = accumulator >> 16
-        d[i] = UInt16(truncatingBitPattern: accumulator)
+        d[i] = UInt16(extendingOrTruncating: accumulator)
     }
     if carry != 0 {
         if d._length >= Decimal.maxSize {
             return .overflow
         }
-        d[d._length] = UInt16(truncatingBitPattern: carry)
+        d[d._length] = UInt16(extendingOrTruncating: carry)
         d._length += 1
     }
     return .noError
@@ -772,8 +772,8 @@ fileprivate func integerMultiply<T:VariableLengthNumber>(_ big: inout T,
             if i + j < big._length {
                 let bigij = UInt32(big[i+j])
                 accumulator = UInt32(carry) + bigij + UInt32(right[j]) * UInt32(left[i])
-                carry = UInt16(truncatingBitPattern:accumulator >> UInt32(16))
-                big[i+j] = UInt16(truncatingBitPattern:accumulator)
+                carry = UInt16(extendingOrTruncating:accumulator >> 16)
+                big[i+j] = UInt16(extendingOrTruncating:accumulator)
             } else if carry != 0 || (right[j] == 0 && left[j] == 0) {
                 return .overflow
             }
@@ -913,7 +913,7 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
             acc = acc & 0xffff;
             acc = 0xffff + UInt32(u[ul - vl + i - UInt32(j) - UInt32(1)]) - acc + sk; // subtract
             sk = acc >> 16;
-            u[ul - vl + i - UInt32(j) - UInt32(1)] = UInt16(truncatingBitPattern:acc)
+            u[ul - vl + i - UInt32(j) - UInt32(1)] = UInt16(extendingOrTruncating:acc)
         }
 
         // D5: test remainder
@@ -929,7 +929,7 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
                 let vl = v._length
                 acc = UInt32(v[i]) + UInt32(u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)]) + k
                 k = acc >> 16;
-                u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)] = UInt16(truncatingBitPattern:acc)
+                u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)] = UInt16(extendingOrTruncating:acc)
             }
             // k must be == 1 here
         }
@@ -1182,8 +1182,8 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
         accumulator = li + ri + UInt32(carry)
-        carry = UInt16(truncatingBitPattern:accumulator >> 16)
-        result[i] = UInt16(truncatingBitPattern:accumulator)
+        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }
 
@@ -1191,8 +1191,8 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         if carry != 0 {
             let li = UInt32(left[i])
             accumulator = li + UInt32(carry)
-            carry = UInt16(truncatingBitPattern:accumulator >> 16)
-            result[i] = UInt16(truncatingBitPattern:accumulator)
+            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
             while i < left._length {
@@ -1206,8 +1206,8 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         if carry != 0 {
             let ri = UInt32(right[i])
             accumulator = ri + UInt32(carry)
-            carry = UInt16(truncatingBitPattern:accumulator >> 16)
-            result[i] = UInt16(truncatingBitPattern:accumulator)
+            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
             while i < right._length {
@@ -1249,8 +1249,8 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
         accumulator = 0xffff + li - ri + UInt32(carry)
-        carry = UInt16(truncatingBitPattern:accumulator >> 16)
-        result[i] = UInt16(truncatingBitPattern:accumulator)
+        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }
 
@@ -1258,8 +1258,8 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
         if carry != 0 {
             let li = UInt32(left[i])
             accumulator = 0xffff + li // + no carry
-            carry = UInt16(truncatingBitPattern:accumulator >> 16)
-            result[i] = UInt16(truncatingBitPattern:accumulator)
+            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
             while i < left._length {
@@ -1272,8 +1272,8 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
     while i < right._length {
         let ri = UInt32(right[i])
         accumulator = 0xffff - ri + UInt32(carry)
-        carry = UInt16(truncatingBitPattern:accumulator >> 16)
-        result[i] = UInt16(truncatingBitPattern:accumulator)
+        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }
 
