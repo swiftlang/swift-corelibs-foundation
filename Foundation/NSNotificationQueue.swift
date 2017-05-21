@@ -51,7 +51,7 @@ open class NotificationQueue: NSObject {
     // The _notificationQueueList represents a list of notification queues related to the current thread.
     private static var _notificationQueueList = NSThreadSpecific<NSMutableArray>()
     internal static var notificationQueueList: NotificationQueueList {
-        return _notificationQueueList.get() {
+        return _notificationQueueList.get() {_ in
             return NSMutableArray()
         }
     }
@@ -59,7 +59,7 @@ open class NotificationQueue: NSObject {
     // The default notification queue for the current thread.
     private static var _defaultQueue = NSThreadSpecific<NotificationQueue>()
     open class var `default`: NotificationQueue {
-        return _defaultQueue.get() {
+        return _defaultQueue.get() {_ in
             return NotificationQueue(notificationCenter: NotificationCenter.default)
         }
     }
@@ -109,15 +109,18 @@ open class NotificationQueue: NSObject {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.onName, .onSender]:
-            predicate = { (entryNotification, _) in
+            predicate = { (arg) in
+                let (entryNotification, _) = arg
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object) || notification.name != entryNotification.name
             }
         case [.onName]:
-            predicate = { (entryNotification, _) in
+            predicate = { (arg) in
+                let (entryNotification, _) = arg
                 return notification.name != entryNotification.name
             }
         case [.onSender]:
-            predicate = { (entryNotification, _) in
+            predicate = { (arg) in
+                let (entryNotification, _) = arg
                 return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object)
             }
         default:
