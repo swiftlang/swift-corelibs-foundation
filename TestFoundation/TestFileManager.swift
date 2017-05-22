@@ -49,7 +49,10 @@ class TestFileManager : XCTestCase {
         } catch _ {
             XCTFail()
         }
-        
+
+        // Ensure attempting to create the directory again fails gracefully.
+        XCTAssertNil(try? fm.createDirectory(atPath: path, withIntermediateDirectories:false, attributes:nil))
+
         var isDir = false
         let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
         XCTAssertTrue(exists)
