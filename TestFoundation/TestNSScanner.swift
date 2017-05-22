@@ -35,7 +35,7 @@ class TestNSScanner : XCTestCase {
         var value: Int = 0
         XCTAssert(scanner.scanInteger(&value), "An Integer should be found in the string `123`.")
         XCTAssertEqual(value, 123, "Scanned Integer value of the string `123` should be `123`.")
-        XCTAssertTrue(scanner.atEnd)
+        XCTAssertTrue(scanner.isAtEnd)
     }
 
     func test_scanFloat() {
@@ -54,10 +54,10 @@ class TestNSScanner : XCTestCase {
         }
 
         XCTAssertEqual(firstPart, "apple ")
-        XCTAssertFalse(scanner.atEnd)
+        XCTAssertFalse(scanner.isAtEnd)
 
         let _ = scanner.scanString(string: "sauce")
-        XCTAssertTrue(scanner.atEnd)
+        XCTAssertTrue(scanner.isAtEnd)
     }
 
     func test_charactersToBeSkipped() {
@@ -65,6 +65,6 @@ class TestNSScanner : XCTestCase {
         scanner.charactersToBeSkipped = .whitespaces
 
         let _ = scanner.scanString(string: "xyz")
-        XCTAssertTrue(scanner.atEnd)
+        XCTAssertTrue(scanner.isAtEnd)
     }
 }
