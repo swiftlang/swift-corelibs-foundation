@@ -708,7 +708,7 @@ private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] 
     var index = 0
 
     let _ = scanner.scanUpToCharactersFromSet(digitSet)
-    while !scanner.atEnd && index < number {
+    while !scanner.isAtEnd && index < number {
         if let num = scanner.scanDouble() {
             result[index] = num
         }

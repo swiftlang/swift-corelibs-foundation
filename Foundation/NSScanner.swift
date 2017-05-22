@@ -470,7 +470,7 @@ extension Scanner {
         }
     }
     
-    public var atEnd: Bool {
+    public var isAtEnd: Bool {
         var stringLoc = scanLocation
         let stringLen = string.length
         if let invSet = invertedSkipSet {
