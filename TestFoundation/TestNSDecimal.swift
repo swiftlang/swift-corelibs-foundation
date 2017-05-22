@@ -320,11 +320,13 @@ class TestNSDecimal: XCTestCase {
         a = Decimal(1234)
         XCTAssertEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &a, 2, .plain))
         XCTAssertEqual(Decimal(123400), result)
+        a = result
         XCTAssertEqual(.overflow, NSDecimalMultiplyByPowerOf10(&result, &a, 128, .plain))
         XCTAssertTrue(result.isNaN)
         a = Decimal(1234)
         XCTAssertEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &a, -2, .plain))
         XCTAssertEqual(Decimal(12.34), result)
+        a = result
         XCTAssertEqual(.underflow, NSDecimalMultiplyByPowerOf10(&result, &a, -128, .plain))
         XCTAssertTrue(result.isNaN)
         a = Decimal(1234)
