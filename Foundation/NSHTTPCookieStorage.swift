@@ -65,7 +65,7 @@ open class HTTPCookieStorage: NSObject {
         guard !FileManager.default.fileExists(atPath: path) else { return true }
 
         do {
-            try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
+            try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
             return true
         } catch {
             return false
@@ -77,7 +77,7 @@ open class HTTPCookieStorage: NSObject {
             return path + fileName
         }
         //if we were unable to create the desired directory, create the cookie file in the `pwd`
-        return fileName
+        return FileManager.default.currentDirectoryPath + fileName
     }
 
     open var cookies: [HTTPCookie]? {
