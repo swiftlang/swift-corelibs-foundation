@@ -47,7 +47,7 @@ open class HTTPCookieStorage: NSObject {
         allCookies = [:]
         cookieAcceptPolicy = .always
         super.init()
-        cookieFilePath = filePath(path: _CFXDGCreateConfigHomePath()._swiftObject, fileName: "/.cookies." + cookieStorageName)
+        cookieFilePath = filePath(path: _CFXDGCreateDataHomePath()._swiftObject, fileName: "/.cookies." + cookieStorageName)
         loadPersistedCookies()
     }
 
