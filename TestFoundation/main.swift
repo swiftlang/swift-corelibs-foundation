@@ -79,8 +79,7 @@ XCTMain([
     testCase(TestURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
     testCase(TestNSHTTPURLResponse.allTests),
-//Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
-//    testCase(TestURLSession.allTests),
+    testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),

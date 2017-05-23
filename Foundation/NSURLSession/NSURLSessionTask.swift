@@ -634,7 +634,10 @@ fileprivate extension URLSessionTask {
 
         //set the request timeout
         //TODO: the timeout value needs to be reset on every data transfer
-        let timeoutInterval = Int(httpSession.configuration.timeoutIntervalForRequest) * 1000
+        var timeoutInterval = Int(httpSession.configuration.timeoutIntervalForRequest) * 1000
+        if request.isTimeoutIntervalSet {
+           timeoutInterval = Int(request.timeoutInterval) * 1000
+        }
         let timeoutHandler = DispatchWorkItem { [weak self] in
             guard let currentTask = self else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
             currentTask.internalState = .transferFailed
