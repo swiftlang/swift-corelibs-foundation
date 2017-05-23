@@ -59,6 +59,11 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
             _applyMutation { $0.cachePolicy = newValue }
         }
     }
+
+    //URLRequest.timeoutInterval should be given precedence over the URLSessionConfiguration.timeoutIntervalForRequest regardless of the value set,
+    // if it has been set at least once. Even though the default value is 60 ,if the user sets URLRequest.timeoutInterval
+    // to explicitly 60 then the precedence should be given to URLRequest.timeoutInterval.
+    internal var isTimeoutIntervalSet = false
     
     /// Returns the timeout interval of the receiver.
     /// - discussion: The timeout interval specifies the limit on the idle
@@ -77,6 +82,7 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
         }
         set {
             _applyMutation { $0.timeoutInterval = newValue }
+            isTimeoutIntervalSet = true
         }
     }
     
