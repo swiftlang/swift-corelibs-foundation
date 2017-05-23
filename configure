@@ -28,6 +28,7 @@ from lib.phases import SwiftExecutable
 from lib.product import DynamicLibrary
 from lib.product import Framework
 from lib.product import StaticLibrary
+from lib.product import StaticAndDynamicLibrary
 from lib.product import Application
 from lib.product import Executable
 
