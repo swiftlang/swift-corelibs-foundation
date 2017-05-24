@@ -38,7 +38,6 @@ open class HTTPCookieStorage: NSObject {
 
     private static var sharedStorage: HTTPCookieStorage?
     private static var sharedCookieStorages: [String: HTTPCookieStorage] = [:] //for group storage containers
-
     private var cookieFilePath: String!
     private let workQueue: DispatchQueue = DispatchQueue(label: "HTTPCookieStorage.workqueue")
     var allCookies: [String: HTTPCookie]
@@ -47,7 +46,13 @@ open class HTTPCookieStorage: NSObject {
         allCookies = [:]
         cookieAcceptPolicy = .always
         super.init()
-        cookieFilePath = filePath(path: _CFXDGCreateDataHomePath()._swiftObject, fileName: "/.cookies." + cookieStorageName)
+        let bundlePath = Bundle.main.bundlePath
+        var bundleName = bundlePath.components(separatedBy: "/").last!
+        if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
+            bundleName = bundleName.substring(to: range.lowerBound)
+        }
+        let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName
+        cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
         loadPersistedCookies()
     }
 
@@ -72,12 +77,13 @@ open class HTTPCookieStorage: NSObject {
         }
     }
 
-    private func filePath(path: String, fileName: String) -> String {
+    private func filePath(path: String, fileName: String, bundleName: String) -> String {
         if directory(with: path) {
             return path + fileName
         }
-        //if we were unable to create the desired directory, create the cookie file in the `pwd`
-        return FileManager.default.currentDirectoryPath + fileName
+        //if we were unable to create the desired directory, create the cookie file
+        //in a subFolder (named after the bundle) of the `pwd`
+        return FileManager.default.currentDirectoryPath + "/" + bundleName + fileName
     }
 
     open var cookies: [HTTPCookie]? {
