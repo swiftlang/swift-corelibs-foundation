@@ -9,7 +9,7 @@
 
 script = Script()
 
-foundation = DynamicLibrary("Foundation")
+foundation = StaticAndDynamicLibrary("Foundation")
 
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
@@ -513,6 +513,8 @@ extra_script = """
 rule InstallFoundation
     command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
     cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
+    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
     mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $

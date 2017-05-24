@@ -112,10 +112,11 @@ default """ + self.product_name + """
 class DynamicLibrary(Library):
     def __init__(self, name):
         Library.__init__(self, name)
-        self.rule = "Link"
-        self.product_name = Configuration.current.target.dynamic_library_prefix + name + Configuration.current.target.dynamic_library_suffix
+        self.name = name
 
     def generate(self):
+        self.rule = "Link"
+        self.product_name = Configuration.current.target.dynamic_library_prefix + self.name + Configuration.current.target.dynamic_library_suffix
         if Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD:
             self.conformance_begin = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swift_begin.o' 
             self.conformance_end = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swift_end.o' 
@@ -172,16 +173,23 @@ build ${TARGET_BOOTSTRAP_DIR}/usr/lib/""" + Configuration.current.target.dynamic
 
         return generated
 
-
 class StaticLibrary(Library):
     def __init__(self, name):
         Library.__init__(self, name)
-        self.rule = "Archive"
-        self.product_name = Configuration.current.target.static_library_prefix + name + Configuration.current.target.static_library_suffix
-    
+        self.name = name
+
     def generate(self):
+        self.rule = "Archive"
+        self.product_name = Configuration.current.target.static_library_prefix + self.name + Configuration.current.target.static_library_suffix
         return Library.generate(self, [])
-        
+
+class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
+    def __init__(self, name):
+        StaticLibrary.__init__(self, name)
+        DynamicLibrary.__init__(self, name)
+
+    def generate(self):
+        return StaticLibrary.generate(self) + DynamicLibrary.generate(self)
 
 class Executable(Product):
     def __init__(self, name):
@@ -190,9 +198,8 @@ class Executable(Product):
 
     def generate(self):
         generated = Product.generate(self)
-        
-        return generated
 
+        return generated
 
 class Application(Product):
     executable = None
