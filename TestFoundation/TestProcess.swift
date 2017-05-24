@@ -28,6 +28,7 @@ class TestProcess : XCTestCase {
                    ("test_pipe_stdin", test_pipe_stdin),
                    ("test_pipe_stdout", test_pipe_stdout),
                    ("test_pipe_stderr", test_pipe_stderr),
+                   ("test_current_working_directory", test_current_working_directory),
                    // disabled for now
                    // ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
                    ("test_file_stdout", test_file_stdout),
@@ -262,6 +263,19 @@ class TestProcess : XCTestCase {
             XCTFail("Test failed: \(error)")
         }
     }
+
+    func test_current_working_directory() {
+        do {
+            let previousWorkingDirectory = FileManager.default.currentDirectoryPath
+
+            // `bash` will not be found if the current working directory is not set correctly.
+            let _ = try runTask(["bash", "-c", "exit 0"], currentDirectoryPath: "/bin")
+
+            XCTAssertEqual(previousWorkingDirectory, FileManager.default.currentDirectoryPath)
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
+    }
 }
 
 private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
@@ -284,13 +298,17 @@ private enum Error: Swift.Error {
     case InvalidEnvironmentVariable(String)
 }
 
-private func runTask(_ arguments: [String], environment: [String: String]? = nil) throws -> String {
+private func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> String {
     let process = Process()
 
     var arguments = arguments
     process.launchPath = arguments.removeFirst()
     process.arguments = arguments
     process.environment = environment
+
+    if let directoryPath = currentDirectoryPath {
+        process.currentDirectoryPath = directoryPath
+    }
 
     let pipe = Pipe()
     process.standardOutput = pipe
