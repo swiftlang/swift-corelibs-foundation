@@ -227,19 +227,22 @@ class TestNSHTTPCookieStorage: XCTestCase {
         storage.setCookie(testCookie)
         XCTAssertEqual(storage.cookies!.count, 3)
         var destPath: String
+        let bundlePath = Bundle.main.bundlePath
+        var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
+        if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
+            bundleName = bundleName.substring(to: range.lowerBound)
+        }
         if let xdg_data_home = getenv("XDG_DATA_HOME") {
-            destPath = String(utf8String: xdg_data_home)! + "/.cookies.shared"
+            destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
         } else {
-            destPath = NSHomeDirectory() + "/.local/share/.cookies.shared"
+            destPath = NSHomeDirectory() + "/.local/share" + bundleName + "/.cookies.shared"
         }
         let fm = FileManager.default
         var isDir = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)
         XCTAssertTrue(exists)
         //Test by setting the environmental variable
-        let bundle = Bundle.main
-        let bundlePath = bundle.bundlePath
-        var pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
+        let pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
         let task = Process()
         task.launchPath = bundlePath.substring(to: pathIndex!) + "/xdgTestHelper/xdgTestHelper"
         var environment = ProcessInfo.processInfo.environment
