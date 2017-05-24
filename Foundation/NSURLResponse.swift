@@ -396,8 +396,8 @@ private extension String {
                 type = string
             } else {
                 if let r = string.range(of: "=") {
-                    let name = string[string.startIndex..<r.lowerBound].trimmingCharacters(in: ws)
-                    let value = string[r.upperBound..<string.endIndex].trimmingCharacters(in: ws)
+                    let name = String(string[string.startIndex..<r.lowerBound]).trimmingCharacters(in: ws)
+                    let value = String(string[r.upperBound..<string.endIndex]).trimmingCharacters(in: ws)
                     parameters.append(ValueWithParameters.Parameter(attribute: name, value: value))
                 } else {
                     let name = string.trimmingCharacters(in: ws)
