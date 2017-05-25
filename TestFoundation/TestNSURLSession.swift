@@ -24,19 +24,19 @@ class TestURLSession : XCTestCase {
 //Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
 //            ("test_dataTaskWithURL", test_dataTaskWithURL),
 //            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
-//            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
-//            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
+            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
 //            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
 //            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-//            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-//            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
+            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
 //            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
 //            ("test_taskError", test_taskError),
-//            ("test_taskCopy", test_taskCopy),
+            ("test_taskCopy", test_taskCopy),
 //            ("test_cancelTask", test_cancelTask),
 //            ("test_taskTimeout", test_taskTimeout),
-//            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
-//            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
+            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
+            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
         ]
     }
@@ -97,17 +97,14 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
-            if let e = error as? URLError {
-                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
-                expect.fulfill()
-                return
-            }
-
-            let httpResponse = response as! HTTPURLResponse?
-            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data!, encoding: String.Encoding.utf8)!
+            defer { expect.fulfill() }
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            XCTAssertNotNil(response)
+            XCTAssertNotNil(data)
+            guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+            expectedResult = String(data: data, encoding: String.Encoding.utf8) ?? ""
             XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
-            expect.fulfill()
         }
         task.resume()
         waitForExpectations(timeout: 12)
@@ -153,16 +150,14 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "URL test with completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: urlRequest) { data, response, error in
-            if let e = error as? URLError {
-                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
-                expect.fulfill()
-                return
-            }
-            let httpResponse = response as! HTTPURLResponse?
-            XCTAssertEqual(200, httpResponse!.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data!, encoding: String.Encoding.utf8)!
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+            expectedResult = String(data: data, encoding: String.Encoding.utf8) ?? ""
             XCTAssertEqual("Rome", expectedResult, "Did not receive expected value")
-            expect.fulfill()
         }
         task.resume()
         waitForExpectations(timeout: 12)
@@ -221,9 +216,7 @@ class TestURLSession : XCTestCase {
         let expect = expectation(description: "download task with handler")
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/country.txt")!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
-            if let e = error as? URLError {
-                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
-            }
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             expect.fulfill()
         }
         task.resume()
@@ -344,7 +337,10 @@ class TestURLSession : XCTestCase {
         req.allHTTPHeaderFields = headers
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
-            let headers = String(data: data!, encoding: String.Encoding.utf8)!
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let data = data else { return }
+            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
             XCTAssertNotNil(headers.range(of: "header1: value1"))
         }
         task.resume()
@@ -377,7 +373,9 @@ class TestURLSession : XCTestCase {
         req.allHTTPHeaderFields = headers
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
-            let headers = String(data: data!, encoding: String.Encoding.utf8)!
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            let headers = String(data: data!, encoding: String.Encoding.utf8) ?? ""
             XCTAssertNotNil(headers.range(of: "header1: rvalue1"))
             XCTAssertNotNil(headers.range(of: "header2: rvalue2"))
             XCTAssertNotNil(headers.range(of: "header3: svalue3"))
@@ -405,7 +403,7 @@ class TestURLSession : XCTestCase {
         let req = URLRequest(url: URL(string: "http://127.0.0.1:\(serverPort)/Peru")!)
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
-            XCTAssertNil(error)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
         }
         task.resume()
 
