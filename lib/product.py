@@ -77,11 +77,12 @@ class Library(Product):
     def __init__(self, name):
         Product.__init__(self, name)
 
-    def generate(self, flags):
-        generated = Product.generate(self)
-        objects = []
-        for phase in self.phases:
-            objects += phase.objects
+    def generate(self, flags, objects = []):
+        generated = ""
+        if len(objects) == 0:
+            generated = Product.generate(self)
+            for phase in self.phases:
+                objects += phase.objects
 
         product_flags = " ".join(flags)
         if self.LDFLAGS is not None:
@@ -106,7 +107,7 @@ default """ + self.product_name + """
 
 """
 
-        return generated
+        return objects, generated
 
 
 class DynamicLibrary(Library):
@@ -114,15 +115,15 @@ class DynamicLibrary(Library):
         Library.__init__(self, name)
         self.name = name
 
-    def generate(self):
+    def generate(self, objects = []):
         self.rule = "Link"
         self.product_name = Configuration.current.target.dynamic_library_prefix + self.name + Configuration.current.target.dynamic_library_suffix
         if Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD:
             self.conformance_begin = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swift_begin.o' 
             self.conformance_end = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swift_end.o' 
-            return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"])
+            return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"], objects)
         else:
-            return Library.generate(self, ["-shared"])
+            return Library.generate(self, ["-shared"], objects)
 
 
 class Framework(Product):
@@ -189,7 +190,9 @@ class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
         DynamicLibrary.__init__(self, name)
 
     def generate(self):
-        return StaticLibrary.generate(self) + DynamicLibrary.generate(self)
+        objects, generatedForStatic = StaticLibrary.generate(self)
+        _, generatedForDynamic = DynamicLibrary.generate(self, objects)
+        return generatedForStatic + generatedForDynamic
 
 class Executable(Product):
     def __init__(self, name):
