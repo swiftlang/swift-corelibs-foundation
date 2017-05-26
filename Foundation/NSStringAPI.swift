@@ -1562,7 +1562,7 @@ extension String {
     fatalError("unavailable function can't be called")
   }
 
-  @available(*, unavailable, renamed: "componentsSeparated(by:)")
+  @available(*, unavailable, renamed: "components(separatedBy:)")
   public func componentsSeparatedBy(_ separator: String) -> [String] {
     fatalError("unavailable function can't be called")
   }
