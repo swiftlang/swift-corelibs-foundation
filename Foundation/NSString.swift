@@ -56,7 +56,7 @@ extension NSString {
         
         public static let allowLossy = EncodingConversionOptions(rawValue: 1)
         public static let externalRepresentation = EncodingConversionOptions(rawValue: 2)
-        internal static let failOnPartialEncodingConversion = EncodingConversionOptions(rawValue: 1 << 20)
+        internal static let failOnPartialEncodingConversion = EncodingConversionOptions(rawValue: 1 &<< 20)
     }
 
     public struct EnumerationOptions : OptionSet {
@@ -68,11 +68,11 @@ extension NSString {
         public static let byComposedCharacterSequences = EnumerationOptions(rawValue: 2)
         public static let byWords = EnumerationOptions(rawValue: 3)
         public static let bySentences = EnumerationOptions(rawValue: 4)
-        public static let reverse = EnumerationOptions(rawValue: 1 << 8)
-        public static let substringNotRequired = EnumerationOptions(rawValue: 1 << 9)
-        public static let localized = EnumerationOptions(rawValue: 1 << 10)
+        public static let reverse = EnumerationOptions(rawValue: 1 &<< 8)
+        public static let substringNotRequired = EnumerationOptions(rawValue: 1 &<< 9)
+        public static let localized = EnumerationOptions(rawValue: 1 &<< 10)
         
-        internal static let forceFullTokens = EnumerationOptions(rawValue: 1 << 20)
+        internal static let forceFullTokens = EnumerationOptions(rawValue: 1 &<< 20)
     }
 }
 

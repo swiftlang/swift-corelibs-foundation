@@ -282,8 +282,8 @@ extension _EasyHandle {
     struct _PauseState : OptionSet {
         let rawValue: Int8
         init(rawValue: Int8) { self.rawValue = rawValue }
-        static let receivePaused = _PauseState(rawValue: 1 << 0)
-        static let sendPaused = _PauseState(rawValue: 1 << 1)
+        static let receivePaused = _PauseState(rawValue: 1 &<< 0)
+        static let sendPaused = _PauseState(rawValue: 1 &<< 1)
     }
 }
 extension _EasyHandle._PauseState {

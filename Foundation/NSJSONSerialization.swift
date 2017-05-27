@@ -20,16 +20,16 @@ extension JSONSerialization {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
-        public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
-        public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
+        public static let mutableContainers = ReadingOptions(rawValue: 1 &<< 0)
+        public static let mutableLeaves = ReadingOptions(rawValue: 1 &<< 1)
+        public static let allowFragments = ReadingOptions(rawValue: 1 &<< 2)
     }
 
     public struct WritingOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
+        public static let prettyPrinted = WritingOptions(rawValue: 1 &<< 0)
     }
 }
 
@@ -772,7 +772,7 @@ private struct JSONReader {
             ])
         }
 
-        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
+        let highValue = (UInt32(codeUnit  - 0xD800) &<< 10)
         let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
         return (String(UnicodeScalar(highValue + lowValue + 0x10000)!), finalIndex)
     }

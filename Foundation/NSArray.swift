@@ -649,9 +649,9 @@ public struct NSBinarySearchingOptions : OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let firstEqual = NSBinarySearchingOptions(rawValue: 1 << 8)
-    public static let lastEqual = NSBinarySearchingOptions(rawValue: 1 << 9)
-    public static let insertionIndex = NSBinarySearchingOptions(rawValue: 1 << 10)
+    public static let firstEqual = NSBinarySearchingOptions(rawValue: 1 &<< 8)
+    public static let lastEqual = NSBinarySearchingOptions(rawValue: 1 &<< 9)
+    public static let insertionIndex = NSBinarySearchingOptions(rawValue: 1 &<< 10)
 }
 
 open class NSMutableArray : NSArray {

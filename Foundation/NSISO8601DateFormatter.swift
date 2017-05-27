@@ -16,31 +16,31 @@ extension ISO8601DateFormatter {
         public private(set) var rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static var withYear = ISO8601DateFormatter.Options(rawValue: 1 << 0)
+        public static var withYear = ISO8601DateFormatter.Options(rawValue: 1 &<< 0)
         
-        public static var withMonth = ISO8601DateFormatter.Options(rawValue: 1 << 1)
+        public static var withMonth = ISO8601DateFormatter.Options(rawValue: 1 &<< 1)
         
-        public static var withWeekOfYear = ISO8601DateFormatter.Options(rawValue: 1 << 2)
+        public static var withWeekOfYear = ISO8601DateFormatter.Options(rawValue: 1 &<< 2)
         
-        public static var withDay = ISO8601DateFormatter.Options(rawValue: 1 << 3)
+        public static var withDay = ISO8601DateFormatter.Options(rawValue: 1 &<< 3)
         
-        public static var withTime = ISO8601DateFormatter.Options(rawValue: 1 << 4)
+        public static var withTime = ISO8601DateFormatter.Options(rawValue: 1 &<< 4)
         
-        public static var withTimeZone = ISO8601DateFormatter.Options(rawValue: 1 << 5)
+        public static var withTimeZone = ISO8601DateFormatter.Options(rawValue: 1 &<< 5)
         
-        public static var withSpaceBetweenDateAndTime = ISO8601DateFormatter.Options(rawValue: 1 << 6)
+        public static var withSpaceBetweenDateAndTime = ISO8601DateFormatter.Options(rawValue: 1 &<< 6)
         
-        public static var withDashSeparatorInDate = ISO8601DateFormatter.Options(rawValue: 1 << 7)
+        public static var withDashSeparatorInDate = ISO8601DateFormatter.Options(rawValue: 1 &<< 7)
         
-        public static var withColonSeparatorInTime = ISO8601DateFormatter.Options(rawValue: 1 << 8)
+        public static var withColonSeparatorInTime = ISO8601DateFormatter.Options(rawValue: 1 &<< 8)
         
-        public static var withColonSeparatorInTimeZone = ISO8601DateFormatter.Options(rawValue: 1 << 9)
+        public static var withColonSeparatorInTimeZone = ISO8601DateFormatter.Options(rawValue: 1 &<< 9)
         
-        public static var withFullDate = ISO8601DateFormatter.Options(rawValue: 1 << 10)
+        public static var withFullDate = ISO8601DateFormatter.Options(rawValue: 1 &<< 10)
         
-        public static var withFullTime = ISO8601DateFormatter.Options(rawValue: 1 << 11)
+        public static var withFullTime = ISO8601DateFormatter.Options(rawValue: 1 &<< 11)
         
-        public static var withInternetDateTime = ISO8601DateFormatter.Options(rawValue: 1 << 12)
+        public static var withInternetDateTime = ISO8601DateFormatter.Options(rawValue: 1 &<< 12)
     }
 }
 

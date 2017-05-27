@@ -267,8 +267,8 @@ extension NSAttributedString {
         public init(rawValue: UInt) {
             self.rawValue = rawValue
         }
-        public static let reverse = EnumerationOptions(rawValue: 1 << 1)
-        public static let longestEffectiveRangeNotRequired = EnumerationOptions(rawValue: 1 << 20)
+        public static let reverse = EnumerationOptions(rawValue: 1 &<< 1)
+        public static let longestEffectiveRangeNotRequired = EnumerationOptions(rawValue: 1 &<< 20)
     }
 
 }

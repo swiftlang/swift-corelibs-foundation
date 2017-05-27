@@ -14,11 +14,11 @@ extension MeasurementFormatter {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         
-        public static let providedUnit = UnitOptions(rawValue: 1 << 0)
+        public static let providedUnit = UnitOptions(rawValue: 1 &<< 0)
         
-        public static let naturalScale = UnitOptions(rawValue: 1 << 1)
+        public static let naturalScale = UnitOptions(rawValue: 1 &<< 1)
         
-        public static let temperatureWithoutUnit = UnitOptions(rawValue: 1 << 2)
+        public static let temperatureWithoutUnit = UnitOptions(rawValue: 1 &<< 2)
     }
 }
 

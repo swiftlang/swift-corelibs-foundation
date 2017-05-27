@@ -16,15 +16,15 @@ extension ByteCountFormatter {
         // This causes default units appropriate for the platform to be used. Specifying any units explicitly causes just those units to be used in showing the number.
         public static let useDefault = Units(rawValue: 0)
         //  Specifying any of the following causes the specified units to be used in showing the number.
-        public static let useBytes = Units(rawValue: 1 << 0)
-        public static let useKB = Units(rawValue: 1 << 1)
-        public static let useMB = Units(rawValue: 1 << 2)
-        public static let useGB = Units(rawValue: 1 << 3)
-        public static let useTB = Units(rawValue: 1 << 4)
-        public static let usePB = Units(rawValue: 1 << 5)
-        public static let useEB = Units(rawValue: 1 << 6)
-        public static let useZB = Units(rawValue: 1 << 7)
-        public static let useYBOrHigher = Units(rawValue: 0x0FF << 8)
+        public static let useBytes = Units(rawValue: 1 &<< 0)
+        public static let useKB = Units(rawValue: 1 &<< 1)
+        public static let useMB = Units(rawValue: 1 &<< 2)
+        public static let useGB = Units(rawValue: 1 &<< 3)
+        public static let useTB = Units(rawValue: 1 &<< 4)
+        public static let usePB = Units(rawValue: 1 &<< 5)
+        public static let useEB = Units(rawValue: 1 &<< 6)
+        public static let useZB = Units(rawValue: 1 &<< 7)
+        public static let useYBOrHigher = Units(rawValue: 0x0FF &<< 8)
         // Can use any unit in showing the number.
         public static let useAll = Units(rawValue: 0x0FFFF)
     }

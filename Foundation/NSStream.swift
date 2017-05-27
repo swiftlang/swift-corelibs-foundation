@@ -55,11 +55,11 @@ extension Stream {
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
         // NOTE: on darwin these are vars
-        public static let openCompleted = Event(rawValue: 1 << 0)
-        public static let hasBytesAvailable = Event(rawValue: 1 << 1)
-        public static let hasSpaceAvailable = Event(rawValue: 1 << 2)
-        public static let errorOccurred = Event(rawValue: 1 << 3)
-        public static let endEncountered = Event(rawValue: 1 << 4)
+        public static let openCompleted = Event(rawValue: 1 &<< 0)
+        public static let hasBytesAvailable = Event(rawValue: 1 &<< 1)
+        public static let hasSpaceAvailable = Event(rawValue: 1 &<< 2)
+        public static let errorOccurred = Event(rawValue: 1 &<< 3)
+        public static let endEncountered = Event(rawValue: 1 &<< 4)
     }
 }
 

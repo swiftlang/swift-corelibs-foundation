@@ -23,14 +23,14 @@ extension DateComponentsFormatter {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let none = ZeroFormattingBehavior(rawValue: 0) //drop none, pad none
-        public static let `default` = ZeroFormattingBehavior(rawValue: 1 << 0) //Positional units: drop leading zeros, pad other zeros. All others: drop all zeros.
+        public static let `default` = ZeroFormattingBehavior(rawValue: 1 &<< 0) //Positional units: drop leading zeros, pad other zeros. All others: drop all zeros.
         
-        public static let dropLeading = ZeroFormattingBehavior(rawValue: 1 << 1) // Off: "0h 10m", On: "10m"
-        public static let dropMiddle = ZeroFormattingBehavior(rawValue: 1 << 2) // Off: "1h 0m 10s", On: "1h 10s"
-        public static let dropTrailing = ZeroFormattingBehavior(rawValue: 1 << 3) // Off: "1h 0m", On: "1h"
+        public static let dropLeading = ZeroFormattingBehavior(rawValue: 1 &<< 1) // Off: "0h 10m", On: "10m"
+        public static let dropMiddle = ZeroFormattingBehavior(rawValue: 1 &<< 2) // Off: "1h 0m 10s", On: "1h 10s"
+        public static let dropTrailing = ZeroFormattingBehavior(rawValue: 1 &<< 3) // Off: "1h 0m", On: "1h"
         public static let dropAll = [ZeroFormattingBehavior.dropLeading, ZeroFormattingBehavior.dropMiddle, ZeroFormattingBehavior.dropTrailing]
         
-        public static let pad = ZeroFormattingBehavior(rawValue: 1 << 16) // Off: "1:0:10", On: "01:00:10"
+        public static let pad = ZeroFormattingBehavior(rawValue: 1 &<< 16) // Off: "1:0:10", On: "01:00:10"
     }
 }
 

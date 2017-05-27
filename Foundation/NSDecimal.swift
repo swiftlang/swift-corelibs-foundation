@@ -43,32 +43,32 @@ public struct Decimal {
     }
     public var _isNegative: UInt32 {
         get {
-            return UInt32(((__lengthAndFlags) & 0b0001_0000) >> 4)
+            return UInt32(((__lengthAndFlags) & 0b0001_0000) &>> 4)
         }
         set {
             __lengthAndFlags =
                 (__lengthAndFlags & 0b1110_1111) |
-                (UInt8(newValue & 0b0000_0001 ) << 4)
+                (UInt8(newValue & 0b0000_0001 ) &<< 4)
         }
     }
     public var _isCompact: UInt32 {
         get {
-            return UInt32(((__lengthAndFlags) & 0b0010_0000) >> 5)
+            return UInt32(((__lengthAndFlags) & 0b0010_0000) &>> 5)
         }
         set {
             __lengthAndFlags =
                 (__lengthAndFlags & 0b1101_1111) |
-                (UInt8(newValue & 0b0000_00001 ) << 5)
+                (UInt8(newValue & 0b0000_00001 ) &<< 5)
         }
     }
     public var _reserved: UInt32 {
         get {
-            return UInt32(UInt32(__lengthAndFlags & 0b1100_0000) << 10 | UInt32(__reserved))
+            return UInt32(UInt32(__lengthAndFlags & 0b1100_0000) &<< 10 | UInt32(__reserved))
         }
         set {
             __lengthAndFlags =
                 (__lengthAndFlags & 0b0011_1111) |
-                UInt8(UInt32(newValue & (0b11 << 16)) >> 10)
+                UInt8(UInt32(newValue & (0b11 &<< 16)) &>> 10)
             __reserved = UInt16(newValue & 0b1111_1111_1111_1111)
         }
     }
@@ -443,7 +443,7 @@ extension Decimal {
                 default:
                     fatalError("initialization overflow")
                 }
-                mantissa = mantissa >> 16
+                mantissa = mantissa &>> 16
                 i += 1
             }
             _length = UInt32(i)
@@ -604,7 +604,7 @@ fileprivate func multiplyByShort<T:VariableLengthNumber>(_ d: inout T, _ mul:UIn
     // FIXME handle NSCalculationOverflow here?
     for i in 0..<d._length {
         let accumulator: UInt32 = UInt32(d[i]) * UInt32(mul) + carry
-        carry = accumulator >> 16
+        carry = accumulator &>> 16
         d[i] = UInt16(extendingOrTruncating: accumulator)
     }
     if carry != 0 {
@@ -621,7 +621,7 @@ fileprivate func addShort<T:VariableLengthNumber>(_ d: inout T, _ add:UInt16) ->
     var carry:UInt32 = UInt32(add)
     for i in 0..<d._length {
         let accumulator: UInt32 = UInt32(d[i]) + carry
-        carry = accumulator >> 16
+        carry = accumulator &>> 16
         d[i] = UInt16(extendingOrTruncating: accumulator)
     }
     if carry != 0 {
@@ -776,7 +776,7 @@ fileprivate func integerMultiply<T:VariableLengthNumber>(_ big: inout T,
             if i + j < big._length {
                 let bigij = UInt32(big[i+j])
                 accumulator = UInt32(carry) + bigij + UInt32(right[j]) * UInt32(left[i])
-                carry = UInt16(extendingOrTruncating:accumulator >> 16)
+                carry = UInt16(extendingOrTruncating:accumulator &>> 16)
                 big[i+j] = UInt16(extendingOrTruncating:accumulator)
             } else if carry != 0 || (right[j] == 0 && left[j] == 0) {
                 return .overflow
@@ -846,7 +846,7 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
     //
     // I could probably use something smarter to get d to be a power of 2.
     // In this case the multiply below became only a shift.
-    let d: UInt32 = UInt32((1 << 16) / Int(cv[cv._length - 1] + 1))
+    let d: UInt32 = UInt32((1 &<< 16) / Int(cv[cv._length - 1] + 1))
 
     // This is to make the whole algorithm work and u*d/v*d == u/v
     _ = multiplyByShort(&u, UInt16(d))
@@ -885,17 +885,17 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
         // This formula and test for q gives at most q+1; See Knuth for proof.
 
         let ul = u._length
-        let tmp:UInt32 = UInt32(u[ul - UInt32(j) - UInt32(1)]) << 16 + UInt32(u[ul - UInt32(j) - UInt32(2)])
+        let tmp:UInt32 = UInt32(u[ul - UInt32(j) - UInt32(1)]) &<< 16 + UInt32(u[ul - UInt32(j) - UInt32(2)])
         var q:UInt32 = tmp / UInt32(v1) // Quotient digit. could be a short.
         var rtmp:UInt32 = tmp % UInt32(v1)
 
         // This test catches all cases where q is really q+2 and
         // most where it is q+1
-        if q == (1 << 16) || UInt32(v2) * q > (rtmp<<16) + UInt32(u[ul - UInt32(j) - UInt32(3)]) {
+        if q == (1 &<< 16) || UInt32(v2) * q > (rtmp<<16) + UInt32(u[ul - UInt32(j) - UInt32(3)]) {
             q -= 1
             rtmp += UInt32(v1)
 
-            if (rtmp < (1 << 16)) && ( (q == (1 << 16) ) || ( UInt32(v2) * q > (rtmp<<16) + UInt32(u[ul - UInt32(j) - UInt32(3)])) ) {
+            if (rtmp < (1 &<< 16)) && ( (q == (1 &<< 16) ) || ( UInt32(v2) * q > (rtmp<<16) + UInt32(u[ul - UInt32(j) - UInt32(3)])) ) {
                 q -= 1
                 rtmp += UInt32(v1)
             }
@@ -913,10 +913,10 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
             let ul = u._length
             let vl = v._length
             acc = q * UInt32(v[i]) + mk     // multiply
-            mk = acc >> 16                  // multiplication carry
+            mk = acc &>> 16                  // multiplication carry
             acc = acc & 0xffff;
             acc = 0xffff + UInt32(u[ul - vl + i - UInt32(j) - UInt32(1)]) - acc + sk; // subtract
-            sk = acc >> 16;
+            sk = acc &>> 16;
             u[ul - vl + i - UInt32(j) - UInt32(1)] = UInt16(extendingOrTruncating:acc)
         }
 
@@ -932,7 +932,7 @@ fileprivate func integerDivide<T:VariableLengthNumber>(_ r: inout T,
                 let ul = u._length
                 let vl = v._length
                 acc = UInt32(v[i]) + UInt32(u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)]) + k
-                k = acc >> 16;
+                k = acc &>> 16;
                 u[UInt32(ul) - UInt32(vl) + UInt32(i) - UInt32(j) - UInt32(1)] = UInt16(extendingOrTruncating:acc)
             }
             // k must be == 1 here
@@ -1186,7 +1186,7 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
         accumulator = li + ri + UInt32(carry)
-        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        carry = UInt16(extendingOrTruncating:accumulator &>> 16)
         result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }
@@ -1195,7 +1195,7 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         if carry != 0 {
             let li = UInt32(left[i])
             accumulator = li + UInt32(carry)
-            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            carry = UInt16(extendingOrTruncating:accumulator &>> 16)
             result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
@@ -1210,7 +1210,7 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
         if carry != 0 {
             let ri = UInt32(right[i])
             accumulator = ri + UInt32(carry)
-            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            carry = UInt16(extendingOrTruncating:accumulator &>> 16)
             result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
@@ -1253,7 +1253,7 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
         accumulator = 0xffff + li - ri + UInt32(carry)
-        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        carry = UInt16(extendingOrTruncating:accumulator &>> 16)
         result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }
@@ -1262,7 +1262,7 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
         if carry != 0 {
             let li = UInt32(left[i])
             accumulator = 0xffff + li // + no carry
-            carry = UInt16(extendingOrTruncating:accumulator >> 16)
+            carry = UInt16(extendingOrTruncating:accumulator &>> 16)
             result[i] = UInt16(extendingOrTruncating:accumulator)
             i += 1
         } else {
@@ -1276,7 +1276,7 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
     while i < right._length {
         let ri = UInt32(right[i])
         accumulator = 0xffff - ri + UInt32(carry)
-        carry = UInt16(extendingOrTruncating:accumulator >> 16)
+        carry = UInt16(extendingOrTruncating:accumulator &>> 16)
         result[i] = UInt16(extendingOrTruncating:accumulator)
         i += 1
     }

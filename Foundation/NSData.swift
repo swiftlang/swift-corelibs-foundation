@@ -24,42 +24,42 @@ extension NSData {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let mappedIfSafe = ReadingOptions(rawValue: UInt(1 << 0))
-        public static let uncached = ReadingOptions(rawValue: UInt(1 << 1))
-        public static let alwaysMapped = ReadingOptions(rawValue: UInt(1 << 2))
+        public static let mappedIfSafe = ReadingOptions(rawValue: UInt(1 &<< 0))
+        public static let uncached = ReadingOptions(rawValue: UInt(1 &<< 1))
+        public static let alwaysMapped = ReadingOptions(rawValue: UInt(1 &<< 2))
     }
 
     public struct WritingOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let atomic = WritingOptions(rawValue: UInt(1 << 0))
-        public static let withoutOverwriting = WritingOptions(rawValue: UInt(1 << 1))
+        public static let atomic = WritingOptions(rawValue: UInt(1 &<< 0))
+        public static let withoutOverwriting = WritingOptions(rawValue: UInt(1 &<< 1))
     }
 
     public struct SearchOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let backwards = SearchOptions(rawValue: UInt(1 << 0))
-        public static let anchored = SearchOptions(rawValue: UInt(1 << 1))
+        public static let backwards = SearchOptions(rawValue: UInt(1 &<< 0))
+        public static let anchored = SearchOptions(rawValue: UInt(1 &<< 1))
     }
 
     public struct Base64EncodingOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let lineLength64Characters = Base64EncodingOptions(rawValue: UInt(1 << 0))
-        public static let lineLength76Characters = Base64EncodingOptions(rawValue: UInt(1 << 1))
-        public static let endLineWithCarriageReturn = Base64EncodingOptions(rawValue: UInt(1 << 4))
-        public static let endLineWithLineFeed = Base64EncodingOptions(rawValue: UInt(1 << 5))
+        public static let lineLength64Characters = Base64EncodingOptions(rawValue: UInt(1 &<< 0))
+        public static let lineLength76Characters = Base64EncodingOptions(rawValue: UInt(1 &<< 1))
+        public static let endLineWithCarriageReturn = Base64EncodingOptions(rawValue: UInt(1 &<< 4))
+        public static let endLineWithLineFeed = Base64EncodingOptions(rawValue: UInt(1 &<< 5))
     }
 
     public struct Base64DecodingOptions : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: UInt(1 << 0))
+        public static let ignoreUnknownCharacters = Base64DecodingOptions(rawValue: UInt(1 &<< 0))
     }
 }
 
@@ -749,15 +749,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             
             switch index%4 {
             case 0:
-                currentByte = (value << 2)
+                currentByte = (value &<< 2)
             case 1:
-                currentByte |= (value >> 4)
+                currentByte |= (value &>> 4)
                 decodedBytes.append(currentByte)
-                currentByte = (value << 4)
+                currentByte = (value &<< 4)
             case 2:
-                currentByte |= (value >> 2)
+                currentByte |= (value &>> 2)
                 decodedBytes.append(currentByte)
-                currentByte = (value << 6)
+                currentByte = (value &<< 6)
             case 3:
                 currentByte |= value
                 decodedBytes.append(currentByte)
@@ -821,17 +821,17 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         for (index,value) in bytes.enumerated() {
             switch index%3 {
             case 0:
-                currentByte = (value >> 2)
+                currentByte = (value &>> 2)
                 appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 6) >> 2)
+                currentByte = ((value &<< 6) &>> 2)
             case 1:
-                currentByte |= (value >> 4)
+                currentByte |= (value &>> 4)
                 appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 4) >> 2)
+                currentByte = ((value &<< 4) &>> 2)
             case 2:
-                currentByte |= (value >> 6)
+                currentByte |= (value &>> 6)
                 appendByteToResult(NSData.base64EncodeByte(currentByte))
-                currentByte = ((value << 2) >> 2)
+                currentByte = ((value &<< 2) &>> 2)
                 appendByteToResult(NSData.base64EncodeByte(currentByte))
             default:
                 fatalError()
