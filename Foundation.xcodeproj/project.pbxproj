@@ -249,6 +249,7 @@
 		5BA9BEA61CF3D747009DBD6C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA51CF3D747009DBD6C /* Data.swift */; };
 		5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */; };
 		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
+		5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89391BBDA7AB00234F36 /* CFUserNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC46D531D05D6D900005853 /* DateInterval.swift */; };
@@ -1807,6 +1808,7 @@
 				5B7C8ADB1BEA80FC00C5B690 /* CFRunLoop.h in Headers */,
 				5B7C8AFC1BEA81AC00C5B690 /* CFUnicodeDecomposition.h in Headers */,
 				5B7C8AF41BEA81AC00C5B690 /* CFCharacterSetPriv.h in Headers */,
+				5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */,
 				5B7C8AEF1BEA81AC00C5B690 /* CFBundlePriv.h in Headers */,
 				5B7C8B011BEA82F800C5B690 /* CFError_Private.h in Headers */,
 				5B7C8AF31BEA81AC00C5B690 /* CFStreamPriv.h in Headers */,
