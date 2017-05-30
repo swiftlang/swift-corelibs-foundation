@@ -35,7 +35,7 @@ extension PersonNameComponentsFormatter {
          The developer must have populated these manually. e.g.: Developer creates components object with the following properties:
          <family:"Family", given:"Given", phoneticRepresentation:<family:"FamilyPhonetic", given:"GivenPhonetic">>.
          If this option is specified, we perform formatting operations on <family "FamilyPhonetic", given "GivenPhonetic"> instead. */
-        public static let phonetic = Options(rawValue: 1 << 1)
+        public static let phonetic = Options(rawValue: 1 &<< 1)
     }
 }
 

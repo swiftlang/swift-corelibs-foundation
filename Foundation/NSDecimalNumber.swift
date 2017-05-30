@@ -123,14 +123,14 @@ open class NSDecimalNumber : NSNumber {
         }
         // Byte order?
         let mantissa:(UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (
-            UInt16(mantissaData[0]) << 8 & UInt16(mantissaData[1]),
-            UInt16(mantissaData[2]) << 8 & UInt16(mantissaData[3]),
-            UInt16(mantissaData[4]) << 8 & UInt16(mantissaData[5]),
-            UInt16(mantissaData[6]) << 8 & UInt16(mantissaData[7]),
-            UInt16(mantissaData[8]) << 8 & UInt16(mantissaData[9]),
-            UInt16(mantissaData[10]) << 8 & UInt16(mantissaData[11]),
-            UInt16(mantissaData[12]) << 8 & UInt16(mantissaData[13]),
-            UInt16(mantissaData[14]) << 8 & UInt16(mantissaData[15])
+            UInt16(mantissaData[0]) &<< 8 & UInt16(mantissaData[1]),
+            UInt16(mantissaData[2]) &<< 8 & UInt16(mantissaData[3]),
+            UInt16(mantissaData[4]) &<< 8 & UInt16(mantissaData[5]),
+            UInt16(mantissaData[6]) &<< 8 & UInt16(mantissaData[7]),
+            UInt16(mantissaData[8]) &<< 8 & UInt16(mantissaData[9]),
+            UInt16(mantissaData[10]) &<< 8 & UInt16(mantissaData[11]),
+            UInt16(mantissaData[12]) &<< 8 & UInt16(mantissaData[13]),
+            UInt16(mantissaData[14]) &<< 8 & UInt16(mantissaData[15])
         )
         self.decimal = Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
         super.init()

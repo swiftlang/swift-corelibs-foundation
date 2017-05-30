@@ -329,10 +329,10 @@ extension String {
         }
         
         repeat {
-            if localResult > T.max >> T(4) {
+            if localResult > T.max &>> T(4) {
                 localResult = T.max
             } else {
-                localResult = (localResult << T(4)) + T(curDigit)
+                localResult = (localResult &<< T(4)) + T(curDigit)
             }
             buf.advance()
             curDigit = numericOrHexValue(buf.currentCharacter)

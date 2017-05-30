@@ -730,11 +730,11 @@ extension FileManager {
 
         /* The mounted volume enumeration will skip hidden volumes.
          */
-        public static let skipHiddenVolumes = VolumeEnumerationOptions(rawValue: 1 << 1)
+        public static let skipHiddenVolumes = VolumeEnumerationOptions(rawValue: 1 &<< 1)
 
         /* The mounted volume enumeration will produce file reference URLs rather than path-based URLs.
          */
-        public static let produceFileReferenceURLs = VolumeEnumerationOptions(rawValue: 1 << 2)
+        public static let produceFileReferenceURLs = VolumeEnumerationOptions(rawValue: 1 &<< 2)
     }
     
     public struct DirectoryEnumerationOptions : OptionSet {
@@ -743,15 +743,15 @@ extension FileManager {
 
         /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
          */
-        public static let skipsSubdirectoryDescendants = DirectoryEnumerationOptions(rawValue: 1 << 0)
+        public static let skipsSubdirectoryDescendants = DirectoryEnumerationOptions(rawValue: 1 &<< 0)
 
         /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
          */
-        public static let skipsPackageDescendants = DirectoryEnumerationOptions(rawValue: 1 << 1)
+        public static let skipsPackageDescendants = DirectoryEnumerationOptions(rawValue: 1 &<< 1)
 
         /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
          */
-        public static let skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: 1 << 2)
+        public static let skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: 1 &<< 2)
     }
 
     public struct ItemReplacementOptions : OptionSet {
@@ -760,11 +760,11 @@ extension FileManager {
 
         /* Causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to use metadata from the new item only and not to attempt to preserve metadata from the original item.
          */
-        public static let usingNewMetadataOnly = ItemReplacementOptions(rawValue: 1 << 0)
+        public static let usingNewMetadataOnly = ItemReplacementOptions(rawValue: 1 &<< 0)
 
         /* Causes -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: to leave the backup item in place after a successful replacement. The default behavior is to remove the item.
          */
-        public static let withoutDeletingBackupItem = ItemReplacementOptions(rawValue: 1 << 1)
+        public static let withoutDeletingBackupItem = ItemReplacementOptions(rawValue: 1 &<< 1)
     }
 
     public enum URLRelationship : Int {

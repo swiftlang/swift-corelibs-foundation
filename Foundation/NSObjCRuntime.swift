@@ -175,16 +175,16 @@ public struct NSSortOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = NSSortOptions(rawValue: UInt(1 << 0))
-    public static let stable = NSSortOptions(rawValue: UInt(1 << 4))
+    public static let concurrent = NSSortOptions(rawValue: UInt(1 &<< 0))
+    public static let stable = NSSortOptions(rawValue: UInt(1 &<< 4))
 }
 
 public struct NSEnumerationOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = NSEnumerationOptions(rawValue: UInt(1 << 0))
-    public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
+    public static let concurrent = NSEnumerationOptions(rawValue: UInt(1 &<< 0))
+    public static let reverse = NSEnumerationOptions(rawValue: UInt(1 &<< 1))
 }
 
 public typealias Comparator = (Any, Any) -> ComparisonResult
@@ -212,11 +212,11 @@ internal struct _CFInfo {
     var pad : UInt32
     init(typeID: CFTypeID) {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        info = UInt32((UInt32(typeID) &<< 8) | (UInt32(0x80)))
         pad = 0
     }
     init(typeID: CFTypeID, extra: UInt32) {
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        info = UInt32((UInt32(typeID) &<< 8) | (UInt32(0x80)))
         pad = extra
     }
 }

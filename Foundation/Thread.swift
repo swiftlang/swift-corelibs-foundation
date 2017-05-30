@@ -211,8 +211,8 @@ open class Thread : NSObject {
         set {
             // just don't allow a stack size more than 1GB on any platform
             var s = newValue
-            if (1 << 30) < s {
-                s = 1 << 30
+            if (1 &<< 30) < s {
+                s = 1 &<< 30
             }
             let _ = withUnsafeMutablePointer(to: &_attr) { attr in
                 pthread_attr_setstacksize(attr, s)
