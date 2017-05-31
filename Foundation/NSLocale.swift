@@ -28,7 +28,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
     
     open func object(forKey key: NSLocale.Key) -> Any? {
-        return CFLocaleGetValue(_cfObject, key.rawValue._cfObject)
+        return _SwiftValue.fetch(CFLocaleGetValue(_cfObject, key.rawValue._cfObject))
     }
     
     open func displayName(forKey key: Key, value: String) -> String? {
@@ -91,7 +91,7 @@ extension NSLocale {
 
 extension NSLocale {
     public var localeIdentifier: String {
-        return (object(forKey: .identifier) as! NSString)._swiftObject
+        return object(forKey: .identifier) as! String
     }
     
     open class var availableLocaleIdentifiers: [String] {
