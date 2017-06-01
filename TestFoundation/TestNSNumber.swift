@@ -34,6 +34,7 @@ class TestNSNumber : XCTestCase {
             ("test_compareNumberWithDouble", test_compareNumberWithDouble ),
             ("test_description", test_description ),
             ("test_descriptionWithLocale", test_descriptionWithLocale ),
+            ("test_objCType", test_objCType ),
         ]
     }
     
@@ -437,5 +438,23 @@ class TestNSNumber : XCTestCase {
             let receivedDesc = nsnumber.description(withLocale: locale)
             XCTAssertEqual(receivedDesc, expectedDesc, "expected \(expectedDesc) but received \(receivedDesc)")
         }
+    }
+
+    func test_objCType() {
+        let objCType: (NSNumber) -> UnicodeScalar = { number in
+            return UnicodeScalar(UInt8(number.objCType.pointee))
+        }
+
+        XCTAssertEqual(objCType(NSNumber(value: Bool())),   "c") // 0x63
+        XCTAssertEqual(objCType(NSNumber(value: Int8())),   "c") // 0x63
+        XCTAssertEqual(objCType(NSNumber(value: UInt8())),  "s") // 0x73
+        XCTAssertEqual(objCType(NSNumber(value: Int16())),  "s") // 0x73
+        XCTAssertEqual(objCType(NSNumber(value: UInt16())), "i") // 0x69
+        XCTAssertEqual(objCType(NSNumber(value: Int32())),  "i") // 0x69
+        XCTAssertEqual(objCType(NSNumber(value: UInt32())), "q") // 0x71
+        XCTAssertEqual(objCType(NSNumber(value: Int64())),  "q") // 0x71
+        XCTAssertEqual(objCType(NSNumber(value: UInt64())), "q") // 0x71
+        XCTAssertEqual(objCType(NSNumber(value: Float())),  "f") // 0x66
+        XCTAssertEqual(objCType(NSNumber(value: Double())), "d") // 0x64
     }
 }
