@@ -381,7 +381,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
                 ptr.advanced(by: idx).pointee = Int32(hash).littleEndian
             }
         }
-        return Data(bytesNoCopy: buffer, count: size, deallocator: .custom({ _ in
+        return Data(bytesNoCopy: buffer, count: size, deallocator: .custom({ _, _ in
             buffer.deallocate(capacity: size)
         }))
     }

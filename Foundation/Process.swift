@@ -241,7 +241,10 @@ open class Process: NSObject {
         if let env = environment {
             let nenv = env.count
             envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
-            envp.initialize(from: env.map { strdup("\($0)=\($1)") }, count: nenv)
+            let evars = env.map { evar -> UnsafeMutablePointer<Int8>? in
+                return UnsafeMutablePointer(strdup("\(evar.key)=\(evar.value)"))
+            }
+            envp.initialize(from: evars, count: nenv)
             envp[env.count] = nil
         } else {
             envp = _CFEnviron()
