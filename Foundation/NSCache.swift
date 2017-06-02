@@ -33,7 +33,7 @@ fileprivate class NSCacheKey: NSObject {
         switch self.value {
         case let nsObject as NSObject:
             return nsObject.hashValue
-        case let hashable as Hashable:
+        case let hashable as AnyHashable:
             return hashable.hashValue
         default: return 0
         }
