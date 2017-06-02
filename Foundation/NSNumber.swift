@@ -230,7 +230,7 @@ open class NSNumber : NSValue {
     }
 
     open override var objCType: UnsafePointer<Int8> {
-        return UnsafePointer<Int8>(bitPattern: UInt(_objCType.rawValue.value))!
+        return String(_objCType.rawValue)._bridgeToObjectiveC().utf8String!
     }
     
     deinit {
