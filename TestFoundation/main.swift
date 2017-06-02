@@ -95,4 +95,5 @@ XCTMain([
     testCase(TestObjCRuntime.allTests),
     testCase(TestNotification.allTests),
     testCase(TestNSISO8601DateFormatter.allTests),
+    testCase(TestMassFormatter.allTests),
 ])
