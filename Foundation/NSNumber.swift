@@ -309,12 +309,6 @@ open class NSNumber : NSValue {
         _CFNumberInitDouble(_cfObject, value)
     }
     
-    public init(value: Bool) {
-        _objCType = .Bool
-        super.init()
-        _CFNumberInitBool(_cfObject, value)
-    }
-
     override internal init() {
         _objCType = .Undef
         super.init()
@@ -614,6 +608,12 @@ open class NSNumber : NSValue {
     }
     
     open override var classForCoder: AnyClass { return NSNumber.self }
+}
+
+extension NSNumber {
+    public convenience init(value: Bool) {
+        self.init(factory: value._bridgeToObjectiveC)
+    }
 }
 
 extension CFNumber : _NSBridgeable {

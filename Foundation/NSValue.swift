@@ -154,3 +154,14 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 }
 
+extension NSValue : _Factory {}
+
+protocol _Factory {
+    init(factory: () -> Self)
+}
+
+extension _Factory {
+    init(factory: () -> Self) {
+        self = factory()
+    }
+}
