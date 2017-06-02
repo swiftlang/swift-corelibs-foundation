@@ -458,8 +458,8 @@ private struct JSONWriter {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
         }
         
-        switch num._objCType {
-        case .Bool:
+        switch num._cfTypeID {
+        case CFBooleanGetTypeID():
             serializeBool(num.boolValue)
         default:
             writer(_serializationString(for: num))
