@@ -784,7 +784,10 @@ private struct JSONReader {
     }
     func parseCodeUnit(_ input: Index) -> (UTF16.CodeUnit, Index)? {
         let hexParser = takeMatching(isHexChr)
-        guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
+        guard let (result, index) = hexParser([], input)
+            .flatMap({ hexParser($0.0, $0.1) })
+            .flatMap({ hexParser($0.0, $0.1) })
+            .flatMap({ hexParser($0.0, $0.1) }),
             let value = Int(String(result), radix: 16) else {
                 return nil
         }
