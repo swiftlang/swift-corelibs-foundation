@@ -294,7 +294,7 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         if !line.isEmpty {
             if line.hasSPHTPrefix && line.count == 1 {
                 // to handle empty headers i.e header without value
-                value = String("")
+                value = ""
             } else {
                 guard let v = line.trimSPHTPrefix else { return nil }
                 value = String(v)
