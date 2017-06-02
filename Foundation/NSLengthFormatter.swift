@@ -69,7 +69,7 @@ open class LengthFormatter : Formatter {
         //Extract the number from the measurement
         let numberInUnit = unitMeasurement.value
         
-        if isForPersonHeightUse && !LengthFormatter.isMetricSystemLocale(numberFormatter.locale) {
+        if isForPersonHeightUse && !numberFormatter.locale.sr3202_fix_isMetricSystemLocale() {
             let feet = numberInUnit.rounded(.towardZero)
             let feetString = string(fromValue: feet, unit: .foot)
             
@@ -123,7 +123,7 @@ open class LengthFormatter : Formatter {
     /// - Parameter numberInMeters: the magnitude in terms of meters
     /// - Returns: Returns the appropriate unit
     private func unit(fromMeters numberInMeters: Double) -> Unit {
-        if LengthFormatter.isMetricSystemLocale(numberFormatter.locale) {
+        if numberFormatter.locale.sr3202_fix_isMetricSystemLocale() {
             //Person height is always returned in cm for metric system
             if isForPersonHeightUse { return .centimeter }
             
@@ -152,22 +152,6 @@ open class LengthFormatter : Formatter {
         }
     }
     
-    /// TODO: Replace calls to the below function to use Locale.usesMetricSystem
-    /// Temporary workaround due to unpopulated Locale attributes
-    /// See https://bugs.swift.org/browse/SR-3202
-    private static func isMetricSystemLocale(_ locale: Locale) -> Bool {
-        switch locale.identifier {
-        case "en_US": return false
-        case "en_US_POSIX": return false
-        case "haw_US": return false
-        case "es_US": return false
-        case "chr_US": return false
-        case "my_MM": return false
-        case "en_LR": return false
-        case "vai_LR": return false
-        default: return true
-        }
-    }
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
