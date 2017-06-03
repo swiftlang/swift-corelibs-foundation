@@ -494,7 +494,24 @@ open class NSNumber : NSValue {
     }
 
     open func compare(_ otherNumber: NSNumber) -> ComparisonResult {
-        return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
+        switch (objCType.pointee, otherNumber.objCType.pointee) {
+        case (0x66, _), (_, 0x66), (0x66, 0x66): fallthrough // 'f' float
+        case (0x64, _), (_, 0x64), (0x64, 0x64):             // 'd' double
+            let (lhs, rhs) = (doubleValue, otherNumber.doubleValue)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        case (0x51, _), (_, 0x51), (0x51, 0x51):             // 'q' unsigned long long
+            let (lhs, rhs) = (uint64Value, otherNumber.uint64Value)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        case (_, _):
+            let (lhs, rhs) = (int64Value, otherNumber.int64Value)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        }
     }
 
     open func description(withLocale locale: Locale?) -> String {
