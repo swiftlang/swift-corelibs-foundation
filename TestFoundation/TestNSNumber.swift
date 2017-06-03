@@ -21,6 +21,7 @@ class TestNSNumber : XCTestCase {
     static var allTests: [(String, (TestNSNumber) -> () throws -> Void)] {
         return [
             ("test_NumberWithBool", test_NumberWithBool ),
+            ("test_CFBoolean", test_CFBoolean ),
             ("test_numberWithChar", test_numberWithChar ),
             ("test_numberWithUnsignedChar", test_numberWithUnsignedChar ),
             ("test_numberWithShort", test_numberWithShort ),
