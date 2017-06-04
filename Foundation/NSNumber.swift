@@ -274,13 +274,22 @@ open class NSNumber : NSValue {
     }
     
     public init(value: Int) {
-        _objCType = .Int
+        #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+            _objCType = .LongLong
+        #elseif arch(i386) || arch(arm) || arch(powerpc)
+            _objCType = .Int
+        #endif
         super.init()
         _CFNumberInitInt(_cfObject, value)
     }
     
     public init(value: UInt) {
-        _objCType = .UInt
+        #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+            // When value is lower equal to `Int.max`, it uses '.LongLong' even if using `UInt`
+            _objCType = value <= UInt(Int.max) ? .LongLong : .ULongLong
+        #elseif arch(i386) || arch(arm) || arch(powerpc)
+            _objCType = .LongLong
+        #endif
         super.init()
         _CFNumberInitUInt(_cfObject, value)
     }
@@ -292,7 +301,8 @@ open class NSNumber : NSValue {
     }
     
     public init(value: UInt64) {
-        _objCType = .LongLong
+        // When value is lower equal to `Int64.max`, it uses '.LongLong' even if using `UInt64`
+        _objCType = value <= UInt64(Int64.max) ? .LongLong : .ULongLong
         super.init()
         _CFNumberInitUInt64(_cfObject, value)
     }

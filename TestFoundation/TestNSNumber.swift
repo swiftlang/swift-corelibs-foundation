@@ -446,16 +446,38 @@ class TestNSNumber : XCTestCase {
             return UnicodeScalar(UInt8(number.objCType.pointee))
         }
 
-        XCTAssertEqual(objCType(NSNumber(value: Bool())),   "c") // 0x63
-        XCTAssertEqual(objCType(NSNumber(value: Int8())),   "c") // 0x63
-        XCTAssertEqual(objCType(NSNumber(value: UInt8())),  "s") // 0x73
-        XCTAssertEqual(objCType(NSNumber(value: Int16())),  "s") // 0x73
-        XCTAssertEqual(objCType(NSNumber(value: UInt16())), "i") // 0x69
-        XCTAssertEqual(objCType(NSNumber(value: Int32())),  "i") // 0x69
-        XCTAssertEqual(objCType(NSNumber(value: UInt32())), "q") // 0x71
-        XCTAssertEqual(objCType(NSNumber(value: Int64())),  "q") // 0x71
-        XCTAssertEqual(objCType(NSNumber(value: UInt64())), "q") // 0x71
-        XCTAssertEqual(objCType(NSNumber(value: Float())),  "f") // 0x66
-        XCTAssertEqual(objCType(NSNumber(value: Double())), "d") // 0x64
+        XCTAssertEqual("c" /* 0x63 */, objCType(NSNumber(value: true)))
+
+        XCTAssertEqual("c" /* 0x63 */, objCType(NSNumber(value: Int8.max)))
+        XCTAssertEqual("s" /* 0x73 */, objCType(NSNumber(value: UInt8(Int8.max))))
+        XCTAssertEqual("s" /* 0x73 */, objCType(NSNumber(value: UInt8(Int8.max) + 1)))
+
+        XCTAssertEqual("s" /* 0x73 */, objCType(NSNumber(value: Int16.max)))
+        XCTAssertEqual("i" /* 0x69 */, objCType(NSNumber(value: UInt16(Int16.max))))
+        XCTAssertEqual("i" /* 0x69 */, objCType(NSNumber(value: UInt16(Int16.max) + 1)))
+
+        XCTAssertEqual("i" /* 0x69 */, objCType(NSNumber(value: Int32.max)))
+        XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt32(Int32.max))))
+        XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt32(Int32.max) + 1)))
+
+        XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: Int64.max)))
+        // When value is lower equal to `Int64.max`, it returns 'q' even if using `UInt64`
+        XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt64(Int64.max))))
+        XCTAssertEqual("Q" /* 0x51 */, objCType(NSNumber(value: UInt64(Int64.max) + 1)))
+
+        // Depends on architectures
+        #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+            XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: Int.max)))
+            // When value is lower equal to `Int.max`, it returns 'q' even if using `UInt`
+            XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt(Int.max))))
+            XCTAssertEqual("Q" /* 0x51 */, objCType(NSNumber(value: UInt(Int.max) + 1)))
+        #elseif arch(i386) || arch(arm) || arch(powerpc)
+            XCTAssertEqual("i" /* 0x71 */, objCType(NSNumber(value: Int.max)))
+            XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt(Int.max))))
+            XCTAssertEqual("q" /* 0x51 */, objCType(NSNumber(value: UInt(Int.max) + 1)))
+        #endif
+
+        XCTAssertEqual("f" /* 0x66 */, objCType(NSNumber(value: Float.greatestFiniteMagnitude)))
+        XCTAssertEqual("d" /* 0x64 */, objCType(NSNumber(value: Double.greatestFiniteMagnitude)))
     }
 }
