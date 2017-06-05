@@ -471,7 +471,7 @@ class TestNSNumber : XCTestCase {
             // When value is lower equal to `Int.max`, it returns 'q' even if using `UInt`
             XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt(Int.max))))
             XCTAssertEqual("Q" /* 0x51 */, objCType(NSNumber(value: UInt(Int.max) + 1)))
-        #elseif arch(i386) || arch(arm) || arch(powerpc)
+        #elseif arch(i386) || arch(arm)
             XCTAssertEqual("i" /* 0x71 */, objCType(NSNumber(value: Int.max)))
             XCTAssertEqual("q" /* 0x71 */, objCType(NSNumber(value: UInt(Int.max))))
             XCTAssertEqual("q" /* 0x51 */, objCType(NSNumber(value: UInt(Int.max) + 1)))

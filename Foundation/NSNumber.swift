@@ -276,7 +276,7 @@ open class NSNumber : NSValue {
     public init(value: Int) {
         #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
             _objCType = .LongLong
-        #elseif arch(i386) || arch(arm) || arch(powerpc)
+        #elseif arch(i386) || arch(arm)
             _objCType = .Int
         #endif
         super.init()
@@ -287,7 +287,7 @@ open class NSNumber : NSValue {
         #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
             // When value is lower equal to `Int.max`, it uses '.LongLong' even if using `UInt`
             _objCType = value <= UInt(Int.max) ? .LongLong : .ULongLong
-        #elseif arch(i386) || arch(arm) || arch(powerpc)
+        #elseif arch(i386) || arch(arm)
             _objCType = .LongLong
         #endif
         super.init()
