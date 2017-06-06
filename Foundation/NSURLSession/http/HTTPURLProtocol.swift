@@ -13,9 +13,14 @@ import Dispatch
 internal class _HTTPURLProtocol: URLProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
+    fileprivate var totalDownloaded = 0
+    fileprivate var tempFileURL: URL
 
     public override required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
+        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
+        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
+        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
@@ -23,6 +28,9 @@ internal class _HTTPURLProtocol: URLProtocol {
 
     public override required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
+        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
+        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
+        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: request, cachedResponse: cachedResponse, client: client)
         self.easyHandle = _EasyHandle(delegate: self)
     }
@@ -399,8 +407,8 @@ internal extension _HTTPURLProtocol {
             return .inMemory(nil)
         case .downloadCompletionHandler:
             // Data needs to be written to a file (i.e. a download task).
-            let fileHandle = try! FileHandle(forWritingTo: task.tempFileURL)
-            return .toFile(task.tempFileURL, fileHandle)
+            let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
+            return .toFile(self.tempFileURL, fileHandle)
         }
     }
 }
@@ -453,19 +461,19 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
             let downloadDelegate = delegate as? URLSessionDownloadDelegate,
             let task = self.task as? URLSessionDownloadTask {
             guard let s = self.task?.session as? URLSession else { fatalError() }
-            let fileHandle = try! FileHandle(forWritingTo: task.tempFileURL)
+            let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
             _ = fileHandle.seekToEndOfFile()
             fileHandle.write(data)
-            self.task?.totalDownloaded += data.count
+            self.totalDownloaded += data.count
             
             s.delegateQueue.addOperation {
-                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(t.totalDownloaded),
+                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(self.totalDownloaded),
                                             totalBytesExpectedToWrite: Int64(self.easyHandle.fileLength))
             }
-            if Int(self.easyHandle.fileLength) == self.task?.totalDownloaded {
+            if Int(self.easyHandle.fileLength) == self.totalDownloaded {
                 fileHandle.closeFile()
                 s.delegateQueue.addOperation {
-                    downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: t.tempFileURL)
+                    downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: self.tempFileURL)
                 }
             }
         }
