@@ -98,7 +98,7 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init(bytes value: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
-        if type(of: self) == NSValue.self {
+        if Swift.type(of: self) == NSValue.self {
             self.init()
             if NSValue._isSpecialObjCType(type) {
                 self._concreteValue = NSSpecialValue(bytes: value.assumingMemoryBound(to: UInt8.self), objCType: type)

@@ -20,7 +20,7 @@
 import CoreFoundation
 
 
-extension URLSessionTask {
+extension _HTTPURLProtocol {
     /// An HTTP header being parsed.
     ///
     /// It can either be complete (i.e. the final CR LF CR LF has been
@@ -46,14 +46,14 @@ extension URLSessionTask {
     }
 }
 
-extension URLSessionTask._ParsedResponseHeader {
+extension _HTTPURLProtocol._ParsedResponseHeader {
     /// Parse a header line passed by libcurl.
     ///
     /// These contain the <CRLF> ending and the final line contains nothing but
     /// that ending.
     /// - Returns: Returning nil indicates failure. Otherwise returns a new
     ///     `ParsedResponseHeader` with the given line added.
-    func byAppending(headerLine data: Data) -> URLSessionTask._ParsedResponseHeader? {
+    func byAppending(headerLine data: Data) -> _HTTPURLProtocol._ParsedResponseHeader? {
         // The buffer must end in CRLF
         guard
             2 <= data.count &&
@@ -70,33 +70,33 @@ extension URLSessionTask._ParsedResponseHeader {
     /// is a complete header. Otherwise it's a partial header.
     /// - Note: Appending a line to a complete header results in a partial
     ///     header with just that line.
-    private func byAppending(headerLine line: String) -> URLSessionTask._ParsedResponseHeader {
+    private func byAppending(headerLine line: String) -> _HTTPURLProtocol._ParsedResponseHeader {
         if line.isEmpty {
             switch self {
             case .partial(let header): return .complete(header)
-            case .complete: return .partial(URLSessionTask._ResponseHeaderLines())
+            case .complete: return .partial(_HTTPURLProtocol._ResponseHeaderLines())
             }
         } else {
             let header = partialResponseHeader
             return .partial(header.byAppending(headerLine: line))
         }
     }
-    private var partialResponseHeader: URLSessionTask._ResponseHeaderLines {
+    private var partialResponseHeader: _HTTPURLProtocol._ResponseHeaderLines {
         switch self {
         case .partial(let header): return header
-        case .complete: return URLSessionTask._ResponseHeaderLines()
+        case .complete: return _HTTPURLProtocol._ResponseHeaderLines()
         }
     }
 }
-private extension URLSessionTask._ResponseHeaderLines {
+private extension _HTTPURLProtocol._ResponseHeaderLines {
     /// Returns a copy of the lines with the new line appended to it.
-    func byAppending(headerLine line: String) -> URLSessionTask._ResponseHeaderLines {
+    func byAppending(headerLine line: String) -> _HTTPURLProtocol._ResponseHeaderLines {
         var l = self.lines
         l.append(line)
-        return URLSessionTask._ResponseHeaderLines(headerLines: l)
+        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: l)
     }
 }
-internal extension URLSessionTask._ResponseHeaderLines {
+internal extension _HTTPURLProtocol._ResponseHeaderLines {
     /// Create an `NSHTTPRULResponse` from the lines.
     ///
     /// This will parse the header lines.
@@ -105,17 +105,17 @@ internal extension URLSessionTask._ResponseHeaderLines {
         guard let message = createHTTPMessage() else { return nil }
         return HTTPURLResponse(message: message, URL: URL)
     }
-    /// Parse the lines into a `URLSessionTask.HTTPMessage`.
-    func createHTTPMessage() -> URLSessionTask._HTTPMessage? {
+    /// Parse the lines into a `_HTTPURLProtocol.HTTPMessage`.
+    func createHTTPMessage() -> _HTTPURLProtocol._HTTPMessage? {
         guard let (head, tail) = lines.decompose else { return nil }
-        guard let startline = URLSessionTask._HTTPMessage._StartLine(line: head) else { return nil }
+        guard let startline = _HTTPURLProtocol._HTTPMessage._StartLine(line: head) else { return nil }
         guard let headers = createHeaders(from: tail) else { return nil }
-        return URLSessionTask._HTTPMessage(startLine: startline, headers: headers)
+        return _HTTPURLProtocol._HTTPMessage(startLine: startline, headers: headers)
     }
 }
 
 extension HTTPURLResponse {
-    fileprivate convenience init?(message: URLSessionTask._HTTPMessage, URL: URL) {
+    fileprivate convenience init?(message: _HTTPURLProtocol._HTTPMessage, URL: URL) {
         /// This needs to be a request, i.e. it needs to have a status line.
         guard case .statusLine(let statusLine) = message.startLine else { return nil }
         let fields = message.headersAsDictionary
@@ -124,7 +124,7 @@ extension HTTPURLResponse {
 }
 
 
-extension URLSessionTask {
+extension _HTTPURLProtocol {
     /// HTTP Message
     ///
     /// A message consist of a *start-line* optionally followed by one or multiple
@@ -134,12 +134,12 @@ extension URLSessionTask {
     ///
     /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-4
     struct _HTTPMessage {
-        let startLine: URLSessionTask._HTTPMessage._StartLine
-        let headers: [URLSessionTask._HTTPMessage._Header]
+        let startLine: _HTTPURLProtocol._HTTPMessage._StartLine
+        let headers: [_HTTPURLProtocol._HTTPMessage._Header]
     }
 }
 
-extension URLSessionTask._HTTPMessage {
+extension _HTTPURLProtocol._HTTPMessage {
     var headersAsDictionary: [String: String] {
         var result: [String: String] = [:]
         headers.forEach {
@@ -153,7 +153,7 @@ extension URLSessionTask._HTTPMessage {
         return result
     }
 }
-extension URLSessionTask._HTTPMessage {
+extension _HTTPURLProtocol._HTTPMessage {
     /// A single HTTP message header field
     ///
     /// Most HTTP messages have multiple header fields.
@@ -168,17 +168,17 @@ extension URLSessionTask._HTTPMessage {
     enum _StartLine {
         /// RFC 2616 Section 5.1 *Request Line*
         /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-5.1
-        case requestLine(method: String, uri: URL, version: URLSessionTask._HTTPMessage._Version)
+        case requestLine(method: String, uri: URL, version: _HTTPURLProtocol._HTTPMessage._Version)
         /// RFC 2616 Section 6.1 *Status Line*
         /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-6.1
-        case statusLine(version: URLSessionTask._HTTPMessage._Version, status: Int, reason: String)
+        case statusLine(version: _HTTPURLProtocol._HTTPMessage._Version, status: Int, reason: String)
     }
     /// A HTTP version, e.g. "HTTP/1.1"
     struct _Version: RawRepresentable {
         let rawValue: String
     }
 }
-extension URLSessionTask._HTTPMessage._Version {
+extension _HTTPURLProtocol._HTTPMessage._Version {
     init?(versionString: String) {
         rawValue = versionString
     }
@@ -200,14 +200,14 @@ struct _HTTPCharacters {
     static let Separators = NSCharacterSet(charactersIn: "()<>@,;:\\\"/[]?={} \t")
 }
 
-private extension URLSessionTask._HTTPMessage._StartLine {
+private extension _HTTPURLProtocol._HTTPMessage._StartLine {
     init?(line: String) {
         guard let r = line.splitRequestLine() else { return nil }
-        if let version = URLSessionTask._HTTPMessage._Version(versionString: r.0) {
+        if let version = _HTTPURLProtocol._HTTPMessage._Version(versionString: r.0) {
             // Status line:
             guard let status = Int(r.1), 100 <= status && status <= 999 else { return nil }
             self = .statusLine(version: version, status: status, reason: r.2)
-        } else if let version = URLSessionTask._HTTPMessage._Version(versionString: r.2),
+        } else if let version = _HTTPURLProtocol._HTTPMessage._Version(versionString: r.2),
             let URI = URL(string: r.1) {
             // The request method must be a token (i.e. without seperators):
             let seperatorIdx = r.0.unicodeScalars.index(where: { !$0.isValidMessageToken } )
@@ -247,19 +247,19 @@ private extension String {
 /// This respects the header folding as described by
 /// https://tools.ietf.org/html/rfc2616#section-2.2 :
 ///
-/// - SeeAlso: `URLSessionTask.HTTPMessage.Header.createOne(from:)`
-private func createHeaders(from lines: ArraySlice<String>) -> [URLSessionTask._HTTPMessage._Header]? {
+/// - SeeAlso: `_HTTPURLProtocol.HTTPMessage.Header.createOne(from:)`
+private func createHeaders(from lines: ArraySlice<String>) -> [_HTTPURLProtocol._HTTPMessage._Header]? {
 
     var headerLines = Array(lines)
-    var headers: [URLSessionTask._HTTPMessage._Header] = []
+    var headers: [_HTTPURLProtocol._HTTPMessage._Header] = []
     while !headerLines.isEmpty {
-        guard let (header, remaining) = URLSessionTask._HTTPMessage._Header.createOne(from: headerLines) else { return nil }
+        guard let (header, remaining) = _HTTPURLProtocol._HTTPMessage._Header.createOne(from: headerLines) else { return nil }
         headers.append(header)
         headerLines = remaining
     }
     return headers
 }
-private extension URLSessionTask._HTTPMessage._Header {
+private extension _HTTPURLProtocol._HTTPMessage._Header {
     /// Parse a single HTTP message header field
     ///
     /// Each header field consists
@@ -278,7 +278,7 @@ private extension URLSessionTask._HTTPMessage._Header {
     /// If an error occurs, it returns `nil`.
     ///
     /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-4.2
-    static func createOne(from lines: [String]) -> (URLSessionTask._HTTPMessage._Header, [String])? {
+    static func createOne(from lines: [String]) -> (_HTTPURLProtocol._HTTPMessage._Header, [String])? {
         // HTTP/1.1 header field values can be folded onto multiple lines if the
         // continuation line begins with a space or horizontal tab. All linear
         // white space, including folding, has the same semantics as SP. A
@@ -309,7 +309,7 @@ private extension URLSessionTask._HTTPMessage._Header {
                 let valuePart = String(v)
                 value = value.map { $0 + " " + valuePart } ?? valuePart
             }
-            return (URLSessionTask._HTTPMessage._Header(name: name, value: value ?? ""), Array(t))
+            return (_HTTPURLProtocol._HTTPMessage._Header(name: name, value: value ?? ""), Array(t))
         }
     }
 }

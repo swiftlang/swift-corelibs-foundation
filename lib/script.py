@@ -63,6 +63,8 @@ OS                    = """ + Configuration.current.target.swift_sdk_name + """
 ARCH                  = """ + Configuration.current.target.swift_arch + """
 DYLIB_PREFIX          = """ + Configuration.current.target.dynamic_library_prefix + """
 DYLIB_SUFFIX          = """ + Configuration.current.target.dynamic_library_suffix + """
+STATICLIB_PREFIX      = """ + Configuration.current.target.static_library_prefix + """
+STATICLIB_SUFFIX      = """ + Configuration.current.target.static_library_suffix + """
 PREFIX                = """ + Configuration.current.prefix + """
 """
         if Configuration.current.requires_pkg_config:
@@ -206,7 +208,7 @@ rule Link
     description = Link: $out
 
 rule Archive
-    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $flags $out $in
+    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $out $in
     description = Archive: $out
 """
         

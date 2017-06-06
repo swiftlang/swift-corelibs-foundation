@@ -36,6 +36,7 @@ class TestNSData: XCTestCase {
             ("testBasicConstruction", testBasicConstruction),
             ("test_base64Data_medium", test_base64Data_medium),
             ("test_base64Data_small", test_base64Data_small),
+            ("test_openingNonExistentFile", test_openingNonExistentFile),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
             // ("test_dataHash", test_dataHash),   Disabled due to lack of brdiging in swift runtime -- infinite loops
@@ -760,8 +761,9 @@ extension TestNSData {
         let expectedSize = MemoryLayout<UInt8>.stride * a.count
         XCTAssertEqual(expectedSize, data.count)
         
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize - 1)!, to: UnsafeMutablePointer<UInt8>.self)
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize - 1)
+        let size = expectedSize - 1
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         
         // We should only copy in enough bytes that can fit in the buffer
         let copiedCount = data.copyBytes(to: buffer)
@@ -783,9 +785,10 @@ extension TestNSData {
         }
         let expectedSize = MemoryLayout<Int32>.stride * a.count
         XCTAssertEqual(expectedSize, data.count)
-        
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize + 1)!, to: UnsafeMutablePointer<UInt8>.self)
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize + 1)
+
+        let size = expectedSize + 1
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         
         let copiedCount = data.copyBytes(to: buffer)
         XCTAssertEqual(expectedSize, copiedCount)
@@ -801,9 +804,10 @@ extension TestNSData {
             var data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(data.count)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: data.count)
+
+            let size = data.count
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
             
             var copiedCount : Int
             
@@ -830,10 +834,11 @@ extension TestNSData {
             let data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(10)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: 10)
-            
+
+            let size = 10
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
+
             var copiedCount : Int
             
             copiedCount = data.copyBytes(to: buffer, from: 0..<3)
@@ -853,9 +858,10 @@ extension TestNSData {
             let data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(4)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: 4)
+
+            let size = 4
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
             
             var copiedCount : Int
             
@@ -889,7 +895,19 @@ extension TestNSData {
         let base64 = data.base64EncodedString()
         XCTAssertEqual("TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4gVXQgYXQgdGluY2lkdW50IGFyY3UuIFN1c3BlbmRpc3NlIG5lYyBzb2RhbGVzIGVyYXQsIHNpdCBhbWV0IGltcGVyZGlldCBpcHN1bS4gRXRpYW0gc2VkIG9ybmFyZSBmZWxpcy4gTnVuYyBtYXVyaXMgdHVycGlzLCBiaWJlbmR1bSBub24gbGVjdHVzIHF1aXMsIG1hbGVzdWFkYSBwbGFjZXJhdCB0dXJwaXMuIE5hbSBhZGlwaXNjaW5nIG5vbiBtYXNzYSBldCBzZW1wZXIuIE51bGxhIGNvbnZhbGxpcyBzZW1wZXIgYmliZW5kdW0uIEFsaXF1YW0gZGljdHVtIG51bGxhIGN1cnN1cyBtaSB1bHRyaWNpZXMsIGF0IHRpbmNpZHVudCBtaSBzYWdpdHRpcy4gTnVsbGEgZmF1Y2lidXMgYXQgZHVpIHF1aXMgc29kYWxlcy4gTW9yYmkgcnV0cnVtLCBkdWkgaWQgdWx0cmljZXMgdmVuZW5hdGlzLCBhcmN1IHVybmEgZWdlc3RhcyBmZWxpcywgdmVsIHN1c2NpcGl0IG1hdXJpcyBhcmN1IHF1aXMgcmlzdXMuIE51bmMgdmVuZW5hdGlzIGxpZ3VsYSBhdCBvcmNpIHRyaXN0aXF1ZSwgZXQgbWF0dGlzIHB1cnVzIHB1bHZpbmFyLiBFdGlhbSB1bHRyaWNpZXMgZXN0IG9kaW8uIE51bmMgZWxlaWZlbmQgbWFsZXN1YWRhIGp1c3RvLCBuZWMgZXVpc21vZCBzZW0gdWx0cmljZXMgcXVpcy4gRXRpYW0gbmVjIG5pYmggc2l0IGFtZXQgbG9yZW0gZmF1Y2lidXMgZGFwaWJ1cyBxdWlzIG5lYyBsZW8uIFByYWVzZW50IHNpdCBhbWV0IG1hdXJpcyB2ZWwgbGFjdXMgaGVuZHJlcml0IHBvcnRhIG1vbGxpcyBjb25zZWN0ZXR1ciBtaS4gRG9uZWMgZWdldCB0b3J0b3IgZHVpLiBNb3JiaSBpbXBlcmRpZXQsIGFyY3Ugc2l0IGFtZXQgZWxlbWVudHVtIGludGVyZHVtLCBxdWFtIG5pc2wgdGVtcG9yIHF1YW0sIHZpdGFlIGZldWdpYXQgYXVndWUgcHVydXMgc2VkIGxhY3VzLiBJbiBhYyB1cm5hIGFkaXBpc2NpbmcgcHVydXMgdmVuZW5hdGlzIHZvbHV0cGF0IHZlbCBldCBtZXR1cy4gTnVsbGFtIG5lYyBhdWN0b3IgcXVhbS4gUGhhc2VsbHVzIHBvcnR0aXRvciBmZWxpcyBhYyBuaWJoIGdyYXZpZGEgc3VzY2lwaXQgdGVtcHVzIGF0IGFudGUuIE51bmMgcGVsbGVudGVzcXVlIGlhY3VsaXMgc2FwaWVuIGEgbWF0dGlzLiBBZW5lYW4gZWxlaWZlbmQgZG9sb3Igbm9uIG51bmMgbGFvcmVldCwgbm9uIGRpY3R1bSBtYXNzYSBhbGlxdWFtLiBBZW5lYW4gcXVpcyB0dXJwaXMgYXVndWUuIFByYWVzZW50IGF1Z3VlIGxlY3R1cywgbW9sbGlzIG5lYyBlbGVtZW50dW0gZXUsIGRpZ25pc3NpbSBhdCB2ZWxpdC4gVXQgY29uZ3VlIG5lcXVlIGlkIHVsbGFtY29ycGVyIHBlbGxlbnRlc3F1ZS4gTWFlY2VuYXMgZXVpc21vZCBpbiBlbGl0IGV1IHZlaGljdWxhLiBOdWxsYW0gdHJpc3RpcXVlIGR1aSBudWxsYSwgbmVjIGNvbnZhbGxpcyBtZXR1cyBzdXNjaXBpdCBlZ2V0LiBDcmFzIHNlbXBlciBhdWd1ZSBuZWMgY3Vyc3VzIGJsYW5kaXQuIE51bGxhIHJob25jdXMgZXQgb2RpbyBxdWlzIGJsYW5kaXQuIFByYWVzZW50IGxvYm9ydGlzIGRpZ25pc3NpbSB2ZWxpdCB1dCBwdWx2aW5hci4gRHVpcyBpbnRlcmR1bSBxdWFtIGFkaXBpc2NpbmcgZG9sb3Igc2VtcGVyIHNlbXBlci4gTnVuYyBiaWJlbmR1bSBjb252YWxsaXMgZHVpLCBlZ2V0IG1vbGxpcyBtYWduYSBoZW5kcmVyaXQgZXQuIE1vcmJpIGZhY2lsaXNpcywgYXVndWUgZXUgZnJpbmdpbGxhIGNvbnZhbGxpcywgbWF1cmlzIGVzdCBjdXJzdXMgZG9sb3IsIGV1IHBvc3VlcmUgb2RpbyBudW5jIHF1aXMgb3JjaS4gVXQgZXUganVzdG8gc2VtLiBQaGFzZWxsdXMgdXQgZXJhdCByaG9uY3VzLCBmYXVjaWJ1cyBhcmN1IHZpdGFlLCB2dWxwdXRhdGUgZXJhdC4gQWxpcXVhbSBuZWMgbWFnbmEgdml2ZXJyYSwgaW50ZXJkdW0gZXN0IHZpdGFlLCByaG9uY3VzIHNhcGllbi4gRHVpcyB0aW5jaWR1bnQgdGVtcG9yIGlwc3VtIHV0IGRhcGlidXMuIE51bGxhbSBjb21tb2RvIHZhcml1cyBtZXR1cywgc2VkIHNvbGxpY2l0dWRpbiBlcm9zLiBFdGlhbSBuZWMgb2RpbyBldCBkdWkgdGVtcG9yIGJsYW5kaXQgcG9zdWVyZS4=", base64, "medium base64 conversion should work")
     }
-    
+
+    func test_openingNonExistentFile() {
+        var didCatchError = false
+
+        do {
+            let _ = try NSData(contentsOfFile: "does not exist", options: [])
+        } catch {
+            didCatchError = true
+        }
+
+        XCTAssertTrue(didCatchError)
+    }
+
     func test_basicReadWrite() {
         let url = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("testfile")
         let count = 1 << 24
@@ -970,9 +988,9 @@ extension TestNSData {
         expectedSize += MemoryLayout<Bool>.stride * 2
         XCTAssertEqual(expectedSize, data.count)
         
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize)!, to: UnsafeMutablePointer<UInt8>.self)
-        
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize)
+        let size = expectedSize
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         let copiedCount = data.copyBytes(to: buffer)
         XCTAssertEqual(copiedCount, expectedSize)
         

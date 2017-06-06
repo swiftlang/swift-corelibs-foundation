@@ -24,7 +24,7 @@ private func _compiler_crash_fix(_ key: _CFThreadSpecificKey, _ value: AnyObject
 internal class NSThreadSpecific<T: NSObject> {
     private var key = _CFThreadSpecificKeyCreate()
     
-    internal func get(_ generator: (Void) -> T) -> T {
+    internal func get(_ generator: () -> T) -> T {
         if let specific = _CFThreadSpecificGet(key) {
             return specific as! T
         } else {
@@ -130,7 +130,7 @@ open class Thread : NSObject {
         pthread_exit(nil)
     }
     
-    internal var _main: (Void) -> Void = {}
+    internal var _main: () -> Void = {}
 #if os(OSX) || os(iOS) || CYGWIN
     private var _thread: pthread_t? = nil
 #elseif os(Linux) || os(Android)
