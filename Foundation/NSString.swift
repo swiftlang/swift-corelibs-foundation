@@ -111,12 +111,14 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
         }()
     }
     let key = "\(options):\(pattern)"
-    if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
-        return regex
-    }
+
+//   Disabling cache until [SR-3904] is fixed.	
+//    if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
+//        return regex
+//    }
     do {
         let regex = try NSRegularExpression(pattern: pattern, options: options)
-        local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
+//        local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
         return regex
     } catch {
         
