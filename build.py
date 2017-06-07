@@ -346,6 +346,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSHTTPCookieStorage.swift',
 	'Foundation/NSIndexPath.swift',
 	'Foundation/NSIndexSet.swift',
+	'Foundation/ISO8601DateFormatter.swift',
 	'Foundation/NSJSONSerialization.swift',
 	'Foundation/NSKeyedCoderOldStyleArray.swift',
 	'Foundation/NSKeyedArchiver.swift',
