@@ -1005,14 +1005,6 @@ void __CFInitialize(void) {
         memset(__CFRuntimeObjCClassTable, 0, sizeof(__CFRuntimeObjCClassTable));
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-        
-#ifndef __CFSwiftGetBaseClass
-#if TARGET_OS_LINUX
-#define __CFSwiftGetBaseClass _T010Foundation21__CFSwiftGetBaseClassyXlXpyF
-#elif TARGET_OS_MAC
-#define __CFSwiftGetBaseClass _T015SwiftFoundation21__CFSwiftGetBaseClassyXlXpyF
-#endif
-#endif
         extern uintptr_t __CFSwiftGetBaseClass();
         
         uintptr_t NSCFType = __CFSwiftGetBaseClass();
@@ -1115,13 +1107,6 @@ void __CFInitialize(void) {
 #endif
         
 #if DEPLOYMENT_RUNTIME_SWIFT
-#ifndef __CFInitializeSwift
-#if TARGET_OS_LINUX
-#define __CFInitializeSwift _T010Foundation19__CFInitializeSwiftyyF
-#elif TARGET_OS_MAC
-#define __CFInitializeSwift _T015SwiftFoundation014__CFInitializeA0yyF
-#endif
-#endif
         extern void __CFInitializeSwift();
         __CFInitializeSwift();
         __CFNumberInitialize(); /* needs to happen after Swift bridge is initialized */
