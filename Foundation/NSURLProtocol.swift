@@ -148,12 +148,13 @@ public protocol URLProtocolClient : NSObjectProtocol {
 internal class _ProtocolClient : NSObject, URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) {
-        `protocol`.task?.response = response
+	guard let task = `protocol`.task else { fatalError("Received response, but there's no task.") }
+        task.response = response
     }
 
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
-        guard let task = `protocol`.task else { fatalError() }
-        guard let session = task.session as? URLSession else { fatalError() }
+        guard let task = `protocol`.task else { fatalError("Transfer completed and trying to complete the task, but the task doesn't exist.") }
+        guard let session = task.session as? URLSession else { fatalError("Transfer completed and trying to notify the delegate/handler, but the session is invalid.") }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
@@ -166,12 +167,13 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
             session.taskRegistry.remove(task)
         case .dataCompletionHandler(let completion):
             let data = Data()
-            guard let client = `protocol`.client else { fatalError() }
+            guard let client = `protocol`.client else { fatalError("Received data, but cannot notify the delegate/handler.") }
             client.urlProtocol(`protocol`, didLoad: data)
             return
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
-                completion(task.currentRequest?.url, task.response, nil)
+	        guard let currentRequest = task.currentRequest else { fatalError("Current request is nil") }
+                completion(currentRequest.url, task.response, nil)
                 task.state = .completed
                 session.taskRegistry.remove(task)
             }
@@ -187,23 +189,22 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
-        guard let task = `protocol`.task else { fatalError() }
-        guard let session = task.session as? URLSession else { fatalError() }
+        guard let task = `protocol`.task else { fatalError("Received data, but cannot notify the handler") }
+        guard let session = task.session as? URLSession else { fatalError("Received data and trying to notify the delegate/handler, but the session is invalid.") }
         switch session.behaviour(for: task) {
         case .dataCompletionHandler(let completion):
-            guard let s = task.session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
+            session.delegateQueue.addOperation {
                 completion(data, task.response, nil)
                 task.state = .completed
-                s.taskRegistry.remove(task)
+                session.taskRegistry.remove(task)
             }
         default: return
         }
     }
 
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
-        guard let task = `protocol`.task else { fatalError() }
-        guard let session = task.session as? URLSession else { fatalError() }
+        guard let task = `protocol`.task else { fatalError("Transfer completed/failed, but there's no task.") }
+        guard let session = task.session as? URLSession else { fatalError("Transfer completed/failed, but there's no task.") }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
@@ -463,7 +464,7 @@ open class URLProtocol : NSObject {
         let protocolClasses = protocols
         for protocolClass in protocolClasses {
             let urlProtocolClass: AnyClass = protocolClass
-            guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+            guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("\(urlProtocolClass) is not of type URLProtocol") }
             if urlProtocol.canInit(with: request) {
                 _classesLock.unlock()
                 return urlProtocol
@@ -493,8 +494,8 @@ open class URLProtocol : NSObject {
 
     open class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
     public required convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
-        let urlRequest = task.originalRequest
-        self.init(request: urlRequest!, cachedResponse: cachedResponse, client: client)
+        guard let urlRequest = task.originalRequest else { fatalError("Original request is nil") }
+        self.init(request: urlRequest, cachedResponse: cachedResponse, client: client)
         self.task = task
     }
     /*@NSCopying*/ open var task: URLSessionTask? {
