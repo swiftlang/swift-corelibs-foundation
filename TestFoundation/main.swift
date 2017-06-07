@@ -43,6 +43,7 @@ XCTMain([
     testCase(TestNSHTTPCookieStorage.allTests),
     testCase(TestNSIndexPath.allTests),
     testCase(TestNSIndexSet.allTests),
+    testCase(TestISO8601DateFormatter.allTests),
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
     testCase(TestNSKeyedUnarchiver.allTests),
@@ -94,6 +95,5 @@ XCTMain([
     testCase(TestProgress.allTests),
     testCase(TestObjCRuntime.allTests),
     testCase(TestNotification.allTests),
-    testCase(TestNSISO8601DateFormatter.allTests),
     testCase(TestMassFormatter.allTests),
 ])
