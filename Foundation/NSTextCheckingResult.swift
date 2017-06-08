@@ -15,7 +15,7 @@ extension NSTextCheckingResult {
         public let rawValue: UInt64
         public init(rawValue: UInt64) { self.rawValue = rawValue }
         
-        public static let RegularExpression = CheckingType(rawValue: 1 << 10) // regular expression matches
+        public static let RegularExpression = CheckingType(rawValue: UInt64(1) << 10) // regular expression matches
     }
 }
 

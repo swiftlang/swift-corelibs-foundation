@@ -60,7 +60,7 @@ public final class _DataStorage {
         case customMutableReference(NSMutableData) // tracks data references that are known to be mutable
     }
     
-    public static let maxSize = Int.max >> 1
+    public static let maxSize = Int.max / 2
     public static let vmOpsThreshold = NSPageSize() * 4
     
     public static func allocate(_ size: Int, _ clear: Bool) -> UnsafeMutableRawPointer? {
@@ -209,7 +209,7 @@ public final class _DataStorage {
     @inline(never)
     public func _grow(_ newLength: Int, _ clear: Bool) {
         let cap = _capacity
-        var additionalCapacity = (newLength >> (_DataStorage.vmOpsThreshold <= newLength ? 2 : 1))
+        var additionalCapacity = (newLength / (_DataStorage.vmOpsThreshold <= newLength ? 4 : 2))
         if Int.max - additionalCapacity < newLength {
             additionalCapacity = 0
         }
@@ -535,7 +535,7 @@ public final class _DataStorage {
     
     public init(length: Int) {
         precondition(length < _DataStorage.maxSize)
-        var capacity = (length < 1024 * 1024 * 1024) ? length + (length >> 2) : length
+        var capacity = (length < 1024 * 1024 * 1024) ? length + (length / 4) : length
         if _DataStorage.vmOpsThreshold <= capacity {
             capacity = NSRoundUpToMultipleOfPageSize(capacity)
         }

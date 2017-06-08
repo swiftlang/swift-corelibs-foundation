@@ -36,7 +36,7 @@ private func WIFSIGNALED(_ status: Int32) -> Bool {
 }
 
 private func WEXITSTATUS(_ status: Int32) -> Int32 {
-    return (status >> 8) & 0xff
+    return (status &>> 8) & 0xff
 }
 
 private func WTERMSIG(_ status: Int32) -> Int32 {
