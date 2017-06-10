@@ -1010,7 +1010,7 @@ void __CFInitialize(void) {
 #if TARGET_OS_LINUX
 #define __CFSwiftGetBaseClass _T010Foundation21__CFSwiftGetBaseClassyXlXpyF
 #elif TARGET_OS_MAC
-#define __CFSwiftGetBaseClass _T015SwiftFoundation21__CFSwiftGetBaseClassyXlXpyF
+#define __CFSwiftGetBaseClass _T015SwiftFoundation21__CFSwiftGetBaseClasss9AnyObject_pXpyF
 #endif
 #endif
         extern uintptr_t __CFSwiftGetBaseClass();
