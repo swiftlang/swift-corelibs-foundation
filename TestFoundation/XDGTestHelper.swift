@@ -17,27 +17,28 @@ class XDGCheck {
 
     static func run() -> Never {
         let storage = HTTPCookieStorage.shared
-        let properties = [
-            HTTPCookiePropertyKey.name: "TestCookie",
-            HTTPCookiePropertyKey.value: "Test @#$%^$&*99",
-            HTTPCookiePropertyKey.path: "/",
-            HTTPCookiePropertyKey.domain: "example.com",
-            ]
+        let properties: [HTTPCookiePropertyKey: String] = [
+            .name: "TestCookie",
+            .value: "Test @#$%^$&*99",
+            .path: "/",
+            .domain: "example.com",
+        ]
         let simpleCookie = HTTPCookie(properties: properties)
         guard simpleCookie != nil else {
             exit(HelperCheckStatus.cookieStorageNil.rawValue)
         }
-        let rawValue = getenv("XDG_CONFIG_HOME")
+        let rawValue = getenv("XDG_DATA_HOME")
         guard rawValue != nil else {
             exit(HelperCheckStatus.fail.rawValue)
         }
-        let xdg_config_home = String(utf8String: rawValue!)
+        let xdg_data_home = String(utf8String: rawValue!)
         storage.setCookie(simpleCookie!)
         let fm = FileManager.default
-        let destPath = xdg_config_home! + "/.cookies.shared"
+        let destPath = xdg_data_home! + "/xdgTestHelper/.cookies.shared"
         var isDir = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir) 
         if (!exists) {
+            print("Expected cookie path: ", destPath)
             exit(HelperCheckStatus.cookieStorePathWrong.rawValue)
         }
         exit(HelperCheckStatus.ok.rawValue)
