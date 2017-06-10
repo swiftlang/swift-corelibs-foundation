@@ -40,7 +40,8 @@ class TestNSXMLDocument : XCTestCase {
                 //                ("test_validation_failure", test_validation_failure),
                 ("test_dtd", test_dtd),
                 ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes)
+                ("test_dtd_attributes", test_dtd_attributes),
+                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash)
             ]
         #else // On Linux, currently the tests that rely on NSError are segfaulting in swift_dynamicCast
             return [
@@ -60,7 +61,8 @@ class TestNSXMLDocument : XCTestCase {
                 //                ("test_validation_failure", test_validation_failure),
                 ("test_dtd", test_dtd),
                 //                ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes)
+                ("test_dtd_attributes", test_dtd_attributes),
+                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash)
             ]
         #endif
     }
@@ -406,4 +408,16 @@ class TestNSXMLDocument : XCTestCase {
         let attrDecl = dtd.attributeDeclaration(forName: "print", elementName: "foo")!
         XCTAssert(attrDecl.dtdKind == .enumerationAttribute)
     }
+
+    func test_documentWithEncodingSetDoesntCrash() throws {
+        weak var weakDoc: XMLDocument? = nil
+        func makeSureDocumentIsAllocatedAndFreed() {
+                let doc = XMLDocument(rootElement: XMLElement(name: "test"))
+                doc.characterEncoding = "UTF-8"
+                weakDoc = doc
+        }
+        makeSureDocumentIsAllocatedAndFreed()
+        XCTAssertNil(weakDoc, "document not freed even through it should have")
+    }
+
 }
