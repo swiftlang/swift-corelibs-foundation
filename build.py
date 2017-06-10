@@ -9,7 +9,7 @@
 
 script = Script()
 
-foundation = DynamicLibrary("Foundation")
+foundation = StaticAndDynamicLibrary("Foundation")
 
 foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefix.h'
 
@@ -346,6 +346,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSHTTPCookieStorage.swift',
 	'Foundation/NSIndexPath.swift',
 	'Foundation/NSIndexSet.swift',
+	'Foundation/ISO8601DateFormatter.swift',
 	'Foundation/NSJSONSerialization.swift',
 	'Foundation/NSKeyedCoderOldStyleArray.swift',
 	'Foundation/NSKeyedArchiver.swift',
@@ -402,17 +403,18 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSURLRequest.swift',
 	'Foundation/NSURLResponse.swift',
 	'Foundation/NSURLSession/Configuration.swift',
-	'Foundation/NSURLSession/EasyHandle.swift',
-	'Foundation/NSURLSession/HTTPBodySource.swift',
-	'Foundation/NSURLSession/HTTPMessage.swift',
-	'Foundation/NSURLSession/MultiHandle.swift',
+	'Foundation/NSURLSession/http/EasyHandle.swift',
+	'Foundation/NSURLSession/http/HTTPBodySource.swift',
+	'Foundation/NSURLSession/http/HTTPMessage.swift',
+	'Foundation/NSURLSession/http/MultiHandle.swift',
 	'Foundation/NSURLSession/NSURLSession.swift',
 	'Foundation/NSURLSession/NSURLSessionConfiguration.swift',
 	'Foundation/NSURLSession/NSURLSessionDelegate.swift',
 	'Foundation/NSURLSession/NSURLSessionTask.swift',
 	'Foundation/NSURLSession/TaskRegistry.swift',
-	'Foundation/NSURLSession/TransferState.swift',
-	'Foundation/NSURLSession/libcurlHelpers.swift',
+	'Foundation/NSURLSession/http/TransferState.swift',
+	'Foundation/NSURLSession/http/libcurlHelpers.swift',
+        'Foundation/NSURLSession/http/HTTPURLProtocol.swift',
 	'Foundation/NSUserDefaults.swift',
 	'Foundation/NSUUID.swift',
 	'Foundation/NSValue.swift',
@@ -515,6 +517,8 @@ extra_script = """
 rule InstallFoundation
     command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
     cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
+    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
     mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $

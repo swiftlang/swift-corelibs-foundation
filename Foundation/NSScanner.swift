@@ -212,25 +212,6 @@ private func isADigit(_ ch: unichar) -> Bool {
     return Local.set.contains(UnicodeScalar(ch)!)
 }
 
-// This is just here to allow just enough generic math to handle what is needed for scanning an abstract integer from a string, perhaps these should be on IntegerType?
-
-internal protocol _BitShiftable {
-    static func >>(lhs: Self, rhs: Self) -> Self
-    static func <<(lhs: Self, rhs: Self) -> Self
-}
-
-// FIXME(integers): replace this protocol with just a FixedWidthInteger
-internal protocol _IntegerLike : FixedWidthInteger, _BitShiftable {
-    init(_ value: Int)
-    static var max: Self { get }
-    static var min: Self { get }
-}
-
-extension Int : _IntegerLike { }
-extension Int32 : _IntegerLike { }
-extension Int64 : _IntegerLike { }
-extension UInt32 : _IntegerLike { }
-extension UInt64 : _IntegerLike { }
 
 private func numericValue(_ ch: unichar) -> Int {
     if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
@@ -264,7 +245,7 @@ private func decimalSep(_ locale: Locale?) -> String {
 }
 
 extension String {
-    internal func scan<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scan<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var neg = false
@@ -301,7 +282,7 @@ extension String {
         return true
     }
     
-    internal func scanHex<T: _IntegerLike>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+    internal func scanHex<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
         buf.skip(skipSet)
         var localResult: T = 0

@@ -220,6 +220,8 @@ open class URLSession : NSObject {
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
+        // registering all the protocol classes with URLProtocol
+        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
     }
 
     /*
@@ -245,6 +247,8 @@ open class URLSession : NSObject {
         let c = URLSession._Configuration(URLSessionConfiguration: configuration)
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
+        // registering all the protocol classes with URLProtocol
+        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
     }
     
     open let delegateQueue: OperationQueue

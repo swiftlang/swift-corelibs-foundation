@@ -761,8 +761,9 @@ extension TestNSData {
         let expectedSize = MemoryLayout<UInt8>.stride * a.count
         XCTAssertEqual(expectedSize, data.count)
         
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize - 1)!, to: UnsafeMutablePointer<UInt8>.self)
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize - 1)
+        let size = expectedSize - 1
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         
         // We should only copy in enough bytes that can fit in the buffer
         let copiedCount = data.copyBytes(to: buffer)
@@ -784,9 +785,10 @@ extension TestNSData {
         }
         let expectedSize = MemoryLayout<Int32>.stride * a.count
         XCTAssertEqual(expectedSize, data.count)
-        
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize + 1)!, to: UnsafeMutablePointer<UInt8>.self)
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize + 1)
+
+        let size = expectedSize + 1
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         
         let copiedCount = data.copyBytes(to: buffer)
         XCTAssertEqual(expectedSize, copiedCount)
@@ -802,9 +804,10 @@ extension TestNSData {
             var data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(data.count)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: data.count)
+
+            let size = data.count
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
             
             var copiedCount : Int
             
@@ -831,10 +834,11 @@ extension TestNSData {
             let data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(10)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: 10)
-            
+
+            let size = 10
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
+
             var copiedCount : Int
             
             copiedCount = data.copyBytes(to: buffer, from: 0..<3)
@@ -854,9 +858,10 @@ extension TestNSData {
             let data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
-            
-            let underlyingBuffer = unsafeBitCast(malloc(4)!, to: UnsafeMutablePointer<UInt8>.self)
-            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: 4)
+
+            let size = 4
+            let underlyingBuffer = malloc(size)!
+            let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
             
             var copiedCount : Int
             
@@ -983,9 +988,9 @@ extension TestNSData {
         expectedSize += MemoryLayout<Bool>.stride * 2
         XCTAssertEqual(expectedSize, data.count)
         
-        let underlyingBuffer = unsafeBitCast(malloc(expectedSize)!, to: UnsafeMutablePointer<UInt8>.self)
-        
-        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer, count: expectedSize)
+        let size = expectedSize
+        let underlyingBuffer = malloc(size)!
+        let buffer = UnsafeMutableBufferPointer(start: underlyingBuffer.bindMemory(to: UInt8.self, capacity: size), count: size)
         let copiedCount = data.copyBytes(to: buffer)
         XCTAssertEqual(copiedCount, expectedSize)
         

@@ -134,6 +134,24 @@ class TestNSDictionary : XCTestCase {
 
         XCTAssertFalse(dict1.isEqual(nil))
         XCTAssertFalse(dict1.isEqual(NSObject()))
+
+        let nestedDict1 = NSDictionary(dictionary: [
+            "key.entities": [
+                ["key": 0]
+            ]
+        ])
+        let nestedDict2 = NSDictionary(dictionary: [
+            "key.entities": [
+                ["key": 1]
+            ]
+        ])
+        XCTAssertFalse(nestedDict1 == nestedDict2)
+        XCTAssertFalse(nestedDict1.isEqual(nestedDict2))
+        XCTAssertFalse(nestedDict1.isEqual(to: [
+            "key.entities": [
+                ["key": 1]
+            ]
+        ]))
     }
 
     func test_copying() {

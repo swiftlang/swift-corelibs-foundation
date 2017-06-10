@@ -43,6 +43,7 @@ XCTMain([
     testCase(TestNSHTTPCookieStorage.allTests),
     testCase(TestNSIndexPath.allTests),
     testCase(TestNSIndexSet.allTests),
+    testCase(TestISO8601DateFormatter.allTests),
     testCase(TestNSJSONSerialization.allTests),
     testCase(TestNSKeyedArchiver.allTests),
     testCase(TestNSKeyedUnarchiver.allTests),
@@ -79,8 +80,7 @@ XCTMain([
     testCase(TestURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
     testCase(TestNSHTTPURLResponse.allTests),
-//Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
-//    testCase(TestURLSession.allTests),
+    testCase(TestURLSession.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),
@@ -95,5 +95,5 @@ XCTMain([
     testCase(TestProgress.allTests),
     testCase(TestObjCRuntime.allTests),
     testCase(TestNotification.allTests),
-    testCase(TestNSISO8601DateFormatter.allTests),
+    testCase(TestMassFormatter.allTests),
 ])

@@ -98,7 +98,7 @@ class _TCPSocket {
         return stride(from: 0, to: str.characters.count, by: count).map { i -> String in
             let startIndex = str.index(str.startIndex, offsetBy: i)
             let endIndex   = str.index(startIndex, offsetBy: count, limitedBy: str.endIndex) ?? str.endIndex
-            return str[startIndex..<endIndex]
+            return String(str[startIndex..<endIndex])
         }
     }
    
