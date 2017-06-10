@@ -415,7 +415,7 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
             if (doc->URL) {
                 xmlFree((xmlChar*)doc->URL);
             }
-            doc->URL = URI;
+            doc->URL = xmlStrdup(URI);
         }
             break;
 
@@ -658,7 +658,7 @@ void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Null
         xmlFree((xmlChar*)docPtr->encoding);
     }
 
-    docPtr->encoding = encoding;
+    docPtr->encoding = xmlStrdup(encoding);
 }
 
 CF_RETURNS_RETAINED CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc) {
