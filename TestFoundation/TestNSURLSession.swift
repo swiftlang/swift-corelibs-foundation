@@ -24,20 +24,21 @@ class TestURLSession : XCTestCase {
 //Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
 //            ("test_dataTaskWithURL", test_dataTaskWithURL),
 //            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
-//            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
-//            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
+            ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
 //            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
 //            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
-//            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
-//            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
+            ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
 //            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
 //            ("test_taskError", test_taskError),
-//            ("test_taskCopy", test_taskCopy),
+            ("test_taskCopy", test_taskCopy),
 //            ("test_cancelTask", test_cancelTask),
 //            ("test_taskTimeout", test_taskTimeout),
-//            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
-//            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
+            ("test_verifyRequestHeaders", test_verifyRequestHeaders),
+            ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
+	    ("test_customProtocol", test_customProtocol),
         ]
     }
 
@@ -418,6 +419,37 @@ class TestURLSession : XCTestCase {
 
         waitForExpectations(timeout: 30)
     }
+
+    func test_customProtocol () {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let urlString = "http://127.0.0.1:\(serverPort)/USA"
+        let url = URL(string: urlString)!
+        let config = URLSessionConfiguration.default
+        config.protocolClasses = [CustomProtocol.self]
+        config.timeoutIntervalForRequest = 8
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let expect = expectation(description: "URL test with custom protocol")
+        let task = session.dataTask(with: url) { data, response, error in
+            defer { expect.fulfill() }
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
+                return
+            }
+            let httpResponse = response as! HTTPURLResponse?
+            XCTAssertEqual(429, httpResponse!.statusCode, "HTTP response code is not 429")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
 }
 
 class SessionDelegate: NSObject, URLSessionDelegate {
@@ -525,4 +557,29 @@ extension DownloadTask : URLSessionTaskDelegate {
        XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
        dwdExpectation.fulfill()
    }
+}
+
+class CustomProtocol : URLProtocol {
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        return true
+    }
+
+    func sendResponse(statusCode: Int, headers: [String: String] = [:], data: Data) {
+        let response = HTTPURLResponse(url: self.request.url!, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: headers)
+        self.client?.urlProtocol(self, didReceive: response!, cacheStoragePolicy: .notAllowed)
+        self.client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        return request
+    }
+ 
+    override func startLoading() {
+        sendResponse(statusCode: 429, data: Data())
+    }
+
+    override func stopLoading() {
+        return
+    }
 }

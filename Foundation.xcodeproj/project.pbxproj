@@ -78,6 +78,7 @@
 		5B1FD9DE1D6D16580080E83C /* TaskRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9D21D6D16580080E83C /* TaskRegistry.swift */; };
 		5B1FD9DF1D6D16580080E83C /* TransferState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9D31D6D16580080E83C /* TransferState.swift */; };
 		5B1FD9E11D6D178E0080E83C /* libcurl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */; };
+                E429ED451E9638DA0031BC20 /* HTTPURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E429ED441E9638DA0031BC20 /* HTTPURLProtocol.swift */; };
 		5B1FD9E31D6D17B80080E83C /* TestNSURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9E21D6D17B80080E83C /* TestNSURLSession.swift */; };
 		5B23AB871CE62D17000DB898 /* Boxing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB861CE62D17000DB898 /* Boxing.swift */; };
 		5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */; };
@@ -495,6 +496,7 @@
 		5B1FD9D21D6D16580080E83C /* TaskRegistry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskRegistry.swift; sourceTree = "<group>"; };
 		5B1FD9D31D6D16580080E83C /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransferState.swift; sourceTree = "<group>"; };
 		5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.3.dylib; path = usr/lib/libcurl.3.dylib; sourceTree = SDKROOT; };
+                E429ED441E9638DA0031BC20 /* HTTPURLProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPURLProtocol.swift;  path = HTTPURLProtocol.swift; sourceTree = "<group>"; };
 		5B1FD9E21D6D17B80080E83C /* TestNSURLSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLSession.swift; sourceTree = "<group>"; };
 		5B23AB861CE62D17000DB898 /* Boxing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Boxing.swift; sourceTree = "<group>"; };
 		5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
@@ -928,23 +930,32 @@
 		5B1FD9C71D6D162D0080E83C /* Session */ = {
 			isa = PBXGroup;
 			children = (
+				E4F889331E9CF04D008A70EB /* http */,
 				5B1FD9C81D6D16580080E83C /* Configuration.swift */,
-				5B1FD9C91D6D16580080E83C /* EasyHandle.swift */,
-				5B1FD9CA1D6D16580080E83C /* HTTPBodySource.swift */,
-				5B1FD9CB1D6D16580080E83C /* HTTPMessage.swift */,
-				5B1FD9CC1D6D16580080E83C /* libcurlHelpers.swift */,
-				5B1FD9CD1D6D16580080E83C /* MultiHandle.swift */,
 				5B1FD9CE1D6D16580080E83C /* NSURLSession.swift */,
 				5B1FD9CF1D6D16580080E83C /* NSURLSessionConfiguration.swift */,
 				5B1FD9D01D6D16580080E83C /* NSURLSessionDelegate.swift */,
 				5B1FD9D11D6D16580080E83C /* NSURLSessionTask.swift */,
 				5B1FD9D21D6D16580080E83C /* TaskRegistry.swift */,
-				5B1FD9D31D6D16580080E83C /* TransferState.swift */,
 			);
 			name = Session;
 			path = NSURLSession;
 			sourceTree = "<group>";
 		};
+		E4F889331E9CF04D008A70EB /* http */ = {
+			isa = PBXGroup;
+			children = (
+				E429ED441E9638DA0031BC20 /* HTTPURLProtocol.swift */,
+				5B1FD9C91D6D16580080E83C /* EasyHandle.swift */,
+                                5B1FD9CA1D6D16580080E83C /* HTTPBodySource.swift */,
+                                5B1FD9CB1D6D16580080E83C /* HTTPMessage.swift */,
+                                5B1FD9CC1D6D16580080E83C /* libcurlHelpers.swift */,
+                                5B1FD9CD1D6D16580080E83C /* MultiHandle.swift */,
+                                5B1FD9D31D6D16580080E83C /* TransferState.swift */,
+                        );
+                        name = http;
+                        sourceTree = "<group>";
+                };
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
@@ -2040,6 +2051,7 @@
 				5B23AB871CE62D17000DB898 /* Boxing.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* Bundle.swift in Sources */,
 				5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */,
+				E429ED451E9638DA0031BC20 /* HTTPURLProtocol.swift in Sources */,
 				D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */,
 				5B1FD9D51D6D16580080E83C /* EasyHandle.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */,
