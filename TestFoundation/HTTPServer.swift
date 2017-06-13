@@ -71,10 +71,13 @@ class _TCPSocket {
     }
 
     private func createSockaddr(_ port: UInt16) -> sockaddr_in {
+        // Listen on the loopback address so that OSX doesnt pop up a dialog
+        // asking to accept incoming connections if the firewall is enabled.
+        let addr = UInt32(INADDR_LOOPBACK).bigEndian
         #if os(Linux)
-            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port), sin_addr: in_addr(s_addr: INADDR_ANY), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #else
-            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: INADDR_ANY), sin_zero: (0,0,0,0,0,0,0,0) )
+            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #endif
     }
 
