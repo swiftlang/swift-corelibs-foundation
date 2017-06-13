@@ -26,7 +26,6 @@
 		5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCDBB8321C1768AC00313299 /* TestNSData.swift */; };
 		5B13B32C1C582D4C00651CE2 /* TestNSDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */; };
 		5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F63D1BF1619600136161 /* TestNSDictionary.swift */; };
-		5B13B32E1C582D4C00651CE2 /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
 		5B13B32F1C582D4C00651CE2 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88D28DE61C13AE9000494606 /* TestNSGeometry.swift */; };
 		5B13B3301C582D4C00651CE2 /* TestNSHTTPCookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 848A30571C137B3500C83206 /* TestNSHTTPCookie.swift */; };
 		5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */; };
@@ -51,7 +50,6 @@
 		5B13B3441C582D4C00651CE2 /* TestNSSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6411BF1619600136161 /* TestNSSet.swift */; };
 		5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6421BF1619600136161 /* TestNSString.swift */; };
 		5B13B3461C582D4C00651CE2 /* TestProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17941C48631C00935030 /* TestProcess.swift */; };
-		5B13B3471C582D4C00651CE2 /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestThread.swift */; };
 		5B13B3481C582D4C00651CE2 /* TestNSTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61D6C9EE1C1DFE9500DEF583 /* TestNSTimer.swift */; };
 		5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84BA558D1C16F90900F48C54 /* TestNSTimeZone.swift */; };
 		5B13B34A1C582D4C00651CE2 /* TestNSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6431BF1619600136161 /* TestNSURL.swift */; };
@@ -315,6 +313,10 @@
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
 		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
+		B90C57BC1EEEEA5A005208AE /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestThread.swift */; };
+		B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */; };
+		B910957B1EEF237800A71930 /* NSString-UTF16-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */; };
 		B9974B961EDF4A22007F15B8 /* TransferState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B8F1EDF4A22007F15B8 /* TransferState.swift */; };
 		B9974B971EDF4A22007F15B8 /* MultiHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B901EDF4A22007F15B8 /* MultiHandle.swift */; };
 		B9974B981EDF4A22007F15B8 /* libcurlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */; };
@@ -772,6 +774,8 @@
 		A5A34B551C18C85D00FD972B /* TestNSByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSByteCountFormatter.swift; sourceTree = "<group>"; };
 		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
 		B167A6641ED7303F0040B09A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-LE-data.txt"; sourceTree = "<group>"; };
+		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
 		B9974B8F1EDF4A22007F15B8 /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransferState.swift; path = http/TransferState.swift; sourceTree = "<group>"; };
 		B9974B901EDF4A22007F15B8 /* MultiHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MultiHandle.swift; path = http/MultiHandle.swift; sourceTree = "<group>"; };
 		B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = libcurlHelpers.swift; path = http/libcurlHelpers.swift; sourceTree = "<group>"; };
@@ -1377,6 +1381,8 @@
 				D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */,
 				EA66F6791BF9401E00136161 /* Info.plist */,
 				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
+				B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */,
+				B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
 				E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */,
@@ -2051,8 +2057,10 @@
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
 				D3A597FA1C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist in Resources */,
+				B910957B1EEF237800A71930 /* NSString-UTF16-BE-data.txt in Resources */,
 				D3A598001C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */,
 				D3A597FC1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist in Resources */,
+				B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */,
 				D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
 				D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
 				D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
@@ -2327,10 +2335,8 @@
 				5FE52C951D147D1C00F7D270 /* TestNSTextCheckingResult.swift in Sources */,
 				5B13B3451C582D4C00651CE2 /* TestNSString.swift in Sources */,
 				1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */,
-				5B13B3471C582D4C00651CE2 /* TestThread.swift in Sources */,
-				5B13B32E1C582D4C00651CE2 /* TestFileManager.swift in Sources */,
-				5B13B3471C582D4C00651CE2 /* TestNSThread.swift in Sources */,
-				5B13B32E1C582D4C00651CE2 /* TestNSFileManager.swift in Sources */,
+				B90C57BC1EEEEA5A005208AE /* TestThread.swift in Sources */,
+				B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */,
 				A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */,
 				5B13B3381C582D4C00651CE2 /* TestNSNotificationQueue.swift in Sources */,
 				CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */,
@@ -2763,6 +2769,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "../swift-corelibs-xctest/build/Debug";
 				HEADER_SEARCH_PATHS = (
 					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
 					/usr/include/libxml2,
@@ -2788,6 +2795,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "../swift-corelibs-xctest/build/Release";
 				HEADER_SEARCH_PATHS = (
 					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
 					/usr/include/libxml2,
