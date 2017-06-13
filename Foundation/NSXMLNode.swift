@@ -950,20 +950,22 @@ extension XMLNode: _NSXMLNodeCollectionType {
     }
 }
 
-public func ==(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
-    return lhs.offset == rhs.offset
-}
+extension XMLNode.Index {
+    public static func ==(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
+        return lhs.offset == rhs.offset
+    }
 
-public func <(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
-    switch (lhs.offset, rhs.offset) {
-    case (nil, nil):
-      return false
-    case (nil, _?):
-      return false
-    case (_?, nil):
-      return true
-    case (let lhsOffset?, let rhsOffset?):
-      return lhsOffset < rhsOffset
+    public static func <(lhs: XMLNode.Index, rhs: XMLNode.Index) -> Bool {
+        switch (lhs.offset, rhs.offset) {
+        case (nil, nil):
+            return false
+        case (nil, _?):
+            return false
+        case (_?, nil):
+            return true
+        case (let lhsOffset?, let rhsOffset?):
+            return lhsOffset < rhsOffset
+        }
     }
 }
 

@@ -38,10 +38,10 @@ extension String.Encoding : Hashable {
     public var hashValue : Int {
         return rawValue.hashValue
     }
-}
 
-public func ==(lhs: String.Encoding, rhs: String.Encoding) -> Bool {
-    return lhs.rawValue == rhs.rawValue
+    public static func ==(lhs: String.Encoding, rhs: String.Encoding) -> Bool {
+        return lhs.rawValue == rhs.rawValue
+    }
 }
 
 extension String.Encoding : CustomStringConvertible {
