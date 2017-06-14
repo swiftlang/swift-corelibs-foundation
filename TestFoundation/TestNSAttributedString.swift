@@ -232,9 +232,8 @@ fileprivate extension TestNSAttributedString {
     
     fileprivate func describe(attrs: [String : Any]) -> String {
         if attrs.count > 0 {
-            return "[" + attrs.map({ (arg) in
-                let (key, value) = arg
-                return "\(key):\(value)"
+            return "[" + attrs.map({ attr in
+                return "\(attr.key):\(attr.value)"
             }).sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
         } else {
             return "[:]"

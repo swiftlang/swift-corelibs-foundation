@@ -617,7 +617,7 @@ open class XMLNode: NSObject, NSCopying {
             if let parentNode = _CFXMLNodeGetParent(parent!) {
                 let grandparent = XMLNode._objectNodeForNode(parentNode)
                 let possibleParentNodes = grandparent.filter { $0.name == self.parent?.name }
-                let count = possibleParentNodes.reduce(0) { (x, y) in
+                let count = possibleParentNodes.reduce(0) { (x, _) in
                     return x + 1
                 }
 

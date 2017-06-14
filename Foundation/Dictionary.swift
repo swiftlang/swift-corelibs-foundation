@@ -18,10 +18,9 @@ extension Dictionary : _ObjectTypeBridgeable {
         
         var idx = 0
         
-        self.forEach { (arg) in
-            let (keyItem, valueItem) = arg
-            let key = _SwiftValue.store(keyItem)
-            let value = _SwiftValue.store(valueItem)
+        self.forEach { entry in
+            let key = _SwiftValue.store(entry.key)
+            let value = _SwiftValue.store(entry.value)
             keyBuffer.advanced(by: idx).initialize(to: key)
             valueBuffer.advanced(by: idx).initialize(to: value)
             idx += 1
