@@ -27,10 +27,8 @@ import Dispatch
 open class URLSessionTask : NSObject, NSCopying {
     /// How many times the task has been suspended, 0 indicating a running task.
     internal var suspendCount = 1
-    internal var totalDownloaded = 0
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
-    internal let tempFileURL: URL
     fileprivate var _protocol: URLProtocol! = nil
     
     /// All operations must run on this queue.
@@ -52,9 +50,6 @@ open class URLSessionTask : NSObject, NSCopying {
         originalRequest = nil
         body = .none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
-        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
-        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
-        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init()
     }
     /// Create a data task. If there is a httpBody in the URLRequest, use that as a parameter
@@ -71,9 +66,6 @@ open class URLSessionTask : NSObject, NSCopying {
         self.taskIdentifier = taskIdentifier
         self.originalRequest = request
         self.body = body
-        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
-        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
-        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init()
         if session.configuration.protocolClasses != nil {
             guard let protocolClasses = session.configuration.protocolClasses else { fatalError() }
