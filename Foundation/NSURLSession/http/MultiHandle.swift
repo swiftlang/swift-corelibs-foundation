@@ -278,9 +278,10 @@ fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
         }
     }
 }
-extension CFURLSessionPoll : Equatable {}
-public func ==(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
-    return lhs.value == rhs.value
+extension CFURLSessionPoll : Equatable {
+    public static func ==(lhs: CFURLSessionPoll, rhs: CFURLSessionPoll) -> Bool {
+        return lhs.value == rhs.value
+    }
 }
 fileprivate extension URLSession._MultiHandle._SocketRegisterAction {
     /// Should a libdispatch source be registered for **read** readiness?
@@ -451,9 +452,10 @@ extension _SocketSources {
 }
 
 
-extension CFURLSessionMultiCode : Equatable {}
-public func ==(lhs: CFURLSessionMultiCode, rhs: CFURLSessionMultiCode) -> Bool {
-    return lhs.value == rhs.value
+extension CFURLSessionMultiCode : Equatable {
+    public static func ==(lhs: CFURLSessionMultiCode, rhs: CFURLSessionMultiCode) -> Bool {
+        return lhs.value == rhs.value
+    }
 }
 extension CFURLSessionMultiCode : Error {
     public var _domain: String { return "libcurl.Multi" }
