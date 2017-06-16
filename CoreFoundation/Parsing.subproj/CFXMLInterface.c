@@ -20,6 +20,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xmlsave.h>
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 #include <libxml/dict.h>
 #include "CFInternal.h"
 
@@ -57,6 +58,7 @@ CFIndex _kCFXMLTypeElement = XML_ELEMENT_NODE;
 CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
 CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
 CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
+CFIndex _kCFXMLTypeNamespace = 22; // libxml2 does not define namespaces as nodes, so we have to fake it
 
 CFIndex _kCFXMLDTDNodeTypeEntity = XML_ENTITY_DECL;
 CFIndex _kCFXMLDTDNodeTypeAttribute = XML_ATTRIBUTE_DECL;
@@ -360,10 +362,6 @@ _CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr node, const unsigned char* name, c
     return xmlNewProp(node, name, value);
 }
 
-_CFXMLNamespacePtr _CFXMLNewNamespace(_CFXMLNodePtr node, const unsigned char* uri, const unsigned char* prefix) {
-    return xmlNewNs(node, uri, prefix);
-}
-
 CF_RETURNS_RETAINED CFStringRef _CFXMLNodeURI(_CFXMLNodePtr node) {
     xmlNodePtr nodePtr = (xmlNodePtr)node;
     switch (nodePtr->type) {
@@ -447,8 +445,44 @@ CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node) {
     return ((xmlNodePtr)node)->type;
 }
 
-const char* _CFXMLNodeGetName(_CFXMLNodePtr node) {
-    return (const char*)(((xmlNodePtr)node)->name);
+static inline xmlChar* _getQName(xmlNodePtr node) {
+    const xmlChar* prefix = NULL;
+    const xmlChar* ncname = node->name;
+    
+    switch (node->type) {
+        case XML_NOTATION_NODE:
+        case XML_DTD_NODE:
+        case XML_ELEMENT_DECL:
+        case XML_ATTRIBUTE_DECL:
+        case XML_ENTITY_DECL:
+        case XML_NAMESPACE_DECL:
+        case XML_XINCLUDE_START:
+        case XML_XINCLUDE_END:
+            break;
+            
+        default:
+            if (node->ns != NULL) {
+                prefix = node->ns->prefix;
+            }
+    }
+    
+    return xmlBuildQName(ncname, prefix, NULL, 0);
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeGetName(_CFXMLNodePtr node) {
+    xmlNodePtr xmlNode = (xmlNodePtr)node;
+    
+    xmlChar* qName = _getQName(xmlNode);
+    
+    if (qName != NULL) {
+        CFStringRef result = CFStringCreateWithCString(NULL, (const char*)qName, kCFStringEncodingUTF8);
+        if (qName != xmlNode->name) {
+            xmlFree(qName);
+        }
+        return result;
+    } else {
+        return NULL;
+    }
 }
 
 void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
@@ -497,7 +531,7 @@ void _CFXMLNodeSetContent(_CFXMLNodePtr node, const unsigned char* _Nullable  co
             // xmlElementContent structures, let's leverage what we've already got.
             CFMutableStringRef xmlString = CFStringCreateMutable(NULL, 0);
             CFStringAppend(xmlString, CFSTR("<!ELEMENT "));
-            CFStringAppendCString(xmlString, _CFXMLNodeGetName(node), kCFStringEncodingUTF8);
+            CFStringAppendCString(xmlString, (const char*)element->name, kCFStringEncodingUTF8);
             CFStringAppend(xmlString, CFSTR(" "));
             CFStringAppendCString(xmlString, (const char*)content, kCFStringEncodingUTF8);
             CFStringAppend(xmlString, CFSTR(">"));
@@ -837,12 +871,21 @@ CF_RETURNS_RETAINED CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const uns
     if (((xmlNodePtr)node)->doc == NULL) {
         return NULL;
     }
-
+    
+    if (((xmlNodePtr)node)->type == XML_DOCUMENT_NODE) {
+        node = ((xmlDocPtr)node)->children;
+    }
+    
     xmlXPathContextPtr context = xmlXPathNewContext(((xmlNodePtr)node)->doc);
+    xmlNsPtr ns = ((xmlNodePtr)node)->ns;
+    while (ns != NULL) {
+        xmlXPathRegisterNs(context, ns->prefix, ns->href);
+        ns = ns->next;
+    }
     xmlXPathObjectPtr evalResult = xmlXPathNodeEval(node, xpath, context);
 
     xmlNodeSetPtr nodes = evalResult->nodesetval;
-
+    
     int count = nodes->nodeNr;
 
     CFMutableArrayRef results = CFArrayCreateMutable(NULL, count, NULL);
@@ -856,8 +899,15 @@ CF_RETURNS_RETAINED CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const uns
     return results;
 }
 
-_CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName) {
-    return xmlHasProp(node, propertyName);
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLPathForNode(_CFXMLNodePtr node) {
+    xmlChar* path = xmlGetNodePath(node);
+    CFStringRef result = CFStringCreateWithCString(NULL, (const char*)path, kCFStringEncodingUTF8);
+    xmlFree(path);
+    return result;
+}
+
+_CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName) {
+    return xmlHasProp(node, (const xmlChar*)propertyName);
 }
 
 _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
@@ -876,19 +926,26 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
     if (options & _kCFXMLNodeLoadExternalEntitiesAlways) {
         xmlOptions |= XML_PARSE_DTDLOAD;
     }
-
+    
+    xmlOptions |= XML_PARSE_RECOVER;
+    xmlOptions |= XML_PARSE_NSCLEAN;
+    
     return xmlReadMemory((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), NULL, NULL, xmlOptions);
 }
 
 CF_RETURNS_RETAINED CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
-    int length = 0;
-    const xmlChar* result = xmlSplitQName3(((xmlNodePtr)node)->name, &length);
+    xmlChar* prefix = NULL;
+    const xmlChar* result = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
+    if (result == NULL) {
+        result = ((xmlNodePtr)node)->name;
+    }
+    
     return CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
 }
 
 CF_RETURNS_RETAINED CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
     xmlChar* result = NULL;
-    xmlChar* unused = xmlSplitQName2(((xmlNodePtr)node)->name, &result);
+    xmlChar* unused = xmlSplitQName2(_getQName((xmlNodePtr)node), &result);
 
     CFStringRef resultString = CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
     xmlFree(result);
@@ -1179,6 +1236,131 @@ void _CFXMLDTDNodeSetPublicID(_CFXMLDTDNodePtr node, const unsigned char* public
     }
 }
 
+// Namespaces
+CF_RETURNS_RETAINED _CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex* count) {
+    *count = 0;
+    xmlNs* ns = ((xmlNode*)node)->ns;
+    while (ns != NULL) {
+        (*count)++;
+        ns = ns->next;
+    }
+    
+    _CFXMLNodePtr* result = calloc(*count, sizeof(_CFXMLNodePtr));
+    ns = ((xmlNode*)node)->ns;
+    for (int i = 0; i < *count; i++) {
+        xmlNode* temp = xmlNewNode(ns, (unsigned char *)"");
+        
+        temp->type = _kCFXMLTypeNamespace;
+        result[i] = temp;
+        ns = ns->next;
+    }
+    return result;
+}
+
+static inline void _removeAllNamespaces(xmlNodePtr node);
+static inline void _removeAllNamespaces(xmlNodePtr node) {
+    xmlNsPtr ns = node->ns;
+    if (ns != NULL) {
+        xmlFreeNsList(ns);
+        node->ns = NULL;
+    }
+}
+
+void _CFXMLSetNamespaces(_CFXMLNodePtr node, _CFXMLNodePtr* _Nullable nodes, CFIndex count) {
+    _removeAllNamespaces(node);
+    
+    if (nodes == NULL || count == 0) {
+        return;
+    }
+    
+    xmlNodePtr nsNode = (xmlNodePtr)nodes[0];
+    ((xmlNodePtr)node)->ns = xmlCopyNamespace(nsNode->ns);
+    xmlNsPtr currNs = ((xmlNodePtr)node)->ns;
+    for (CFIndex i = 1; i < count; i++) {
+        currNs->next = xmlCopyNamespace(((xmlNodePtr)nodes[i])->ns);
+        currNs = currNs->next;
+    }
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNamespaceGetValue(_CFXMLNodePtr node) {
+    xmlNsPtr ns = ((xmlNode*)node)->ns;
+    
+    if (ns->href == NULL) {
+        return NULL;
+    }
+    
+    return CFStringCreateWithCString(NULL, (const char*)ns->href, kCFStringEncodingUTF8);
+}
+
+void _CFXMLNamespaceSetValue(_CFXMLNodePtr node, const char* value, int64_t length) {
+    xmlNsPtr ns = ((xmlNodePtr)node)->ns;
+    ns->href = xmlStrndup((const xmlChar*)value, length);
+}
+
+CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNamespaceGetPrefix(_CFXMLNodePtr node) {
+    xmlNsPtr ns = ((xmlNodePtr)node)->ns;
+    
+    if (ns->prefix == NULL) {
+        return NULL;
+    }
+    
+    return CFStringCreateWithCString(NULL, (const char*)ns->prefix, kCFStringEncodingUTF8);
+}
+
+void _CFXMLNamespaceSetPrefix(_CFXMLNodePtr node, const char* prefix, int64_t length) {
+    xmlNsPtr ns = ((xmlNodePtr)node)->ns;
+    
+    ns->prefix = xmlStrndup((const xmlChar*)prefix, length);
+}
+
+_CFXMLNodePtr _CFXMLNewNamespace(const char* name, const char* stringValue) {
+    xmlNsPtr ns = xmlNewNs(NULL, (const xmlChar*)stringValue, (const xmlChar*)name);
+    xmlNodePtr node = xmlNewNode(ns, (const xmlChar*)"");
+    
+    node->type = _kCFXMLTypeNamespace;
+        
+    return node;
+}
+
+void _CFXMLAddNamespace(_CFXMLNodePtr node, _CFXMLNodePtr nsNode) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    xmlNsPtr ns = xmlCopyNamespace(((xmlNodePtr)nsNode)->ns);
+    ns->context = nodePtr->doc;
+    
+    xmlNsPtr currNs = nodePtr->ns;
+    if (currNs == NULL) {
+        nodePtr->ns = ns;
+        return;
+    }
+    
+    while(currNs->next != NULL) {
+        currNs = currNs->next;
+    }
+    
+    currNs->next = ns;
+}
+
+void _CFXMLRemoveNamespace(_CFXMLNodePtr node, const char* prefix) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    xmlNsPtr ns = nodePtr->ns;
+    if (ns != NULL && xmlStrcmp((const xmlChar*)prefix, ns->prefix) == 0) {
+        nodePtr->ns = ns->next;
+        xmlFreeNs(ns);
+        return;
+    }
+    
+    while (ns->next != NULL) {
+        if (xmlStrcmp(ns->next->prefix, (const xmlChar*)prefix) == 0) {
+            xmlNsPtr next = ns->next;
+            ns->next = ns->next->next;
+            xmlFreeNs(next);
+            return;
+        }
+        
+        ns = ns->next;
+    }
+}
+
 void _CFXMLFreeNode(_CFXMLNodePtr node) {
     if (!node) {
         return;
@@ -1231,6 +1413,13 @@ void _CFXMLFreeNode(_CFXMLNodePtr node) {
         }
 
         default:
+            // we first need to check if this node is one of our custom
+            // namespace nodes, which don't actually exist in libxml2
+            if (((xmlNodePtr)node)->type == _kCFXMLTypeNamespace) {
+                // resetting its type to XML_ELEMENT_NODE will cause the enclosed namespace
+                // to be properly freed by libxml2
+                ((xmlNodePtr)node)->type = XML_ELEMENT_NODE;
+            }
             xmlFreeNode(node);
     }
 }

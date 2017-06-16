@@ -49,8 +49,15 @@ open class XMLElement: XMLNode {
         @method initWithXMLString:error:
         @abstract Returns an element created from a string. Parse errors are collected in <tt>error</tt>.
     */
-    public init(xmlString string: String) throws {
-        NSUnimplemented()
+    public convenience init(xmlString string: String) throws {
+        // If we prepend the XML line to the string
+        let docString = """
+        <?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\(string)
+        """
+        // we can use the document string parser to get the element
+        let doc = try XMLDocument(xmlString: docString, options: [])
+        // We know the doc has a root element and first child or else the above line would have thrown
+        self.init(ptr:  _CFXMLCopyNode(_CFXMLNodeGetFirstChild(doc._xmlNode)!, true))
     }
 
     public convenience override init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
@@ -69,17 +76,21 @@ open class XMLElement: XMLNode {
         @method elementsForLocalName:URI
         @abstract Returns all of the child elements that match this localname URI pair.
     */
-    open func elements(forLocalName localName: String, uri URI: String?) -> [XMLElement] { NSUnimplemented() }
+    open func elements(forLocalName localName: String, uri URI: String?) -> [XMLElement] {
+        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.localName == localName && $0.uri == uri }).flatMap({ $0 as? XMLElement })
+    }
 
     /*!
         @method addAttribute:
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
     open func addAttribute(_ attribute: XMLNode) {
-        let name = _CFXMLNodeGetName(attribute._xmlNode)!
-        let len = strlen(name)
-        name.withMemoryRebound(to: UInt8.self, capacity: Int(len)) {
-            guard _CFXMLNodeHasProp(_xmlNode, $0) == nil else { return }
+        guard let name = _CFXMLNodeGetName(attribute._xmlNode)?._swiftObject else {
+            fatalError("Attributes must have a name!")
+        }
+
+        name.cString(using: .utf8)!.withUnsafeBufferPointer() {
+            guard let ptr = $0.baseAddress, _CFXMLNodeHasProp(_xmlNode, ptr) == nil else { return }
             addChild(attribute)
         }
     }
@@ -178,7 +189,10 @@ open class XMLElement: XMLNode {
         @abstract Adds a namespace. Namespaces with duplicate names are not added.
     */
     open func addNamespace(_ aNamespace: XMLNode) {
-        NSUnimplemented()
+        if ((namespaces ?? []).flatMap({ $0.name }).contains(aNamespace.name ?? "")) {
+            return
+        }
+        _CFXMLAddNamespace(_xmlNode, aNamespace._xmlNode)
     }
 
     /*!
@@ -186,7 +200,7 @@ open class XMLElement: XMLNode {
         @abstract Removes a namespace with a particular name.
     */
     open func removeNamespace(forPrefix name: String) {
-        NSUnimplemented()
+        _CFXMLRemoveNamespace(_xmlNode, name)
     }
 
     /*!
@@ -194,7 +208,28 @@ open class XMLElement: XMLNode {
         @abstract Set the namespaces. In the case of duplicate names, the first namespace with the name is used.
     */
     open var namespaces: [XMLNode]? {
-        NSUnimplemented()
+        get {
+            var count: Int = 0
+            if let result = _CFXMLNamespaces(_xmlNode, &count) {
+                defer {
+                    free(result)
+                }
+                let namespacePtrs = UnsafeBufferPointer<_CFXMLNodePtr>(start: result, count: count)
+                return namespacePtrs.map { XMLNode._objectNodeForNode($0) }
+            }
+
+            return nil
+        }
+
+        set {
+            if var nodes = newValue?.map({ $0._xmlNode }) {
+                nodes.withUnsafeMutableBufferPointer({ (bufPtr) in
+                    _CFXMLSetNamespaces(_xmlNode, bufPtr.baseAddress, bufPtr.count)
+                })
+            } else {
+                _CFXMLSetNamespaces(_xmlNode, nil, 0);
+            }
+        }
     }
 
     /*!

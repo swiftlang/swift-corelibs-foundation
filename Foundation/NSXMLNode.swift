@@ -126,6 +126,9 @@ open class XMLNode: NSObject, NSCopying {
         case .DTDKind:
             _xmlNode = _CFXMLNewDTD(nil, "", "", "")
             
+        case .namespace:
+            _xmlNode = _CFXMLNewNamespace("", "")
+            
         default:
             fatalError("invalid node kind for this initializer")
         }
@@ -216,7 +219,8 @@ open class XMLNode: NSObject, NSCopying {
         @abstract Returns a namespace <tt>xmlns:name="stringValue"</tt>.
     */
     open class func namespace(withName name: String, stringValue: String) -> Any {
-        NSUnimplemented()
+        let node = _CFXMLNewNamespace(name, stringValue)
+        return XMLNode(ptr: node)
     }
 
     /*!
@@ -285,6 +289,9 @@ open class XMLNode: NSObject, NSCopying {
 
         case _kCFXMLDTDNodeTypeAttribute:
             return .attributeDeclaration
+            
+        case _kCFXMLTypeNamespace:
+            return .namespace
 
         default:
             return .invalid
@@ -297,17 +304,21 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var name: String? {
         get {
-            if let ptr = _CFXMLNodeGetName(_xmlNode) {
-                return String(cString: ptr)
-            } else {
-                return nil
+            if case .namespace = kind {
+                return _CFXMLNamespaceGetPrefix(_xmlNode)?._swiftObject
             }
+            
+            return _CFXMLNodeGetName(_xmlNode)?._swiftObject
         }
         set {
-            if let newName = newValue {
-                _CFXMLNodeSetName(_xmlNode, newName)
+            if case .namespace = kind {
+                _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
             } else {
-                _CFXMLNodeSetName(_xmlNode, "")
+                if let newName = newValue {
+                    _CFXMLNodeSetName(_xmlNode, newName)
+                } else {
+                    _CFXMLNodeSetName(_xmlNode, "")
+                }
             }
         }
     }
@@ -347,12 +358,24 @@ open class XMLNode: NSObject, NSCopying {
             switch kind {
             case .entityDeclaration:
                 return _CFXMLGetEntityContent(_CFXMLEntityPtr(_xmlNode))?._swiftObject
+                
+            case .namespace:
+                return _CFXMLNamespaceGetValue(_xmlNode)?._swiftObject
 
             default:
                 return _CFXMLNodeGetContent(_xmlNode)?._swiftObject
             }
         }
         set {
+            if case .namespace = kind {
+                if let newValue = newValue {
+                    precondition(URL(string: newValue) != nil, "namespace stringValue must be a valid href")
+                }
+                
+                _CFXMLNamespaceSetValue(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
+                return
+            }
+            
             _removeAllChildNodesExceptAttributes() // in case anyone is holding a reference to any of these children we're about to destroy
 
             if let string = newValue {
@@ -596,54 +619,8 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var xPath: String? {
         guard _CFXMLNodeGetDocument(_xmlNode) != nil else { return nil }
-
-        var pathComponents: [String?] = []
-        var parent  = _CFXMLNodeGetParent(_xmlNode)
-        if parent != nil {
-            let parentObj = XMLNode._objectNodeForNode(parent!)
-            let siblingsWithSameName = parentObj.filter { $0.name == self.name }
-
-            if siblingsWithSameName.count > 1 {
-                guard let index = siblingsWithSameName.index(of: self) else { return nil }
-
-                pathComponents.append("\(self.name ?? "")[\(index + 1)]")
-            } else {
-                pathComponents.append(self.name)
-            }
-        } else {
-            return self.name
-        }
-        while true {
-            if let parentNode = _CFXMLNodeGetParent(parent!) {
-                let grandparent = XMLNode._objectNodeForNode(parentNode)
-                let possibleParentNodes = grandparent.filter { $0.name == self.parent?.name }
-                let count = possibleParentNodes.reduce(0) { (x, _) in
-                    return x + 1
-                }
-
-                if count <= 1 {
-                    pathComponents.append(XMLNode._objectNodeForNode(parent!).name)
-                } else {
-                    var parentNumber = 1
-                    for possibleParent in possibleParentNodes {
-                        if possibleParent == self.parent {
-                            break
-                        }
-                        parentNumber += 1
-                    }
-
-                    pathComponents.append("\(self.parent?.name ?? "")[\(parentNumber)]")
-                }
-
-                parent = _CFXMLNodeGetParent(parent!)
-
-            } else {
-                pathComponents.append(XMLNode._objectNodeForNode(parent!).name)
-                break
-            }
-        }
-
-        return pathComponents.reversed().flatMap({ return $0 }).joined(separator: "/")
+        
+        return _CFXMLPathForNode(_xmlNode)?._swiftObject
     }
 
     /*!
