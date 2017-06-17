@@ -23,6 +23,8 @@ class TestNSCache : XCTestCase {
             ("test_setWithMutableKeys", test_setWithMutableKeys),
             ("test_costLimit", test_costLimit),
             ("test_countLimit", test_countLimit),
+            ("test_hashableKey", test_hashableKey),
+            ("test_nonHashableKey", test_nonHashableKey)
         ]
     }
     
@@ -105,5 +107,67 @@ class TestNSCache : XCTestCase {
         XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
         XCTAssertNil(cache.object(forKey: key1), "should be nil")
         
+    }
+
+
+    class TestHashableCacheKey: Hashable {
+        let string: String
+        var hashValue: Int { return string.hashValue }
+
+        init(string: String) {
+            self.string = string
+        }
+
+        static func ==(lhs: TestHashableCacheKey,
+            rhs:TestHashableCacheKey) -> Bool {
+            return lhs.string == rhs.string
+        }
+    }
+
+    // Test when NSCacheKey.value is AnyHashable
+    func test_hashableKey() {
+        let cache = NSCache<TestHashableCacheKey, NSString>()
+        cache.countLimit = 2
+
+        let key1 = TestHashableCacheKey(string: "key1")
+        let key2 = TestHashableCacheKey(string: "key2")
+        let key3 = TestHashableCacheKey(string: "key3")
+        let value = NSString(string: "value")
+
+        cache.setObject(value, forKey: key1)
+        cache.setObject(value, forKey: key2)
+        cache.setObject(value, forKey: key3)
+
+        XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
+        XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
+        XCTAssertNil(cache.object(forKey: key1), "should be nil")
+    }
+
+
+    class TestCacheKey {
+        let string: String
+
+        init(string: String) {
+            self.string = string
+        }
+    }
+
+    // Test when NSCacheKey.value is neither NSObject or AnyHashable
+    func test_nonHashableKey() {
+        let cache = NSCache<TestCacheKey, NSString>()
+        cache.countLimit = 2
+
+        let key1 = TestCacheKey(string: "key1")
+        let key2 = TestCacheKey(string: "key2")
+        let key3 = TestCacheKey(string: "key3")
+        let value = NSString(string: "value")
+
+        cache.setObject(value, forKey: key1)
+        cache.setObject(value, forKey: key2)
+        cache.setObject(value, forKey: key3)
+
+        XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
+        XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
+        XCTAssertNil(cache.object(forKey: key1), "should be nil")
     }
 }
