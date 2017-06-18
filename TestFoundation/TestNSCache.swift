@@ -24,7 +24,8 @@ class TestNSCache : XCTestCase {
             ("test_costLimit", test_costLimit),
             ("test_countLimit", test_countLimit),
             ("test_hashableKey", test_hashableKey),
-            ("test_nonHashableKey", test_nonHashableKey)
+            ("test_nonHashableKey", test_nonHashableKey),
+            ("test_objectCorrectlyReleased", test_objectCorrectlyReleased)
         ]
     }
     
@@ -99,9 +100,9 @@ class TestNSCache : XCTestCase {
         let key3 = NSString(string: "key3")
         let value = NSString(string: "value")
         
-        cache.setObject(value, forKey: key1)
-        cache.setObject(value, forKey: key2)
-        cache.setObject(value, forKey: key3)
+        cache.setObject(value, forKey: key1, cost: 1)
+        cache.setObject(value, forKey: key2, cost: 2)
+        cache.setObject(value, forKey: key3, cost: 3)
         
         XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
         XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
@@ -134,9 +135,9 @@ class TestNSCache : XCTestCase {
         let key3 = TestHashableCacheKey(string: "key3")
         let value = NSString(string: "value")
 
-        cache.setObject(value, forKey: key1)
-        cache.setObject(value, forKey: key2)
-        cache.setObject(value, forKey: key3)
+        cache.setObject(value, forKey: key1, cost: 1)
+        cache.setObject(value, forKey: key2, cost: 2)
+        cache.setObject(value, forKey: key3, cost: 3)
 
         XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
         XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
@@ -162,12 +163,43 @@ class TestNSCache : XCTestCase {
         let key3 = TestCacheKey(string: "key3")
         let value = NSString(string: "value")
 
-        cache.setObject(value, forKey: key1)
-        cache.setObject(value, forKey: key2)
-        cache.setObject(value, forKey: key3)
+        cache.setObject(value, forKey: key1, cost: 1)
+        cache.setObject(value, forKey: key2, cost: 2)
+        cache.setObject(value, forKey: key3, cost: 3)
 
         XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value)")
         XCTAssertEqual(cache.object(forKey: key3), value, "should be equal to \(value)")
         XCTAssertNil(cache.object(forKey: key1), "should be nil")
+    }
+    
+    func test_objectCorrectlyReleased() {
+        let cache = NSCache<NSString, AnyObject>()
+        cache.totalCostLimit = 10
+        
+        var object1 = NSObject()
+        weak var weakObject1: NSObject? = object1
+        
+        var object2 = NSObject()
+        weak var weakObject2: NSObject? = object2
+        
+        var object3 = NSObject()
+        weak var weakObject3: NSObject? = object3
+        
+        let object4 = NSObject()
+        let object5 = NSObject()
+        
+        cache.setObject(object1, forKey: "key1", cost: 1)
+        cache.setObject(object2, forKey: "key2", cost: 2)
+        cache.setObject(object3, forKey: "key3", cost: 3)
+        cache.setObject(object4, forKey: "key4", cost: 4)
+        cache.setObject(object5, forKey: "key5", cost: 5)
+        
+        object1 = NSObject()
+        object2 = NSObject()
+        object3 = NSObject()
+        
+        XCTAssertNil(weakObject1, "removed cached object not released")
+        XCTAssertNil(weakObject2, "removed cached object not released")
+        XCTAssertNil(weakObject3, "removed cached object not released")
     }
 }
