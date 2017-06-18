@@ -618,6 +618,7 @@ public struct CocoaError : _BridgedStoredNSError {
         public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return CocoaError.Code(rawValue: 4611) }
         public static var coderReadCorrupt:                         CocoaError.Code { return CocoaError.Code(rawValue: 4864) }
         public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code(rawValue: 4865) }
+        public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code(rawValue: 4866) }
     }
 }
 
@@ -699,6 +700,7 @@ extension CocoaError {
     public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return CocoaError.Code.userActivityHandoffUserInfoTooLarge }
     public static var coderReadCorrupt:                         CocoaError.Code { return CocoaError.Code.coderReadCorrupt }
     public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code.coderValueNotFound }
+    public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code.coderInvalidValue }
 }
 
 extension CocoaError {

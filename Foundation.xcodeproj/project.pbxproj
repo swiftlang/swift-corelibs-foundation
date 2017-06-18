@@ -13,6 +13,12 @@
 		231503DB1D8AEE5D0061694D /* TestNSDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestNSDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */; };
+		3E8583B31EF5B6B600174E94 /* ConsistentCasting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8583B21EF5B6B600174E94 /* ConsistentCasting.swift */; };
+		3E8583B41EF5BFA700174E94 /* ConsistentCasting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8583B21EF5B6B600174E94 /* ConsistentCasting.swift */; };
+		3EA9D66E1EF050C800B362D6 /* TestCastingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9D66D1EF050C800B362D6 /* TestCastingUtils.swift */; };
+		3EA9D6701EF0532D00B362D6 /* TestJSONEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */; };
+		3EDCE50C1EF04D8100C2EC04 /* Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDCE5051EF04D8100C2EC04 /* Codable.swift */; };
+		3EDCE5101EF04D8100C2EC04 /* JSONEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
 		555683BD1C1250E70041D4C6 /* TestNSUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */; };
@@ -482,6 +488,11 @@
 		231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestNSDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDateFormatter.swift; sourceTree = "<group>"; };
+		3E8583B21EF5B6B600174E94 /* ConsistentCasting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsistentCasting.swift; sourceTree = "<group>"; };
+		3EA9D66D1EF050C800B362D6 /* TestCastingUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCastingUtils.swift; sourceTree = "<group>"; };
+		3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestJSONEncoder.swift; sourceTree = "<group>"; };
+		3EDCE5051EF04D8100C2EC04 /* Codable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Codable.swift; sourceTree = "<group>"; };
+		3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONEncoder.swift; sourceTree = "<group>"; };
 		400E22641C1A4E58007C5933 /* TestProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestProcessInfo.swift; sourceTree = "<group>"; };
 		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
 		4DC1D07F1C12EEEF00B5948A /* TestNSPipe.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSPipe.swift; sourceTree = "<group>"; };
@@ -959,6 +970,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3EDCE5121EF04D8600C2EC04 /* JSONEncoder */ = {
+			isa = PBXGroup;
+			children = (
+				3EDCE5051EF04D8100C2EC04 /* Codable.swift */,
+				3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */,
+				3E8583B21EF5B6B600174E94 /* ConsistentCasting.swift */,
+			);
+			name = JSONEncoder;
+			sourceTree = "<group>";
+		};
 		5B1FD9C71D6D162D0080E83C /* Session */ = {
 			isa = PBXGroup;
 			children = (
@@ -1395,6 +1416,8 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */,
+				3EA9D66D1EF050C800B362D6 /* TestCastingUtils.swift */,
 				159884911DCC877700E3314C /* TestNSHTTPCookieStorage.swift */,
 				D4FE895A1D703D1100DA7986 /* TestURLRequest.swift */,
 				C93559281C12C49F009FD6A9 /* TestNSAffineTransform.swift */,
@@ -1593,6 +1616,7 @@
 		EAB57B6C1BD1A852004AC5C5 /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
+				3EDCE5121EF04D8600C2EC04 /* JSONEncoder */,
 				EADE0B641BD15DFF00C49C64 /* NSJSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
 				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
@@ -2120,6 +2144,7 @@
 				EADE0B951BD15DFF00C49C64 /* NSDateComponentsFormatter.swift in Sources */,
 				EADE0BBD1BD15E0000C49C64 /* NSURLCredential.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */,
+				3E8583B31EF5B6B600174E94 /* ConsistentCasting.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* NSJSONSerialization.swift in Sources */,
 				5BF7AEBA1BCD51F9008F214A /* NSString.swift in Sources */,
 				5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */,
@@ -2141,6 +2166,7 @@
 				D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* NSPortMessage.swift in Sources */,
 				5BD31D201D5CE8C400563814 /* Bridging.swift in Sources */,
+				3EDCE50C1EF04D8100C2EC04 /* Codable.swift in Sources */,
 				EADE0BBB1BD15E0000C49C64 /* NSURLAuthenticationChallenge.swift in Sources */,
 				EADE0BA11BD15DFF00C49C64 /* NSIndexSet.swift in Sources */,
 				5BF7AEA91BCD51F9008F214A /* NSDate.swift in Sources */,
@@ -2156,6 +2182,7 @@
 				5BD31D411D5D1BC300563814 /* Set.swift in Sources */,
 				5BD31D241D5CECC400563814 /* Array.swift in Sources */,
 				5BF7AEBC1BCD51F9008F214A /* Thread.swift in Sources */,
+				3EDCE5101EF04D8100C2EC04 /* JSONEncoder.swift in Sources */,
 				D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */,
 				5BF7AEA81BCD51F9008F214A /* NSData.swift in Sources */,
 				5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */,
@@ -2364,6 +2391,7 @@
 				5B13B3301C582D4C00651CE2 /* TestNSHTTPCookie.swift in Sources */,
 				5B13B3361C582D4C00651CE2 /* TestNSLocale.swift in Sources */,
 				5B13B3391C582D4C00651CE2 /* TestNSNull.swift in Sources */,
+				3EA9D66E1EF050C800B362D6 /* TestCastingUtils.swift in Sources */,
 				BD8042161E09857800487EB8 /* TestNSLengthFormatter.swift in Sources */,
 				5B13B3421C582D4C00651CE2 /* TestNSRunLoop.swift in Sources */,
 				5B13B34E1C582D4C00651CE2 /* TestNSXMLDocument.swift in Sources */,
@@ -2396,11 +2424,13 @@
 				5B13B3371C582D4C00651CE2 /* TestNSNotificationCenter.swift in Sources */,
 				5B13B3251C582D4700651CE2 /* main.swift in Sources */,
 				5B1FD9E31D6D17B80080E83C /* TestNSURLSession.swift in Sources */,
+				3EA9D6701EF0532D00B362D6 /* TestJSONEncoder.swift in Sources */,
 				D512D17C1CD883F00032E6A5 /* TestFileHandle.swift in Sources */,
 				D4FE895B1D703D1100DA7986 /* TestURLRequest.swift in Sources */,
 				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
 				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,
 				5B13B3311C582D4C00651CE2 /* TestNSIndexPath.swift in Sources */,
+				3E8583B41EF5BFA700174E94 /* ConsistentCasting.swift in Sources */,
 				5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */,
 				5B13B3461C582D4C00651CE2 /* TestProcess.swift in Sources */,
 				555683BD1C1250E70041D4C6 /* TestNSUserDefaults.swift in Sources */,
@@ -2778,7 +2808,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 3";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 3 -DTEST_TARGET";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2804,7 +2834,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 3";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 3 -DTEST_TARGET";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
