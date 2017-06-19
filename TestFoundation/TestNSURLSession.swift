@@ -30,7 +30,7 @@ class TestURLSession : XCTestCase {
 //            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-//            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
 //            ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
 //            ("test_cancelTask", test_cancelTask),
