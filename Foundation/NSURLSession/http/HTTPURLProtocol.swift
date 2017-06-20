@@ -159,8 +159,8 @@ fileprivate extension _HTTPURLProtocol {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
-                hh.forEach {
-                    httpHeaders![$0] = $1
+                hh.forEach { header in
+                    httpHeaders![header.key] = header.value
                 }
             }
         }

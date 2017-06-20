@@ -258,7 +258,7 @@ class TestURLSession : XCTestCase {
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: delegate, delegateQueue: nil)
         let completionExpectation = expectation(description: "dataTask completion block wasn't called")
-        let task = session.dataTask(with: url) { _ in
+        let task = session.dataTask(with: url) { (_, _, _) in
             completionExpectation.fulfill()
         }
         task.resume()
@@ -272,10 +272,10 @@ class TestURLSession : XCTestCase {
                                  delegate: nil,
                                  delegateQueue: nil)
         let completionExpectation = expectation(description: "dataTask completion block wasn't called")
-        let task = session.dataTask(with: url) { result in
-            let error = result.2 as? URLError
-            XCTAssertNotNil(error)
-            XCTAssertEqual(error?.code, .badURL)
+        let task = session.dataTask(with: url) { (_, _, error) in
+            let e = error as? URLError
+            XCTAssertNotNil(e)
+            XCTAssertEqual(e?.code, .badURL)
             completionExpectation.fulfill()
         }
         //should result in Bad URL error

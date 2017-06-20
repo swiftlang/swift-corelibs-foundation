@@ -121,9 +121,9 @@ open class UserDefaults: NSObject {
             case convErr
         }
         do {
-            let dVal = try cVal.map({ (key, val) -> (String, Any) in
-                if let strKey = key as? NSString {
-                    return (strKey._swiftObject, val)
+            let dVal = try cVal.map({ arg -> (String, Any) in
+                if let strKey = arg.key as? NSString {
+                    return (strKey._swiftObject, arg.value)
                 } else {
                     throw convErr.convErr
                 }
