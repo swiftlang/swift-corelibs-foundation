@@ -156,23 +156,24 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
         guard let session = task.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: task, didCompleteWithError: nil)
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: task, didCompleteWithError: nil)
                 task.state = .completed
+                session.taskRegistry.remove(task)
             }
         case .noDelegate:
             task.state = .completed
+            session.taskRegistry.remove(task)
         case .dataCompletionHandler(let completion):
             let data = Data()
             guard let client = `protocol`.client else { fatalError() }
             client.urlProtocol(`protocol`, didLoad: data)
             return
         case .downloadCompletionHandler(let completion):
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
+            session.delegateQueue.addOperation {
                 completion(task.currentRequest?.url, task.response, nil)
                 task.state = .completed
+                session.taskRegistry.remove(task)
             }
         }
     }
@@ -194,6 +195,7 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
             s.delegateQueue.addOperation {
                 completion(data, task.response, nil)
                 task.state = .completed
+                s.taskRegistry.remove(task)
             }
         default: return
         }
@@ -204,24 +206,25 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
         guard let session = task.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: task, didCompleteWithError: error as Error)
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: task, didCompleteWithError: error as Error)
                 task.state = .completed
+                session.taskRegistry.remove(task)
             }
         case .noDelegate:
             task.state = .completed
+            session.taskRegistry.remove(task)
         case .dataCompletionHandler(let completion):
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
+            session.delegateQueue.addOperation {
                 completion(nil, nil, error)
                 task.state = .completed
+                session.taskRegistry.remove(task)
             }
         case .downloadCompletionHandler(let completion):
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
+            session.delegateQueue.addOperation {
                 completion(nil, nil, error)
                 task.state = .completed
+                session.taskRegistry.remove(task)
             }
         }
     }
