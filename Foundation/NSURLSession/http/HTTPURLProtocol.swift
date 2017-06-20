@@ -47,7 +47,6 @@ internal class _HTTPURLProtocol: URLProtocol {
             self.internalState = .transferFailed
             guard let error = self.task?.error else { fatalError() }
             completeTask(withError: error)
-            return
         }
     }
 
