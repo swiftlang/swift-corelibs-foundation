@@ -682,7 +682,7 @@ extension _HTTPURLProtocol {
             return
         }
 
-        if case .toFile(let url, let fileHandle?) = bodyDataDrain {
+        if case .toFile(_, let fileHandle?) = bodyDataDrain {
             fileHandle.closeFile()
         }
         self.client?.urlProtocolDidFinishLoading(self)
@@ -709,7 +709,7 @@ extension _HTTPURLProtocol {
             fatalError("Trying to redirect, but the transfer is not complete.")
         }
 
-        let session = task?.session as! URLSession
+        guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task!) {
         case .taskDelegate(let delegate):
             // At this point we need to change the internal state to note
@@ -724,9 +724,8 @@ extension _HTTPURLProtocol {
 
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
                     guard let task = self else { return }
                     self?.task?.workQueue.async {
                         task.didCompleteRedirectCallback(request)
@@ -763,7 +762,7 @@ internal extension _HTTPURLProtocol {
         guard let dt = task as? URLSessionDataTask else { return }
         guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
         guard let response = ts.response else { fatalError("Header complete, but not URL response.") }
-        let session = task?.session as! URLSession
+        guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
@@ -774,13 +773,12 @@ internal extension _HTTPURLProtocol {
             //
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
-            guard let s = session as? URLSession else { fatalError() }
             switch response.statusCode {
             case 301, 302, 303, 307:
                 break
             default:
-                s.delegateQueue.addOperation {
-                    delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
+                session.delegateQueue.addOperation {
+                    delegate.urlSession(session, dataTask: dt, didReceive: response, completionHandler: { _ in
                         URLSession.printDebug("warning: Ignoring disposition from completion handler.")
                     })
                 }
