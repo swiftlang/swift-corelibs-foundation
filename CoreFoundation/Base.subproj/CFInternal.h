@@ -334,21 +334,17 @@ CF_PRIVATE Boolean __CFProcessIsRestricted();
 #define STACK_BUFFER_DECL(T, N, C) T N[C]
 #endif
 
-#ifdef __ANDROID__
-// Avoids crashes on Android
-// https://bugs.swift.org/browse/SR-2587
-// https://bugs.swift.org/browse/SR-2588
-// Seemed to be a linker/relocation? problem.
-// CFStrings using CONST_STRING_DECL() were not working
-// Applies reference to _NSCFConstantString's isa here
-// rather than using a linker option to create an alias.
+
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+
+#if TARGET_OS_MAC
+#define __CFConstantStringClassReference _T015SwiftFoundation19_NSCFConstantStringCN
+#else
 #define __CFConstantStringClassReference _T010Foundation19_NSCFConstantStringCN
 #endif
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
-
-#if DEPLOYMENT_RUNTIME_SWIFT
-
 CF_EXPORT void *__CFConstantStringClassReference[];
 
 #if __CF_BIG_ENDIAN__
