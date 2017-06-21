@@ -59,7 +59,6 @@
 		5B13B34E1C582D4C00651CE2 /* TestNSXMLDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17951C48631C00935030 /* TestNSXMLDocument.swift */; };
 		5B13B34F1C582D4C00651CE2 /* TestNSXMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */; };
 		5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17961C48631C00935030 /* TestUtils.swift */; };
-		5B13B3511C582D4C00651CE2 /* TestByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */; };
 		5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
 		5B1FD9C51D6D16150080E83C /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
 		5B1FD9C61D6D161A0080E83C /* CFURLSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -312,6 +311,8 @@
 		9F0DD3531ECD73D200F68030 /* XDGTestHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F4ADBD21ECD506E001F0B3D /* XDGTestHelper.swift */; };
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
+		A5EB58941EFC0B7C00D2651C /* NSString-UTF32-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = A5EB58901EFC0B0200D2651C /* NSString-UTF32-BE-data.txt */; };
+		A5EB58951EFC0B7C00D2651C /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = A5EB58921EFC0B0200D2651C /* NSString-UTF32-LE-data.txt */; };
 		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
 		B90C57BC1EEEEA5A005208AE /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestThread.swift */; };
@@ -771,7 +772,9 @@
 		9F4ADBB61ECD445E001F0B3D /* SymbolAliases */ = {isa = PBXFileReference; lastKnownFileType = text; path = SymbolAliases; sourceTree = "<group>"; };
 		9F4ADBD21ECD506E001F0B3D /* XDGTestHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = XDGTestHelper.swift; path = ../XDGTestHelper.swift; sourceTree = "<group>"; };
 		A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMassFormatter.swift; sourceTree = "<group>"; };
-		A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestByteCountFormatter.swift; sourceTree = "<group>"; };
+		A59BAA811EFD1AAD003517CF /* TestByteCountFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestByteCountFormatter.swift; sourceTree = "<group>"; };
+		A5EB58901EFC0B0200D2651C /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
+		A5EB58921EFC0B0200D2651C /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
 		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
 		B167A6641ED7303F0040B09A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-LE-data.txt"; sourceTree = "<group>"; };
@@ -1369,25 +1372,27 @@
 		EA66F6391BF1619600136161 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				EA66F6791BF9401E00136161 /* Info.plist */,
+				D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */,
+				D3A597FB1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist */,
+				D3A597FF1C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist */,
+				D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */,
+				D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */,
+				D3A598021C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist */,
 				D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */,
 				D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */,
-				D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */,
-				D3A598021C349E6A00295652 /* NSKeyedUnarchiver-OrderedSetTest.plist */,
-				D3A597FF1C341E9100295652 /* NSKeyedUnarchiver-ConcreteValueTest.plist */,
-				D3A597FB1C3417EA00295652 /* NSKeyedUnarchiver-ComplexTest.plist */,
-				D3A597F91C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist */,
-				D3A597F51C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				D3A597F61C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist */,
-				D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */,
-				EA66F6791BF9401E00136161 /* Info.plist */,
-				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
-				B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */,
+				D3A597F91C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist */,
 				B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */,
-				528776181BF27D9500CB0090 /* Test.plist */,
+				B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */,
+				A5EB58901EFC0B0200D2651C /* NSString-UTF32-BE-data.txt */,
+				A5EB58921EFC0B0200D2651C /* NSString-UTF32-LE-data.txt */,
+				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
 				E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */,
-				E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */,
 				E1A03F371C482C730023AF4D /* NSXMLDTDTestData.xml */,
+				E1A03F351C4828650023AF4D /* PropertyList-1.0.dtd */,
+				528776181BF27D9500CB0090 /* Test.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -1395,8 +1400,8 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				A59BAA811EFD1AAD003517CF /* TestByteCountFormatter.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
-				A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */,
 				2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */,
 				BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */,
 				D512D17B1CD883F00032E6A5 /* TestFileHandle.swift */,
@@ -2053,6 +2058,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5EB58941EFC0B7C00D2651C /* NSString-UTF32-BE-data.txt in Resources */,
+				A5EB58951EFC0B7C00D2651C /* NSString-UTF32-LE-data.txt in Resources */,
 				D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */,
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
@@ -2386,7 +2393,6 @@
 				5B13B3341C582D4C00651CE2 /* TestNSKeyedArchiver.swift in Sources */,
 				5B13B3441C582D4C00651CE2 /* TestNSSet.swift in Sources */,
 				5B13B3321C582D4C00651CE2 /* TestNSIndexSet.swift in Sources */,
-				5B13B3511C582D4C00651CE2 /* TestByteCountFormatter.swift in Sources */,
 				BDFDF0A71DFF5B3E00C04CC5 /* TestNSPersonNameComponents.swift in Sources */,
 				5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */,
 				CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */,

@@ -1299,38 +1299,140 @@ extension NSString {
         try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
     
+    private static func _getEncodingFromDataByCheckingForUnicodeBOM(_ data: Data) -> String.Encoding? {
+        // Check for Byte Order Mark (BOM) at the beginning of the file
+        // Make sure utf32LittleEndian comes before utf16LittleEndian in the list.
+        let unicodeBOMs: [(String.Encoding, [UInt8])] = [
+            (.utf8, [0xEF, 0xBB, 0xBF]),
+            (.utf16BigEndian, [0xFE, 0xFF]),
+            (.utf32LittleEndian, [0xFF, 0xFE, 0x00, 0x00]),
+            (.utf16LittleEndian, [0xFF, 0xFE]),
+            (.utf32BigEndian, [0x00, 0x00, 0xFE, 0xFF])
+        ]
+        
+        for (bomEncoding, bom) in unicodeBOMs {
+            // Make sure that there are enough bytes in the data
+            if data.count >= bom.count {
+                var match = true
+                for i in 0..<bom.count {
+                    if data[i] != bom[i] {
+                        // The BOM doesn't match
+                        match = false
+                    }
+                }
+                if match {
+                    return bomEncoding
+                }
+            }
+        }
+        return nil
+    }
+    
+    private static func _createCFString(fromData data: Data, withEncoding encoding: String.Encoding) -> CFString? {
+        let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
+            return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding.rawValue), true)
+        })
+        
+        return cf
+    }
+    
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        let readResult = try NSData(contentsOf: url, options:[])
+        // Forward to file handling init, so extended attributes can be checked
+        if url.isFileURL {
+            try self.init(contentsOfFile: url.path, usedEncoding: enc)
+            return
+        }
+        
+        let readResult = try Data(contentsOf: url, options:[])
+        
+        // If the encoding can't be found, use utf8 as the default
+        let encoding = NSString._getEncodingFromDataByCheckingForUnicodeBOM(readResult) ?? .utf8
+        enc?.pointee = encoding.rawValue
 
-        let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
-        if readResult.length >= 2 && bytePtr[0] == 254 && bytePtr[1] == 255 {
-          enc?.pointee = String.Encoding.utf16BigEndian.rawValue
-        }
-        else if readResult.length >= 2 && bytePtr[0] == 255 && bytePtr[1] == 254 {
-          enc?.pointee = String.Encoding.utf16LittleEndian.rawValue
-        }
-        else {
-          //Need to work on more conditions. This should be the default
-          enc?.pointee = String.Encoding.utf8.rawValue
-        }
-
-        guard let enc = enc, let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(enc.pointee), true) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+        guard let cf = NSString._createCFString(fromData: readResult, withEncoding: encoding) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknownStringEncoding.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
         }
+        
         var str: String?
         if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
             self.init(str!)
         } else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknownStringEncoding.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to bridge CFString to String."
                 ])
         }    
     }
     
+    private static func _getEncodingNameFromString(_ encodingStr: String) -> String.Encoding? {
+        // Iterate through all possible CFStringEncoding values and compare to the string argument
+        let cfEncodings = CFStringGetListOfAvailableEncodings()
+        var encodingPtr = cfEncodings
+        
+        while encodingPtr?.pointee != kCFStringEncodingInvalidId {
+            if let cfEncodingName = CFStringConvertEncodingToIANACharSetName(encodingPtr!.pointee) {
+                var encodingName: String?
+                if String._conditionallyBridgeFromObjectiveC(cfEncodingName._nsObject, result: &encodingName) {
+                    if encodingName == encodingStr {
+                        let encoding = CFStringConvertEncodingToNSStringEncoding(encodingPtr!.pointee)
+                        return String.Encoding.init(rawValue: encoding)
+                    }
+                } else {
+                    continue
+                }
+            }
+            
+            encodingPtr = encodingPtr?.advanced(by: 1)
+        }
+        
+        return nil
+    }
+    
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        NSUnimplemented()    
+        let readResult = try Data(contentsOf: URL(fileURLWithPath: path), options:[])
+        var encoding: String.Encoding?
+        
+        // Check extended attributes for 'com.apple.TextEncoding'
+        // Only on MacOS for now, due to sys/xattr.h not being included in Glibc module map
+        #if os(OSX)
+        let attrName = "com.apple.TextEncoding"
+        let bufCount = getxattr(path, attrName, nil, 0, 0, 0)
+        if bufCount > 0 {
+            var buf = [UInt8](repeating: 0, count: bufCount)
+            if getxattr(path, attrName, &buf, bufCount, 0, 0) != -1 {
+                if let attrValue = String(bytes: buf, encoding: .utf8) {
+                    encoding = NSString._getEncodingNameFromString(attrValue)
+                }
+            }
+        }
+        #endif
+        
+        // If the encoding can't be found in extended attributes, check for a BOM
+        if encoding == nil {
+            // If the encoding can't be found, use utf8 as the default
+            encoding = NSString._getEncodingFromDataByCheckingForUnicodeBOM(readResult) ?? .utf8
+        }
+        
+        enc?.pointee = encoding!.rawValue
+        
+        guard let cf = NSString._createCFString(fromData: readResult, withEncoding: encoding!) else {
+            throw NSError(domain: NSCocoaErrorDomain,
+                          code: CocoaError.fileReadUnknownStringEncoding.rawValue,
+                          userInfo: [
+                            "NSDebugDescription" : "The file \"\(path)\" couldn't be opened because the text encoding of its contents can't be determined.",
+                            "NSFilePath": path
+                ])
+        }
+        
+        var str: String?
+        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
+            self.init(str!)
+        } else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknownStringEncoding.rawValue, userInfo: [
+                "NSDebugDescription" : "Unable to bridge CFString to String."
+                ])
+        }
     }
 }
 
