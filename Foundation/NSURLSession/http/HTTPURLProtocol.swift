@@ -16,7 +16,7 @@ internal class _HTTPURLProtocol: URLProtocol {
     fileprivate var totalDownloaded = 0
     fileprivate var tempFileURL: URL
 
-    public override required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+    public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
@@ -26,7 +26,7 @@ internal class _HTTPURLProtocol: URLProtocol {
         self.easyHandle = _EasyHandle(delegate: self)
     }
 
-    public override required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+    public required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
