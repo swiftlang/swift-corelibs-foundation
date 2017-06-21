@@ -67,22 +67,21 @@ open class URLSessionTask : NSObject, NSCopying {
         self.originalRequest = request
         self.body = body
         super.init()
-        if session.configuration.protocolClasses != nil {
-            guard let protocolClasses = session.configuration.protocolClasses else { fatalError() }
+	if let protocolClasses = session.configuration.protocolClasses {
             if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("\(urlProtocolClass) is not of type URLProtocol") }
                 self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
             } else {
                 guard let protocolClasses = URLProtocol.getProtocols() else { fatalError() }
                 if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                    guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+                    guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("\(urlProtocolClass) is not of type URLProtocol") }
                     self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
                 }
             }
         } else {
             guard let protocolClasses = URLProtocol.getProtocols() else { fatalError() }
             if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
+                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("\(urlProtocolClass) is not of type URLProtocol") }
                 self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
             }
         }
@@ -198,10 +197,11 @@ open class URLSessionTask : NSObject, NSCopying {
             guard self.state == .running || self.state == .suspended else { return }
             self.state = .canceling
             self.workQueue.async {
+		guard let protocolClient = self._protocol.client else { fatalError("Trying to cancel the task, but cannot notify the delegate/handler.") }
                 let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
                 self.error = urlError
                 self._protocol.stopLoading()
-                self._protocol.client?.urlProtocol(self._protocol, didFailWithError: urlError)
+                protocolClient.urlProtocol(self._protocol, didFailWithError: urlError)
             }
         }
     }

@@ -17,11 +17,12 @@ internal class _HTTPURLProtocol: URLProtocol {
     fileprivate var tempFileURL: URL
 
     public override required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+	guard let originalRequest = task.originalRequest else { fatalError("There's no original request in task.") }
         self.internalState = _InternalState.initial
         let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
         _ = FileManager.default.createFile(atPath: fileName, contents: nil)
         self.tempFileURL = URL(fileURLWithPath: fileName)
-        super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
+        super.init(request: originalRequest, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
     }
@@ -36,7 +37,8 @@ internal class _HTTPURLProtocol: URLProtocol {
     }
 
     override class func canInit(with request: URLRequest) -> Bool {
-        guard request.url?.scheme == "http" || request.url?.scheme == "https" else { return false }
+	guard let url = request.url else { fatalError("There's no url in request.") }
+        guard url.scheme == "http" || url.scheme == "https" else { return false }
         return true
     }
 
@@ -49,11 +51,12 @@ internal class _HTTPURLProtocol: URLProtocol {
     }
 
     override func stopLoading() {
-        if task?.state == .suspended {
+        guard let task = self.task else { fatalError("Trying to suspend the task, but task doesn't exist") }
+        if task.state == .suspended {
             suspend()
         } else {
             self.internalState = .transferFailed
-            guard let error = self.task?.error else { fatalError() }
+            guard let error = task.error else { fatalError("Transfer failed, but unable to complete task") }
             completeTask(withError: error)
         }
     }
@@ -74,12 +77,14 @@ internal class _HTTPURLProtocol: URLProtocol {
                 fatalError("Need to solve pausing receive.")
             }
             if internalState.isEasyHandleAddedToMultiHandle && !newValue.isEasyHandleAddedToMultiHandle {
-                task?.session.remove(handle: easyHandle)
+		guard let task = self.task else { fatalError("Cannot remove easyHandle from multiHandle") }
+                task.session.remove(handle: easyHandle)
             }
         }
         didSet {
             if !oldValue.isEasyHandleAddedToMultiHandle && internalState.isEasyHandleAddedToMultiHandle {
-                task?.session.add(handle: easyHandle)
+		guard let task = self.task else { fatalError("Cannot add easyHandle to multiHandle.") }
+                task.session.add(handle: easyHandle)
             }
             if oldValue.isEasyHandlePaused && !internalState.isEasyHandlePaused {
                 fatalError("Need to solve pausing receive.")
@@ -94,6 +99,7 @@ fileprivate extension _HTTPURLProtocol {
     ///
     /// This performs a series of `curl_easy_setopt()` calls.
     fileprivate func configureEasyHandle(for request: URLRequest) {
+	guard let task = self.task else { fatalError("Started a new transfer, but there's no task.") }
         // At this point we will call the equivalent of curl_easy_setopt()
         // to configure everything on the handle. Since we might be re-using
         // a handle, we must be sure to set everything and not rely on defaul
@@ -107,7 +113,7 @@ fileprivate extension _HTTPURLProtocol {
 
         // Behavior Options
         easyHandle.set(verboseModeOn: enableLibcurlDebugOutput)
-        easyHandle.set(debugOutputOn: enableLibcurlDebugOutput, task: task!)
+        easyHandle.set(debugOutputOn: enableLibcurlDebugOutput, task: task)
         easyHandle.set(passHeadersToDataStream: false)
         easyHandle.set(progressMeterOff: true)
         easyHandle.set(skipAllSignalHandling: true)
@@ -122,7 +128,7 @@ fileprivate extension _HTTPURLProtocol {
         easyHandle.setAllowedProtocolsToHTTPAndHTTPS()
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
-            switch (task?.body, try task?.body.getBodyLength()) {
+            switch (task.body, try task.body.getBodyLength()) {
             case (.none, _):
                 set(requestBodyLength: .noBody)
             case (_, .some(let length)):
@@ -148,14 +154,15 @@ fileprivate extension _HTTPURLProtocol {
         // httpAdditionalHeaders from session configuration first and then append/update the
         // request.allHTTPHeaders so that request.allHTTPHeaders can override httpAdditionalHeaders.
 
-        let httpSession = self.task?.session as! URLSession
+        let httpSession = task.session as! URLSession
         var httpHeaders: [AnyHashable : Any]?
 
         if let hh = httpSession.configuration.httpAdditionalHeaders {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+	guard let originalRequest = task.originalRequest else { fatalError("Trying to append http additional headers to request from session configuration, but there's no original request.") }
+        if let hh = originalRequest.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
@@ -185,13 +192,14 @@ fileprivate extension _HTTPURLProtocol {
            timeoutInterval = Int(request.timeoutInterval) * 1000
         }
         let timeoutHandler = DispatchWorkItem { [weak self] in
-            guard let _ = self?.task else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
-            self?.internalState = .transferFailed
+	    guard let httpProtocol = self else { fatalError("Cannot set timeout for a new transfer.") }
+            guard let _ = httpProtocol.task else { fatalError("Timeout on a task that doesn't exist") } //this guard must always pass
+            httpProtocol.internalState = .transferFailed
             let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorTimedOut, userInfo: nil))
-            self?.completeTask(withError: urlError)
-            self?.client?.urlProtocol(self!, didFailWithError: urlError)
+            httpProtocol.completeTask(withError: urlError)
+	    guard let protocolClient = httpProtocol.client else { fatalError("Cannot notify delegate/handler to complete the task") }
+            protocolClient.urlProtocol(httpProtocol, didFailWithError: urlError)
         }
-	guard let task = self.task else { fatalError() }
         easyHandle.timeoutTimer = _TimeoutSource(queue: task.workQueue, milliseconds: timeoutInterval, handler: timeoutHandler)
 
         easyHandle.set(automaticBodyDecompression: true)
@@ -261,7 +269,8 @@ fileprivate extension _HTTPURLProtocol {
     /// Any header values that should be removed from the ones set by libcurl
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
     var curlHeadersToRemove: [String] {
-        if case .none = task?.body {
+        guard let t = task else { fatalError("Trying to access the headers, but task doesn't exist.") }
+        if case .none = t.body {
             return []
         } else {
             return ["Expect"]
@@ -339,8 +348,9 @@ internal extension _HTTPURLProtocol {
                 ]
         }
         let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: userInfo))
+	guard let protocolClient = self.client else { fatalError("Transfer failed, but cannot complete the task") }
         completeTask(withError: error)
-        self.client?.urlProtocol(self, didFailWithError: error)
+        protocolClient.urlProtocol(self, didFailWithError: error)
     }
 }
 
@@ -391,7 +401,7 @@ internal extension _HTTPURLProtocol {
     ///
     /// This depends on what the delegate / completion handler need.
     fileprivate func createTransferBodyDataDrain() -> _DataDrain {
-        guard let task = task else { fatalError() }
+        guard let task = task else { fatalError("Trying to forward the data, but task doesn't exist.") }
         let s = task.session as! URLSession
         switch s.behaviour(for: task) {
         case .noDelegate:
@@ -427,7 +437,8 @@ extension _HTTPURLProtocol {
         case .file(let fileURL):
             let source = _HTTPBodyFileSource(fileURL: fileURL, workQueue: workQueue, dataAvailableHandler: { [weak self] in
                 // Unpause the easy handle
-                self?.easyHandle.unpauseSend()
+		guard let httpProtocol = self else { fatalError("Cannot unpause the easy handle") }
+                httpProtocol.easyHandle.unpauseSend()
             })
             return _HTTPTransferState(url: url, bodyDataDrain: drain, bodySource: source)
         case .stream:
@@ -448,18 +459,18 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
 
     fileprivate func notifyDelegate(aboutReceivedData data: Data) {
         guard let t = self.task else { fatalError("Cannot notify") }
-        if case .taskDelegate(let delegate) = t.session.behaviour(for: self.task!),
+        if case .taskDelegate(let delegate) = t.session.behaviour(for: t),
             let dataDelegate = delegate as? URLSessionDataDelegate,
             let task = self.task as? URLSessionDataTask {
             // Forward to the delegate:
-            guard let s = self.task?.session as? URLSession else { fatalError() }
+            guard let s = t.session as? URLSession else { fatalError("Received data, but cannot notify the delegate") }
             s.delegateQueue.addOperation {
                 dataDelegate.urlSession(s, dataTask: task, didReceive: data)
             }
-        } else if case .taskDelegate(let delegate) = t.session.behaviour(for: self.task!),
+        } else if case .taskDelegate(let delegate) = t.session.behaviour(for: t),
             let downloadDelegate = delegate as? URLSessionDownloadDelegate,
             let task = self.task as? URLSessionDownloadTask {
-            guard let s = self.task?.session as? URLSession else { fatalError() }
+            guard let s = t.session as? URLSession else { fatalError("Received data, but cannot notify the delegate") }
             let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
             _ = fileHandle.seekToEndOfFile()
             fileHandle.write(data)
@@ -521,14 +532,15 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
         // to the delegate. But in case of redirects etc. we might send another
         // request.
         guard case .transferInProgress(let ts) = internalState else { fatalError("Transfer completed, but it wasn't in progress.") }
-        guard let request = task?.currentRequest else { fatalError("Transfer completed, but there's no current request.") }
+        guard let task = self.task else { fatalError("Transfer completed, but task doesn't exist.") }
+	guard let request = task.currentRequest else { fatalError("Transfer completed, but there's no current request.") }
         guard errorCode == nil else {
             internalState = .transferFailed
             failWith(errorCode: errorCode!, request: request)
             return
         }
 
-        if let response = task?.response as? HTTPURLResponse {
+        if let response = task.response as? HTTPURLResponse {
             var transferState = ts
             transferState.response = response
         }
@@ -630,7 +642,7 @@ extension _HTTPURLProtocol._InternalState {
 internal extension _HTTPURLProtocol {
     /// Start a new transfer
     func startNewTransfer(with request: URLRequest) {
-        guard let t = task else { fatalError() }
+        guard let t = task else { fatalError("Trying to start a new transfer, but there's no task.") }
         t.currentRequest = request
         guard let url = request.url else { fatalError("No URL in request.") }
 
@@ -643,7 +655,8 @@ internal extension _HTTPURLProtocol {
 
     func resume() {
         if case .initial = self.internalState {
-            guard let r = task?.originalRequest else { fatalError("Task has no original request.") }
+	    guard let task = task else { fatalError("Trying to resume the task, but task doesn't exist.") }
+            guard let r = task.originalRequest else { fatalError("Task has no original request.") }
             startNewTransfer(with: r)
         }
         
@@ -665,7 +678,9 @@ extension _HTTPURLProtocol {
         guard case .transferCompleted(response: let response, bodyDataDrain: let bodyDataDrain) = self.internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete.")
         }
-        task?.response = response
+	guard let task = self.task else { fatalError("Trying to complete the task, but task doesn't exist.") }
+        task.response = response
+	guard let protocolClient = self.client else { fatalError("Trying to complete the task, but cannot notify the delegate/handler.") }
 
         //We don't want a timeout to be triggered after this. The timeout timer needs to be cancelled.
         easyHandle.timeoutTimer = nil
@@ -677,7 +692,7 @@ extension _HTTPURLProtocol {
             if let body = bodyData {
                 data = Data(bytes: body.bytes, count: body.length)
             }
-            self.client?.urlProtocol(self, didLoad: data)
+            protocolClient.urlProtocol(self, didLoad: data)
             self.internalState = .taskCompleted
             return
         }
@@ -685,12 +700,13 @@ extension _HTTPURLProtocol {
         if case .toFile(let url, let fileHandle?) = bodyDataDrain {
             fileHandle.closeFile()
         }
-        self.client?.urlProtocolDidFinishLoading(self)
+        protocolClient.urlProtocolDidFinishLoading(self)
         self.internalState = .taskCompleted
     }
 
     func completeTask(withError error: Error) {
-        task?.error = error
+	guard let task = self.task else { fatalError("Trying to complete the task, but there's no task.") }
+        task.error = error
         
         guard case .transferFailed = self.internalState else {
             fatalError("Trying to complete the task, but its transfer isn't complete / failed.")
@@ -709,8 +725,9 @@ extension _HTTPURLProtocol {
             fatalError("Trying to redirect, but the transfer is not complete.")
         }
 
-        let session = task?.session as! URLSession
-        switch session.behaviour(for: task!) {
+	guard let task = self.task else { fatalError("Tryint to redirect, but there's no task") }
+        let session = task.session as! URLSession
+        switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             // At this point we need to change the internal state to note
             // that we're waiting for the delegate to call the completion
@@ -724,12 +741,12 @@ extension _HTTPURLProtocol {
 
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
-            guard let s = session as? URLSession else { fatalError() }
+            guard let s = session as? URLSession else { fatalError("Trying to redirect, but the session is invalid.") }
             s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
-                    guard let task = self else { return }
-                    self?.task?.workQueue.async {
-                        task.didCompleteRedirectCallback(request)
+                delegate.urlSession(s, task: task, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
+		    guard let httpProtocol = self else { return }
+                    task.workQueue.async {
+                        httpProtocol.didCompleteRedirectCallback(request)
                     }
                 }
             }
@@ -763,8 +780,9 @@ internal extension _HTTPURLProtocol {
         guard let dt = task as? URLSessionDataTask else { return }
         guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
         guard let response = ts.response else { fatalError("Header complete, but not URL response.") }
-        let session = task?.session as! URLSession
-        switch session.behaviour(for: self.task!) {
+	guard let task = self.task else { fatalError("Header complete, but there's no task.") }
+        let session = task.session as! URLSession
+        switch session.behaviour(for: task) {
         case .noDelegate:
             break
         case .taskDelegate(let delegate as URLSessionDataDelegate):
@@ -774,7 +792,7 @@ internal extension _HTTPURLProtocol {
             //
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
-            guard let s = session as? URLSession else { fatalError() }
+            guard let s = session as? URLSession else { fatalError("Header complete, but the session is invalid.") }
             switch response.statusCode {
             case 301, 302, 303, 307:
                 break
@@ -808,12 +826,13 @@ internal extension _HTTPURLProtocol {
         let dt = task as! URLSessionDataTask
         
         // We need this ugly cast in order to be able to support `URLSessionTask.init()`
-        guard let s = task?.session as? URLSession else { fatalError() }
+	guard let task = self.task else { fatalError() }
+        guard let s = task.session as? URLSession else { fatalError() }
         s.delegateQueue.addOperation {
             delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { [weak self] disposition in
-                guard let task = self else { return }
-                self?.task?.workQueue.async {
-                    task.didCompleteResponseCallback(disposition: disposition)
+                guard let httpProtocol = self else { return }
+                task.workQueue.async {
+                    httpProtocol.didCompleteResponseCallback(disposition: disposition)
                 }
             })
         }
@@ -826,7 +845,8 @@ internal extension _HTTPURLProtocol {
         case .cancel:
             let error = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled))
             self.completeTask(withError: error)
-            self.client?.urlProtocol(self, didFailWithError: error)
+	    guard let protocolClient = self.client else { fatalError("Received response disposition, but cannot notify the delegate/handler.") }
+            protocolClient.urlProtocol(self, didFailWithError: error)
         case .allow:
             // Continue the transfer. This will unpause the easy handle.
             self.internalState = .transferInProgress(ts)
