@@ -134,7 +134,7 @@ open class MassFormatter : Formatter {
     /// - Parameter numberInKilograms: the magnitude in terms of kilograms
     /// - Returns: Returns the appropriate unit
     private func convertedUnit(fromKilograms numberInKilograms: Double) -> Unit {
-        if numberFormatter.locale.usesMetricSystem {
+        if numberFormatter.locale.sr3202_fix_isMetricSystemLocale() {
             if numberInKilograms > 1.0 || numberInKilograms <= 0.0 {
                 return .kilogram
             } else {
@@ -235,4 +235,23 @@ open class MassFormatter : Formatter {
                                                             .ounce: "ounces",
                                                             .pound: "pounds",
                                                             .stone: "stones"]
+}
+
+internal extension Locale {
+    /// TODO: Replace calls to the below function to use Locale.usesMetricSystem
+    /// Temporary workaround due to unpopulated Locale attributes
+    /// See https://bugs.swift.org/browse/SR-3202
+    internal func sr3202_fix_isMetricSystemLocale() -> Bool {
+        switch self.identifier {
+        case "en_US": return false
+        case "en_US_POSIX": return false
+        case "haw_US": return false
+        case "es_US": return false
+        case "chr_US": return false
+        case "my_MM": return false
+        case "en_LR": return false
+        case "vai_LR": return false
+        default: return true
+        }
+    }
 }

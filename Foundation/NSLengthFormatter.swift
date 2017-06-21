@@ -69,7 +69,7 @@ open class LengthFormatter : Formatter {
         //Extract the number from the measurement
         let numberInUnit = unitMeasurement.value
         
-        if isForPersonHeightUse && !numberFormatter.locale.usesMetricSystem {
+        if isForPersonHeightUse && !numberFormatter.locale.sr3202_fix_isMetricSystemLocale() {
             let feet = numberInUnit.rounded(.towardZero)
             let feetString = string(fromValue: feet, unit: .foot)
             
@@ -123,7 +123,7 @@ open class LengthFormatter : Formatter {
     /// - Parameter numberInMeters: the magnitude in terms of meters
     /// - Returns: Returns the appropriate unit
     private func unit(fromMeters numberInMeters: Double) -> Unit {
-        if numberFormatter.locale.usesMetricSystem {
+        if numberFormatter.locale.sr3202_fix_isMetricSystemLocale() {
             //Person height is always returned in cm for metric system
             if isForPersonHeightUse { return .centimeter }
             
