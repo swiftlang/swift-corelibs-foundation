@@ -191,6 +191,10 @@ open class URLSession : NSObject {
     internal let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
     fileprivate var invalidated = false
+    fileprivate static let registerProtocols = {
+	// TODO: We register all the native protocols here.
+        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
+    }()
     
     /*
      * The shared session uses the currently set global NSURLCache,
@@ -221,7 +225,7 @@ open class URLSession : NSObject {
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
         // registering all the protocol classes with URLProtocol
-        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
+        let _ = URLSession.registerProtocols
     }
 
     /*
@@ -248,7 +252,7 @@ open class URLSession : NSObject {
         self._configuration = c
         self.multiHandle = _MultiHandle(configuration: c, workQueue: workQueue)
         // registering all the protocol classes with URLProtocol
-        let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
+        let _ = URLSession.registerProtocols
     }
     
     open let delegateQueue: OperationQueue
