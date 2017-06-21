@@ -67,7 +67,7 @@ class TestNSLengthFormatter: XCTestCase {
     }
     
     func test_stringFromMetersMetric() {
-        formatter.numberFormatter.locale = Locale(identifier: "en_GB")
+        formatter.numberFormatter.locale = Locale(identifier: "en_UK")
         XCTAssertEqual(formatter.string(fromMeters: -10000), "-10 km")
         XCTAssertEqual(formatter.string(fromMeters: -1), "-0.001 km")
         XCTAssertEqual(formatter.string(fromMeters: 0.00001), "0.01 mm")
@@ -85,7 +85,7 @@ class TestNSLengthFormatter: XCTestCase {
     }
     
     func test_stringFromMetersMetricPersonHeight() {
-        formatter.numberFormatter.locale = Locale(identifier: "en_GB")
+        formatter.numberFormatter.locale = Locale(identifier: "en_UK")
         formatter.isForPersonHeightUse = true
         XCTAssertEqual(formatter.string(fromMeters: -1), "-100 cm")
         XCTAssertEqual(formatter.string(fromMeters: 0.001), "0.1 cm")
