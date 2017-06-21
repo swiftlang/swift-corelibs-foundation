@@ -109,16 +109,16 @@ open class NotificationQueue: NSObject {
         var predicate: (NSNotificationListEntry) -> Bool
         switch coalesceMask {
         case [.onName, .onSender]:
-            predicate = { (entryNotification, _) in
-                return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object) || notification.name != entryNotification.name
+            predicate = { entry in
+                return _SwiftValue.store(notification.object) !== _SwiftValue.store(entry.0.object) || notification.name != entry.0.name
             }
         case [.onName]:
-            predicate = { (entryNotification, _) in
-                return notification.name != entryNotification.name
+            predicate = { entry in
+                return notification.name != entry.0.name
             }
         case [.onSender]:
-            predicate = { (entryNotification, _) in
-                return _SwiftValue.store(notification.object) !== _SwiftValue.store(entryNotification.object)
+            predicate = { entry in
+                return _SwiftValue.store(notification.object) !== _SwiftValue.store(entry.0.object)
             }
         default:
             return
