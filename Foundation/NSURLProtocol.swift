@@ -164,7 +164,7 @@ internal class _ProtocolClient : NSObject, URLProtocolClient {
         case .noDelegate:
             task.state = .completed
             session.taskRegistry.remove(task)
-        case .dataCompletionHandler(let completion):
+        case .dataCompletionHandler:
             let data = Data()
             guard let client = `protocol`.client else { fatalError() }
             client.urlProtocol(`protocol`, didLoad: data)
