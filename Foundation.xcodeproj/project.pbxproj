@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0383A1751D2E558A0052E5D1 /* TestNSStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0383A1741D2E558A0052E5D1 /* TestNSStream.swift */; };
+                03B6F5841F15F339004F25AF /* TestNSURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestNSURLProtocol.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		159884921DCC877700E3314C /* TestNSHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestNSHTTPCookieStorage.swift */; };
 		231503DB1D8AEE5D0061694D /* TestNSDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */; };
@@ -479,6 +480,7 @@
 
 /* Begin PBXFileReference section */
 		0383A1741D2E558A0052E5D1 /* TestNSStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSStream.swift; sourceTree = "<group>"; };
+                03B6F5831F15F339004F25AF /* TestNSURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSURLProtocol.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestNSHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
@@ -1484,6 +1486,7 @@
 				CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */,
 				D4FE895A1D703D1100DA7986 /* TestURLRequest.swift */,
 				5B6F17961C48631C00935030 /* TestUtils.swift */,
+                                03B6F5831F15F339004F25AF /* TestNSURLProtocol.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -2372,6 +2375,7 @@
 				BF8E65311DC3B3CB005AB5C3 /* TestNotification.swift in Sources */,
 				63DCE9D41EAA432400E9CB02 /* TestISO8601DateFormatter.swift in Sources */,
 				EA01AAEC1DA839C4008F4E07 /* TestProgress.swift in Sources */,
+                                03B6F5841F15F339004F25AF /* TestNSURLProtocol.swift in Sources */,
 				5B13B3411C582D4C00651CE2 /* TestNSRegularExpression.swift in Sources */,
 				5B13B3491C582D4C00651CE2 /* TestNSTimeZone.swift in Sources */,
 				5B13B34B1C582D4C00651CE2 /* TestNSURLRequest.swift in Sources */,
