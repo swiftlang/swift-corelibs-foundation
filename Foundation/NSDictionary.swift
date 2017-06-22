@@ -9,7 +9,7 @@
 
 
 import CoreFoundation
-
+import Dispatch
 
 open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
@@ -454,19 +454,37 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         enumerateKeysAndObjects(options: [], using: block)
     }
 
-    open func enumerateKeysAndObjects(options opts: NSEnumerationOptions = [], using block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    open func enumerateKeysAndObjects(options opts: NSEnumerationOptions = [], using block: (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) {
         let count = self.count
         var keys = [Any]()
         var objects = [Any]()
+        var sharedStop = ObjCBool(false)
+        let lock = NSLock()
+        
         getObjects(&objects, andKeys: &keys, count: count)
-        var stop = ObjCBool(false)
-        for idx in 0..<count {
-            withUnsafeMutablePointer(to: &stop, { stop in
-                block(keys[idx], objects[idx], stop)
-            })
-
-            if stop {
-                break
+        let iteration: (Int) -> Void = withoutActuallyEscaping(block) { (closure: @escaping (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) -> (Int) -> Void in
+            return { (idx) in
+                lock.lock()
+                var stop = sharedStop
+                lock.unlock()
+                if stop { return }
+                
+                closure(keys[idx], objects[idx], &stop)
+                
+                if stop {
+                    lock.lock()
+                    sharedStop = stop
+                    lock.unlock()
+                    return
+                }
+            }
+        }
+        
+        if opts.contains(.concurrent) {
+            DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
+        } else {
+            for idx in 0..<count {
+                iteration(idx)
             }
         }
     }
