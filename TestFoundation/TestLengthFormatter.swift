@@ -15,10 +15,10 @@
     import SwiftXCTest
 #endif
 
-class TestNSLengthFormatter: XCTestCase {
+class TestLengthFormatter: XCTestCase {
     let formatter: LengthFormatter = LengthFormatter()
     
-    static var allTests: [(String, (TestNSLengthFormatter) -> () throws -> Void)] {
+    static var allTests: [(String, (TestLengthFormatter) -> () throws -> Void)] {
         return [
             ("test_stringFromMetersUS", test_stringFromMetersUS),
             ("test_stringFromMetersUSPersonHeight", test_stringFromMetersUSPersonHeight),
