@@ -21,20 +21,19 @@ class TestURLSession : XCTestCase {
 
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         return [
-//Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
-//            ("test_dataTaskWithURL", test_dataTaskWithURL),
-//            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
+            ("test_dataTaskWithURL", test_dataTaskWithURL),
+            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-//            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-//            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
+            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
+            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
             ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
-//            ("test_taskError", test_taskError),
+            ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
-//            ("test_cancelTask", test_cancelTask),
-//            ("test_taskTimeout", test_taskTimeout),
+            ("test_cancelTask", test_cancelTask),
+            ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
