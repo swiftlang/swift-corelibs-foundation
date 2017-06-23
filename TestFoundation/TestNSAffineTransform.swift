@@ -45,18 +45,18 @@ class TestNSAffineTransform : XCTestCase {
     
     func checkPointTransformation(_ transform: NSAffineTransform, point: NSPoint, expectedPoint: NSPoint, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newPoint = transform.transform(point)
-        XCTAssertEqualWithAccuracy(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
-                                   "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
-                                   "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)", file: file, line: line)
+        XCTAssertEqual(Double(newPoint.x), Double(expectedPoint.x), accuracy: accuracyThreshold,
+                       "x (expected: \(expectedPoint.x), was: \(newPoint.x)): \(message)", file: file, line: line)
+        XCTAssertEqual(Double(newPoint.y), Double(expectedPoint.y), accuracy: accuracyThreshold,
+                       "y (expected: \(expectedPoint.y), was: \(newPoint.y)): \(message)", file: file, line: line)
     }
     
     func checkSizeTransformation(_ transform: NSAffineTransform, size: NSSize, expectedSize: NSSize, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
         let newSize = transform.transform(size)
-        XCTAssertEqualWithAccuracy(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
-                                   "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)", file: file, line: line)
-        XCTAssertEqualWithAccuracy(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
-                                   "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)", file: file, line: line)
+        XCTAssertEqual(Double(newSize.width), Double(expectedSize.width), accuracy: accuracyThreshold,
+                       "width (expected: \(expectedSize.width), was: \(newSize.width)): \(message)", file: file, line: line)
+        XCTAssertEqual(Double(newSize.height), Double(expectedSize.height), accuracy: accuracyThreshold,
+                       "height (expected: \(expectedSize.height), was: \(newSize.height)): \(message)", file: file, line: line)
     }
     
     func checkRectTransformation(_ transform: NSAffineTransform, rect: NSRect, expectedRect: NSRect, _ message: String = "", file: StaticString = #file, line: UInt = #line) {
@@ -74,13 +74,13 @@ class TestNSAffineTransform : XCTestCase {
 
         // The diagonal entries (1,1) and (2,2) of the identity matrix are ones. The other entries are zeros.
         // TODO: These should use DBL_MAX but it's not available as part of Glibc on Linux
-        XCTAssertEqualWithAccuracy(Double(transformStruct.m11), Double(1), accuracy: accuracyThreshold)
-        XCTAssertEqualWithAccuracy(Double(transformStruct.m22), Double(1), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.m11), Double(1), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.m22), Double(1), accuracy: accuracyThreshold)
 
-        XCTAssertEqualWithAccuracy(Double(transformStruct.m12), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqualWithAccuracy(Double(transformStruct.m21), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqualWithAccuracy(Double(transformStruct.tX), Double(0), accuracy: accuracyThreshold)
-        XCTAssertEqualWithAccuracy(Double(transformStruct.tY), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.m12), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.m21), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.tX), Double(0), accuracy: accuracyThreshold)
+        XCTAssertEqual(Double(transformStruct.tY), Double(0), accuracy: accuracyThreshold)
     }
 
     func test_IdentityTransformation() {
