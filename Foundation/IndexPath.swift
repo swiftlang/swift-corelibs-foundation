@@ -21,10 +21,10 @@
 public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableCollection, RandomAccessCollection, Comparable, ExpressibleByArrayLiteral {
     public typealias ReferenceType = NSIndexPath
     public typealias Element = Int
-    public typealias Index = Array<Int>.Index
+    public typealias Index = Array<Element>.Index
     public typealias Indices = DefaultRandomAccessIndices<IndexPath>
     
-    fileprivate var _indexes : Array<Int>
+    fileprivate var _indexes : Array<Element>
     
     /// Initialize an empty index path.
     public init() {
@@ -182,21 +182,19 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
 
     public static func <(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedAscending
+        return lhs.compare(rhs) == .orderedAscending
     }
 
     public static func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedAscending || order == ComparisonResult.orderedSame
+        return !(lhs > rhs)
     }
 
     public static func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedDescending
+        return lhs.compare(rhs) == .orderedDescending
     }
 
     public static func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedDescending || order == ComparisonResult.orderedSame
+        return !(lhs < rhs)
     }
 }
 
