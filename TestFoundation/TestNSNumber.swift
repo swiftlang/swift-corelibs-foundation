@@ -24,6 +24,13 @@ class TestNSNumber : XCTestCase {
             ("test_numberWithChar", test_numberWithChar ),
             ("test_numberWithUnsignedChar", test_numberWithUnsignedChar ),
             ("test_numberWithShort", test_numberWithShort ),
+            ("test_numberWithUnsignedShort", test_numberWithUnsignedShort ),
+            ("test_numberWithLong", test_numberWithLong ),
+            ("test_numberWithUnsignedLong", test_numberWithUnsignedLong ),
+            ("test_numberWithLongLong", test_numberWithLongLong ),
+            ("test_numberWithUnsignedLongLong", test_numberWithUnsignedLongLong ),
+            ("test_numberWithInt", test_numberWithInt ),
+            ("test_numberWithUInt", test_numberWithUInt ),
             ("test_numberWithFloat", test_numberWithFloat ),
             ("test_numberWithDouble", test_numberWithDouble ),
             ("test_compareNumberWithBool", test_compareNumberWithBool ),
@@ -154,15 +161,6 @@ class TestNSNumber : XCTestCase {
     }
     
     func test_numberWithUnsignedChar() {
-        XCTAssertEqual(NSNumber(value: UInt8(0)).boolValue, false)
-        XCTAssertEqual(NSNumber(value: UInt8(0)).int8Value, Int8(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).uint8Value, UInt8(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).int16Value, Int16(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).uint16Value, UInt16(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).int32Value, Int32(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).uint32Value, UInt32(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).int64Value, Int64(0))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).uint64Value, UInt64(0))
         XCTAssertEqual(NSNumber(value: UInt8(42)).boolValue, true)
         XCTAssertEqual(NSNumber(value: UInt8(42)).int8Value, Int8(42))
         XCTAssertEqual(NSNumber(value: UInt8(42)).uint8Value, UInt8(42))
@@ -172,27 +170,56 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: UInt8(42)).uint32Value, UInt32(42))
         XCTAssertEqual(NSNumber(value: UInt8(42)).int64Value, Int64(42))
         XCTAssertEqual(NSNumber(value: UInt8(42)).uint64Value, UInt64(42))
-        XCTAssertEqual(NSNumber(value: UInt8.max).boolValue, true)
-        XCTAssertEqual(NSNumber(value: UInt8.max).uint8Value, UInt8.max)
-//        XCTAssertEqual(NSNumber(value: UInt8.max).int16Value, Int16(UInt8.max))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).uint16Value, UInt16(UInt8.max))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).int32Value, Int32(UInt8.max))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).uint32Value, UInt32(UInt8.max))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).int64Value, Int64(UInt8.max))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).uint64Value, UInt64(UInt8.max))
+        XCTAssertEqual(NSNumber(value: UInt8(42)).floatValue, Float(42))
+        XCTAssertEqual(NSNumber(value: UInt8(42)).doubleValue, Double(42))
+
         XCTAssertEqual(NSNumber(value: UInt8.min).boolValue, false)
         XCTAssertEqual(NSNumber(value: UInt8.min).int8Value, Int8(UInt8.min))
         XCTAssertEqual(NSNumber(value: UInt8.min).int16Value, Int16(UInt8.min))
         XCTAssertEqual(NSNumber(value: UInt8.min).int32Value, Int32(UInt8.min))
         XCTAssertEqual(NSNumber(value: UInt8.min).int64Value, Int64(UInt8.min))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).floatValue, Float(0))
-        XCTAssertEqual(NSNumber(value: UInt8(42)).floatValue, Float(42))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).floatValue, Float(UInt8.max))
         XCTAssertEqual(NSNumber(value: UInt8.min).floatValue, Float(UInt8.min))
-        XCTAssertEqual(NSNumber(value: UInt8(0)).doubleValue, Double(0))
-        XCTAssertEqual(NSNumber(value: UInt8(42)).doubleValue, Double(42))
-//        XCTAssertEqual(NSNumber(value: UInt8.max).doubleValue, Double(UInt8.max))
         XCTAssertEqual(NSNumber(value: UInt8.min).doubleValue, Double(UInt8.min))
+
+        //--------
+
+        XCTAssertEqual(NSNumber(value: UInt8(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt8(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt8(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt8(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt8(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt8(0)).doubleValue, 0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: UInt8.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: UInt8.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt8.max).int16Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).int32Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).int64Value, 255)
+
+        XCTAssertEqual(NSNumber(value: UInt8.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).uint16Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).uint32Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).uint64Value, 255)
+
+        XCTAssertEqual(NSNumber(value: UInt8.max).intValue, 255)
+        XCTAssertEqual(NSNumber(value: UInt8.max).uintValue, 255)
+
+        XCTAssertEqual(NSNumber(value: UInt8.max).floatValue, Float(UInt8.max))
+        XCTAssertEqual(NSNumber(value: UInt8.max).doubleValue, Double(UInt8.max))
     }
     
     func test_numberWithShort() {
@@ -227,8 +254,520 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Int16(0)).doubleValue, Double(0))
         XCTAssertEqual(NSNumber(value: Int16(-37)).doubleValue, Double(-37))
         XCTAssertEqual(NSNumber(value: Int16(42)).doubleValue, Double(42))
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int16(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int16(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int16(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int16(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: Int16(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: Int16(0)).doubleValue, 0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int16.min).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int16.min).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16.min).int16Value, -32768)
+        XCTAssertEqual(NSNumber(value: Int16.min).int32Value, -32768)
+        XCTAssertEqual(NSNumber(value: Int16.min).int64Value, -32768)
+
+        XCTAssertEqual(NSNumber(value: Int16.min).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int16.min).uint16Value, 32768)
+        XCTAssertEqual(NSNumber(value: Int16.min).uint32Value, 4294934528)
+        XCTAssertEqual(NSNumber(value: Int16.min).uint64Value, 18446744073709518848)
+
+        XCTAssertEqual(NSNumber(value: Int16.min).intValue, -32768)
+        let uintSize = MemoryLayout<UInt>.size
+        switch uintSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int16.min).uintValue, 4294934528)
+        case 8: XCTAssertEqual(NSNumber(value: Int16.min).uintValue, 18446744073709518848)
+        default: XCTFail("Unexpected UInt size: \(uintSize)")
+        }
+
+        XCTAssertEqual(NSNumber(value: Int16.min).floatValue, Float(Int16.min))
+        XCTAssertEqual(NSNumber(value: Int16.min).doubleValue, Double(Int16.min))
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int16.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: Int16.max).int16Value, 32767)
+        XCTAssertEqual(NSNumber(value: Int16.max).int32Value, 32767)
+        XCTAssertEqual(NSNumber(value: Int16.max).int64Value, 32767)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: Int16.max).uint16Value, 32767)
+        XCTAssertEqual(NSNumber(value: Int16.max).uint32Value, 32767)
+        XCTAssertEqual(NSNumber(value: Int16.max).uint64Value, 32767)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).intValue, 32767)
+        XCTAssertEqual(NSNumber(value: Int16.max).uintValue, 32767)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).floatValue, Float(Int16.max))
+        XCTAssertEqual(NSNumber(value: Int16.max).doubleValue, Double(Int16.max))
     }
-    
+
+    func test_numberWithUnsignedShort() {
+        XCTAssertEqual(NSNumber(value: UInt16(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt16(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt16(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt16(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt16(0)).floatValue, 0.0)
+        XCTAssertEqual(NSNumber(value: UInt16(0)).doubleValue, 0.0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt16.max).int16Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt16.max).int32Value, 65535)
+        XCTAssertEqual(NSNumber(value: UInt16.max).int64Value, 65535)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt16.max).uint16Value, 65535)
+        XCTAssertEqual(NSNumber(value: UInt16.max).uint32Value, 65535)
+        XCTAssertEqual(NSNumber(value: UInt16.max).uint64Value, 65535)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).intValue, 65535)
+        XCTAssertEqual(NSNumber(value: UInt16.max).uintValue, 65535)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).floatValue, Float(UInt16.max))
+        XCTAssertEqual(NSNumber(value: UInt16.max).doubleValue, Double(UInt16.max))
+    }
+
+    func test_numberWithLong() {
+        XCTAssertEqual(NSNumber(value: Int32(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int32(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int32(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int32(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: Int32(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: Int32(0)).doubleValue, 0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int32.min).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int32.min).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32.min).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32.min).int32Value, -2147483648)
+        XCTAssertEqual(NSNumber(value: Int32.min).int64Value, -2147483648)
+
+        XCTAssertEqual(NSNumber(value: Int32.min).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32.min).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int32.min).uint32Value, 2147483648)
+        XCTAssertEqual(NSNumber(value: Int32.min).uint64Value, 18446744071562067968)
+
+        XCTAssertEqual(NSNumber(value: Int32.min).intValue, -2147483648)
+        let uintSize = MemoryLayout<UInt>.size
+        switch uintSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int32.min).uintValue, 2147483648)
+        case 8: XCTAssertEqual(NSNumber(value: Int32.min).uintValue, 18446744071562067968)
+        default: XCTFail("Unexpected UInt size: \(uintSize)")
+        }
+
+        XCTAssertEqual(NSNumber(value: Int32.min).floatValue, Float(Int32.min))
+        XCTAssertEqual(NSNumber(value: Int32.min).doubleValue, Double(Int32.min))
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int32.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: Int32.max).int16Value, -1)
+        XCTAssertEqual(NSNumber(value: Int32.max).int32Value, 2147483647)
+        XCTAssertEqual(NSNumber(value: Int32.max).int64Value, 2147483647)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: Int32.max).uint16Value, 65535)
+        XCTAssertEqual(NSNumber(value: Int32.max).uint32Value, 2147483647)
+        XCTAssertEqual(NSNumber(value: Int32.max).uint64Value, 2147483647)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).intValue, 2147483647)
+        XCTAssertEqual(NSNumber(value: Int32.max).uintValue, 2147483647)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).floatValue, Float(Int32.max))
+        XCTAssertEqual(NSNumber(value: Int32.max).doubleValue, Double(Int32.max))
+    }
+
+    func test_numberWithUnsignedLong() {
+        XCTAssertEqual(NSNumber(value: UInt32(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt32(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt32(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt32(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt32(0)).floatValue, 0.0)
+        XCTAssertEqual(NSNumber(value: UInt32(0)).doubleValue, 0.0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt32.max).int16Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt32.max).int32Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt32.max).int64Value, 4294967295)
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt32.max).uint16Value, 65535)
+        XCTAssertEqual(NSNumber(value: UInt32.max).uint32Value, 4294967295)
+        XCTAssertEqual(NSNumber(value: UInt32.max).uint64Value, 4294967295)
+
+        let intSize = MemoryLayout<Int>.size
+        switch intSize {
+        case 4: XCTAssertEqual(NSNumber(value: UInt32.max).intValue, -1)
+        case 8: XCTAssertEqual(NSNumber(value: UInt32.max).intValue, 4294967295)
+        default: XCTFail("Unexpected Int size: \(intSize)")
+        }
+        XCTAssertEqual(NSNumber(value: UInt32.max).uintValue, 4294967295)
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).floatValue, Float(UInt32.max))
+        XCTAssertEqual(NSNumber(value: UInt32.max).doubleValue, Double(UInt32.max))
+    }
+
+    func test_numberWithLongLong() {
+        XCTAssertEqual(NSNumber(value: Int64(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int64(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int64(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int64(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: Int64(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: Int64(0)).doubleValue, 0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int64.min).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).int64Value, -9223372036854775808)
+
+        XCTAssertEqual(NSNumber(value: Int64.min).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int64.min).uint64Value, 9223372036854775808)
+
+        let intSize = MemoryLayout<Int>.size
+        switch intSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int64.min).intValue, 0)
+        case 8: XCTAssertEqual(NSNumber(value: Int64.min).intValue, -9223372036854775808)
+        default: XCTFail("Unexpected Int size: \(intSize)")
+        }
+
+        let uintSize = MemoryLayout<UInt>.size
+        switch uintSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int64.min).uintValue, 0)
+        case 8: XCTAssertEqual(NSNumber(value: Int64.min).uintValue, 9223372036854775808)
+        default: XCTFail("Unexpected UInt size: \(uintSize)")
+        }
+
+        XCTAssertEqual(NSNumber(value: Int64.min).floatValue, Float(Int64.min))
+        XCTAssertEqual(NSNumber(value: Int64.min).doubleValue, Double(Int64.min))
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: Int64.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int64.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: Int64.max).int16Value, -1)
+        XCTAssertEqual(NSNumber(value: Int64.max).int32Value, -1)
+        XCTAssertEqual(NSNumber(value: Int64.max).int64Value, 9223372036854775807)
+
+        XCTAssertEqual(NSNumber(value: Int64.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: Int64.max).uint16Value, 65535)
+        XCTAssertEqual(NSNumber(value: Int64.max).uint32Value, 4294967295)
+        XCTAssertEqual(NSNumber(value: Int64.max).uint64Value, 9223372036854775807)
+
+        switch intSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int64.max).intValue, -1)
+        case 8: XCTAssertEqual(NSNumber(value: Int64.max).intValue, 9223372036854775807)
+        default: XCTFail("Unexpected Int size: \(intSize)")
+        }
+
+        switch uintSize {
+        case 4: XCTAssertEqual(NSNumber(value: Int64.max).uintValue, 4294967295)
+        case 8: XCTAssertEqual(NSNumber(value: Int64.max).uintValue, 9223372036854775807)
+        default: XCTFail("Unexpected UInt size: \(uintSize)")
+        }
+
+        XCTAssertEqual(NSNumber(value: Int64.max).floatValue, Float(Int64.max))
+        XCTAssertEqual(NSNumber(value: Int64.max).doubleValue, Double(Int64.max))
+    }
+
+    func test_numberWithUnsignedLongLong() {
+        XCTAssertEqual(NSNumber(value: UInt64(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt64(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt64(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt64(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt64(0)).floatValue, 0.0)
+        XCTAssertEqual(NSNumber(value: UInt64(0)).doubleValue, 0.0)
+
+        //------
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).int8Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt64.max).int16Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt64.max).int32Value, -1)
+        XCTAssertEqual(NSNumber(value: UInt64.max).int64Value, -1)
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).uint8Value, 255)
+        XCTAssertEqual(NSNumber(value: UInt64.max).uint16Value, 65535)
+        XCTAssertEqual(NSNumber(value: UInt64.max).uint32Value, 4294967295)
+        XCTAssertEqual(NSNumber(value: UInt64.max).uint64Value, 18446744073709551615)
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).intValue, -1)
+        let uintSize = MemoryLayout<UInt>.size
+        switch uintSize {
+        case 4: XCTAssertEqual(NSNumber(value: UInt64.max).uintValue, 4294967295)
+        case 8: XCTAssertEqual(NSNumber(value: UInt64.max).uintValue, 18446744073709551615)
+        default: XCTFail("Unexpected UInt size: \(uintSize)")
+        }
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).floatValue, Float(UInt64.max))
+        XCTAssertEqual(NSNumber(value: UInt64.max).doubleValue, Double(UInt64.max))
+    }
+
+    func test_numberWithInt() {
+        XCTAssertEqual(NSNumber(value: Int(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: Int(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: Int(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: Int(0)).doubleValue, 0)
+
+        //------
+
+        let intSize = MemoryLayout<Int>.size
+        let uintSize = MemoryLayout<UInt>.size
+        switch (intSize, uintSize) {
+        case (4, 4):
+            XCTAssertEqual(NSNumber(value: Int.min).boolValue, true)
+
+            XCTAssertEqual(NSNumber(value: Int.min).int8Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).int16Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).int32Value, -2147483648)
+            XCTAssertEqual(NSNumber(value: Int.min).int64Value, -2147483648)
+
+            XCTAssertEqual(NSNumber(value: Int.min).uint8Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).uint16Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).uint32Value, 2147483648)
+            XCTAssertEqual(NSNumber(value: Int.min).uint64Value, 18446744071562067968)
+
+            XCTAssertEqual(NSNumber(value: Int.min).intValue, -2147483648)
+            XCTAssertEqual(NSNumber(value: Int.min).uintValue, 18446744071562067968)
+
+            XCTAssertEqual(NSNumber(value: Int.min).floatValue, Float(Int.min))
+            XCTAssertEqual(NSNumber(value: Int.min).doubleValue, Double(Int.min))
+
+            //--------
+
+            XCTAssertEqual(NSNumber(value: Int.max).boolValue, true)
+
+            XCTAssertEqual(NSNumber(value: Int.max).int8Value, -1)
+            XCTAssertEqual(NSNumber(value: Int.max).int16Value, -1)
+            XCTAssertEqual(NSNumber(value: Int.max).int32Value, 2147483647)
+            XCTAssertEqual(NSNumber(value: Int.max).int64Value, 2147483647)
+
+            XCTAssertEqual(NSNumber(value: Int.max).uint8Value, 255)
+            XCTAssertEqual(NSNumber(value: Int.max).uint16Value, 65535)
+            XCTAssertEqual(NSNumber(value: Int.max).uint32Value, 2147483647)
+            XCTAssertEqual(NSNumber(value: Int.max).uint64Value, 2147483647)
+
+            XCTAssertEqual(NSNumber(value: Int.max).intValue, 2147483647)
+            XCTAssertEqual(NSNumber(value: Int.max).uintValue, 2147483647)
+
+            XCTAssertEqual(NSNumber(value: Int.max).floatValue, Float(Int.max))
+            XCTAssertEqual(NSNumber(value: Int.max).doubleValue, Double(Int.max))
+
+        case (8, 8):
+            XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)
+
+            XCTAssertEqual(NSNumber(value: Int.min).int8Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).int16Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).int32Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).int64Value, -9223372036854775808)
+
+            XCTAssertEqual(NSNumber(value: Int.min).uint8Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).uint16Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).uint32Value, 0)
+            XCTAssertEqual(NSNumber(value: Int.min).uint64Value, 9223372036854775808)
+
+            XCTAssertEqual(NSNumber(value: Int.min).intValue, -9223372036854775808)
+            XCTAssertEqual(NSNumber(value: Int.min).uintValue, 9223372036854775808)
+
+            XCTAssertEqual(NSNumber(value: Int.min).floatValue, Float(Int.min))
+            XCTAssertEqual(NSNumber(value: Int.min).doubleValue, Double(Int.min))
+
+            //--------
+
+            XCTAssertEqual(NSNumber(value: Int.max).boolValue, true)
+
+            XCTAssertEqual(NSNumber(value: Int.max).int8Value, -1)
+            XCTAssertEqual(NSNumber(value: Int.max).int16Value, -1)
+            XCTAssertEqual(NSNumber(value: Int.max).int32Value, -1)
+            XCTAssertEqual(NSNumber(value: Int.max).int64Value, 9223372036854775807)
+
+            XCTAssertEqual(NSNumber(value: Int.max).uint8Value, 255)
+            XCTAssertEqual(NSNumber(value: Int.max).uint16Value, 65535)
+            XCTAssertEqual(NSNumber(value: Int.max).uint32Value, 4294967295)
+            XCTAssertEqual(NSNumber(value: Int.max).uint64Value, 9223372036854775807)
+
+            XCTAssertEqual(NSNumber(value: Int.max).intValue, 9223372036854775807)
+            XCTAssertEqual(NSNumber(value: Int.max).uintValue, 9223372036854775807)
+
+            XCTAssertEqual(NSNumber(value: Int.max).floatValue, Float(Int.max))
+            XCTAssertEqual(NSNumber(value: Int.max).doubleValue, Double(Int.max))
+
+        default: XCTFail("Unexpected mismatched Int & UInt sizes: \(intSize) & \(uintSize)")
+        }
+    }
+
+    func test_numberWithUInt() {
+        XCTAssertEqual(NSNumber(value: UInt(0)).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt(0)).int8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).int16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).int32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).int64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt(0)).uint8Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).uint16Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).uint32Value, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).uint64Value, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt(0)).intValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).uintValue, 0)
+
+        XCTAssertEqual(NSNumber(value: UInt(0)).floatValue, 0)
+        XCTAssertEqual(NSNumber(value: UInt(0)).doubleValue, 0)
+
+        //------
+
+        let intSize = MemoryLayout<Int>.size
+        let uintSize = MemoryLayout<UInt>.size
+        switch (intSize, uintSize) {
+        case (4, 4):
+            XCTAssertEqual(NSNumber(value: UInt.max).boolValue, true)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).int8Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int16Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int32Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int64Value, 4294967295)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).uint8Value, 255)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint16Value, 65535)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint32Value, 4294967295)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint64Value, 4294967295)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).intValue, 4294967295)
+            XCTAssertEqual(NSNumber(value: UInt.max).uintValue, 4294967295)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).floatValue, Float(UInt.max))
+            XCTAssertEqual(NSNumber(value: UInt.max).doubleValue, Double(UInt.max))
+
+        case (8, 8):
+            XCTAssertEqual(NSNumber(value: UInt.max).boolValue, true)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).int8Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int16Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int32Value, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).int64Value, -1)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).uint8Value, 255)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint16Value, 65535)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint32Value, 4294967295)
+            XCTAssertEqual(NSNumber(value: UInt.max).uint64Value, 18446744073709551615)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).intValue, -1)
+            XCTAssertEqual(NSNumber(value: UInt.max).uintValue, 18446744073709551615)
+
+            XCTAssertEqual(NSNumber(value: UInt.max).floatValue, Float(UInt.max))
+            XCTAssertEqual(NSNumber(value: UInt.max).doubleValue, Double(UInt.max))
+            
+        default: XCTFail("Unexpected mismatched Int & UInt sizes: \(intSize) & \(uintSize)")
+        }
+    }
+
     func test_numberWithFloat() {
         XCTAssertEqual(NSNumber(value: Float(0)).boolValue, false)
         XCTAssertEqual(NSNumber(value: Float(0)).int8Value, Int8(0))
