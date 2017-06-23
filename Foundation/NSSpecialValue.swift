@@ -25,7 +25,7 @@ internal protocol NSSpecialValueCoding {
     // So in order to implement equality and hash we have the hack below.
     func isEqual(_ value: Any) -> Bool
     var hash: Int { get }
-    var description: String? { get }
+    var description: String { get }
 }
 
 internal class NSSpecialValue : NSValue {
@@ -126,11 +126,11 @@ internal class NSSpecialValue : NSValue {
     }
     
     override var description : String {
-        if let description = _value.description {
-            return description
-        } else {
+        let desc = _value.description
+        if desc.isEmpty {
             return super.description
         }
+        return desc
     }
     
     override func isEqual(_ value: Any?) -> Bool {
