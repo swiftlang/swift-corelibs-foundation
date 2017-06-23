@@ -237,11 +237,6 @@ internal func _NSXMLParserEndDocument(_ ctx: _CFXMLInterface) -> Void {
     }
 }
 
-internal func _colonSeparatedStringFromPrefixAndSuffix(_ prefix: UnsafePointer<UInt8>, _ prefixlen: UInt, _ suffix: UnsafePointer<UInt8>, _ suffixLen: UInt) -> String {
-    let prefixString = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: prefix, count: Int(prefixlen)))
-    let suffixString = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: suffix, count: Int(suffixLen)))
-    return "\(prefixString!):\(suffixString!)"
-}
 
 internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: UnsafePointer<UInt8>, prefix: UnsafePointer<UInt8>?, URI: UnsafePointer<UInt8>?, nb_namespaces: Int32, namespaces: UnsafeMutablePointer<UnsafePointer<UInt8>?>, nb_attributes: Int32, nb_defaulted: Int32, attributes: UnsafeMutablePointer<UnsafePointer<UInt8>?>) -> Void {
     let parser = ctx.parser
@@ -254,10 +249,8 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
             var namespaceNameString: String?
             var asAttrNamespaceNameString: String?
             if let ns = namespaces[idx] {
-                if reportNamespaces {
-                    namespaceNameString = UTF8STRING(ns)
-                }
-                asAttrNamespaceNameString = _colonSeparatedStringFromPrefixAndSuffix("xmlns", 5, ns, UInt(strlen(unsafeBitCast(ns, to: UnsafePointer<Int8>.self))))
+                namespaceNameString = UTF8STRING(ns)
+                asAttrNamespaceNameString = "xmlns:" + namespaceNameString!
             } else {
                 namespaceNameString = ""
                 asAttrNamespaceNameString = "xmlns"
@@ -287,13 +280,12 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         }
         var attributeQName: String
         let attrLocalName = attributes[idx]!
+        let attrLocalNameString = UTF8STRING(attrLocalName)!
         let attrPrefix = attributes[idx + 1]
-        // Since strlen is in libc, it's safe to bitcast the UInt8 pointer argument to an Int8 (char *) pointer.
-        let attrPrefixLen = attrPrefix != nil ? strlen(unsafeBitCast(attrPrefix!, to: UnsafePointer<Int8>.self)) : 0
-        if attrPrefixLen != 0 {
-            attributeQName = _colonSeparatedStringFromPrefixAndSuffix(attrPrefix!, UInt(attrPrefixLen), attrLocalName, UInt(strlen((unsafeBitCast(attrLocalName, to: UnsafePointer<Int8>.self)))))
+        if let attrPrefixString = UTF8STRING(attrPrefix), attrPrefixString.count != 0 {
+            attributeQName = attrPrefixString + ":" + attrLocalNameString
         } else {
-            attributeQName = UTF8STRING(attrLocalName)!
+            attributeQName = attrLocalNameString
         }
         // idx+2 = URI, which we throw away
         // idx+3 = value, i+4 = endvalue
@@ -301,21 +293,14 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         var attributeValue = ""
         if attributes[idx + 3] != nil && attributes[idx + 4] != nil {
             let numBytesWithoutTerminator = attributes[idx + 4]! - attributes[idx + 3]!
-            let numBytesWithTerminator = numBytesWithoutTerminator + 1
-            if numBytesWithoutTerminator != 0 {
-                var chars = [UInt8](repeating: 0, count: numBytesWithTerminator)
-                attributeValue = chars.withUnsafeMutableBufferPointer({ (buffer: inout UnsafeMutableBufferPointer<UInt8>) -> String in
-                    // In Swift code, buffer is alwaus accessed as UInt8.
-                    // Since strncpy is in libc, it's safe to bitcast the UInt8 pointer arguments to an Int8 (char *) pointer.
-                    strncpy(unsafeBitCast(buffer.baseAddress!, to: UnsafeMutablePointer<Int8>.self),
-                        unsafeBitCast(attributes[idx + 3]!, to: UnsafePointer<Int8>.self),
-                        numBytesWithoutTerminator) //not strlcpy because attributes[i+3] is not Nul terminated
-                    return UTF8STRING(buffer.baseAddress!)!
-                })
+            if numBytesWithoutTerminator > 0 {
+                let buffer = UnsafeBufferPointer(start: attributes[idx + 3]!,
+                                                 count: numBytesWithoutTerminator)
+                attributeValue = String._fromCodeUnitSequence(UTF8.self,
+                                                              input: buffer)!
             }
             attrDict[attributeQName] = attributeValue
         }
-        
     }
 
     var elementName: String = UTF8STRING(localname)!

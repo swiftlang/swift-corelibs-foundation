@@ -351,10 +351,12 @@ internal extension _EasyHandle {
 }
 
 
-extension CFURLSessionInfo : Equatable {}
-    public func ==(lhs: CFURLSessionInfo, rhs: CFURLSessionInfo) -> Bool {
+extension CFURLSessionInfo : Equatable {
+    public static func ==(lhs: CFURLSessionInfo, rhs: CFURLSessionInfo) -> Bool {
         return lhs.value == rhs.value
+    }
 }
+
 extension CFURLSessionInfo {
     public var debugHeader: String {
         switch self {
@@ -593,9 +595,10 @@ extension _EasyHandle._CurlStringList {
     }
 }
 
-extension CFURLSessionEasyCode : Equatable {}
-public func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
-    return lhs.value == rhs.value
+extension CFURLSessionEasyCode : Equatable {
+    public static func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
+        return lhs.value == rhs.value
+    }
 }
 extension CFURLSessionEasyCode : Error {
     public var _domain: String { return "libcurl.Easy" }

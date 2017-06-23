@@ -48,7 +48,7 @@ class TestNSData: XCTestCase {
             ("testCopyBytes_oversized", testCopyBytes_oversized),
             ("testCopyBytes_ranges", testCopyBytes_ranges),
             ("testCopyBytes_undersized", testCopyBytes_undersized),
-            // ("testCopyBytes", testCopyBytes),  Disabled to due failure, we want this passing - but API matching is more important right now
+             ("testCopyBytes", testCopyBytes),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
             ("testEquality", testEquality),

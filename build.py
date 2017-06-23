@@ -16,7 +16,7 @@ foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefi
 swift_cflags = ['-DDEPLOYMENT_RUNTIME_SWIFT']
 if Configuration.current.target.sdk == OSType.Linux:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CoreFoundation/CharacterSets"'
-	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-defsym,__CFConstantStringClassReference=_T010Foundation19_NSCFConstantStringCN -Wl,-Bsymbolic '
+	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
@@ -26,7 +26,7 @@ elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
 elif Configuration.current.target.sdk == OSType.Win32 and Configuration.current.target.environ == EnvironmentType.Cygnus:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -mcmodel=large '
-	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -lswiftGlibc `icu-config --ldflags` -Wl,-defsym,__CFConstantStringClassReference=_T010Foundation19_NSCFConstantStringCN,--allow-multiple-definition '
+	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -lswiftGlibc `icu-config --ldflags` -Wl,--allow-multiple-definition '
 	swift_cflags += ['-DCYGWIN']
 
 if Configuration.current.build_mode == Configuration.Debug:
@@ -311,7 +311,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSArray.swift',
 	'Foundation/NSAttributedString.swift',
 	'Foundation/Bundle.swift',
-	'Foundation/NSByteCountFormatter.swift',
+	'Foundation/ByteCountFormatter.swift',
 	'Foundation/NSCache.swift',
 	'Foundation/NSCalendar.swift',
 	'Foundation/NSCFArray.swift',
@@ -327,19 +327,19 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSConcreteValue.swift',
 	'Foundation/NSData.swift',
 	'Foundation/NSDate.swift',
-	'Foundation/NSDateComponentsFormatter.swift',
-	'Foundation/NSDateFormatter.swift',
-	'Foundation/NSDateIntervalFormatter.swift',
+	'Foundation/DateComponentsFormatter.swift',
+	'Foundation/DateFormatter.swift',
+	'Foundation/DateIntervalFormatter.swift',
 	'Foundation/NSDecimal.swift',
 	'Foundation/NSDecimalNumber.swift',
 	'Foundation/NSDictionary.swift',
-	'Foundation/NSEnergyFormatter.swift',
+	'Foundation/EnergyFormatter.swift',
 	'Foundation/NSEnumerator.swift',
 	'Foundation/NSError.swift',
 	'Foundation/NSExpression.swift',
 	'Foundation/FileHandle.swift',
 	'Foundation/FileManager.swift',
-	'Foundation/NSFormatter.swift',
+	'Foundation/Formatter.swift',
 	'Foundation/NSGeometry.swift',
 	'Foundation/Host.swift',
 	'Foundation/NSHTTPCookie.swift',
@@ -352,22 +352,22 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSKeyedArchiver.swift',
 	'Foundation/NSKeyedArchiverHelpers.swift',
 	'Foundation/NSKeyedUnarchiver.swift',
-	'Foundation/NSLengthFormatter.swift',
+	'Foundation/LengthFormatter.swift',
 	'Foundation/NSLocale.swift',
 	'Foundation/NSLock.swift',
 	'Foundation/NSLog.swift',
-	'Foundation/NSMassFormatter.swift',
+	'Foundation/MassFormatter.swift',
 	'Foundation/NSNotification.swift',
 	'Foundation/NSNotificationQueue.swift',
 	'Foundation/NSNull.swift',
 	'Foundation/NSNumber.swift',
-	'Foundation/NSNumberFormatter.swift',
+	'Foundation/NumberFormatter.swift',
 	'Foundation/NSObjCRuntime.swift',
 	'Foundation/Operation.swift',
 	'Foundation/NSOrderedSet.swift',
 	'Foundation/NSPathUtilities.swift',
 	'Foundation/NSPersonNameComponents.swift',
-	'Foundation/NSPersonNameComponentsFormatter.swift',
+	'Foundation/PersonNameComponentsFormatter.swift',
 	'Foundation/NSPlatform.swift',
 	'Foundation/NSPort.swift',
 	'Foundation/NSPortMessage.swift',
@@ -444,7 +444,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/ExtraStringAPIs.swift',
 	'Foundation/Measurement.swift',
 	'Foundation/NSMeasurement.swift',
-	'Foundation/NSMeasurementFormatter.swift',
+	'Foundation/MeasurementFormatter.swift',
 	'Foundation/Unit.swift',
 	'Foundation/TimeZone.swift',
 	'Foundation/Calendar.swift',
@@ -525,7 +525,7 @@ rule InstallFoundation
     cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     mkdir -p "${DSTROOT}/${PREFIX}/local/include"; $
-    rsync -r "${BUILD_DIR}/Foundation/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
+    rsync -a "${BUILD_DIR}/Foundation/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
 
 build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}
 

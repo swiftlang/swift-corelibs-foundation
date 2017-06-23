@@ -16,9 +16,9 @@
 #endif
 import CoreFoundation
 
-class TestNSNumberFormatter: XCTestCase {
+class TestNumberFormatter: XCTestCase {
 
-    static var allTests: [(String, (TestNSNumberFormatter) -> () throws -> Void)] {
+    static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
         return [
             ("test_currencyCode", test_currencyCode),
             ("test_decimalSeparator", test_decimalSeparator),

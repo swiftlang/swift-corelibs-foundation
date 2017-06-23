@@ -207,6 +207,7 @@ struct _HTTPRequest {
 struct _HTTPResponse {
     enum Response : Int {
         case OK = 200
+        case REDIRECT = 302
     }
     private let responseCode: Response
     private let headers: String
@@ -229,6 +230,7 @@ public class TestURLSessionServer {
                                      "Peru":"Lima",
                                      "Italy":"Rome",
                                      "USA":"Washington, D.C.",
+				     "UnitedStates": "USA",
                                      "country.txt": "A country is a region that is identified as a distinct national entity in political geography"]
     let httpServer: _HTTPServer
     let startDelay: TimeInterval?
@@ -268,6 +270,18 @@ public class TestURLSessionServer {
         if uri == "/requestHeaders" {
             let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
+        }
+
+	if uri == "/UnitedStates" {
+            let value = capitals[String(uri.characters.dropFirst())]!
+            let text = request.getCommaSeparatedHeaders()
+            let host = request.headers[1].components(separatedBy: " ")[1]
+            let ip = host.components(separatedBy: ":")[0]
+            let port = host.components(separatedBy: ":")[1]
+            let newPort = Int(port)! + 1
+            let newHost = ip + ":" + String(newPort)
+            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(newHost + "/" + value)", body: text)
+            return httpResponse 
         }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.characters.dropFirst())]!) 
     }

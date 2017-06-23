@@ -44,7 +44,7 @@ class TestProgress : XCTestCase {
         
         // Test self
         parent.completedUnitCount = 50
-        XCTAssertEqualWithAccuracy(0.5, parent.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(0.5, parent.fractionCompleted, accuracy: 0.01)
         
         parent.completedUnitCount = 0
         // Test child
@@ -53,24 +53,24 @@ class TestProgress : XCTestCase {
         child1.completedUnitCount = 50
         
         // half of 10% is done in parent
-        XCTAssertEqualWithAccuracy(0.05, parent.fractionCompleted, accuracy: 0.01)
-        XCTAssertEqualWithAccuracy(0.5, child1.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(0.05, parent.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(0.5, child1.fractionCompleted, accuracy: 0.01)
         
         // Up the total amount of work
         parent.totalUnitCount = 200
         
-        XCTAssertEqualWithAccuracy(0.5 * (10.0 / 200.0) /* 0.025 */, parent.fractionCompleted, accuracy: 0.01)
-        XCTAssertEqualWithAccuracy(0.5, child1.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(0.5 * (10.0 / 200.0) /* 0.025 */, parent.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(0.5, child1.fractionCompleted, accuracy: 0.01)
         
         // Change the total in the child, doubling total amount of work
         child1.totalUnitCount = 200
-        XCTAssertEqualWithAccuracy(50.0 / 200.0, child1.fractionCompleted, accuracy: 0.01)
-        XCTAssertEqualWithAccuracy((50.0 / 200.0) * (10.0 / 200), parent.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(50.0 / 200.0, child1.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual((50.0 / 200.0) * (10.0 / 200), parent.fractionCompleted, accuracy: 0.01)
         
         // Change the total in the child, the other direction, halving the amount of work
         child1.totalUnitCount = 100
-        XCTAssertEqualWithAccuracy(50.0 / 100.0, child1.fractionCompleted, accuracy: 0.01)
-        XCTAssertEqualWithAccuracy((50.0 / 100.0) * (10.0 / 200), parent.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual(50.0 / 100.0, child1.fractionCompleted, accuracy: 0.01)
+        XCTAssertEqual((50.0 / 100.0) * (10.0 / 200), parent.fractionCompleted, accuracy: 0.01)
     }
     
     func test_multipleChildren() {
@@ -84,19 +84,19 @@ class TestProgress : XCTestCase {
         let child1 = Progress(totalUnitCount: 5)
         let child2 = Progress(totalUnitCount: 5)
         
-        XCTAssertEqualWithAccuracy(progress.fractionCompleted, 0, accuracy: 0.01)
+        XCTAssertEqual(progress.fractionCompleted, 0, accuracy: 0.01)
         
         child2.completedUnitCount = 5
         
         // Child2 does not affect the parent's fraction completed (it should only be child1 that makes a difference)
-        XCTAssertEqualWithAccuracy(progress.fractionCompleted, 0, accuracy: 0.01)
+        XCTAssertEqual(progress.fractionCompleted, 0, accuracy: 0.01)
 
         let _ = Progress(totalUnitCount: 5)
-        XCTAssertEqualWithAccuracy(progress.fractionCompleted, 0, accuracy: 0.01)
+        XCTAssertEqual(progress.fractionCompleted, 0, accuracy: 0.01)
         
         // Update child #1
         child1.completedUnitCount = 5
-        XCTAssertEqualWithAccuracy(progress.fractionCompleted, 1.0, accuracy: 0.01)
+        XCTAssertEqual(progress.fractionCompleted, 1.0, accuracy: 0.01)
     }
     
     func test_indeterminateChildrenAffectFractionCompleted() {
@@ -107,11 +107,11 @@ class TestProgress : XCTestCase {
         let child1 = Progress(totalUnitCount: 10)
         
         child1.completedUnitCount = 5
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.05, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.05, accuracy: 0.01)
         
         // Child1 becomes indeterminate
         child1.completedUnitCount = -1
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.0, accuracy: 0.01)
         
         // Become determinate
         // childProgress1's completed unit count is 100% of its total of 10 (10)
@@ -119,11 +119,11 @@ class TestProgress : XCTestCase {
         // the overall count done should be 100% of 10% of 1000, or 1.0 * 0.1 * 1000 = 100
         // the overall percentage done should be 100 / 1000 = 0.1
         child1.completedUnitCount = 10
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.1, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.1, accuracy: 0.01)
         
         // Become indeterminate again
         child1.completedUnitCount = -1
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.0, accuracy: 0.01)
         
         parent.resignCurrent()
     }
@@ -140,21 +140,21 @@ class TestProgress : XCTestCase {
         let child2 = Progress(totalUnitCount: 2)
         parent.resignCurrent()
 
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.0, accuracy: 0.01)
 
         child1.completedUnitCount = 1
         child2.completedUnitCount = 1
         
         // half done
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.5, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.5, accuracy: 0.01)
         
         // Move a child to indeterminate
         child1.completedUnitCount = -1
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.25, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.25, accuracy: 0.01)
         
         // Move it back to determinate
         child1.completedUnitCount = 1
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 0.5, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 0.5, accuracy: 0.01)
     }
 
     func test_childCompletionFinishesGroups() {
@@ -166,10 +166,10 @@ class TestProgress : XCTestCase {
         root.addChild(child2, withPendingUnitCount: 1)
         
         child1.completedUnitCount = 1
-        XCTAssertEqualWithAccuracy(root.fractionCompleted, 0.5, accuracy: 0.01)
+        XCTAssertEqual(root.fractionCompleted, 0.5, accuracy: 0.01)
         
         child2.completedUnitCount = 1
-        XCTAssertEqualWithAccuracy(root.fractionCompleted, 1.0, accuracy: 0.01)
+        XCTAssertEqual(root.fractionCompleted, 1.0, accuracy: 0.01)
         XCTAssertEqual(root.completedUnitCount, 2)
     }
     
@@ -296,11 +296,11 @@ class TestProgress : XCTestCase {
         
         // child1 is half done. This means the parent is half of 1/3 done.
         child1.completedUnitCount = 5
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, (1.0 / 3.0) / 2.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, (1.0 / 3.0) / 2.0, accuracy: 0.01)
         
         // child2 is half done. This means the parent is (half of 1/3 done) + (half of 1/3 done).
         child2.completedUnitCount = 5
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 2.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 2.0, accuracy: 0.01)
         
         // add an implict child
         parent.becomeCurrent(withPendingUnitCount: 1)
@@ -308,26 +308,26 @@ class TestProgress : XCTestCase {
         parent.resignCurrent()
         
         // Total completed of parent should not change
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 2.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 2.0, accuracy: 0.01)
         
         // child3 is half done. This means the parent is (half of 1/3 done) * 3.
         child3.completedUnitCount = 5
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 3.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) * 3.0, accuracy: 0.01)
         
         // Finish child3
         child3.completedUnitCount = 10
         XCTAssertTrue(child3.isFinished)
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, (((1.0 / 3.0) / 2.0) * 2.0) + (1.0 / 3.0), accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, (((1.0 / 3.0) / 2.0) * 2.0) + (1.0 / 3.0), accuracy: 0.01)
         
         // Finish child2
         child2.completedUnitCount = 10;
         XCTAssertTrue(child2.isFinished)
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) + ((1.0 / 3.0) * 2.0), accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, ((1.0 / 3.0) / 2.0) + ((1.0 / 3.0) * 2.0), accuracy: 0.01)
         
         // Finish child1
         child1.completedUnitCount = 10;
         XCTAssertTrue(child1.isFinished)
-        XCTAssertEqualWithAccuracy(parent.fractionCompleted, 1.0, accuracy: 0.01)
+        XCTAssertEqual(parent.fractionCompleted, 1.0, accuracy: 0.01)
         XCTAssertTrue(parent.isFinished)
         XCTAssertEqual(parent.completedUnitCount, parent.totalUnitCount)
 

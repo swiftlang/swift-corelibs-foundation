@@ -33,7 +33,7 @@ fileprivate class NSCacheKey: NSObject {
         switch self.value {
         case let nsObject as NSObject:
             return nsObject.hashValue
-        case let hashable as Hashable:
+        case let hashable as AnyHashable:
             return hashable.hashValue
         default: return 0
         }
@@ -58,7 +58,7 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     private var _entries = Dictionary<NSCacheKey, NSCacheEntry<KeyType, ObjectType>>()
     private let _lock = NSLock()
     private var _totalCost = 0
-    private var _byCost: NSCacheEntry<KeyType, ObjectType>?
+    private var _head: NSCacheEntry<KeyType, ObjectType>?
     
     open var name: String = ""
     open var totalCostLimit: Int = 0 // limits are imprecise/not strict
@@ -90,50 +90,64 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     private func remove(_ entry: NSCacheEntry<KeyType, ObjectType>) {
         let oldPrev = entry.prevByCost
         let oldNext = entry.nextByCost
+        
         oldPrev?.nextByCost = oldNext
         oldNext?.prevByCost = oldPrev
-        if entry === _byCost {
-            _byCost = entry.nextByCost
+        
+        if entry === _head {
+            _head = oldNext
         }
     }
    
     private func insert(_ entry: NSCacheEntry<KeyType, ObjectType>) {
-        if _byCost == nil {
-            _byCost = entry
-        } else {
-            var element = _byCost
-            while let e = element {
-                if e.cost > entry.cost {
-                    let newPrev = e.prevByCost
-                    entry.prevByCost = newPrev
-                    entry.nextByCost = e
-                    break
-                }
-                element = e.nextByCost
-            }
+        guard var currentElement = _head else {
+            // The cache is empty
+            entry.prevByCost = nil
+            entry.nextByCost = nil
+            
+            _head = entry
+            return
         }
+        
+        guard entry.cost > currentElement.cost else {
+            // Insert entry at the head
+            entry.prevByCost = nil
+            entry.nextByCost = currentElement
+            currentElement.prevByCost = entry
+            
+            _head = entry
+            return
+        }
+        
+        while currentElement.nextByCost != nil && currentElement.nextByCost!.cost < entry.cost {
+            currentElement = currentElement.nextByCost!
+        }
+        
+        // Insert entry between currentElement and nextElement
+        let nextElement = currentElement.nextByCost
+        
+        currentElement.nextByCost = entry
+        entry.prevByCost = currentElement
+        
+        entry.nextByCost = nextElement
+        nextElement?.prevByCost = entry
     }
     
     open func setObject(_ obj: ObjectType, forKey key: KeyType, cost g: Int) {
+        let g = max(g, 0)
         let keyRef = NSCacheKey(key)
         
         _lock.lock()
-        _totalCost += g
         
-        var purgeAmount = 0
-        if totalCostLimit > 0 {
-            purgeAmount = (_totalCost + g) - totalCostLimit
-        }
-        
-        var purgeCount = 0
-        if countLimit > 0 {
-            purgeCount = (_entries.count + 1) - countLimit
-        }
+        let costDiff: Int
         
         if let entry = _entries[keyRef] {
+            costDiff = g - entry.cost
+            entry.cost = g
+            
             entry.value = obj
-            if entry.cost != g {
-                entry.cost = g
+            
+            if costDiff != 0 {
                 remove(entry)
                 insert(entry)
             }
@@ -141,52 +155,42 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
             let entry = NSCacheEntry(key: key, value: obj, cost: g)
             _entries[keyRef] = entry
             insert(entry)
-        }
-        _lock.unlock()
-        
-        var toRemove = [NSCacheEntry<KeyType, ObjectType>]()
-        
-        if purgeAmount > 0 {
-            _lock.lock()
-            while _totalCost - totalCostLimit > 0 {
-                if let entry = _byCost {
-                    _totalCost -= entry.cost
-                    toRemove.append(entry)
-                    remove(entry)
-                } else {
-                    break
-                }
-            }
-            if countLimit > 0 {
-                purgeCount = (_entries.count - toRemove.count) - countLimit
-            }
-            _lock.unlock()
+            
+            costDiff = g
         }
         
-        if purgeCount > 0 {
-            _lock.lock()
-            while (_entries.count - toRemove.count) - countLimit > 0 {
-                if let entry = _byCost {
-                    _totalCost -= entry.cost
-                    toRemove.append(entry)
-                    remove(entry)
-                } else {
-                    break
-                }
-            }
-            _lock.unlock()
-        }
+        _totalCost += costDiff
         
-        if let del = delegate {
-            for entry in toRemove {
-                del.cache(unsafeDowncast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
+        var purgeAmount = (totalCostLimit > 0) ? (_totalCost - totalCostLimit) : 0
+        while purgeAmount > 0 {
+            if let entry = _head {
+                delegate?.cache(unsafeDowncast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
+                
+                _totalCost -= entry.cost
+                purgeAmount -= entry.cost
+                
+                remove(entry) // _head will be changed to next entry in remove(_:)
+                _entries[NSCacheKey(entry.key)] = nil
+            } else {
+                break
             }
         }
         
-        _lock.lock()
-        for entry in toRemove {
-            _entries.removeValue(forKey: NSCacheKey(entry.key)) // the cost list is already fixed up in the purge routines
+        var purgeCount = (countLimit > 0) ? (_entries.count - countLimit) : 0
+        while purgeCount > 0 {
+            if let entry = _head {
+                delegate?.cache(unsafeDowncast(self, to:NSCache<AnyObject, AnyObject>.self), willEvictObject: entry.value)
+                
+                _totalCost -= entry.cost
+                purgeCount -= 1
+                
+                remove(entry) // _head will be changed to next entry in remove(_:)
+                _entries[NSCacheKey(entry.key)] = nil
+            } else {
+                break
+            }
         }
+        
         _lock.unlock()
     }
     
@@ -204,7 +208,16 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
     open func removeAllObjects() {
         _lock.lock()
         _entries.removeAll()
-        _byCost = nil
+        
+        while let currentElement = _head {
+            let nextElement = currentElement.nextByCost
+            
+            currentElement.prevByCost = nil
+            currentElement.nextByCost = nil
+            
+            _head = nextElement
+        }
+        
         _totalCost = 0
         _lock.unlock()
     }    

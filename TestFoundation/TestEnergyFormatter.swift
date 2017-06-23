@@ -15,10 +15,10 @@
     import SwiftXCTest
 #endif
 
-class TestNSEnergyFormatter: XCTestCase {
+class TestEnergyFormatter: XCTestCase {
     let formatter: EnergyFormatter = EnergyFormatter()
     
-    static var allTests: [(String, (TestNSEnergyFormatter) -> () throws -> Void)] {
+    static var allTests: [(String, (TestEnergyFormatter) -> () throws -> Void)] {
         return [
             ("test_stringFromJoulesJoulesRegion", test_stringFromJoulesJoulesRegion),
             ("test_stringFromJoulesCaloriesRegion", test_stringFromJoulesCaloriesRegion),

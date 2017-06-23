@@ -13,16 +13,24 @@ import Dispatch
 internal class _HTTPURLProtocol: URLProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
+    fileprivate var totalDownloaded = 0
+    fileprivate var tempFileURL: URL
 
-    public override required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+    public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
+        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
+        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
+        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
     }
 
-    public override required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
+    public required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
+        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
+        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
+        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: request, cachedResponse: cachedResponse, client: client)
         self.easyHandle = _EasyHandle(delegate: self)
     }
@@ -47,7 +55,6 @@ internal class _HTTPURLProtocol: URLProtocol {
             self.internalState = .transferFailed
             guard let error = self.task?.error else { fatalError() }
             completeTask(withError: error)
-            return
         }
     }
 
@@ -399,8 +406,8 @@ internal extension _HTTPURLProtocol {
             return .inMemory(nil)
         case .downloadCompletionHandler:
             // Data needs to be written to a file (i.e. a download task).
-            let fileHandle = try! FileHandle(forWritingTo: task.tempFileURL)
-            return .toFile(task.tempFileURL, fileHandle)
+            let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
+            return .toFile(self.tempFileURL, fileHandle)
         }
     }
 }
@@ -453,19 +460,19 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
             let downloadDelegate = delegate as? URLSessionDownloadDelegate,
             let task = self.task as? URLSessionDownloadTask {
             guard let s = self.task?.session as? URLSession else { fatalError() }
-            let fileHandle = try! FileHandle(forWritingTo: task.tempFileURL)
+            let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
             _ = fileHandle.seekToEndOfFile()
             fileHandle.write(data)
-            self.task?.totalDownloaded += data.count
+            self.totalDownloaded += data.count
             
             s.delegateQueue.addOperation {
-                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(t.totalDownloaded),
+                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(self.totalDownloaded),
                                             totalBytesExpectedToWrite: Int64(self.easyHandle.fileLength))
             }
-            if Int(self.easyHandle.fileLength) == self.task?.totalDownloaded {
+            if Int(self.easyHandle.fileLength) == self.totalDownloaded {
                 fileHandle.closeFile()
                 s.delegateQueue.addOperation {
-                    downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: t.tempFileURL)
+                    downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: self.tempFileURL)
                 }
             }
         }
@@ -675,7 +682,7 @@ extension _HTTPURLProtocol {
             return
         }
 
-        if case .toFile(let url, let fileHandle?) = bodyDataDrain {
+        if case .toFile(_, let fileHandle?) = bodyDataDrain {
             fileHandle.closeFile()
         }
         self.client?.urlProtocolDidFinishLoading(self)
@@ -702,7 +709,7 @@ extension _HTTPURLProtocol {
             fatalError("Trying to redirect, but the transfer is not complete.")
         }
 
-        let session = task?.session as! URLSession
+        guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task!) {
         case .taskDelegate(let delegate):
             // At this point we need to change the internal state to note
@@ -717,9 +724,8 @@ extension _HTTPURLProtocol {
 
             self.internalState = .waitingForRedirectCompletionHandler(response: response, bodyDataDrain: bodyDataDrain)
             // We need this ugly cast in order to be able to support `URLSessionTask.init()`
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: self.task!, willPerformHTTPRedirection: response as! HTTPURLResponse, newRequest: request) { [weak self] (request: URLRequest?) in
                     guard let task = self else { return }
                     self?.task?.workQueue.async {
                         task.didCompleteRedirectCallback(request)
@@ -756,7 +762,7 @@ internal extension _HTTPURLProtocol {
         guard let dt = task as? URLSessionDataTask else { return }
         guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
         guard let response = ts.response else { fatalError("Header complete, but not URL response.") }
-        let session = task?.session as! URLSession
+        guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
@@ -767,11 +773,15 @@ internal extension _HTTPURLProtocol {
             //
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
-            guard let s = session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                delegate.urlSession(s, dataTask: dt, didReceive: response, completionHandler: { _ in
-                    URLSession.printDebug("warning: Ignoring disposition from completion handler.")
-                })
+            switch response.statusCode {
+            case 301, 302, 303, 307:
+                break
+            default:
+                session.delegateQueue.addOperation {
+                    delegate.urlSession(session, dataTask: dt, didReceive: response, completionHandler: { _ in
+                        URLSession.printDebug("warning: Ignoring disposition from completion handler.")
+                    })
+                }
             }
         case .taskDelegate:
             break
@@ -851,7 +861,7 @@ internal extension _HTTPURLProtocol {
         //TODO: Do we ever want to redirect for HEAD requests?
         func methodAndURL() -> (String, URL)? {
             guard
-                let location = response.value(forHeaderField: .location),
+                let location = response.value(forHeaderField: .location, response: response),
                 let targetURL = URL(string: location)
                 else {
                     // Can't redirect when there's no location to redirect to.
@@ -874,8 +884,24 @@ internal extension _HTTPURLProtocol {
         guard let (method, targetURL) = methodAndURL() else { return nil }
         var request = fromRequest
         request.httpMethod = method
-        request.url = targetURL
-        return request
+ 
+        // If targetURL has only relative path of url, create a new valid url with relative path
+        // Otherwise, return request with targetURL ie.url from location field
+        guard targetURL.scheme == nil || targetURL.host == nil else {
+            request.url = targetURL
+            return request
+        }
+    
+        let scheme = request.url?.scheme
+        let host = request.url?.host
+
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = host
+        components.path = targetURL.relativeString
+        guard let urlString = components.string else { fatalError("Invalid URL") }
+        request.url = URL(string: urlString)
+	return request
     }
 }
 
@@ -886,7 +912,12 @@ fileprivate extension HTTPURLResponse {
         /// - SeeAlso: RFC 2616 section 14.30 <https://tools.ietf.org/html/rfc2616#section-14.30>
         case location = "Location"
     }
-    func value(forHeaderField field: _Field) -> String? {
-        return field.rawValue
+    func value(forHeaderField field: _Field, response: HTTPURLResponse?) -> String? {
+        let value = field.rawValue
+	guard let response = response else { fatalError("Response is nil") }
+        if let location = response.allHeaderFields[value] as? String {
+            return location
+        }
+        return nil
     }
 }

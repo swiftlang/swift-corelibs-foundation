@@ -21,24 +21,24 @@ class TestURLSession : XCTestCase {
 
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         return [
-//Disabling to avoid https://bugs.swift.org/browse/SR-4677 and a timeout failure
-//            ("test_dataTaskWithURL", test_dataTaskWithURL),
-//            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
+            ("test_dataTaskWithURL", test_dataTaskWithURL),
+            ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-//            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
-//            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
+            ("test_downloadTaskWithURL", test_downloadTaskWithURL),
+            ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
-//            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
-//            ("test_taskError", test_taskError),
+            ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
+            ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
-//            ("test_cancelTask", test_cancelTask),
-//            ("test_taskTimeout", test_taskTimeout),
+            ("test_cancelTask", test_cancelTask),
+            ("test_taskTimeout", test_taskTimeout),
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
 	    ("test_customProtocol", test_customProtocol),
+	    ("test_httpRedirection", test_httpRedirection),
         ]
     }
 
@@ -467,6 +467,24 @@ class TestURLSession : XCTestCase {
         task.resume()
         waitForExpectations(timeout: 12)
     }
+
+    func test_httpRedirection() {
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try self.runServer(with: serverReady)
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+        serverReady.wait()
+        let urlString = "http://127.0.0.1:\(serverPort)/UnitedStates"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "data task"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+    }
 }
 
 class SessionDelegate: NSObject, URLSessionDelegate {
@@ -516,14 +534,13 @@ class DataTask : NSObject {
 extension DataTask : URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         capital = String(data: data, encoding: String.Encoding.utf8)!
-        dataTaskExpectation.fulfill()
     }
 }
 
 extension DataTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-         guard (error as? URLError) != nil else { return }
          dataTaskExpectation.fulfill()
+	 guard (error as? URLError) != nil else { return }
          if let cancellation = cancelExpectation {
              cancellation.fulfill()
          }
@@ -606,5 +623,63 @@ class CustomProtocol : URLProtocol {
 
     override func stopLoading() {
         return
+    }
+}
+
+class HTTPRedirectionDataTask : NSObject {
+    let dataTaskExpectation: XCTestExpectation!
+    var session: URLSession! = nil
+    var task: URLSessionDataTask! = nil
+    var cancelExpectation: XCTestExpectation?
+
+    public var error = false
+
+    init(with expectation: XCTestExpectation) {
+        dataTaskExpectation = expectation
+    }
+
+    func run(with request: URLRequest) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: request)
+        task.resume()
+    }
+
+    func run(with url: URL) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: url)
+        task.resume()
+    }
+
+    func cancel() {
+        task.cancel()
+    }
+}
+
+extension HTTPRedirectionDataTask : URLSessionDataDelegate {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        guard let httpresponse = response as? HTTPURLResponse else { fatalError() }
+	XCTAssertNotNil(response)
+        XCTAssertEqual(200, httpresponse.statusCode, "HTTP response code is not 200")
+    }
+}
+
+extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        dataTaskExpectation.fulfill()
+        guard (error as? URLError) != nil else { return }
+        if let cancellation = cancelExpectation {
+            cancellation.fulfill()
+        }
+        self.error = true
+    }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        XCTAssertNotNil(response)
+        XCTAssertEqual(302, response.statusCode, "HTTP response code is not 302")
+        completionHandler(request)
     }
 }

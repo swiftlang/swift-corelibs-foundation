@@ -446,9 +446,6 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         self.enumerateObjects(at: IndexSet(integersIn: 0..<count), options: opts, using: block)
     }
     open func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        guard !opts.contains(.concurrent) else {
-            NSUnimplemented()
-        }
         s._bridgeToObjectiveC().enumerate(options: opts) { (idx, stop) in
             block(self.object(at: idx), idx, stop)
         }

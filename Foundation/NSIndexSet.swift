@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Dispatch
 
 /* Class for managing set of indexes. The set of valid indexes are 0 .. NSNotFound - 1; trying to use indexes outside this range is an error.  NSIndexSet uses NSNotFound as a return value in cases where the queried index doesn't exist in the set; for instance, when you ask firstIndex and there are no indexes; or when you ask for indexGreaterThanIndex: on the last index, and so on.
 
@@ -388,36 +389,60 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let reverse = opts.contains(.reverse)
         let passRanges = paramType == NSRange.self
         let findIndex = returnType == Bool.self
-        var stop = false
+        var sharedStop = false
+        let lock = NSLock()
         let ranges = _ranges[startRangeIndex...endRangeIndex]
-        let rangeSequence = (reverse ? AnySequence(ranges.reversed()) : AnySequence(ranges))
-        outer: for curRange in rangeSequence {
-            let intersection = NSIntersectionRange(curRange, range)
-            if passRanges {
-                if intersection.length > 0 {
-                    let _ = block(intersection as! P, &stop)
-                }
-                if stop {
-                    break outer
-                }
-            } else if intersection.length > 0 {
-                let maxIndex = NSMaxRange(intersection) - 1
-                let indexes = reverse ? stride(from: maxIndex, through: intersection.location, by: -1) : stride(from: intersection.location, through: maxIndex, by: 1)
-                for idx in indexes {
-                    if findIndex {
-                        let found : Bool = block(idx as! P, &stop) as! Bool
-                        if found {
-                            result = idx
-                            stop = true
-                        }
-                    } else {
-                        let _ = block(idx as! P, &stop)
+        let rangeSequence = (reverse ? AnyCollection(ranges.reversed()) : AnyCollection(ranges))
+        let iteration = withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> (Int) -> Void in
+            return { (rangeIdx) in
+                lock.lock()
+                var stop = sharedStop
+                lock.unlock()
+                if stop { return }
+                
+                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: IntMax(rangeIdx))
+                let curRange = rangeSequence[idx]
+                let intersection = NSIntersectionRange(curRange, range)
+                if passRanges {
+                    if intersection.length > 0 {
+                        let _ = closure(intersection as! P, &stop)
                     }
                     if stop {
-                        break outer
+                        lock.lock()
+                        sharedStop = stop
+                        lock.unlock()
+                        return
+                    }
+                } else if intersection.length > 0 {
+                    let maxIndex = NSMaxRange(intersection) - 1
+                    let indexes = reverse ? stride(from: maxIndex, through: intersection.location, by: -1) : stride(from: intersection.location, through: maxIndex, by: 1)
+                    for idx in indexes {
+                        if findIndex {
+                            let found : Bool = closure(idx as! P, &stop) as! Bool
+                            if found {
+                                result = idx
+                                stop = true
+                            }
+                        } else {
+                            let _ = closure(idx as! P, &stop)
+                        }
+                        if stop {
+                            lock.lock()
+                            sharedStop = stop
+                            lock.unlock()
+                            return
+                        }
                     }
                 }
-            } // else, continue
+            }
+        }
+        
+        if opts.contains(.concurrent) {
+            DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
+        } else {
+            for idx in 0..<Int(rangeSequence.count) {
+                iteration(idx)
+            }
         }
         
         return result

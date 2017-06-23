@@ -755,7 +755,7 @@ open class NSKeyedArchiver : NSCoder {
             scanner.scanLocation = 1 // advance past ObJCType
             
             var count : Int = 0
-            guard scanner.scanInteger(&count) && count > 0 else {
+            guard scanner.scanInt(&count) && count > 0 else {
                 fatalError("NSKeyedArchiver.encodeValueOfObjCType: array count is missing or zero")
             }
             

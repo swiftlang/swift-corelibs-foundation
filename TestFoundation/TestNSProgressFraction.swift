@@ -104,7 +104,7 @@ class TestProgressFraction : XCTestCase {
             expectedResult = expectedResult + 1.0 / Double(d)
         }
         
-        XCTAssertEqualWithAccuracy(fractionResult, expectedResult, accuracy: 0.00001)
+        XCTAssertEqual(fractionResult, expectedResult, accuracy: 0.00001)
     }
     
     func test_addOverflow() {
@@ -126,7 +126,7 @@ class TestProgressFraction : XCTestCase {
         // And it should have completed value of about 1.0/4.0 + f1.fractionCompleted
         let expected = (1.0 / 4.0) + f1.fractionCompleted
         
-        XCTAssertEqualWithAccuracy(expected, f2.fractionCompleted, accuracy: 0.00001)
+        XCTAssertEqual(expected, f2.fractionCompleted, accuracy: 0.00001)
     }
     
     func test_andAndSubtractOverflow() {
