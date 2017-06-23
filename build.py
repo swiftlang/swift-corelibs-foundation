@@ -106,11 +106,10 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 	])
 	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
 
+foundation.SWIFTCFLAGS = " ".join(swift_cflags)
+
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	foundation.LDFLAGS += '-L${XCTEST_BUILD_DIR}'
-	swift_cflags += ['-DTEST_TARGET']
-
-foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
 headers = CopyHeaders(
 module = 'CoreFoundation/Base.subproj/module.modulemap',
@@ -456,7 +455,6 @@ swift_sources = CompileSwiftSources([
 	'Foundation/Array.swift',
 	'Foundation/Bridging.swift',
 	'Foundation/CGFloat.swift',
-	'Foundation/ConsistentCasting.swift',
 	'Foundation/Codable.swift',
 	'Foundation/JSONEncoder.swift',
 ])
@@ -489,9 +487,8 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 # TODO: Probably this should be another 'product', but for now it's simply a phase
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
-	'TestFoundation/HTTPServer.swift',
-	'Foundation/ProgressFraction.swift',
-	'Foundation/ConsistentCasting.swift',
+        'TestFoundation/HTTPServer.swift',
+        'Foundation/ProgressFraction.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
 Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'

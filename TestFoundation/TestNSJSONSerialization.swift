@@ -16,6 +16,10 @@
     import SwiftXCTest
 #endif
 
+// Exposing internal ReadingOptions for tests.
+extension JSONSerialization.ReadingOptions {
+    fileprivate static let useReferenceNumericTypes = JSONSerialization.ReadingOptions(rawValue: 1 << 3)
+}
 
 class TestNSJSONSerialization : XCTestCase {
     
@@ -107,7 +111,9 @@ extension TestNSJSONSerialization {
 
 
             ("test_deserialize_values_withData", test_deserialize_values_withData),
+            ("test_deserialize_values_as_reference_types_withData", test_deserialize_values_as_reference_types_withData),
             ("test_deserialize_numbers_withData", test_deserialize_numbers_withData),
+            ("test_deserialize_numbers_as_reference_types_withData", test_deserialize_numbers_as_reference_types_withData),
 
             ("test_deserialize_simpleEscapeSequences_withData", test_deserialize_simpleEscapeSequences_withData),
             ("test_deserialize_unicodeEscapeSequence_withData", test_deserialize_unicodeEscapeSequence_withData),
@@ -136,7 +142,9 @@ extension TestNSJSONSerialization {
 
 
             ("test_deserialize_values_withStream", test_deserialize_values_withStream),
+            ("test_deserialize_values_as_reference_types_withStream", test_deserialize_values_as_reference_types_withStream),
             ("test_deserialize_numbers_withStream", test_deserialize_numbers_withStream),
+            ("test_deserialize_numbers_as_reference_types_withStream", test_deserialize_numbers_as_reference_types_withStream),
 
             ("test_deserialize_simpleEscapeSequences_withStream", test_deserialize_simpleEscapeSequences_withStream),
             ("test_deserialize_unicodeEscapeSequence_withStream", test_deserialize_unicodeEscapeSequence_withStream),
@@ -187,8 +195,16 @@ extension TestNSJSONSerialization {
         deserialize_values(objectType: .data)
     }
 
+    func test_deserialize_values_as_reference_types_withData() {
+        deserialize_values_as_reference_types(objectType: .data)
+    }
+
     func test_deserialize_numbers_withData() {
         deserialize_numbers(objectType: .data)
+    }
+
+    func test_deserialize_numbers_as_reference_types_withData() {
+        deserialize_numbers_as_reference_types(objectType: .data)
     }
 
     func test_deserialize_simpleEscapeSequences_withData() {
@@ -273,8 +289,16 @@ extension TestNSJSONSerialization {
         deserialize_values(objectType: .stream)
     }
 
+    func test_deserialize_values_as_reference_types_withStream() {
+        deserialize_values_as_reference_types(objectType: .stream)
+    }
+
     func test_deserialize_numbers_withStream() {
         deserialize_numbers(objectType: .stream)
+    }
+
+    func test_deserialize_numbers_as_reference_types_withStream() {
+        deserialize_numbers_as_reference_types(objectType: .stream)
     }
 
     func test_deserialize_simpleEscapeSequences_withStream() {
@@ -453,6 +477,28 @@ extension TestNSJSONSerialization {
         }
     }
 
+    func deserialize_values_as_reference_types(objectType: ObjectType) {
+        let subject = "[true, false, \"hello\", null, {}, []]"
+
+        do {
+            for encoding in supportedEncodings {
+                guard let data = subject.data(using: encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                XCTAssertEqual(result?[0] as? NSNumber, true)
+                XCTAssertEqual(result?[1] as? NSNumber, false)
+                XCTAssertEqual(result?[2] as? String, "hello")
+                XCTAssertNotNil(result?[3] as? NSNull)
+                XCTAssertNotNil(result?[4] as? [String:Any])
+                XCTAssertNotNil(result?[5] as? [Any])
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
         let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
@@ -470,6 +516,27 @@ extension TestNSJSONSerialization {
                 XCTAssertEqual(result?[3] as? Double,  -1.3)
                 XCTAssertEqual(result?[4] as? Int,     1000)
                 XCTAssertEqual(result?[5] as? Double, 0.001)
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+    func deserialize_numbers_as_reference_types(objectType: ObjectType) {
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
+
+        do {
+            for encoding in supportedEncodings {
+                guard let data = subject.data(using: encoding) else {
+                    XCTFail("Unable to convert string to data")
+                    return
+                }
+                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                XCTAssertEqual(result?[0] as? NSNumber, 1)
+                XCTAssertEqual(result?[1] as? NSNumber, -1)
+                XCTAssertEqual(result?[2] as? NSNumber, 1.3)
+                XCTAssertEqual(result?[3] as? NSNumber, -1.3)
+                XCTAssertEqual(result?[4] as? NSNumber, 1000)
+                XCTAssertEqual(result?[5] as? NSNumber, 0.001)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -735,17 +802,19 @@ extension TestNSJSONSerialization {
     }
 
 
-    private func getjsonObjectResult(_ data: Data,_ objectType: ObjectType) throws -> Any {
+    private func getjsonObjectResult(_ data: Data,
+                                     _ objectType: ObjectType,
+                                     options opt: JSONSerialization.ReadingOptions = []) throws -> Any {
         var result: Any
         switch objectType {
         case .data:
             //Test with Data
-            result = try JSONSerialization.jsonObject(with: data, options: [])
+            result = try JSONSerialization.jsonObject(with: data, options: opt)
         case .stream:
             //Test with stream
             let stream: InputStream = InputStream(data: data)
             stream.open()
-            result = try JSONSerialization.jsonObject(with: stream, options: [])
+            result = try JSONSerialization.jsonObject(with: stream, options: opt)
             stream.close()
         }
         return result
@@ -1250,6 +1319,18 @@ extension TestNSJSONSerialization {
             XCTAssertEqual(result?[3] as! Double, 0.0001)
             XCTAssertEqual(result?[4] as! Int, 20)
             XCTAssertEqual(result?[5] as! Int, Int.max)
+        } catch {
+            XCTFail("Failed during serialization")
+        }
+        do {
+            let data = decimalArray.data(using: String.Encoding.utf8)
+            let result = try JSONSerialization.jsonObject(with: data!, options: [.useReferenceNumericTypes]) as? [Any]
+            XCTAssertEqual(result?[0] as! NSNumber, 12.1)
+            XCTAssertEqual(result?[1] as! NSNumber, 10)
+            XCTAssertEqual(result?[2] as! NSNumber, 0)
+            XCTAssertEqual(result?[3] as! NSNumber, 0.0001)
+            XCTAssertEqual(result?[4] as! NSNumber, 20)
+            XCTAssertEqual(result?[5] as! NSNumber, NSNumber(value: Int.max))
         } catch {
             XCTFail("Failed during serialization")
         }

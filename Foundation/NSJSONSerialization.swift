@@ -23,6 +23,7 @@ extension JSONSerialization {
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
+        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 3)
     }
 
     public struct WritingOptions : OptionSet {
@@ -172,13 +173,13 @@ open class JSONSerialization : NSObject {
             
             let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
             let reader = JSONReader(source: source)
-            if let (object, _) = try reader.parseObject(0) {
+            if let (object, _) = try reader.parseObject(0, options: opt) {
                 return object
             }
-            else if let (array, _) = try reader.parseArray(0) {
+            else if let (array, _) = try reader.parseArray(0, options: opt) {
                 return array
             }
-            else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0) {
+            else if opt.contains(.allowFragments), let (value, _) = try reader.parseValue(0, options: opt) {
                 return value
             }
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
@@ -796,7 +797,7 @@ private struct JSONReader {
         0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
-    func parseNumber(_ input: Index) throws -> (Any, Index)? {
+    func parseNumber(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
         func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
             let temp_buffer_size = 64
             var temp_buffer = [Int8](repeating: 0, count: temp_buffer_size)
@@ -817,17 +818,23 @@ private struct JSONReader {
                     return nil
                 }
 
+                let shouldUseReferenceType = opt.contains(.useReferenceNumericTypes)
+
                 if intDistance == doubleDistance {
-                    return (intResult, intDistance)
+                    return (shouldUseReferenceType ? NSNumber(value: intResult) : intResult,
+                            intDistance)
                 }
                 guard doubleDistance > 0 else {
                     return nil
                 }
 
                 if doubleResult == doubleResult.rounded() {
-                    return (Int(doubleResult), doubleDistance)
+                    return (shouldUseReferenceType ? NSNumber(value: Int(doubleResult)) : Int(doubleResult),
+                            doubleDistance)
                 }
-                return (doubleResult, doubleDistance)
+
+                return (shouldUseReferenceType ? NSNumber(value: doubleResult) : doubleResult,
+                        doubleDistance)
             }
         }
         
@@ -852,33 +859,35 @@ private struct JSONReader {
     }
 
     //MARK: - Value parsing
-    func parseValue(_ input: Index) throws -> (Any, Index)? {
+    func parseValue(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
         if let (value, parser) = try parseString(input) {
             return (value, parser)
         }
         else if let parser = try consumeASCIISequence("true", input: input) {
-            return (true, parser)
+            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: true) : true
+            return (result, parser)
         }
         else if let parser = try consumeASCIISequence("false", input: input) {
-            return (false, parser)
+            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: false) : false
+            return (result, parser)
         }
         else if let parser = try consumeASCIISequence("null", input: input) {
             return (NSNull(), parser)
         }
-        else if let (object, parser) = try parseObject(input) {
+        else if let (object, parser) = try parseObject(input, options: opt) {
             return (object, parser)
         }
-        else if let (array, parser) = try parseArray(input) {
+        else if let (array, parser) = try parseArray(input, options: opt) {
             return (array, parser)
         }
-        else if let (number, parser) = try parseNumber(input) {
+        else if let (number, parser) = try parseNumber(input, options: opt) {
             return (number, parser)
         }
         return nil
     }
 
     //MARK: - Object parsing
-    func parseObject(_ input: Index) throws -> ([String: Any], Index)? {
+    func parseObject(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> ([String: Any], Index)? {
         guard let beginIndex = try consumeStructure(Structure.BeginObject, input: input) else {
             return nil
         }
@@ -889,7 +898,7 @@ private struct JSONReader {
                 return (output, finalIndex)
             }
     
-            if let (key, value, nextIndex) = try parseObjectMember(index) {
+            if let (key, value, nextIndex) = try parseObjectMember(index, options: opt) {
                 output[key] = value
     
                 if let finalParser = try consumeStructure(Structure.EndObject, input: nextIndex) {
@@ -907,7 +916,7 @@ private struct JSONReader {
         }
     }
     
-    func parseObjectMember(_ input: Index) throws -> (String, Any, Index)? {
+    func parseObjectMember(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (String, Any, Index)? {
         guard let (name, index) = try parseString(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Missing object key at location \(source.distanceFromStart(input))"
@@ -918,7 +927,7 @@ private struct JSONReader {
                 "NSDebugDescription" : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
-        guard let (value, finalIndex) = try parseValue(separatorIndex) else {
+        guard let (value, finalIndex) = try parseValue(separatorIndex, options: opt) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                 "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
@@ -928,7 +937,7 @@ private struct JSONReader {
     }
 
     //MARK: - Array parsing
-    func parseArray(_ input: Index) throws -> ([Any], Index)? {
+    func parseArray(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> ([Any], Index)? {
         guard let beginIndex = try consumeStructure(Structure.BeginArray, input: input) else {
             return nil
         }
@@ -939,7 +948,7 @@ private struct JSONReader {
                 return (output, finalIndex)
             }
     
-            if let (value, nextIndex) = try parseValue(index) {
+            if let (value, nextIndex) = try parseValue(index, options: opt) {
                 output.append(value)
     
                 if let finalIndex = try consumeStructure(Structure.EndArray, input: nextIndex) {
