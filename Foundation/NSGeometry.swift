@@ -71,7 +71,7 @@ extension CGPoint: NSSpecialValueCoding {
         return self.x.hashValue &+ self.y.hashValue
     }
     
-     var description: String? {
+     var description: String {
         return NSStringFromPoint(self)
     }
 }
@@ -134,7 +134,7 @@ extension CGSize: NSSpecialValueCoding {
         return self.width.hashValue &+ self.height.hashValue
     }
     
-    var description: String? {
+    var description: String {
         return NSStringFromSize(self)
     }
 }
@@ -216,7 +216,7 @@ extension CGRect: NSSpecialValueCoding {
         return self.origin.hash &+ self.size.hash
     }
     
-    var description: String? {
+    var description: String {
         return NSStringFromRect(self)
     }
 }
@@ -316,8 +316,8 @@ extension NSEdgeInsets: NSSpecialValueCoding {
         return self.top.hashValue &+ self.left.hashValue &+ self.bottom.hashValue &+ self.right.hashValue
     }
     
-    var description: String? {
-        return nil
+    var description: String {
+        return ""
     }
 }
 

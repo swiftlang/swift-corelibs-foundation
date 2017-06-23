@@ -639,18 +639,18 @@ extension NSString {
     }
 
     public var intValue: Int32 {
-        return Scanner(string: _swiftObject).scanInt() ?? 0
+        return Scanner(string: _swiftObject).scanInt32() ?? 0
     }
 
     public var integerValue: Int {
         let scanner = Scanner(string: _swiftObject)
         var value: Int = 0
-        let _ = scanner.scanInteger(&value)
+        let _ = scanner.scanInt(&value)
         return value
     }
 
     public var longLongValue: Int64 {
-        return Scanner(string: _swiftObject).scanLongLong() ?? 0
+        return Scanner(string: _swiftObject).scanInt64() ?? 0
     }
 
     public var boolValue: Bool {
@@ -658,8 +658,8 @@ extension NSString {
         // skip initial whitespace if present
         let _ = scanner.scanCharactersFromSet(.whitespaces)
         // scan a single optional '+' or '-' character, followed by zeroes
-        if scanner.scanString(string: "+") == nil {
-            let _ = scanner.scanString(string: "-")
+        if scanner.scanString("+") == nil {
+            let _ = scanner.scanString("-")
         }
         // scan any following zeroes
         let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
