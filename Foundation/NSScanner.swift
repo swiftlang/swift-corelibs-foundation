@@ -391,19 +391,19 @@ extension String {
 extension Scanner {
     
     // On overflow, the below methods will return success and clamp
-    public func scanInt(_ result: UnsafeMutablePointer<Int32>) -> Bool {
+    public func scanInt32(_ result: UnsafeMutablePointer<Int32>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanInteger(_ result: UnsafeMutablePointer<Int>) -> Bool {
+    public func scanInt(_ result: UnsafeMutablePointer<Int>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanLongLong(_ result: UnsafeMutablePointer<Int64>) -> Bool {
+    public func scanInt64(_ result: UnsafeMutablePointer<Int64>) -> Bool {
         return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
             result.pointee = value
         }
@@ -427,13 +427,13 @@ extension Scanner {
         }
     }
     
-    public func scanHexInt(_ result: UnsafeMutablePointer<UInt32>) -> Bool {
+    public func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
             result.pointee = value
         }
     }
     
-    public func scanHexLongLong(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
+    public func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
         return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
             result.pointee = value
         }
@@ -469,9 +469,20 @@ extension Scanner {
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
 extension Scanner {
-    public func scanInt() -> Int32? {
+    public func scanInt32() -> Int32? {
         var value: Int32 = 0
         return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
+            if scanInt32(ptr) {
+                return ptr.pointee
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    public func scanInt() -> Int? {
+        var value: Int = 0
+        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
             if scanInt(ptr) {
                 return ptr.pointee
             } else {
@@ -480,21 +491,10 @@ extension Scanner {
         }
     }
     
-    public func scanInteger() -> Int? {
-        var value: Int = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
-            if scanInteger(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
-    
-    public func scanLongLong() -> Int64? {
+    public func scanInt64() -> Int64? {
         var value: Int64 = 0
         return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int64>) -> Int64? in
-            if scanLongLong(ptr) {
+            if scanInt64(ptr) {
                 return ptr.pointee
             } else {
                 return nil
@@ -535,10 +535,10 @@ extension Scanner {
         }
     }
     
-    public func scanHexInt() -> UInt32? {
+    public func scanHexInt32() -> UInt32? {
         var value: UInt32 = 0
         return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt32>) -> UInt32? in
-            if scanHexInt(ptr) {
+            if scanHexInt32(ptr) {
                 return ptr.pointee
             } else {
                 return nil
@@ -546,10 +546,10 @@ extension Scanner {
         }
     }
     
-    public func scanHexLongLong() -> UInt64? {
+    public func scanHexInt64() -> UInt64? {
         var value: UInt64 = 0
         return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
-            if scanHexLongLong(ptr) {
+            if scanHexInt64(ptr) {
                 return ptr.pointee
             } else {
                 return nil
@@ -579,9 +579,17 @@ extension Scanner {
         }
     }
     
+    public func scanString(_ string:String, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
+        if let str = scanString(string) {
+            ptr?.pointee = str
+            return true
+        }
+        return false
+    }
+    
     // These methods avoid calling the private API for _invertedSkipSet and manually re-construct them so that it is only usage of public API usage
     // Future implementations on Darwin of these methods will likely be more optimized to take advantage of the cached values.
-    public func scanString(string searchString: String) -> String? {
+    public func scanString(_ searchString: String) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -642,6 +650,14 @@ extension Scanner {
             return res
         }
         return nil
+    }
+    
+    public func scanUpToCharacters(from set: CharacterSet, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
+        if let result = scanUpToCharactersFromSet(set) {
+            ptr?.pointee = result
+            return true
+        }
+        return false
     }
     
     public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
