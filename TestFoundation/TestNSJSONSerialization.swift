@@ -18,7 +18,7 @@
 
 // Exposing internal ReadingOptions for tests.
 extension JSONSerialization.ReadingOptions {
-    fileprivate static let useReferenceNumericTypes = JSONSerialization.ReadingOptions(rawValue: 1 << 3)
+    fileprivate static let useReferenceNumericTypes = JSONSerialization.ReadingOptions(rawValue: 1 << 15)
 }
 
 class TestNSJSONSerialization : XCTestCase {

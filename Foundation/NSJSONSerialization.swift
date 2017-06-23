@@ -23,7 +23,7 @@ extension JSONSerialization {
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
-        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 3)
+        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 15)
     }
 
     public struct WritingOptions : OptionSet {
