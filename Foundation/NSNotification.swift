@@ -86,13 +86,14 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 }
 
 private class NSNotificationReceiver : NSObject {
-    fileprivate weak var object: NSObject?
+    fileprivate var object: Unmanaged<AnyObject>?
     fileprivate var name: Notification.Name?
     fileprivate var block: ((Notification) -> Void)?
     fileprivate var sender: AnyObject?
+    fileprivate var queue: OperationQueue?
 }
 
-extension Sequence where Iterator.Element : NSNotificationReceiver {
+extension Sequence where Iterator.Element == NSNotificationReceiver {
 
     /// Returns collection of `NSNotificationReceiver`.
     ///
@@ -103,8 +104,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
     ///
     fileprivate func filterOutObserver(_ observerToFilter: AnyObject, name:Notification.Name? = nil, object: Any? = nil) -> [Iterator.Element] {
         return self.filter { observer in
-
-            let differentObserver = observer.object !== observerToFilter
+            let differentObserver = observer.object?.toOpaque() == Unmanaged.passUnretained(observerToFilter).toOpaque()
             let nameSpecified = name != nil
             let differentName = observer.name != name
             let objectSpecified = object != nil
@@ -158,8 +158,13 @@ open class NotificationCenter: NSObject {
             guard let block = observer.block else {
                 continue
             }
-            
-            block(notification)
+            if let queue = observer.queue {
+                queue.addOperation {
+                    block(notification)
+                }
+            } else {
+                block(notification)
+            }
         }
     }
 
@@ -176,30 +181,34 @@ open class NotificationCenter: NSObject {
         guard let observer = observer as? NSObject else {
             return
         }
-
+        
         _observersLock.synchronized({
             self._observers = _observers.filterOutObserver(observer, name: aName, object: object)
         })
     }
     
     open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        if queue != nil {
-            NSUnimplemented()
-        }
-
-        let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
-        newObserver.object = object
+        if let o = obj {
+            if let object = o as? NSObject {
+                newObserver.object = Unmanaged.passUnretained(object)
+            } else {
+                let placeholder = NSObject() // this will emulate the structural box _SwiftValue that will be immediately deallocated after the property is assigned
+                newObserver.object = Unmanaged.passUnretained(placeholder)
+            }
+        }
+        
         newObserver.name = name
         newObserver.block = block
         newObserver.sender = _SwiftValue.store(obj)
-
+        newObserver.queue = queue
+        
         _observersLock.synchronized({
             _observers.append(newObserver)
         })
         
-        return object
+        return newObserver
     }
 
 }
