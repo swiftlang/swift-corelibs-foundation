@@ -522,3 +522,96 @@ open class URLSessionStreamTask : URLSessionTask {
 
 /* Key in the userInfo dictionary of an NSError received during a failed download. */
 public let URLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskResumeData"
+
+extension _ProtocolClient : URLProtocolClient {
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) {
+        `protocol`.task?.response = response
+    }
+
+    func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: task, didCompleteWithError: nil)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
+        case .noDelegate:
+            task.state = .completed
+            session.taskRegistry.remove(task)
+        case .dataCompletionHandler(let completion):
+            let data = Data()
+            guard let client = `protocol`.client else { fatalError() }
+            client.urlProtocol(`protocol`, didLoad: data)
+            return
+        case .downloadCompletionHandler(let completion):
+            session.delegateQueue.addOperation {
+                completion(task.currentRequest?.url, task.response, nil)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .dataCompletionHandler(let completion):
+            guard let s = task.session as? URLSession else { fatalError() }
+            s.delegateQueue.addOperation {
+                completion(data, task.response, nil)
+                task.state = .completed
+                s.taskRegistry.remove(task)
+            }
+        default: return
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, task: task, didCompleteWithError: error as Error)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
+        case .noDelegate:
+            task.state = .completed
+            session.taskRegistry.remove(task)
+        case .dataCompletionHandler(let completion):
+            session.delegateQueue.addOperation {
+                completion(nil, nil, error)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
+        case .downloadCompletionHandler(let completion):
+            session.delegateQueue.addOperation {
+                completion(nil, nil, error)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
+        }
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {
+        NSUnimplemented()
+    }
+
+    func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
+        NSUnimplemented()
+    }
+}
