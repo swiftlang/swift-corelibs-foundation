@@ -1107,6 +1107,13 @@ static inline void _CFNumberInit(CFNumberRef result, CFNumberType type, const vo
     __CFBitfieldSetValue(((struct __CFNumber *)result)->_base._cfinfo[CF_INFO_BITS], 4, 0, (uint8_t)__CFNumberTypeTable[type].canonicalType);
 }
 
+void _CFNumberInitInt128(CFNumberRef result, int64_t value) {
+    CFSInt128Struct int128value;
+    int128value.high = 0;
+    int128value.low = value;
+    _CFNumberInit(result, kCFNumberSInt128Type, &int128value);
+}
+
 void _CFNumberInitBool(CFNumberRef result, Boolean value) {
     _CFNumberInit(result, kCFNumberCharType, &value);
 }
@@ -1116,7 +1123,11 @@ void _CFNumberInitInt8(CFNumberRef result, int8_t value) {
 }
 
 void _CFNumberInitUInt8(CFNumberRef result, uint8_t value) {
-    _CFNumberInit(result, kCFNumberCharType, &value);
+    if (value > INT8_MAX) {
+        _CFNumberInitInt16(result, value);
+    } else {
+        _CFNumberInit(result, kCFNumberCharType, &value);
+    }
 }
 
 void _CFNumberInitInt16(CFNumberRef result, int16_t value) {
@@ -1124,7 +1135,11 @@ void _CFNumberInitInt16(CFNumberRef result, int16_t value) {
 }
 
 void _CFNumberInitUInt16(CFNumberRef result, uint16_t value) {
-    _CFNumberInit(result, kCFNumberShortType, &value);
+    if (value > INT16_MAX) {
+        _CFNumberInitInt32(result, value);
+    } else {
+        _CFNumberInit(result, kCFNumberShortType, &value);
+    }
 }
 
 void _CFNumberInitInt32(CFNumberRef result, int32_t value) {
@@ -1132,7 +1147,11 @@ void _CFNumberInitInt32(CFNumberRef result, int32_t value) {
 }
 
 void _CFNumberInitUInt32(CFNumberRef result, uint32_t value) {
-    _CFNumberInit(result, kCFNumberIntType, &value);
+    if (value > INT32_MAX) {
+        _CFNumberInitInt64(result, value);
+    } else {
+        _CFNumberInit(result, kCFNumberIntType, &value);
+    }
 }
 
 void _CFNumberInitInt(CFNumberRef result, long value) {
@@ -1140,7 +1159,22 @@ void _CFNumberInitInt(CFNumberRef result, long value) {
 }
 
 void _CFNumberInitUInt(CFNumberRef result, unsigned long value) {
-    _CFNumberInit(result, kCFNumberLongType, &value);
+    if (value > LONG_MAX) {
+        switch (sizeof(unsigned long)) {
+            case 4:
+                _CFNumberInitInt64(result, value);
+                break;
+
+            case 8:
+                _CFNumberInitInt128(result, value);
+                break;
+
+            default:
+                CFAssert1(false, __kCFLogAssertion, "Unexpected unsigned long type size: %d", sizeof(unsigned long));
+        }
+    } else {
+        _CFNumberInit(result, kCFNumberLongType, &value);
+    }
 }
 
 void _CFNumberInitInt64(CFNumberRef result, int64_t value) {
@@ -1148,7 +1182,11 @@ void _CFNumberInitInt64(CFNumberRef result, int64_t value) {
 }
 
 void _CFNumberInitUInt64(CFNumberRef result, uint64_t value) {
-    _CFNumberInit(result, kCFNumberLongLongType, &value);
+    if (value > INT64_MAX) {
+        _CFNumberInitInt128(result, value);
+    } else {
+        _CFNumberInit(result, kCFNumberLongLongType, &value);
+    }
 }
 
 void _CFNumberInitFloat(CFNumberRef result, float value) {
