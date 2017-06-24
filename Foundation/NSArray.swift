@@ -238,7 +238,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         objects.reserveCapacity(objects.count + range.length)
 
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
-            objects += _storage[range.toRange()!].map { _SwiftValue.fetch(nonOptional: $0) }
+            objects += _storage[Range(range)!].map { _SwiftValue.fetch(nonOptional: $0) }
             return
         }
         
@@ -495,7 +495,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return []
         }
 
-        let swiftRange = range.toRange()!
+        let swiftRange = Range(range)!
         return allObjects[swiftRange].sorted { lhs, rhs in
             return cmptr(lhs, rhs) == .orderedAscending
         }
@@ -784,7 +784,7 @@ open class NSMutableArray : NSArray {
     
     open func removeObjects(in range: NSRange) {
         if type(of: self) === NSMutableArray.self {
-            _storage.removeSubrange(range.toRange()!)
+            _storage.removeSubrange(Range(range)!)
         } else {
             for idx in range.toCountableRange()!.reversed() {
                 removeObject(at: idx)
