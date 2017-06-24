@@ -12,6 +12,7 @@
 		159884921DCC877700E3314C /* TestNSHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestNSHTTPCookieStorage.swift */; };
 		231503DB1D8AEE5D0061694D /* TestNSDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
+		2DEB51331EFE4BCA00B0579C /* zh_CN.lproj in Resources */ = {isa = PBXBuildFile; fileRef = 2DEB51321EFE4BCA00B0579C /* zh_CN.lproj */; };
 		2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */; };
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
@@ -481,6 +482,7 @@
 		22B9C1E01C165D7A00DECFF9 /* TestNSDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDate.swift; sourceTree = "<group>"; };
 		231503DA1D8AEE5D0061694D /* TestNSDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
+		2DEB51321EFE4BCA00B0579C /* zh_CN.lproj */ = {isa = PBXFileReference; lastKnownFileType = folder; path = zh_CN.lproj; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateFormatter.swift; sourceTree = "<group>"; };
 		400E22641C1A4E58007C5933 /* TestProcessInfo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestProcessInfo.swift; sourceTree = "<group>"; };
 		4AE109261C17CCBF007367B5 /* TestNSIndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSIndexPath.swift; sourceTree = "<group>"; };
@@ -1369,6 +1371,7 @@
 		EA66F6391BF1619600136161 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2DEB51321EFE4BCA00B0579C /* zh_CN.lproj */,
 				D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */,
 				D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */,
 				D3E8D6D21C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist */,
@@ -2063,6 +2066,7 @@
 				B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */,
 				D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
 				D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
+				2DEB51331EFE4BCA00B0579C /* zh_CN.lproj in Resources */,
 				D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
 				D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */,
 				D3A597F71C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,

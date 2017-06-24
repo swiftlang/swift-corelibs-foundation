@@ -89,7 +89,7 @@ class TestBundle : XCTestCase {
         XCTAssert("TestFoundation" == info!["CFBundleName"] as! String)
         
         // localizedInfoDictionary
-        XCTAssertNil(bundle.localizedInfoDictionary) // FIXME: Add a localized Info.plist for testing
+        XCTAssertNotNil(bundle.localizedInfoDictionary)
     }
     
     func test_localizations() {
