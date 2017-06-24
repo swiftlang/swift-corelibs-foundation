@@ -321,6 +321,12 @@ class TestJSONEncoder : XCTestCase {
     // MARK: - Test encoding and decoding of built-in Codable types
     func test_codingOfBool() {
         test_codingOf(value: Bool(true), toAndFrom: "true")
+        test_codingOf(value: Bool(false), toAndFrom: "false")
+
+        do {
+            _ = try JSONDecoder().decode([Bool].self, from: "[1]".data(using: .utf8)!)
+            XCTFail("Coercing non-boolean numbers into Bools was expected to fail")
+        } catch { }
     }
 
     func test_codingOfInt8() {

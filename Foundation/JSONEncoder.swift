@@ -1615,24 +1615,12 @@ extension _JSONDecoder {
         guard let value = value else { return nil }
         guard !(value is NSNull) else { return nil }
 
-        //        if let number = value as? NSNumber {
-        //            // TODO: Add a flag to coerce non-boolean numbers into Bools?
-        //            if number === kCFBooleanTrue as NSNumber {
-        //                return true
-        //            } else if number === kCFBooleanFalse as NSNumber {
-        //                return false
-        //            }
-        //
-        //            /* FIXME: If swift-corelibs-foundation doesn't change to use NSNumber, this code path will need to be included and tested:
-        //             } else if let bool = value as? Bool {
-        //             return bool
-        //             */
-        //
-        //        }
-        //
-        //        throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
-
         guard let number = value as? NSNumber else {
+            throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
+        }
+
+        // TODO: Add a flag to coerce non-boolean numbers into Bools?
+        guard number._objCType == .Bool else {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
 
