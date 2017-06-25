@@ -543,13 +543,14 @@ extension _ProtocolClient : URLProtocolClient {
             task.state = .completed
             session.taskRegistry.remove(task)
         case .dataCompletionHandler(let completion):
-            let data = Data()
-            guard let client = `protocol`.client else { fatalError() }
-            client.urlProtocol(`protocol`, didLoad: data)
-            return
+            session.delegateQueue.addOperation {
+                completion(`protocol`.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
+                task.state = .completed
+                session.taskRegistry.remove(task)
+            }
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
-                completion(task.currentRequest?.url, task.response, nil)
+                completion(`protocol`.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
                 task.state = .completed
                 session.taskRegistry.remove(task)
             }
@@ -565,18 +566,8 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
-        guard let task = `protocol`.task else { fatalError() }
-        guard let session = task.session as? URLSession else { fatalError() }
-        switch session.behaviour(for: task) {
-        case .dataCompletionHandler(let completion):
-            guard let s = task.session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                completion(data, task.response, nil)
-                task.state = .completed
-                s.taskRegistry.remove(task)
-            }
-        default: return
-        }
+        `protocol`.properties[.responseData] = data
+        //TODO: this method needs to be extended to call the urlSession(_:dataTask:didReceive:)
     }
 
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
@@ -613,5 +604,12 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
         NSUnimplemented()
+    }
+}
+
+extension URLProtocol {
+    enum _PropertyKey: String {
+        case responseData
+        case temporaryFileURL
     }
 }
