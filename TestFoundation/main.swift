@@ -96,4 +96,5 @@ XCTMain([
     testCase(TestObjCRuntime.allTests),
     testCase(TestNotification.allTests),
     testCase(TestMassFormatter.allTests),
+    testCase(TestJSONEncoder.allTests),
 ])
