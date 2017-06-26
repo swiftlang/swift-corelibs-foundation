@@ -191,7 +191,7 @@ open class URLSession : NSObject {
     internal let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
     fileprivate var invalidated = false
-    fileprivate static let registerProtocols = {
+    fileprivate static let registerProtocols: () = {
 	// TODO: We register all the native protocols here.
         let _ = URLProtocol.registerClass(_HTTPURLProtocol.self)
     }()
