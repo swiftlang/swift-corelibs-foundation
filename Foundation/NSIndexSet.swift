@@ -30,31 +30,31 @@ The following code snippets can be used to enumerate over the indexes in an NSIn
 To enumerate without doing a call per index, you can use the method getIndexes:maxCount:inIndexRange:.
 */
 
-internal func __NSIndexSetRangeCount(_ indexSet: NSIndexSet) -> UInt {
-    return UInt(indexSet._ranges.count)
+internal func __NSIndexSetRangeCount(_ indexSet: NSIndexSet) -> Int {
+    return indexSet._ranges.count
 }
 
-internal func __NSIndexSetRangeAtIndex(_ indexSet: NSIndexSet, _ index: UInt, _ location : UnsafeMutablePointer<UInt>, _ length : UnsafeMutablePointer<UInt>) {
+internal func __NSIndexSetRangeAtIndex(_ indexSet: NSIndexSet, _ index: Int, _ location : UnsafeMutablePointer<Int>, _ length : UnsafeMutablePointer<Int>) {
 //    if Int(index) >= indexSet._ranges.count {
 //        location.pointee = UInt(bitPattern: NSNotFound)
 //        length.pointee = UInt(0)
 //        return
 //    }
     let range = indexSet._ranges[Int(index)]
-    location.pointee = UInt(range.location)
-    length.pointee = UInt(range.length)
+    location.pointee = range.location
+    length.pointee = range.length
 }
 
-internal func __NSIndexSetIndexOfRangeContainingIndex(_ indexSet: NSIndexSet, _ index: UInt) -> UInt {
+internal func __NSIndexSetIndexOfRangeContainingIndex(_ indexSet: NSIndexSet, _ index: Int) -> Int {
     var idx = 0
     while idx < indexSet._ranges.count {
         let range = indexSet._ranges[idx]
-        if range.location <= Int(index) && Int(index) <= range.location + range.length {
-            return UInt(idx)
+        if range.location <= index && index <= range.location + range.length {
+            return idx
         }
         idx += 1
     }
-    return UInt(bitPattern: NSNotFound)
+    return NSNotFound
 }
 
 open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
@@ -93,8 +93,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
         let set = NSMutableIndexSet()
-        enumerateRanges(options: []) {
-            set.add(in: $0.0)
+        enumerateRanges(options: []) { (range, _) in
+            set.add(in: range)
         }
         return set
     }
@@ -162,7 +162,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return (min, _ranges[min])
     }
     
-    internal func _indexOfRangeContainingIndex (_ idx : Int) -> Int? {
+    internal func _indexOfRangeContainingIndex(_ idx : Int) -> Int? {
         if let (rIdx, range) = _indexAndRangeAdjacentToOrContainingIndex(idx) {
             return NSLocationInRange(idx, range) ? rIdx : nil
         } else {
@@ -400,7 +400,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 lock.unlock()
                 if stop { return }
                 
-                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: IntMax(rangeIdx))
+                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: Int64(rangeIdx))
                 let curRange = rangeSequence[idx]
                 let intersection = NSIntersectionRange(curRange, range)
                 if passRanges {
@@ -580,66 +580,78 @@ open class NSMutableIndexSet : NSIndexSet {
         }
     }
     
-    internal func _mergeOverlappingRangesStartingAtIndex(_ index: Int) {
-        var rangeIndex = index
-        while !_ranges.isEmpty && rangeIndex < _ranges.count - 1 {
-            let curRange = _ranges[rangeIndex]
-            let nextRange = _ranges[rangeIndex + 1]
-            let curEnd = NSMaxRange(curRange)
-            let nextEnd = NSMaxRange(nextRange)
-            if curEnd >= nextRange.location {
-                // overlaps
-                if curEnd < nextEnd {
-                    self._replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(nextEnd - curRange.location, curRange.length))
-                    rangeIndex += 1
-                }
-                self._replaceRangeAtIndex(rangeIndex + 1, withRange: nil)
-            } else {
-                break
-            }
-        }
+    internal func _removeRangeAtIndex(_ index: Int) {
+        let range = _ranges.remove(at: index)
+        _count -= range.length
     }
     
-    open func add(in range: NSRange) {
-        guard range.length > 0 else {
-            return
-        }
-        let addEnd = NSMaxRange(range)
-        let startRangeIndex = _indexOfRangeBeforeOrContainingIndex(range.location) ?? 0
-        var replacedRangeIndex : Int?
-        var rangeIndex = startRangeIndex
-        while rangeIndex < _ranges.count {
-            let curRange = _ranges[rangeIndex]
-            let curEnd = NSMaxRange(curRange)
-            if addEnd < curRange.location {
-                _insertRange(range, atIndex: rangeIndex)
-                // Done. No need to merge
-                return
-            } else if range.location < curRange.location && addEnd >= curRange.location {
-                if addEnd > curEnd {
-                    _replaceRangeAtIndex(rangeIndex, withRange: range)
+    internal func _mergeOverlappingRangesStartingAtIndex(_ index: Int) {
+        var rangeIndex = index
+        
+        while _ranges.count > 0 && rangeIndex < _ranges.count - 1 {
+            var currentRange = _ranges[rangeIndex]
+            let nextRange = _ranges[rangeIndex + 1]
+            let currentEnd = currentRange.location + currentRange.length
+            let nextEnd = nextRange.location + nextRange.length
+            if nextEnd >= nextRange.location {
+                // overlaps
+                if currentEnd < nextEnd {
+                    // next range extends beyond current range
+                    currentRange.length = nextEnd - currentRange.location
+                    _replaceRangeAtIndex(rangeIndex, withRange: currentRange)
+                    _removeRangeAtIndex(rangeIndex + 1)
                 } else {
-                    _replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(range.location, curEnd - range.location))
+                    _replaceRangeAtIndex(rangeIndex + 1, withRange: nil)
+                    continue
                 }
-                replacedRangeIndex = rangeIndex
-                // Proceed to merging
-                break
-            } else if range.location >= curRange.location && addEnd < curEnd {
-                // Nothing to add
-                return
-            } else if range.location >= curRange.location && range.location <= curEnd && addEnd > curEnd {
-                _replaceRangeAtIndex(rangeIndex, withRange: NSMakeRange(curRange.location, addEnd - curRange.location))
-                replacedRangeIndex = rangeIndex
-                // Proceed to merging
+            } else {
                 break
             }
             rangeIndex += 1
         }
-        if let r = replacedRangeIndex {
-            _mergeOverlappingRangesStartingAtIndex(r)
-        } else {
+    }
+    
+    open func add(in r: NSRange) {
+        var range = r
+        guard range.length > 0 else {
+            return
+        }
+        let addEnd = range.location + range.length
+        let startRangeIndex = _indexOfRangeBeforeOrContainingIndex(range.location) ?? 0
+        var rangeIndex = startRangeIndex
+        while rangeIndex < _ranges.count {
+            var currentRange = _ranges[rangeIndex]
+            let currentEnd = currentRange.location + currentRange.length
+            if addEnd < currentRange.location {
+                // new separate range
+                _insertRange(range, atIndex: rangeIndex)
+                return
+            } else if (range.location < currentRange.location) && (addEnd >= currentRange.location) {
+                if addEnd > currentEnd {
+                    // add range contains range in array
+                    _replaceRangeAtIndex(rangeIndex, withRange: range)
+                } else {
+                    // overlaps at start, add range ends within range in array
+                    range.length = currentEnd - range.location
+                    _replaceRangeAtIndex(rangeIndex, withRange: range)
+                }
+                break
+            } else if (range.location >= currentRange.location) && (addEnd <= currentEnd) {
+                // Nothing to add
+                return
+            } else if (range.location >= currentRange.location) && (range.location <= currentEnd) && (addEnd > currentEnd) {
+                // overlaps at end (extends)
+                currentRange.length = addEnd - currentRange.location
+                _replaceRangeAtIndex(rangeIndex, withRange: currentRange)
+                break
+            }
+            rangeIndex += 1
+        }
+        if rangeIndex == _ranges.count {
             _insertRange(range, atIndex: _ranges.count)
         }
+        
+        _mergeOverlappingRangesStartingAtIndex(rangeIndex)
     }
     
     open func remove(in range: NSRange) {
@@ -680,9 +692,99 @@ open class NSMutableIndexSet : NSIndexSet {
         
     }
     
+    internal func _increment(by amount: Int, startingAt value: Int) {
+        var range: NSRange
+        var newRange: NSRange?
+        if amount > 0 {
+            if let rIdx = _indexOfRangeAfterOrContainingIndex(value) {
+                var rangeIndex = rIdx
+                
+                range = _ranges[rangeIndex]
+                if value > range.location {
+                    
+                    let newLength = range.location + range.length - value
+                    let newLocation = value + amount
+                    newRange = NSRange(location: newLocation, length: newLength) // new second piece
+                    
+                    range.length = value - range.location
+                    _replaceRangeAtIndex(rangeIndex, withRange: range) // new first piece
+                    rangeIndex += 1
+                }
+                
+                while rangeIndex < _ranges.count {
+                    range = _ranges[rangeIndex]
+                    range.location += amount
+                    _replaceRangeAtIndex(rangeIndex, withRange: range)
+                    rangeIndex += 1
+                }
+                
+                // add newly created range (second piece) if necessary
+                if let range = newRange {
+                    add(in: range)
+                }
+            }
+            
+        }
+    }
+    
+    internal func _removeAndDecrement(by amount: Int, startingAt value: Int) {
+        if amount > 0 {
+            if let rIdx = _indexOfRangeAfterOrContainingIndex(value) {
+                var rangeIndex = rIdx
+                let firstRangeToMerge = rangeIndex > 0 ? rangeIndex - 1 : rangeIndex
+                let removeEnd = value + amount - 1
+                while rangeIndex < _ranges.count {
+                    var range = _ranges[rangeIndex]
+                    let rangeEnd = range.location + range.length - 1
+                    if removeEnd < range.location {
+                        // removal occurs before range -> reduce location of range
+                        range.location -= amount
+                        _replaceRangeAtIndex(rangeIndex, withRange: range)
+                    } else if (range.location >= value) && (rangeEnd <= removeEnd) {
+                        // removal encompasses entire range -> remove range
+                        _removeRangeAtIndex(rangeIndex)
+                        continue // do not increase rangeIndex
+                    } else if (value >= range.location) && (removeEnd <= rangeEnd) {
+                        // removal occurs completely within range -> reduce length of range
+                        range.length -= amount
+                        _replaceRangeAtIndex(rangeIndex, withRange: range)
+                    } else if (removeEnd >= range.location) && (removeEnd <= rangeEnd) {
+                        // removal occurs within part of range, beginning of range removed -> reduce location and length
+                        let reduction = removeEnd - range.location + 1
+                        range.length -= reduction
+                        if range.length > 0 {
+                            range.location -= amount - reduction
+                            _replaceRangeAtIndex(rangeIndex, withRange: range)
+                        } else {
+                            _removeRangeAtIndex(rangeIndex)
+                            continue // do not increase rangeIndex
+                        }
+                    } else if (value >= range.location) && (value <= rangeEnd) {
+                        // removal occurs within part of range, end of range removed -> reduce length
+                        let reduction = rangeEnd - value + 1
+                        if reduction > 0 {
+                            range.length -= reduction
+                            _replaceRangeAtIndex(rangeIndex, withRange: range)
+                        }
+                    }
+                    rangeIndex += 1
+                }
+                _mergeOverlappingRangesStartingAtIndex(firstRangeToMerge)
+            }
+        }
+    }
+    
     /* For a positive delta, shifts the indexes in [index, INT_MAX] to the right, thereby inserting an "empty space" [index, delta], for a negative delta, shifts the indexes in [index, INT_MAX] to the left, thereby deleting the indexes in the range [index - delta, delta].
     */
-    open func shiftIndexesStarting(at index: Int, by delta: Int) { NSUnimplemented() }
+    open func shiftIndexesStarting(at index: Int, by delta: Int) {
+        if delta > 0 {
+            _increment(by: delta, startingAt: index)
+        } else {
+            let positiveDelta = -delta
+            let idx = positiveDelta > index ? positiveDelta : index
+            _removeAndDecrement(by: positiveDelta, startingAt: idx - positiveDelta)
+        }
+    }
 }
 
 extension NSIndexSet : _StructTypeBridgeable {
