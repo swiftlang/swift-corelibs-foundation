@@ -569,7 +569,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     open func range(of dataToFind: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
         let dataToFind = dataToFind._nsObject
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
-        guard let searchRange = searchRange.toRange() else {fatalError("invalid range")}
+        guard let searchRange = Range(searchRange) else {fatalError("invalid range")}
         
         precondition(searchRange.upperBound <= self.length, "range outside the bounds of data")
 
