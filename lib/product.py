@@ -179,10 +179,10 @@ class StaticLibrary(Library):
         Library.__init__(self, name)
         self.name = name
 
-    def generate(self):
+    def generate(self, objects = []):
         self.rule = "Archive"
         self.product_name = Configuration.current.target.static_library_prefix + self.name + Configuration.current.target.static_library_suffix
-        return Library.generate(self, [])
+        return Library.generate(self, [], objects)
 
 class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
     def __init__(self, name):
@@ -190,9 +190,9 @@ class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
         DynamicLibrary.__init__(self, name)
 
     def generate(self):
-        objects, generatedForStatic = StaticLibrary.generate(self)
-        _, generatedForDynamic = DynamicLibrary.generate(self, objects)
-        return generatedForStatic + generatedForDynamic
+        objects, generatedForDynamic = DynamicLibrary.generate(self)
+        _, generatedForStatic = StaticLibrary.generate(self, objects)
+        return generatedForDynamic + generatedForStatic
 
 class Executable(Product):
     def __init__(self, name):

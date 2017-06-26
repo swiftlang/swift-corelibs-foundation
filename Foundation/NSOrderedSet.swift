@@ -553,7 +553,7 @@ extension NSMutableOrderedSet {
             NSUnimplemented()
         }
 
-        let swiftRange = range.toRange()!
+        let swiftRange = Range(range)!
         _orderedStorage[swiftRange].sort { lhs, rhs in
             return cmptr(_SwiftValue.fetch(nonOptional: lhs), _SwiftValue.fetch(nonOptional: rhs)) == .orderedAscending
         }
