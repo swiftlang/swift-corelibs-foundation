@@ -124,8 +124,13 @@ internal final class _HTTPBodyFileSource {
         var fileSystemRepresentation: UnsafePointer<Int8>! = nil
         fileURL.withUnsafeFileSystemRepresentation {
             fileSystemRepresentation = $0
-        } 
-        self.channel = DispatchIO(type: .stream, path: fileSystemRepresentation, oflag: O_RDONLY, mode: 0, queue: workQueue, cleanupHandler: {_ in })
+        }
+        guard let channel = DispatchIO(type: .stream, path: fileSystemRepresentation,
+                                       oflag: O_RDONLY, mode: 0, queue: workQueue,
+                                       cleanupHandler: {_ in }) else {
+            fatalError("Cant create DispatchIO channel")
+        }
+        self.channel = channel
         self.channel.setLimit(highWater: CFURLSessionMaxWriteSize)
     }
 

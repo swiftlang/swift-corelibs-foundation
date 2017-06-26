@@ -172,8 +172,8 @@ build """ + self.output.relative() + """: CompileSwift """ + self.path.relative(
         generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
         generated += " -I" + Configuration.current.build_directory.relative()
         swiftflags = TargetConditional.value(self.product.SWIFTCFLAGS)
-        # Force building in Swift 3 compatibility mode.
-        swiftflags += " -swift-version 3"
+        # Force building in Swift 4 compatibility mode.
+        swiftflags += " -swift-version 4"
         if swiftflags is not None:
             generated += " " + swiftflags
         return generated
@@ -431,10 +431,10 @@ class SwiftExecutable(BuildPhase):
             if resource is None:
                 continue
             swiftSources += " " + resource.relative()
-        # Note: Fix -swift-version 3 for now.
+        # Note: Fix -swift-version 4 for now.
         return """
 build """ + appName + """: SwiftExecutable """ + swiftSources + self.generate_dependencies(libDependencyName) + """
-    flags = -swift-version 3 -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
+    flags = -swift-version 4 -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
 build """ + self.executableName + """: phony | """ + appName + """
 """
 

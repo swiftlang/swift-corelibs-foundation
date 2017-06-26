@@ -93,8 +93,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
         let set = NSMutableIndexSet()
-        enumerateRanges(options: []) {
-            set.add(in: $0.0)
+        enumerateRanges(options: []) { (range, _) in
+            set.add(in: range)
         }
         return set
     }
@@ -400,7 +400,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 lock.unlock()
                 if stop { return }
                 
-                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: IntMax(rangeIdx))
+                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: Int64(rangeIdx))
                 let curRange = rangeSequence[idx]
                 let intersection = NSIntersectionRange(curRange, range)
                 if passRanges {
