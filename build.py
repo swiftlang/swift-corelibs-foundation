@@ -464,6 +464,7 @@ foundation.add_phase(swift_sources)
 
 foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/Info.plist',
+    'TestFoundation/Resources/zh_CN.lproj/InfoPlist.strings',
     'TestFoundation/Resources/NSURLTestData.plist',
     'TestFoundation/Resources/Test.plist',
     'TestFoundation/Resources/NSStringTestData.txt',
