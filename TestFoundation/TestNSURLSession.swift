@@ -39,6 +39,7 @@ class TestURLSession : XCTestCase {
             ("test_timeoutInterval", test_timeoutInterval),
             ("test_customProtocol", test_customProtocol),
             ("test_httpRedirection", test_httpRedirection),
+            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
         ]
     }
     
@@ -349,6 +350,23 @@ class TestURLSession : XCTestCase {
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "data task"))
         d.run(with: url)
+        waitForExpectations(timeout: 12)
+    }
+
+    func test_httpRedirectionTimeout() {
+        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates")!)
+        req.timeoutInterval = 3
+        let config = URLSessionConfiguration.default
+        var expect = expectation(description: "download task with handler")
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let task = session.dataTask(with: req) { data, response, error in
+            defer { expect.fulfill() }
+            if let e = error as? URLError {
+                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
+                return
+            }
+        }
+        task.resume()
         waitForExpectations(timeout: 12)
     }
 }

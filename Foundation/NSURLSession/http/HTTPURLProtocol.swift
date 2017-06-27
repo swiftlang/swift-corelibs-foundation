@@ -901,6 +901,8 @@ internal extension _HTTPURLProtocol {
         components.path = targetURL.relativeString
         guard let urlString = components.string else { fatalError("Invalid URL") }
         request.url = URL(string: urlString)
+        let timeSpent = easyHandle.getTimeoutIntervalSpent()
+        request.timeoutInterval = fromRequest.timeoutInterval - timeSpent
 	return request
     }
 }
