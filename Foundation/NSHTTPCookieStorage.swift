@@ -150,8 +150,16 @@ open class HTTPCookieStorage: NSObject {
             }
 
             //remove stale cookies, these may include the one we just added
-            let expired = allCookies.filter { (_, value) in value.expiresDate != nil && value.expiresDate!.timeIntervalSinceNow < 0 }
-            for (key,_) in expired {
+            var expired = [String]()
+            for (key, value) in allCookies {
+                if let expiration = value.expiresDate {
+                    if expiration.timeIntervalSinceNow < 0 {
+                        expired.append(key)
+                    }
+                }
+            }
+            
+            for key in expired {
                 self.allCookies.removeValue(forKey: key)
             }
 
@@ -175,12 +183,16 @@ open class HTTPCookieStorage: NSObject {
     private func updatePersistentStore() {
         //persist cookies
         var persistDictionary: [String : [String : Any]] = [:]
-        let persistable = allCookies.filter { (_, value) in
-            value.expiresDate != nil &&
-            value.isSessionOnly == false &&
-            value.expiresDate!.timeIntervalSinceNow > 0
+        var persistable = [String : HTTPCookie]()
+        for (key, value) in allCookies {
+            if value.isSessionOnly == false {
+                if let expiration = value.expiresDate {
+                    if expiration.timeIntervalSinceNow > 0 {
+                        persistable[key] = value
+                    }
+                }
+            }
         }
-
         for (key,cookie) in persistable {
             persistDictionary[key] = cookie.persistableDictionary()
         }

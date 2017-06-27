@@ -121,13 +121,14 @@ open class UserDefaults: NSObject {
             case convErr
         }
         do {
-            let dVal = try cVal.map({ (key, val) -> (String, Any) in
+            var dVal = [String : Any]()
+            for (key, value) in cVal {
                 if let strKey = key as? NSString {
-                    return (strKey._swiftObject, val)
+                    dVal[strKey._swiftObject] = value
                 } else {
                     throw convErr.convErr
                 }
-            })
+            }
             var eVal = [String : Any]()
             
             for (key, value) in dVal {

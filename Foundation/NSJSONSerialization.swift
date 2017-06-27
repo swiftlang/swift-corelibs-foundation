@@ -684,13 +684,22 @@ private struct JSONReader {
         }
         return index
     }
-
-    func takeMatching(_ match: @escaping (UInt8) -> Bool) -> ([Character], Index) -> ([Character], Index)? {
-        return { input, index in
-            guard let (byte, index) = self.source.takeASCII(index), match(byte) else {
+    
+    struct CharactersAtIndex {
+        var characters: [Character]
+        var index: Index
+        init(_ characters: [Character], _ index: Index) {
+            self.characters = characters
+            self.index = index
+        }
+    }
+    
+    func takeMatching(_ match: @escaping (UInt8) -> Bool) -> (CharactersAtIndex) -> CharactersAtIndex? {
+        return { input in
+            guard let (byte, index) = self.source.takeASCII(input.index), match(byte) else {
                 return nil
             }
-            return (input + [Character(UnicodeScalar(byte))], index)
+            return CharactersAtIndex(input.characters + [Character(UnicodeScalar(byte))], index)
         }
     }
 
@@ -785,11 +794,11 @@ private struct JSONReader {
     }
     func parseCodeUnit(_ input: Index) -> (UTF16.CodeUnit, Index)? {
         let hexParser = takeMatching(isHexChr)
-        guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
-            let value = Int(String(result), radix: 16) else {
+        guard let result = hexParser(CharactersAtIndex([], input)).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
+            let value = Int(String(result.characters), radix: 16) else {
                 return nil
         }
-        return (UTF16.CodeUnit(value), index)
+        return (UTF16.CodeUnit(value), result.index)
     }
     
     //MARK: - Number parsing

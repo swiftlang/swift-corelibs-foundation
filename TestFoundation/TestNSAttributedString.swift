@@ -232,7 +232,11 @@ fileprivate extension TestNSAttributedString {
     
     fileprivate func describe(attrs: [String : Any]) -> String {
         if attrs.count > 0 {
-            return "[" + attrs.map({ "\($0):\($1)" }).sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
+            var attributeDescriptions = [String]()
+            for (key, value) in attrs {
+                attributeDescriptions.append("\(key):\(value)")
+            }
+            return "[" + attributeDescriptions.sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
         } else {
             return "[:]"
         }
