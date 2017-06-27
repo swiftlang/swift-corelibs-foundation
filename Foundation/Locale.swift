@@ -221,7 +221,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     /// -seealso: MeasurementFormatter
     public var usesMetricSystem: Bool {
         // NSLocale should not return nil here, but just in case
-        if let result = (_wrapped.object(forKey: .usesMetricSystem) as? NSNumber)?.boolValue {
+        if let result = _wrapped.object(forKey: .usesMetricSystem) as? Bool {
             return result
         } else {
             return false
