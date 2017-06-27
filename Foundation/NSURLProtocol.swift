@@ -159,6 +159,9 @@ open class URLProtocol : NSObject {
 
     private static var _registeredProtocolClasses = [AnyClass]()
     private static var _classesLock = NSLock()
+
+    //TODO: The right way to do this is using URLProtocol.property(forKey:in) and URLProtocol.setProperty(_:forKey:in)
+    var properties: [URLProtocol._PropertyKey: Any] = [:]
     /*! 
         @method initWithRequest:cachedResponse:client:
         @abstract Initializes an NSURLProtocol given request, 
