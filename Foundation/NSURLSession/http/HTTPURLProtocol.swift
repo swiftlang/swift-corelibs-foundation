@@ -679,10 +679,10 @@ extension _HTTPURLProtocol {
             }
             self.client?.urlProtocol(self, didLoad: data)
             self.internalState = .taskCompleted
-            return
         }
 
-        if case .toFile(_, let fileHandle?) = bodyDataDrain {
+        if case .toFile(let url, let fileHandle?) = bodyDataDrain {
+            self.properties[.temporaryFileURL] = url
             fileHandle.closeFile()
         }
         self.client?.urlProtocolDidFinishLoading(self)
