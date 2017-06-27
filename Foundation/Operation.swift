@@ -48,7 +48,13 @@ open class Operation : NSObject {
     }
     
     open func start() {
+        lock.lock()
+        _executing = true
+        lock.unlock()
         main()
+        lock.lock()
+        _executing = false
+        lock.unlock()
         finish()
     }
     
@@ -85,7 +91,12 @@ open class Operation : NSObject {
     }
     
     open var isExecuting: Bool {
-        return _executing
+        let wasExecuting: Bool
+        lock.lock()
+        wasExecuting = _executing
+        lock.unlock()
+
+        return wasExecuting
     }
     
     open var isFinished: Bool {
