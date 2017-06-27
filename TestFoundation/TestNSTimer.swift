@@ -59,7 +59,7 @@ class TestNSTimer : XCTestCase {
             XCTAssertEqual(timer.timeInterval, interval)
 
             let currentInterval = Date().timeIntervalSince1970
-            XCTAssertEqual(currentInterval, previousInterval + interval, accuracy: 0.01)
+            XCTAssertEqual(currentInterval, previousInterval + interval, accuracy: 0.2)
             previousInterval = currentInterval
             
             flag += 1
