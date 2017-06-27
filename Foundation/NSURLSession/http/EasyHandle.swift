@@ -240,9 +240,16 @@ extension _EasyHandle {
         try! CFURLSession_easy_setopt_int64(rawHandle, CFURLSessionOptionINFILESIZE_LARGE, length).asError()
     }
 
-   func set(timeout value: Int) {
+    func set(timeout value: Int) {
        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, value).asError()
-   }
+    }
+
+    func getTimeoutIntervalSpent() -> Double {
+        var timeSpent = Double()
+        CFURLSession_easy_getinfo_double(rawHandle, CFURLSessionInfoTOTAL_TIME, &timeSpent)
+        return timeSpent / 1000
+    }
+
 }
 
 fileprivate func printLibcurlDebug(handle: CFURLSessionEasyHandle, type: CInt, data: UnsafeMutablePointer<Int8>, size: Int, userInfo: UnsafeMutableRawPointer?) -> CInt {
