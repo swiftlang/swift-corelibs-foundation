@@ -246,7 +246,7 @@ extension NSRegularExpression {
     */
     public func stringByReplacingMatches(in string: String, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> String {
         var str: String = ""
-        let length = string.length
+        let length = string.utf16.count
         var previousRange = NSMakeRange(0, 0)
         let results = matches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         let start = string.utf16.startIndex
@@ -282,7 +282,7 @@ extension NSRegularExpression {
             currentRange.location += offset
             
             string.replaceCharacters(in: currentRange, with: replacement)
-            offset += replacement.length - currentRange.length
+            offset += replacement.utf16.count - currentRange.length
             count += 1
         }
         return count

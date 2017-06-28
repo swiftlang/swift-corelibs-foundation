@@ -34,7 +34,14 @@ internal class NSThreadSpecific<T: NSObject> {
         }
     }
     
-    internal func set(_ value: T) {
+    internal func get() -> T? {
+        guard let specific = _CFThreadSpecificGet(key) else {
+            return nil
+        }
+        return _unsafeReferenceCast(specific, to: T.self)
+    }
+    
+    internal func set(_ value: T?) {
         _compiler_crash_fix(key, value)
     }
 }

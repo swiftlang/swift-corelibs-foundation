@@ -36,6 +36,10 @@
 OBJC_EXPORT void *objc_destructInstance(id obj);
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+extern void swift_retain(void *);
+extern void swift_release(void *);
+#endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <Shellapi.h>
@@ -599,6 +603,11 @@ CFTypeRef _CFNonObjCRetain(CFTypeRef cf) {
 
 CFTypeRef CFRetain(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRetain() called with NULL ***"); HALT; }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    // We always call through to swift_retain, since all CFTypeRefs are at least _NSCFType objects
+    swift_retain((void *)cf);
+    return cf;
+#endif
     if (cf) __CFGenericAssertIsCF(cf);
     return _CFRetain(cf, false);
 }
@@ -617,6 +626,11 @@ void _CFNonObjCRelease(CFTypeRef cf) {
 
 void CFRelease(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRelease() called with NULL ***"); HALT; }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    // We always call through to swift_retain, since all CFTypeRefs are at least _NSCFType objects
+    swift_release((void *)cf);
+    return;
+#endif
 #if 0
     void **addrs[2] = {&&start, &&end};
     start:;
@@ -1274,11 +1288,6 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 static bool (*CAS64)(int64_t, int64_t, volatile int64_t *) = OSAtomicCompareAndSwap64Barrier;
 #else
 static bool (*CAS32)(int32_t, int32_t, volatile int32_t *) = OSAtomicCompareAndSwap32Barrier;
-#endif
-
-#if DEPLOYMENT_RUNTIME_SWIFT
-extern void swift_retain(void *);
-extern void swift_release(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".

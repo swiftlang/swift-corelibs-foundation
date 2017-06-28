@@ -187,7 +187,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount();
 #if defined(DEBUG)
     #define CFAssert(cond, prio, desc) do { if (!(cond)) { CFLog(prio, CFSTR(desc)); /* HALT; */ } } while (0)
     #define CFAssert1(cond, prio, desc, a1) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1); /* HALT; */ } } while (0)
-    #define CFAssert2(cond, prio, desc, a1, a2) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2); /* HALT; */ } } while (0)
+    #define CFAssert2(cond, prio, desc, a1, a2) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2);  HALT; } } while (0)
     #define CFAssert3(cond, prio, desc, a1, a2, a3) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3); /* HALT; */ } } while (0)
     #define CFAssert4(cond, prio, desc, a1, a2, a3, a4) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3, a4); /* HALT; */ } } while (0)
 #else

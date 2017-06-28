@@ -31,7 +31,7 @@ private func _standardizedPath(_ path: String) -> String {
 internal func _pathComponents(_ path: String?) -> [String]? {
     if let p = path {
         var result = [String]()
-        if p.length == 0 {
+        if p.utf16.count == 0 {
             return result
         } else {
             let characterView = p.characters
@@ -56,7 +56,7 @@ internal func _pathComponents(_ path: String?) -> [String]? {
                 curPos = curEnd
             }
         }
-        if p.length > 1 && p.hasSuffix("/") {
+        if p.utf16.count > 1 && p.hasSuffix("/") {
             result.append("/")
         }
         return result
@@ -297,7 +297,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         super.init()
         
         let thePath = _standardizedPath(path)
-        if thePath.length > 0 {
+        if thePath.utf16.count > 0 {
             
             _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, baseURL?._cfObject)
         } else if let baseURL = baseURL {
@@ -753,7 +753,7 @@ extension NSURL {
         guard let fixedSelf = _pathByFixingSlashes() else {
             return nil
         }
-        if fixedSelf.length <= 1 {
+        if fixedSelf.utf16.count <= 1 {
             return fixedSelf
         }
         
@@ -764,7 +764,7 @@ extension NSURL {
         guard let fixedSelf = _pathByFixingSlashes() else {
             return nil
         }
-        if fixedSelf.length <= 1 {
+        if fixedSelf.utf16.count <= 1 {
             return ""
         }
         

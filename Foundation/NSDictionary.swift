@@ -260,25 +260,25 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open var descriptionInStringsFileFormat: String {
         var lines = [String]()
         for key in self.allKeys {
-            let line = NSMutableString(capacity: 0)
-            line.append("\"")
+            var line = ""
+            line += "\""
             if let descriptionByType = getDescription(of: key) {
-                line.append(descriptionByType)
+                line += descriptionByType
             } else {
-                line.append("\(key)")
+                line += "\(key)"
             }
-            line.append("\"")
-            line.append(" = ")
-            line.append("\"")
+            line += "\""
+            line += " = "
+            line += "\""
             let value = self.object(forKey: key)!
             if let descriptionByTypeValue = getDescription(of: value) {
-                line.append(descriptionByTypeValue)
+                line += descriptionByTypeValue
             } else {
-                line.append("\(value)")
+                line += "\(value)"
             }
-            line.append("\"")
-            line.append(";")
-            lines.append(line._bridgeToSwift())
+            line += "\""
+            line += ";"
+            lines.append(line)
         }
         return lines.joined(separator: "\n")
     }

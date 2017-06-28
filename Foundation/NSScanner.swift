@@ -34,8 +34,8 @@ open class Scanner: NSObject, NSCopying {
             return _scanLocation
         }
         set {
-            if newValue > string.length {
-                fatalError("Index \(newValue) beyond bounds; string length \(string.length)")
+            if newValue > string.utf16.count {
+                fatalError("Index \(newValue) beyond bounds; string length \(string.utf16.count)")
             }
             _scanLocation = newValue
         }
@@ -246,7 +246,7 @@ private func decimalSep(_ locale: Locale?) -> String {
 
 extension String {
     internal func scan<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: utf16.count)
         buf.skip(skipSet)
         var neg = false
         var localResult: T = 0
@@ -283,7 +283,7 @@ extension String {
     }
     
     internal func scanHex<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: utf16.count)
         buf.skip(skipSet)
         var localResult: T = 0
         var curDigit: Int
@@ -327,7 +327,7 @@ extension String {
     internal func scan<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         let ds_chars = decimalSep(locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: utf16.count)
         buf.skip(skipSet)
         var neg = false
         var localResult: T = T(0)
@@ -453,7 +453,7 @@ extension Scanner {
     
     public var isAtEnd: Bool {
         var stringLoc = scanLocation
-        let stringLen = string.length
+        let stringLen = string.utf16.count
         if let invSet = invertedSkipSet {
             let range = string._nsObject.rangeOfCharacter(from: invSet, options: [], range: NSMakeRange(stringLoc, stringLen - stringLoc))
             stringLoc = range.length > 0 ? range.location : stringLen

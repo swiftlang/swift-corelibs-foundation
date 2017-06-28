@@ -132,13 +132,25 @@ class TestDateFormatter: XCTestCase {
     // en_US   MMM d, y, h:mm:ss a   Dec 25, 2015, 12:00:00 AM
     func test_dateStyleMedium() {
         
-        let timestamps = [
-            -31536000 : "Jan 1, 1969, 12:00:00 AM" , 0.0 : "Jan 1, 1970, 12:00:00 AM", 31536000 : "Jan 1, 1971, 12:00:00 AM",
-            2145916800 : "Jan 1, 2038, 12:00:00 AM", 1456272000 : "Feb 24, 2016, 12:00:00 AM", 1456358399 : "Feb 24, 2016, 11:59:59 PM",
-            1452574638 : "Jan 12, 2016, 4:57:18 AM", 1455685038 : "Feb 17, 2016, 4:57:18 AM", 1458622638 : "Mar 22, 2016, 4:57:18 AM",
-            1459745838 : "Apr 4, 2016, 4:57:18 AM", 1462597038 : "May 7, 2016, 4:57:18 AM", 1465534638 : "Jun 10, 2016, 4:57:18 AM",
-            1469854638 : "Jul 30, 2016, 4:57:18 AM", 1470718638 : "Aug 9, 2016, 4:57:18 AM", 1473915438 : "Sep 15, 2016, 4:57:18 AM",
-            1477285038 : "Oct 24, 2016, 4:57:18 AM", 1478062638 : "Nov 2, 2016, 4:57:18 AM", 1482641838 : "Dec 25, 2016, 4:57:18 AM"
+        let timestamps: [TimeInterval : String] = [
+            -31536000 : "Jan 1, 1969 at 12:00:00 AM",
+            0 : "Jan 1, 1970 at 12:00:00 AM",
+            31536000 : "Jan 1, 1971 at 12:00:00 AM",
+            1452574638 : "Jan 12, 2016 at 4:57:18 AM",
+            1455685038 : "Feb 17, 2016 at 4:57:18 AM",
+            1456272000 : "Feb 24, 2016 at 12:00:00 AM",
+            1456358399 : "Feb 24, 2016 at 11:59:59 PM",
+            1458622638 : "Mar 22, 2016 at 4:57:18 AM",
+            1459745838 : "Apr 4, 2016 at 4:57:18 AM",
+            1462597038 : "May 7, 2016 at 4:57:18 AM",
+            1465534638 : "Jun 10, 2016 at 4:57:18 AM",
+            1469854638 : "Jul 30, 2016 at 4:57:18 AM",
+            1470718638 : "Aug 9, 2016 at 4:57:18 AM",
+            1473915438 : "Sep 15, 2016 at 4:57:18 AM",
+            1477285038 : "Oct 24, 2016 at 4:57:18 AM",
+            1478062638 : "Nov 2, 2016 at 4:57:18 AM",
+            1482641838 : "Dec 25, 2016 at 4:57:18 AM",
+            2145916800 : "Jan 1, 2038 at 12:00:00 AM",
         ]
         
         let f = DateFormatter()
@@ -194,18 +206,26 @@ class TestDateFormatter: XCTestCase {
     // ------  --------------                       -------------------------
     // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM GMT
     func test_dateStyleFull() {
-        
-        let timestamps = [
-            -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT" , 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM GMT",
-            31536000 : "Friday, January 1, 1971 at 12:00:00 AM GMT", 2145916800 : "Friday, January 1, 2038 at 12:00:00 AM GMT",
-            1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM GMT", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM GMT",
-            1452574638 : "Tuesday, January 12, 2016 at 4:57:18 AM GMT", 1455685038 : "Wednesday, February 17, 2016 at 4:57:18 AM GMT",
-            1458622638 : "Tuesday, March 22, 2016 at 4:57:18 AM GMT", 1459745838 : "Monday, April 4, 2016 at 4:57:18 AM GMT",
-            1462597038 : "Saturday, May 7, 2016 at 4:57:18 AM GMT", 1465534638 : "Friday, June 10, 2016 at 4:57:18 AM GMT",
-            1469854638 : "Saturday, July 30, 2016 at 4:57:18 AM GMT", 1470718638 : "Tuesday, August 9, 2016 at 4:57:18 AM GMT",
-            1473915438 : "Thursday, September 15, 2016 at 4:57:18 AM GMT", 1477285038 : "Monday, October 24, 2016 at 4:57:18 AM GMT",
-            1478062638 : "Wednesday, November 2, 2016 at 4:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 4:57:18 AM GMT"
-        ]
+        let timestamps: [Int : String] = [
+            -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT",
+            0 : "Thursday, January 1, 1970 at 12:00:00 AM Greenwich Mean Time",
+            31536000 : "Friday, January 1, 1971 at 12:00:00 AM Greenwich Mean Time",
+            1452574638 : "Tuesday, January 12, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1455685038 : "Wednesday, February 17, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM Greenwich Mean Time",
+            1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM Greenwich Mean Time",
+            1458622638 : "Tuesday, March 22, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1459745838 : "Monday, April 4, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1462597038 : "Saturday, May 7, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1465534638 : "Friday, June 10, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1469854638 : "Saturday, July 30, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1470718638 : "Tuesday, August 9, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1473915438 : "Thursday, September 15, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1477285038 : "Monday, October 24, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1478062638 : "Wednesday, November 2, 2016 at 4:57:18 AM Greenwich Mean Time",
+            1482641838 : "Sunday, December 25, 2016 at 4:57:18 AM Greenwich Mean Time",
+            2145916800 : "Friday, January 1, 2038 at 12:00:00 AM Greenwich Mean Time",
+            ]
         
         let f = DateFormatter()
         f.dateStyle = .full
@@ -215,12 +235,10 @@ class TestDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = Date(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: TimeInterval(timestamp))
             let sf = f.string(from: testDate)
-
             XCTAssertEqual(sf, stringResult)
         }
-        
     }
     
     // Custom Style
@@ -228,18 +246,27 @@ class TestDateFormatter: XCTestCase {
     // ------  --------------                        -------------------------
     // en_US   EEEE, MMMM d, y 'at' hh:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM GMT
     func test_customDateFormat() {
-
-        let timestamps = [
-             -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT" , 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM GMT",
-             31536000 : "Friday, January 1, 1971 at 12:00:00 AM GMT", 2145916800 : "Friday, January 1, 2038 at 12:00:00 AM GMT",
-             1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM GMT", 1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM GMT",
-             1452574638 : "Tuesday, January 12, 2016 at 04:57:18 AM GMT", 1455685038 : "Wednesday, February 17, 2016 at 04:57:18 AM GMT",
-             1458622638 : "Tuesday, March 22, 2016 at 04:57:18 AM GMT", 1459745838 : "Monday, April 4, 2016 at 04:57:18 AM GMT",
-             1462597038 : "Saturday, May 7, 2016 at 04:57:18 AM GMT", 1465534638 : "Friday, June 10, 2016 at 04:57:18 AM GMT",
-             1469854638 : "Saturday, July 30, 2016 at 04:57:18 AM GMT", 1470718638 : "Tuesday, August 9, 2016 at 04:57:18 AM GMT",
-             1473915438 : "Thursday, September 15, 2016 at 04:57:18 AM GMT", 1477285038 : "Monday, October 24, 2016 at 04:57:18 AM GMT",
-             1478062638 : "Wednesday, November 2, 2016 at 04:57:18 AM GMT", 1482641838 : "Sunday, December 25, 2016 at 04:57:18 AM GMT"
-        ]
+        
+        let timestamps: [Int : String] = [
+            -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT",
+            0 : "Thursday, January 1, 1970 at 12:00:00 AM Greenwich Mean Time",
+            31536000 : "Friday, January 1, 1971 at 12:00:00 AM Greenwich Mean Time",
+            1452574638 : "Tuesday, January 12, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1455685038 : "Wednesday, February 17, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1456272000 : "Wednesday, February 24, 2016 at 12:00:00 AM Greenwich Mean Time",
+            1456358399 : "Wednesday, February 24, 2016 at 11:59:59 PM Greenwich Mean Time",
+            1458622638 : "Tuesday, March 22, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1459745838 : "Monday, April 4, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1462597038 : "Saturday, May 7, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1465534638 : "Friday, June 10, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1469854638 : "Saturday, July 30, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1470718638 : "Tuesday, August 9, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1473915438 : "Thursday, September 15, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1477285038 : "Monday, October 24, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1478062638 : "Wednesday, November 2, 2016 at 04:57:18 AM Greenwich Mean Time",
+            1482641838 : "Sunday, December 25, 2016 at 04:57:18 AM Greenwich Mean Time",
+            2145916800 : "Friday, January 1, 2038 at 12:00:00 AM Greenwich Mean Time",
+            ]
         
         let f = DateFormatter()
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
@@ -248,10 +275,10 @@ class TestDateFormatter: XCTestCase {
         
         for (timestamp, stringResult) in timestamps {
             
-            let testDate = Date(timeIntervalSince1970: timestamp)
+            let testDate = Date(timeIntervalSince1970: TimeInterval(timestamp))
             let sf = f.string(from: testDate)
-            
             XCTAssertEqual(sf, stringResult)
+            
         }
         
         let quarterTimestamps: [Double : String] = [
@@ -271,12 +298,11 @@ class TestDateFormatter: XCTestCase {
         let testDate = Date(timeIntervalSince1970: 1457738454)
         f.dateStyle = .medium
         f.timeStyle = .medium
-        XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016, 11:20:54 PM")
-        XCTAssertEqual(f.dateFormat, "MMM d, y, h:mm:ss a")
+        XCTAssertEqual(f.string(from: testDate), "Mar 11, 2016 at 11:20:54 PM")
+        XCTAssertEqual(f.dateFormat, "MMM d, y \'at\' h:mm:ss a")
         
         f.dateFormat = "dd-MM-yyyy"
         XCTAssertEqual(f.string(from: testDate), "11-03-2016")
-        
     }
 
     func test_setLocalizedDateFormatFromTemplate() {

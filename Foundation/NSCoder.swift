@@ -170,6 +170,14 @@ open class NSCoder : NSObject {
         NSRequiresConcreteImplementation()
     }
     
+    internal func _withDecodedBytes<Result>(_ work: (UnsafeRawBufferPointer) -> Result) -> Result {
+        NSRequiresConcreteImplementation()
+    }
+    
+    internal func _withDecodedBytes<Result>(forKey: String, _ work: (UnsafeRawBufferPointer) -> Result) -> Result {
+        NSRequiresConcreteImplementation()
+    }
+    
     /// This method is present for historical reasons and is not used with
     /// keyed archivers.
     ///

@@ -12,10 +12,43 @@
 
 import CoreFoundation
 
+extension unichar : ExpressibleByUnicodeScalarLiteral {
+    public typealias UnicodeScalarLiteralType = UnicodeScalar
+    
+    public init(unicodeScalarLiteral scalar: UnicodeScalar) {
+        self.init(scalar.value)
+    }
+}
+
 extension String {
     public init(_ cocoaString: NSString) {
-        // TODO: change this when NSString is refactored for factory patterns
-        self = cocoaString._swiftObject
+        var len: Int = 0
+        if let str = cocoaString as? _NSSwiftString {
+            self = str._storage
+            return
+        } else {
+            if let cstr = cocoaString._fastCStringContents(true) {
+                self = String(cString: cstr)
+                return
+            } else if let chars = cocoaString._fastCharacterContents() {
+                len = cocoaString.length
+                if let str = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: chars, count: len)) {
+                    self = str
+                    return
+                }
+            } else {
+                len = cocoaString.length
+            }
+        }
+        if len == 0 {
+            self = ""
+            return
+        }
+        var buffer = [unichar](repeating: 0, count: len)
+        self = buffer.withUnsafeMutableBufferPointer {
+            cocoaString.getCharacters($0.baseAddress!, range: NSRange(location: 0, length: len))
+            return String._fromCodeUnitSequence(UTF16.self, input: $0)!
+        }
     }
 }
 
@@ -23,7 +56,7 @@ extension String : _ObjectTypeBridgeable {
     
     public typealias _ObjectType = NSString
     public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSString(self)
+        return NSString(string: self)
     }
     
     static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout String?) {
@@ -32,8 +65,9 @@ extension String : _ObjectTypeBridgeable {
     
     @discardableResult
     static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout String?) -> Bool {
-        if type(of: source) == NSString.self || type(of: source) == NSMutableString.self {
-            result = source._storage
+        if let str = source as? _NSSwiftString {
+            result = str._storage
+            return true
         } else if type(of: source) == _NSCFString.self {
             let cf = unsafeBitCast(source, to: CFString.self)
             let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8))

@@ -1236,7 +1236,8 @@ extension TestNSJSONSerialization {
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
             if(result > -1) {
-                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                
+                XCTAssertEqual(String(bytes: buffer, encoding: .utf8), "{\"a\":{\"b\":1}}")
             }
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -1261,7 +1262,7 @@ extension TestNSJSONSerialization {
                         let resultRead: Int = fileStream.read(&buffer, maxLength: buffer.count)
                         fileStream.close()
                         if(resultRead > -1){
-                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                            XCTAssertEqual(NSString(bytes: buffer, length: resultRead, encoding: String.Encoding.utf8.rawValue), NSString(string: "{\"a\":{\"b\":1}}"))
                         }
                     }
                     removeTestFile(filePath!)

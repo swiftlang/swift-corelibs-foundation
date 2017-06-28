@@ -304,7 +304,7 @@ CF_EXPORT Boolean __CFStringDecodeByteStream3(const UInt8 *bytes, CFIndex len, C
 
 /* Convert single byte to Unicode; assumes one-to-one correspondence (that is, can only be used with 1-byte encodings). You can use the function if it's not NULL.
 */
-CF_EXPORT Boolean (*__CFCharToUniCharFunc)(UInt32 flags, UInt8 ch, UniChar *unicodeChar);
+CF_EXPORT Boolean (*_Nullable __CFCharToUniCharFunc)(UInt32 flags, UInt8 ch, UniChar *unicodeChar);
 
 /* Character class functions UnicodeData-2_1_5.txt
 */

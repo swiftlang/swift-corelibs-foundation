@@ -1976,7 +1976,7 @@ extension Scanner {
         var result = Decimal()
 
         let string = self._scanString
-        let length = string.length
+        let length = string.utf16.count
         var buf = _NSStringBuffer(string: string, start: self._scanLocation, end: length)
 
         let ds_chars = decimalSep(locale).utf16

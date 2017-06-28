@@ -1,3 +1,4 @@
+import CoreFoundation
 
 extension String {
     public struct Encoding : RawRepresentable {
@@ -144,4 +145,55 @@ public var NSUTF32BigEndianStringEncoding: String.Encoding {
 @available(*, unavailable, renamed: "String.Encoding.utf32LittleEndian")
 public var NSUTF32LittleEndianStringEncoding: String.Encoding {
     return String.Encoding.utf32LittleEndian
+}
+
+internal var __NSDefaultStringEncodingFullyInited = false
+internal var _NSDefaultStringEncoding = String.Encoding.RawValue(bitPattern: -1)
+internal var _NSCStringEncoding = String.Encoding.RawValue(bitPattern: -1)
+
+internal var _NSCStringCharToUnicharTable: UnsafeMutablePointer<unichar>? = nil
+internal var _NSCStringCharToUnichar: ((UInt8) -> unichar)? = nil
+
+internal func __NSSetCStringCharToUnichar(_ function: ((UInt8) -> unichar)?) {
+    if _NSCStringCharToUnicharTable == nil {
+        _NSCStringCharToUnicharTable = UnsafeMutablePointer<unichar>.allocate(capacity: 256)
+    }
+    for ch in unichar(0)..<unichar(256) {
+        _NSCStringCharToUnicharTable?.advanced(by: Int(ch)).pointee = ch
+    }
+    if let fn = function {
+        for ch in unichar(128)..<unichar(256) {
+            _NSCStringCharToUnicharTable?.advanced(by: Int(ch)).pointee = fn(UInt8(ch))
+        }
+    }
+    _NSCStringCharToUnichar = function
+}
+
+private let replacementUnichar: unichar = 0xFFFD
+
+internal func __NSCharToUnicharCFWrapper(_ ch: UInt8) -> unichar {
+    var retChar: unichar = 0
+    return __CFCharToUniCharFunc!(0, ch, &retChar).boolValue ? retChar : replacementUnichar
+}
+
+internal func __NSASCIICharToUnichar(_ ch: UInt8) -> unichar {
+    return unichar(ch)
+}
+
+internal func _NSDefaultCStringEncoding() -> String.Encoding.RawValue {
+    _NSDefaultStringEncoding = CFStringConvertEncodingToNSStringEncoding(CFStringGetSystemEncoding());
+    if __CFCharToUniCharFunc != nil {
+        _NSCStringEncoding = _NSDefaultStringEncoding;
+        __NSSetCStringCharToUnichar(__NSCharToUnicharCFWrapper);
+        __NSDefaultStringEncodingFullyInited = true;
+    } else {
+        // Hack alert !!
+        // This should be implemented with cleaner solution in Jaguar.
+        // If we're MacRoman, but have no __CFCharToUniCharFunc. Must be in CFString's init process.
+        __NSDefaultStringEncodingFullyInited = (CFStringGetSystemEncoding() == kCFStringEncodingMacRoman ? false : true);
+        
+        _NSCStringEncoding = String.Encoding.ascii.rawValue;
+        __NSSetCStringCharToUnichar(__NSASCIICharToUnichar);
+    }
+    return _NSDefaultStringEncoding;
 }
