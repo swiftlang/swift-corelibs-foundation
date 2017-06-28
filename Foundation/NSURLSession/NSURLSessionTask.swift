@@ -526,7 +526,20 @@ public let URLSessionDownloadTaskResumeData: String = "NSURLSessionDownloadTaskR
 extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, didReceive response: URLResponse, cacheStoragePolicy policy: URLCache.StoragePolicy) {
-        `protocol`.task?.response = response
+        guard let task = `protocol`.task else { fatalError("Received response, but there's no task.") }
+        task.response = response
+        let session = task.session as! URLSession
+        guard let dataTask = task as? URLSessionDataTask else { return }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate as URLSessionDataDelegate):
+            session.delegateQueue.addOperation {
+                delegate.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: { _ in
+                    URLSession.printDebug("warning: Ignoring disposition from completion handler.")
+                })
+            }
+        case .noDelegate, .taskDelegate, .dataCompletionHandler, .downloadCompletionHandler:
+            break
+        }
     }
 
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
@@ -567,7 +580,17 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
         `protocol`.properties[.responseData] = data
-        //TODO: this method needs to be extended to call the urlSession(_:dataTask:didReceive:)
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            let dataDelegate = delegate as? URLSessionDataDelegate
+            let dataTask = task as? URLSessionDataTask
+            session.delegateQueue.addOperation {
+                dataDelegate?.urlSession(session, dataTask: dataTask!, didReceive: data)
+            }
+        default: return
+        }
     }
 
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
