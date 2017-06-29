@@ -408,7 +408,7 @@ open class NSDecimalNumberHandler : NSObject, NSDecimalNumberBehaviors, NSCoding
         }
     }
     
-    open class func `default`() -> NSDecimalNumberHandler {
+    open class var `default`: NSDecimalNumberHandler {
         return defaultBehavior
     }
     // rounding mode: NSRoundPlain
