@@ -8,64 +8,6 @@
 //
 
 //===----------------------------------------------------------------------===//
-// Errors
-//===----------------------------------------------------------------------===//
-
-// Adding the following extensions to EncodingError and DecodingError allows them to bridge to NSErrors implicitly.
-
-fileprivate let NSCodingPathErrorKey = "NSCodingPath"
-fileprivate let NSDebugDescriptionErrorKey = "NSDebugDescription"
-
-extension EncodingError : CustomNSError {
-    public static var errorDomain: String = NSCocoaErrorDomain
-
-    public var errorCode: Int {
-        switch self {
-        case .invalidValue(_, _): return CocoaError.coderInvalidValue.rawValue
-        }
-    }
-
-    public var errorUserInfo: [String : Any] {
-        let context: Context
-        switch self {
-        case .invalidValue(_, let c): context = c
-        }
-
-        return [NSCodingPathErrorKey: context.codingPath,
-                NSDebugDescriptionErrorKey: context.debugDescription]
-    }
-}
-
-extension DecodingError : CustomNSError {
-    public static var errorDomain: String = NSCocoaErrorDomain
-
-    public var errorCode: Int {
-        switch self {
-        case .valueNotFound(_, _): fallthrough
-        case .keyNotFound(_, _):
-            return CocoaError.coderValueNotFound.rawValue
-
-        case .typeMismatch(_, _): fallthrough
-        case .dataCorrupted(_):
-            return CocoaError.coderReadCorrupt.rawValue
-        }
-    }
-
-    public var errorUserInfo: [String : Any] {
-        let context: Context
-        switch self {
-        case .typeMismatch(_, let c): context = c
-        case .valueNotFound(_, let c): context = c
-        case .keyNotFound(_, let c): context = c
-        case .dataCorrupted(let c): context = c
-        }
-
-        return [NSCodingPathErrorKey: context.codingPath,
-                NSDebugDescriptionErrorKey: context.debugDescription]
-    }
-}
-
-//===----------------------------------------------------------------------===//
 // Error Utilities
 //===----------------------------------------------------------------------===//
 
