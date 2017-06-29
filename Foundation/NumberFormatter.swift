@@ -895,16 +895,14 @@ open class NumberFormatter : Formatter {
         }
     }
     
-    // FIXME: Uncomment this when NSDecimalNumberHandler.default() gets rid of NSUnimplementend()
-    // This is currently commented out so that NSNumberFormatter instances can be tested
-//    internal var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default()
-//    /*@NSCopying*/ open var roundingBehavior: NSDecimalNumberHandler {
-//        get {
-//            return _roundingBehavior
-//        }
-//        set {
-//            _reset()
-//            _roundingBehavior = newValue
-//        }
-//    }
+    internal var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default
+    /*@NSCopying*/ open var roundingBehavior: NSDecimalNumberHandler {
+        get {
+            return _roundingBehavior
+        }
+        set {
+            _reset()
+            _roundingBehavior = newValue
+        }
+    }
 }
