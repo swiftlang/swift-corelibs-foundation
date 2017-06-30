@@ -23,7 +23,8 @@ class TestNSOperationQueue : XCTestCase {
         return [
             ("test_OperationPriorities", test_OperationPriorities),
             ("test_OperationCount", test_OperationCount),
-            ("test_AsyncOperation", test_AsyncOperation)
+            ("test_AsyncOperation", test_AsyncOperation),
+            ("test_isExecutingWorks", test_isExecutingWorks),
         ]
     }
     
@@ -66,6 +67,26 @@ class TestNSOperationQueue : XCTestCase {
         XCTAssertEqual(msgOperations[1], "Operation1 executed")
         XCTAssertEqual(msgOperations[2], "Operation2 executed")
         XCTAssertEqual(msgOperations[3], "Operation4 executed")
+    }
+
+    func test_isExecutingWorks() {
+        class _OperationBox {
+            var operation: Operation?
+            init() {
+                self.operation = nil
+            }
+        }
+        let queue = OperationQueue()
+        let opBox = _OperationBox()
+        let op = BlockOperation(block: { XCTAssertEqual(true, opBox.operation?.isExecuting) })
+        opBox.operation = op
+        XCTAssertFalse(op.isExecuting)
+
+        queue.addOperation(op)
+        queue.waitUntilAllOperationsAreFinished()
+        XCTAssertFalse(op.isExecuting)
+
+        opBox.operation = nil /* break the reference cycle op -> <closure> -> opBox -> op */
     }
 
     func test_AsyncOperation() {
