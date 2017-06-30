@@ -36,6 +36,7 @@ class TestNSCharacterSet : XCTestCase {
             ("test_AnnexPlanes", test_AnnexPlanes),
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
+            ("test_Equatable", test_Equatable),
             // The following tests must remain disabled until SR-2509 is resolved.
             // ("test_Subtracting", test_Subtracting),
             // ("test_SubtractEmptySet", test_SubtractEmptySet),
@@ -282,5 +283,28 @@ class TestNSCharacterSet : XCTestCase {
         let expected = CharacterSet(charactersIn: "abc")
         XCTAssertEqual(expected, symmetricDifference)
     }
+
+    func test_Equatable() {
+        XCTAssertEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: ""))
+        XCTAssertEqual(NSCharacterSet(charactersIn: "a"), NSCharacterSet(charactersIn: "a"))
+        XCTAssertEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "ab"))
+
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "123"))
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "123"), NSCharacterSet(charactersIn: "abc"))
+
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), nil)
+
+        /*
+         Tests disabled due to CoreFoundation bug?
+         These NSCharacterSet pairs are (wrongly?) evaluated to be equal. Same behaviour can be observed on macOS 10.12.
+         Interestingly, on iOS 11 Simulator, they are evaluted to be _not_ equal,
+         while on iOS 10.3.1 Simulator, they are evaluted to be equal.
+         */
+//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "abc"))
+//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "ab"))
+//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: ""))
+//        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: "abc"))
+    }
+
 }
 
