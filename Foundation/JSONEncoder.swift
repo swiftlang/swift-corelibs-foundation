@@ -10,6 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import CoreFoundation
+
 //===----------------------------------------------------------------------===//
 // JSON Encoder
 //===----------------------------------------------------------------------===//
@@ -1742,7 +1744,7 @@ extension _JSONDecoder {
         }
 
         // TODO: Add a flag to coerce non-boolean numbers into Bools?
-        guard number._objCType == .Bool else {
+        guard number._cfTypeID == CFBooleanGetTypeID() else {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
 
