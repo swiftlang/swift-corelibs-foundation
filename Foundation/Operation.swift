@@ -563,16 +563,15 @@ open class OperationQueue: NSObject {
 
     open class var current: OperationQueue? {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey)
-        if specific == nil {
+        guard let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey) else {
             if pthread_main_np() == 1 {
                 return OperationQueue.main
             } else {
                 return nil
             }
-        } else {
-            return specific!.takeUnretainedValue()
         }
+        
+        return specific.takeUnretainedValue()
 #else
         return nil
 #endif
@@ -580,12 +579,10 @@ open class OperationQueue: NSObject {
     
     open class var main: OperationQueue {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let specific = DispatchQueue.main.getSpecific(key: OperationQueue.OperationQueueKey)
-        if specific == nil {
+        guard let specific = DispatchQueue.main.getSpecific(key: OperationQueue.OperationQueueKey) else {
             return OperationQueue(_queue: DispatchQueue.main, maxConcurrentOperations: 1)
-        } else {
-            return specific!.takeUnretainedValue()
         }
+        return specific.takeUnretainedValue()
 #else
         fatalError("NSOperationQueue requires libdispatch")
 #endif
