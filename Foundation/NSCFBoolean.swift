@@ -78,7 +78,7 @@ internal class __NSCFBoolean : NSNumber {
     override var objCType: UnsafePointer<Int8> {
         // This must never be fixed to be "B", although that would
         // cause correct old-style archiving when this is unarchived.
-        return UnsafePointer<Int8>(bitPattern: UInt(_NSSimpleObjCType.Char.rawValue.value))!
+        return String(_NSSimpleObjCType.Char.rawValue)._bridgeToObjectiveC().utf8String!
     }
     
     internal override func _cfNumberType() -> CFNumberType  {

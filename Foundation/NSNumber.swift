@@ -230,7 +230,7 @@ open class NSNumber : NSValue {
     }
 
     open override var objCType: UnsafePointer<Int8> {
-        return UnsafePointer<Int8>(bitPattern: UInt(_objCType.rawValue.value))!
+        return String(_objCType.rawValue)._bridgeToObjectiveC().utf8String!
     }
     
     deinit {
@@ -244,7 +244,7 @@ open class NSNumber : NSValue {
     }
     
     public init(value: UInt8) {
-        _objCType = .UChar
+        _objCType = .Short
         super.init()
         _CFNumberInitUInt8(_cfObject, value)
     }
@@ -256,31 +256,40 @@ open class NSNumber : NSValue {
     }
     
     public init(value: UInt16) {
-        _objCType = .UShort
+        _objCType = .Int
         super.init()
         _CFNumberInitUInt16(_cfObject, value)
     }
     
     public init(value: Int32) {
-        _objCType = .Long
+        _objCType = .Int
         super.init()
         _CFNumberInitInt32(_cfObject, value)
     }
     
     public init(value: UInt32) {
-        _objCType = .ULong
+        _objCType = .LongLong
         super.init()
         _CFNumberInitUInt32(_cfObject, value)
     }
     
     public init(value: Int) {
-        _objCType = .Int
+        #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+            _objCType = .LongLong
+        #elseif arch(i386) || arch(arm)
+            _objCType = .Int
+        #endif
         super.init()
         _CFNumberInitInt(_cfObject, value)
     }
     
     public init(value: UInt) {
-        _objCType = .UInt
+        #if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+            // When value is lower equal to `Int.max`, it uses '.LongLong' even if using `UInt`
+            _objCType = value <= UInt(Int.max) ? .LongLong : .ULongLong
+        #elseif arch(i386) || arch(arm)
+            _objCType = .LongLong
+        #endif
         super.init()
         _CFNumberInitUInt(_cfObject, value)
     }
@@ -292,7 +301,8 @@ open class NSNumber : NSValue {
     }
     
     public init(value: UInt64) {
-        _objCType = .ULongLong
+        // When value is lower equal to `Int64.max`, it uses '.LongLong' even if using `UInt64`
+        _objCType = value <= UInt64(Int64.max) ? .LongLong : .ULongLong
         super.init()
         _CFNumberInitUInt64(_cfObject, value)
     }
@@ -309,12 +319,6 @@ open class NSNumber : NSValue {
         _CFNumberInitDouble(_cfObject, value)
     }
     
-    public init(value: Bool) {
-        _objCType = .Bool
-        super.init()
-        _CFNumberInitBool(_cfObject, value)
-    }
-
     override internal init() {
         _objCType = .Undef
         super.init()
@@ -503,7 +507,24 @@ open class NSNumber : NSValue {
     }
 
     open func compare(_ otherNumber: NSNumber) -> ComparisonResult {
-        return ._fromCF(CFNumberCompare(_cfObject, otherNumber._cfObject, nil))
+        switch (objCType.pointee, otherNumber.objCType.pointee) {
+        case (0x66, _), (_, 0x66), (0x66, 0x66): fallthrough // 'f' float
+        case (0x64, _), (_, 0x64), (0x64, 0x64):             // 'd' double
+            let (lhs, rhs) = (doubleValue, otherNumber.doubleValue)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        case (0x51, _), (_, 0x51), (0x51, 0x51):             // 'q' unsigned long long
+            let (lhs, rhs) = (uint64Value, otherNumber.uint64Value)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        case (_, _):
+            let (lhs, rhs) = (int64Value, otherNumber.int64Value)
+            if lhs < rhs { return .orderedAscending }
+            if lhs > rhs { return .orderedDescending }
+            return .orderedSame
+        }
     }
 
     open func description(withLocale locale: Locale?) -> String {
@@ -614,6 +635,12 @@ open class NSNumber : NSValue {
     }
     
     open override var classForCoder: AnyClass { return NSNumber.self }
+}
+
+extension NSNumber {
+    public convenience init(value: Bool) {
+        self.init(factory: value._bridgeToObjectiveC)
+    }
 }
 
 extension CFNumber : _NSBridgeable {
