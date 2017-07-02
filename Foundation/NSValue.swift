@@ -156,7 +156,7 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 extension NSValue : _Factory {}
 
-protocol _Factory {
+internal protocol _Factory {
     init(factory: () -> Self)
 }
 
