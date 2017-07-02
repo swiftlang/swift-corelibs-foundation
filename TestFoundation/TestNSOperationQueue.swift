@@ -108,6 +108,10 @@ class TestNSOperationQueue : XCTestCase {
     func test_MainQueueGetter() {
         XCTAssertTrue(OperationQueue.main === OperationQueue.main)
         
+        /*
+         This call is only to check if OperationQueue.main returns a living instance.
+         There used to be a bug where subsequent OperationQueue.main call would return a "dangling pointer".
+         */
         XCTAssertFalse(OperationQueue.main.isSuspended)
     }
 }
