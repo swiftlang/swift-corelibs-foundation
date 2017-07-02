@@ -205,9 +205,6 @@ private struct CFSInt128Struct {
 
 open class NSNumber : NSValue {
     typealias CFType = CFNumber
-    // This layout MUST be the same as CFNumber so that they are bridgeable
-    private var _base = _CFInfo(typeID: CFNumberGetTypeID())
-    private var _pad: UInt64 = 0
 
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
