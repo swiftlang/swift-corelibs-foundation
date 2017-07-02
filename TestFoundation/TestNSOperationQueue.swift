@@ -25,6 +25,7 @@ class TestNSOperationQueue : XCTestCase {
             ("test_OperationCount", test_OperationCount),
             ("test_AsyncOperation", test_AsyncOperation),
             ("test_isExecutingWorks", test_isExecutingWorks),
+            ("test_MainQueueGetter", test_MainQueueGetter),
         ]
     }
     
@@ -102,6 +103,12 @@ class TestNSOperationQueue : XCTestCase {
 
         XCTAssertFalse(operation.isExecuting)
         XCTAssertTrue(operation.isFinished)
+    }
+    
+    func test_MainQueueGetter() {
+        XCTAssertTrue(OperationQueue.main === OperationQueue.main)
+        
+        XCTAssertFalse(OperationQueue.main.isSuspended)
     }
 }
 
