@@ -198,9 +198,6 @@ extension NSNumber : ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Exp
 
 }
 
-@_silgen_name("_CFNumberGetType2")
-func _CFNumberGetType2(_ number: CFNumber!) -> CFNumberType
-
 private struct CFSInt128Struct {
     var high: Int64
     var low: UInt64

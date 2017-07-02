@@ -254,6 +254,8 @@ CF_PRIVATE void _CFSwiftRelease(void *_Nullable t);
 
 CF_EXPORT void _CFRuntimeBridgeTypeToClass(CFTypeID type, const void *isa);
 
+CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
+
 typedef	unsigned char __cf_uuid[16];
 typedef	char __cf_uuid_string[37];
 typedef __cf_uuid _cf_uuid_t;
