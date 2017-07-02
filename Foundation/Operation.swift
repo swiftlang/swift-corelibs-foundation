@@ -577,12 +577,13 @@ open class OperationQueue: NSObject {
 #endif
     }
     
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+    private static let _main = OperationQueue(_queue: .main, maxConcurrentOperations: 1)
+#endif
+    
     open class var main: OperationQueue {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        guard let specific = DispatchQueue.main.getSpecific(key: OperationQueue.OperationQueueKey) else {
-            return OperationQueue(_queue: DispatchQueue.main, maxConcurrentOperations: 1)
-        }
-        return specific.takeUnretainedValue()
+        return _main
 #else
         fatalError("NSOperationQueue requires libdispatch")
 #endif
