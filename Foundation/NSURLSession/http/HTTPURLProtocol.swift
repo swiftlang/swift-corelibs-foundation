@@ -449,13 +449,10 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
     fileprivate func notifyDelegate(aboutReceivedData data: Data) {
         guard let t = self.task else { fatalError("Cannot notify") }
         if case .taskDelegate(let delegate) = t.session.behaviour(for: self.task!),
-            let dataDelegate = delegate as? URLSessionDataDelegate,
-            let task = self.task as? URLSessionDataTask {
-            // Forward to the delegate:
-            guard let s = self.task?.session as? URLSession else { fatalError() }
-            s.delegateQueue.addOperation {
-                dataDelegate.urlSession(s, dataTask: task, didReceive: data)
-            }
+            let _ = delegate as? URLSessionDataDelegate,
+            let _ = self.task as? URLSessionDataTask {
+            // Forward to protocol client:
+            self.client?.urlProtocol(self, didLoad: data)
         } else if case .taskDelegate(let delegate) = t.session.behaviour(for: self.task!),
             let downloadDelegate = delegate as? URLSessionDownloadDelegate,
             let task = self.task as? URLSessionDownloadTask {
@@ -471,9 +468,7 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
             }
             if Int(self.easyHandle.fileLength) == self.totalDownloaded {
                 fileHandle.closeFile()
-                s.delegateQueue.addOperation {
-                    downloadDelegate.urlSession(s, downloadTask: task, didFinishDownloadingTo: self.tempFileURL)
-                }
+                self.properties[.temporaryFileURL] = self.tempFileURL
             }
         }
     }
@@ -759,14 +754,14 @@ internal extension _HTTPURLProtocol {
     /// Whenever we receive a response (i.e. a complete header) from libcurl,
     /// this method gets called.
     func didReceiveResponse() {
-        guard let dt = task as? URLSessionDataTask else { return }
+        guard let _ = task as? URLSessionDataTask else { return }
         guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
         guard let response = ts.response else { fatalError("Header complete, but not URL response.") }
         guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
-        case .taskDelegate(let delegate as URLSessionDataDelegate):
+        case .taskDelegate(_):
             //TODO: There's a problem with libcurl / with how we're using it.
             // We're currently unable to pause the transfer / the easy handle:
             // https://curl.haxx.se/mail/lib-2016-03/0222.html
@@ -777,14 +772,8 @@ internal extension _HTTPURLProtocol {
             case 301, 302, 303, 307:
                 break
             default:
-                session.delegateQueue.addOperation {
-                    delegate.urlSession(session, dataTask: dt, didReceive: response, completionHandler: { _ in
-                        URLSession.printDebug("warning: Ignoring disposition from completion handler.")
-                    })
-                }
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             }
-        case .taskDelegate:
-            break
         case .dataCompletionHandler:
             break
         case .downloadCompletionHandler:
