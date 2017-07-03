@@ -317,7 +317,13 @@ open class OperationQueue: NSObject {
     let lock = NSLock()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     var __concurrencyGate: DispatchSemaphore?
-    var __underlyingQueue: DispatchQueue?
+    var __underlyingQueue: DispatchQueue? {
+        didSet {
+            let key = OperationQueue.OperationQueueKey
+            oldValue?.setSpecific(key: key, value: nil)
+            __underlyingQueue?.setSpecific(key: key, value: Unmanaged.passUnretained(self))
+        }
+    }
     let queueGroup = DispatchGroup()
 #endif
     
