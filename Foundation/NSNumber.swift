@@ -247,26 +247,6 @@ open class NSNumber : NSValue {
             return _objCType("f")
         case kCFNumberFloat64Type:
             return _objCType("d")
-        case kCFNumberCharType:
-            return _objCType("c")
-        case kCFNumberShortType:
-            return _objCType("s")
-        case kCFNumberIntType:
-            return _objCType("i")
-        case kCFNumberLongType:
-            return _objCType("q")
-        case kCFNumberLongLongType:
-            return _objCType("q")
-        case kCFNumberFloatType:
-            return _objCType("f")
-        case kCFNumberDoubleType:
-            return _objCType("d")
-        case kCFNumberCFIndexType:
-            return _objCType("q")
-        case kCFNumberNSIntegerType:
-            return _objCType("q")
-        case kCFNumberCGFloatType:
-            return _objCType("d")
         case kCFNumberSInt128Type:
             return _objCType("Q")
         default:
