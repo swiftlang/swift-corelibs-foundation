@@ -308,20 +308,20 @@ extension Array {
 /// of swift-corelibs-foundation) or the only approach for behavior. It should be considered to be
 /// a last resort in new code.
 ///
-/// The following classes in Foundation use factory pattern initializers:\
-/// NSNumber (currently implemented in swift-corelibs-foundation)
-/// NSString/NSMutableString
-/// NSData/NSMutableData
-/// NSArray/NSMutableArray
-/// NSDictionary/NSMutableDictionary
-/// NSSet/NSMutableSet
-/// NSLocale
-/// NSDate
-/// NSTimeZone
-/// NSCalendar
-/// NSCharacterSet
-/// NSInputStream/NSOutputStream
-/// NSTimer
+/// The following classes in Foundation use factory pattern initializers:
+/// * NSNumber (currently implemented in swift-corelibs-foundation)
+/// * NSString/NSMutableString
+/// * NSData/NSMutableData
+/// * NSArray/NSMutableArray
+/// * NSDictionary/NSMutableDictionary
+/// * NSSet/NSMutableSet
+/// * NSLocale
+/// * NSDate
+/// * NSTimeZone
+/// * NSCalendar
+/// * NSCharacterSet
+/// * NSInputStream/NSOutputStream
+/// * NSTimer
 ///
 /// Transitioning to these can help elide the need for extra ivars in subclasses. Additionally it
 /// can help avoid the need for funky de-initialization routines that call back out to CF.
