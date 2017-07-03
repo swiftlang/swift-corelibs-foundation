@@ -546,6 +546,12 @@ extension _ProtocolClient : URLProtocolClient {
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate) where delegate is URLSessionDownloadDelegate:
+            let downloadDelegate = delegate as! URLSessionDownloadDelegate
+            let downloadTask = task as! URLSessionDownloadTask
+            session.delegateQueue.addOperation {
+                downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: `protocol`.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL)
+            }
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didCompleteWithError: nil)
