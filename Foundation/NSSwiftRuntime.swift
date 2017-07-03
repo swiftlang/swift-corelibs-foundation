@@ -296,3 +296,47 @@ extension Array {
 #else
     internal typealias _DarwinCompatibleBoolean = Bool
 #endif
+
+// MARK: -
+// MARK: Protocol for simulating factory patterns
+
+/// _NSFactory is an internal protocol that allows self re-assignment. This relies on the concept
+/// that protocols can be adopted to structures (which permit self re-assignment in init).
+/// When we have true factory patterns in swift we should refactor away from this, but until then
+/// according to the compiler team this is the "suported" way of doing it. However it is likely
+/// not the suggested design pattern unless absolutely needed either for compatability (in the case
+/// of swift-corelibs-foundation) or the only approach for behavior. It should be considered to be
+/// a last resort in new code.
+///
+/// The following classes in Foundation use factory pattern initializers:\
+/// NSNumber (currently implemented in swift-corelibs-foundation)
+/// NSString/NSMutableString
+/// NSData/NSMutableData
+/// NSArray/NSMutableArray
+/// NSDictionary/NSMutableDictionary
+/// NSSet/NSMutableSet
+/// NSLocale
+/// NSDate
+/// NSTimeZone
+/// NSCalendar
+/// NSCharacterSet
+/// NSInputStream/NSOutputStream
+/// NSTimer
+///
+/// Transitioning to these can help elide the need for extra ivars in subclasses. Additionally it
+/// can help avoid the need for funky de-initialization routines that call back out to CF.
+///
+/// One known caveat is the bare initializer case. It cannot be a factory currently with this
+/// approach.
+///
+/// tl;dr - use sparingly and with caution!
+internal protocol _NSFactory {
+    init(factory: () -> Self)
+}
+
+extension _NSFactory {
+    init(factory: () -> Self) {
+        self = factory()
+    }
+}
+
