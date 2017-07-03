@@ -65,6 +65,8 @@
 		5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17961C48631C00935030 /* TestUtils.swift */; };
 		5B13B3511C582D4C00651CE2 /* TestByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */; };
 		5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
+		5B187B131F0ACAD2004E49B3 /* NSNumberBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */; };
+		5B187B151F0ACAFB004E49B3 /* NSCFNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */; };
 		5B1FD9C51D6D16150080E83C /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
 		5B1FD9C61D6D161A0080E83C /* CFURLSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B1FD9D41D6D16580080E83C /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C81D6D16580080E83C /* Configuration.swift */; };
@@ -501,6 +503,8 @@
 		555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUserDefaults.swift; sourceTree = "<group>"; usesTabs = 1; };
 		5B0163BA1D024EB7003CCD96 /* DateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponents.swift; sourceTree = "<group>"; };
 		5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRegularExpression.swift; sourceTree = "<group>"; };
+		5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSNumberBridge.swift; sourceTree = "<group>"; };
+		5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFNumber.swift; sourceTree = "<group>"; };
 		5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLSessionInterface.c; sourceTree = "<group>"; };
 		5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLSessionInterface.h; sourceTree = "<group>"; };
 		5B1FD9C81D6D16580080E83C /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
@@ -1719,7 +1723,9 @@
 				5B7818591D6CB5CD004A01F2 /* CGFloat.swift */,
 				EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */,
 				5BDC3F3D1BCC5DCB00ED97BB /* NSNumber.swift */,
+				5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */,
 				5B5BFEAB1E6CC0C200AC8D9E /* NSCFBoolean.swift */,
+				5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */,
 				D31302001C30CEA900295652 /* NSConcreteValue.swift */,
 				D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */,
 				5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */,
@@ -2141,6 +2147,7 @@
 				EA0812691DA71C8A00651B70 /* ProgressFraction.swift in Sources */,
 				5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */,
 				EADE0B951BD15DFF00C49C64 /* DateComponentsFormatter.swift in Sources */,
+				5B187B131F0ACAD2004E49B3 /* NSNumberBridge.swift in Sources */,
 				EADE0BBD1BD15E0000C49C64 /* NSURLCredential.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* NSJSONSerialization.swift in Sources */,
@@ -2148,6 +2155,7 @@
 				5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */,
 				EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */,
 				5BF7AEBB1BCD51F9008F214A /* NSSwiftRuntime.swift in Sources */,
+				5B187B151F0ACAFB004E49B3 /* NSCFNumber.swift in Sources */,
 				5B5C5EF01CE61FA4001346BD /* Date.swift in Sources */,
 				EADE0B9B1BD15DFF00C49C64 /* FileHandle.swift in Sources */,
 				B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */,

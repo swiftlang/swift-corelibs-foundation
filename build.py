@@ -361,6 +361,8 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSNotificationQueue.swift',
 	'Foundation/NSNull.swift',
 	'Foundation/NSNumber.swift',
+	'Foundation/NSNumberBridge.swift',
+	'Foundation/NSCFNumber.swift',
 	'Foundation/NumberFormatter.swift',
 	'Foundation/NSObjCRuntime.swift',
 	'Foundation/Operation.swift',

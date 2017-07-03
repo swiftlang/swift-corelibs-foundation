@@ -93,7 +93,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFBooleanGetTypeID(), unsafeBitCast(__NSCFBoolean.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(__NSCFNumber.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
@@ -331,12 +331,12 @@ extension Array {
 ///
 /// tl;dr - use sparingly and with caution!
 internal protocol _NSFactory {
-    init(factory: () -> Self)
+    init(factory: Self)
 }
 
 extension _NSFactory {
-    init(factory: () -> Self) {
-        self = factory()
+    init(factory: Self) {
+        self = factory
     }
 }
 
