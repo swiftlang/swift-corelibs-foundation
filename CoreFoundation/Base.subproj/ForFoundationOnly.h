@@ -538,20 +538,6 @@ CF_INLINE CFHashCode _CFHashDouble(double d) {
     return (CFHashCode)(integralHash + (CFHashCode)((d - dInt) * ULONG_MAX));
 }
 
-CF_SWIFT_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value);
-CF_SWIFT_EXPORT void _CFNumberInitInt8(CFNumberRef result, int8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt8(CFNumberRef result, uint8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt16(CFNumberRef result, int16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt16(CFNumberRef result, uint16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt32(CFNumberRef result, int32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt32(CFNumberRef result, uint32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt(CFNumberRef result, long value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt(CFNumberRef result, unsigned long value);
-CF_SWIFT_EXPORT void _CFNumberInitInt64(CFNumberRef result, int64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt64(CFNumberRef result, uint64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitFloat(CFNumberRef result, float value);
-CF_SWIFT_EXPORT void _CFNumberInitDouble(CFNumberRef result, double value);
-
 /* These four functions are used by NSError in formatting error descriptions. They take NS or CFError as arguments and return a retained CFString or NULL.
 */ 
 CF_EXPORT CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err);
