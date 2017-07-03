@@ -183,10 +183,6 @@ open class NotificationCenter: NSObject {
     }
     
     open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        if queue != nil {
-            NSUnimplemented()
-        }
-
         let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
