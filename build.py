@@ -394,6 +394,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/Thread.swift',
 	'Foundation/NSTimer.swift',
 	'Foundation/NSTimeZone.swift',
+	'Foundation/NSCFTimeZone.swift',
 	'Foundation/NSURL.swift',
 	'Foundation/NSURLAuthenticationChallenge.swift',
 	'Foundation/NSURLCache.swift',

@@ -12,11 +12,6 @@ import CoreFoundation
 
 open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFTimeZone
-    private var _base = _CFInfo(typeID: CFTimeZoneGetTypeID())
-    private var _name: UnsafeMutableRawPointer? = nil
-    private var _data: UnsafeMutableRawPointer? = nil
-    private var _periods: UnsafeMutableRawPointer? = nil
-    private var _periodCnt = Int32(0)
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
@@ -28,10 +23,14 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         self.init(name: tzName, data: nil)
     }
 
-    public init?(name tzName: String, data aData: Data?) {
-        super.init()
-        if !_CFTimeZoneInit(_cfObject, tzName._cfObject, aData?._cfObject) {
-            return nil
+    public convenience init?(name tzName: String, data aData: Data?) {
+        if type(of: self) == NSTimeZone.self {
+            guard let tz = CFTimeZoneCreate(kCFAllocatorSystemDefault, tzName._cfObject, aData?._cfObject) else {
+                return nil
+            }
+            self.init(factory: _unsafeReferenceCast(tz, to: NSTimeZone.self))
+        } else {
+            self.init()
         }
     }
     
@@ -61,15 +60,15 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open override var description: String {
         return CFCopyDescription(_cfObject)._swiftObject
     }
-
-    deinit {
-        _CFDeinit(self)
-    }
-
+    
     // `init(forSecondsFromGMT:)` is not a failable initializer, so we need a designated initializer that isn't failable.
-    internal init(_name tzName: String) {
-        super.init()
-        _CFTimeZoneInit(_cfObject, tzName._cfObject, nil)
+    internal convenience init(_name tzName: String) {
+        if type(of: self) == NSTimeZone.self {
+            let cf = CFTimeZoneCreate(kCFAllocatorSystemDefault, _unsafeReferenceCast(NSString(string: tzName), to: CFString.self), nil)!
+            self.init(factory: _unsafeReferenceCast(cf, to: NSTimeZone.self))
+        } else {
+            self.init()
+        }
     }
 
     // Time zones created with this never have daylight savings and the
@@ -118,52 +117,31 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var name: String {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetName(_cfObject)._swiftObject
+        NSRequiresConcreteImplementation()
     }
     
     open var data: Data {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetData(_cfObject)._swiftObject
+        NSRequiresConcreteImplementation()
     }
     
     open func secondsFromGMT(for aDate: Date) -> Int {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return Int(CFTimeZoneGetSecondsFromGMT(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        NSRequiresConcreteImplementation()
     }
     
     open func abbreviation(for aDate: Date) -> String? {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneCopyAbbreviation(_cfObject, aDate.timeIntervalSinceReferenceDate)._swiftObject
+        NSRequiresConcreteImplementation()
     }
     
-    open func isDaylightSavingTime(for aDate: Date) -> Bool {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneIsDaylightSavingTime(_cfObject, aDate.timeIntervalSinceReferenceDate)
+    open func isDaylightSavingTime(for aDate: Date) -> Bool {   
+        NSRequiresConcreteImplementation()
     }
     
     open func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return CFTimeZoneGetDaylightSavingTimeOffset(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        NSRequiresConcreteImplementation()
     }
     
     open func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
-        guard type(of: self) === NSTimeZone.self else {
-            NSRequiresConcreteImplementation()
-        }
-        return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        NSRequiresConcreteImplementation()
     }
 }
 
@@ -279,6 +257,8 @@ extension NSTimeZone {
     }
 
 }
+
+extension NSTimeZone : _NSFactory { }
 
 extension NSNotification.Name {
     public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
