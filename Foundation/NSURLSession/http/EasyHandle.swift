@@ -52,7 +52,7 @@ import Dispatch
 /// `Dispatch` only -- it is intentionally **not** thread safe.
 internal final class _EasyHandle {
     let rawHandle = CFURLSessionEasyHandleInit()
-    unowned let delegate: _EasyHandleDelegate
+    weak var delegate: _EasyHandleDelegate?
     fileprivate var headerList: _CurlStringList?
     fileprivate var pauseState: _PauseState = []
     internal var fileLength: Int64 = 0
@@ -88,7 +88,7 @@ extension _EasyHandle {
 
 internal extension _EasyHandle {
     func completedTransfer(withErrorCode errorCode: Int?) {
-        delegate.transferCompleted(withErrorCode: errorCode)
+        delegate?.transferCompleted(withErrorCode: errorCode)
     }
 }
 internal protocol _EasyHandleDelegate: class {
@@ -479,12 +479,15 @@ fileprivate extension _EasyHandle {
     func didReceive(data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int) -> Int {
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
-            switch delegate.didReceive(data: buffer) {
-            case .proceed: return size * nmemb
-            case .abort: return 0
-            case .pause:
+            switch delegate?.didReceive(data: buffer) {
+            case .some(.proceed): return size * nmemb
+            case .some(.abort): return 0
+            case .some(.pause):
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
+            case .none:
+                /* the delegate disappeared */
+                return 0
             }
         }()
         return d
@@ -497,12 +500,15 @@ fileprivate extension _EasyHandle {
         self.fileLength = Int64(fileLength)
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
-            switch delegate.didReceive(headerData: buffer) {
-            case .proceed: return size * nmemb
-            case .abort: return 0
-            case .pause:
+            switch delegate?.didReceive(headerData: buffer) {
+            case .some(.proceed): return size * nmemb
+            case .some(.abort): return 0
+            case .some(.pause):
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
+            case .none:
+                /* the delegate disappeared */
+                return 0
             }
         }()
         return d
@@ -514,14 +520,17 @@ fileprivate extension _EasyHandle {
     func fill(writeBuffer data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int) -> Int {
         let d: Int = {
             let buffer = UnsafeMutableBufferPointer(start: data, count: size * nmemb)
-            switch delegate.fill(writeBuffer: buffer) {
-            case .pause:
+            switch delegate?.fill(writeBuffer: buffer) {
+            case .some(.pause):
                 pauseState.insert(.sendPaused)
                 return Int(CFURLSessionReadFuncPause)
-            case .abort:
+            case .some(.abort):
                 return Int(CFURLSessionReadFuncAbort)
-            case .bytes(let length):
+            case .some(.bytes(let length)):
                 return length 
+            case .none:
+                /* the delegate disappeared */
+                return Int(CFURLSessionReadFuncAbort)
             }
         }()
         return d
@@ -541,7 +550,7 @@ fileprivate extension _EasyHandle {
         //     <https://en.wikipedia.org/wiki/Quality_of_service>
     }
     func updateProgressMeter(with propgress: _Progress) {
-        delegate.updateProgressMeter(with: propgress)
+        delegate?.updateProgressMeter(with: propgress)
     }
     
     func seekInputStream(offset: Int64, origin: CInt) -> CInt {
@@ -549,8 +558,12 @@ fileprivate extension _EasyHandle {
             /// libcurl should only use SEEK_SET
             guard origin == SEEK_SET else { fatalError("Unexpected 'origin' in seek.") }
             do {
-                try delegate.seekInputStream(to: UInt64(offset))
-                return CFURLSessionSeekOk
+                if let delegate = delegate {
+                    try delegate.seekInputStream(to: UInt64(offset))
+                    return CFURLSessionSeekOk
+                } else {
+                    return CFURLSessionSeekCantSeek
+                }
             } catch {
                 return CFURLSessionSeekCantSeek
             }
