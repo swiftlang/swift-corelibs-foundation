@@ -104,6 +104,12 @@ class _TCPSocket {
             return String(str[startIndex..<endIndex])
         }
     }
+
+    func writeRawData(_ data: Data) throws {
+        let x = try data.withUnsafeBytes { ptr in
+            try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, ptr, data.count)))
+        }
+    }
    
     func writeData(header: String, body: String, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         var header = Array(header.utf8)
@@ -173,6 +179,69 @@ class _HTTPServer {
         semaphore.wait()
         
     } 
+
+    func respondWithBrokenResponses(uri: String) throws {
+        let responseData: Data
+        switch uri {
+            case "/LandOfTheLostCities/Pompeii":
+                /* this is an example of what you get if you connect to an HTTP2
+                 server using HTTP/1.1. Curl interprets that as a HTTP/0.9
+                 simple-response and therefore sends this back as a response
+                 body. Go figure! */
+                responseData = Data(bytes: [
+                    0x00, 0x00, 0x18, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+                    0x01, 0x00, 0x05, 0x00, 0x00, 0x40, 0x00, 0x00, 0x06, 0x00,
+                    0x00, 0x1f, 0x40, 0x00, 0x00, 0x86, 0x07, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+                    0x48, 0x54, 0x54, 0x50, 0x2f, 0x32, 0x20, 0x63, 0x6c, 0x69,
+                    0x65, 0x6e, 0x74, 0x20, 0x70, 0x72, 0x65, 0x66, 0x61, 0x63,
+                    0x65, 0x20, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x20, 0x6d,
+                    0x69, 0x73, 0x73, 0x69, 0x6e, 0x67, 0x20, 0x6f, 0x72, 0x20,
+                    0x63, 0x6f, 0x72, 0x72, 0x75, 0x70, 0x74, 0x2e, 0x20, 0x48,
+                    0x65, 0x78, 0x20, 0x64, 0x75, 0x6d, 0x70, 0x20, 0x66, 0x6f,
+                    0x72, 0x20, 0x72, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64,
+                    0x20, 0x62, 0x79, 0x74, 0x65, 0x73, 0x3a, 0x20, 0x34, 0x37,
+                    0x34, 0x35, 0x35, 0x34, 0x32, 0x30, 0x32, 0x66, 0x33, 0x33,
+                    0x32, 0x66, 0x36, 0x34, 0x36, 0x35, 0x37, 0x36, 0x36, 0x39,
+                    0x36, 0x33, 0x36, 0x35, 0x32, 0x66, 0x33, 0x31, 0x33, 0x32,
+                    0x33, 0x33, 0x33, 0x34, 0x33, 0x35, 0x33, 0x36, 0x33, 0x37,
+                    0x33, 0x38, 0x33, 0x39, 0x33, 0x30])
+            case "/LandOfTheLostCities/Sodom":
+                /* a technically valid HTTP/0.9 simple-response */
+                responseData = ("technically, this is a valid HTTP/0.9 " +
+                    "simple-response. I know it's odd but CURL supports it " +
+                    "still...\r\nFind out more in those URLs:\r\n " +
+                    " - https://www.w3.org/Protocols/HTTP/1.0/spec.html#Message-Types\r\n" +
+                    " - https://github.com/curl/curl/issues/467\r\n").data(using: .utf8)!
+            case "/LandOfTheLostCities/Gomorrah":
+                /* just broken, hope that's not officially HTTP/0.9 :p */
+                responseData = "HTTP/1.1\r\n\r\n\r\n".data(using: .utf8)!
+            case "/LandOfTheLostCities/Myndus":
+                responseData = ("HTTP/1.1 200 OK\r\n" +
+                               "\r\n" +
+                               "this is a body that isn't legal as it's " +
+                               "neither chunked encoding nor any Content-Length\r\n").data(using: .utf8)!
+            case "/LandOfTheLostCities/Kameiros":
+                responseData = ("HTTP/1.1 999 Wrong Code\r\n" +
+                               "illegal: status code (too large)\r\n" +
+                               "\r\n").data(using: .utf8)!
+            case "/LandOfTheLostCities/Dinavar":
+                responseData = ("HTTP/1.1 20 Too Few Digits\r\n" +
+                               "illegal: status code (too few digits)\r\n" +
+                               "\r\n").data(using: .utf8)!
+            case "/LandOfTheLostCities/Kuhikugu":
+                responseData = ("HTTP/1.1 2000 Too Many Digits\r\n" +
+                               "illegal: status code (too many digits)\r\n" +
+                               "\r\n").data(using: .utf8)!
+            default:
+                responseData = ("HTTP/1.1 500 Internal Server Error\r\n" +
+                               "case-missing-in: TestFoundation/HTTPServer.swift\r\n" +
+                               "\r\n").data(using: .utf8)!
+        }
+        try self.socket.writeRawData(responseData)
+    }
+
 }
 
 struct _HTTPRequest {
@@ -249,7 +318,13 @@ public class TestURLSessionServer {
     }
    
     public func readAndRespond() throws {
-        try httpServer.respond(with: process(request: httpServer.request()), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
+        let req = try httpServer.request()
+        if req.uri.hasPrefix("/LandOfTheLostCities/") {
+            /* these are all misbehaving servers */
+            try httpServer.respondWithBrokenResponses(uri: req.uri)
+        } else {
+            try httpServer.respond(with: process(request: req), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
+        }
     }
 
     func process(request: _HTTPRequest) -> _HTTPResponse {

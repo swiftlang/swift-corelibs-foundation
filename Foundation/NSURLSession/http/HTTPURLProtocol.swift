@@ -439,8 +439,14 @@ extension _HTTPURLProtocol {
 extension _HTTPURLProtocol: _EasyHandleDelegate {
     
     func didReceive(data: Data) -> _EasyHandle._Action {
-        guard case .transferInProgress(let ts) = internalState else { fatalError("Received body data, but no transfer in progress.") }
-        guard ts.isHeaderComplete else { fatalError("Received body data, but the header is not complete, yet.") }
+        guard case .transferInProgress(var ts) = internalState else { fatalError("Received body data, but no transfer in progress.") }
+        if !ts.isHeaderComplete {
+            ts.response = HTTPURLResponse(url: ts.url, statusCode: 200, httpVersion: "HTTP/0.9", headerFields: [:])
+            /* we received body data before CURL tells us that the headers are complete, that happens for HTTP/0.9 simple responses, see
+               - https://www.w3.org/Protocols/HTTP/1.0/spec.html#Message-Types
+               - https://github.com/curl/curl/issues/467
+            */
+        }
         notifyDelegate(aboutReceivedData: data)
         internalState = .transferInProgress(ts.byAppending(bodyData: data))
         return .proceed
