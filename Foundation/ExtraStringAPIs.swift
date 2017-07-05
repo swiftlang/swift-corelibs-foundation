@@ -17,15 +17,15 @@ extension String.UTF16View.Index : Strideable {
     /// Construct from an integer offset.
     public init(_ offset: Int) {
         _precondition(offset >= 0, "Negative UTF16 index offset not allowed")
-        self.init(_offset: offset)
+        self.init(encodedOffset: offset)
     }
     
     public func distance(to other: String.UTF16View.Index) -> Int {
-        return _offset.distance(to: other._offset)
+        return encodedOffset.distance(to: other.encodedOffset)
     }
     
     public func advanced(by n: Int) -> String.UTF16View.Index {
-        return String.UTF16View.Index(_offset.advanced(by: n))
+        return String.UTF16View.Index(encodedOffset.advanced(by: n))
     }
 }
 

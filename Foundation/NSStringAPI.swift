@@ -30,8 +30,8 @@ func _toNSArray<T, U : AnyObject>(_ a: [T], f: (T) -> U) -> NSArray {
 
 func _toNSRange(_ r: Range<String.Index>) -> NSRange {
   return NSRange(
-    location: r.lowerBound._utf16Index,
-    length: r.upperBound._utf16Index - r.lowerBound._utf16Index)
+    location: r.lowerBound.encodedOffset,
+    length: r.upperBound.encodedOffset - r.lowerBound.encodedOffset)
 }
 
 extension String {
@@ -47,10 +47,7 @@ extension String {
   /// Return an `Index` corresponding to the given offset in our UTF-16
   /// representation.
   func _index(_ utf16Index: Int) -> Index {
-    return Index(
-      _base: String.UnicodeScalarView.Index(_position: utf16Index),
-      in: characters
-    )
+    return Index(encodedOffset: utf16Index)
   }
 
   /// Return a `Range<Index>` corresponding to the given `NSRange` of
@@ -1076,7 +1073,7 @@ extension String {
   public
   func rangeOfComposedCharacterSequence(at anIndex: Index) -> Range<Index> {
     return _range(
-      _ns.rangeOfComposedCharacterSequence(at: anIndex._utf16Index))
+      _ns.rangeOfComposedCharacterSequence(at: anIndex.encodedOffset))
   }
 
   // - (NSRange)rangeOfComposedCharacterSequencesForRange:(NSRange)range
@@ -1392,7 +1389,7 @@ extension String {
   /// Returns a new string containing the characters of the
   /// `String` from the one at a given index to the end.
   public func substring(from index: Index) -> String {
-    return _ns.substring(from: index._utf16Index)
+    return _ns.substring(from: index.encodedOffset)
   }
 
   // - (NSString *)substringToIndex:(NSUInteger)anIndex
@@ -1400,7 +1397,7 @@ extension String {
   /// Returns a new string containing the characters of the
   /// `String` up to, but not including, the one at a given index.
   public func substring(to index: Index) -> String {
-    return _ns.substring(to: index._utf16Index)
+    return _ns.substring(to: index.encodedOffset)
   }
 
   // - (NSString *)substringWithRange:(NSRange)aRange
