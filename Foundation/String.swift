@@ -12,6 +12,13 @@
 
 import CoreFoundation
 
+extension String {
+    public init(_ cocoaString: NSString) {
+        // TODO: change this when NSString is refactored for factory patterns
+        self = cocoaString._swiftObject
+    }
+}
+
 extension String : _ObjectTypeBridgeable {
     
     public typealias _ObjectType = NSString
