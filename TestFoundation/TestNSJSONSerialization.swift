@@ -759,7 +759,7 @@ extension TestNSJSONSerialization {
             }
             let filePath = createTestFile("TestJSON.txt",_contents: data)
             if filePath != nil {
-                let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+                let fileStream: InputStream = InputStream(url: URL(fileURLWithPath: filePath!))!
                 fileStream.open()
                 let resultRead = try JSONSerialization.jsonObject(with: fileStream, options: [])
                 let result = resultRead as? [String: Any]
@@ -1248,12 +1248,13 @@ extension TestNSJSONSerialization {
         do {
             let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128))
             if filePath != nil {
-                let outputStream = OutputStream(toFileAtPath: filePath!, append: true)
+                
+                let outputStream = OutputStream(url: URL(fileURLWithPath: filePath!), append: true)
                 outputStream?.open()
                 let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream!, options: [])
                 outputStream?.close()
                 if(result > -1) {
-                    let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+                    let fileStream: InputStream = InputStream(url: URL(fileURLWithPath: filePath!))!
                     var buffer = [UInt8](repeating: 0, count: 20)
                     fileStream.open()
                     if fileStream.hasBytesAvailable {

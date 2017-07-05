@@ -105,9 +105,9 @@ internal func __CFInitializeSwift() {
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, to: UnsafeRawPointer.self))
-//    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(InputStream.self, UnsafeRawPointer.self))
-//    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(OutputStream.self, UnsafeRawPointer.self))
-   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(_NSCFInputStream.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(_NSCFOutputStream.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafeRawPointer.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
@@ -224,6 +224,31 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
+    __CFSwiftBridge.NSInputStream.streamStatus = _CFSwiftInputStreamGetStreamStatus
+    __CFSwiftBridge.NSInputStream._cfStreamError = _CFSwiftInputStreamGetCFStreamError
+    __CFSwiftBridge.NSInputStream.streamError = _CFSwiftInputStreamGetStreamError
+    __CFSwiftBridge.NSInputStream.open = _CFSwiftInputStreamOpen
+    __CFSwiftBridge.NSInputStream.close = _CFSwiftInputStreamClose
+    __CFSwiftBridge.NSInputStream.hasBytesAvailable = _CFSwiftInputStreamHasBytesAvailable
+    __CFSwiftBridge.NSInputStream.read = _CFSwiftInputStreamRead
+    __CFSwiftBridge.NSInputStream.getBuffer = _CFSwiftInputStreamGetBuffer
+    __CFSwiftBridge.NSInputStream.copyPropertyForKey = _CFSwiftInputStreamCopyPropertyForKey
+    __CFSwiftBridge.NSInputStream.setPropertyForKey = _CFSwiftInputStreamSetPropertyForKey
+    __CFSwiftBridge.NSInputStream.scheduleWithRunLoop = _CFSwiftInputStreamScheduleWithRunLoop
+    __CFSwiftBridge.NSInputStream.unscheduleWithRunLoop = _CFSwiftInputStreamUnscheduleWithRunLoop
+    
+    __CFSwiftBridge.NSOutputStream.streamStatus = _CFSwiftOutputStreamGetStreamStatus
+    __CFSwiftBridge.NSOutputStream._cfStreamError = _CFSwiftOutputStreamGetCFStreamError
+    __CFSwiftBridge.NSOutputStream.streamError = _CFSwiftOutputStreamGetStreamError
+    __CFSwiftBridge.NSOutputStream.open = _CFSwiftOutputStreamOpen
+    __CFSwiftBridge.NSOutputStream.close = _CFSwiftOutputStreamClose
+    __CFSwiftBridge.NSOutputStream.hasSpaceAvailable = _CFSwiftOutputStreamHasSpaceAvailable
+    __CFSwiftBridge.NSOutputStream.write = _CFSwiftOutputStreamWrite
+    __CFSwiftBridge.NSOutputStream.propertyForKey = _CFSwiftOutputStreamCopyPropertyForKey
+    __CFSwiftBridge.NSOutputStream.setPropertyForKey = _CFSwiftOutputStreamSetPropertyForKey
+    __CFSwiftBridge.NSOutputStream.scheduleWithRunLoop = _CFSwiftOutputStreamScheduleWithRunLoop
+    __CFSwiftBridge.NSOutputStream.unscheduleWithRunLoop = _CFSwiftOutputStreamUnscheduleWithRunLoop
+    
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
@@ -320,7 +345,7 @@ extension Array {
 /// * NSTimeZone (currently implemented in swift-corelibs-foundation)
 /// * NSCalendar
 /// * NSCharacterSet
-/// * NSInputStream/NSOutputStream
+/// * NSInputStream/NSOutputStream (currently implemented in swift-corelibs-foundation)
 /// * NSTimer
 ///
 /// Transitioning to these can help elide the need for extra ivars in subclasses. Additionally it

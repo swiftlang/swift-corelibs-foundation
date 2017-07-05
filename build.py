@@ -386,6 +386,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSSortDescriptor.swift',
 	'Foundation/NSSpecialValue.swift',
 	'Foundation/NSStream.swift',
+	'Foundation/NSCFStream.swift',
 	'Foundation/NSString.swift',
 	'Foundation/NSStringAPI.swift',
 	'Foundation/NSSwiftRuntime.swift',

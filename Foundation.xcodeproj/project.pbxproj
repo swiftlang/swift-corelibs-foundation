@@ -68,6 +68,7 @@
 		5B187B131F0ACAD2004E49B3 /* NSNumberBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */; };
 		5B187B151F0ACAFB004E49B3 /* NSCFNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */; };
 		5B187B2C1F0D2EC1004E49B3 /* NSCFTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B2B1F0D2EC1004E49B3 /* NSCFTimeZone.swift */; };
+		5B187B411F0D656C004E49B3 /* NSCFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B401F0D656C004E49B3 /* NSCFStream.swift */; };
 		5B1FD9C51D6D16150080E83C /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
 		5B1FD9C61D6D161A0080E83C /* CFURLSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B1FD9D41D6D16580080E83C /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C81D6D16580080E83C /* Configuration.swift */; };
@@ -507,6 +508,7 @@
 		5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSNumberBridge.swift; sourceTree = "<group>"; };
 		5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFNumber.swift; sourceTree = "<group>"; };
 		5B187B2B1F0D2EC1004E49B3 /* NSCFTimeZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFTimeZone.swift; sourceTree = "<group>"; };
+		5B187B401F0D656C004E49B3 /* NSCFStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFStream.swift; sourceTree = "<group>"; };
 		5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLSessionInterface.c; sourceTree = "<group>"; };
 		5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLSessionInterface.h; sourceTree = "<group>"; };
 		5B1FD9C81D6D16580080E83C /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
@@ -1690,6 +1692,7 @@
 				EAB57B711BD1C7A5004AC5C5 /* NSPortMessage.swift */,
 				EADE0B761BD15DFF00C49C64 /* NSRunLoop.swift */,
 				EADE0B791BD15DFF00C49C64 /* NSStream.swift */,
+				5B187B401F0D656C004E49B3 /* NSCFStream.swift */,
 				5BDC3F481BCC5DCB00ED97BB /* NSTimer.swift */,
 			);
 			name = RunLoop;
@@ -2143,6 +2146,7 @@
 				EADE0B921BD15DFF00C49C64 /* NSCache.swift in Sources */,
 				EADE0BAB1BD15E0000C49C64 /* Operation.swift in Sources */,
 				5BECBA3C1D1CAF8800B39B1F /* Unit.swift in Sources */,
+				5B187B411F0D656C004E49B3 /* NSCFStream.swift in Sources */,
 				5B2A98CD1D021886008A0B75 /* NSCFCharacterSet.swift in Sources */,
 				EADE0B9A1BD15DFF00C49C64 /* NSExpression.swift in Sources */,
 				EADE0BB01BD15E0000C49C64 /* NSPort.swift in Sources */,

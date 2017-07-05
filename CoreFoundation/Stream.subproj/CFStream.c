@@ -896,11 +896,13 @@ CF_PRIVATE CFStreamStatus _CFStreamGetStatus(struct _CFStream *stream) {
 
 CF_EXPORT CFStreamStatus CFReadStreamGetStatus(CFReadStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamStatus, (NSInputStream *)stream, streamStatus);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamStatus, (CFSwiftRef)stream, NSInputStream.streamStatus);
     return _CFStreamGetStatus((struct _CFStream *)stream);
 }
 
 CF_EXPORT CFStreamStatus CFWriteStreamGetStatus(CFWriteStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFStreamStatus, (NSOutputStream *)stream, streamStatus);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamStatus, (CFSwiftRef)stream, NSOutputStream.streamStatus);
     return _CFStreamGetStatus((struct _CFStream *)stream);
 }
 
