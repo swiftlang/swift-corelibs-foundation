@@ -31,6 +31,7 @@ extension JSONSerialization {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
+        public static let sortedKeys = WritingOptions(rawValue: 1 << 1)
     }
 }
 
@@ -116,6 +117,7 @@ open class JSONSerialization : NSObject {
         
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
+            sortedKeys: opt.contains(.sortedKeys),
             writer: { (str: String?) in
                 if let str = str {
                     jsonStr.append(str)
@@ -289,6 +291,7 @@ private struct JSONWriter {
     private let maxIntLength = String(describing: Int.max).characters.count
     var indent = 0
     let pretty: Bool
+    let sortedKeys: Bool
     let writer: (String?) -> Void
     
     private lazy var _numberformatter: CFNumberFormatter = {
@@ -299,8 +302,9 @@ private struct JSONWriter {
         return formatter
     }()
 
-    init(pretty: Bool = false, writer: @escaping (String?) -> Void) {
+    init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
+        self.sortedKeys = sortedKeys
         self.writer = writer
     }
     
@@ -501,8 +505,19 @@ private struct JSONWriter {
         }
         
         var first = true
+
+        var keys = Array(dict.keys)
+        if sortedKeys {
+            try keys.sort(by: { a, b in
+                guard let a = a as? String,
+                      let b = b as? String else {
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                }
+                return a < b
+            })
+        }
         
-        for (key, value) in dict {
+        for key in keys {
             if first {
                 first = false
             } else if pretty {
@@ -518,7 +533,7 @@ private struct JSONWriter {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }
             pretty ? writer(": ") : writer(":")
-            try serializeJSON(value)
+            try serializeJSON(dict[key]!)
         }
         if pretty {
             writer("\n")

@@ -945,11 +945,12 @@ extension TestNSJSONSerialization {
             ("test_booleanJSONObject", test_booleanJSONObject),
             ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
             ("test_serializeDecimalNumberJSONObject", test_serializeDecimalNumberJSONObject),
+            ("test_serializeSortedKeys", test_serializeSortedKeys),
         ]
     }
 
-    func trySerialize(_ obj: Any) throws -> String {
-        let data = try JSONSerialization.data(withJSONObject: obj, options: [])
+    func trySerialize(_ obj: Any, options: JSONSerialization.WritingOptions = []) throws -> String {
+        let data = try JSONSerialization.data(withJSONObject: obj, options: options)
         guard let string = String(data: data, encoding: .utf8) else {
             XCTFail("Unable to create string")
             return ""
@@ -1334,6 +1335,19 @@ extension TestNSJSONSerialization {
         } catch {
             XCTFail("Failed during serialization")
         }
+    } 
+    
+    func test_serializeSortedKeys() {
+        var dict: [String: Any]
+
+        dict = ["z": 1, "y": 1, "x": 1, "w": 1, "v": 1, "u": 1, "t": 1, "s": 1, "r": 1, "q": 1, ]
+        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"q\":1,\"r\":1,\"s\":1,\"t\":1,\"u\":1,\"v\":1,\"w\":1,\"x\":1,\"y\":1,\"z\":1}")
+
+        dict = ["aaaa": 1, "aaa": 1, "aa": 1, "a": 1]
+        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":1,\"aa\":1,\"aaa\":1,\"aaaa\":1}")
+
+        dict = ["c": ["c":1,"b":1,"a":1],"b":["c":1,"b":1,"a":1],"a":["c":1,"b":1,"a":1]]
+        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
     }
 
     fileprivate func createTestFile(_ path: String,_contents: Data) -> String? {
