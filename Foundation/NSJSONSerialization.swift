@@ -531,7 +531,11 @@ private struct JSONWriter {
                     let b = b.key as? String else {
                         throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
                 }
-                return a < b
+                let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
+                let range = a.startIndex ..< a.endIndex
+                let locale = NSLocale.systemLocale()
+
+                return a.compare(b, options: options, range: range, locale: locale) == .orderedAscending
             })
             for elem in elems {
                 try serializeDictionaryElement(key: elem.key, value: elem.value)
