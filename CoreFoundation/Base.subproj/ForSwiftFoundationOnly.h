@@ -253,7 +253,7 @@ struct _NSOutputStreamBridge {
     void (*_Nonnull close)(CFTypeRef stream);
     bool (*_Nonnull hasSpaceAvailable)(CFTypeRef stream);
     CFIndex (*_Nonnull write)(CFTypeRef stream, const uint8_t *buffer, CFIndex maxLength);
-    CFTypeRef _Nullable (*_Nonnull propertyForKey)(CFTypeRef stream, CFStringRef key);
+    CFTypeRef _Nullable (*_Nonnull copyPropertyForKey)(CFTypeRef stream, CFStringRef key);
     bool (*_Nonnull setPropertyForKey)(CFTypeRef stream, CFTypeRef _Nullable value, CFStringRef key);
     void (*_Nonnull scheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
     void (*_Nonnull unscheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);

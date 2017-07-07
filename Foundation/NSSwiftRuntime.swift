@@ -244,7 +244,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSOutputStream.close = _CFSwiftOutputStreamClose
     __CFSwiftBridge.NSOutputStream.hasSpaceAvailable = _CFSwiftOutputStreamHasSpaceAvailable
     __CFSwiftBridge.NSOutputStream.write = _CFSwiftOutputStreamWrite
-    __CFSwiftBridge.NSOutputStream.propertyForKey = _CFSwiftOutputStreamCopyPropertyForKey
+    __CFSwiftBridge.NSOutputStream.copyPropertyForKey = _CFSwiftOutputStreamCopyPropertyForKey
     __CFSwiftBridge.NSOutputStream.setPropertyForKey = _CFSwiftOutputStreamSetPropertyForKey
     __CFSwiftBridge.NSOutputStream.scheduleWithRunLoop = _CFSwiftOutputStreamScheduleWithRunLoop
     __CFSwiftBridge.NSOutputStream.unscheduleWithRunLoop = _CFSwiftOutputStreamUnscheduleWithRunLoop
