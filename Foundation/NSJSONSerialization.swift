@@ -503,21 +503,10 @@ private struct JSONWriter {
             writer("\n")
             incAndWriteIndent()
         }
-        
+
         var first = true
 
-        var keys = Array(dict.keys)
-        if sortedKeys {
-            try keys.sort(by: { a, b in
-                guard let a = a as? String,
-                      let b = b as? String else {
-                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
-                }
-                return a < b
-            })
-        }
-        
-        for key in keys {
+        func serializeDictionaryElement(key: AnyHashable, value: Any) throws {
             if first {
                 first = false
             } else if pretty {
@@ -526,15 +515,33 @@ private struct JSONWriter {
             } else {
                 writer(",")
             }
-            
-            if key is String {
-                try serializeString(key as! String)
+
+            if let key = key as? String {
+                try serializeString(key)
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }
             pretty ? writer(": ") : writer(":")
-            try serializeJSON(dict[key]!)
+            try serializeJSON(value)
         }
+
+        if sortedKeys {
+            let elems = try dict.sorted(by: { a, b in
+                guard let a = a.key as? String,
+                    let b = b.key as? String else {
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                }
+                return a < b
+            })
+            for elem in elems {
+                try serializeDictionaryElement(key: elem.key, value: elem.value)
+            }
+        } else {
+            for (key, value) in dict {
+                try serializeDictionaryElement(key: key, value: value)
+            }
+        }
+
         if pretty {
             writer("\n")
             decAndWriteIndent()
