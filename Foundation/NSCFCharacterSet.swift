@@ -8,6 +8,24 @@
 
 import CoreFoundation
 
+#if os(OSX) || os(iOS)
+let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
+let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
+let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
+let kCFCharacterSetDecimalDigit = CFCharacterSetPredefinedSet.decimalDigit
+let kCFCharacterSetLetter = CFCharacterSetPredefinedSet.letter
+let kCFCharacterSetLowercaseLetter = CFCharacterSetPredefinedSet.lowercaseLetter
+let kCFCharacterSetUppercaseLetter = CFCharacterSetPredefinedSet.uppercaseLetter
+let kCFCharacterSetNonBase = CFCharacterSetPredefinedSet.nonBase
+let kCFCharacterSetDecomposable = CFCharacterSetPredefinedSet.decomposable
+let kCFCharacterSetAlphaNumeric = CFCharacterSetPredefinedSet.alphaNumeric
+let kCFCharacterSetPunctuation = CFCharacterSetPredefinedSet.punctuation
+let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.capitalizedLetter
+let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.symbol
+let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.newline
+let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
+#endif
+
 internal class _NSCFCharacterSet : NSMutableCharacterSet {
     
     required init(coder aDecoder: NSCoder) {
@@ -15,27 +33,27 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     }
     
     override func characterIsMember(_ aCharacter: unichar) -> Bool {
-        return CFCharacterSetIsCharacterMember(_cfObject, UniChar(aCharacter))
+        return CFCharacterSetIsCharacterMember(_unsafeReferenceCast(self, to: CFCharacterSet.self), UniChar(aCharacter))
     }
     
     override var bitmapRepresentation: Data {
-        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._swiftObject
+        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._swiftObject
     }
     
     override var inverted: CharacterSet {
-        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _cfObject)._swiftObject
+        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._swiftObject
     }
     
     override func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
+        return CFCharacterSetIsLongCharacterMember(_unsafeReferenceCast(self, to: CFCharacterSet.self), theLongChar)
     }
     
     override func isSuperset(of theOtherSet: CharacterSet) -> Bool {
-        return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
+        return CFCharacterSetIsSupersetOfSet(_unsafeReferenceCast(self, to: CFCharacterSet.self), theOtherSet._cfObject)
     }
     
     override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
+        return CFCharacterSetHasMemberInPlane(_unsafeReferenceCast(self, to: CFCharacterSet.self), CFIndex(thePlane))
     }
     
     override func copy() -> Any {
@@ -43,40 +61,40 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     }
     
     override func copy(with zone: NSZone? = nil) -> Any {
-        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
+        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))
     }
     
     override func mutableCopy(with zone: NSZone? = nil) -> Any {
-        return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
+        return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._nsObject
     }
     
     
     override func addCharacters(in aRange: NSRange) {
-        CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
+        CFCharacterSetAddCharactersInRange(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
     }
     
     override func removeCharacters(in aRange: NSRange) {
-        CFCharacterSetRemoveCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
+        CFCharacterSetRemoveCharactersInRange(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
     }
     
     override func addCharacters(in aString: String) {
-        CFCharacterSetAddCharactersInString(_cfMutableObject, aString._cfObject)
+        CFCharacterSetAddCharactersInString(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
     }
     
     override func removeCharacters(in aString: String) {
-        CFCharacterSetRemoveCharactersInString(_cfMutableObject, aString._cfObject)
+        CFCharacterSetRemoveCharactersInString(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
     }
     
     override func formUnion(with otherSet: CharacterSet) {
-        CFCharacterSetUnion(_cfMutableObject, otherSet._cfObject)
+        CFCharacterSetUnion(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), _unsafeReferenceCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
     }
     
     override func formIntersection(with otherSet: CharacterSet) {
-        CFCharacterSetIntersect(_cfMutableObject, otherSet._cfObject)
+        CFCharacterSetIntersect(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), _unsafeReferenceCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
     }
     
     override func invert() {
-        CFCharacterSetInvert(_cfMutableObject)
+        CFCharacterSetInvert(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self))
     }
 }
 
@@ -104,7 +122,7 @@ internal  func _CFSwiftCharacterSetHasMemberInPlane(_ cset: CFTypeRef, _ plane: 
     return (cset as! NSCharacterSet).hasMemberInPlane(plane)
 }
 
-internal  func _CFSwiftCharacterSetInverted(_ cset: CFTypeRef) -> Unmanaged<CFCharacterSet> {
+internal  func _CFSwiftCharacterSetCreateInverted(_ cset: CFTypeRef) -> Unmanaged<CFCharacterSet> {
     return Unmanaged.passRetained((cset as! NSCharacterSet).inverted._cfObject)
 }
 

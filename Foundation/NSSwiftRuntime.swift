@@ -210,7 +210,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSCharacterSet.mutableCopy = _CFSwiftCharacterSetMutableCopy
     __CFSwiftBridge.NSCharacterSet.longCharacterIsMember = _CFSwiftCharacterSetLongCharacterIsMember
     __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
-    __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
+    __CFSwiftBridge.NSCharacterSet.createInvertedSet = _CFSwiftCharacterSetCreateInverted
     
     __CFSwiftBridge.NSMutableCharacterSet.addCharactersInRange = _CFSwiftMutableSetAddCharactersInRange
     __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInRange = _CFSwiftMutableSetRemoveCharactersInRange

@@ -320,6 +320,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSCFSet.swift',
 	'Foundation/NSCFString.swift',
 	'Foundation/NSCharacterSet.swift',
+	'Foundation/NSPlaceholderCharacterSet.swift',
 	'Foundation/NSCFCharacterSet.swift',
 	'Foundation/NSCoder.swift',
 	'Foundation/NSComparisonPredicate.swift',

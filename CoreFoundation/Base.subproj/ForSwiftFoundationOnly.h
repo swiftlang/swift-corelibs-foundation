@@ -211,7 +211,7 @@ struct _NSCharacterSetBridge {
     _Nonnull CFMutableCharacterSetRef (*_Nonnull mutableCopy)(CFTypeRef cset);
     bool (*_Nonnull longCharacterIsMember)(CFTypeRef cset, UTF32Char ch);
     bool (*_Nonnull hasMemberInPlane)(CFTypeRef cset, uint8_t thePlane);
-    _Nonnull CFCharacterSetRef (*_Nonnull invertedSet)(CFTypeRef cset);
+    _Nonnull CFCharacterSetRef (*_Nonnull createInvertedSet)(CFTypeRef cset);
 };
 
 struct _NSMutableCharacterSetBridge {
