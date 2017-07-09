@@ -26,6 +26,10 @@ class TestNSOperationQueue : XCTestCase {
             ("test_AsyncOperation", test_AsyncOperation),
             ("test_isExecutingWorks", test_isExecutingWorks),
             ("test_MainQueueGetter", test_MainQueueGetter),
+            ("test_CurrentQueueOnMainQueue", test_CurrentQueueOnMainQueue),
+            ("test_CurrentQueueOnBackgroundQueue", test_CurrentQueueOnBackgroundQueue),
+            ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
+            ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
         ]
     }
     
@@ -113,6 +117,51 @@ class TestNSOperationQueue : XCTestCase {
          There used to be a bug where subsequent OperationQueue.main call would return a "dangling pointer".
          */
         XCTAssertFalse(OperationQueue.main.isSuspended)
+    }
+    
+    func test_CurrentQueueOnMainQueue() {
+        XCTAssertTrue(OperationQueue.main === OperationQueue.current)
+    }
+    
+    func test_CurrentQueueOnBackgroundQueue() {
+        let expectation = self.expectation(description: "Background execution")
+        
+        let operationQueue = OperationQueue()
+        operationQueue.addOperation {
+            XCTAssertEqual(operationQueue, OperationQueue.current)
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1)
+    }
+    
+    func test_CurrentQueueWithCustomUnderlyingQueue() {
+        let expectation = self.expectation(description: "Background execution")
+        
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "underlying_queue")
+        
+        operationQueue.addOperation {
+            XCTAssertEqual(operationQueue, OperationQueue.current)
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1)
+    }
+    
+    func test_CurrentQueueWithUnderlyingQueueResetToNil() {
+        let expectation = self.expectation(description: "Background execution")
+        
+        let operationQueue = OperationQueue()
+        operationQueue.underlyingQueue = DispatchQueue(label: "underlying_queue")
+        operationQueue.underlyingQueue = nil
+        
+        operationQueue.addOperation {
+            XCTAssertEqual(operationQueue, OperationQueue.current)
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1)
     }
 }
 
