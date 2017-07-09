@@ -41,6 +41,10 @@ class TestURLSession : XCTestCase {
 	    ("test_customProtocolResponseWithDelegate", test_customProtocolResponseWithDelegate),
             ("test_httpRedirection", test_httpRedirection),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
+            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
+            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
+            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
         ]
     }
     
@@ -377,6 +381,108 @@ class TestURLSession : XCTestCase {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+
+    func test_http0_9SimpleResponses() {
+        for brokenCity in ["Pompeii", "Sodom"] {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+            let url = URL(string: urlString)!
+
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 8
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            let expect = expectation(description: "URL test with completion handler for \(brokenCity)")
+            var expectedResult = "unknown"
+            let task = session.dataTask(with: url) { data, response, error in
+                XCTAssertNotNil(data)
+                XCTAssertNotNil(response)
+                XCTAssertNil(error)
+
+                defer { expect.fulfill() }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    XCTFail("response (\(response.debugDescription)) invalid")
+                    return
+                }
+                XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+            }
+            task.resume()
+            waitForExpectations(timeout: 12)
+        }
+    }
+
+    func test_outOfRangeButCorrectlyFormattedHTTPCode() {
+        let brokenCity = "Kameiros"
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+        let url = URL(string: urlString)!
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let expect = expectation(description: "URL test with completion handler for \(brokenCity)")
+        let task = session.dataTask(with: url) { data, response, error in
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+
+            defer { expect.fulfill() }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            XCTAssertEqual(999, httpResponse.statusCode, "HTTP response code is not 999")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
+
+    func test_missingContentLengthButStillABody() {
+        let brokenCity = "Myndus"
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+        let url = URL(string: urlString)!
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let expect = expectation(description: "URL test with completion handler for \(brokenCity)")
+        let task = session.dataTask(with: url) { data, response, error in
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+
+            defer { expect.fulfill() }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
+
+
+    func test_illegalHTTPServerResponses() {
+        for brokenCity in ["Gomorrah", "Dinavar", "Kuhikugu"] {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+            let url = URL(string: urlString)!
+
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 8
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            let expect = expectation(description: "URL test with completion handler for \(brokenCity)")
+            let task = session.dataTask(with: url) { data, response, error in
+                XCTAssertNil(data)
+                XCTAssertNil(response)
+                XCTAssertNotNil(error)
+
+                defer { expect.fulfill() }
+            }
+            task.resume()
+            waitForExpectations(timeout: 12)
+        }
     }
 }
 
