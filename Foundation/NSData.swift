@@ -78,46 +78,27 @@ private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
     
-    private var _base = _CFInfo(typeID: CFDataGetTypeID())
-    private var _length: CFIndex = 0
-    private var _capacity: CFIndex = 0
-    private var _deallocator: UnsafeMutableRawPointer? = nil // for CF only
-    private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
-    private var _bytes: UnsafeMutablePointer<UInt8>? = nil
+    internal func _copyWillRetain() -> Bool { return false }
+    internal func _isCompact() -> Bool { return false }
     
     internal var _cfObject: CFType {
-        if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
-            return unsafeBitCast(self, to: CFType.self)
-        } else {
-            let bytePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
-            return CFDataCreate(kCFAllocatorSystemDefault, bytePtr, self.length)
-        }
+        return unsafeBitCast(self, to: CFType.self)
     }
     
-    internal func _providesConcreteBacking() -> Bool {
-        return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
-    }
+    internal func _providesConcreteBacking() -> Bool { return false }
     
     override open var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
+    
+    internal init(placeholder: ()) { super.init() }
 
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional     
-    public init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
-        super.init()
-        let options : CFOptionFlags = (type(of: self) == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
-        let bytePtr = bytes?.bindMemory(to: UInt8.self, capacity: length)
-        if copy {
-            _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options, length, bytePtr, length, false)
-            if let handler = deallocator {
-                handler(bytes!, length)
-            }
+    public convenience init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer?, Int) -> Void)? = nil) {
+        if type(of: self) == NSData.self {
+            self.init(factory: NSConcreteData(bytes: bytes, length: length, copy: copy, deallocator: deallocator))
         } else {
-            if let handler = deallocator {
-                _deallocHandler!.handler = handler
-            }
-            // The data initialization should flag that CF should not deallocate which leaves the handler a chance to deallocate instead
-            _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options | __kCFDontDeallocate, length, bytePtr, length, true)
+            self.init(placeholder: ())
         }
     }
     
@@ -143,7 +124,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
 
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional         
-    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer?, Int) -> Void)? = nil) {
         self.init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
     }
     public convenience init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
@@ -206,34 +187,19 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.init(bytes: decodedBytes, length: decodedBytes.count)
     }
     
-    deinit {
-        if let allocatedBytes = _bytes {
-            _deallocHandler?.handler(allocatedBytes, _length)
-        }
-        if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
-            _CFDeinit(self._cfObject)
-        }
-    }
-    
     // MARK: - Funnel methods
     open var length: Int {
-        return CFDataGetLength(_cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open var bytes: UnsafeRawPointer {
-        guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
-            //This could occure on empty data being encoded.
-            //TODO: switch with nil when signature is fixed
-            return UnsafeRawPointer(bitPattern: 0x7f00dead)! //would not result in 'nil unwrapped optional'
-        }
-        return UnsafeRawPointer(bytePtr)
+        NSRequiresConcreteImplementation()
     }
-
-    
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        let len = length   
+        return Int(bitPattern: CFHashBytes(UnsafeMutablePointer(mutating: self.bytes.assumingMemoryBound(to: UInt8.self)), len))
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
@@ -355,7 +321,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     internal struct NSDataReadResult {
         var bytes: UnsafeMutableRawPointer
         var length: Int
-        var deallocator: ((_ buffer: UnsafeMutableRawPointer, _ length: Int) -> Void)?
+        var deallocator: ((_ buffer: UnsafeMutableRawPointer?, _ length: Int) -> Void)?
     }
     
     internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: ReadingOptions) throws -> NSDataReadResult {
@@ -545,25 +511,34 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     
     // MARK: - Bytes
-    open func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
-        let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: length)
-        CFDataGetBytes(_cfObject, CFRangeMake(0, length), bytePtr)
+    open func getBytes(_ buffer: UnsafeMutableRawPointer, length bufferLength: Int) {
+        var copyLength = bufferLength
+        let len = length
+        if (len < copyLength) { copyLength = len }
+        _NSFastMemoryMove(buffer, bytes, copyLength)
     }
     
     open func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
-        let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: range.length)
-        CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), bytePtr)
+        guard range.length > 0 else { return }
+        let len = length
+        _NSDataCheckBound(self, range.location, range.length, len, false)
+        _NSFastMemoryMove(buffer, bytes.advanced(by: range.location), range.length);
     }
     
     open func subdata(with range: NSRange) -> Data {
         if range.length == 0 {
             return Data()
-        }
-        if range.location == 0 && range.length == self.length {
+        } else if range.location == 0 && range.length == self.length {
             return Data(referencing: self)
+        } else if range.length < SUBRANGE_THRESHOLD ||
+            (type(of: self) == NSConcreteData.self && !_copyWillRetain()) ||
+            (type(of: self) != NSConcreteData.self && type(of: self) != NSSubrangeData.self && range.length < SUBRANGE_THRESHOLD_FOR_MUTABLE_DATA)
+            {
+            let p = self.bytes.advanced(by: range.location).bindMemory(to: UInt8.self, capacity: range.length)
+            return Data(bytes: p, count: range.length)
+        } else {
+            return Data(referencing: NSSubrangeData(self, range: range))
         }
-        let p = self.bytes.advanced(by: range.location).bindMemory(to: UInt8.self, capacity: range.length)
-        return Data(bytes: p, count: range.length)
     }
     
     open func range(of dataToFind: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
@@ -879,21 +854,53 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
 open class NSMutableData : NSData {
     internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
     
-    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
-    public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
-        super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
+    internal override init(placeholder: ()) {
+        super.init(placeholder: ())
     }
-    public init() {
+    
+    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
+    public convenience init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer?, Int) -> Void)? = nil) {
+        self.init(capacity: length)!
+        self.length = length
+        _NSFastMemoryMove(self.mutableBytes, bytes, length)
+        deallocator?(bytes, length)
+    }
+    public convenience init() {
         self.init(bytes: nil, length: 0)
     }
         
     public convenience init?(capacity: Int) {
-        self.init(bytes: nil, length: 0)
+        if type(of: self) == NSMutableData.self {
+            guard let data = NSConcreteMutableData(_capacity: capacity) else { return nil }
+            self.init(factory: data)
+        } else {
+            NSRequiresConcreteImplementation()
+        }
     }
     
     public convenience init?(length: Int) {
-        self.init(bytes: nil, length: 0)
+        self.init(capacity: length)
         self.length = length
+    }
+    
+    public required convenience init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
+            guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
+                return nil
+            }
+            self.init(data: data._swiftObject)
+        } else {
+            let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
+                guard let buffer = $0 else { return nil }
+                return Data(buffer: buffer)
+            }
+            
+            guard let r = result else { return nil }
+            self.init(data: r)
+        }
     }
     
     // MARK: - Funnel Methods
@@ -903,56 +910,159 @@ open class NSMutableData : NSData {
     
     open override var length: Int {
         get {
-            return CFDataGetLength(_cfObject)
+            NSRequiresConcreteImplementation()
         }
         set {
-            CFDataSetLength(_cfMutableObject, newValue)
+            NSRequiresConcreteImplementation()
         }
     }
     
     // MARK: - NSObject
     open override func copy(with zone: NSZone? = nil) -> Any {
-        return NSData(bytes: bytes, length: length)
+        if length == 0 {
+            return _NSZeroData()
+        } else {
+            return NSData(bytes: bytes, length: length)
+        }
     }
 
     // MARK: - Mutability
     open func append(_ bytes: UnsafeRawPointer, length: Int) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
-        CFDataAppendBytes(_cfMutableObject, bytePtr, length)
+        guard length != 0 else { return }
+        var srcBuf = UnsafeMutableRawPointer(mutating: bytes)
+        let origLength = length
+        _NSDataCheckOverflow(self, origLength, length)
+        let newLength = origLength + length
+        let mBytes = mutableBytes
+        var shouldFreeSrc = false
+        if origLength > 0 && bytes < UnsafeRawPointer(mBytes.advanced(by: origLength)) && UnsafeRawPointer(mBytes) < bytes.advanced(by: length) {
+            // The source and destination overlap. Copy the bytes into a new buffer so they remain valid after realloc.
+            srcBuf = malloc(length)
+            shouldFreeSrc = true // defer here would potentially hit at the end of the scope of the if
+            _NSFastMemoryMove(srcBuf, bytes, length)
+        }
+        self.length = newLength
+        _NSFastMemoryMove(mutableBytes.advanced(by: origLength), srcBuf, length)
+        if shouldFreeSrc { free(srcBuf) }
     }
     
     open func append(_ other: Data) {
-        let otherLength = other.count
-        other.withUnsafeBytes {
-            append($0, length: otherLength)
+        let length = other.count
+        guard length != 0 else { return }
+        other.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
+            var srcBuf = UnsafeMutableRawPointer(mutating: bytes)
+            let origLength = length
+            _NSDataCheckOverflow(self, origLength, length)
+            let newLength = origLength + length
+            let mBytes = mutableBytes
+            var shouldFreeSrc = false
+            if origLength > 0 && UnsafeRawPointer(bytes) < UnsafeRawPointer(mBytes.advanced(by: origLength)) && UnsafeRawPointer(mBytes) < UnsafeRawPointer(bytes.advanced(by: length)) {
+                // The source and destination overlap. Copy the bytes into a new buffer so they remain valid after realloc.
+                srcBuf = malloc(length)
+                shouldFreeSrc = true // defer here would potentially hit at the end of the scope of the if
+                _NSFastMemoryMove(srcBuf, bytes, length)
+            }
+            self.length = newLength
+            _NSFastMemoryMove(mutableBytes.advanced(by: origLength), srcBuf, length)
+            if shouldFreeSrc { free(srcBuf) }
         }
-        
     }
     
     open func increaseLength(by extraLength: Int) {
-        CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
+        _NSDataCheckSize(self, extraLength, "extra length")
+        let origLength = length
+        _NSDataCheckOverflow(self, origLength, extraLength)
+        self.length = origLength + extraLength
     }
     
     open func replaceBytes(in range: NSRange, withBytes bytes: UnsafeRawPointer) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
-        CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, length)
+        guard range.length != 0 else { return }
+        let origLength = length
+        _NSDataCheckBound(self, range.location, 0, origLength, false)
+        _NSDataCheckOverflow(self, range.location, range.length)
+        let newLength = range.location + range.length
+        var srcBuf = UnsafeMutableRawPointer(mutating: bytes)
+        var shouldFreeSrc = false
+        if origLength < newLength {
+            let mBytes = mutableBytes
+            if origLength > 0 && UnsafeRawPointer(bytes) < UnsafeRawPointer(mBytes.advanced(by: origLength)) && UnsafeRawPointer(mBytes) < UnsafeRawPointer(bytes.advanced(by: length)) {
+                // The source and destination overlap. Copy the bytes into a new buffer so they remain valid after realloc.
+                // This isn't as good a check as NSConcreteData's because we don't know the size of the destination buffer.
+                srcBuf = malloc(range.length)
+                shouldFreeSrc = true // defer here would potentially hit at the end of the scope of the if
+                _NSFastMemoryMove(srcBuf, bytes, range.length)
+            }
+            self.length = newLength
+        }
+        
+        _NSFastMemoryMove(mutableBytes.advanced(by: range.location), bytes, range.length)
+        if shouldFreeSrc { free(srcBuf) }
     }
     
     open func resetBytes(in range: NSRange) {
-        bzero(mutableBytes.advanced(by: range.location), range.length)
+        guard range.length != 0 else { return }
+        let origLength = length
+        
+        _NSDataCheckBound(self, range.location, 0, origLength, false);
+        _NSDataCheckOverflow(self, range.location, range.length)
+        
+        let newLength = range.location + range.length
+        if origLength < newLength { length = newLength }
+        
+        memset(mutableBytes.advanced(by: range.location), 0, range.length)
     }
     
     open func setData(_ data: Data) {
-        length = data.count
-        data.withUnsafeBytes {
-            replaceBytes(in: NSMakeRange(0, length), withBytes: $0)
+        let len = data.count
+        data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
+            replaceBytes(in: NSMakeRange(0, len), withBytes: bytes)
+            length = len
         }
-        
     }
     
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
-        let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
-        CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
+        let currentLength = self.length
+        
+        _NSDataCheckBound(self, range.location, range.length, currentLength, false)
+        _NSDataCheckOverflow(self, currentLength - range.length, replacementLength)
+        
+        let resultingLength = currentLength - range.length + replacementLength
+        let shift = resultingLength - currentLength
+        
+        var mBytes = mutableBytes
+        
+        var srcBuf: UnsafeMutableRawPointer?
+        var shouldFreeSrc = false
+        if let replacement = replacementBytes {
+            srcBuf = UnsafeMutableRawPointer(mutating: replacement)
+            if currentLength > 0  && replacement < UnsafeRawPointer(mBytes.advanced(by: currentLength)) && UnsafeRawPointer(mBytes) < replacement.advanced(by: replacementLength) {
+                // The source and destination overlap. Copy the bytes into a new buffer so they remain valid after realloc and shift.
+                // This isn't as good a check as NSConcreteData's because we don't know the size of the destination buffer.
+                srcBuf = malloc(replacementLength)
+                shouldFreeSrc = true
+                _NSFastMemoryMove(srcBuf, replacement, replacementLength)
+            }
+        }
+        
+        if (resultingLength > currentLength) {
+            self.length = resultingLength
+            mBytes = mutableBytes
+        }
+        /* shift the trailing bytes */
+        let start = range.location, length = range.length
+        if shift != 0 {
+            memmove(mBytes.advanced(by: start + replacementLength), mBytes.advanced(by: start + length), currentLength - start - length)
+        }
+        if replacementLength != 0 {
+            /* srcBuf may be NULL in which case we zero-fill over the replacement length */
+            if srcBuf != nil {
+                memmove(mBytes.advanced(by: start), srcBuf, replacementLength);
+            } else {
+                memset(mutableBytes.advanced(by: start), 0, replacementLength);
+            }
+        }
+        if shouldFreeSrc { free(srcBuf) }
+        if resultingLength < currentLength { self.length = resultingLength }
     }
 }
 
@@ -962,3 +1072,5 @@ extension NSData : _StructTypeBridgeable {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSData : _NSFactory { }

@@ -582,7 +582,13 @@ CFTypeID CFGetTypeID(CFTypeRef cf) {
 #endif
     CFTYPE_OBJC_FUNCDISPATCH0(CFTypeID, cf, _cfTypeID);
     CFTYPE_SWIFT_FUNCDISPATCH0(CFTypeID, cf, NSObject._cfTypeID);
-    
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (!(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)))) {
+        if (__kCFNotATypeTypeID == __CFGenericTypeID_inline(cf)) {
+            return __CFSwiftBridge.NSObject._cfTypeID(cf);
+        }
+    }
+#endif
     __CFGenericAssertIsCF(cf);
     return __CFGenericTypeID_inline(cf);
 }
@@ -793,6 +799,9 @@ CFHashCode CFHash(CFTypeRef cf) {
 CFStringRef CFCopyDescription(CFTypeRef cf) {
     if (NULL == cf) return NULL;
     // CFTYPE_OBJC_FUNCDISPATCH0(CFStringRef, cf, _copyDescription);  // XXX returns 0 refcounted item under GC
+#if DEPLOYMENT_RUNTIME_SWIFT
+    CFTYPE_SWIFT_FUNCDISPATCH0(CFStringRef, cf, NSObject._copyDescription);
+#endif
     __CFGenericAssertIsCF(cf);
     if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc) {
 	CFStringRef result = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc(cf);

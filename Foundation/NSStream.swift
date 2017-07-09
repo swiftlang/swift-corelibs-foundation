@@ -160,6 +160,10 @@ open class InputStream: Stream {
         }
     }
     
+    public convenience init?(fileAtPath path: String) {
+        self.init(url: URL(fileURLWithPath: path))
+    }
+    
     internal var _cfStreamError: CFStreamError {
         return CFStreamError(domain: kCFStreamErrorDomainCustom, error: -1)
     }
@@ -214,6 +218,10 @@ open class OutputStream : Stream {
         } else {
             self.init()
         }
+    }
+    
+    public convenience init?(toFileAtPath path: String, append shouldAppend: Bool) {
+        self.init(url: URL(fileURLWithPath: path), append: shouldAppend)
     }
     
     internal var _cfStreamError: CFStreamError {

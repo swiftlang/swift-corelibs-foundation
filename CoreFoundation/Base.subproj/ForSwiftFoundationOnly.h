@@ -52,6 +52,7 @@ struct _NSObjectBridge {
     CFHashCode (*hash)(CFTypeRef object);
     bool (*isEqual)(CFTypeRef object, CFTypeRef other);
     _Nonnull CFTypeRef (*_Nonnull copyWithZone)(_Nonnull CFTypeRef object, _Nullable CFTypeRef zone);
+    _Nonnull CFStringRef (*_Nonnull _copyDescription)(_Nonnull CFTypeRef object);
 };
 
 struct _NSArrayBridge {
@@ -259,6 +260,20 @@ struct _NSOutputStreamBridge {
     void (*_Nonnull unscheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
 };
 
+struct _NSDataBridge {
+    CFIndex (*_Nonnull length)(CFTypeRef data);
+    const void *_Nullable (*_Nonnull bytes)(CFTypeRef data);
+    void (*_Nonnull  getBytes)(CFTypeRef data, void *buffer, CFRange range);
+};
+
+struct _NSMutableDataBridge {
+    uint8_t *_Nullable (*_Nonnull mutableBytes)(CFTypeRef data);
+    void (*_Nonnull setLength)(CFTypeRef data, CFIndex newLength);
+    void (*_Nonnull increaseLengthBy)(CFTypeRef data, CFIndex extraLength);
+    void (*_Nonnull appendBytes)(CFTypeRef data, const uint8_t *bytes, CFIndex length);
+    void (*_Nonnull replaceBytesInRange)(CFTypeRef data, CFRange range, void *_Nullable newBytes, CFIndex newLength);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -276,6 +291,8 @@ struct _CFSwiftBridge {
     struct _NSNumberBridge NSNumber;
     struct _NSInputStreamBridge NSInputStream;
     struct _NSOutputStreamBridge NSOutputStream;
+    struct _NSDataBridge NSData;
+    struct _NSMutableDataBridge NSMutableData;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;

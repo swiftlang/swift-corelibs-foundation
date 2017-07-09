@@ -33,12 +33,34 @@ public func NSRoundDownToMultipleOfPageSize(_ size: Int) -> Int {
 }
 
 
-func NSCopyMemoryPages(_ source: UnsafeRawPointer, _ dest: UnsafeMutableRawPointer, _ bytes: Int) {
+func NSCopyMemoryPages(_ source: UnsafeRawPointer?, _ dest: UnsafeMutableRawPointer?, _ bytes: Int) {
 #if os(OSX) || os(iOS)
     if vm_copy(mach_task_self_, vm_address_t(bitPattern: source), vm_size_t(bytes), vm_address_t(bitPattern: dest)) != KERN_SUCCESS {
         memmove(dest, source, bytes)
     }
 #else
     memmove(dest, source, bytes)
+#endif
+}
+
+func NSAllocateMemoryPages(_ bytes: Int) -> UnsafeMutableRawPointer {
+#if os(OSX) || os(iOS)
+    var address: vm_address_t = 0
+    if vm_allocate(mach_task_self_, &address, vm_size_t(bytes), VM_FLAGS_ANYWHERE) != KERN_SUCCESS {
+        fatalError("*** NSAllocateMemoryPages(\(bytes) failed")
+    }
+    return UnsafeMutableRawPointer(bitPattern: address)!
+#else
+    return malloc(bytes)
+#endif
+}
+
+func NSDeallocateMemoryPages(_ ptr: UnsafeMutableRawPointer, _ bytes: Int) {
+#if os(OSX) || os(iOS)
+    if vm_deallocate(mach_task_self_, vm_address_t(bitPattern: ptr), vm_size_t(bytes)) != KERN_SUCCESS {
+        fatalError("*** NSDeallocateMemoryPages(\(ptr), \(bytes) failed")
+    }
+#else
+    free(bytes)
 #endif
 }

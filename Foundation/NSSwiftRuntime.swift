@@ -63,6 +63,11 @@ internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unman
     return Unmanaged<CFTypeRef>.passRetained((cf as! NSObject).copy() as! NSObject)
 }
 
+internal func _CFSwiftCopyDescription(_ cf: CFTypeRef) -> Unmanaged<CFString> {
+    let desc = _unsafeReferenceCast(cf, to: NSObject.self).description
+    let cf = desc._cfObject
+    return Unmanaged.passRetained(cf)
+}
 
 internal func _CFSwiftGetHash(_ cf: AnyObject) -> CFHashCode {
     return CFHashCode(bitPattern: (cf as! NSObject).hash)
@@ -94,7 +99,7 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFBooleanGetTypeID(), unsafeBitCast(__NSCFBoolean.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(__NSCFNumber.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSCFData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafeRawPointer.self))
@@ -113,6 +118,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
     __CFSwiftBridge.NSObject._cfTypeID = _CFSwiftGetTypeID
     __CFSwiftBridge.NSObject.copyWithZone = _CFSwiftCopyWithZone
+    __CFSwiftBridge.NSObject._copyDescription = _CFSwiftCopyDescription
     
     __CFSwiftBridge.NSSet.count = _CFSwiftSetGetCount
     __CFSwiftBridge.NSSet.countForKey = _CFSwiftSetGetCountOfValue
@@ -248,6 +254,16 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSOutputStream.setPropertyForKey = _CFSwiftOutputStreamSetPropertyForKey
     __CFSwiftBridge.NSOutputStream.scheduleWithRunLoop = _CFSwiftOutputStreamScheduleWithRunLoop
     __CFSwiftBridge.NSOutputStream.unscheduleWithRunLoop = _CFSwiftOutputStreamUnscheduleWithRunLoop
+    
+    __CFSwiftBridge.NSData.length = _CFSwiftDataLength
+    __CFSwiftBridge.NSData.bytes = _CFSwiftDataBytes
+    __CFSwiftBridge.NSData.getBytes = _CFSwiftDataGetBytes
+    
+    __CFSwiftBridge.NSMutableData.mutableBytes = _CFSwiftMutableDataMutableBytes
+    __CFSwiftBridge.NSMutableData.setLength = _CFSwiftMutableDataSetLength
+    __CFSwiftBridge.NSMutableData.increaseLengthBy = _CFSwiftMutableDataIncreaseLengthBy
+    __CFSwiftBridge.NSMutableData.appendBytes = _CFSwiftMutableDataAppendBytes
+    __CFSwiftBridge.NSMutableData.replaceBytesInRange = _CFSwiftMutableDataReplaceBytesInRange
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }

@@ -189,9 +189,9 @@ class TestNSStream : XCTestCase {
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
         XCTAssertEqual(myString.characters.count, result)
         //verify the data written
-        let dataWritten  = outputStream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey)
-        if let nsdataWritten = dataWritten as? NSData {
-            nsdataWritten.getBytes(UnsafeMutablePointer(mutating: buffer), length: result!)
+        let written  = outputStream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey)
+        if let dataWritten = written as? Data {
+            dataWritten.copyBytes(to: UnsafeMutablePointer(mutating: buffer), count: result!)
             XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
             outputStream.close()
         } else {
@@ -211,8 +211,7 @@ class TestNSStream : XCTestCase {
     }
     
     func test_ouputStreamWithInvalidPath() {
-        let url = URL(string: "http:///home/sdsfsdfd")!
-        let outputStream = OutputStream(url: url, append: true)
+        let outputStream = OutputStream(toFileAtPath: "http:///home/sdsfsdfd", append: true)
         XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
         outputStream?.open()
         XCTAssertEqual(Stream.Status.error, outputStream!.streamStatus)

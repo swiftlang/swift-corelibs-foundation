@@ -357,7 +357,7 @@ class TestNSAffineTransform : XCTestCase {
     func test_NSCoding() {
         let transformA = NSAffineTransform()
         transformA.scale(by: 2)
-        let transformB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: transformA)) as! NSAffineTransform
+        let transformB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: transformA)) as? NSAffineTransform
         XCTAssertEqual(transformA, transformB, "Archived then unarchived `NSAffineTransform` must be equal.")
     }
 }
