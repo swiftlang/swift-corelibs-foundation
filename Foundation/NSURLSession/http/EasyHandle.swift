@@ -174,7 +174,7 @@ extension _EasyHandle {
             // at the path pointed to by the URLSessionCAInfo env var.
             // Downloadable here: https://curl.haxx.se/ca/cacert.pem
             if let caInfo = getenv("URLSessionCAInfo")  {
-                if String(cString: caInfo) == "UNSAFE_NOVERIFY" {
+                if String(cString: caInfo) == "UNSAFE_SSL_NOVERIFY" {
                     try! CFURLSession_easy_setopt_int(rawHandle, CFURLSessionOptionSSL_VERIFYPEER, 0).asError()
                 }
                 else {
