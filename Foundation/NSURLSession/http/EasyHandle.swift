@@ -282,7 +282,7 @@ fileprivate func printLibcurlDebug(handle: CFURLSessionEasyHandle, type: CInt, d
 
 fileprivate func printLibcurlDebug(type: CFURLSessionInfo, data: String, task: URLSessionTask) {
     // libcurl sends is data with trailing CRLF which inserts lots of newlines into our output.
-    print("[\(task.taskIdentifier)] \(type.debugHeader) \(data.mapControlToPictures)")
+    NSLog("[\(task.taskIdentifier)] \(type.debugHeader) \(data.mapControlToPictures)")
 }
 
 fileprivate extension String {
