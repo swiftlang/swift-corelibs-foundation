@@ -123,6 +123,19 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - NSRange
+    lazy var nsrangeValues: [NSRange] = [
+        NSRange(),
+        NSRange(location: 0, length: Int.max),
+        NSRange(location: NSNotFound, length: 0),
+        ]
+
+    func test_NSRange_JSON() {
+        for range in nsrangeValues {
+            expectRoundTripEqualityThroughJSON(for: range)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -131,6 +144,7 @@ extension TestCodable {
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
             ("test_UUID_JSON", test_UUID_JSON),
             ("test_URL_JSON", test_URL_JSON),
+            ("test_NSRange_JSON", test_NSRange_JSON),
         ]
     }
 }
