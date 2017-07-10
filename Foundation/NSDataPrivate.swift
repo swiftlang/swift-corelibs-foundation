@@ -43,7 +43,7 @@ internal func _NSFastMemoryMove(_ dst: UnsafeMutableRawPointer?, _ src: UnsafeRa
         dest = dest?.advanced(by: pages)
         num -= pages
     }
-    if num > 0 { memmove(dest, source, num) }
+    if num > 0 { memmove(dest!, source!, num) }
 }
 
 internal func _NSDataCheckOverflow(_ data: NSData, _ targetLoc: Int, _ targetLen: Int, _ _cmd: StaticString = #function) {

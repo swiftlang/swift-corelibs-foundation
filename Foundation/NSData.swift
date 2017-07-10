@@ -1056,7 +1056,7 @@ open class NSMutableData : NSData {
         if replacementLength != 0 {
             /* srcBuf may be NULL in which case we zero-fill over the replacement length */
             if srcBuf != nil {
-                memmove(mBytes.advanced(by: start), srcBuf, replacementLength);
+                memmove(mBytes.advanced(by: start), srcBuf!, replacementLength);
             } else {
                 memset(mutableBytes.advanced(by: start), 0, replacementLength);
             }

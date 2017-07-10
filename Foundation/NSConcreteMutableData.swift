@@ -188,7 +188,7 @@ internal final class NSConcreteMutableData : NSMutableData {
         if _capacity < newLength || _bytes == nil {
             _NSMutableDataGrowBytes(self, newLength, true)
         } else if (_needToZero) {
-            memset(_bytes?.advanced(by: origLength), 0, extraLength)
+            memset(_bytes!.advanced(by: origLength), 0, extraLength)
         }
         _length = newLength
     }
