@@ -1,9 +1,10 @@
+// This source file is part of the Swift.org open source project
 //
-//  NSPlaceholderCharacterSet.swift
-//  SwiftFoundation
+// Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
 //
-//  Created by Philippe Hausler on 7/5/17.
-//  Copyright © 2017 Apple. All rights reserved.
+// See http://swift.org/LICENSE.txt for license information
+// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
