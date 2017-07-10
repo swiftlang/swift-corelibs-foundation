@@ -814,9 +814,14 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+internal typealias CharacterSetBridgeType = _ObjectTypeBridgeable
+#else
+internal typealias CharacterSetBridgeType = _ObjectiveCBridgeable
+#endif
 
 // MARK: Objective-C Bridging
-extension CharacterSet : _ObjectiveCBridgeable {
+extension CharacterSet : CharacterSetBridgeType {
     public static func _getObjectiveCType() -> Any.Type {
         return NSCharacterSet.self
     }
