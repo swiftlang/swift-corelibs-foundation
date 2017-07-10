@@ -61,6 +61,6 @@ func NSDeallocateMemoryPages(_ ptr: UnsafeMutableRawPointer, _ bytes: Int) {
         fatalError("*** NSDeallocateMemoryPages(\(ptr), \(bytes) failed")
     }
 #else
-    free(bytes)
+    free(ptr)
 #endif
 }
