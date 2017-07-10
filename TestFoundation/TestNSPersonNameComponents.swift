@@ -17,7 +17,35 @@
     import SwiftXCTest
 #endif
 
+private func assertEqual(_ lhs:PersonNameComponents,
+                         _ rhs: PersonNameComponents,
+                         file: StaticString = #file,
+                         line: UInt = #line) {
+    assert(equal: true, lhs, rhs, file: file, line: line)
+}
 
+private func assertNotEqual(_ lhs:PersonNameComponents,
+                            _ rhs: PersonNameComponents,
+                            file: StaticString = #file,
+                            line: UInt = #line) {
+    assert(equal: false, lhs, rhs, file: file, line: line)
+}
+
+private func assert(equal: Bool,
+                    _ lhs:PersonNameComponents,
+                    _ rhs: PersonNameComponents,
+                    file: StaticString = #file,
+                    line: UInt = #line) {
+    if equal {
+        XCTAssertEqual(lhs, rhs, file: file, line: line)
+        XCTAssertEqual(lhs._bridgeToObjectiveC(), rhs._bridgeToObjectiveC(), file: file, line: line)
+        XCTAssertTrue(lhs._bridgeToObjectiveC().isEqual(rhs), file: file, line: line)
+    } else {
+        XCTAssertNotEqual(lhs, rhs, file: file, line: line)
+        XCTAssertNotEqual(lhs._bridgeToObjectiveC(), rhs._bridgeToObjectiveC(), file: file, line: line)
+        XCTAssertFalse(lhs._bridgeToObjectiveC().isEqual(rhs), file: file, line: line)
+    }
+}
 
 class TestNSPersonNameComponents : XCTestCase {
     
@@ -66,54 +94,54 @@ class TestNSPersonNameComponents : XCTestCase {
         do {
             let lhs = PersonNameComponents()
             let rhs = PersonNameComponents()
-            XCTAssertEqual(lhs, rhs)
+            assertEqual(lhs, rhs)
         }
         do {
             let lhs = self.makePersonNameComponentsWithTestValues()
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertEqual(lhs, rhs)
+            assertEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.namePrefix = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.givenName = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.middleName = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.familyName = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.nameSuffix = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.nickname = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
         do {
             var lhs = self.makePersonNameComponentsWithTestValues()
             lhs.phoneticRepresentation?.namePrefix = "differentValue"
             let rhs = self.makePersonNameComponentsWithTestValues()
-            XCTAssertNotEqual(lhs, rhs)
+            assertNotEqual(lhs, rhs)
         }
     }
 }
