@@ -861,7 +861,7 @@ extension NSCharacterSet : _HasCustomAnyHashableRepresentation {
     // Must be @nonobjc to avoid infinite recursion during bridging.
     @nonobjc
     public func _toCustomAnyHashable() -> AnyHashable? {
-        return AnyHashable(self as CharacterSet)
+        return AnyHashable(CharacterSet(_bridged: self))
     }
 }
 
