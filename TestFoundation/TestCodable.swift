@@ -108,6 +108,21 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - URL
+    lazy var urlValues: [URL] = [
+        URL(fileURLWithPath: NSTemporaryDirectory()),
+        URL(fileURLWithPath: "/"),
+        URL(string: "http://apple.com")!,
+        URL(string: "swift", relativeTo: URL(string: "http://apple.com")!)!,
+        URL(fileURLWithPath: "bin/sh", relativeTo: URL(fileURLWithPath: "/"))
+    ]
+
+    func test_URL_JSON() {
+        for url in urlValues {
+            expectRoundTripEqualityThroughJSON(for: url)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -115,6 +130,7 @@ extension TestCodable {
         return [
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
             ("test_UUID_JSON", test_UUID_JSON),
+            ("test_URL_JSON", test_URL_JSON),
         ]
     }
 }
