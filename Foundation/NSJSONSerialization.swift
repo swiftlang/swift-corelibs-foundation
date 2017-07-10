@@ -532,7 +532,7 @@ private struct JSONWriter {
                         throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
                 }
                 let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
-                let range = a.startIndex ..< a.endIndex
+                let range: Range<String.Index>  = a.startIndex..<a.endIndex
                 let locale = NSLocale.systemLocale()
 
                 return a.compare(b, options: options, range: range, locale: locale) == .orderedAscending
