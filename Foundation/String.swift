@@ -109,3 +109,43 @@ extension String : _ObjectTypeBridgeable {
     }
 }
 
+#if !_runtime(_ObjC)
+extension Substring {
+    public func hasPrefix(_ prefix: String) -> Bool {
+        return String(self).hasPrefix(prefix)
+    }
+    
+    public func hasSuffix(_ suffix: String) -> Bool {
+        return String(self).hasSuffix(suffix)
+    }
+}
+
+extension String {
+    public func hasPrefix(_ prefix: String) -> Bool {
+        if prefix.isEmpty {
+            return true
+        }
+        
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareNonliteral)
+        return CFStringFindWithOptions(cfstring, prefix._cfObject,
+                                       range, opts, nil)
+    }
+    
+    public func hasSuffix(_ suffix: String) -> Bool {
+        if suffix.isEmpty {
+            return true
+        }
+        
+        let cfstring = self._cfObject
+        let range = CFRangeMake(0, CFStringGetLength(cfstring))
+        let opts = CFStringCompareFlags(
+            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
+        return CFStringFindWithOptions(cfstring, suffix._cfObject,
+                                       range, opts, nil)
+    }
+}
+
+#endif
