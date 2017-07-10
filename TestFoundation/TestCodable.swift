@@ -136,6 +136,24 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - Locale
+    lazy var localeValues: [Locale] = [
+        Locale(identifier: ""),
+        Locale(identifier: "en"),
+        Locale(identifier: "en_US"),
+        Locale(identifier: "en_US_POSIX"),
+        Locale(identifier: "uk"),
+        Locale(identifier: "fr_FR"),
+        Locale(identifier: "fr_BE"),
+        Locale(identifier: "zh-Hant-HK")
+    ]
+
+    func test_Locale_JSON() {
+        for locale in localeValues {
+            expectRoundTripEqualityThroughJSON(for: locale)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -145,6 +163,7 @@ extension TestCodable {
             ("test_UUID_JSON", test_UUID_JSON),
             ("test_URL_JSON", test_URL_JSON),
             ("test_NSRange_JSON", test_NSRange_JSON),
+            ("test_Locale_JSON", test_Locale_JSON),
         ]
     }
 }
