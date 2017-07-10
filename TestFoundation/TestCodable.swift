@@ -63,6 +63,20 @@ func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) where T : Equ
     expectRoundTripEquality(of: value, encode: encode, decode: decode)
 }
 
+// MARK: - Helper Types
+// A wrapper around a UUID that will allow it to be encoded at the top level of an encoder.
+struct UUIDCodingWrapper : Codable, Equatable {
+    let value: UUID
+
+    init(_ value: UUID) {
+        self.value = value
+    }
+
+    static func ==(_ lhs: UUIDCodingWrapper, _ rhs: UUIDCodingWrapper) -> Bool {
+        return lhs.value == rhs.value
+    }
+}
+
 // MARK: - Tests
 class TestCodable : XCTestCase {
 
@@ -79,12 +93,28 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - UUID
+    lazy var uuidValues: [UUID] = [
+        UUID(),
+        UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+        UUID(uuidString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")!,
+        UUID(uuid: uuid_t(0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f))
+    ]
+
+    func test_UUID_JSON() {
+        for uuid in uuidValues {
+            // We have to wrap the UUID since we cannot have a top-level string.
+            expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid))
+        }
+    }
+
 }
 
 extension TestCodable {
     static var allTests: [(String, (TestCodable) -> () throws -> Void)] {
         return [
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
+            ("test_UUID_JSON", test_UUID_JSON),
         ]
     }
 }
