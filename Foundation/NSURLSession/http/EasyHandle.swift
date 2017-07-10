@@ -57,6 +57,9 @@ internal final class _EasyHandle {
     fileprivate var pauseState: _PauseState = []
     internal var fileLength: Int64 = 0
     internal var timeoutTimer: _TimeoutSource!
+    #if os(Android)
+    static fileprivate var _CAInfoFile: UnsafeMutablePointer<Int8>?
+    #endif
 
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
@@ -168,6 +171,20 @@ extension _EasyHandle {
         let protocols = (CFURLSessionProtocolHTTP | CFURLSessionProtocolHTTPS)
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionPROTOCOLS, protocols).asError()
         try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionREDIR_PROTOCOLS, protocols).asError()
+        #if os(Android)
+            // See https://curl.haxx.se/docs/sslcerts.html
+            // For SSL to work you need "cacert.pem" to be accessable
+            // at the path pointed to by the URLSessionCAInfo env var.
+            // Downloadable here: https://curl.haxx.se/ca/cacert.pem
+            if let caInfo = _EasyHandle._CAInfoFile  {
+                if String(cString: caInfo) == "UNSAFE_SSL_NOVERIFY" {
+                    try! CFURLSession_easy_setopt_int(rawHandle, CFURLSessionOptionSSL_VERIFYPEER, 0).asError()
+                }
+                else {
+                    try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionCAINFO, caInfo).asError()
+                }
+            }
+        #endif
         //TODO: Added in libcurl 7.45.0
         //TODO: Set default protocol for schemeless URLs
         //CURLOPT_DEFAULT_PROTOCOL available only in libcurl 7.45.0
@@ -268,7 +285,7 @@ fileprivate func printLibcurlDebug(handle: CFURLSessionEasyHandle, type: CInt, d
 
 fileprivate func printLibcurlDebug(type: CFURLSessionInfo, data: String, task: URLSessionTask) {
     // libcurl sends is data with trailing CRLF which inserts lots of newlines into our output.
-    print("[\(task.taskIdentifier)] \(type.debugHeader) \(data.mapControlToPictures)")
+    NSLog("[\(task.taskIdentifier)] \(type.debugHeader) \(data.mapControlToPictures)")
 }
 
 fileprivate extension String {
@@ -614,6 +631,19 @@ extension _EasyHandle._CurlStringList {
         return rawList.map{ UnsafeMutableRawPointer($0) }
     }
 }
+
+#if os(Android)
+extension URLSession {
+
+    public static func setCAInfoFile(_ _CAInfoFile: String) {
+        free(_EasyHandle._CAInfoFile)
+        _CAInfoFile.withCString {
+            _EasyHandle._CAInfoFile = strdup($0)
+        }
+    }
+
+}
+#endif
 
 extension CFURLSessionEasyCode : Equatable {
     public static func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
