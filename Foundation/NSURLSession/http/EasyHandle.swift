@@ -635,7 +635,7 @@ extension _EasyHandle._CurlStringList {
 #if os(Android)
 extension URLSession {
 
-    public static func setCAInfoFile( _ _CAInfoFile: String ) {
+    public static func setCAInfoFile(_ _CAInfoFile: String) {
         free(_EasyHandle._CAInfoFile)
         _CAInfoFile.withCString {
             _EasyHandle._CAInfoFile = strdup($0)
