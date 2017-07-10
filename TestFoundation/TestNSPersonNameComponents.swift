@@ -69,6 +69,57 @@ class TestNSPersonNameComponents : XCTestCase {
         XCTAssertNil(copy.phoneticRepresentation!.phoneticRepresentation)
     }
 
+    func testEquality() {
+        do {
+            let lhs = PersonNameComponents()
+            let rhs = PersonNameComponents()
+            assertEqual(lhs, rhs)
+        }
+
+        let lhs = self.makePersonNameComponentsWithTestValues()
+        do {
+            let rhs = self.makePersonNameComponentsWithTestValues()
+            assertEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.namePrefix = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.givenName = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.middleName = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.familyName = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.nameSuffix = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.nickname = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+        do {
+            var rhs = self.makePersonNameComponentsWithTestValues()
+            rhs.phoneticRepresentation?.namePrefix = "differentValue"
+            assertNotEqual(lhs, rhs)
+        }
+    }
+
+    // MARK: - Helpers
+
     private func makePersonNameComponentsWithTestValues() -> PersonNameComponents {
         var components = PersonNameComponents()
         components.namePrefix = "namePrefix"
@@ -88,61 +139,6 @@ class TestNSPersonNameComponents : XCTestCase {
             return components
         }()
         return components
-    }
-
-    func testEquality() {
-        do {
-            let lhs = PersonNameComponents()
-            let rhs = PersonNameComponents()
-            assertEqual(lhs, rhs)
-        }
-        do {
-            let lhs = self.makePersonNameComponentsWithTestValues()
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.namePrefix = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.givenName = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.middleName = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.familyName = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.nameSuffix = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.nickname = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
-        do {
-            var lhs = self.makePersonNameComponentsWithTestValues()
-            lhs.phoneticRepresentation?.namePrefix = "differentValue"
-            let rhs = self.makePersonNameComponentsWithTestValues()
-            assertNotEqual(lhs, rhs)
-        }
     }
 }
 
