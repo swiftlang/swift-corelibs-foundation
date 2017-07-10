@@ -277,8 +277,10 @@ class TestNSIndexPath: XCTestCase {
         let ip2: IndexPath = [1, 1, 1]
         
         XCTAssertNotEqual(ip1.hashValue, ip2.hashValue)
-        
-        IndexPath(indexes: [Int.max >> 8, 2, Int.max >> 36]).hashValue // this should not cause an overflow crash
+
+        // this should not cause an overflow crash
+        let hash: Int? = IndexPath(indexes: [Int.max >> 8, 2, Int.max >> 36]).hashValue
+        XCTAssertNotNil(hash)
     }
     
     func testEquality() {
