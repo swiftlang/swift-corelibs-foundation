@@ -57,6 +57,9 @@ internal final class _EasyHandle {
     fileprivate var pauseState: _PauseState = []
     internal var fileLength: Int64 = 0
     internal var timeoutTimer: _TimeoutSource!
+    #if os(Android)
+    static fileprivate var _CAInfoFile: UnsafeMutablePointer<Int8>?
+    #endif
 
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
@@ -173,7 +176,7 @@ extension _EasyHandle {
             // For SSL to work you need "cacert.pem" to be accessable
             // at the path pointed to by the URLSessionCAInfo env var.
             // Downloadable here: https://curl.haxx.se/ca/cacert.pem
-            if let caInfo = getenv("URLSessionCAInfo")  {
+            if let caInfo = _EasyHandle._CAInfoFile  {
                 if String(cString: caInfo) == "UNSAFE_SSL_NOVERIFY" {
                     try! CFURLSession_easy_setopt_int(rawHandle, CFURLSessionOptionSSL_VERIFYPEER, 0).asError()
                 }
@@ -628,6 +631,19 @@ extension _EasyHandle._CurlStringList {
         return rawList.map{ UnsafeMutableRawPointer($0) }
     }
 }
+
+#if os(Android)
+extension URLSession {
+
+    public static func setCAInfoFile( _ _CAInfoFile: String ) {
+        free(_EasyHandle._CAInfoFile)
+        _CAInfoFile.withCString {
+            _EasyHandle._CAInfoFile = strdup($0)
+        }
+    }
+
+}
+#endif
 
 extension CFURLSessionEasyCode : Equatable {
     public static func ==(lhs: CFURLSessionEasyCode, rhs: CFURLSessionEasyCode) -> Bool {
