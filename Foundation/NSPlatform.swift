@@ -39,7 +39,7 @@ func NSCopyMemoryPages(_ source: UnsafeRawPointer?, _ dest: UnsafeMutableRawPoin
         memmove(dest, source, bytes)
     }
 #else
-    memmove(dest, source, bytes)
+    memmove(dest!, source!, bytes)
 #endif
 }
 
