@@ -167,6 +167,20 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - IndexPath
+    lazy var indexPathValues: [IndexPath] = [
+        IndexPath(), // empty
+        IndexPath(index: 0), // single
+        IndexPath(indexes: [1, 2]), // pair
+        IndexPath(indexes: [3, 4, 5, 6, 7, 8]), // array
+    ]
+
+    func test_IndexPath_JSON() {
+        for indexPath in indexPathValues {
+            expectRoundTripEqualityThroughJSON(for: indexPath)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -178,6 +192,7 @@ extension TestCodable {
             ("test_NSRange_JSON", test_NSRange_JSON),
             ("test_Locale_JSON", test_Locale_JSON),
             ("test_IndexSet_JSON", test_IndexSet_JSON),
+            ("test_IndexPath_JSON", test_IndexPath_JSON),
         ]
     }
 }
