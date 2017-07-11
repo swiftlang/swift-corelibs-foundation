@@ -328,7 +328,7 @@ class _TimeoutSource {
         let delay = UInt64(max(1, milliseconds - 1)) 
         let start = DispatchTime.now() + DispatchTimeInterval.milliseconds(Int(delay))
         
-        rawSource.scheduleRepeating(deadline: start, interval: .milliseconds(Int(delay)), leeway: (milliseconds == 1) ? .microseconds(Int(1)) : .milliseconds(Int(1)))
+        rawSource.schedule(deadline: start, repeating: .milliseconds(Int(delay)), leeway: (milliseconds == 1) ? .microseconds(Int(1)) : .milliseconds(Int(1)))
         rawSource.setEventHandler(handler: handler)
         rawSource.resume() 
     }
