@@ -181,6 +181,30 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - AffineTransform
+    lazy var affineTransformValues: [AffineTransform] = [
+        AffineTransform.identity,
+        AffineTransform(),
+        AffineTransform(translationByX: 2.0, byY: 2.0),
+        AffineTransform(scale: 2.0),
+
+        // Disabled due to a bug: JSONSerialization loses precision for m12 and m21
+        // 0.02741213359204429 is serialized to 0.0274121335920443
+        //        AffineTransform(rotationByDegrees: .pi / 2),
+
+        AffineTransform(m11: 1.0, m12: 2.5, m21: 66.2, m22: 40.2, tX: -5.5, tY: 3.7),
+        AffineTransform(m11: -55.66, m12: 22.7, m21: 1.5, m22: 0.0, tX: -22, tY: -33),
+        AffineTransform(m11: 4.5, m12: 1.1, m21: 0.025, m22: 0.077, tX: -0.55, tY: 33.2),
+        AffineTransform(m11: 7.0, m12: -2.3, m21: 6.7, m22: 0.25, tX: 0.556, tY: 0.99),
+        AffineTransform(m11: 0.498, m12: -0.284, m21: -0.742, m22: 0.3248, tX: 12, tY: 44)
+    ]
+
+    func test_AffineTransform_JSON() {
+        for transform in affineTransformValues {
+            expectRoundTripEqualityThroughJSON(for: transform)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -193,6 +217,7 @@ extension TestCodable {
             ("test_Locale_JSON", test_Locale_JSON),
             ("test_IndexSet_JSON", test_IndexSet_JSON),
             ("test_IndexPath_JSON", test_IndexPath_JSON),
+            ("test_AffineTransform_JSON", test_AffineTransform_JSON),
         ]
     }
 }
