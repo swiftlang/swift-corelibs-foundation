@@ -154,6 +154,19 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - IndexSet
+    lazy var indexSetValues: [IndexSet] = [
+        IndexSet(),
+        IndexSet(integer: 42),
+        IndexSet(integersIn: 0 ..< Int.max)
+    ]
+
+    func test_IndexSet_JSON() {
+        for indexSet in indexSetValues {
+            expectRoundTripEqualityThroughJSON(for: indexSet)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -164,6 +177,7 @@ extension TestCodable {
             ("test_URL_JSON", test_URL_JSON),
             ("test_NSRange_JSON", test_NSRange_JSON),
             ("test_Locale_JSON", test_Locale_JSON),
+            ("test_IndexSet_JSON", test_IndexSet_JSON),
         ]
     }
 }
