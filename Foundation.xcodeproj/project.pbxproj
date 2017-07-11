@@ -89,6 +89,7 @@
 		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
 		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
+		5B3153561F15169900049DBA /* CFInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3153551F15169900049DBA /* CFInterface.swift */; };
 		5B4092101D1B304C0022B067 /* NSStringEncodings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */; };
 		5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
@@ -537,6 +538,7 @@
 		5B23AB8A1CE62F9B000DB898 /* PersonNameComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonNameComponents.swift; sourceTree = "<group>"; };
 		5B23AB8C1CE63228000DB898 /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFCharacterSet.swift; sourceTree = "<group>"; };
+		5B3153551F15169900049DBA /* CFInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CFInterface.swift; sourceTree = "<group>"; };
 		5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringEncodings.swift; sourceTree = "<group>"; };
 		5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtraStringAPIs.swift; sourceTree = "<group>"; };
 		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
@@ -1680,6 +1682,7 @@
 				5B23AB861CE62D17000DB898 /* Boxing.swift */,
 				5BD31D1F1D5CE8C400563814 /* Bridging.swift */,
 				5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */,
+				5B3153551F15169900049DBA /* CFInterface.swift */,
 			);
 			name = Runtime;
 			sourceTree = "<group>";
@@ -2196,6 +2199,7 @@
 				EADE0BBD1BD15E0000C49C64 /* NSURLCredential.swift in Sources */,
 				5B187B2C1F0D2EC1004E49B3 /* NSCFTimeZone.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */,
+				5B3153561F15169900049DBA /* CFInterface.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* NSJSONSerialization.swift in Sources */,
 				5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */,
 				EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */,

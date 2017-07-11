@@ -401,6 +401,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSStringBridge.swift',
 	'Foundation/NSStringAPI.swift',
 	'Foundation/NSSwiftRuntime.swift',
+	'Foundation/CFInterface.swift',
 	'Foundation/Process.swift',
 	'Foundation/NSTextCheckingResult.swift',
 	'Foundation/Thread.swift',

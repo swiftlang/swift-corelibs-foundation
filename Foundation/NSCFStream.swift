@@ -17,6 +17,13 @@ internal let kCFStreamEventCanAcceptBytes = CFStreamEventType.canAcceptBytes.raw
 internal let kCFStreamEventErrorOccurred = CFStreamEventType.errorOccurred.rawValue
 internal let kCFStreamEventEndEncountered = CFStreamEventType.endEncountered.rawValue
 internal let kCFStreamErrorDomainCustom = CFStreamErrorDomain.custom.rawValue
+#else
+extension CFStreamStatus {
+    var rawValue: Int { return self }
+}
+extension CFStreamEventType {
+    var rawValue: CFOptionFlags { return self }
+}
 #endif
 
 fileprivate struct _StreamDelegateBox {
@@ -88,7 +95,7 @@ internal final class _NSCFInputStream : InputStream {
                 ctx.info = nil
             }
             
-            CFReadStreamSetClient(_unsafeReferenceCast(self, to: CFReadStream.self), kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered, _inputStreamCallbackFunc, &ctx)
+            CFReadStreamSetClient(_unsafeReferenceCast(self, to: CFReadStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _inputStreamCallbackFunc, &ctx)
         }
     }
     

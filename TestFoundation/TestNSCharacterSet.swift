@@ -295,7 +295,7 @@ class TestNSCharacterSet : XCTestCase {
     
     func testMutability_mutableCopyCrash() {
         let cs = CharacterSet(charactersIn: "ABC")
-        _ = (cs as NSCharacterSet).mutableCopy() // this should not crash
+        _ = cs._bridgeToObjectiveC().mutableCopy() // this should not crash
     }
     
     func testMutability_SR_1782() {
@@ -318,7 +318,7 @@ class TestNSCharacterSet : XCTestCase {
     // MARK: -
     func test_classForCoder() {
         // confirm internal bridged impl types are not exposed to archival machinery
-        let cs = CharacterSet() as NSCharacterSet
+        let cs = CharacterSet()._bridgeToObjectiveC()
         
         // Either of the following two are OK
         let expectedImmutable: AnyClass = NSCharacterSet.self as AnyClass
