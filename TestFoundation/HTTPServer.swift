@@ -106,7 +106,7 @@ class _TCPSocket {
     }
 
     func writeRawData(_ data: Data) throws {
-        let x = try data.withUnsafeBytes { ptr in
+        _ = try data.withUnsafeBytes { ptr in
             try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, ptr, data.count)))
         }
     }

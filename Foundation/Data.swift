@@ -1514,7 +1514,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inline(__always)
     public func subdata(in range: Range<Index>) -> Data {
         _validateRange(range)
-        let length = count
         if count == 0 {
             return Data()
         }
