@@ -962,9 +962,9 @@ extension CGFloat : Codable {
             // other type.
             do {
                 if NativeType.self == Float.self {
-                    self.native = NativeType(try container.decode(Float.self))
-                } else {
                     self.native = NativeType(try container.decode(Double.self))
+                } else {
+                    self.native = NativeType(try container.decode(Float.self))
                 }
             } catch {
                 // Failed to decode as the other type, too. This is neither a Float nor
