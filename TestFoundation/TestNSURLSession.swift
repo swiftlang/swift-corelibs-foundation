@@ -41,6 +41,10 @@ class TestURLSession : XCTestCase {
 	    ("test_customProtocolResponseWithDelegate", test_customProtocolResponseWithDelegate),
             ("test_httpRedirection", test_httpRedirection),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
+            ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
+            ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
+            ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
         ]
     }
     
@@ -79,7 +83,7 @@ class TestURLSession : XCTestCase {
     func test_dataTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let url = URL(string: urlString)!
-        let d = DataTask(with: expectation(description: "data task"))
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if !d.error {
@@ -93,7 +97,7 @@ class TestURLSession : XCTestCase {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "URL test with completion handler")
+        let expect = expectation(description: "GET \(urlString): with a completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
             defer { expect.fulfill() }
@@ -112,7 +116,7 @@ class TestURLSession : XCTestCase {
     func test_dataTaskWithURLRequest() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DataTask(with: expectation(description: "data task"))
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
         if !d.error {
@@ -126,7 +130,7 @@ class TestURLSession : XCTestCase {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "URL test with completion handler")
+        let expect = expectation(description: "GET \(urlString): with a completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: urlRequest) { data, response, error in
             defer { expect.fulfill() }
@@ -145,7 +149,7 @@ class TestURLSession : XCTestCase {
     func test_downloadTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = URL(string: urlString)!
-        let d = DownloadTask(with: expectation(description: "download task with delegate"))
+        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
@@ -153,7 +157,7 @@ class TestURLSession : XCTestCase {
     func test_downloadTaskWithURLRequest() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DownloadTask(with: expectation(description: "download task with delegate"))
+        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
@@ -161,9 +165,10 @@ class TestURLSession : XCTestCase {
     func test_downloadTaskWithRequestAndHandler() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "download task with handler")
-        let req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")!)
+        let expect = expectation(description: "Download GET \(urlString): with a completion handler")
+        let req = URLRequest(url: URL(string: urlString)!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             expect.fulfill()
@@ -175,9 +180,10 @@ class TestURLSession : XCTestCase {
     func test_downloadTaskWithURLAndHandler() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "download task with handler")
-        let req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt")!)
+        let expect = expectation(description: "Download GET \(urlString): with a completion handler")
+        let req = URLRequest(url: URL(string: urlString)!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
             if let e = error as? URLError {
                 XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
@@ -189,12 +195,13 @@ class TestURLSession : XCTestCase {
     }
     
     func test_finishTasksAndInvalidate() {
-        let invalidateExpectation = expectation(description: "URLSession wasn't invalidated")
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let invalidateExpectation = expectation(description: "Session invalidation")
         let delegate = SessionDelegate(invalidateExpectation: invalidateExpectation)
-        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal")!
+        let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: delegate, delegateQueue: nil)
-        let completionExpectation = expectation(description: "dataTask completion block wasn't called")
+        let completionExpectation = expectation(description: "GET \(urlString): task completion before session invalidation")
         let task = session.dataTask(with: url) { (_, _, _) in
             completionExpectation.fulfill()
         }
@@ -204,11 +211,12 @@ class TestURLSession : XCTestCase {
     }
     
     func test_taskError() {
-        let url = URL(string: "http://127.0.0.1:-1/Nepal")!
+        let urlString = "http://127.0.0.1:-1/Nepal"
+        let url = URL(string: urlString)!
         let session = URLSession(configuration: URLSessionConfiguration.default,
                                  delegate: nil,
                                  delegateQueue: nil)
-        let completionExpectation = expectation(description: "dataTask completion block wasn't called")
+        let completionExpectation = expectation(description: "GET \(urlString): Bad URL error")
         let task = session.dataTask(with: url) { (_, _, result) in
             let error = result as? URLError
             XCTAssertNotNil(error)
@@ -237,9 +245,10 @@ class TestURLSession : XCTestCase {
     }
     
     func test_cancelTask() {
-        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Peru")!
-        let d = DataTask(with: expectation(description: "Task to be canceled"))
-        d.cancelExpectation = expectation(description: "URLSessionTask wasn't canceled")
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): task cancelation"))
+        d.cancelExpectation = expectation(description: "GET \(urlString): task canceled")
         d.run(with: url)
         d.cancel()
         waitForExpectations(timeout: 12)
@@ -248,9 +257,10 @@ class TestURLSession : XCTestCase {
     func test_verifyRequestHeaders() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "download task with handler")
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders")!)
+        var expect = expectation(description: "POST \(urlString): get request headers")
+        var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "value1"]
         req.httpMethod = "POST"
         req.allHTTPHeaderFields = headers
@@ -274,9 +284,10 @@ class TestURLSession : XCTestCase {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
         config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3"]
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "download task with handler")
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders")!)
+        var expect = expectation(description: "POST \(urlString) with additional headers")
+        var req = URLRequest(url: URL(string: urlString)!)
         let headers = ["header1": "rvalue1", "header2": "rvalue2"]
         req.httpMethod = "POST"
         req.allHTTPHeaderFields = headers
@@ -297,9 +308,10 @@ class TestURLSession : XCTestCase {
     func test_taskTimeout() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "download task with handler")
-        let req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Peru")!)
+        var expect = expectation(description: "GET \(urlString): no timeout")
+        let req = URLRequest(url: URL(string: urlString)!)
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
             defer { expect.fulfill() }
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
@@ -312,8 +324,9 @@ class TestURLSession : XCTestCase {
     func test_timeoutInterval() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 10
+        let urlString = "http://127.0.0.1:-1/Peru"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        var expect = expectation(description: "download task with handler")
+        var expect = expectation(description: "GET \(urlString): will timeout")
         var req = URLRequest(url: URL(string: "http://127.0.0.1:-1/Peru")!)
         req.timeoutInterval = 1
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -332,7 +345,8 @@ class TestURLSession : XCTestCase {
         config.protocolClasses = [CustomProtocol.self]
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "URL test with custom protocol")
+        let expect = expectation(description: "GET \(urlString): with a custom protocol")
+
         let task = session.dataTask(with: url) { data, response, error in
             defer { expect.fulfill() }
             if let e = error as? URLError {
@@ -347,9 +361,10 @@ class TestURLSession : XCTestCase {
     }
 
     func test_customProtocolResponseWithDelegate() {
-        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Peru")!
-        let d = DataTask(with: expectation(description: "Custom protocol with delegate"), protocolClasses: [CustomProtocol.self])
-        d.responseReceivedExpectation = expectation(description: "A response wasn't received")
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a custom protocol and delegate"), protocolClasses: [CustomProtocol.self])
+        d.responseReceivedExpectation = expectation(description: "GET \(urlString): response received")
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
@@ -357,16 +372,17 @@ class TestURLSession : XCTestCase {
     func test_httpRedirection() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         let url = URL(string: urlString)!
-        let d = HTTPRedirectionDataTask(with: expectation(description: "data task"))
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
 
     func test_httpRedirectionTimeout() {
-        var req = URLRequest(url: URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates")!)
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
+        var req = URLRequest(url: URL(string: urlString)!)
         req.timeoutInterval = 3
         let config = URLSessionConfiguration.default
-        var expect = expectation(description: "download task with handler")
+        var expect = expectation(description: "GET \(urlString): timeout with redirection ")
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         let task = session.dataTask(with: req) { data, response, error in
             defer { expect.fulfill() }
@@ -377,6 +393,108 @@ class TestURLSession : XCTestCase {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+
+    func test_http0_9SimpleResponses() {
+        for brokenCity in ["Pompeii", "Sodom"] {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+            let url = URL(string: urlString)!
+
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 8
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            let expect = expectation(description: "GET \(urlString): simple HTTP/0.9 response")
+            var expectedResult = "unknown"
+            let task = session.dataTask(with: url) { data, response, error in
+                XCTAssertNotNil(data)
+                XCTAssertNotNil(response)
+                XCTAssertNil(error)
+
+                defer { expect.fulfill() }
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    XCTFail("response (\(response.debugDescription)) invalid")
+                    return
+                }
+                XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+            }
+            task.resume()
+            waitForExpectations(timeout: 12)
+        }
+    }
+
+    func test_outOfRangeButCorrectlyFormattedHTTPCode() {
+        let brokenCity = "Kameiros"
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+        let url = URL(string: urlString)!
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let expect = expectation(description: "GET \(urlString): out of range HTTP code")
+        let task = session.dataTask(with: url) { data, response, error in
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+
+            defer { expect.fulfill() }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            XCTAssertEqual(999, httpResponse.statusCode, "HTTP response code is not 999")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
+
+    func test_missingContentLengthButStillABody() {
+        let brokenCity = "Myndus"
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+        let url = URL(string: urlString)!
+
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        let expect = expectation(description: "GET \(urlString): missing content length")
+        let task = session.dataTask(with: url) { data, response, error in
+            XCTAssertNotNil(data)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+
+            defer { expect.fulfill() }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
+
+
+    func test_illegalHTTPServerResponses() {
+        for brokenCity in ["Gomorrah", "Dinavar", "Kuhikugu"] {
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/LandOfTheLostCities/\(brokenCity)"
+            let url = URL(string: urlString)!
+
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 8
+            let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+            let expect = expectation(description: "GET \(urlString): illegal response")
+            let task = session.dataTask(with: url) { data, response, error in
+                XCTAssertNil(data)
+                XCTAssertNil(response)
+                XCTAssertNotNil(error)
+
+                defer { expect.fulfill() }
+            }
+            task.resume()
+            waitForExpectations(timeout: 12)
+        }
     }
 }
 

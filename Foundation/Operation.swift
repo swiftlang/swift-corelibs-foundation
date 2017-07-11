@@ -317,7 +317,13 @@ open class OperationQueue: NSObject {
     let lock = NSLock()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     var __concurrencyGate: DispatchSemaphore?
-    var __underlyingQueue: DispatchQueue?
+    var __underlyingQueue: DispatchQueue? {
+        didSet {
+            let key = OperationQueue.OperationQueueKey
+            oldValue?.setSpecific(key: key, value: nil)
+            __underlyingQueue?.setSpecific(key: key, value: Unmanaged.passUnretained(self))
+        }
+    }
     let queueGroup = DispatchGroup()
 #endif
     
@@ -563,29 +569,27 @@ open class OperationQueue: NSObject {
 
     open class var current: OperationQueue? {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey)
-        if specific == nil {
+        guard let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey) else {
             if pthread_main_np() == 1 {
                 return OperationQueue.main
             } else {
                 return nil
             }
-        } else {
-            return specific!.takeUnretainedValue()
         }
+        
+        return specific.takeUnretainedValue()
 #else
         return nil
 #endif
     }
     
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+    private static let _main = OperationQueue(_queue: .main, maxConcurrentOperations: 1)
+#endif
+    
     open class var main: OperationQueue {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let specific = DispatchQueue.main.getSpecific(key: OperationQueue.OperationQueueKey)
-        if specific == nil {
-            return OperationQueue(_queue: DispatchQueue.main, maxConcurrentOperations: 1)
-        } else {
-            return specific!.takeUnretainedValue()
-        }
+        return _main
 #else
         fatalError("NSOperationQueue requires libdispatch")
 #endif

@@ -10,14 +10,19 @@
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
 import Foundation
 import XCTest
+import Glibc
 #else
 import SwiftFoundation
 import SwiftXCTest
+import Darwin
 #endif
 
 internal func testBundle() -> Bundle {
     return Bundle.main
 }
+
+// ignore SIGPIPE which is sent when writing to closed file descriptors.
+_ = signal(SIGPIPE, SIG_IGN)
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([

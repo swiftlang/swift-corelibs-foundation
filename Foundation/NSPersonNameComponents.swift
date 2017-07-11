@@ -64,6 +64,28 @@ open class NSPersonNameComponents : NSObject, NSCopying, NSSecureCoding {
         }
         return copy
     }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let object = object else { return false }
+
+        switch object {
+        case let other as NSPersonNameComponents: return self.isEqual(other)
+        case let other as PersonNameComponents: return self.isEqual(other._bridgeToObjectiveC())
+        default: return false
+        }
+    }
+
+    private func isEqual(_ other: NSPersonNameComponents) -> Bool {
+        if self === other { return true }
+        
+        return (self.namePrefix == other.namePrefix
+            && self.givenName == other.givenName
+            && self.middleName == other.middleName
+            && self.familyName == other.familyName
+            && self.nameSuffix == other.nameSuffix
+            && self.nickname == other.nickname
+            && self.phoneticRepresentation == other.phoneticRepresentation)
+    }
     
     /* The below examples all assume the full name Dr. Johnathan Maple Appleseed Esq., nickname "Johnny" */
     

@@ -26,6 +26,10 @@ class TestNSNotificationCenter : XCTestCase {
             ("test_postMultipleNotifications", test_postMultipleNotifications),
             ("test_addObserverForNilName", test_addObserverForNilName),
             ("test_removeObserver", test_removeObserver),
+            ("test_observeOnPostingQueue", test_observeOnPostingQueue),
+            ("test_observeOnSpecificQueuePostFromMainQueue", test_observeOnSpecificQueuePostFromMainQueue),
+            ("test_observeOnSpecificQueuePostFromObservedQueue", test_observeOnSpecificQueuePostFromObservedQueue),
+            ("test_observeOnSpecificQueuePostFromUnrelatedQueue", test_observeOnSpecificQueuePostFromUnrelatedQueue),
         ]
     }
     
@@ -149,5 +153,104 @@ class TestNSNotificationCenter : XCTestCase {
         notificationCenter.post(name: notificationName, object: nil)
         XCTAssertTrue(flag)
     }
-
+    
+    func test_observeOnPostingQueue() {
+        let notificationCenter = NotificationCenter()
+        let name = Notification.Name(rawValue: "\(#function)_name")
+        let postingQueue = OperationQueue()
+        let expectation = self.expectation(description: "Observer was not notified.")
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: nil) { _ in
+            XCTAssertEqual(OperationQueue.current, postingQueue)
+            expectation.fulfill()
+        }
+        
+        postingQueue.addOperation {
+            notificationCenter.post(name: name, object: nil)
+        }
+        
+        self.waitForExpectations(timeout: 1)
+    }
+    
+    func test_observeOnSpecificQueuePostFromMainQueue() {
+        let name = Notification.Name(rawValue: "\(#function)_name")
+        let notificationCenter = NotificationCenter()
+        let operationQueue = OperationQueue()
+        var flag1 = false
+        var flag2 = false
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: operationQueue) { _ in
+            XCTAssertEqual(OperationQueue.current, operationQueue)
+            flag1 = true
+        }
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: .main) { _ in
+            XCTAssertEqual(OperationQueue.current, .main)
+            flag2 = true
+        }
+        
+        notificationCenter.post(name: name, object: nil)
+        // All observers should be notified synchronously regardless of the observer queue.
+        XCTAssertTrue(flag1)
+        XCTAssertTrue(flag2)
+    }
+    
+    func test_observeOnSpecificQueuePostFromObservedQueue() {
+        let name = Notification.Name(rawValue: "\(#function)_name")
+        let notificationCenter = NotificationCenter()
+        let observingQueue = OperationQueue()
+        let expectation = self.expectation(description: "Notification posting operation was not executed.")
+        var flag1 = false
+        var flag2 = false
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: observingQueue) { _ in
+            XCTAssertEqual(OperationQueue.current, observingQueue)
+            flag1 = true
+        }
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: .main) { _ in
+            XCTAssertEqual(OperationQueue.current, .main)
+            flag2 = true
+        }
+        
+        observingQueue.addOperation {
+            notificationCenter.post(name: name, object: nil)
+            // All observers should be notified synchronously regardless of the observer queue.
+            XCTAssertTrue(flag1)
+            XCTAssertTrue(flag2)
+            expectation.fulfill()
+        }
+        
+        self.waitForExpectations(timeout: 1)
+    }
+    
+    func test_observeOnSpecificQueuePostFromUnrelatedQueue() {
+        let name = Notification.Name(rawValue: "\(#function)_name")
+        let notificationCenter = NotificationCenter()
+        let operationQueue = OperationQueue()
+        let postingQueue = OperationQueue()
+        let expectation = self.expectation(description: "Notification posting operation was not executed.")
+        var flag1 = false
+        var flag2 = false
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: operationQueue) { _ in
+            XCTAssertEqual(OperationQueue.current, operationQueue)
+            flag1 = true
+        }
+        
+        _ = notificationCenter.addObserver(forName: name, object: nil, queue: .main) { _ in
+            XCTAssertEqual(OperationQueue.current, .main)
+            flag2 = true
+        }
+        
+        postingQueue.addOperation {
+            notificationCenter.post(name: name, object: nil)
+            // All observers should be notified synchronously regardless of the observer queue.
+            XCTAssertTrue(flag1)
+            XCTAssertTrue(flag2)
+            expectation.fulfill()
+        }
+        
+        self.waitForExpectations(timeout: 1)
+    }
 }

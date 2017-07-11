@@ -31,6 +31,7 @@ extension JSONSerialization {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
+        public static let sortedKeys = WritingOptions(rawValue: 1 << 1)
     }
 }
 
@@ -116,6 +117,7 @@ open class JSONSerialization : NSObject {
         
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
+            sortedKeys: opt.contains(.sortedKeys),
             writer: { (str: String?) in
                 if let str = str {
                     jsonStr.append(str)
@@ -289,6 +291,7 @@ private struct JSONWriter {
     private let maxIntLength = String(describing: Int.max).characters.count
     var indent = 0
     let pretty: Bool
+    let sortedKeys: Bool
     let writer: (String?) -> Void
     
     private lazy var _numberformatter: CFNumberFormatter = {
@@ -299,8 +302,9 @@ private struct JSONWriter {
         return formatter
     }()
 
-    init(pretty: Bool = false, writer: @escaping (String?) -> Void) {
+    init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
+        self.sortedKeys = sortedKeys
         self.writer = writer
     }
     
@@ -499,10 +503,10 @@ private struct JSONWriter {
             writer("\n")
             incAndWriteIndent()
         }
-        
+
         var first = true
-        
-        for (key, value) in dict {
+
+        func serializeDictionaryElement(key: AnyHashable, value: Any) throws {
             if first {
                 first = false
             } else if pretty {
@@ -511,15 +515,37 @@ private struct JSONWriter {
             } else {
                 writer(",")
             }
-            
-            if key is String {
-                try serializeString(key as! String)
+
+            if let key = key as? String {
+                try serializeString(key)
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }
             pretty ? writer(": ") : writer(":")
             try serializeJSON(value)
         }
+
+        if sortedKeys {
+            let elems = try dict.sorted(by: { a, b in
+                guard let a = a.key as? String,
+                    let b = b.key as? String else {
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                }
+                let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
+                let range: Range<String.Index>  = a.startIndex..<a.endIndex
+                let locale = NSLocale.system
+
+                return a.compare(b, options: options, range: range, locale: locale) == .orderedAscending
+            })
+            for elem in elems {
+                try serializeDictionaryElement(key: elem.key, value: elem.value)
+            }
+        } else {
+            for (key, value) in dict {
+                try serializeDictionaryElement(key: key, value: value)
+            }
+        }
+
         if pretty {
             writer("\n")
             decAndWriteIndent()
