@@ -533,7 +533,7 @@ private struct JSONWriter {
                 }
                 let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
                 let range: Range<String.Index>  = a.startIndex..<a.endIndex
-                let locale = NSLocale.systemLocale()
+                let locale = NSLocale.system
 
                 return a.compare(b, options: options, range: range, locale: locale) == .orderedAscending
             })

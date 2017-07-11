@@ -84,7 +84,7 @@ extension NSLocale {
         return CFLocaleCopyCurrent()._swiftObject
     }
     
-    open class func systemLocale() -> Locale {
+    open class var system: Locale {
         return CFLocaleGetSystem()._swiftObject
     }
 }
