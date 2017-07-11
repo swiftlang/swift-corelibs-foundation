@@ -205,6 +205,22 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - Decimal
+    lazy var decimalValues: [Decimal] = [
+        Decimal.leastFiniteMagnitude,
+        Decimal.greatestFiniteMagnitude,
+        Decimal.leastNormalMagnitude,
+        Decimal.leastNonzeroMagnitude,
+        Decimal.pi,
+        Decimal()
+    ]
+
+    func test_Decimal_JSON() {
+        for decimal in decimalValues {
+            expectRoundTripEqualityThroughJSON(for: decimal)
+        }
+    }
+
 }
 
 extension TestCodable {
@@ -218,6 +234,7 @@ extension TestCodable {
             ("test_IndexSet_JSON", test_IndexSet_JSON),
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
+            ("test_Decimal_JSON", test_Decimal_JSON),
         ]
     }
 }
