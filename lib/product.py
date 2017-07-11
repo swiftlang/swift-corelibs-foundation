@@ -182,6 +182,8 @@ class StaticLibrary(Library):
     def generate(self, objects = []):
         self.rule = "Archive"
         self.product_name = Configuration.current.target.static_library_prefix + self.name + Configuration.current.target.static_library_suffix
+        self.conformance_begin = ''
+        self.conformance_end = ''
         return Library.generate(self, [], objects)
 
 class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
