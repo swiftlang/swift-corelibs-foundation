@@ -1631,9 +1631,13 @@ extension NSString {
      If the values in the dictionary have wrong types (for example, the value of NSStringEncodingDetectionSuggestedEncodingsKey is not an array), an exception is thrown.
      If the values in the dictionary are unknown (for example, the value in the array of suggested string encodings is not a valid encoding), the values will be ignored.
      */
+    
+    // Currently disabled since it uses AutoreleasingUnsafeMutablePointer
+#if false
     open class func stringEncoding(for data: Data, encodingOptions opts: [StringEncodingDetectionOptionsKey : Any]? = nil, convertedString string: AutoreleasingUnsafeMutablePointer<NSString?>?, usedLossyConversion: UnsafeMutablePointer<ObjCBool>?) -> UInt {
         NSUnimplemented()
     }
+#endif
 }
 extension StringEncodingDetectionOptionsKey {
     public static let suggestedEncodingsKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionSuggestedEncodingsKey")
