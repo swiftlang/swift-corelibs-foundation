@@ -52,26 +52,26 @@ open class XMLNode: NSObject, NSCopying {
     public struct Options : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
-        
+
         public static let nodeIsCDATA = Options(rawValue: 1 << 0)
         public static let nodeExpandEmptyElement = Options(rawValue: 1 << 1)
         public static let nodeCompactEmptyElement = Options(rawValue: 1 << 2)
         public static let nodeUseSingleQuotes = Options(rawValue: 1 << 3)
         public static let nodeUseDoubleQuotes = Options(rawValue: 1 << 4)
         public static let nodeNeverEscapeContents = Options(rawValue: 1 << 5)
-        
+
         public static let documentTidyHTML = Options(rawValue: 1 << 9)
         public static let documentTidyXML = Options(rawValue: 1 << 10)
         public static let documentValidate = Options(rawValue: 1 << 13)
-        
+
         public static let nodeLoadExternalEntitiesAlways = Options(rawValue: 1 << 14)
         public static let nodeLoadExternalEntitiesSameOriginOnly = Options(rawValue: 1 << 15)
         public static let nodeLoadExternalEntitiesNever = Options(rawValue: 1 << 19)
-        
+
         public static let documentXInclude = Options(rawValue: 1 << 16)
         public static let nodePrettyPrint = Options(rawValue: 1 << 17)
         public static let documentIncludeContentTypeDeclaration = Options(rawValue: 1 << 18)
-        
+
         public static let nodePreserveNamespaceOrder = Options(rawValue: 1 << 20)
         public static let nodePreserveAttributeOrder = Options(rawValue: 1 << 21)
         public static let nodePreserveEntities = Options(rawValue: 1 << 22)
@@ -125,10 +125,10 @@ open class XMLNode: NSObject, NSCopying {
 
         case .DTDKind:
             _xmlNode = _CFXMLNewDTD(nil, "", "", "")
-            
+
         case .namespace:
             _xmlNode = _CFXMLNewNamespace("", "")
-            
+
         default:
             fatalError("invalid node kind for this initializer")
         }
@@ -289,7 +289,7 @@ open class XMLNode: NSObject, NSCopying {
 
         case _kCFXMLDTDNodeTypeAttribute:
             return .attributeDeclaration
-            
+
         case _kCFXMLTypeNamespace:
             return .namespace
 
@@ -305,10 +305,10 @@ open class XMLNode: NSObject, NSCopying {
     open var name: String? {
         get {
             if case .namespace = kind {
-                return _CFXMLNamespaceGetPrefix(_xmlNode)?._swiftObject
+                return _CFXMLNamespaceCopyPrefix(_xmlNode)?._swiftObject
             }
-            
-            return _CFXMLNodeGetName(_xmlNode)?._swiftObject
+
+            return _CFXMLNodeCopyName(_xmlNode)?._swiftObject
         }
         set {
             if case .namespace = kind {
@@ -357,13 +357,13 @@ open class XMLNode: NSObject, NSCopying {
         get {
             switch kind {
             case .entityDeclaration:
-                return _CFXMLGetEntityContent(_CFXMLEntityPtr(_xmlNode))?._swiftObject
-                
+                return _CFXMLCopyEntityContent(_CFXMLEntityPtr(_xmlNode))?._swiftObject
+
             case .namespace:
-                return _CFXMLNamespaceGetValue(_xmlNode)?._swiftObject
+                return _CFXMLNamespaceCopyValue(_xmlNode)?._swiftObject
 
             default:
-                return _CFXMLNodeGetContent(_xmlNode)?._swiftObject
+                return _CFXMLNodeCopyContent(_xmlNode)?._swiftObject
             }
         }
         set {
@@ -371,11 +371,11 @@ open class XMLNode: NSObject, NSCopying {
                 if let newValue = newValue {
                     precondition(URL(string: newValue) != nil, "namespace stringValue must be a valid href")
                 }
-                
+
                 _CFXMLNamespaceSetValue(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
                 return
             }
-            
+
             _removeAllChildNodesExceptAttributes() // in case anyone is holding a reference to any of these children we're about to destroy
 
             if let string = newValue {
@@ -451,7 +451,7 @@ open class XMLNode: NSObject, NSCopying {
                 entityPtr = _CFXMLGetParameterEntity(doc, entity)
             }
             if let validEntity = entityPtr {
-                let replacement = _CFXMLGetEntityContent(validEntity)?._swiftObject ?? ""
+                let replacement = _CFXMLCopyEntityContent(validEntity)?._swiftObject ?? ""
                 result.replaceSubrange(range, with: replacement.characters)
             } else {
                 result.replaceSubrange(range, with: []) // This appears to be how Darwin Foundation does it
@@ -608,7 +608,7 @@ open class XMLNode: NSObject, NSCopying {
         _CFXMLUnlinkNode(_xmlNode)
 
         guard let parentNodePtr = _CFXMLNodeGetPrivateData(parentPtr) else { return }
-        
+
         let parent: XMLNode = NSObject.unretainedReference(parentNodePtr)
         parent._childNodes.remove(self)
     }
@@ -619,8 +619,8 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var xPath: String? {
         guard _CFXMLNodeGetDocument(_xmlNode) != nil else { return nil }
-        
-        return _CFXMLPathForNode(_xmlNode)?._swiftObject
+
+        return _CFXMLCopyPathForNode(_xmlNode)?._swiftObject
     }
 
     /*!
@@ -628,7 +628,7 @@ open class XMLNode: NSObject, NSCopying {
     	@abstract Returns the local name bar if this attribute or element's name is foo:bar
     */
     open var localName: String? {
-        return _CFXMLNodeLocalName(_xmlNode)?._swiftObject
+        return _CFXMLNodeCopyLocalName(_xmlNode)?._swiftObject
     }
 
     /*!
@@ -636,7 +636,7 @@ open class XMLNode: NSObject, NSCopying {
     	@abstract Returns the prefix foo if this attribute or element's name if foo:bar
     */
     open var prefix: String? {
-        return _CFXMLNodePrefix(_xmlNode)?._swiftObject
+        return _CFXMLNodeCopyPrefix(_xmlNode)?._swiftObject
     }
 
     /*!
@@ -645,7 +645,7 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var uri: String? {
         get {
-            return _CFXMLNodeURI(_xmlNode)?._swiftObject
+            return _CFXMLNodeCopyURI(_xmlNode)?._swiftObject
         }
         set {
             if let URI = newValue {
@@ -712,8 +712,8 @@ open class XMLNode: NSObject, NSCopying {
         @method XMLStringWithOptions:
         @abstract The representation of this node as it would appear in an XML document, with various output options available.
     */
-    open func xmlString(options: XMLNode.Options = []) -> String {
-        return _CFXMLStringWithOptions(_xmlNode, UInt32(options.rawValue))._swiftObject
+    open func xmlString(options: Options) -> String {
+        return _CFXMLCopyStringWithOptions(_xmlNode, UInt32(options.rawValue))._swiftObject
     }
 
     /*!
@@ -770,7 +770,7 @@ open class XMLNode: NSObject, NSCopying {
 
         case .attribute:
             _CFXMLFreeProperty(_xmlNode)
-            
+
         default:
             _CFXMLFreeNode(_xmlNode)
         }
@@ -786,7 +786,7 @@ open class XMLNode: NSObject, NSCopying {
             let parentNode = XMLNode._objectNodeForNode(parent)
             parentNode._childNodes.insert(self)
         }
-        
+
         withUnretainedReference {
             _CFXMLNodeSetPrivateData(_xmlNode, $0)
         }
@@ -945,4 +945,3 @@ extension XMLNode.Index {
         }
     }
 }
-

@@ -52,7 +52,7 @@ open class XMLElement: XMLNode {
     public convenience init(xmlString string: String) throws {
         // If we prepend the XML line to the string
         let docString = """
-        <?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\(string)
+        <?xml version="1.0" encoding="utf-8" standalone="yes"?>\(string)
         """
         // we can use the document string parser to get the element
         let doc = try XMLDocument(xmlString: docString, options: [])
@@ -85,7 +85,7 @@ open class XMLElement: XMLNode {
         @abstract Adds an attribute. Attributes with duplicate names are not added.
     */
     open func addAttribute(_ attribute: XMLNode) {
-        guard let name = _CFXMLNodeGetName(attribute._xmlNode)?._swiftObject else {
+        guard let name = _CFXMLNodeCopyName(attribute._xmlNode)?._swiftObject else {
             fatalError("Attributes must have a name!")
         }
 

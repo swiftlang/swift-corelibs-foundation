@@ -200,7 +200,7 @@ open class XMLDTDNode: XMLNode {
     */
     open var publicID: String? {
         get {
-            return _CFXMLDTDNodeGetPublicID(_xmlNode)?._swiftObject
+            return _CFXMLDTDNodeCopyPublicID(_xmlNode)?._swiftObject
         }
         set {
             if let value = newValue {
@@ -217,7 +217,7 @@ open class XMLDTDNode: XMLNode {
     */
     open var systemID: String? {
         get {
-            return _CFXMLDTDNodeGetSystemID(_xmlNode)?._swiftObject
+            return _CFXMLDTDNodeCopySystemID(_xmlNode)?._swiftObject
         }
         set {
             if let value = newValue {
@@ -238,7 +238,7 @@ open class XMLDTDNode: XMLNode {
                 return nil
             }
 
-            return _CFXMLGetEntityContent(_xmlNode)?._swiftObject
+            return _CFXMLCopyEntityContent(_xmlNode)?._swiftObject
         }
         set {
             guard dtdKind == .unparsed else {

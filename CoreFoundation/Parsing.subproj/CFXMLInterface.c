@@ -362,7 +362,7 @@ _CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr node, const unsigned char* name, c
     return xmlNewProp(node, name, value);
 }
 
-CF_RETURNS_RETAINED CFStringRef _CFXMLNodeURI(_CFXMLNodePtr node) {
+CFStringRef _CFXMLNodeCopyURI(_CFXMLNodePtr node) {
     xmlNodePtr nodePtr = (xmlNodePtr)node;
     switch (nodePtr->type) {
         case XML_ATTRIBUTE_NODE:
@@ -469,7 +469,7 @@ static inline xmlChar* _getQName(xmlNodePtr node) {
     return xmlBuildQName(ncname, prefix, NULL, 0);
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNodeGetName(_CFXMLNodePtr node) {
+CFStringRef _Nullable _CFXMLNodeCopyName(_CFXMLNodePtr node) {
     xmlNodePtr xmlNode = (xmlNodePtr)node;
     
     xmlChar* qName = _getQName(xmlNode);
@@ -489,7 +489,7 @@ void _CFXMLNodeSetName(_CFXMLNodePtr node, const char* name) {
     xmlNodeSetName(node, (const xmlChar*)name);
 }
 
-CFStringRef _CFXMLNodeGetContent(_CFXMLNodePtr node) {
+CFStringRef _CFXMLNodeCopyContent(_CFXMLNodePtr node) {
     switch (((xmlNodePtr)node)->type) {
         case XML_ELEMENT_DECL:
         {
@@ -681,7 +681,7 @@ void _CFXMLDocSetRootElement(_CFXMLDocPtr doc, _CFXMLNodePtr node) {
     xmlDocSetRootElement(doc, node);
 }
 
-CF_RETURNS_RETAINED CFStringRef _CFXMLDocCharacterEncoding(_CFXMLDocPtr doc) {
+CFStringRef _CFXMLDocCopyCharacterEncoding(_CFXMLDocPtr doc) {
     return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->encoding, kCFStringEncodingUTF8);
 }
 
@@ -695,7 +695,7 @@ void _CFXMLDocSetCharacterEncoding(_CFXMLDocPtr doc,  const unsigned char* _Null
     docPtr->encoding = xmlStrdup(encoding);
 }
 
-CF_RETURNS_RETAINED CFStringRef _CFXMLDocVersion(_CFXMLDocPtr doc) {
+CFStringRef _CFXMLDocCopyVersion(_CFXMLDocPtr doc) {
     return CFStringCreateWithCString(NULL, (const char*)((xmlDocPtr)doc)->version, kCFStringEncodingUTF8);
 }
 
@@ -782,7 +782,7 @@ _CFXMLEntityPtr _CFXMLGetParameterEntity(_CFXMLDocPtr doc, const char* entity) {
     return xmlGetParameterEntity(doc, (const xmlChar*)entity);
 }
 
-CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
+CFStringRef _CFXMLCopyEntityContent(_CFXMLEntityPtr entity) {
     const xmlChar* content = ((xmlEntityPtr)entity)->content;
     if (!content) {
         return NULL;
@@ -794,7 +794,7 @@ CFStringRef _CFXMLGetEntityContent(_CFXMLEntityPtr entity) {
     return result;
 }
 
-CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
+CFStringRef _CFXMLCopyStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
     if (((xmlNodePtr)node)->type == XML_ENTITY_DECL &&
         ((xmlEntityPtr)node)->etype == XML_INTERNAL_PREDEFINED_ENTITY) {
         // predefined entities need special handling, libxml2 just tosses an error and returns a NULL string
@@ -866,7 +866,7 @@ CFStringRef _CFXMLStringWithOptions(_CFXMLNodePtr node, uint32_t options) {
     return result;
 }
 
-CF_RETURNS_RETAINED CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath) {
+CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath) {
 
     if (((xmlNodePtr)node)->doc == NULL) {
         return NULL;
@@ -899,7 +899,7 @@ CF_RETURNS_RETAINED CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const uns
     return results;
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLPathForNode(_CFXMLNodePtr node) {
+CFStringRef _Nullable _CFXMLCopyPathForNode(_CFXMLNodePtr node) {
     xmlChar* path = xmlGetNodePath(node);
     CFStringRef result = CFStringCreateWithCString(NULL, (const char*)path, kCFStringEncodingUTF8);
     xmlFree(path);
@@ -933,7 +933,7 @@ _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
     return xmlReadMemory((const char*)CFDataGetBytePtr(data), CFDataGetLength(data), NULL, NULL, xmlOptions);
 }
 
-CF_RETURNS_RETAINED CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
+CFStringRef _CFXMLNodeCopyLocalName(_CFXMLNodePtr node) {
     xmlChar* prefix = NULL;
     const xmlChar* result = xmlSplitQName2(_getQName((xmlNodePtr)node), &prefix);
     if (result == NULL) {
@@ -943,7 +943,7 @@ CF_RETURNS_RETAINED CFStringRef _CFXMLNodeLocalName(_CFXMLNodePtr node) {
     return CFStringCreateWithCString(NULL, (const char*)result, kCFStringEncodingUTF8);
 }
 
-CF_RETURNS_RETAINED CFStringRef _CFXMLNodePrefix(_CFXMLNodePtr node) {
+CFStringRef _CFXMLNodeCopyPrefix(_CFXMLNodePtr node) {
     xmlChar* result = NULL;
     xmlChar* unused = xmlSplitQName2(_getQName((xmlNodePtr)node), &result);
 
@@ -1040,7 +1040,7 @@ _CFXMLDTDPtr _Nullable _CFXMLParseDTDFromData(CFDataRef data, CFErrorRef _Nullab
     return dtd;
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDExternalID(_CFXMLDTDPtr dtd) {
+CFStringRef _Nullable _CFXMLDTDCopyExternalID(_CFXMLDTDPtr dtd) {
     const unsigned char* externalID = ((xmlDtdPtr)dtd)->ExternalID;
     if (externalID) {
         return CFStringCreateWithCString(NULL, (const char*)externalID, kCFStringEncodingUTF8);
@@ -1065,7 +1065,7 @@ void _CFXMLDTDSetExternalID(_CFXMLDTDPtr dtd, const unsigned char* externalID) {
     dtdPtr->ExternalID = xmlStrdup(externalID);
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDSystemID(_CFXMLDTDPtr dtd) {
+CFStringRef _Nullable _CFXMLDTDCopySystemID(_CFXMLDTDPtr dtd) {
     const unsigned char* systemID = ((xmlDtdPtr)dtd)->SystemID;
     if (systemID) {
         return CFStringCreateWithCString(NULL, (const char*)systemID, kCFStringEncodingUTF8);
@@ -1152,7 +1152,7 @@ CFIndex _CFXMLDTDAttributeNodeGetType(_CFXMLDTDNodePtr node) {
     return ((xmlAttributePtr)node)->atype;
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDNodeGetSystemID(_CFXMLDTDNodePtr node) {
+CFStringRef _Nullable _CFXMLDTDNodeCopySystemID(_CFXMLDTDNodePtr node) {
     switch (((xmlNodePtr)node)->type) {
         case XML_ENTITY_DECL:
             return CFStringCreateWithCString(NULL, (const char*)((xmlEntityPtr)node)->SystemID, kCFStringEncodingUTF8);
@@ -1194,7 +1194,7 @@ void _CFXMLDTDNodeSetSystemID(_CFXMLDTDNodePtr node, const unsigned char* system
     }
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLDTDNodeGetPublicID(_CFXMLDTDNodePtr node) {
+CFStringRef _Nullable _CFXMLDTDNodeCopyPublicID(_CFXMLDTDNodePtr node) {
     switch (((xmlNodePtr)node)->type) {
         case XML_ENTITY_DECL:
             return CFStringCreateWithCString(NULL, (const char*)((xmlEntityPtr)node)->ExternalID, kCFStringEncodingUTF8);
@@ -1237,7 +1237,7 @@ void _CFXMLDTDNodeSetPublicID(_CFXMLDTDNodePtr node, const unsigned char* public
 }
 
 // Namespaces
-CF_RETURNS_RETAINED _CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex* count) {
+_CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex* count) {
     *count = 0;
     xmlNs* ns = ((xmlNode*)node)->ns;
     while (ns != NULL) {
@@ -1282,7 +1282,7 @@ void _CFXMLSetNamespaces(_CFXMLNodePtr node, _CFXMLNodePtr* _Nullable nodes, CFI
     }
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNamespaceGetValue(_CFXMLNodePtr node) {
+CFStringRef _Nullable _CFXMLNamespaceCopyValue(_CFXMLNodePtr node) {
     xmlNsPtr ns = ((xmlNode*)node)->ns;
     
     if (ns->href == NULL) {
@@ -1297,7 +1297,7 @@ void _CFXMLNamespaceSetValue(_CFXMLNodePtr node, const char* value, int64_t leng
     ns->href = xmlStrndup((const xmlChar*)value, length);
 }
 
-CF_RETURNS_RETAINED CFStringRef _Nullable _CFXMLNamespaceGetPrefix(_CFXMLNodePtr node) {
+CFStringRef _Nullable _CFXMLNamespaceCopyPrefix(_CFXMLNodePtr node) {
     xmlNsPtr ns = ((xmlNodePtr)node)->ns;
     
     if (ns->prefix == NULL) {
