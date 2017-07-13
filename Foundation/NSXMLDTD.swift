@@ -22,7 +22,7 @@ open class XMLDTD : XMLNode {
         NSUnimplemented()
     }
     
-    public convenience init(contentsOf url: URL, options: Options = []) throws {
+    public convenience init(contentsOf url: URL, options mask: XMLNode.Options = []) throws {
         let urlString = url.absoluteString
 
         guard let node = _CFXMLParseDTD(urlString) else {
@@ -32,7 +32,7 @@ open class XMLDTD : XMLNode {
         self.init(ptr: node)
     }
 
-    public convenience init(data: Data, options: Options = []) throws {
+    public convenience init(data: Data, options mask: XMLNode.Options = []) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         
         guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {

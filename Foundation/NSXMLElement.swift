@@ -27,9 +27,9 @@ open class XMLElement: XMLNode {
         @method initWithName:URI:
         @abstract Returns an element whose full QName is specified.
     */
-    public init(name: String, uri: String?) {
+    public init(name: String, uri URI: String?) {
         super.init(kind: .element, options: [])
-        self.uri = uri
+        self.uri = URI
         self.name = name
     }
 
@@ -53,7 +53,7 @@ open class XMLElement: XMLNode {
         NSUnimplemented()
     }
 
-    public convenience override init(kind: Kind, options: Options = []) {
+    public convenience override init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
         self.init(name: "", uri: nil)
     }
 
@@ -69,7 +69,7 @@ open class XMLElement: XMLNode {
         @method elementsForLocalName:URI
         @abstract Returns all of the child elements that match this localname URI pair.
     */
-    open func elements(forLocalName localName: String, uri: String?) -> [XMLElement] { NSUnimplemented() }
+    open func elements(forLocalName localName: String, uri URI: String?) -> [XMLElement] { NSUnimplemented() }
 
     /*!
         @method addAttribute:
@@ -169,7 +169,7 @@ open class XMLElement: XMLNode {
         @method attributeForLocalName:URI:
         @abstract Returns an attribute matching this localname URI pair.
     */
-    open func attribute(forLocalName localName: String, uri: String?) -> XMLNode? {
+    open func attribute(forLocalName localName: String, uri URI: String?) -> XMLNode? {
         NSUnimplemented()
     }
 

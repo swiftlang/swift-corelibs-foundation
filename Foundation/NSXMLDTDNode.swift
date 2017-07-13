@@ -80,7 +80,7 @@ open class XMLDTDNode: XMLNode {
         super.init(ptr: ptr)
     } //primitive
     
-    public override init(kind: Kind, options: Options = []) {
+    public override init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
         let ptr: _CFXMLNodePtr
 
         switch kind {
@@ -99,7 +99,7 @@ open class XMLDTDNode: XMLNode {
         @method dtdKind
         @abstract Sets the DTD sub kind.
     */
-    open var dtdKind: DTDKind {
+    open var dtdKind: XMLDTDNode.DTDKind {
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLDTDNodeTypeElement:
             switch _CFXMLDTDElementNodeGetType(_xmlNode) {
