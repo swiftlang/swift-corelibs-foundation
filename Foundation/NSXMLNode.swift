@@ -42,7 +42,7 @@ open class XMLNode: NSObject, NSCopying {
         case processingInstruction
         case comment
         case text
-        case dtd
+        case DTDKind
         case entityDeclaration
         case attributeDeclaration
         case elementDeclaration
@@ -101,7 +101,7 @@ open class XMLNode: NSObject, NSCopying {
         @method initWithKind:
         @abstract Invokes @link initWithKind:options: @/link with options set to NSXMLNodeOptionsNone
     */
-    public convenience init(kind: Kind) {
+    public convenience init(kind: XMLNode.Kind) {
         self.init(kind: kind, options: [])
     }
 
@@ -109,7 +109,7 @@ open class XMLNode: NSObject, NSCopying {
         @method initWithKind:options:
         @abstract Inits a node with fidelity options as description NSXMLNodeOptions.h
     */
-    public init(kind: Kind, options: Options = []) {
+    public init(kind: XMLNode.Kind, options: XMLNode.Options = []) {
 
         switch kind {
         case .document:
@@ -123,7 +123,7 @@ open class XMLNode: NSObject, NSCopying {
         case .attribute:
             _xmlNode = _CFXMLNodePtr(_CFXMLNewProperty(nil, "", ""))
 
-        case .dtd:
+        case .DTDKind:
             _xmlNode = _CFXMLNewDTD(nil, "", "", "")
             
         default:
@@ -260,7 +260,7 @@ open class XMLNode: NSObject, NSCopying {
         @method kind
         @abstract Returns an element, attribute, entity, or notation DTD node based on the full XML string.
     */
-    open var kind: Kind  {
+    open var kind: XMLNode.Kind  {
         switch _CFXMLNodeGetType(_xmlNode) {
         case _kCFXMLTypeElement:
             return .element
@@ -272,7 +272,7 @@ open class XMLNode: NSObject, NSCopying {
             return .document
 
         case _kCFXMLTypeDTD:
-            return .dtd
+            return .DTDKind
 
         case _kCFXMLDTDNodeTypeElement:
             return .elementDeclaration
@@ -503,7 +503,7 @@ open class XMLNode: NSObject, NSCopying {
             fallthrough
         case .element:
             fallthrough
-        case .dtd:
+        case .DTDKind:
             return Array<XMLNode>(self as XMLNode)
 
         default:
@@ -546,7 +546,7 @@ open class XMLNode: NSObject, NSCopying {
         @method previousNode:
         @abstract Returns the previous node in document order. This can be used to walk the tree backwards.
     */
-    /*@NSCopying*/ open var previousNode: XMLNode? {
+    /*@NSCopying*/ open var previous: XMLNode? {
         if let previousSibling = self.previousSibling {
             if let lastChild = _CFXMLNodeGetLastChild(previousSibling._xmlNode) {
                 return XMLNode._objectNodeForNode(lastChild)
@@ -564,7 +564,7 @@ open class XMLNode: NSObject, NSCopying {
         @method nextNode:
         @abstract Returns the next node in document order. This can be used to walk the tree forwards.
     */
-    /*@NSCopying*/ open var nextNode: XMLNode? {
+    /*@NSCopying*/ open var next: XMLNode? {
         if let children = _CFXMLNodeGetFirstChild(_xmlNode) {
             return XMLNode._objectNodeForNode(children)
         } else if let next = nextSibling {
@@ -728,14 +728,14 @@ open class XMLNode: NSObject, NSCopying {
         @abstract The representation of this node as it would appear in an XML document.
     */
     open var xmlString: String {
-        return xmlString(withOptions: [])
+        return xmlString()
     }
 
     /*!
         @method XMLStringWithOptions:
         @abstract The representation of this node as it would appear in an XML document, with various output options available.
     */
-    open func xmlString(withOptions options: Options) -> String {
+    open func xmlString(options: XMLNode.Options = []) -> String {
         return _CFXMLStringWithOptions(_xmlNode, UInt32(options.rawValue))._swiftObject
     }
 
@@ -788,7 +788,7 @@ open class XMLNode: NSObject, NSCopying {
         case .document:
             _CFXMLFreeDocument(_CFXMLDocPtr(_xmlNode))
 
-        case .dtd:
+        case .DTDKind:
             _CFXMLFreeDTD(_CFXMLDTDPtr(_xmlNode))
 
         case .attribute:
