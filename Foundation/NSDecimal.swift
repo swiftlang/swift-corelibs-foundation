@@ -327,6 +327,7 @@ extension Decimal : SignedNumeric {
     }
 
     public mutating func negate() {
+        guard _length != 0 else { return }
         _isNegative = _isNegative == 0 ? 1 : 0
     }
 }
@@ -1282,9 +1283,7 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
 
 public func NSDecimalSubtract(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand: UnsafePointer<Decimal>, _ rightOperand: UnsafePointer<Decimal>, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
     var r = rightOperand.pointee
-    if r._length != 0 {
-        r.negate()
-    }
+    r.negate()
     return NSDecimalAdd(result, leftOperand, &r, roundingMode)
 }
 // Exact operations. result may be a pointer to same space as leftOperand or rightOperand
