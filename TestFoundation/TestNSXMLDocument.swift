@@ -93,15 +93,15 @@ class TestNSXMLDocument : XCTestCase {
         fooNode.addChild(bazNode)
         node.addChild(barNode)
 
-        XCTAssert(doc.nextNode === node)
-        XCTAssert(doc.nextNode?.nextNode === fooNode)
-        XCTAssert(doc.nextNode?.nextNode?.nextNode === bazNode)
-        XCTAssert(doc.nextNode?.nextNode?.nextNode?.nextNode === barNode)
+        XCTAssert(doc.next === node)
+        XCTAssert(doc.next?.next === fooNode)
+        XCTAssert(doc.next?.next?.next === bazNode)
+        XCTAssert(doc.next?.next?.next?.next === barNode)
 
-        XCTAssert(barNode.previousNode === bazNode)
-        XCTAssert(barNode.previousNode?.previousNode === fooNode)
-        XCTAssert(barNode.previousNode?.previousNode?.previousNode === node)
-        XCTAssert(barNode.previousNode?.previousNode?.previousNode?.previousNode === doc)
+        XCTAssert(barNode.previous === bazNode)
+        XCTAssert(barNode.previous?.previous === fooNode)
+        XCTAssert(barNode.previous?.previous?.previous === node)
+        XCTAssert(barNode.previous?.previous?.previous?.previous === doc)
     }
 
     func test_xpath() {

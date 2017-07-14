@@ -22,11 +22,10 @@ import CoreFoundation
 
 extension XMLParser {
     public enum ExternalEntityResolvingPolicy : UInt {
-        
-        case resolveExternalEntitiesNever // default
-        case resolveExternalEntitiesNoNetwork
-        case resolveExternalEntitiesSameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
-        case resolveExternalEntitiesAlways
+        case never // default
+        case noNetwork
+        case sameOriginOnly //only applies to NSXMLParser instances initialized with -initWithContentsOfURL:
+        case always
     }
 }
 
@@ -44,8 +43,8 @@ extension XMLParser {
 
 private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
     guard let bytes = bytes else { return nil }
-    // strlen operates on the wrong type, char*. We can't rebind the memory to a different type without knowing it's length,
-    // but since we know strlen is in libc, its safe to directly bitcast the pointer without worrying about multiple accesses
+    // strlen operates on the wrong type, char*. We can't rebind the memory to a different type without knowing its length,
+    // but since we know strlen is in libc, it's safe to directly bitcast the pointer without worrying about multiple accesses
     // of different types visible to the compiler.
     let len = strlen(unsafeBitCast(bytes, to: UnsafePointer<Int8>.self))
     let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: bytes, count: Int(len)))
@@ -75,7 +74,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         }
         if let url = a {
             let allowed = allowedEntityURLs.contains(url)
-            if allowed || policy != .resolveExternalEntitiesSameOriginOnly {
+            if allowed || policy != .sameOriginOnly {
                 if allowed {
                     return originalLoaderFunction(urlStr, identifier, context)
                 }
@@ -84,7 +83,7 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
     }
     
     switch policy {
-    case .resolveExternalEntitiesSameOriginOnly:
+    case .sameOriginOnly:
         guard let url = parser._url else { break }
         
         if a == nil {
@@ -119,11 +118,11 @@ internal func _NSXMLParserExternalEntityWithURL(_ interface: _CFXMLInterface, ur
         if !matches {
             return nil
         }
-    case .resolveExternalEntitiesAlways:
+    case .always:
         break
-    case .resolveExternalEntitiesNever:
+    case .never:
         return nil
-    case .resolveExternalEntitiesNoNetwork:
+    case .noNetwork:
         return _CFXMLInterfaceNoNetExternalEntityLoader(urlStr, identifier, context)
     }
     
@@ -456,7 +455,7 @@ open class XMLParser : NSObject {
     open var shouldReportNamespacePrefixes: Bool = false
     
     //defaults to NSXMLNodeLoadExternalEntitiesNever
-    open var externalEntityResolvingPolicy: ExternalEntityResolvingPolicy = .resolveExternalEntitiesNever
+    open var externalEntityResolvingPolicy: ExternalEntityResolvingPolicy = .never
     
     open var allowedExternalEntityURLs: Set<URL>?
     
@@ -954,7 +953,7 @@ extension XMLParser {
         
         case uriFragmentError
         
-        case nodtdError
+        case noDTDError
         
         case delegateAbortedParseError
     }

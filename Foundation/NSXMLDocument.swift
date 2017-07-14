@@ -68,34 +68,34 @@ open class XMLDocument : XMLNode {
         @method initWithXMLString:options:error:
         @abstract Returns a document created from either XML or HTML, if the HTMLTidy option is set. Parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(xmlString string: String, options: Options) throws {
+    public convenience init(xmlString string: String, options mask: XMLNode.Options = []) throws {
         guard let data = string.data(using: .utf8) else {
             // TODO: Throw an error
             fatalError("String: '\(string)' could not be converted to NSData using UTF-8 encoding")
         }
 
-        try self.init(data: data, options: options)
+        try self.init(data: data, options: mask)
     }
 
     /*!
         @method initWithContentsOfURL:options:error:
         @abstract Returns a document created from the contents of an XML or HTML URL. Connection problems such as 404, parse errors are returned in <tt>error</tt>.
     */
-    public convenience init(contentsOf url: URL, options: Options) throws {
+    public convenience init(contentsOf url: URL, options mask: XMLNode.Options = []) throws {
         let data = try Data(contentsOf: url, options: .mappedIfSafe)
 
-        try self.init(data: data, options: options)
+        try self.init(data: data, options: mask)
     }
 
     /*!
         @method initWithData:options:error:
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
-    public init(data: Data, options: Options) throws {
-        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(options.rawValue))
+    public init(data: Data, options mask: XMLNode.Options = []) throws {
+        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, Int32(mask.rawValue))
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
-        if options.contains(.documentValidate) {
+        if mask.contains(.documentValidate) {
             try validate()
         }
     }
@@ -170,7 +170,7 @@ open class XMLDocument : XMLNode {
         @method documentContentKind
         @abstract The kind of document.
     */
-    open var documentContentKind: ContentKind  {
+    open var documentContentKind: XMLDocument.ContentKind  {
         get {
             let properties = _CFXMLDocProperties(_xmlDoc)
 
@@ -311,14 +311,14 @@ open class XMLDocument : XMLNode {
         @method XMLData
         @abstract Invokes XMLDataWithOptions with NSXMLNodeOptionsNone.
     */
-    /*@NSCopying*/ open var xmlData: Data { return xmlData(withOptions: []) }
+    /*@NSCopying*/ open var xmlData: Data { return xmlData() }
 
     /*!
         @method XMLDataWithOptions:
         @abstract The representation of this node as it would appear in an XML document, encoded based on characterEncoding.
     */
-    open func xmlData(withOptions options: Options) -> Data {
-        let string = xmlString(withOptions: options)
+    open func xmlData(options: XMLNode.Options = []) -> Data {
+        let string = xmlString(options: options)
         // TODO: support encodings other than UTF-8
 
         return string.data(using: .utf8) ?? Data()
