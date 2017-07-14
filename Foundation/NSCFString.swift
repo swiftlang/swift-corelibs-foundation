@@ -59,13 +59,21 @@ internal class _NSCFString : NSMutableString {
 
 internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
-        let offset = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size + MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
+        // FIXME: Split expression as a work-around for slow type
+        //        checking (tracked by SR-5322).
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
+        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
+        let offset = offTemp1 + offTemp2
         let ptr = Unmanaged.passUnretained(self).toOpaque()
         return ptr.load(fromByteOffset: offset, as: UnsafePointer<UInt8>.self)
     }
 
     private var _lenOffset : Int {
-        return MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size + MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size + MemoryLayout<UnsafePointer<UInt8>>.size
+        // FIXME: Split expression as a work-around for slow type
+        //        checking (tracked by SR-5322).
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
+        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
+        return offTemp1 + offTemp2 + MemoryLayout<UnsafePointer<UInt8>>.size
     }
 
     private var _lenPtr :  UnsafeMutableRawPointer {
