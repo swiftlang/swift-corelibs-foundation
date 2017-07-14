@@ -627,6 +627,9 @@ open class FileManager : NSObject {
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
         do {
             try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
+            if let attr = attr {
+                try self.setAttributes(attr, ofItemAtPath: path)
+            }
             return true
         } catch _ {
             return false
