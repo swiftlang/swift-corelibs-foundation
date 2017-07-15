@@ -76,7 +76,7 @@ open class FileHandle : NSObject, NSSecureCoding {
                 fatalError("Unable to fetch current file offset")
             }
             if off_t(statbuf.st_size) > offset {
-                var remaining = size_t(statbuf.st_size - offset)
+                var remaining = size_t(off_t(statbuf.st_size) - offset)
                 remaining = min(remaining, size_t(length))
                 
                 dynamicBuffer = malloc(remaining)
