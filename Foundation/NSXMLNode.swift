@@ -705,7 +705,7 @@ open class XMLNode: NSObject, NSCopying {
         @abstract The representation of this node as it would appear in an XML document.
     */
     open var xmlString: String {
-        return xmlString()
+        return xmlString(options: [])
     }
 
     /*!
