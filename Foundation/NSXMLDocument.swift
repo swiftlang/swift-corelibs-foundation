@@ -124,7 +124,7 @@ open class XMLDocument : XMLNode {
     */
     open var characterEncoding: String? {
         get {
-            return _CFXMLDocCharacterEncoding(_xmlDoc)?._swiftObject
+            return _CFXMLDocCopyCharacterEncoding(_xmlDoc)?._swiftObject
         }
         set {
             if let value = newValue {
@@ -141,7 +141,7 @@ open class XMLDocument : XMLNode {
     */
     open var version: String? {
         get {
-            return _CFXMLDocVersion(_xmlDoc)?._swiftObject
+            return _CFXMLDocCopyVersion(_xmlDoc)?._swiftObject
         }
         set {
             if let value = newValue {

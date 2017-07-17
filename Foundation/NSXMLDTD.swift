@@ -52,7 +52,7 @@ open class XMLDTD : XMLNode {
     */
     open var publicID: String? {
         get {
-            return _CFXMLDTDExternalID(_xmlDTD)?._swiftObject
+            return _CFXMLDTDCopyExternalID(_xmlDTD)?._swiftObject
         }
 
         set {
@@ -70,7 +70,7 @@ open class XMLDTD : XMLNode {
     */
     open var systemID: String? {
         get {
-            return _CFXMLDTDSystemID(_xmlDTD)?._swiftObject
+            return _CFXMLDTDCopySystemID(_xmlDTD)?._swiftObject
         }
 
         set {
