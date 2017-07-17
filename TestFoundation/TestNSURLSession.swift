@@ -15,9 +15,7 @@
     import SwiftXCTest
 #endif
 
-class TestURLSession : XCTestCase {
-    
-    static var serverPort: Int = -1
+class TestURLSession : LoopbackServerTest {
     
     static var allTests: [(String, (TestURLSession) -> () throws -> Void)] {
         return [
@@ -37,8 +35,6 @@ class TestURLSession : XCTestCase {
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
-            ("test_customProtocol", test_customProtocol),
-	    ("test_customProtocolResponseWithDelegate", test_customProtocolResponseWithDelegate),
             ("test_httpRedirection", test_httpRedirection),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
@@ -46,38 +42,6 @@ class TestURLSession : XCTestCase {
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
         ]
-    }
-    
-    override class func setUp() {
-        super.setUp()
-        func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-            let start = 21961
-            for port in start...(start+100) { //we must find at least one port to bind
-                do {
-                    serverPort = port
-                    let test = try TestURLSessionServer(port: UInt16(port), startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
-                    try test.start(started: condition)
-                    try test.readAndRespond()
-                    test.stop()
-                } catch let e as ServerError {
-                    if e.operation == "bind" { continue }
-                    throw e
-                }
-            }
-        }
-        
-        let serverReady = ServerSemaphore()
-        globalDispatchQueue.async {
-            do {
-                try runServer(with: serverReady)
-                
-            } catch {
-                XCTAssertTrue(true)
-                return
-            }
-        }
-        
-        serverReady.wait()
     }
     
     func test_dataTaskWithURL() {
@@ -338,37 +302,6 @@ class TestURLSession : XCTestCase {
         waitForExpectations(timeout: 30)
     }
     
-    func test_customProtocol () {
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
-        let url = URL(string: urlString)!
-        let config = URLSessionConfiguration.default
-        config.protocolClasses = [CustomProtocol.self]
-        config.timeoutIntervalForRequest = 8
-        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
-        let expect = expectation(description: "GET \(urlString): with a custom protocol")
-
-        let task = session.dataTask(with: url) { data, response, error in
-            defer { expect.fulfill() }
-            if let e = error as? URLError {
-                XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
-                return
-            }
-            let httpResponse = response as! HTTPURLResponse?
-            XCTAssertEqual(429, httpResponse!.statusCode, "HTTP response code is not 429")
-        }
-        task.resume()
-        waitForExpectations(timeout: 12)
-    }
-
-    func test_customProtocolResponseWithDelegate() {
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
-        let url = URL(string: urlString)!
-        let d = DataTask(with: expectation(description: "GET \(urlString): with a custom protocol and delegate"), protocolClasses: [CustomProtocol.self])
-        d.responseReceivedExpectation = expectation(description: "GET \(urlString): response received")
-        d.run(with: url)
-        waitForExpectations(timeout: 12)
-    }
-    
     func test_httpRedirection() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         let url = URL(string: urlString)!
@@ -626,31 +559,6 @@ extension DownloadTask : URLSessionTaskDelegate {
         guard let e = error as? URLError else { return }
         XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
         dwdExpectation.fulfill()
-    }
-}
-
-class CustomProtocol : URLProtocol {
-    
-    override class func canInit(with request: URLRequest) -> Bool {
-        return true
-    }
-    
-    func sendResponse(statusCode: Int, headers: [String: String] = [:], data: Data) {
-        let response = HTTPURLResponse(url: self.request.url!, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: headers)
-        self.client?.urlProtocol(self, didReceive: response!, cacheStoragePolicy: .notAllowed)
-        self.client?.urlProtocolDidFinishLoading(self)
-    }
-    
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-        return request
-    }
-    
-    override func startLoading() {
-        sendResponse(statusCode: 429, data: Data())
-    }
-    
-    override func stopLoading() {
-        return
     }
 }
 

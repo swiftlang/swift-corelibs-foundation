@@ -17,10 +17,12 @@ import Dispatch
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import Glibc
+    import XCTest
 #else
     import CoreFoundation
     import SwiftFoundation
     import Darwin
+    import SwiftXCTest
 #endif
 
 public let globalDispatchQueue = DispatchQueue.global()
@@ -392,5 +394,41 @@ public class ServerSemaphore {
 
     public func signal() {
         dispatchSemaphore.signal()
+    }
+}
+
+class LoopbackServerTest : XCTestCase {
+    static var serverPort: Int = -1
+
+    override class func setUp() {
+        super.setUp()
+        func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
+            let start = 21961
+            for port in start...(start+100) { //we must find at least one port to bind
+                do {
+                    serverPort = port
+                    let test = try TestURLSessionServer(port: UInt16(port), startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
+                    try test.start(started: condition)
+                    try test.readAndRespond()
+                    test.stop()
+                } catch let e as ServerError {
+                    if e.operation == "bind" { continue }
+                    throw e
+                }
+            }
+        }
+
+        let serverReady = ServerSemaphore()
+        globalDispatchQueue.async {
+            do {
+                try runServer(with: serverReady)
+
+            } catch {
+                XCTAssertTrue(true)
+                return
+            }
+        }
+
+        serverReady.wait()
     }
 }
