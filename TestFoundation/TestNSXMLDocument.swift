@@ -41,7 +41,11 @@ class TestNSXMLDocument : XCTestCase {
                 ("test_dtd", test_dtd),
                 ("test_documentWithDTD", test_documentWithDTD),
                 ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash)
+                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
+                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
+                ("test_createElement", test_createElement),
+                ("test_addNamespace", test_addNamespace),
+                ("test_removeNamespace", test_removeNamespace),
             ]
         #else // On Linux, currently the tests that rely on NSError are segfaulting in swift_dynamicCast
             return [
@@ -62,7 +66,11 @@ class TestNSXMLDocument : XCTestCase {
                 ("test_dtd", test_dtd),
                 //                ("test_documentWithDTD", test_documentWithDTD),
                 ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash)
+                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
+                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
+                ("test_createElement", test_createElement),
+                ("test_addNamespace", test_addNamespace),
+                ("test_removeNamespace", test_removeNamespace),
             ]
         #endif
     }
@@ -78,6 +86,26 @@ class TestNSXMLDocument : XCTestCase {
 
         let element = doc.rootElement()!
         XCTAssert(element === node)
+    }
+    
+    func test_createElement() throws {
+        let element = try XMLElement(xmlString: "<D:propfind xmlns:D=\"DAV:\"><D:prop></D:prop></D:propfind>")
+        XCTAssert(element.name! == "D:propfind")
+        XCTAssert(element.rootDocument == nil)
+        if let namespace = element.namespaces?.first {
+            XCTAssert(namespace.prefix == "D")
+            XCTAssert(namespace.stringValue == "DAV:")
+        } else {
+            XCTFail("Namespace was not parsed correctly")
+        }
+        
+        if let child = element.elements(forName: "D:prop").first {
+            XCTAssert(child.localName == "prop")
+            XCTAssert(child.prefix == "D")
+            XCTAssert(child.name == "D:prop")
+        } else {
+            XCTFail("Child element was not parsed correctly!")
+        }
     }
 
     func test_nextPreviousNode() {
@@ -104,7 +132,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssert(barNode.previous?.previous?.previous?.previous === doc)
     }
 
-    func test_xpath() {
+    func test_xpath() throws {
         let doc = XMLDocument(rootElement: nil)
         let foo = XMLElement(name: "foo")
         let bar1 = XMLElement(name: "bar")
@@ -117,20 +145,40 @@ class TestNSXMLDocument : XCTestCase {
         foo.addChild(bar2)
         foo.addChild(bar3)
         bar2.addChild(baz)
-
-        XCTAssertEqual(baz.xPath, "foo/bar[2]/baz")
-
-        let baz2 = XMLElement(name: "baz")
+        
+        XCTAssertEqual(baz.xPath, "/foo/bar[2]/baz")
+        
+        let baz2 = XMLElement(name: "/baz")
         bar2.addChild(baz2)
 
-        XCTAssertEqual(baz.xPath, "foo/bar[2]/baz[1]")
+        XCTAssertEqual(baz.xPath, "/foo/bar[2]/baz")
         XCTAssertEqual(try! doc.nodes(forXPath:baz.xPath!).first, baz)
 
-        let nodes = try! doc.nodes(forXPath:"foo/bar")
+        let nodes = try! doc.nodes(forXPath:"/foo/bar")
         XCTAssertEqual(nodes.count, 3)
         XCTAssertEqual(nodes[0], bar1)
         XCTAssertEqual(nodes[1], bar2)
         XCTAssertEqual(nodes[2], bar3)
+        
+        let xmlString = """
+        <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+            <D:propfind xmlns:D="DAV:">
+                <D:prop>
+                    <D:getlastmodified></D:getlastmodified>
+                    <D:getcontentlength></D:getcontentlength>
+                    <D:creationdate></D:creationdate>
+                    <D:resourcetype></D:resourcetype>
+                </D:prop>
+            </D:propfind>
+        """
+        
+        let namespaceDoc = try XMLDocument(xmlString: xmlString, options: [])
+        let propNodes = try namespaceDoc.nodes(forXPath: "//D:prop")
+        if let propNode = propNodes.first {
+            XCTAssert(propNode.name == "D:prop")
+        } else {
+            XCTAssert(false, "propNode should have existed, but was nil")            
+        }
     }
 
     func test_elementCreation() {
@@ -152,7 +200,7 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.elements(forName:"bar"), [bar, bar2])
         XCTAssertFalse(element.elements(forName:"foo").contains(bar))
         XCTAssertFalse(element.elements(forName:"foo").contains(bar2))
-
+        
         let baz = XMLElement(name: "baz")
         element.insertChild(baz, at: 2)
         XCTAssertEqual(element.children?[2], baz)
@@ -290,6 +338,43 @@ class TestNSXMLDocument : XCTestCase {
         XCTAssertEqual(element.prefix, "xml")
         XCTAssertEqual(element.localName, "root")
     }
+    
+    func test_addNamespace() {
+        let doc = XMLDocument(rootElement: XMLElement(name: "Foo"))
+        let ns = XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode
+        doc.rootElement()?.addNamespace(ns)
+        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(ns.stringValue ?? "bar"), "namespaces didn't include the added namespace!")
+        XCTAssert(doc.rootElement()?.uri == "http://example.com/fakenamespace", "uri was \(doc.rootElement()?.uri ?? "null") instead of http://example.com/fakenamespace")
+        
+        let otherNS = XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode
+        doc.rootElement()?.addNamespace(otherNS)
+        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(ns.stringValue ?? "bar"), "lost original namespace")
+        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(otherNS.stringValue ?? "bar"), "Lost new namespace")
+        doc.rootElement()?.addNamespace(XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode)
+        XCTAssert(doc.rootElement()?.namespaces?.count == 2, "incorrectly added a namespace with duplicate name!")
+        
+        let otherDoc = XMLDocument(rootElement: XMLElement(name: "Bar"))
+        otherDoc.rootElement()?.namespaces = [XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode, XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode]
+        XCTAssert(otherDoc.rootElement()?.namespaces?.count == 2)
+        XCTAssert(otherDoc.rootElement()?.namespaces?.flatMap({ $0.name })[0] == "R" && otherDoc.rootElement()?.namespaces?.flatMap({ $0.name })[1] == "F")
+        otherDoc.rootElement()?.namespaces = nil
+        XCTAssert((otherDoc.rootElement()?.namespaces?.count ?? 0) == 0)
+    }
+    
+    func test_removeNamespace() {
+        let doc = XMLDocument(rootElement: XMLElement(name: "Foo"))
+        let ns = XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode
+        let otherNS = XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode
+        
+        doc.rootElement()?.addNamespace(ns)
+        doc.rootElement()?.addNamespace(otherNS)
+        XCTAssert(doc.rootElement()?.namespaces?.count == 2)
+        
+        doc.rootElement()?.removeNamespace(forPrefix: "F")
+        
+        XCTAssert(doc.rootElement()?.namespaces?.count == 1)
+        XCTAssert(doc.rootElement()?.namespaces?.first?.name == "R")
+    }
 
     /*
      * <rdar://31567922> Re-enable these tests in a way that does not depend on the internet.
@@ -339,7 +424,7 @@ class TestNSXMLDocument : XCTestCase {
     func test_dtd() throws {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
         XCTAssert(node.name == "foo")
-
+        
         let dtd = try XMLDTD(contentsOf: testBundle().url(forResource: "PropertyList-1.0", withExtension: "dtd")!, options: [])
         //        dtd.systemID = testBundle().URLForResource("PropertyList-1.0", withExtension: "dtd")?.absoluteString
         dtd.name = "plist"
@@ -372,13 +457,14 @@ class TestNSXMLDocument : XCTestCase {
         elementDecl.name = "MyElement"
         elementDecl.stringValue = "(#PCDATA | array)*"
         XCTAssert(elementDecl.stringValue == "(#PCDATA | array)*", elementDecl.stringValue ?? "nil string value")
+        XCTAssert(elementDecl.name == "MyElement")
     }
 
     func test_documentWithDTD() throws {
         let doc = try XMLDocument(contentsOf: testBundle().url(forResource: "NSXMLDTDTestData", withExtension: "xml")!, options: [])
         let dtd = doc.dtd
         XCTAssert(dtd?.name == "root")
-
+        
         let notation = dtd?.notationDeclaration(forName:"myNotation")
         notation?.detach()
         XCTAssert(notation?.name == "myNotation")
@@ -419,5 +505,66 @@ class TestNSXMLDocument : XCTestCase {
         makeSureDocumentIsAllocatedAndFreed()
         XCTAssertNil(weakDoc, "document not freed even through it should have")
     }
-
+    
+    func test_nodeFindingWithNamespaces() throws {
+        let xmlString = """
+        <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+            <D:propfind xmlns:D="DAV:">
+                <D:prop>
+                    <D:getlastmodified></D:getlastmodified>
+                    <D:getcontentlength></D:getcontentlength>
+                    <D:creationdate></D:creationdate>
+                    <D:resourcetype></D:resourcetype>
+                </D:prop>
+            </D:propfind>
+        """
+        
+        let doc = try XMLDocument(xmlString: xmlString, options: [])
+        let namespace = (doc.rootElement()?.namespaces?.first)!
+        XCTAssert(namespace.kind == .namespace, "The node was not a namespace but was a \(namespace.kind)")
+        XCTAssert(namespace.stringValue == "DAV:", "expected a string value of DAV: got \(namespace.stringValue as Any)")
+        XCTAssert(namespace.name == "D", "expected a name of D, got \(namespace.name as Any)")
+        
+        let newNS = XMLNode.namespace(withName: "R", stringValue: "http://apple.com") as! XMLNode
+        XCTAssert(newNS.name == "R", "expected name R, got name \(newNS.name as Any)")
+        XCTAssert(newNS.stringValue == "http://apple.com", "expected stringValue http://apple.com, got stringValue \(newNS.stringValue as Any)")
+        newNS.stringValue = "FOO:"
+        XCTAssert(newNS.stringValue == "FOO:")
+        newNS.name = "F"
+        XCTAssert(newNS.name == "F")
+        
+        let root = doc.rootElement()!
+        XCTAssert(root.localName == "propfind")
+        XCTAssert(root.name == "D:propfind")
+        XCTAssert(root.prefix == "D")
+        let node = doc.findFirstChild(named: "prop")
+        XCTAssert(node != nil, "failed to find existing node")
+        XCTAssert(node?.localName == "prop")
+        
+        XCTAssert(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first?.name == "D:prop", "failed to get elements, got \(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first as Any)")
+    }
 }
+
+fileprivate extension XMLNode {
+    fileprivate func findFirstChild(named name: String) -> XMLNode? {
+        guard let children = self.children else {
+            return nil
+        }
+        
+        for child in children {
+            if let childName = child.localName {
+                if childName == name {
+                    return child
+                }
+            }
+            
+            if let result = child.findFirstChild(named: name) {
+                return result
+            }
+        }
+        
+        return nil
+    }
+}
+
+
