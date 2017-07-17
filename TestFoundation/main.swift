@@ -81,6 +81,7 @@ XCTMain([
     testCase(TestNSURL.allTests),
     testCase(TestNSURLComponents.allTests),
     testCase(TestNSURLCredential.allTests),
+    testCase(TestNSURLProtocol.allTests),
     testCase(TestNSURLRequest.allTests),
     testCase(TestURLRequest.allTests),
     testCase(TestNSURLResponse.allTests),
