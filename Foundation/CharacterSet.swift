@@ -1,4 +1,4 @@
- //===----------------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift.org open source project
 //
@@ -13,7 +13,7 @@
 private func _utfRangeToNSRange(_ inRange : Range<UnicodeScalar>) -> NSRange {
     return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value))
 }
- 
+
 private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRange {
     return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
@@ -57,9 +57,9 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     deinit {
         releaseWrappedObject()
     }
-
-
-   override func copy(with zone: NSZone? = nil) -> Any {
+    
+    
+    override func copy(with zone: NSZone? = nil) -> Any {
         return _mapUnmanaged { $0.copy(with: zone) }
     }
     
@@ -74,23 +74,23 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     override var bitmapRepresentation: Data {
         return _mapUnmanaged { $0.bitmapRepresentation }
     }
-
+    
     override var inverted : CharacterSet {
         return _mapUnmanaged { $0.inverted }
     }
-
+    
     override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
         return _mapUnmanaged {$0.hasMemberInPlane(thePlane) }
     }
-
+    
     override func characterIsMember(_ member: unichar) -> Bool {
         return _mapUnmanaged { $0.characterIsMember(member) }
     }
-
+    
     override func longCharacterIsMember(_ member: UInt32) -> Bool {
         return _mapUnmanaged { $0.longCharacterIsMember(member) }
     }
-
+    
     override func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
@@ -367,7 +367,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     // -----
     // MARK: -
     // MARK: SetAlgebraType
-
+    
     /// Insert a `UnicodeScalar` representation of a character into the `CharacterSet`.
     ///
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
@@ -441,17 +441,17 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
             $0.formIntersection(with: other)
         }
     }
-
+    
     /// Returns a `CharacterSet` created by removing elements in `other` from `self`.
     public func subtracting(_ other: CharacterSet) -> CharacterSet {
         return intersection(other.inverted)
     }
-
+    
     /// Sets the value to a `CharacterSet` created by removing elements in `other` from `self`.
     public mutating func subtract(_ other: CharacterSet) {
         self = subtracting(other)
     }
-
+    
     /// Returns an exclusive or of the `CharacterSet` with another `CharacterSet`.
     public func symmetricDifference(_ other: CharacterSet) -> CharacterSet {
         return union(other).subtracting(intersection(other))
@@ -466,7 +466,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
-
+    
     /// Returns true if the two `CharacterSet`s are equal.
     public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
         return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC()) // TODO: mlehew - as  NSCharacterSet
@@ -475,7 +475,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
 
 
 // MARK: Objective-C Bridging
- extension CharacterSet : _ObjectTypeBridgeable {
+extension CharacterSet : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }
