@@ -35,10 +35,13 @@ open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
     
     open var key: String? { NSUnimplemented() }
     open var ascending: Bool { NSUnimplemented() }
+    var keyPath: AnyKeyPath? { NSUnimplemented() }
     
     open func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
     
     public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnimplemented() }
+    convenience init<Root, Value>(keyPath: KeyPath<Root, Value>, ascending: Bool) { NSUnimplemented() }
+    convenience init<Root, Value>(keyPath: KeyPath<Root, Value>, ascending: Bool, comparator cmptr: @escaping Comparator) { NSUnimplemented() }
     
     open var comparator: Comparator { NSUnimplemented() }
     
