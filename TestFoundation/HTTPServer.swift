@@ -330,7 +330,7 @@ public class TestURLSessionServer {
     }
 
     func process(request: _HTTPRequest) -> _HTTPResponse {
-        if request.method == .GET || request.method == .POST {
+        if request.method == .GET || request.method == .POST || request.method == .PUT {
             return getResponse(request: request)
         } else {
             fatalError("Unsupported method!")
@@ -339,14 +339,20 @@ public class TestURLSessionServer {
 
     func getResponse(request: _HTTPRequest) -> _HTTPResponse {
         let uri = request.uri
+
+        if uri == "/upload" {
+            let text = "Upload completed!"
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+        }
+
         if uri == "/country.txt" {
             let text = capitals[String(uri.characters.dropFirst())]!
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
         if uri == "/requestHeaders" {
             let text = request.getCommaSeparatedHeaders()
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.characters.count)", body: text)
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
 	if uri == "/UnitedStates" {
