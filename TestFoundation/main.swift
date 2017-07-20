@@ -105,4 +105,5 @@ XCTMain([
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
+    testCase(TestFTP.allTests),
 ])

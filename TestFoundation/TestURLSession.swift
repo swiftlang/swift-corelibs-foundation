@@ -492,9 +492,9 @@ class TestURLSession : LoopbackServerTest {
             }
         }
     }
-
 }
 
+    
 class SharedDelegate: NSObject {
     var dataCompletionExpectation: XCTestExpectation!
 }
@@ -503,12 +503,15 @@ extension SharedDelegate: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         dataCompletionExpectation.fulfill()
     }
+
 }
 
 extension SharedDelegate: URLSessionDownloadDelegate {
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
     }
 }
+    
+
 
 
 class SessionDelegate: NSObject, URLSessionDelegate {
@@ -696,6 +699,67 @@ extension DownloadTask : URLSessionTaskDelegate {
     }
 }
 
+class FTPDataTask : NSObject {
+    let dataTaskExpectation: XCTestExpectation!
+    var fileData: NSMutableData = NSMutableData()
+    var session: URLSession! = nil
+    var task: URLSessionDataTask! = nil
+    var cancelExpectation: XCTestExpectation?
+    var responseReceivedExpectation: XCTestExpectation?
+    var hasTransferCompleted = false
+    public var error = false
+    
+    init(with expectation: XCTestExpectation) {
+        dataTaskExpectation = expectation
+    }
+    
+    func run(with request: URLRequest) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: request)
+        task.resume()
+    }
+    
+    func run(with url: URL) {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 8
+        session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        task = session.dataTask(with: url)
+        task.resume()
+    }
+    
+    func cancel() {
+        task.cancel()
+    }
+}
+
+extension FTPDataTask : URLSessionDataDelegate {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        fileData.append(data)
+        responseReceivedExpectation?.fulfill()
+    }
+    
+    public func urlSession(_ session: URLSession,
+                           dataTask: URLSessionDataTask,
+                           didReceive response: URLResponse,
+                           completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        guard responseReceivedExpectation != nil else { return }
+        responseReceivedExpectation!.fulfill()
+    }
+}
+
+extension FTPDataTask : URLSessionTaskDelegate {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        dataTaskExpectation.fulfill()
+        guard (error as? URLError) != nil else { return }
+        if let cancellation = cancelExpectation {
+            cancellation.fulfill()
+        }
+        self.error = true
+    }
+}
+
 class HTTPRedirectionDataTask : NSObject {
     let dataTaskExpectation: XCTestExpectation!
     var session: URLSession! = nil
@@ -771,3 +835,22 @@ extension HTTPUploadDelegate: URLSessionDataDelegate {
         uploadCompletedExpectation.fulfill()
     }
 }
+
+class FTPUploadDelegate: NSObject {
+    var uploadCompletedExpectation: XCTestExpectation!
+    var totalBytesSent: Int64 = 0
+}
+
+extension FTPUploadDelegate: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        self.totalBytesSent = totalBytesSent
+    }
+}
+
+extension FTPUploadDelegate: URLSessionDataDelegate {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        XCTAssertEqual(self.totalBytesSent, 285)
+        uploadCompletedExpectation.fulfill()
+    }
+}
+
