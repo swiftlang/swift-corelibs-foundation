@@ -237,7 +237,8 @@ class TestCodable : XCTestCase {
         CharacterSet.punctuationCharacters,
         CharacterSet.capitalizedLetters,
         CharacterSet.symbols,
-        CharacterSet.newlines
+        CharacterSet.newlines,
+        CharacterSet(charactersIn: "abcd")
     ]
     
     func test_CharacterSet_JSON() {
