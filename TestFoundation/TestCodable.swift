@@ -220,6 +220,31 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: decimal)
         }
     }
+    
+    // MARK: - CharacterSet
+    lazy var characterSetValues: [CharacterSet] = [
+        CharacterSet.controlCharacters,
+        CharacterSet.whitespaces,
+        CharacterSet.whitespacesAndNewlines,
+        CharacterSet.decimalDigits,
+        CharacterSet.letters,
+        CharacterSet.lowercaseLetters,
+        CharacterSet.uppercaseLetters,
+        CharacterSet.nonBaseCharacters,
+        CharacterSet.alphanumerics,
+        CharacterSet.decomposables,
+        CharacterSet.illegalCharacters,
+        CharacterSet.punctuationCharacters,
+        CharacterSet.capitalizedLetters,
+        CharacterSet.symbols,
+        CharacterSet.newlines
+    ]
+    
+    func test_CharacterSet_JSON() {
+        for characterSet in characterSetValues {
+            expectRoundTripEqualityThroughJSON(for: characterSet)
+        }
+    }
 
 }
 
@@ -235,6 +260,7 @@ extension TestCodable {
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
             ("test_Decimal_JSON", test_Decimal_JSON),
+            ("test_CharacterSet_JSON", test_CharacterSet_JSON),
         ]
     }
 }
