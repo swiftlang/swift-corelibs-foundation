@@ -29,6 +29,4 @@ extension String.UTF16View.Index : Strideable {
     }
 }
 
-extension String.UTF16View : RandomAccessCollection {}
-extension String.UTF16View.Indices : RandomAccessCollection {}
 
