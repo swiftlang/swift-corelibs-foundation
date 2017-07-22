@@ -469,7 +469,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns true if the two `CharacterSet`s are equal.
     public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-        return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC()) // TODO: mlehew - as  NSCharacterSet
+        return lhs._mapUnmanaged { l in rhs._mapUnmanaged { r in l.isEqual(r) } }
     }
 }
 
@@ -486,7 +486,10 @@ extension CharacterSet : _ObjectTypeBridgeable {
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSCharacterSet {
-        return _wrapped
+        switch _wrapped.__wrapped {
+        case .Mutable(let wrapped): return wrapped.takeUnretainedValue()
+        case .Immutable(let wrapped): return wrapped.takeUnretainedValue()
+        }
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSCharacterSet, result: inout CharacterSet?) {

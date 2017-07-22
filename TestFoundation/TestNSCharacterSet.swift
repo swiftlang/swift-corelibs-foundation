@@ -1,4 +1,4 @@
-  // This source file is part of the Swift.org open source project
+// This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
@@ -6,8 +6,6 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-
-
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
 import Foundation
@@ -17,7 +15,93 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
+private struct Box {
+    fileprivate let ns: NSCharacterSet
+    fileprivate let swift: CharacterSet
+    
+    private init(ns: NSCharacterSet, swift: CharacterSet) {
+        self.ns = ns
+        self.swift = swift
+    }
+    
+    init(charactersIn string: String) {
+        self.ns = NSCharacterSet(charactersIn: string)
+        self.swift = CharacterSet(charactersIn: string)
+    }
+    
+    static var alphanumerics: Box {
+        return Box(ns: NSCharacterSet.alphanumerics._bridgeToObjectiveC(),
+                   swift: CharacterSet.alphanumerics)
+    }
+    
+    static var decimalDigits: Box {
+        return Box(ns: NSCharacterSet.decimalDigits._bridgeToObjectiveC(),
+                   swift: CharacterSet.decimalDigits)
+    }
+}
 
+private func assertEqual(_ lhs: Box,
+                         _ rhs: Box,
+                         _ message: @autoclosure () -> String = "",
+                         file: StaticString = #file,
+                         line: UInt = #line) {
+    
+    assert(equal: true, lhs, rhs, message, file: file, line: line)
+}
+
+private func assertNotEqual(_ lhs: Box,
+                            _ rhs: Box,
+                            _ message: @autoclosure () -> String = "",
+                            file: StaticString = #file,
+                            line: UInt = #line) {
+    
+    assert(equal: false, lhs, rhs, message, file: file, line: line)
+}
+
+private func assert<T: Equatable>(equal: Bool,
+                                  _ lhs: T,
+                                  _ rhs: T,
+                                  _ message: @autoclosure () -> String = "",
+                                  file: StaticString = #file,
+                                  line: UInt = #line) {
+    
+    if equal {
+        XCTAssertEqual(lhs, rhs, message, file: file, line: line)
+    }
+    else {
+        XCTAssertNotEqual(lhs, rhs, message, file: file, line: line)
+    }
+}
+
+private func assert(equal: Bool,
+                    _ lhs: Box,
+                    _ rhs: Box,
+                    _ message: @autoclosure () -> String = "",
+                    file: StaticString = #file,
+                    line: UInt = #line) {
+    
+    for pair in [(lhs, rhs), (rhs, lhs)] {
+        assert(equal: equal, pair.0.ns, pair.1.ns, message, file: file, line: line)
+        assert(equal: equal, pair.0.swift, pair.1.swift, message, file: file, line: line)
+        
+        assert(equal: equal,
+               pair.0.ns._bridgeToSwift(),
+               pair.1.ns._bridgeToSwift(),
+               message,
+               file: file,
+               line: line)
+        
+        assert(equal: equal,
+               pair.0.swift._bridgeToObjectiveC(),
+               pair.1.swift._bridgeToObjectiveC(),
+               message,
+               file: file,
+               line: line)
+        
+        XCTAssertTrue(pair.0.ns.isEqual(pair.1.ns) == equal, message, file: file, line: line)
+        XCTAssertTrue(pair.0.ns.isEqual(pair.1.swift) == equal, message, file: file, line: line)
+    }
+}
 
 class TestNSCharacterSet : XCTestCase {
     
@@ -283,28 +367,36 @@ class TestNSCharacterSet : XCTestCase {
         let expected = CharacterSet(charactersIn: "abc")
         XCTAssertEqual(expected, symmetricDifference)
     }
-
+    
     func test_Equatable() {
-        XCTAssertEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: ""))
-        XCTAssertEqual(NSCharacterSet(charactersIn: "a"), NSCharacterSet(charactersIn: "a"))
-        XCTAssertEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "ab"))
-
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "123"))
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: "123"), NSCharacterSet(charactersIn: "abc"))
-
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), nil)
-
+        let equalPairs = [
+            ("", ""),
+            ("a", "a"),
+            ("abcde", "abcde"),
+            ("12345", "12345")
+        ]
+        
         /*
          Tests disabled due to CoreFoundation bug?
          These NSCharacterSet pairs are (wrongly?) evaluated to be equal. Same behaviour can be observed on macOS 10.12.
          Interestingly, on iOS 11 Simulator, they are evaluted to be _not_ equal,
          while on iOS 10.3.1 Simulator, they are evaluted to be equal.
          */
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "abc"))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "ab"))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: ""))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: "abc"))
+        let notEqualPairs = [
+            ("abc", "123"),
+//            ("ab", "abc"),
+//            ("abc", "")
+        ]
+        
+        for pair in equalPairs {
+            assertEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+        }
+        assertEqual(Box.alphanumerics, Box.alphanumerics)
+        
+        for pair in notEqualPairs {
+            assertNotEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+        }
+        assertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
 }
-
