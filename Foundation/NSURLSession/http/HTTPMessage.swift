@@ -222,7 +222,7 @@ private extension String {
     /// Split a request line into its 3 parts: *Method*, *Request-URI*, and *HTTP-Version*.
     /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-5.1
     func splitRequestLine() -> (String, String, String)? {
-        let scalars = self.unicodeScalars
+        let scalars = self.unicodeScalars[...]
         guard let firstSpace = scalars.rangeOfSpace else { return nil }
         let remainingRange = firstSpace.upperBound..<scalars.endIndex
         let remainder = scalars[remainingRange]
@@ -285,7 +285,7 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         // recipient MAY replace any linear white space with a single SP before
         // interpreting the field value or forwarding the message downstream.
         guard let (head, tail) = lines.decompose else { return nil }
-        let headView = head.unicodeScalars
+        let headView = head.unicodeScalars[...]
         guard let nameRange = headView.rangeOfTokenPrefix else { return nil }
         guard headView.index(after: nameRange.upperBound) <= headView.endIndex && headView[nameRange.upperBound] == _HTTPCharacters.Colon else { return nil }
         let name = String(headView[nameRange])
@@ -302,10 +302,10 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         }
         do {
             var t = tail
-            while t.first?.unicodeScalars.hasSPHTPrefix ?? false {
+            while t.first?.unicodeScalars[...].hasSPHTPrefix ?? false {
                 guard let (h2, t2) = t.decompose else { return nil }
                 t = t2
-                guard let v = h2.unicodeScalars.trimSPHTPrefix else { return nil }
+                guard let v = h2.unicodeScalars[...].trimSPHTPrefix else { return nil }
                 let valuePart = String(v)
                 value = value.map { $0 + " " + valuePart } ?? valuePart
             }
@@ -321,7 +321,7 @@ private extension Collection {
         return (head, tail)
     }
 }
-private extension String.UnicodeScalarView {
+private extension String.UnicodeScalarView.SubSequence {
     /// The range of *Token* characters as specified by RFC 2616.
     var rangeOfTokenPrefix: Range<Index>? {
         var end = startIndex
@@ -344,7 +344,7 @@ private extension String.UnicodeScalarView {
     }
     /// Unicode scalars after removing the leading spaces (SP) and horizontal tabs (HT).
     /// Returns `nil` if the unicode scalars do not start with a SP or HT.
-    var trimSPHTPrefix: String.UnicodeScalarView? {
+    var trimSPHTPrefix: SubSequence? {
         guard !isEmpty else { return nil }
         var idx = startIndex
         while idx < endIndex {
