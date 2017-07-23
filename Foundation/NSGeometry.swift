@@ -76,6 +76,21 @@ extension CGPoint: NSSpecialValueCoding {
     }
 }
 
+extension CGPoint : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let x = try container.decode(CGFloat.self)
+        let y = try container.decode(CGFloat.self)
+        self.init(x: x, y: y)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(x)
+        try container.encode(y)
+    }
+}
+
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat

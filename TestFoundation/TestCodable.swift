@@ -220,6 +220,21 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: decimal)
         }
     }
+    
+    // MARK: - CGPoint
+    lazy var cgpointValues: [CGPoint] = [
+        CGPoint(),
+        CGPoint(x: 10, y: 20),
+        CGPoint(x: -10, y: -20),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGPoint(x: .greatestFiniteMagnitude, y: .greatestFiniteMagnitude),
+    ]
+    
+    func test_CGPoint_JSON() {
+        for point in cgpointValues {
+            expectRoundTripEqualityThroughJSON(for: point)
+        }
+    }
 
 }
 
@@ -235,6 +250,7 @@ extension TestCodable {
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
             ("test_Decimal_JSON", test_Decimal_JSON),
+            ("test_CGPoint_JSON", test_CGPoint_JSON),
         ]
     }
 }
