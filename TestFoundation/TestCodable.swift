@@ -250,6 +250,24 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: size)
         }
     }
+    
+    // MARK: - CGRect
+    lazy var cgrectValues: [CGRect] = [
+        CGRect(),
+        CGRect(origin: CGPoint(x: 10, y: 20), size: CGSize(width: 30, height: 40)),
+        CGRect(origin: CGPoint(x: -10, y: -20), size: CGSize(width: -30, height: -40)),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGRect(origin: CGPoint(x: -.greatestFiniteMagnitude / 2,
+        //                        y: -.greatestFiniteMagnitude / 2),
+        //        size: CGSize(width: .greatestFiniteMagnitude,
+        //                     height: .greatestFiniteMagnitude)),
+    ]
+    
+    func test_CGRect_JSON() {
+        for rect in cgrectValues {
+            expectRoundTripEqualityThroughJSON(for: rect)
+        }
+    }
 
 }
 
@@ -267,6 +285,7 @@ extension TestCodable {
             ("test_Decimal_JSON", test_Decimal_JSON),
             ("test_CGPoint_JSON", test_CGPoint_JSON),
             ("test_CGSize_JSON", test_CGSize_JSON),
+            ("test_CGRect_JSON", test_CGRect_JSON),
         ]
     }
 }

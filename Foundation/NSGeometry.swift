@@ -187,6 +187,21 @@ extension CGRect: Equatable {
     }
 }
 
+extension CGRect : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let origin = try container.decode(CGPoint.self)
+        let size = try container.decode(CGSize.self)
+        self.init(origin: origin, size: size)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(origin)
+        try container.encode(size)
+    }
+}
+
 public typealias NSPoint = CGPoint
 
 public typealias NSPointPointer = UnsafeMutablePointer<NSPoint>
