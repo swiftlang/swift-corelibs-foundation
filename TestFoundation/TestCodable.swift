@@ -235,6 +235,21 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: point)
         }
     }
+    
+    // MARK: - CGSize
+    lazy var cgsizeValues: [CGSize] = [
+        CGSize(),
+        CGSize(width: 30, height: 40),
+        CGSize(width: -30, height: -40),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude),
+    ]
+    
+    func test_CGSize_JSON() {
+        for size in cgsizeValues {
+            expectRoundTripEqualityThroughJSON(for: size)
+        }
+    }
 
 }
 
@@ -251,6 +266,7 @@ extension TestCodable {
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
             ("test_Decimal_JSON", test_Decimal_JSON),
             ("test_CGPoint_JSON", test_CGPoint_JSON),
+            ("test_CGSize_JSON", test_CGSize_JSON),
         ]
     }
 }

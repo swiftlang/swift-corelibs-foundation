@@ -154,6 +154,21 @@ extension CGSize: NSSpecialValueCoding {
     }
 }
 
+extension CGSize : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let width = try container.decode(CGFloat.self)
+        let height = try container.decode(CGFloat.self)
+        self.init(width: width, height: height)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(width)
+        try container.encode(height)
+    }
+}
+
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
