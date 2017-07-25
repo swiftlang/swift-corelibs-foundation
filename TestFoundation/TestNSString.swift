@@ -1134,6 +1134,10 @@ class TestNSString : XCTestCase {
 
         let s5 = NSString(string: "\r\ncats😺")
         XCTAssertEqual(s5.substring(with: NSMakeRange(1,6)), "\ncats�")
+
+        // SR-3363
+        let s6 = NSString(string: "Beyonce\u{301} and Tay")
+        XCTAssertEqual(s6.substring(with: NSMakeRange(7, 9)), "\u{301} and Tay")
     }
 }
 
