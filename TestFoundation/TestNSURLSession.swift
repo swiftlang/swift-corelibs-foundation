@@ -41,6 +41,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
+            ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
         ]
     }
     
@@ -429,7 +430,36 @@ class TestURLSession : LoopbackServerTest {
             waitForExpectations(timeout: 12)
         }
     }
+
+    func test_dataTaskWithSharedDelegate() {
+        let sharedDelegate = SharedDelegate()
+        let urlString0 = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+        let session = URLSession(configuration: .default, delegate: sharedDelegate, delegateQueue: nil)
+
+        let dataRequest = URLRequest(url: URL(string: urlString0)!)
+        let dataTask = session.dataTask(with: dataRequest)
+
+        sharedDelegate.dataCompletionExpectation = expectation(description: "GET \(urlString0)")
+        dataTask.resume()
+        waitForExpectations(timeout: 20)
+    }
 }
+
+class SharedDelegate: NSObject {
+    var dataCompletionExpectation: XCTestExpectation!
+}
+
+extension SharedDelegate: URLSessionDataDelegate {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        dataCompletionExpectation.fulfill()
+    }
+}
+
+extension SharedDelegate: URLSessionDownloadDelegate {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    }
+}
+
 
 class SessionDelegate: NSObject, URLSessionDelegate {
     let invalidateExpectation: XCTestExpectation
