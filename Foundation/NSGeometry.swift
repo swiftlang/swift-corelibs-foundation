@@ -76,6 +76,21 @@ extension CGPoint: NSSpecialValueCoding {
     }
 }
 
+extension CGPoint : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let x = try container.decode(CGFloat.self)
+        let y = try container.decode(CGFloat.self)
+        self.init(x: x, y: y)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(x)
+        try container.encode(y)
+    }
+}
+
 public struct CGSize {
     public var width: CGFloat
     public var height: CGFloat
@@ -139,6 +154,21 @@ extension CGSize: NSSpecialValueCoding {
     }
 }
 
+extension CGSize : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let width = try container.decode(CGFloat.self)
+        let height = try container.decode(CGFloat.self)
+        self.init(width: width, height: height)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(width)
+        try container.encode(height)
+    }
+}
+
 public struct CGRect {
     public var origin: CGPoint
     public var size: CGSize
@@ -154,6 +184,21 @@ public struct CGRect {
 extension CGRect: Equatable {
     public static func ==(lhs: CGRect, rhs: CGRect) -> Bool {
         return lhs.origin == rhs.origin && lhs.size == rhs.size
+    }
+}
+
+extension CGRect : Codable {
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        let origin = try container.decode(CGPoint.self)
+        let size = try container.decode(CGSize.self)
+        self.init(origin: origin, size: size)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(origin)
+        try container.encode(size)
     }
 }
 

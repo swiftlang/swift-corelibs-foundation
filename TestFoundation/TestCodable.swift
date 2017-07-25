@@ -220,6 +220,54 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: decimal)
         }
     }
+    
+    // MARK: - CGPoint
+    lazy var cgpointValues: [CGPoint] = [
+        CGPoint(),
+        CGPoint(x: 10, y: 20),
+        CGPoint(x: -10, y: -20),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGPoint(x: .greatestFiniteMagnitude, y: .greatestFiniteMagnitude),
+    ]
+    
+    func test_CGPoint_JSON() {
+        for point in cgpointValues {
+            expectRoundTripEqualityThroughJSON(for: point)
+        }
+    }
+    
+    // MARK: - CGSize
+    lazy var cgsizeValues: [CGSize] = [
+        CGSize(),
+        CGSize(width: 30, height: 40),
+        CGSize(width: -30, height: -40),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGSize(width: .greatestFiniteMagnitude, height: .greatestFiniteMagnitude),
+    ]
+    
+    func test_CGSize_JSON() {
+        for size in cgsizeValues {
+            expectRoundTripEqualityThroughJSON(for: size)
+        }
+    }
+    
+    // MARK: - CGRect
+    lazy var cgrectValues: [CGRect] = [
+        CGRect(),
+        CGRect(origin: CGPoint(x: 10, y: 20), size: CGSize(width: 30, height: 40)),
+        CGRect(origin: CGPoint(x: -10, y: -20), size: CGSize(width: -30, height: -40)),
+        // Disabled due to limit on magnitude in JSON. See SR-5346
+        // CGRect(origin: CGPoint(x: -.greatestFiniteMagnitude / 2,
+        //                        y: -.greatestFiniteMagnitude / 2),
+        //        size: CGSize(width: .greatestFiniteMagnitude,
+        //                     height: .greatestFiniteMagnitude)),
+    ]
+    
+    func test_CGRect_JSON() {
+        for rect in cgrectValues {
+            expectRoundTripEqualityThroughJSON(for: rect)
+        }
+    }
 
 }
 
@@ -235,6 +283,9 @@ extension TestCodable {
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
             ("test_Decimal_JSON", test_Decimal_JSON),
+            ("test_CGPoint_JSON", test_CGPoint_JSON),
+            ("test_CGSize_JSON", test_CGSize_JSON),
+            ("test_CGRect_JSON", test_CGRect_JSON),
         ]
     }
 }
