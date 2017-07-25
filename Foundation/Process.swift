@@ -387,10 +387,29 @@ open class Process: NSObject {
             posix(posix_spawn_file_actions_addclose(&fileActions, fd))
         }
 
+        let fileManager = FileManager()
+        let previousDirectoryPath = fileManager.currentDirectoryPath
+        if !fileManager.changeCurrentDirectoryPath(currentDirectoryPath) {
+            // Foundation throws an NSException when changing the working directory fails,
+            // and unfortunately launch() is not marked `throws`, so we get away with a
+            // fatalError.
+            switch errno {
+            case ENOENT:
+                fatalError("Process: The specified working directory does not exist.")
+            case EACCES:
+                fatalError("Process: The specified working directory cannot be accessed.")
+            default:
+                fatalError("Process: The specified working directory cannot be set.")
+            }
+        }
+
         // Launch
 
         var pid = pid_t()
         posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
+
+        // Reset the previous working directory path.
+        fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
