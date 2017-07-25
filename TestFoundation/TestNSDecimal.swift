@@ -185,7 +185,7 @@ class TestNSDecimal: XCTestCase {
             _length: 0xff,
             _isNegative: 3,
             _isCompact: 4,
-            _reserved: UInt32(1<<18 + 1<<17 + 1),
+            _reserved: 1<<18 + 1<<17 + 1,
             _mantissa: (6, 7, 8, 9, 10, 11, 12, 13)
         )
         XCTAssertEqual(0x7f, explicit._exponent)
