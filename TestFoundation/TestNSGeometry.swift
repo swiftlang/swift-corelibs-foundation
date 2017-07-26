@@ -27,6 +27,7 @@ class TestNSGeometry : XCTestCase {
             ("test_CGFloat_LessThanOrEqual", test_CGFloat_LessThanOrEqual),
             ("test_CGFloat_GreaterThanOrEqual", test_CGFloat_GreaterThanOrEqual),
             ("test_CGPoint_BasicConstruction", test_CGPoint_BasicConstruction),
+            ("test_CGPoint_ExtendedConstruction", test_CGPoint_ExtendedConstruction),
             ("test_CGSize_BasicConstruction", test_CGSize_BasicConstruction),
             ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
             ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
@@ -111,6 +112,20 @@ class TestNSGeometry : XCTestCase {
         let p2 = CGPoint(x: CGFloat(3.6), y: CGFloat(4.5))
         XCTAssertEqual(p2.x, CGFloat(3.6))
         XCTAssertEqual(p2.y, CGFloat(4.5))
+    }
+    
+    func test_CGPoint_ExtendedConstruction() {
+        let p1 = CGPoint.zero
+        XCTAssertEqual(p1.x, CGFloat(0))
+        XCTAssertEqual(p1.y, CGFloat(0))
+        
+        let p2 = CGPoint(x: Int(3), y: Int(4))
+        XCTAssertEqual(p2.x, CGFloat(3))
+        XCTAssertEqual(p2.y, CGFloat(4))
+        
+        let p3 = CGPoint(x: Double(3.6), y: Double(4.5))
+        XCTAssertEqual(p3.x, CGFloat(3.6))
+        XCTAssertEqual(p3.y, CGFloat(4.5))
     }
 
     func test_CGSize_BasicConstruction() {

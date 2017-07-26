@@ -25,6 +25,20 @@ public struct CGPoint {
     }
 }
 
+extension CGPoint {
+    public static var zero: CGPoint {
+        return CGPoint(x: CGFloat(0), y: CGFloat(0))
+    }
+    
+    public init(x: Int, y: Int) {
+        self.init(x: CGFloat(x), y: CGFloat(y))
+    }
+    
+    public init(x: Double, y: Double) {
+        self.init(x: CGFloat(x), y: CGFloat(y))
+    }
+}
+
 extension CGPoint: Equatable {
     public static func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
         return lhs.x == rhs.x && lhs.y == rhs.y
