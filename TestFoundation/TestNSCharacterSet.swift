@@ -15,9 +15,9 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
-private struct Box {
-    fileprivate let ns: NSCharacterSet
-    fileprivate let swift: CharacterSet
+private struct Box: Equatable {
+    private let ns: NSCharacterSet
+    private let swift: CharacterSet
     
     private init(ns: NSCharacterSet, swift: CharacterSet) {
         self.ns = ns
@@ -38,68 +38,22 @@ private struct Box {
         return Box(ns: NSCharacterSet.decimalDigits._bridgeToObjectiveC(),
                    swift: CharacterSet.decimalDigits)
     }
-}
 
-private func assertEqual(_ lhs: Box,
-                         _ rhs: Box,
-                         _ message: @autoclosure () -> String = "",
-                         file: StaticString = #file,
-                         line: UInt = #line) {
-    
-    assert(equal: true, lhs, rhs, message, file: file, line: line)
-}
+    // MARK: Equatable
 
-private func assertNotEqual(_ lhs: Box,
-                            _ rhs: Box,
-                            _ message: @autoclosure () -> String = "",
-                            file: StaticString = #file,
-                            line: UInt = #line) {
-    
-    assert(equal: false, lhs, rhs, message, file: file, line: line)
-}
-
-private func assert<T: Equatable>(equal: Bool,
-                                  _ lhs: T,
-                                  _ rhs: T,
-                                  _ message: @autoclosure () -> String = "",
-                                  file: StaticString = #file,
-                                  line: UInt = #line) {
-    
-    if equal {
-        XCTAssertEqual(lhs, rhs, message, file: file, line: line)
-    }
-    else {
-        XCTAssertNotEqual(lhs, rhs, message, file: file, line: line)
-    }
-}
-
-private func assert(equal: Bool,
-                    _ lhs: Box,
-                    _ rhs: Box,
-                    _ message: @autoclosure () -> String = "",
-                    file: StaticString = #file,
-                    line: UInt = #line) {
-    
-    for pair in [(lhs, rhs), (rhs, lhs)] {
-        assert(equal: equal, pair.0.ns, pair.1.ns, message, file: file, line: line)
-        assert(equal: equal, pair.0.swift, pair.1.swift, message, file: file, line: line)
-        
-        assert(equal: equal,
-               pair.0.ns._bridgeToSwift(),
-               pair.1.ns._bridgeToSwift(),
-               message,
-               file: file,
-               line: line)
-        
-        assert(equal: equal,
-               pair.0.swift._bridgeToObjectiveC(),
-               pair.1.swift._bridgeToObjectiveC(),
-               message,
-               file: file,
-               line: line)
-        
-        XCTAssertTrue(pair.0.ns.isEqual(pair.1.ns) == equal, message, file: file, line: line)
-        XCTAssertTrue(pair.0.ns.isEqual(pair.1.swift) == equal, message, file: file, line: line)
+    static func ==(lhs: Box, rhs: Box) -> Bool {
+        return lhs.ns == rhs.ns
+            && lhs.swift == rhs.swift
+            && lhs.ns._bridgeToSwift() == rhs.ns._bridgeToSwift()
+            && lhs.swift._bridgeToObjectiveC() == rhs.swift._bridgeToObjectiveC()
+            && lhs.ns.isEqual(rhs.ns)
+            && lhs.ns.isEqual(rhs.swift)
+            && lhs.ns.isEqual(rhs.ns._bridgeToSwift())
+            && lhs.ns.isEqual(rhs.swift._bridgeToObjectiveC())
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.ns)
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.swift)
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.ns._bridgeToSwift())
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.swift._bridgeToObjectiveC())
     }
 }
 
@@ -389,14 +343,14 @@ class TestNSCharacterSet : XCTestCase {
         ]
         
         for pair in equalPairs {
-            assertEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+            XCTAssertEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
         }
-        assertEqual(Box.alphanumerics, Box.alphanumerics)
+        XCTAssertEqual(Box.alphanumerics, Box.alphanumerics)
         
         for pair in notEqualPairs {
-            assertNotEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+            XCTAssertNotEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
         }
-        assertNotEqual(Box.alphanumerics, Box.decimalDigits)
+        XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
 }
