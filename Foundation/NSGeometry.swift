@@ -117,6 +117,20 @@ public struct CGSize {
     }
 }
 
+extension CGSize {
+    public static var zero: CGSize {
+        return CGSize(width: CGFloat(0), height: CGFloat(0))
+    }
+    
+    public init(width: Int, height: Int) {
+        self.init(width: CGFloat(width), height: CGFloat(height))
+    }
+    
+    public init(width: Double, height: Double) {
+        self.init(width: CGFloat(width), height: CGFloat(height))
+    }
+}
+
 extension CGSize: Equatable {
     public static func ==(lhs: CGSize, rhs: CGSize) -> Bool {
         return lhs.width == rhs.width && lhs.height == rhs.height
