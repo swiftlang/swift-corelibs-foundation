@@ -94,6 +94,12 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     override func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
+
+    override var _cfObject: CFType {
+        // We cannot inherit super's unsafeBitCast(self, to: CFType.self) here, because layout of _SwiftNSCharacterSet
+        // is not compatible with CFCharacterSet. We need to bitcast the underlying NSCharacterSet instead.
+        return _mapUnmanaged { unsafeBitCast($0, to: CFType.self) }
+    }
 }
 
 /**
@@ -486,10 +492,7 @@ extension CharacterSet : _ObjectTypeBridgeable {
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSCharacterSet {
-        switch _wrapped.__wrapped {
-        case .Mutable(let wrapped): return wrapped.takeUnretainedValue()
-        case .Immutable(let wrapped): return wrapped.takeUnretainedValue()
-        }
+        return _wrapped
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSCharacterSet, result: inout CharacterSet?) {
