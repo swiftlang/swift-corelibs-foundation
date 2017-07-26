@@ -31,6 +31,7 @@ class TestNSGeometry : XCTestCase {
             ("test_CGSize_BasicConstruction", test_CGSize_BasicConstruction),
             ("test_CGSize_ExtendedConstruction", test_CGSize_ExtendedConstruction),
             ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
+            ("test_CGRect_ExtendedConstruction", test_CGRect_ExtendedConstruction),
             ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
             ("test_NSEdgeInsetsEqual", test_NSEdgeInsetsEqual),
             ("test_NSMakePoint", test_NSMakePoint),
@@ -167,6 +168,32 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.origin.y, p.y)
         XCTAssertEqual(r2.size.width, s.width)
         XCTAssertEqual(r2.size.height, s.height)
+    }
+    
+    func test_CGRect_ExtendedConstruction() {
+        let r1 = CGRect.zero
+        XCTAssertEqual(r1.origin.x, CGFloat(0.0))
+        XCTAssertEqual(r1.origin.y, CGFloat(0.0))
+        XCTAssertEqual(r1.size.width, CGFloat(0.0))
+        XCTAssertEqual(r1.size.height, CGFloat(0.0))
+        
+        let r2 = CGRect(x: CGFloat(1.2), y: CGFloat(2.3), width: CGFloat(3.4), height: CGFloat(4.5))
+        XCTAssertEqual(r2.origin.x, CGFloat(1.2))
+        XCTAssertEqual(r2.origin.y, CGFloat(2.3))
+        XCTAssertEqual(r2.size.width, CGFloat(3.4))
+        XCTAssertEqual(r2.size.height, CGFloat(4.5))
+        
+        let r3 = CGRect(x: Double(1.2), y: Double(2.3), width: Double(3.4), height: Double(4.5))
+        XCTAssertEqual(r3.origin.x, CGFloat(1.2))
+        XCTAssertEqual(r3.origin.y, CGFloat(2.3))
+        XCTAssertEqual(r3.size.width, CGFloat(3.4))
+        XCTAssertEqual(r3.size.height, CGFloat(4.5))
+        
+        let r4 = CGRect(x: Int(1), y: Int(2), width: Int(3), height: Int(4))
+        XCTAssertEqual(r4.origin.x, CGFloat(1))
+        XCTAssertEqual(r4.origin.y, CGFloat(2))
+        XCTAssertEqual(r4.size.width, CGFloat(3))
+        XCTAssertEqual(r4.size.height, CGFloat(4))
     }
 
     func test_NSEdgeInsets_BasicConstruction() {

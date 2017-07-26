@@ -209,6 +209,24 @@ public struct CGRect {
     }
 }
 
+extension CGRect {
+    public static var zero: CGRect {
+        return CGRect(origin: CGPoint(), size: CGSize())
+    }
+    
+    public init(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+    
+    public init(x: Double, y: Double, width: Double, height: Double) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+    
+    public init(x: Int, y: Int, width: Int, height: Int) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+}
+
 extension CGRect: Equatable {
     public static func ==(lhs: CGRect, rhs: CGRect) -> Bool {
         return lhs.origin == rhs.origin && lhs.size == rhs.size
