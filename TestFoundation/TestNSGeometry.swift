@@ -32,6 +32,7 @@ class TestNSGeometry : XCTestCase {
             ("test_CGSize_ExtendedConstruction", test_CGSize_ExtendedConstruction),
             ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
             ("test_CGRect_ExtendedConstruction", test_CGRect_ExtendedConstruction),
+            ("test_CGRect_SpecialValues", test_CGRect_SpecialValues),
             ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
             ("test_NSEdgeInsetsEqual", test_NSEdgeInsetsEqual),
             ("test_NSMakePoint", test_NSMakePoint),
@@ -194,6 +195,20 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r4.origin.y, CGFloat(2))
         XCTAssertEqual(r4.size.width, CGFloat(3))
         XCTAssertEqual(r4.size.height, CGFloat(4))
+    }
+    
+    func test_CGRect_SpecialValues() {
+        let r1 = CGRect.null
+        XCTAssertEqual(r1.origin.x, CGFloat.infinity)
+        XCTAssertEqual(r1.origin.y, CGFloat.infinity)
+        XCTAssertEqual(r1.size.width, CGFloat(0.0))
+        XCTAssertEqual(r1.size.height, CGFloat(0.0))
+        
+        let r2 = CGRect.infinite
+        XCTAssertEqual(r2.origin.x, -CGFloat.greatestFiniteMagnitude / 2)
+        XCTAssertEqual(r2.origin.y, -CGFloat.greatestFiniteMagnitude / 2)
+        XCTAssertEqual(r2.size.width, CGFloat.greatestFiniteMagnitude)
+        XCTAssertEqual(r2.size.height, CGFloat.greatestFiniteMagnitude)
     }
 
     func test_NSEdgeInsets_BasicConstruction() {

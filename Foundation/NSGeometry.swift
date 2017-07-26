@@ -227,6 +227,18 @@ extension CGRect {
     }
 }
 
+extension CGRect {
+    public static let null = CGRect(x: CGFloat.infinity,
+                                    y: CGFloat.infinity,
+                                    width: CGFloat(0),
+                                    height: CGFloat(0))
+    
+    public static let infinite = CGRect(x: -CGFloat.greatestFiniteMagnitude / 2,
+                                        y: -CGFloat.greatestFiniteMagnitude / 2,
+                                        width: CGFloat.greatestFiniteMagnitude,
+                                        height: CGFloat.greatestFiniteMagnitude)
+}
+
 extension CGRect: Equatable {
     public static func ==(lhs: CGRect, rhs: CGRect) -> Bool {
         return lhs.origin == rhs.origin && lhs.size == rhs.size
