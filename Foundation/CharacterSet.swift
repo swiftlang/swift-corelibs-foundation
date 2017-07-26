@@ -475,7 +475,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns true if the two `CharacterSet`s are equal.
     public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-        return lhs._mapUnmanaged { l in rhs._mapUnmanaged { r in l.isEqual(r) } }
+        return lhs._mapUnmanaged { $0.isEqual(rhs) }
     }
 }
 
