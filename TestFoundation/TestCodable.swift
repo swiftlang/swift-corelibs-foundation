@@ -51,15 +51,17 @@ func expectRoundTripEquality<T : Codable>(of value: T, encode: (T) throws -> Dat
     XCTAssertEqual(value, decoded, "Decoded \(T.self) <\(decoded)> not equal to original <\(value)>")
 }
 
-func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) where T : Equatable {
+func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T,
+                                                     encoder: JSONEncoder = JSONEncoder(),
+                                                     decoder: JSONDecoder = JSONDecoder()) where T : Equatable {
     let encode = { (_ value: T) throws -> Data in
-        return try JSONEncoder().encode(value)
+        return try encoder.encode(value)
     }
-
+    
     let decode = { (_ data: Data) throws -> T in
-        return try JSONDecoder().decode(T.self, from: data)
+        return try decoder.decode(T.self, from: data)
     }
-
+    
     expectRoundTripEquality(of: value, encode: encode, decode: decode)
 }
 
@@ -224,6 +226,7 @@ class TestCodable : XCTestCase {
     // MARK: - CGPoint
     lazy var cgpointValues: [CGPoint] = [
         CGPoint(),
+        CGPoint.zero,
         CGPoint(x: 10, y: 20),
         CGPoint(x: -10, y: -20),
         // Disabled due to limit on magnitude in JSON. See SR-5346
@@ -239,6 +242,7 @@ class TestCodable : XCTestCase {
     // MARK: - CGSize
     lazy var cgsizeValues: [CGSize] = [
         CGSize(),
+        CGSize.zero,
         CGSize(width: 30, height: 40),
         CGSize(width: -30, height: -40),
         // Disabled due to limit on magnitude in JSON. See SR-5346
@@ -254,18 +258,30 @@ class TestCodable : XCTestCase {
     // MARK: - CGRect
     lazy var cgrectValues: [CGRect] = [
         CGRect(),
+        CGRect.zero,
         CGRect(origin: CGPoint(x: 10, y: 20), size: CGSize(width: 30, height: 40)),
         CGRect(origin: CGPoint(x: -10, y: -20), size: CGSize(width: -30, height: -40)),
         // Disabled due to limit on magnitude in JSON. See SR-5346
-        // CGRect(origin: CGPoint(x: -.greatestFiniteMagnitude / 2,
-        //                        y: -.greatestFiniteMagnitude / 2),
-        //        size: CGSize(width: .greatestFiniteMagnitude,
-        //                     height: .greatestFiniteMagnitude)),
+        // CGRect.infinite
     ]
     
     func test_CGRect_JSON() {
         for rect in cgrectValues {
             expectRoundTripEqualityThroughJSON(for: rect)
+        }
+        
+        do {
+            let rect = CGRect.null
+            let encoder = JSONEncoder()
+            let decoder = JSONDecoder()
+            let inf = "INF", negInf = "-INF", nan = "NaN"
+            encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: inf,
+                                                                          negativeInfinity: negInf,
+                                                                          nan: nan)
+            decoder.nonConformingFloatDecodingStrategy = .convertFromString(positiveInfinity: inf,
+                                                                            negativeInfinity: negInf,
+                                                                            nan: nan)
+            expectRoundTripEqualityThroughJSON(for: rect, encoder: encoder, decoder: decoder)
         }
     }
 
