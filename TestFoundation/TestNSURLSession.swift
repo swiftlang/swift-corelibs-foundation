@@ -42,6 +42,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
             ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
+            ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
         ]
     }
     
@@ -443,6 +444,21 @@ class TestURLSession : LoopbackServerTest {
         dataTask.resume()
         waitForExpectations(timeout: 20)
     }
+
+    func test_simpleUploadWithDelegate() {
+        let delegate = HTTPUploadDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/upload"
+        var request = URLRequest(url: URL(string: urlString)!)
+        request.httpMethod = "PUT"
+
+        delegate.uploadCompletedExpectation = expectation(description: "PUT \(urlString): Upload data")
+
+        let fileData = Data(count: 16*1024)
+        let task = session.uploadTask(with: request, from: fileData)
+        task.resume()
+        waitForExpectations(timeout: 20)
+    }
 }
 
 class SharedDelegate: NSObject {
@@ -647,5 +663,23 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
         XCTAssertNotNil(response)
         XCTAssertEqual(302, response.statusCode, "HTTP response code is not 302")
         completionHandler(request)
+    }
+}
+
+class HTTPUploadDelegate: NSObject {
+    var uploadCompletedExpectation: XCTestExpectation!
+    var totalBytesSent: Int64 = 0
+}
+
+extension HTTPUploadDelegate: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        self.totalBytesSent = totalBytesSent
+    }
+}
+
+extension HTTPUploadDelegate: URLSessionDataDelegate {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        XCTAssertEqual(self.totalBytesSent, 16*1024)
+        uploadCompletedExpectation.fulfill()
     }
 }
