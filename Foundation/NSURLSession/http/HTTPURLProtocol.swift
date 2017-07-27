@@ -13,9 +13,6 @@ import Dispatch
 internal class _HTTPURLProtocol: URLProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
-    fileprivate var totalDownloaded = 0
-    fileprivate var totalUploaded: Int64 = 0
-    fileprivate var requestBodyLength: Int64 = 0
     fileprivate var tempFileURL: URL
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
@@ -129,7 +126,7 @@ fileprivate extension _HTTPURLProtocol {
                 set(requestBodyLength: .noBody)
             case (_, .some(let length)):
                 set(requestBodyLength: .length(length))
-                requestBodyLength = Int64(length)
+                task!.countOfBytesExpectedToSend = Int64(length)
             case (_, .none):
                 set(requestBodyLength: .unknown)
             }
@@ -469,21 +466,23 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
             let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
             _ = fileHandle.seekToEndOfFile()
             fileHandle.write(data)
-            self.totalDownloaded += data.count
+            task.countOfBytesReceived += Int64(data.count)
             
             s.delegateQueue.addOperation {
-                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: Int64(self.totalDownloaded),
-                                            totalBytesExpectedToWrite: Int64(self.easyHandle.fileLength))
+                downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: task.countOfBytesReceived,
+                                            totalBytesExpectedToWrite: task.countOfBytesExpectedToReceive)
             }
-            if Int(self.easyHandle.fileLength) == self.totalDownloaded {
+            if task.countOfBytesExpectedToReceive == task.countOfBytesReceived {
                 fileHandle.closeFile()
                 self.properties[.temporaryFileURL] = self.tempFileURL
             }
         }
     }
 
-    func didReceive(headerData data: Data) -> _EasyHandle._Action {
-        guard case .transferInProgress(let ts) = internalState else { fatalError("Received body data, but no transfer in progress.") }
+    func didReceive(headerData data: Data, contentLength: Int64) -> _EasyHandle._Action {
+        guard case .transferInProgress(let ts) = internalState else { fatalError("Received header data, but no transfer in progress.") }
+        guard let task = task else { fatalError("Received header data but no task available.") }
+        task.countOfBytesExpectedToReceive = contentLength > 0 ? contentLength : NSURLSessionTransferSizeUnknown
         do {
             let newTS = try ts.byAppending(headerLine: data)
             internalState = .transferInProgress(newTS)
@@ -499,12 +498,13 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
     }
 
     fileprivate func notifyDelegate(aboutUploadedData count: Int64) {
-        let session = self.task?.session as! URLSession
-        guard case .taskDelegate(let delegate) = session.behaviour(for: self.task!), self.task is URLSessionUploadTask else { return }
-        totalUploaded += count
+        guard let task = self.task as? URLSessionUploadTask,
+            let session = self.task?.session as? URLSession,
+            case .taskDelegate(let delegate) = session.behaviour(for: task) else { return }
+        task.countOfBytesSent += count
         session.delegateQueue.addOperation {
-            delegate.urlSession(session, task: self.task!, didSendBodyData: count,
-                totalBytesSent: self.totalUploaded, totalBytesExpectedToSend: self.requestBodyLength)
+            delegate.urlSession(session, task: task, didSendBodyData: count,
+                totalBytesSent: task.countOfBytesSent, totalBytesExpectedToSend: task.countOfBytesExpectedToSend)
         }
     }
 
