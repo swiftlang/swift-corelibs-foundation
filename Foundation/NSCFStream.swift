@@ -20,9 +20,15 @@ internal let kCFStreamErrorDomainCustom = CFStreamErrorDomain.custom.rawValue
 #else
 extension CFStreamStatus {
     var rawValue: Int { return self }
+    init?(rawValue: Int) {
+        self = rawValue
+    }
 }
 extension CFStreamEventType {
     var rawValue: CFOptionFlags { return self }
+    init(rawValue: CFOptionFlags) {
+        self = rawValue
+    }
 }
 #endif
 
@@ -185,7 +191,7 @@ internal final class _NSCFOutputStream : OutputStream {
                 ctx.info = nil
             }
             
-            CFWriteStreamSetClient(_unsafeReferenceCast(self, to: CFWriteStream.self), kCFStreamEventOpenCompleted | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered, _outputStreamCallbackFunc, &ctx)
+            CFWriteStreamSetClient(_unsafeReferenceCast(self, to: CFWriteStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _outputStreamCallbackFunc, &ctx)
         }
     }
     

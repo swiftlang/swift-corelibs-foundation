@@ -354,7 +354,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     public convenience init?(utf8String nullTerminatedCString: UnsafePointer<Int8>) {
         if type(of: self) == NSString.self {
-            let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, kCFStringEncodingUTF8)
+            let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, CFStringEncoding(kCFStringEncodingUTF8))
             self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
         } else {
             self.init(bytes: nullTerminatedCString, length: Int(strlen(nullTerminatedCString)), encoding: String.Encoding.utf8.rawValue)
@@ -751,10 +751,10 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return NSMakeRange(NSNotFound, 0);
         }
         
-        var options = CFStringCompareFlags(rawValue: mask.rawValue)
+        var options = CFOptionFlags(mask.rawValue)
         
         if mask.contains(.literal) {
-            options.formUnion(.compareNonliteral)
+            options |= CFOptionFlags(kCFCompareNonliteral)
         }
         var loc: NSLocale? = nil
         if let l = locale {
@@ -764,7 +764,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let cf = _unsafeReferenceCast(self, to: CFString.self)
         let cfFindStr = _unsafeReferenceCast(findStr, to: CFString.self)
         let cfLoc = _unsafeReferenceCast(loc, to: Optional<CFLocale>.self)
-        if CFStringFindWithOptionsAndLocale(cf, cfFindStr, CFRangeMake(fRange.location, fRange.length), options, cfLoc, &result) {
+        if CFStringFindWithOptionsAndLocale(cf, cfFindStr, CFRangeMake(fRange.location, fRange.length), CFStringCompareFlags(rawValue: options), cfLoc, &result) {
             return NSMakeRange(result.location, result.length)
         } else {
             return NSMakeRange(NSNotFound, 0)
@@ -801,7 +801,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if index >= length {
             fatalError("The index \(index) is invalid)")
         }
-        let result = CFStringGetRangeOfCharacterClusterAtIndex(_unsafeReferenceCast(self, to: CFString.self), index, .composedCharacterCluster)
+        let result = CFStringGetRangeOfCharacterClusterAtIndex(_unsafeReferenceCast(self, to: CFString.self), index, kCFStringComposedCharacterCluster)
         return NSMakeRange(result.location, result.length)
     }
     
@@ -1510,17 +1510,19 @@ extension NSString : ExpressibleByStringLiteral {
 extension NSString {
     
     public convenience init(format: NSString, _ args: CVarArg...) {
-        // We can't use withVaList because 'self' cannot be captured by a closure
-        // before it has been initialized.
-        let va_args = getVaList(args)
-        self.init(format: String(format), arguments: va_args)
+        let str = withVaList(args) { (va_args) -> NSString in
+            return NSString(format: String(format), arguments: va_args)
+        }
+        
+        self.init(factory: str)
     }
     
     public convenience init(format: NSString, locale: Locale?, _ args: CVarArg...) {
-        // We can't use withVaList because 'self' cannot be captured by a closure
-        // before it has been initialized.
-        let va_args = getVaList(args)
-        self.init(format: String(format), locale: locale, arguments: va_args)
+        let str = withVaList(args) { (va_args) -> NSString in
+            return NSString(format: String(format), locale: locale, arguments: va_args)
+        }
+        
+        self.init(factory: str)
     }
     
     public class func localizedStringWithFormat(_ format: NSString, _ args: CVarArg...) ->NSString {
@@ -1720,12 +1722,12 @@ open class NSMutableString : NSString {
             return _replaceOccurrences(ofRegularExpression: target, withTemplate: replacement, options: options, range: searchRange)
         }
         
-        var opts = CFStringCompareFlags(rawValue: options.rawValue)
+        var opts = CFOptionFlags(options.rawValue)
         if options.contains(.literal) {
-            opts.formUnion(.compareNonliteral)
+            opts |= CFOptionFlags(kCFCompareNonliteral)
         }
         
-        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorDefault, _unsafeReferenceCast(self, to: CFString.self), _unsafeReferenceCast(NSString(string: target), to: CFString.self), CFRangeMake(searchRange.location, searchRange.length), opts) else {
+        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorDefault, _unsafeReferenceCast(self, to: CFString.self), _unsafeReferenceCast(NSString(string: target), to: CFString.self), CFRangeMake(searchRange.location, searchRange.length), CFStringCompareFlags(rawValue: opts)) else {
             return 0
         }
         

@@ -36,6 +36,16 @@ internal let kCFStringNormalizationFormD = CFStringNormalizationForm.D
 internal let kCFStringNormalizationFormKD = CFStringNormalizationForm.KD
 internal let kCFStringNormalizationFormC = CFStringNormalizationForm.C
 internal let kCFStringNormalizationFormKC = CFStringNormalizationForm.KC
+
+internal let kCFCompareCaseInsensitive = CFStringCompareFlags.compareCaseInsensitive.rawValue
+internal let kCFCompareBackwards = CFStringCompareFlags.compareBackwards.rawValue
+internal let kCFCompareAnchored = CFStringCompareFlags.compareAnchored.rawValue
+internal let kCFCompareNonliteral = CFStringCompareFlags.compareNonliteral.rawValue
+internal let kCFCompareLocalized = CFStringCompareFlags.compareLocalized.rawValue
+internal let kCFCompareNumerically = CFStringCompareFlags.compareNumerically.rawValue
+internal let kCFCompareDiacriticInsensitive = CFStringCompareFlags.compareDiacriticInsensitive.rawValue
+internal let kCFCompareWidthInsensitive = CFStringCompareFlags.compareWidthInsensitive.rawValue
+internal let kCFCompareForcedOrdering = CFStringCompareFlags.compareForcedOrdering.rawValue
 #endif
 
 
