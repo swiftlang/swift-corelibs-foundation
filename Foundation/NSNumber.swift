@@ -416,49 +416,49 @@ open class NSNumber : NSValue {
     open var int8Value: Int8 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
 
     open var uint8Value: UInt8 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var int16Value: Int16 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var uint16Value: UInt16 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var int32Value: Int32 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var uint32Value: UInt32 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var int64Value: Int64 {
         var value: Int64 = 0
         CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(extendingOrTruncating: value)
+        return .init(truncatingIfNeeded: value)
     }
     
     open var uint64Value: UInt64 {
         var value = CFSInt128Struct(high: 0, low: 0)
         CFNumberGetValue(_cfObject, kCFNumberSInt128Type, &value)
-        return .init(extendingOrTruncating: value.low)
+        return .init(truncatingIfNeeded: value.low)
     }
     
     open var floatValue: Float {
