@@ -14,6 +14,8 @@ internal class _HTTPURLProtocol: URLProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
     fileprivate var totalDownloaded = 0
+    fileprivate var totalUploaded: Int64 = 0
+    fileprivate var requestBodyLength: Int64 = 0
     fileprivate var tempFileURL: URL
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
@@ -127,6 +129,7 @@ fileprivate extension _HTTPURLProtocol {
                 set(requestBodyLength: .noBody)
             case (_, .some(let length)):
                 set(requestBodyLength: .length(length))
+                requestBodyLength = Int64(length)
             case (_, .none):
                 set(requestBodyLength: .unknown)
             }
@@ -495,6 +498,16 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
         }
     }
 
+    fileprivate func notifyDelegate(aboutUploadedData count: Int64) {
+        let session = self.task?.session as! URLSession
+        guard case .taskDelegate(let delegate) = session.behaviour(for: self.task!), self.task is URLSessionUploadTask else { return }
+        totalUploaded += count
+        session.delegateQueue.addOperation {
+            delegate.urlSession(session, task: self.task!, didSendBodyData: count,
+                totalBytesSent: self.totalUploaded, totalBytesExpectedToSend: self.requestBodyLength)
+        }
+    }
+
     func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> _EasyHandle._WriteBufferResult {
         guard case .transferInProgress(let ts) = internalState else { fatalError("Requested to fill write buffer, but transfer isn't in progress.") }
         guard let source = ts.requestBodySource else { fatalError("Requested to fill write buffer, but transfer state has no body source.") }
@@ -503,6 +516,7 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
             copyDispatchData(data, infoBuffer: buffer)
             let count = data.count
             assert(count > 0)
+            notifyDelegate(aboutUploadedData: Int64(count))
             return .bytes(count)
         case .done:
             return .bytes(0)

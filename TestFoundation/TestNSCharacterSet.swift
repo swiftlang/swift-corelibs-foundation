@@ -1,4 +1,4 @@
-  // This source file is part of the Swift.org open source project
+// This source file is part of the Swift.org open source project
 //
 // Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
@@ -6,8 +6,6 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-
-
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
 import Foundation
@@ -17,7 +15,47 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
+private struct Box: Equatable {
+    private let ns: NSCharacterSet
+    private let swift: CharacterSet
+    
+    private init(ns: NSCharacterSet, swift: CharacterSet) {
+        self.ns = ns
+        self.swift = swift
+    }
+    
+    init(charactersIn string: String) {
+        self.ns = NSCharacterSet(charactersIn: string)
+        self.swift = CharacterSet(charactersIn: string)
+    }
+    
+    static var alphanumerics: Box {
+        return Box(ns: NSCharacterSet.alphanumerics._bridgeToObjectiveC(),
+                   swift: CharacterSet.alphanumerics)
+    }
+    
+    static var decimalDigits: Box {
+        return Box(ns: NSCharacterSet.decimalDigits._bridgeToObjectiveC(),
+                   swift: CharacterSet.decimalDigits)
+    }
 
+    // MARK: Equatable
+
+    static func ==(lhs: Box, rhs: Box) -> Bool {
+        return lhs.ns == rhs.ns
+            && lhs.swift == rhs.swift
+            && lhs.ns._bridgeToSwift() == rhs.ns._bridgeToSwift()
+            && lhs.swift._bridgeToObjectiveC() == rhs.swift._bridgeToObjectiveC()
+            && lhs.ns.isEqual(rhs.ns)
+            && lhs.ns.isEqual(rhs.swift)
+            && lhs.ns.isEqual(rhs.ns._bridgeToSwift())
+            && lhs.ns.isEqual(rhs.swift._bridgeToObjectiveC())
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.ns)
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.swift)
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.ns._bridgeToSwift())
+            && lhs.swift._bridgeToObjectiveC().isEqual(rhs.swift._bridgeToObjectiveC())
+    }
+}
 
 class TestNSCharacterSet : XCTestCase {
     
@@ -283,28 +321,36 @@ class TestNSCharacterSet : XCTestCase {
         let expected = CharacterSet(charactersIn: "abc")
         XCTAssertEqual(expected, symmetricDifference)
     }
-
+    
     func test_Equatable() {
-        XCTAssertEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: ""))
-        XCTAssertEqual(NSCharacterSet(charactersIn: "a"), NSCharacterSet(charactersIn: "a"))
-        XCTAssertEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "ab"))
-
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "123"))
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: "123"), NSCharacterSet(charactersIn: "abc"))
-
-        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), nil)
-
+        let equalPairs = [
+            ("", ""),
+            ("a", "a"),
+            ("abcde", "abcde"),
+            ("12345", "12345")
+        ]
+        
         /*
          Tests disabled due to CoreFoundation bug?
          These NSCharacterSet pairs are (wrongly?) evaluated to be equal. Same behaviour can be observed on macOS 10.12.
          Interestingly, on iOS 11 Simulator, they are evaluted to be _not_ equal,
          while on iOS 10.3.1 Simulator, they are evaluted to be equal.
          */
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "abc"))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "ab"))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: ""))
-//        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: "abc"))
+        let notEqualPairs = [
+            ("abc", "123"),
+//            ("ab", "abc"),
+//            ("abc", "")
+        ]
+        
+        for pair in equalPairs {
+            XCTAssertEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+        }
+        XCTAssertEqual(Box.alphanumerics, Box.alphanumerics)
+        
+        for pair in notEqualPairs {
+            XCTAssertNotEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
+        }
+        XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
 }
-
