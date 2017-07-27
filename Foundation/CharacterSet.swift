@@ -94,6 +94,12 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     override func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
+
+    override var _cfObject: CFType {
+        // We cannot inherit super's unsafeBitCast(self, to: CFType.self) here, because layout of _SwiftNSCharacterSet
+        // is not compatible with CFCharacterSet. We need to bitcast the underlying NSCharacterSet instead.
+        return _mapUnmanaged { unsafeBitCast($0, to: CFType.self) }
+    }
 }
 
 /**
@@ -469,7 +475,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns true if the two `CharacterSet`s are equal.
     public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-        return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC()) // TODO: mlehew - as  NSCharacterSet
+        return lhs._mapUnmanaged { $0.isEqual(rhs) }
     }
 }
 
@@ -502,4 +508,21 @@ extension CharacterSet : _ObjectTypeBridgeable {
         return CharacterSet(_bridged: source!)
     }
     
+}
+
+extension CharacterSet : Codable {
+    private enum CodingKeys : Int, CodingKey {
+        case bitmap
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let bitmap = try container.decode(Data.self, forKey: .bitmap)
+        self.init(bitmapRepresentation: bitmap)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.bitmapRepresentation, forKey: .bitmap)
+    }
 }
