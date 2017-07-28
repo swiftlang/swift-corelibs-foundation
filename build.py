@@ -106,6 +106,15 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 	])
 	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
 
+if "LIBICU_SOURCE_DIR" in Configuration.current.variables:
+        foundation.CFLAGS += " "+" ".join([
+                '-I'+Configuration.current.variables["ICU_TMPINSTALL"]+'/include'
+        ])
+        swift_cflags += ([
+                '-I'+Configuration.current.variables["ICU_TMPINSTALL"]+'/include'
+        ])
+        foundation.LDFLAGS += '-L'+Configuration.current.variables["LIBICU_BUILD_DIR"]+'/lib '
+
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
