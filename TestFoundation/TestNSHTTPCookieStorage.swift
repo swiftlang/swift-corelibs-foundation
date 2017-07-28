@@ -30,7 +30,7 @@ class TestNSHTTPCookieStorage: XCTestCase {
             ("test_setCookiesForURL", test_setCookiesForURL),
             ("test_getCookiesForURL", test_getCookiesForURL),
             ("test_setCookiesForURLWithMainDocumentURL", test_setCookiesForURLWithMainDocumentURL),
-            ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
+//            ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
         ]
     }
 
