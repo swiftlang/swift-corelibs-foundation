@@ -317,6 +317,30 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: timeZone)
         }
     }
+
+    // MARK: - Calendar
+    lazy var calendarValues: [Calendar] = [
+        Calendar(identifier: .gregorian),
+        Calendar(identifier: .buddhist),
+        Calendar(identifier: .chinese),
+        Calendar(identifier: .coptic),
+        Calendar(identifier: .ethiopicAmeteMihret),
+        Calendar(identifier: .ethiopicAmeteAlem),
+        Calendar(identifier: .hebrew),
+        Calendar(identifier: .iso8601),
+        Calendar(identifier: .indian),
+        Calendar(identifier: .islamic),
+        Calendar(identifier: .islamicCivil),
+        Calendar(identifier: .japanese),
+        Calendar(identifier: .persian),
+        Calendar(identifier: .republicOfChina),
+        ]
+
+    func test_Calendar_JSON() {
+        for calendar in calendarValues {
+            expectRoundTripEqualityThroughJSON(for: calendar)
+        }
+    }
 }
 
 extension TestCodable {
@@ -336,6 +360,7 @@ extension TestCodable {
             ("test_CGRect_JSON", test_CGRect_JSON),
             ("test_CharacterSet_JSON", test_CharacterSet_JSON),
             ("test_TimeZone_JSON", test_TimeZone_JSON),
+            ("test_Calendar_JSON", test_Calendar_JSON),
         ]
     }
 }
