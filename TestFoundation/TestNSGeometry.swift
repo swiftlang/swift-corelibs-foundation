@@ -27,8 +27,12 @@ class TestNSGeometry : XCTestCase {
             ("test_CGFloat_LessThanOrEqual", test_CGFloat_LessThanOrEqual),
             ("test_CGFloat_GreaterThanOrEqual", test_CGFloat_GreaterThanOrEqual),
             ("test_CGPoint_BasicConstruction", test_CGPoint_BasicConstruction),
+            ("test_CGPoint_ExtendedConstruction", test_CGPoint_ExtendedConstruction),
             ("test_CGSize_BasicConstruction", test_CGSize_BasicConstruction),
+            ("test_CGSize_ExtendedConstruction", test_CGSize_ExtendedConstruction),
             ("test_CGRect_BasicConstruction", test_CGRect_BasicConstruction),
+            ("test_CGRect_ExtendedConstruction", test_CGRect_ExtendedConstruction),
+            ("test_CGRect_SpecialValues", test_CGRect_SpecialValues),
             ("test_NSEdgeInsets_BasicConstruction", test_NSEdgeInsets_BasicConstruction),
             ("test_NSEdgeInsetsEqual", test_NSEdgeInsetsEqual),
             ("test_NSMakePoint", test_NSMakePoint),
@@ -112,6 +116,20 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(p2.x, CGFloat(3.6))
         XCTAssertEqual(p2.y, CGFloat(4.5))
     }
+    
+    func test_CGPoint_ExtendedConstruction() {
+        let p1 = CGPoint.zero
+        XCTAssertEqual(p1.x, CGFloat(0))
+        XCTAssertEqual(p1.y, CGFloat(0))
+        
+        let p2 = CGPoint(x: Int(3), y: Int(4))
+        XCTAssertEqual(p2.x, CGFloat(3))
+        XCTAssertEqual(p2.y, CGFloat(4))
+        
+        let p3 = CGPoint(x: Double(3.6), y: Double(4.5))
+        XCTAssertEqual(p3.x, CGFloat(3.6))
+        XCTAssertEqual(p3.y, CGFloat(4.5))
+    }
 
     func test_CGSize_BasicConstruction() {
         let s1 = CGSize()
@@ -121,6 +139,20 @@ class TestNSGeometry : XCTestCase {
         let s2 = CGSize(width: CGFloat(3.6), height: CGFloat(4.5))
         XCTAssertEqual(s2.width, CGFloat(3.6))
         XCTAssertEqual(s2.height, CGFloat(4.5))
+    }
+    
+    func test_CGSize_ExtendedConstruction() {
+        let s1 = CGSize.zero
+        XCTAssertEqual(s1.width, CGFloat(0))
+        XCTAssertEqual(s1.height, CGFloat(0))
+        
+        let s2 = CGSize(width: Int(3), height: Int(4))
+        XCTAssertEqual(s2.width, CGFloat(3))
+        XCTAssertEqual(s2.height, CGFloat(4))
+        
+        let s3 = CGSize(width: Double(3.6), height: Double(4.5))
+        XCTAssertEqual(s3.width, CGFloat(3.6))
+        XCTAssertEqual(s3.height, CGFloat(4.5))
     }
 
     func test_CGRect_BasicConstruction() {
@@ -137,6 +169,46 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(r2.origin.y, p.y)
         XCTAssertEqual(r2.size.width, s.width)
         XCTAssertEqual(r2.size.height, s.height)
+    }
+    
+    func test_CGRect_ExtendedConstruction() {
+        let r1 = CGRect.zero
+        XCTAssertEqual(r1.origin.x, CGFloat(0.0))
+        XCTAssertEqual(r1.origin.y, CGFloat(0.0))
+        XCTAssertEqual(r1.size.width, CGFloat(0.0))
+        XCTAssertEqual(r1.size.height, CGFloat(0.0))
+        
+        let r2 = CGRect(x: CGFloat(1.2), y: CGFloat(2.3), width: CGFloat(3.4), height: CGFloat(4.5))
+        XCTAssertEqual(r2.origin.x, CGFloat(1.2))
+        XCTAssertEqual(r2.origin.y, CGFloat(2.3))
+        XCTAssertEqual(r2.size.width, CGFloat(3.4))
+        XCTAssertEqual(r2.size.height, CGFloat(4.5))
+        
+        let r3 = CGRect(x: Double(1.2), y: Double(2.3), width: Double(3.4), height: Double(4.5))
+        XCTAssertEqual(r3.origin.x, CGFloat(1.2))
+        XCTAssertEqual(r3.origin.y, CGFloat(2.3))
+        XCTAssertEqual(r3.size.width, CGFloat(3.4))
+        XCTAssertEqual(r3.size.height, CGFloat(4.5))
+        
+        let r4 = CGRect(x: Int(1), y: Int(2), width: Int(3), height: Int(4))
+        XCTAssertEqual(r4.origin.x, CGFloat(1))
+        XCTAssertEqual(r4.origin.y, CGFloat(2))
+        XCTAssertEqual(r4.size.width, CGFloat(3))
+        XCTAssertEqual(r4.size.height, CGFloat(4))
+    }
+    
+    func test_CGRect_SpecialValues() {
+        let r1 = CGRect.null
+        XCTAssertEqual(r1.origin.x, CGFloat.infinity)
+        XCTAssertEqual(r1.origin.y, CGFloat.infinity)
+        XCTAssertEqual(r1.size.width, CGFloat(0.0))
+        XCTAssertEqual(r1.size.height, CGFloat(0.0))
+        
+        let r2 = CGRect.infinite
+        XCTAssertEqual(r2.origin.x, -CGFloat.greatestFiniteMagnitude / 2)
+        XCTAssertEqual(r2.origin.y, -CGFloat.greatestFiniteMagnitude / 2)
+        XCTAssertEqual(r2.size.width, CGFloat.greatestFiniteMagnitude)
+        XCTAssertEqual(r2.size.height, CGFloat.greatestFiniteMagnitude)
     }
 
     func test_NSEdgeInsets_BasicConstruction() {
