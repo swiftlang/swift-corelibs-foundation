@@ -52,12 +52,21 @@ func expectRoundTripEquality<T : Codable>(of value: T, encode: (T) throws -> Dat
 }
 
 func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) where T : Equatable {
+    let inf = "INF", negInf = "-INF", nan = "NaN"
     let encode = { (_ value: T) throws -> Data in
-        return try JSONEncoder().encode(value)
+        let encoder = JSONEncoder()
+        encoder.nonConformingFloatEncodingStrategy = .convertToString(positiveInfinity: inf,
+                                                                      negativeInfinity: negInf,
+                                                                      nan: nan)
+        return try encoder.encode(value)
     }
 
     let decode = { (_ data: Data) throws -> T in
-        return try JSONDecoder().decode(T.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.nonConformingFloatDecodingStrategy = .convertFromString(positiveInfinity: inf,
+                                                                        negativeInfinity: negInf,
+                                                                        nan: nan)
+        return try decoder.decode(T.self, from: data)
     }
 
     expectRoundTripEquality(of: value, encode: encode, decode: decode)
@@ -224,6 +233,7 @@ class TestCodable : XCTestCase {
     // MARK: - CGPoint
     lazy var cgpointValues: [CGPoint] = [
         CGPoint(),
+        CGPoint.zero,
         CGPoint(x: 10, y: 20),
         CGPoint(x: -10, y: -20),
         // Disabled due to limit on magnitude in JSON. See SR-5346
@@ -239,6 +249,7 @@ class TestCodable : XCTestCase {
     // MARK: - CGSize
     lazy var cgsizeValues: [CGSize] = [
         CGSize(),
+        CGSize.zero,
         CGSize(width: 30, height: 40),
         CGSize(width: -30, height: -40),
         // Disabled due to limit on magnitude in JSON. See SR-5346
@@ -254,13 +265,12 @@ class TestCodable : XCTestCase {
     // MARK: - CGRect
     lazy var cgrectValues: [CGRect] = [
         CGRect(),
+        CGRect.zero,
         CGRect(origin: CGPoint(x: 10, y: 20), size: CGSize(width: 30, height: 40)),
         CGRect(origin: CGPoint(x: -10, y: -20), size: CGSize(width: -30, height: -40)),
+        CGRect.null,
         // Disabled due to limit on magnitude in JSON. See SR-5346
-        // CGRect(origin: CGPoint(x: -.greatestFiniteMagnitude / 2,
-        //                        y: -.greatestFiniteMagnitude / 2),
-        //        size: CGSize(width: .greatestFiniteMagnitude,
-        //                     height: .greatestFiniteMagnitude)),
+        // CGRect.infinite
     ]
     
     func test_CGRect_JSON() {

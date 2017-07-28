@@ -25,6 +25,20 @@ public struct CGPoint {
     }
 }
 
+extension CGPoint {
+    public static var zero: CGPoint {
+        return CGPoint(x: CGFloat(0), y: CGFloat(0))
+    }
+    
+    public init(x: Int, y: Int) {
+        self.init(x: CGFloat(x), y: CGFloat(y))
+    }
+    
+    public init(x: Double, y: Double) {
+        self.init(x: CGFloat(x), y: CGFloat(y))
+    }
+}
+
 extension CGPoint: Equatable {
     public static func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
         return lhs.x == rhs.x && lhs.y == rhs.y
@@ -100,6 +114,20 @@ public struct CGSize {
     public init(width: CGFloat, height: CGFloat) {
         self.width = width
         self.height = height
+    }
+}
+
+extension CGSize {
+    public static var zero: CGSize {
+        return CGSize(width: CGFloat(0), height: CGFloat(0))
+    }
+    
+    public init(width: Int, height: Int) {
+        self.init(width: CGFloat(width), height: CGFloat(height))
+    }
+    
+    public init(width: Double, height: Double) {
+        self.init(width: CGFloat(width), height: CGFloat(height))
     }
 }
 
@@ -179,6 +207,36 @@ public struct CGRect {
         self.origin = origin
         self.size = size
     }
+}
+
+extension CGRect {
+    public static var zero: CGRect {
+        return CGRect(origin: CGPoint(), size: CGSize())
+    }
+    
+    public init(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+    
+    public init(x: Double, y: Double, width: Double, height: Double) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+    
+    public init(x: Int, y: Int, width: Int, height: Int) {
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
+    }
+}
+
+extension CGRect {
+    public static let null = CGRect(x: CGFloat.infinity,
+                                    y: CGFloat.infinity,
+                                    width: CGFloat(0),
+                                    height: CGFloat(0))
+    
+    public static let infinite = CGRect(x: -CGFloat.greatestFiniteMagnitude / 2,
+                                        y: -CGFloat.greatestFiniteMagnitude / 2,
+                                        width: CGFloat.greatestFiniteMagnitude,
+                                        height: CGFloat.greatestFiniteMagnitude)
 }
 
 extension CGRect: Equatable {
