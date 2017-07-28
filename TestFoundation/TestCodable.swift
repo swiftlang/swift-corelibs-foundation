@@ -305,6 +305,18 @@ class TestCodable : XCTestCase {
         }
     }
 
+    // MARK: - TimeZone
+    lazy var timeZoneValues: [TimeZone] = [
+        TimeZone(identifier: "America/Los_Angeles")!,
+        TimeZone(identifier: "UTC")!,
+        TimeZone.current
+    ]
+
+    func test_TimeZone_JSON() {
+        for timeZone in timeZoneValues {
+            expectRoundTripEqualityThroughJSON(for: timeZone)
+        }
+    }
 }
 
 extension TestCodable {
@@ -323,6 +335,7 @@ extension TestCodable {
             ("test_CGSize_JSON", test_CGSize_JSON),
             ("test_CGRect_JSON", test_CGRect_JSON),
             ("test_CharacterSet_JSON", test_CharacterSet_JSON),
+            ("test_TimeZone_JSON", test_TimeZone_JSON),
         ]
     }
 }
