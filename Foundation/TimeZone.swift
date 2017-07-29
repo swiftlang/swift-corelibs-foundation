@@ -78,14 +78,10 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     /// Time zones created with this never have daylight savings and the offset is constant no matter the date. The identifier and abbreviation do NOT follow the POSIX convention (of minutes-west).
     ///
     /// - parameter seconds: The number of seconds from GMT.
-    /// - returns: A time zone, or `nil` if a valid time zone could not be created from `seconds`.
-    public init?(secondsFromGMT seconds: Int) {
-        if let r = NSTimeZone(forSecondsFromGMT: seconds) as NSTimeZone? {
-            _wrapped = r
-            _autoupdating = false
-        } else {
-            return nil
-        }
+    /// - returns: A time zone.
+    public init(secondsFromGMT seconds: Int) {
+        _wrapped = NSTimeZone(forSecondsFromGMT: seconds)
+        _autoupdating = false
     }
     
     /// Returns a time zone identified by a given abbreviation.
