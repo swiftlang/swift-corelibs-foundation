@@ -239,11 +239,8 @@ open class UserDefaults: NSObject {
     }
     
     open func dictionaryRepresentation() -> [String : Any] {
-        NSUnimplemented()
-        /*
-        Currently crashes the compiler.
         guard let aPref = CFPreferencesCopyMultiple(nil, kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost),
-            bPref = (aPref._swiftObject) as? [NSString: Any] else {
+            let bPref = (aPref._swiftObject) as? [NSString: Any] else {
                 return registeredDefaults
         }
         var allDefaults = registeredDefaults
@@ -253,7 +250,6 @@ open class UserDefaults: NSObject {
         }
         
         return allDefaults
-        */
     }
     
     open var volatileDomainNames: [String] { NSUnimplemented() }
