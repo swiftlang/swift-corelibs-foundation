@@ -341,6 +341,34 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: calendar)
         }
     }
+
+    // MARK: - DateComponents
+    lazy var dateComponents: Set<Calendar.Component> = [
+        .era,
+        .year,
+        .month,
+        .day,
+        .hour,
+        .minute,
+        .second,
+        .weekday,
+        .weekdayOrdinal,
+        .weekOfMonth,
+        .weekOfYear,
+        .yearForWeekOfYear,
+        .timeZone,
+        .calendar,
+        // Disabled due to a bug in Calendar.dateComponents(_:from:)
+        // crashing if components include .nanosecond or .quarter
+        // .nanosecond,
+        // .quarter,
+    ]
+
+    func test_DateComponents_JSON() {
+        let calendar = Calendar(identifier: .gregorian)
+        let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
+        expectRoundTripEqualityThroughJSON(for: components)
+    }
 }
 
 extension TestCodable {
@@ -361,6 +389,7 @@ extension TestCodable {
             ("test_CharacterSet_JSON", test_CharacterSet_JSON),
             ("test_TimeZone_JSON", test_TimeZone_JSON),
             ("test_Calendar_JSON", test_Calendar_JSON),
+            ("test_DateComponents_JSON", test_DateComponents_JSON),
         ]
     }
 }
