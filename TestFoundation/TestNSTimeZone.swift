@@ -143,16 +143,22 @@ class TestNSTimeZone: XCTestCase {
         let tz2 = TimeZone(secondsFromGMT: -14400)
         XCTAssertNotNil(tz2)
         let expectedName = "GMT-0400"
-        let actualName = tz2.identifier
+        let actualName = tz2?.identifier
         XCTAssertEqual(actualName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(actualName as Optional)\"")
         let expectedLocalizedName = "GMT-04:00"
-        let actualLocalizedName = tz2.localizedName(for: .generic, locale: Locale(identifier: "en_US"))
+        let actualLocalizedName = tz2?.localizedName(for: .generic, locale: Locale(identifier: "en_US"))
         XCTAssertEqual(actualLocalizedName, expectedLocalizedName, "expected name \"\(expectedLocalizedName)\" is not equal to \"\(actualLocalizedName as Optional)\"")
-        let seconds2 = tz2.secondsFromGMT()
+        let seconds2 = tz2?.secondsFromGMT() ?? 0
         XCTAssertEqual(seconds2, -14400, "GMT-0400 should be -14400 seconds but got \(seconds2) instead")
 
         let tz3 = TimeZone(identifier: "GMT-9999")
         XCTAssertNil(tz3)
+
+        XCTAssertNotNil(TimeZone(secondsFromGMT:  -18 * 3600))
+        XCTAssertNotNil(TimeZone(secondsFromGMT:  18 * 3600))
+
+        XCTAssertNil(TimeZone(secondsFromGMT:  -18 * 3600 - 1))
+        XCTAssertNil(TimeZone(secondsFromGMT:  18 * 3600 + 1))
     }
 
     func test_initializingTimeZoneWithAbbreviation() {

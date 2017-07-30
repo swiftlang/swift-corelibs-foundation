@@ -78,8 +78,15 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     /// Time zones created with this never have daylight savings and the offset is constant no matter the date. The identifier and abbreviation do NOT follow the POSIX convention (of minutes-west).
     ///
     /// - parameter seconds: The number of seconds from GMT.
-    /// - returns: A time zone.
-    public init(secondsFromGMT seconds: Int) {
+    /// - returns: A time zone, or `nil` if a valid time zone could not be created from `seconds`.
+    public init?(secondsFromGMT seconds: Int) {
+        // Seconds boundaries check should actually be placed in NSTimeZone.init(forSecondsFromGMT:) which should return
+        // nil if the check fails. However, NSTimeZone.init(forSecondsFromGMT:) is not a failable initializer, so it
+        // cannot return nil.
+        // It is not a failable initializer because we want to have parity with Darwin's NSTimeZone, which is
+        // Objective-C and has a wrong _Nonnull annotation.
+        if (seconds < -18 * 3600 || 18 * 3600 < seconds) { return nil }
+
         _wrapped = NSTimeZone(forSecondsFromGMT: seconds)
         _autoupdating = false
     }
