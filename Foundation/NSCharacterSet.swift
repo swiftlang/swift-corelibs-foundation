@@ -149,7 +149,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         for ch in 0..<65535 {
             if characterIsMember(unichar(ch)) {
                 data.withUnsafeMutableBytes { map in
-                    map.advanced(by: ch >> logBPB).pointee |= UInt8(extendingOrTruncating: 1 << (ch & (bitsPerByte - 1)))
+                    map.advanced(by: ch >> logBPB).pointee |= UInt8(truncatingIfNeeded: 1 << (ch & (bitsPerByte - 1)))
                 }
             }
         }

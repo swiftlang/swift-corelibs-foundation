@@ -78,43 +78,43 @@ internal final class __NSCFNumber : NSNumber {
     override var int8Value: Int8 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return Int8(extendingOrTruncating: value)
+        return Int8(truncatingIfNeeded: value)
     }
     
     override var uint8Value: UInt8 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return UInt8(extendingOrTruncating: value)
+        return UInt8(truncatingIfNeeded: value)
     }
     
     override var int16Value: Int16 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return Int16(extendingOrTruncating: value)
+        return Int16(truncatingIfNeeded: value)
     }
     
     override var uint16Value: UInt16 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return UInt16(extendingOrTruncating: value)
+        return UInt16(truncatingIfNeeded: value)
     }
     
     override var int32Value: Int32 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return Int32(extendingOrTruncating: value)
+        return Int32(truncatingIfNeeded: value)
     }
     
     override var uint32Value: UInt32 {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return UInt32(extendingOrTruncating: value)
+        return UInt32(truncatingIfNeeded: value)
     }
     
     override var intValue: Int {
         var value: Int64 = 0
         CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
-        return Int(extendingOrTruncating: value)
+        return Int(truncatingIfNeeded: value)
     }
     
     override var uintValue: UInt {
