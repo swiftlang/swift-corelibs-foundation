@@ -896,11 +896,13 @@ CF_PRIVATE CFStreamStatus _CFStreamGetStatus(struct _CFStream *stream) {
 
 CF_EXPORT CFStreamStatus CFReadStreamGetStatus(CFReadStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamStatus, (NSInputStream *)stream, streamStatus);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamStatus, (CFSwiftRef)stream, NSInputStream.streamStatus);
     return _CFStreamGetStatus((struct _CFStream *)stream);
 }
 
 CF_EXPORT CFStreamStatus CFWriteStreamGetStatus(CFWriteStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFStreamStatus, (NSOutputStream *)stream, streamStatus);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFStreamStatus, (CFSwiftRef)stream, NSOutputStream.streamStatus);
     return _CFStreamGetStatus((struct _CFStream *)stream);
 }
 
@@ -921,11 +923,13 @@ static CFStreamError _CFStreamGetStreamError(struct _CFStream *stream) {
 
 CF_EXPORT CFStreamError CFReadStreamGetError(CFReadStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamError, (NSInputStream *)stream, _cfStreamError);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFStreamError, (CFSwiftRef)stream, NSInputStream._cfStreamError);
     return _CFStreamGetStreamError((struct _CFStream *)stream);
 }
 
 CF_EXPORT CFStreamError CFWriteStreamGetError(CFWriteStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFStreamError, (NSOutputStream *)stream, _cfStreamError);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFStreamError, (CFSwiftRef)stream, NSOutputStream._cfStreamError);
     return _CFStreamGetStreamError((struct _CFStream *)stream);
 }
 
@@ -942,12 +946,14 @@ static CFErrorRef _CFStreamCopyError(struct _CFStream *stream) {
 
 CF_EXPORT CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFErrorRef, (NSInputStream *)stream, streamError);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFErrorRef, (CFSwiftRef)stream, NSInputStream.streamError);
     return _CFStreamCopyError((struct _CFStream *)stream);
 }
 
 CF_EXPORT CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream) {
-    return _CFStreamCopyError((struct _CFStream *)stream);
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFErrorRef, (NSOutputStream *)stream, streamError);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFErrorRef, (CFSwiftRef)stream, NSOutputStream.streamError);
+    return _CFStreamCopyError((struct _CFStream *)stream);
 }
 
 CF_PRIVATE Boolean _CFStreamOpen(struct _CFStream *stream) {
@@ -993,6 +999,9 @@ CF_EXPORT Boolean CFReadStreamOpen(CFReadStreamRef stream) {
     if(CF_IS_OBJC(__kCFReadStreamTypeID, stream)) {
         (void)CF_OBJC_CALLV((NSInputStream *)stream, open);
         return TRUE;
+    } else if (CF_IS_SWIFT(__kCFReadStreamTypeID, stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSInputStream.open);
+        return TRUE;
     }
     return _CFStreamOpen((struct _CFStream *)stream);
 }
@@ -1001,22 +1010,28 @@ CF_EXPORT Boolean CFWriteStreamOpen(CFWriteStreamRef stream) {
     if(CF_IS_OBJC(__kCFWriteStreamTypeID, stream)) {
         (void)CF_OBJC_CALLV((NSOutputStream *)stream, open);
         return TRUE;
+    } else if (CF_IS_SWIFT(__kCFWriteStreamTypeID, stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSOutputStream.open);
+        return TRUE;
     }
     return _CFStreamOpen((struct _CFStream *)stream);
 }
 
 CF_EXPORT void CFReadStreamClose(CFReadStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, void, (NSInputStream *)stream, close);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, void, (CFSwiftRef)stream, NSInputStream.close);
     _CFStreamClose((struct _CFStream *)stream);
 }
 
 CF_EXPORT void CFWriteStreamClose(CFWriteStreamRef stream) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, void, (NSOutputStream *)stream, close);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, void, (CFSwiftRef)stream, NSOutputStream.close);
     _CFStreamClose((struct _CFStream *)stream);
 }
 
 CF_EXPORT Boolean CFReadStreamHasBytesAvailable(CFReadStreamRef readStream) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, Boolean, (NSInputStream *)readStream, hasBytesAvailable);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, Boolean, (CFSwiftRef)readStream, NSInputStream.hasBytesAvailable);
     struct _CFStream *stream = (struct _CFStream *)readStream;
     CFStreamStatus status = _CFStreamGetStatus(stream);
     const struct _CFStreamCallBacks *cb;
@@ -1047,6 +1062,7 @@ static void waitForOpen(struct _CFStream *stream);
 
 CFIndex CFReadStreamRead(CFReadStreamRef readStream, UInt8 *buffer, CFIndex bufferLength) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFIndex, (NSInputStream *)readStream, read:(uint8_t *)buffer maxLength:(NSUInteger)bufferLength);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFIndex, (CFSwiftRef)readStream, NSInputStream.read, buffer, bufferLength);
     struct _CFStream *stream = (struct _CFStream *)readStream;
     CFStreamStatus status = _CFStreamGetStatus(stream);
     const struct _CFStreamCallBacks *cb = _CFStreamGetCallBackPtr(stream);
@@ -1095,6 +1111,14 @@ CF_EXPORT const UInt8 *CFReadStreamGetBuffer(CFReadStreamRef readStream, CFIndex
     if (CF_IS_OBJC(__kCFReadStreamTypeID, readStream)) {
         uint8_t *bufPtr = NULL;
         Boolean gotBytes = (Boolean) CF_OBJC_CALLV((NSInputStream *)readStream, getBuffer:&bufPtr length:(NSUInteger *)numBytesRead);
+        if(gotBytes) {
+            return (const UInt8 *)bufPtr;
+        } else {
+            return NULL;
+        }
+    } else if (CF_IS_SWIFT(__kCFReadStreamTypeID, readStream)) {
+        uint8_t *bufPtr = NULL;
+        Boolean gotBytes = (Boolean) CF_SWIFT_CALLV((CFSwiftRef)readStream, NSInputStream.getBuffer, &bufPtr, numBytesRead);
         if(gotBytes) {
             return (const UInt8 *)bufPtr;
         } else {
@@ -1153,6 +1177,7 @@ CF_EXPORT const UInt8 *CFReadStreamGetBuffer(CFReadStreamRef readStream, CFIndex
 
 CF_EXPORT Boolean CFWriteStreamCanAcceptBytes(CFWriteStreamRef writeStream) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, Boolean, (NSOutputStream *)writeStream, hasSpaceAvailable);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, Boolean, (CFSwiftRef)writeStream, NSOutputStream.hasSpaceAvailable);
     struct _CFStream *stream = (struct _CFStream *)writeStream;
     CFStreamStatus status = _CFStreamGetStatus(stream);
     const struct _CFStreamCallBacks *cb;
@@ -1181,6 +1206,7 @@ CF_EXPORT Boolean CFWriteStreamCanAcceptBytes(CFWriteStreamRef writeStream) {
 
 CF_EXPORT CFIndex CFWriteStreamWrite(CFWriteStreamRef writeStream, const UInt8 *buffer, CFIndex bufferLength) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFIndex, (NSOutputStream *)writeStream, write:(const uint8_t *)buffer maxLength:(NSUInteger)bufferLength);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFIndex, (CFSwiftRef)writeStream, NSOutputStream.write, (const uint8_t *)buffer, bufferLength);
     struct _CFStream *stream = (struct _CFStream *)writeStream;
     CFStreamStatus status = _CFStreamGetStatus(stream);
     const struct _CFStreamCallBacks *cb = _CFStreamGetCallBackPtr(stream);
@@ -1235,11 +1261,13 @@ CF_PRIVATE CFTypeRef _CFStreamCopyProperty(struct _CFStream *stream, CFStringRef
 
 CF_EXPORT CFTypeRef CFReadStreamCopyProperty(CFReadStreamRef stream, CFStringRef propertyName) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, CFTypeRef, (NSInputStream *)stream, propertyForKey:(NSString *)propertyName);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, CFTypeRef, (CFSwiftRef)stream, NSInputStream.copyPropertyForKey, propertyName);
     return _CFStreamCopyProperty((struct _CFStream *)stream, propertyName);
 }
 
 CF_EXPORT CFTypeRef CFWriteStreamCopyProperty(CFWriteStreamRef stream, CFStringRef propertyName) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFTypeRef, (NSOutputStream *)stream, propertyForKey:(NSString *)propertyName);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, CFTypeRef, (CFSwiftRef)stream, NSOutputStream.copyPropertyForKey, propertyName);
     return _CFStreamCopyProperty((struct _CFStream *)stream, propertyName);
 }
 
@@ -1259,12 +1287,14 @@ CF_PRIVATE Boolean _CFStreamSetProperty(struct _CFStream *stream, CFStringRef pr
 CF_EXPORT
 Boolean CFReadStreamSetProperty(CFReadStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue) {
     CF_OBJC_FUNCDISPATCHV(__kCFReadStreamTypeID, Boolean, (NSInputStream *)stream, setProperty:(id)propertyValue forKey:(NSString *)propertyName);
+    CF_SWIFT_FUNCDISPATCHV(__kCFReadStreamTypeID, Boolean, (CFSwiftRef)stream, NSInputStream.setPropertyForKey, propertyValue, propertyName);
     return _CFStreamSetProperty((struct _CFStream *)stream, propertyName, propertyValue);
 }
 
 CF_EXPORT
 Boolean CFWriteStreamSetProperty(CFWriteStreamRef stream, CFStringRef propertyName, CFTypeRef propertyValue) {
     CF_OBJC_FUNCDISPATCHV(__kCFWriteStreamTypeID, Boolean, (NSOutputStream *)stream, setProperty:(id)propertyValue forKey:(NSString *)propertyName);
+    CF_SWIFT_FUNCDISPATCHV(__kCFWriteStreamTypeID, Boolean, (CFSwiftRef)stream, NSOutputStream.setPropertyForKey, propertyValue, propertyName);
     return _CFStreamSetProperty((struct _CFStream *)stream, propertyName, propertyValue);
 }
 
@@ -1323,7 +1353,12 @@ CF_PRIVATE Boolean _CFStreamSetClient(struct _CFStream *stream, CFOptionFlags st
 }
 
 CF_EXPORT Boolean CFReadStreamSetClient(CFReadStreamRef readStream, CFOptionFlags streamEvents, CFReadStreamClientCallBack clientCB, CFStreamClientContext *clientContext) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFReadStreamTypeID, (CFSwiftRef)readStream)) {
+        // TODO: build up a delegate somehow to service the CFStreamClientContext?
+        return false;
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFReadStreamTypeID, (const void *)(NSInputStream *)readStream)) {
         NSInputStream* is = (NSInputStream*) readStream;
 
@@ -1346,7 +1381,12 @@ CF_EXPORT Boolean CFReadStreamSetClient(CFReadStreamRef readStream, CFOptionFlag
 }
 
 CF_EXPORT Boolean CFWriteStreamSetClient(CFWriteStreamRef writeStream, CFOptionFlags streamEvents, CFWriteStreamClientCallBack clientCB, CFStreamClientContext *clientContext) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFWriteStreamTypeID, (CFSwiftRef)writeStream)) {
+        // TODO: build up a delegate somehow to service the CFStreamClientContext?
+        return false;
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFWriteStreamTypeID, (const void *)(NSOutputStream *)writeStream)) {
         NSOutputStream* os = (NSOutputStream*) writeStream;
 
@@ -1542,7 +1582,11 @@ CF_PRIVATE void _CFStreamScheduleWithRunLoop(struct _CFStream *stream, CFRunLoop
 }
 
 CF_EXPORT void CFReadStreamScheduleWithRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFReadStreamTypeID, (CFSwiftRef)stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSInputStream.scheduleWithRunLoop, runLoop, runLoopMode);
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFReadStreamTypeID, (const void *)(NSInputStream *)stream)) {
         NSInputStream* is  = (NSInputStream*) stream;
         if ([is respondsToSelector:@selector(_scheduleInCFRunLoop:forMode:)])
@@ -1557,7 +1601,11 @@ CF_EXPORT void CFReadStreamScheduleWithRunLoop(CFReadStreamRef stream, CFRunLoop
 }
 
 CF_EXPORT void CFWriteStreamScheduleWithRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFWriteStreamTypeID, (CFSwiftRef)stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSOutputStream.scheduleWithRunLoop, runLoop, runLoopMode);
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFWriteStreamTypeID, (const void *)(NSOutputStream *)stream)) {
         NSOutputStream* os  = (NSOutputStream*) stream;
         if ([os respondsToSelector:@selector(_scheduleInCFRunLoop:forMode:)])
@@ -1629,7 +1677,11 @@ CF_PRIVATE void _CFStreamUnscheduleFromRunLoop(struct _CFStream *stream, CFRunLo
 }
 
 CF_EXPORT void CFReadStreamUnscheduleFromRunLoop(CFReadStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFReadStreamTypeID, (CFSwiftRef)stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSInputStream.unscheduleWithRunLoop, runLoop, runLoopMode);
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFReadStreamTypeID, (const void *)(NSInputStream *)stream)) {
         NSInputStream* is  = (NSInputStream*) stream;
         if ([is respondsToSelector:@selector(_unscheduleFromCFRunLoop:forMode:)])
@@ -1644,7 +1696,11 @@ CF_EXPORT void CFReadStreamUnscheduleFromRunLoop(CFReadStreamRef stream, CFRunLo
 }
 
 void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef runLoop, CFStringRef runLoopMode) {
-#if defined(CFSTREAM_SUPPORTS_BRIDGING)
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (CF_IS_SWIFT(__kCFWriteStreamTypeID, (CFSwiftRef)stream)) {
+        (void)CF_SWIFT_CALLV((CFSwiftRef)stream, NSOutputStream.unscheduleWithRunLoop, runLoop, runLoopMode);
+    }
+#elif defined(CFSTREAM_SUPPORTS_BRIDGING)
     if (CF_IS_OBJC(__kCFWriteStreamTypeID, (const void *)(NSOutputStream *)stream)) {
         NSOutputStream* os  = (NSOutputStream*) stream;
         if ([os respondsToSelector:@selector(_unscheduleFromCFRunLoop:forMode:)])

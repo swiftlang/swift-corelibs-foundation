@@ -10,211 +10,34 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
-internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
-internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
-internal let kCFNumberSInt32Type = CFNumberType.sInt32Type
-internal let kCFNumberSInt64Type = CFNumberType.sInt64Type
-internal let kCFNumberFloat32Type = CFNumberType.float32Type
-internal let kCFNumberFloat64Type = CFNumberType.float64Type
-internal let kCFNumberCharType = CFNumberType.charType
-internal let kCFNumberShortType = CFNumberType.shortType
-internal let kCFNumberIntType = CFNumberType.intType
-internal let kCFNumberLongType = CFNumberType.longType
-internal let kCFNumberLongLongType = CFNumberType.longLongType
-internal let kCFNumberFloatType = CFNumberType.floatType
-internal let kCFNumberDoubleType = CFNumberType.doubleType
-internal let kCFNumberCFIndexType = CFNumberType.cfIndexType
-internal let kCFNumberNSIntegerType = CFNumberType.nsIntegerType
-internal let kCFNumberCGFloatType = CFNumberType.cgFloatType
-internal let kCFNumberSInt128Type = CFNumberType(rawValue: 17)!
-#else
-internal let kCFNumberSInt128Type: CFNumberType = 17
-#endif
-
-extension Int : _ObjectTypeBridgeable {
-    public init(_ number: NSNumber) {
-        self = number.intValue
-    }
-    
-    public typealias _ObjectType = NSNumber
-    public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSNumber(value: self)
-    }
-    
-    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Int?) {
-        result = _unconditionallyBridgeFromObjectiveC(source)
-    }
-    
-    @discardableResult
-    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Int?) -> Bool {
-        result = source.intValue
-        return true
-    }
-    
-    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Int {
-        if let object = source {
-            var value: Int?
-            _conditionallyBridgeFromObjectiveC(object, result: &value)
-            return value!
-        } else {
-            return 0
-        }
-    }
-}
-
-extension UInt : _ObjectTypeBridgeable {
-    public init(_ number: NSNumber) {
-        self = number.uintValue
-    }
-
-    public typealias _ObjectType = NSNumber
-    public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSNumber(value: self)
-    }
-    
-    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout UInt?) {
-        result = _unconditionallyBridgeFromObjectiveC(source)
-    }
-    
-    @discardableResult
-    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout UInt?) -> Bool {
-        result = source.uintValue
-        return true
-    }
-    
-    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> UInt {
-        if let object = source {
-            var value: UInt?
-            _conditionallyBridgeFromObjectiveC(object, result: &value)
-            return value!
-        } else {
-            return 0
-        }
-    }
-}
-
-extension Float : _ObjectTypeBridgeable {
-    public init(_ number: NSNumber) {
-        self = number.floatValue
-    }
-    
-    public typealias _ObjectType = NSNumber
-    public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSNumber(value: self)
-    }
-    
-    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Float?) {
-        result = _unconditionallyBridgeFromObjectiveC(source)
-    }
-    
-    @discardableResult
-    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Float?) -> Bool {
-        result = source.floatValue
-        return true
-    }
-    
-    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Float {
-        if let object = source {
-            var value: Float?
-            _conditionallyBridgeFromObjectiveC(object, result: &value)
-            return value!
-        } else {
-            return 0.0
-        }
-    }
-}
-
-extension Double : _ObjectTypeBridgeable {
-    public init(_ number: NSNumber) {
-        self = number.doubleValue
-    }
-    
-    public typealias _ObjectType = NSNumber
-    public func _bridgeToObjectiveC() -> _ObjectType {
-        return NSNumber(value: self)
-    }
-    
-    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Double?) {
-        result = _unconditionallyBridgeFromObjectiveC(source)
-    }
-    
-    @discardableResult
-    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Double?) -> Bool {
-        result = source.doubleValue
-        return true
-    }
-    
-    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Double {
-        if let object = source {
-            var value: Double?
-            _conditionallyBridgeFromObjectiveC(object, result: &value)
-            return value!
-        } else {
-            return 0.0
-        }
-    }
-}
-
-extension Bool : _ObjectTypeBridgeable {
-    public init(_ number: NSNumber) {
-        self = number.boolValue
-    }
-    
-    public typealias _ObjectType = NSNumber
-    public func _bridgeToObjectiveC() -> _ObjectType {
-        return unsafeBitCast(self ? kCFBooleanTrue : kCFBooleanFalse, to: NSNumber.self)
-    }
-    
-    static public func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Bool?) {
-        result = _unconditionallyBridgeFromObjectiveC(source)
-    }
-    
-    @discardableResult
-    static public func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Bool?) -> Bool {
-        result = source.boolValue
-        return true
-    }
-    
-    static public func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Bool {
-        if let object = source {
-            var value: Bool?
-            _conditionallyBridgeFromObjectiveC(object, result: &value)
-            return value!
-        } else {
-            return false
-        }
-    }
-}
-
-extension Bool : _CFBridgeable {
-    typealias CFType = CFBoolean
-    var _cfObject: CFType {
-        return self ? kCFBooleanTrue : kCFBooleanFalse
-    }
-}
-
-extension NSNumber : ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral {
-
-}
-
-private struct CFSInt128Struct {
-    var high: Int64
-    var low: UInt64
-}
-
 open class NSNumber : NSValue {
     typealias CFType = CFNumber
-    // This layout MUST be the same as CFNumber so that they are bridgeable
-    private var _base = _CFInfo(typeID: CFNumberGetTypeID())
-    private var _pad: UInt64 = 0
 
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        switch objCType.pointee {
+        case 0x6c /*l*/: fallthrough
+        case 0x69 /*i*/: fallthrough
+        case 0x73 /*s*/: fallthrough
+        case 0x63 /*c*/: fallthrough
+        case 0x42 /*B*/:
+            return Int(bitPattern: _CFHashInt(intValue))
+        case 0x4c /*L*/: fallthrough
+        case 0x49 /*I*/: fallthrough
+        case 0x53 /*S*/: fallthrough
+        case 0x43 /*C*/:
+            let i = uintValue
+            return i > UInt(Int.max) ? Int(bitPattern: _CFHashDouble(Double(i))) : Int(bitPattern: _CFHashInt(Int(bitPattern: i)))
+        case 0x71 /*q*/:
+            return Int(bitPattern: _CFHashDouble(Double(int64Value)))
+        case 0x51 /*Q*/:
+            return Int(bitPattern: _CFHashDouble(Double(uint64Value)))
+        default:
+            return Int(bitPattern: _CFHashDouble(doubleValue))
+        }
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
@@ -257,13 +80,9 @@ open class NSNumber : NSValue {
         }
     }
     
-    deinit {
-        _CFDeinit(self)
-    }
-    
     private convenience init(bytes: UnsafeRawPointer, numberType: CFNumberType) {
         let cfnumber = CFNumberCreate(nil, numberType, bytes)
-        self.init(factory: { unsafeBitCast(cfnumber, to: NSNumber.self) })
+        self.init(factory: unsafeBitCast(cfnumber, to: NSNumber.self))
     }
     
     public convenience init(value: Int8) {
@@ -346,7 +165,7 @@ open class NSNumber : NSValue {
     }
 
     public convenience init(value: Bool) {
-        self.init(factory: value._bridgeToObjectiveC)
+        self.init(factory: unsafeBitCast(value ? kCFBooleanTrue : kCFBooleanFalse, to: NSNumber.self))
     }
 
     override internal init() {
@@ -414,86 +233,228 @@ open class NSNumber : NSValue {
     }
 
     open var int8Value: Int8 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return self.int8Value
+        case 0x63 /*c*/: return self.int8Value
+        case 0x43 /*C*/: return Int8(bitPattern: uint8Value)
+        case 0x73 /*s*/: return Int8(truncatingIfNeeded: int16Value)
+        case 0x53 /*S*/: return Int8(truncatingIfNeeded: uint16Value)
+        case 0x69 /*i*/: return Int8(truncatingIfNeeded: int32Value)
+        case 0x49 /*I*/: return Int8(truncatingIfNeeded: uint32Value)
+        case 0x6c /*l*/: return Int8(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return Int8(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return Int8(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return Int8(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return Int8(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return Int8(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
-
+    
     open var uint8Value: UInt8 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return UInt8(bitPattern: int8Value)
+        case 0x63 /*c*/: return UInt8(bitPattern: int8Value)
+        case 0x43 /*C*/: return self.uint8Value
+        case 0x73 /*s*/: return UInt8(truncatingIfNeeded: int16Value)
+        case 0x53 /*S*/: return UInt8(truncatingIfNeeded: uint16Value)
+        case 0x69 /*i*/: return UInt8(truncatingIfNeeded: int32Value)
+        case 0x49 /*I*/: return UInt8(truncatingIfNeeded: uint32Value)
+        case 0x6c /*l*/: return UInt8(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return UInt8(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return UInt8(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return UInt8(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return UInt8(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return UInt8(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var int16Value: Int16 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return Int16(int8Value)
+        case 0x63 /*c*/: return Int16(int8Value)
+        case 0x43 /*C*/: return Int16(uint8Value)
+        case 0x73 /*s*/: return self.int16Value
+        case 0x53 /*S*/: return Int16(bitPattern: uint16Value)
+        case 0x69 /*i*/: return Int16(truncatingIfNeeded: int32Value)
+        case 0x49 /*I*/: return Int16(truncatingIfNeeded: uint32Value)
+        case 0x6c /*l*/: return Int16(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return Int16(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return Int16(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return Int16(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return Int16(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return Int16(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var uint16Value: UInt16 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return UInt16(bitPattern: Int16(int8Value))
+        case 0x63 /*c*/: return UInt16(bitPattern: Int16(int8Value))
+        case 0x43 /*C*/: return UInt16(uint8Value)
+        case 0x73 /*s*/: return UInt16(bitPattern: int16Value)
+        case 0x53 /*S*/: return self.uint16Value
+        case 0x69 /*i*/: return UInt16(truncatingIfNeeded: int32Value)
+        case 0x49 /*I*/: return UInt16(truncatingIfNeeded: uint32Value)
+        case 0x6c /*l*/: return UInt16(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return UInt16(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return UInt16(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return UInt16(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return UInt16(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return UInt16(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var int32Value: Int32 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return Int32(int8Value)
+        case 0x63 /*c*/: return Int32(int8Value)
+        case 0x43 /*C*/: return Int32(uint8Value)
+        case 0x73 /*s*/: return Int32(int16Value)
+        case 0x53 /*S*/: return Int32(uint16Value)
+        case 0x69 /*i*/: return self.int32Value
+        case 0x49 /*I*/: return Int32(bitPattern: uint32Value)
+        case 0x6c /*l*/: return Int32(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return Int32(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return Int32(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return Int32(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return Int32(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return Int32(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var uint32Value: UInt32 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return UInt32(bitPattern: Int32(int8Value))
+        case 0x63 /*c*/: return UInt32(bitPattern: Int32(int8Value))
+        case 0x43 /*C*/: return UInt32(uint8Value)
+        case 0x73 /*s*/: return UInt32(bitPattern: Int32(int16Value))
+        case 0x53 /*S*/: return UInt32(uint16Value)
+        case 0x69 /*i*/: return UInt32(bitPattern: int32Value)
+        case 0x49 /*I*/: return self.uint32Value
+        case 0x6c /*l*/: return UInt32(truncatingIfNeeded: intValue)
+        case 0x4c /*L*/: return UInt32(truncatingIfNeeded: uintValue)
+        case 0x66 /*f*/: return UInt32(truncatingIfNeeded: Int(floatValue))
+        case 0x64 /*d*/: return UInt32(truncatingIfNeeded: Int(doubleValue))
+        case 0x71 /*q*/: return UInt32(truncatingIfNeeded: int64Value)
+        case 0x51 /*Q*/: return UInt32(truncatingIfNeeded: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var int64Value: Int64 {
-        var value: Int64 = 0
-        CFNumberGetValue(_cfObject, kCFNumberSInt64Type, &value)
-        return .init(truncatingIfNeeded: value)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return Int64(int8Value)
+        case 0x63 /*c*/: return Int64(int8Value)
+        case 0x43 /*C*/: return Int64(uint8Value)
+        case 0x73 /*s*/: return Int64(int16Value)
+        case 0x53 /*S*/: return Int64(uint16Value)
+        case 0x69 /*i*/: return Int64(int32Value)
+        case 0x49 /*I*/: return Int64(uint32Value)
+        case 0x6c /*l*/: return Int64(intValue)
+        case 0x4c /*L*/: return Int64(bitPattern: UInt64(uintValue))
+        case 0x66 /*f*/: return Int64(floatValue)
+        case 0x64 /*d*/: return Int64(doubleValue)
+        case 0x71 /*q*/: return self.int64Value
+        case 0x51 /*Q*/: return Int64(bitPattern: uint64Value)
+        default: fatalError()
+        }
     }
     
     open var uint64Value: UInt64 {
-        var value = CFSInt128Struct(high: 0, low: 0)
-        CFNumberGetValue(_cfObject, kCFNumberSInt128Type, &value)
-        return .init(truncatingIfNeeded: value.low)
+        switch objCType.pointee {
+        case 0x42 /*B*/: return UInt64(bitPattern: Int64(int8Value))
+        case 0x63 /*c*/: return UInt64(bitPattern: Int64(int8Value))
+        case 0x43 /*C*/: return UInt64(uint8Value)
+        case 0x73 /*s*/: return UInt64(bitPattern: Int64(int16Value))
+        case 0x53 /*S*/: return UInt64(uint16Value)
+        case 0x69 /*i*/: return UInt64(bitPattern: Int64(int32Value))
+        case 0x49 /*I*/: return UInt64(uint32Value)
+        case 0x6c /*l*/: return UInt64(bitPattern: Int64(intValue))
+        case 0x4c /*L*/: return UInt64(uintValue)
+        case 0x66 /*f*/: return UInt64(floatValue)
+        case 0x64 /*d*/: return UInt64(doubleValue)
+        case 0x71 /*q*/: return UInt64(bitPattern: int64Value)
+        case 0x51 /*Q*/: return self.uint64Value
+        default: fatalError()
+        }
     }
     
     open var floatValue: Float {
-        var value: Float = 0
-        CFNumberGetValue(_cfObject, kCFNumberFloatType, &value)
-        return value
+        switch objCType.pointee {
+        case 0x42 /*B*/: return Float(int8Value)
+        case 0x63 /*c*/: return Float(int8Value)
+        case 0x43 /*C*/: return Float(uint8Value)
+        case 0x73 /*s*/: return Float(int16Value)
+        case 0x53 /*S*/: return Float(uint16Value)
+        case 0x69 /*i*/: return Float(int32Value)
+        case 0x49 /*I*/: return Float(uint32Value)
+        case 0x6c /*l*/: return Float(intValue)
+        case 0x4c /*L*/: return Float(uintValue)
+        case 0x66 /*f*/: return self.floatValue
+        case 0x64 /*d*/: return Float(doubleValue)
+        case 0x71 /*q*/: return Float(int64Value)
+        case 0x51 /*Q*/: return Float(uint64Value)
+        default: fatalError()
+        }
     }
     
     open var doubleValue: Double {
-        var value: Double = 0
-        CFNumberGetValue(_cfObject, kCFNumberDoubleType, &value)
-        return value
+        switch objCType.pointee {
+        case 0x42 /*B*/: return Double(int8Value)
+        case 0x63 /*c*/: return Double(int8Value)
+        case 0x43 /*C*/: return Double(uint8Value)
+        case 0x73 /*s*/: return Double(int16Value)
+        case 0x53 /*S*/: return Double(uint16Value)
+        case 0x69 /*i*/: return Double(int32Value)
+        case 0x49 /*I*/: return Double(uint32Value)
+        case 0x6c /*l*/: return Double(intValue)
+        case 0x4c /*L*/: return Double(uintValue)
+        case 0x66 /*f*/: return Double(floatValue)
+        case 0x64 /*d*/: return self.doubleValue
+        case 0x71 /*q*/: return Double(int64Value)
+        case 0x51 /*Q*/: return Double(uint64Value)
+        default: fatalError()
+        }
     }
     
     open var boolValue: Bool {
-        // Darwin Foundation NSNumber appears to have a bug and return false for NSNumber(value: Int64.min).boolValue,
-        // even though the documentation says:
-        // "A 0 value always means false, and any nonzero value is interpreted as true."
-        return (int64Value != 0) && (int64Value != Int64.min)
+        switch objCType.pointee {
+        case 0x42 /*B*/: fallthrough
+        case 0x63 /*c*/: fallthrough
+        case 0x43 /*C*/: fallthrough
+        case 0x73 /*s*/: fallthrough
+        case 0x53 /*S*/: fallthrough
+        case 0x69 /*i*/: fallthrough
+        case 0x49 /*I*/: fallthrough
+        case 0x6c /*l*/: fallthrough
+        case 0x4c /*L*/: return intValue != 0
+        case 0x66 /*f*/: fallthrough
+        case 0x64 /*d*/: return doubleValue != 0.0
+        case 0x71 /*q*/: fallthrough
+        case 0x51 /*Q*/: return int64Value != 0
+        default: fatalError()
+        }
     }
 
     open var intValue: Int {
-        var val: Int = 0
-        withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<Int>) -> Void in
-            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-        }
-        return val
+#if arch(x86_64) || arch(arm64)
+        return Int(int64Value)
+#else
+        return Int(int32Value)
+#endif
     }
     
     open var uintValue: UInt {
-        var val: UInt = 0
-        withUnsafeMutablePointer(to: &val) { (value: UnsafeMutablePointer<UInt>) -> Void in
-            CFNumberGetValue(_cfObject, kCFNumberLongType, value)
-        }
-        return val
+#if arch(x86_64) || arch(arm64)
+        return UInt(uint64Value)
+#else
+        return UInt(uint32Value)
+#endif
     }
     
     open var stringValue: String {
@@ -650,14 +611,3 @@ extension CFNumber : _NSBridgeable {
     internal var _nsObject: NSType { return unsafeBitCast(self, to: NSType.self) }
 }
 
-internal func _CFSwiftNumberGetType(_ obj: CFTypeRef) -> CFNumberType {
-    return unsafeBitCast(obj, to: NSNumber.self)._cfNumberType()
-}
-
-internal func _CFSwiftNumberGetValue(_ obj: CFTypeRef, _ valuePtr: UnsafeMutableRawPointer, _ type: CFNumberType) -> Bool {
-    return unsafeBitCast(obj, to: NSNumber.self)._getValue(valuePtr, forType: type)
-}
-
-internal func _CFSwiftNumberGetBoolValue(_ obj: CFTypeRef) -> Bool {
-    return unsafeBitCast(obj, to: NSNumber.self).boolValue
-}

@@ -70,16 +70,12 @@ class TestNSCharacterSet : XCTestCase {
             ("test_Predefines", test_Predefines),
             ("test_Range", test_Range),
             ("test_String", test_String),
-            ("test_Bitmap", test_Bitmap),
-            ("test_AnnexPlanes", test_AnnexPlanes),
-            ("test_Planes", test_Planes),
-            ("test_InlineBuffer", test_InlineBuffer),
+            ("test_Subtracting", test_Subtracting),
+            ("test_SubtractEmptySet", test_SubtractEmptySet),
+            ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
+            ("test_SymmetricDifference", test_SymmetricDifference),
+            ("test_Bitmap", test_bitmap),
             ("test_Equatable", test_Equatable),
-            // The following tests must remain disabled until SR-2509 is resolved.
-            // ("test_Subtracting", test_Subtracting),
-            // ("test_SubtractEmptySet", test_SubtractEmptySet),
-            // ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
-            // ("test_SymmetricDifference", test_SymmetricDifference),
         ]
     }
     
@@ -267,34 +263,6 @@ class TestNSCharacterSet : XCTestCase {
         }
     }
     
-    func testClosedRanges_SR_2988() {
-        // "CharacterSet.insert(charactersIn: ClosedRange) crashes on a closed ClosedRange<UnicodeScalar> containing U+D7FF"
-        let problematicChar = UnicodeScalar(0xD7FF)!
-        let range = capitalA...problematicChar
-        var characters = CharacterSet(charactersIn: range) // this should not crash
-        XCTAssertTrue(characters.contains(problematicChar))
-        characters.remove(charactersIn: range) // this should not crash
-        XCTAssertTrue(!characters.contains(problematicChar))
-        characters.insert(charactersIn: range) // this should not crash
-        XCTAssertTrue(characters.contains(problematicChar))
-    }
-    
-    func test_Bitmap() {
-        
-    }
-    
-    func test_AnnexPlanes() {
-        
-    }
-    
-    func test_Planes() {
-        
-    }
-    
-    func test_InlineBuffer() {
-        
-    }
-
     func test_Subtracting() {
         let difference = CharacterSet(charactersIn: "abc").subtracting(CharacterSet(charactersIn: "b"))
         let expected = CharacterSet(charactersIn: "ac")
@@ -322,35 +290,134 @@ class TestNSCharacterSet : XCTestCase {
         XCTAssertEqual(expected, symmetricDifference)
     }
     
-    func test_Equatable() {
-        let equalPairs = [
-            ("", ""),
-            ("a", "a"),
-            ("abcde", "abcde"),
-            ("12345", "12345")
-        ]
-        
-        /*
-         Tests disabled due to CoreFoundation bug?
-         These NSCharacterSet pairs are (wrongly?) evaluated to be equal. Same behaviour can be observed on macOS 10.12.
-         Interestingly, on iOS 11 Simulator, they are evaluted to be _not_ equal,
-         while on iOS 10.3.1 Simulator, they are evaluted to be equal.
-         */
-        let notEqualPairs = [
-            ("abc", "123"),
-//            ("ab", "abc"),
-//            ("abc", "")
-        ]
-        
-        for pair in equalPairs {
-            XCTAssertEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
-        }
-        XCTAssertEqual(Box.alphanumerics, Box.alphanumerics)
-        
-        for pair in notEqualPairs {
-            XCTAssertNotEqual(Box(charactersIn: pair.0), Box(charactersIn: pair.1))
-        }
-        XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
+    func testMutability_mutableCopyCrash() {
+        let cs = CharacterSet(charactersIn: "ABC")
+        _ = cs._bridgeToObjectiveC().mutableCopy() // this should not crash
     }
+    
+    func testMutability_SR_1782() {
+        var nonAlphanumeric = CharacterSet.alphanumerics.inverted
+        nonAlphanumeric.remove(charactersIn: " ") // this should not crash
+    }
+    
+    func testClosedRanges_SR_2988() {
+        // "CharacterSet.insert(charactersIn: ClosedRange) crashes on a closed ClosedRange<UnicodeScalar> containing U+D7FF"
+        let problematicChar = UnicodeScalar(0xD7FF)!
+        let range = capitalA...problematicChar
+        var characters = CharacterSet(charactersIn: range) // this should not crash
+        XCTAssertTrue(characters.contains(problematicChar))
+        characters.remove(charactersIn: range) // this should not crash
+        XCTAssertTrue(!characters.contains(problematicChar))
+        characters.insert(charactersIn: range) // this should not crash
+        XCTAssertTrue(characters.contains(problematicChar))
+    }
+    
+    // MARK: -
+    func test_classForCoder() {
+        // confirm internal bridged impl types are not exposed to archival machinery
+        let cs = CharacterSet()._bridgeToObjectiveC()
+        
+        // Either of the following two are OK
+        let expectedImmutable: AnyClass = NSCharacterSet.self as AnyClass
+        let expectedMutable: AnyClass = NSMutableCharacterSet.self as AnyClass
+        
+        let actualClass: AnyClass = cs.classForCoder
+        let actualClassForCoder: AnyClass = cs.classForKeyedArchiver!
+        
+        XCTAssertTrue(actualClass == expectedImmutable || actualClass == expectedMutable)
+        XCTAssertTrue(actualClassForCoder == expectedImmutable || actualClassForCoder == expectedMutable)
+    }
+    
+    func test_AnyHashableContainingCharacterSet() {
+        let values: [CharacterSet] = [
+            CharacterSet(charactersIn: "ABC"),
+            CharacterSet(charactersIn: "XYZ"),
+            CharacterSet(charactersIn: "XYZ")
+        ]
+        let anyHashables = values.map(AnyHashable.init)
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[0].base))
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[1].base))
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[2].base))
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
+    }
+    
+    func test_AnyHashableCreatedFromNSCharacterSet() {
+        let values: [NSCharacterSet] = [
+            NSCharacterSet(charactersIn: "ABC"),
+            NSCharacterSet(charactersIn: "XYZ"),
+            NSCharacterSet(charactersIn: "XYZ"),
+            ]
+        let anyHashables = values.map(AnyHashable.init)
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[0].base))
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[1].base))
+        XCTAssertTrue(CharacterSet.self == type(of: anyHashables[2].base))
+        XCTAssertNotEqual(anyHashables[0], anyHashables[1])
+        XCTAssertEqual(anyHashables[1], anyHashables[2])
+    }
+    
+    func test_superSet() {
+        let a = CharacterSet.letters.isSuperset(of: CharacterSet(charactersIn: "ab"))
+        XCTAssertTrue(a)
+    }
+    
+    func test_union() {
+        let union = CharacterSet(charactersIn: "ab").union(CharacterSet(charactersIn: "cd"))
+        let expected = CharacterSet(charactersIn: "abcd")
+        XCTAssertEqual(expected, union)
+    }
+    
+    func test_subtracting() {
+        let difference = CharacterSet(charactersIn: "abc").subtracting(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "ac")
+        XCTAssertEqual(expected, difference)
+    }
+    
+    func test_subtractEmptySet() {
+        var mutableSet = CharacterSet(charactersIn: "abc")
+        let emptySet = CharacterSet()
+        mutableSet.subtract(emptySet)
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, mutableSet)
+    }
+    
+    func test_subtractNonEmptySet() {
+        var mutableSet = CharacterSet()
+        let nonEmptySet = CharacterSet(charactersIn: "abc")
+        mutableSet.subtract(nonEmptySet)
+        XCTAssertTrue(mutableSet.isEmpty)
+    }
+    
+    func test_symmetricDifference() {
+        let symmetricDifference = CharacterSet(charactersIn: "ac").symmetricDifference(CharacterSet(charactersIn: "b"))
+        let expected = CharacterSet(charactersIn: "abc")
+        XCTAssertEqual(expected, symmetricDifference)
+    }
+    
+    func test_hasMember() {
+        let contains = CharacterSet.letters.hasMember(inPlane: 1)
+        XCTAssertTrue(contains)
+    }
+    
+    func test_bitmap() {
+        let bitmap = CharacterSet(charactersIn: "ab").bitmapRepresentation
+        XCTAssertEqual(0x6, bitmap[12])
+        XCTAssertEqual(8192, bitmap.count)
+    }
+    
+    func test_Equatable() {
+        XCTAssertEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: ""))
+        XCTAssertEqual(NSCharacterSet(charactersIn: "a"), NSCharacterSet(charactersIn: "a"))
+        XCTAssertEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "ab"))
+        
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "123"))
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "123"), NSCharacterSet(charactersIn: "abc"))
+        
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), nil)
 
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "ab"), NSCharacterSet(charactersIn: "abc"))
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: "ab"))
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: "abc"), NSCharacterSet(charactersIn: ""))
+        XCTAssertNotEqual(NSCharacterSet(charactersIn: ""), NSCharacterSet(charactersIn: "abc"))
+    }
 }

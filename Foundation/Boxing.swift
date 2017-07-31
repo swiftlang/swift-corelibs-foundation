@@ -97,7 +97,7 @@ extension _SwiftNativeFoundationType {
         case .Mutable(let m):
             return try m._withUnsafeGuaranteedRef {
                 _onFastPath()
-                return try whatToDo(_unsafeReferenceCast($0, to: ImmutableType.self))
+                return try whatToDo(unsafeBitCast($0, to: ImmutableType.self))
             }
         }
     }
@@ -158,7 +158,7 @@ extension _MutablePairBoxing {
             }
         case .Mutable(let m):
             return try m._withUnsafeGuaranteedRef {
-                return try whatToDo(_unsafeReferenceCast($0, to: WrappedSwiftNSType.ImmutableType.self))
+                return try whatToDo(unsafeBitCast($0, to: WrappedSwiftNSType.ImmutableType.self))
             }
         }
     }
@@ -190,7 +190,7 @@ extension _MutablePairBoxing {
         case .Immutable(let i):
             // We need to become mutable; by creating a new instance we also become unique
             let copy = Unmanaged.passRetained(i._withUnsafeGuaranteedRef {
-                return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self) }
+                return unsafeBitCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self) }
             )
             
             // Be sure to set the var before calling out; otherwise references to the struct in the closure may be looking at the old value
@@ -203,7 +203,7 @@ extension _MutablePairBoxing {
             // Only create a new box if we are not uniquely referenced
             if !unique {
                 let copy = Unmanaged.passRetained(m._withUnsafeGuaranteedRef {
-                    return _unsafeReferenceCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self)
+                    return unsafeBitCast($0.mutableCopy(), to: WrappedSwiftNSType.MutableType.self)
                     })
                 _wrapped = WrappedSwiftNSType(unmanagedMutableObject: copy)
                 return try copy._withUnsafeGuaranteedRef {

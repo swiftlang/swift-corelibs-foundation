@@ -740,6 +740,20 @@ open class NSKeyedUnarchiver : NSCoder {
         return decodeObject() as? Data
     }
     
+    internal override func _withDecodedBytes<Result>(_ work: (UnsafeRawBufferPointer) -> Result) -> Result {
+        var length: UInt32 = 0
+        _decodeValueOfObjCType(.UInt, at: &length)
+        var buffer = [Int8](repeating: 0, count: Int(length))
+        return buffer.withUnsafeMutableBytes { (bufferPtr) -> Result in
+            _decodeValueOfObjCType(.Char, at: bufferPtr.baseAddress!)
+            return work(UnsafeRawBufferPointer(bufferPtr))
+        }
+    }
+    
+    internal override func _withDecodedBytes<Result>(forKey: String, _ work: (UnsafeRawBufferPointer) -> Result) -> Result {
+        NSUnimplemented()
+    }
+    
     private func _decodeValueOfObjCType(_ type: _NSSimpleObjCType, at addr: UnsafeMutableRawPointer) {
         switch type {
         case .ID:

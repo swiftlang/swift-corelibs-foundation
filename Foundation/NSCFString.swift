@@ -10,11 +10,46 @@
 
 import CoreFoundation
 
-internal class _NSCFString : NSMutableString {
-    required init(characters: UnsafePointer<unichar>, length: Int) {
-        fatalError()
-    }
 
+#if os(OSX) || os(iOS)
+internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
+internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
+internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.isoLatin1.rawValue
+internal let kCFStringEncodingNextStepLatin =  CFStringBuiltInEncodings.nextStepLatin.rawValue
+internal let kCFStringEncodingASCII =  CFStringBuiltInEncodings.ASCII.rawValue
+internal let kCFStringEncodingUnicode =  CFStringBuiltInEncodings.unicode.rawValue
+internal let kCFStringEncodingUTF8 =  CFStringBuiltInEncodings.UTF8.rawValue
+internal let kCFStringEncodingNonLossyASCII =  CFStringBuiltInEncodings.nonLossyASCII.rawValue
+internal let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
+internal let kCFStringEncodingUTF16BE =  CFStringBuiltInEncodings.UTF16BE.rawValue
+internal let kCFStringEncodingUTF16LE =  CFStringBuiltInEncodings.UTF16LE.rawValue
+internal let kCFStringEncodingUTF32 =  CFStringBuiltInEncodings.UTF32.rawValue
+internal let kCFStringEncodingUTF32BE =  CFStringBuiltInEncodings.UTF32BE.rawValue
+internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawValue
+    
+internal let kCFStringGraphemeCluster = CFStringCharacterClusterType.graphemeCluster
+internal let kCFStringComposedCharacterCluster = CFStringCharacterClusterType.composedCharacterCluster
+internal let kCFStringCursorMovementCluster = CFStringCharacterClusterType.cursorMovementCluster
+internal let kCFStringBackwardDeletionCluster = CFStringCharacterClusterType.backwardDeletionCluster
+    
+internal let kCFStringNormalizationFormD = CFStringNormalizationForm.D
+internal let kCFStringNormalizationFormKD = CFStringNormalizationForm.KD
+internal let kCFStringNormalizationFormC = CFStringNormalizationForm.C
+internal let kCFStringNormalizationFormKC = CFStringNormalizationForm.KC
+
+internal let kCFCompareCaseInsensitive = CFStringCompareFlags.compareCaseInsensitive.rawValue
+internal let kCFCompareBackwards = CFStringCompareFlags.compareBackwards.rawValue
+internal let kCFCompareAnchored = CFStringCompareFlags.compareAnchored.rawValue
+internal let kCFCompareNonliteral = CFStringCompareFlags.compareNonliteral.rawValue
+internal let kCFCompareLocalized = CFStringCompareFlags.compareLocalized.rawValue
+internal let kCFCompareNumerically = CFStringCompareFlags.compareNumerically.rawValue
+internal let kCFCompareDiacriticInsensitive = CFStringCompareFlags.compareDiacriticInsensitive.rawValue
+internal let kCFCompareWidthInsensitive = CFStringCompareFlags.compareWidthInsensitive.rawValue
+internal let kCFCompareForcedOrdering = CFStringCompareFlags.compareForcedOrdering.rawValue
+#endif
+
+
+internal class _NSCFString : NSMutableString {
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
@@ -27,19 +62,6 @@ internal class _NSCFString : NSMutableString {
         fatalError()
     }
 
-    required init(capacity: Int) {
-        fatalError()
-    }
-
-    required init(string aString: String) {
-        fatalError()
-    }
-    
-    deinit {
-        _CFDeinit(self)
-        _CFZeroUnsafeIvars(&_storage)
-    }
-    
     override var length: Int {
         return CFStringGetLength(unsafeBitCast(self, to: CFString.self))
     }
@@ -54,6 +76,14 @@ internal class _NSCFString : NSMutableString {
     
     override var classForCoder: AnyClass {
         return NSMutableString.self
+    }
+    
+    override func _fastCStringContents(_ nullTerminationRequired: Bool) -> UnsafePointer<Int8>? {
+        return CFStringGetCStringPtr(unsafeBitCast(self, to: CFString.self), CFStringGetSystemEncoding())
+    }
+    
+    override func _fastCharacterContents() -> UnsafePointer<unichar>? {
+        return CFStringGetCharactersPtr(unsafeBitCast(self, to: CFString.self))
     }
 }
 
@@ -203,7 +233,7 @@ internal func _CFSwiftStringFastCStringContents(_ str: AnyObject, _ nullTerminat
 }
 
 internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniChar>? {
-    return (str as! NSString)._fastContents
+    return (str as! NSString)._fastCharacterContents()
 }
 
 internal func _CFSwiftStringGetCString(_ str: AnyObject, buffer: UnsafeMutablePointer<Int8>, maxLength: Int, encoding: CFStringEncoding) -> Bool {
@@ -211,7 +241,7 @@ internal func _CFSwiftStringGetCString(_ str: AnyObject, buffer: UnsafeMutablePo
 }
 
 internal func _CFSwiftStringIsUnicode(_ str: AnyObject) -> Bool {
-    return (str as! NSString)._encodingCantBeStoredInEightBitCFString
+    return (str as! NSString)._encodingCantBeStoredInEightBitCFString()
 }
 
 internal func _CFSwiftStringInsert(_ str: AnyObject, index: CFIndex, inserted: AnyObject) {

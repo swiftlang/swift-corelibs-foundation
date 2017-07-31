@@ -110,7 +110,7 @@ typedef struct {
     CFTypeRef _Null_unspecified 	(*_Null_unspecified fetchValue)(CFTypeRef context, void *domain, CFStringRef key); // Caller releases
     void	(*_Null_unspecified writeValue)(CFTypeRef context, void *domain, CFStringRef key, CFTypeRef value);
     Boolean	(*_Null_unspecified synchronize)(CFTypeRef context, void *domain);
-    void	(*_Null_unspecified getKeysAndValues)(CFAllocatorRef _Nullable alloc, CFTypeRef context, void *domain, void *_Null_unspecified * _Null_unspecified buf[], CFIndex *numKeyValuePairs);
+    void	(*_Null_unspecified getKeysAndValues)(CFAllocatorRef _Nullable alloc, CFTypeRef context, void *domain, void *_Null_unspecified * _Null_unspecified buf[_Null_unspecified], CFIndex *numKeyValuePairs);
     CFDictionaryRef _Null_unspecified  (*_Null_unspecified copyDomainDictionary)(CFTypeRef context, void *domain);
     /* HACK - see comment on _CFPreferencesDomainSetIsWorldReadable(), below */
     void	(*setIsWorldReadable)(CFTypeRef context, void *domain, Boolean isWorldReadable);
@@ -304,7 +304,7 @@ CF_EXPORT Boolean __CFStringDecodeByteStream3(const UInt8 *bytes, CFIndex len, C
 
 /* Convert single byte to Unicode; assumes one-to-one correspondence (that is, can only be used with 1-byte encodings). You can use the function if it's not NULL.
 */
-CF_EXPORT Boolean (*__CFCharToUniCharFunc)(UInt32 flags, UInt8 ch, UniChar *unicodeChar);
+CF_EXPORT Boolean (*_Nullable __CFCharToUniCharFunc)(UInt32 flags, UInt8 ch, UniChar *unicodeChar);
 
 /* Character class functions UnicodeData-2_1_5.txt
 */
@@ -537,20 +537,6 @@ CF_INLINE CFHashCode _CFHashDouble(double d) {
     CFHashCode integralHash = HASHFACTOR * (CFHashCode)fmod(dInt, (double)ULONG_MAX);
     return (CFHashCode)(integralHash + (CFHashCode)((d - dInt) * ULONG_MAX));
 }
-
-CF_SWIFT_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value);
-CF_SWIFT_EXPORT void _CFNumberInitInt8(CFNumberRef result, int8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt8(CFNumberRef result, uint8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt16(CFNumberRef result, int16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt16(CFNumberRef result, uint16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt32(CFNumberRef result, int32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt32(CFNumberRef result, uint32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt(CFNumberRef result, long value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt(CFNumberRef result, unsigned long value);
-CF_SWIFT_EXPORT void _CFNumberInitInt64(CFNumberRef result, int64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt64(CFNumberRef result, uint64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitFloat(CFNumberRef result, float value);
-CF_SWIFT_EXPORT void _CFNumberInitDouble(CFNumberRef result, double value);
 
 /* These four functions are used by NSError in formatting error descriptions. They take NS or CFError as arguments and return a retained CFString or NULL.
 */ 

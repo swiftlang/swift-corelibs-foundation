@@ -38,7 +38,7 @@ open class Bundle: NSObject {
         // TODO: We do not yet resolve symlinks, but we must for compatibility
         // let resolvedPath = path._nsObject.stringByResolvingSymlinksInPath
         let resolvedPath = path
-        guard resolvedPath.length > 0 else {
+        guard resolvedPath.utf16.count > 0 else {
             return nil
         }
         

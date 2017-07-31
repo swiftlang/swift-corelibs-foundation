@@ -333,6 +333,82 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     public static func ==(lhs: NSObject, rhs: NSObject) -> Bool {
         return lhs.isEqual(rhs)
     }
+    
+    
+    // WARNING: the lifetime of this method is limited!
+    // As soon as Swift gains a memory model close to Rust that has "borrowing" this will be obslote and not needed
+    // This method should ONLY be used in contexts that return inner pointers that need lifetimes similar to the
+    // enclosing container. The only consumer as of current is NSString (and potentially an implementation of
+    // AutoreleasingUnsafeMutablePointer)
+    //
+    // Until such time as "borrow" style syntax is availble this is the only alternative to leaking memory.
+    // Leaks should not be tolerated; however this does come with the caveat that it does require an autorelease
+    // scope to be installed.
+    //
+    // swift-corelibs-foundation is unable (and philisophically be opposed) to installing a root pool.
+    // so any applications that use a
+    internal func _autorelease() {
+        _NSAutoreleasePool.current.add(self)
+    }
+}
+
+private final class _NSAutoreleasePool : NSObject {
+    struct AutoreleasedObject : Hashable {
+        var object: AnyObject
+        var identifier: ObjectIdentifier {
+            return ObjectIdentifier(object)
+        }
+        var hashValue: Int {
+            return identifier.hashValue
+        }
+        static func ==(_ lhs: AutoreleasedObject, _ rhs: AutoreleasedObject) -> Bool {
+            return lhs.identifier == rhs.identifier
+        }
+    }
+    var objects = Set<AutoreleasedObject>()
+    var prev: _NSAutoreleasePool?
+    var next: _NSAutoreleasePool?
+    
+    // technically we can store any object, however the only internal interface is on NSObject
+    func add(_ object: AnyObject) {
+        objects.insert(AutoreleasedObject(object: object))
+    }
+    
+    static var _currentPool = NSThreadSpecific<_NSAutoreleasePool>()
+    static var current: _NSAutoreleasePool {
+        return _NSAutoreleasePool._currentPool.get() {
+            print("autoreleasing an object without a root pool! autoreleased objects will leak")
+            return _NSAutoreleasePool()
+        }
+    }
+    
+    static func _push() {
+        let newPool = _NSAutoreleasePool()
+        if let pool = _NSAutoreleasePool._currentPool.get() {
+            pool.next = newPool
+            newPool.prev = pool
+        }
+        _NSAutoreleasePool._currentPool.set(newPool)
+    }
+    
+    static func _pop() {
+        guard let pool = _NSAutoreleasePool._currentPool.get() else {
+            fatalError("unbalanced pop of an autoreleasepool without a push")
+        }
+        if let prev = pool.prev {
+            prev.next = nil
+            _NSAutoreleasePool._currentPool.set(prev)
+            pool.prev = nil
+        } else {
+            _NSAutoreleasePool._currentPool.set(nil)
+        }
+    }
+}
+
+public func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result {
+    _NSAutoreleasePool._push()
+    defer { _NSAutoreleasePool._pop() }
+    return try body()
 }
 
 extension NSObject : CustomDebugStringConvertible {

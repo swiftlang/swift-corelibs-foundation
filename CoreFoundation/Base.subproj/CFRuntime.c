@@ -36,6 +36,10 @@
 OBJC_EXPORT void *objc_destructInstance(id obj);
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+extern void swift_retain(void *);
+extern void swift_release(void *);
+#endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <Shellapi.h>
@@ -578,7 +582,13 @@ CFTypeID CFGetTypeID(CFTypeRef cf) {
 #endif
     CFTYPE_OBJC_FUNCDISPATCH0(CFTypeID, cf, _cfTypeID);
     CFTYPE_SWIFT_FUNCDISPATCH0(CFTypeID, cf, NSObject._cfTypeID);
-    
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (!(cf != NULL && (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]) && (__kCFNotATypeTypeID != __CFGenericTypeID_inline(cf)) && (__kCFTypeTypeID != __CFGenericTypeID_inline(cf)))) {
+        if (__kCFNotATypeTypeID == __CFGenericTypeID_inline(cf)) {
+            return __CFSwiftBridge.NSObject._cfTypeID(cf);
+        }
+    }
+#endif
     __CFGenericAssertIsCF(cf);
     return __CFGenericTypeID_inline(cf);
 }
@@ -599,6 +609,11 @@ CFTypeRef _CFNonObjCRetain(CFTypeRef cf) {
 
 CFTypeRef CFRetain(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRetain() called with NULL ***"); HALT; }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    // We always call through to swift_retain, since all CFTypeRefs are at least _NSCFType objects
+    swift_retain((void *)cf);
+    return cf;
+#endif
     if (cf) __CFGenericAssertIsCF(cf);
     return _CFRetain(cf, false);
 }
@@ -617,6 +632,11 @@ void _CFNonObjCRelease(CFTypeRef cf) {
 
 void CFRelease(CFTypeRef cf) {
     if (NULL == cf) { CRSetCrashLogMessage("*** CFRelease() called with NULL ***"); HALT; }
+#if DEPLOYMENT_RUNTIME_SWIFT
+    // We always call through to swift_retain, since all CFTypeRefs are at least _NSCFType objects
+    swift_release((void *)cf);
+    return;
+#endif
 #if 0
     void **addrs[2] = {&&start, &&end};
     start:;
@@ -779,6 +799,9 @@ CFHashCode CFHash(CFTypeRef cf) {
 CFStringRef CFCopyDescription(CFTypeRef cf) {
     if (NULL == cf) return NULL;
     // CFTYPE_OBJC_FUNCDISPATCH0(CFStringRef, cf, _copyDescription);  // XXX returns 0 refcounted item under GC
+#if DEPLOYMENT_RUNTIME_SWIFT
+    CFTYPE_SWIFT_FUNCDISPATCH0(CFStringRef, cf, NSObject._copyDescription);
+#endif
     __CFGenericAssertIsCF(cf);
     if (NULL != __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc) {
 	CFStringRef result = __CFRuntimeClassTable[__CFGenericTypeID_inline(cf)]->copyDebugDesc(cf);
@@ -1274,11 +1297,6 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
 static bool (*CAS64)(int64_t, int64_t, volatile int64_t *) = OSAtomicCompareAndSwap64Barrier;
 #else
 static bool (*CAS32)(int32_t, int32_t, volatile int32_t *) = OSAtomicCompareAndSwap32Barrier;
-#endif
-
-#if DEPLOYMENT_RUNTIME_SWIFT
-extern void swift_retain(void *);
-extern void swift_release(void *);
 #endif
 
 // For "tryR==true", a return of NULL means "failed".

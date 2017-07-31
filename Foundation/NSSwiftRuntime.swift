@@ -63,6 +63,11 @@ internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unman
     return Unmanaged<CFTypeRef>.passRetained((cf as! NSObject).copy() as! NSObject)
 }
 
+internal func _CFSwiftCopyDescription(_ cf: CFTypeRef) -> Unmanaged<CFString> {
+    let desc = unsafeBitCast(cf, to: NSObject.self).description
+    let cf = desc._cfObject
+    return Unmanaged.passRetained(cf)
+}
 
 internal func _CFSwiftGetHash(_ cf: AnyObject) -> CFHashCode {
     return CFHashCode(bitPattern: (cf as! NSObject).hash)
@@ -93,26 +98,27 @@ internal func __CFInitializeSwift() {
     _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFBooleanGetTypeID(), unsafeBitCast(__NSCFBoolean.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(__NSCFNumber.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSCFData.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafeRawPointer.self))
-    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(__NSTimeZone.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(_CFKeyedArchiverUIDGetTypeID(), unsafeBitCast(_NSKeyedArchiverUID.self, to: UnsafeRawPointer.self))
     
 //    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, to: UnsafeRawPointer.self))
-//    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(InputStream.self, UnsafeRawPointer.self))
-//    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(OutputStream.self, UnsafeRawPointer.self))
-   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(_NSCFInputStream.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(_NSCFOutputStream.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafeRawPointer.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
     __CFSwiftBridge.NSObject._cfTypeID = _CFSwiftGetTypeID
     __CFSwiftBridge.NSObject.copyWithZone = _CFSwiftCopyWithZone
+    __CFSwiftBridge.NSObject._copyDescription = _CFSwiftCopyDescription
     
     __CFSwiftBridge.NSSet.count = _CFSwiftSetGetCount
     __CFSwiftBridge.NSSet.countForKey = _CFSwiftSetGetCountOfValue
@@ -210,7 +216,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSCharacterSet.mutableCopy = _CFSwiftCharacterSetMutableCopy
     __CFSwiftBridge.NSCharacterSet.longCharacterIsMember = _CFSwiftCharacterSetLongCharacterIsMember
     __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
-    __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
+    __CFSwiftBridge.NSCharacterSet.createInvertedSet = _CFSwiftCharacterSetCreateInverted
     
     __CFSwiftBridge.NSMutableCharacterSet.addCharactersInRange = _CFSwiftMutableSetAddCharactersInRange
     __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInRange = _CFSwiftMutableSetRemoveCharactersInRange
@@ -223,6 +229,41 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber._cfNumberGetType = _CFSwiftNumberGetType
     __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
+    
+    __CFSwiftBridge.NSInputStream.streamStatus = _CFSwiftInputStreamGetStreamStatus
+    __CFSwiftBridge.NSInputStream._cfStreamError = _CFSwiftInputStreamGetCFStreamError
+    __CFSwiftBridge.NSInputStream.streamError = _CFSwiftInputStreamGetStreamError
+    __CFSwiftBridge.NSInputStream.open = _CFSwiftInputStreamOpen
+    __CFSwiftBridge.NSInputStream.close = _CFSwiftInputStreamClose
+    __CFSwiftBridge.NSInputStream.hasBytesAvailable = _CFSwiftInputStreamHasBytesAvailable
+    __CFSwiftBridge.NSInputStream.read = _CFSwiftInputStreamRead
+    __CFSwiftBridge.NSInputStream.getBuffer = _CFSwiftInputStreamGetBuffer
+    __CFSwiftBridge.NSInputStream.copyPropertyForKey = _CFSwiftInputStreamCopyPropertyForKey
+    __CFSwiftBridge.NSInputStream.setPropertyForKey = _CFSwiftInputStreamSetPropertyForKey
+    __CFSwiftBridge.NSInputStream.scheduleWithRunLoop = _CFSwiftInputStreamScheduleWithRunLoop
+    __CFSwiftBridge.NSInputStream.unscheduleWithRunLoop = _CFSwiftInputStreamUnscheduleWithRunLoop
+    
+    __CFSwiftBridge.NSOutputStream.streamStatus = _CFSwiftOutputStreamGetStreamStatus
+    __CFSwiftBridge.NSOutputStream._cfStreamError = _CFSwiftOutputStreamGetCFStreamError
+    __CFSwiftBridge.NSOutputStream.streamError = _CFSwiftOutputStreamGetStreamError
+    __CFSwiftBridge.NSOutputStream.open = _CFSwiftOutputStreamOpen
+    __CFSwiftBridge.NSOutputStream.close = _CFSwiftOutputStreamClose
+    __CFSwiftBridge.NSOutputStream.hasSpaceAvailable = _CFSwiftOutputStreamHasSpaceAvailable
+    __CFSwiftBridge.NSOutputStream.write = _CFSwiftOutputStreamWrite
+    __CFSwiftBridge.NSOutputStream.copyPropertyForKey = _CFSwiftOutputStreamCopyPropertyForKey
+    __CFSwiftBridge.NSOutputStream.setPropertyForKey = _CFSwiftOutputStreamSetPropertyForKey
+    __CFSwiftBridge.NSOutputStream.scheduleWithRunLoop = _CFSwiftOutputStreamScheduleWithRunLoop
+    __CFSwiftBridge.NSOutputStream.unscheduleWithRunLoop = _CFSwiftOutputStreamUnscheduleWithRunLoop
+    
+    __CFSwiftBridge.NSData.length = _CFSwiftDataLength
+    __CFSwiftBridge.NSData.bytes = _CFSwiftDataBytes
+    __CFSwiftBridge.NSData.getBytes = _CFSwiftDataGetBytes
+    
+    __CFSwiftBridge.NSMutableData.mutableBytes = _CFSwiftMutableDataMutableBytes
+    __CFSwiftBridge.NSMutableData.setLength = _CFSwiftMutableDataSetLength
+    __CFSwiftBridge.NSMutableData.increaseLengthBy = _CFSwiftMutableDataIncreaseLengthBy
+    __CFSwiftBridge.NSMutableData.appendBytes = _CFSwiftMutableDataAppendBytes
+    __CFSwiftBridge.NSMutableData.replaceBytesInRange = _CFSwiftMutableDataReplaceBytesInRange
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
@@ -296,3 +337,47 @@ extension Array {
 #else
     internal typealias _DarwinCompatibleBoolean = Bool
 #endif
+
+// MARK: -
+// MARK: Protocol for simulating factory patterns
+
+/// _NSFactory is an internal protocol that allows self re-assignment. This relies on the concept
+/// that protocols can be adopted to structures (which permit self re-assignment in init).
+/// When we have true factory patterns in swift we should refactor away from this, but until then
+/// according to the compiler team this is the "suported" way of doing it. However it is likely
+/// not the suggested design pattern unless absolutely needed either for compatability (in the case
+/// of swift-corelibs-foundation) or the only approach for behavior. It should be considered to be
+/// a last resort in new code.
+///
+/// The following classes in Foundation use factory pattern initializers:
+/// * NSNumber (currently implemented in swift-corelibs-foundation)
+/// * NSString/NSMutableString
+/// * NSData/NSMutableData
+/// * NSArray/NSMutableArray
+/// * NSDictionary/NSMutableDictionary
+/// * NSSet/NSMutableSet
+/// * NSLocale
+/// * NSDate
+/// * NSTimeZone (currently implemented in swift-corelibs-foundation)
+/// * NSCalendar
+/// * NSCharacterSet
+/// * NSInputStream/NSOutputStream (currently implemented in swift-corelibs-foundation)
+/// * NSTimer
+///
+/// Transitioning to these can help elide the need for extra ivars in subclasses. Additionally it
+/// can help avoid the need for funky de-initialization routines that call back out to CF.
+///
+/// One known caveat is the bare initializer case. It cannot be a factory currently with this
+/// approach.
+///
+/// tl;dr - use sparingly and with caution!
+internal protocol _NSFactory {
+    init(factory: Self)
+}
+
+extension _NSFactory {
+    init(factory: Self) {
+        self = factory
+    }
+}
+

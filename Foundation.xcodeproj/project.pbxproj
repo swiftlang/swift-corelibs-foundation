@@ -65,6 +65,10 @@
 		5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F17961C48631C00935030 /* TestUtils.swift */; };
 		5B13B3511C582D4C00651CE2 /* TestByteCountFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */; };
 		5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3047AEB1C38BC3300295652 /* TestNSValue.swift */; };
+		5B187B131F0ACAD2004E49B3 /* NSNumberBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */; };
+		5B187B151F0ACAFB004E49B3 /* NSCFNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */; };
+		5B187B2C1F0D2EC1004E49B3 /* NSCFTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B2B1F0D2EC1004E49B3 /* NSCFTimeZone.swift */; };
+		5B187B411F0D656C004E49B3 /* NSCFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B187B401F0D656C004E49B3 /* NSCFStream.swift */; };
 		5B1FD9C51D6D16150080E83C /* CFURLSessionInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */; };
 		5B1FD9C61D6D161A0080E83C /* CFURLSessionInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B1FD9D41D6D16580080E83C /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9C81D6D16580080E83C /* Configuration.swift */; };
@@ -75,6 +79,8 @@
 		5B1FD9DE1D6D16580080E83C /* TaskRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9D21D6D16580080E83C /* TaskRegistry.swift */; };
 		5B1FD9E11D6D178E0080E83C /* libcurl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */; };
 		5B1FD9E31D6D17B80080E83C /* TestNSURLSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FD9E21D6D17B80080E83C /* TestNSURLSession.swift */; };
+		5B21B1A21EFF070A0096C47E /* NSStringBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21B1A11EFF070A0096C47E /* NSStringBridge.swift */; };
+		5B21B1A61EFF25EF0096C47E /* NSStringPrivate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21B1A51EFF25EF0096C47E /* NSStringPrivate.swift */; };
 		5B23AB871CE62D17000DB898 /* Boxing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB861CE62D17000DB898 /* Boxing.swift */; };
 		5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */; };
 		5B23AB8B1CE62F9B000DB898 /* PersonNameComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B23AB8A1CE62F9B000DB898 /* PersonNameComponents.swift */; };
@@ -83,20 +89,25 @@
 		5B2B59821C24D00500271109 /* CFStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89031BBC9BC300234F36 /* CFStream.c */; };
 		5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89871BBDB1B400234F36 /* CFSocketStream.c */; };
 		5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D89831BBDB13800234F36 /* CFConcreteStreams.c */; };
+		5B3153561F15169900049DBA /* CFInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3153551F15169900049DBA /* CFInterface.swift */; };
 		5B4092101D1B304C0022B067 /* NSStringEncodings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */; };
 		5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */; };
 		5B40F9EF1C124F47000E72E3 /* CFXMLInterface.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */; };
 		5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B40F9EC1C124F45000E72E3 /* CFXMLInterface.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B40F9F41C12524C000E72E3 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B40F9F31C12524C000E72E3 /* libxml2.dylib */; };
 		5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B424C751D0B6E5B007B39C8 /* IndexPath.swift */; };
+		5B523FB71F00B57900D93A2A /* NSSwiftString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B523FB61F00B57900D93A2A /* NSSwiftString.swift */; };
+		5B523FB91F01503400D93A2A /* NSString0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B523FB81F01503400D93A2A /* NSString0.swift */; };
 		5B5BFEAC1E6CC0C200AC8D9E /* NSCFBoolean.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5BFEAB1E6CC0C200AC8D9E /* NSCFBoolean.swift */; };
 		5B5C5EF01CE61FA4001346BD /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5C5EEF1CE61FA4001346BD /* Date.swift */; };
 		5B5D89761BBDADD300234F36 /* libicucore.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89751BBDADD300234F36 /* libicucore.dylib */; };
 		5B5D89781BBDADDB00234F36 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D89771BBDADDB00234F36 /* libz.dylib */; };
+		5B5F7D8C1EFDDDEA007787D0 /* NSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5F7D8B1EFDDDEA007787D0 /* NSString.swift */; };
 		5B6228BB1C179041009587FE /* CFRunArray.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BA1C179041009587FE /* CFRunArray.c */; };
 		5B6228BD1C179049009587FE /* CFRunArray.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228BC1C179049009587FE /* CFRunArray.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		5B6228BF1C179052009587FE /* CFAttributedString.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B6228BE1C179052009587FE /* CFAttributedString.c */; };
 		5B6228C11C17905B009587FE /* CFAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6228C01C17905B009587FE /* CFAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5B65A41D1F0DB6DF00667869 /* NSPlaceholderCharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B65A41C1F0DB6DF00667869 /* NSPlaceholderCharacterSet.swift */; };
 		5B6E11A71DA451E7009B48A3 /* CFLocale_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6E11A61DA451E7009B48A3 /* CFLocale_Private.h */; };
 		5B6E11A91DA45EB5009B48A3 /* CFDateFormatter_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */; };
 		5B78185B1D6CB5D2004A01F2 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7818591D6CB5CD004A01F2 /* CGFloat.swift */; };
@@ -245,6 +256,14 @@
 		5BA9BEA61CF3D747009DBD6C /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA51CF3D747009DBD6C /* Data.swift */; };
 		5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */; };
 		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
+		5BAE36BB1F2FDAE00090253F /* NSString-UTF32-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5BAE36B91F2FDAE00090253F /* NSString-UTF32-BE-data.txt */; };
+		5BAE36BC1F2FDAE00090253F /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5BAE36BA1F2FDAE00090253F /* NSString-UTF32-LE-data.txt */; };
+		5BAF0F511F10420E00A3E87E /* NSCFData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F501F10420E00A3E87E /* NSCFData.swift */; };
+		5BAF0F531F1054F700A3E87E /* NSConcreteData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F521F1054F700A3E87E /* NSConcreteData.swift */; };
+		5BAF0F551F10553300A3E87E /* NSConcreteMutableData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F541F10553300A3E87E /* NSConcreteMutableData.swift */; };
+		5BAF0F571F1055AC00A3E87E /* NSSubrangeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F561F1055AC00A3E87E /* NSSubrangeData.swift */; };
+		5BAF0F591F1055D200A3E87E /* NSZeroData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F581F1055D200A3E87E /* NSZeroData.swift */; };
+		5BAF0F5B1F105E0C00A3E87E /* NSDataPrivate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAF0F5A1F105E0C00A3E87E /* NSDataPrivate.swift */; };
 		5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89391BBDA7AB00234F36 /* CFUserNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
@@ -293,7 +312,6 @@
 		5BF7AEB71BCD51F9008F214A /* NSPropertyList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F421BCC5DCB00ED97BB /* NSPropertyList.swift */; };
 		5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F431BCC5DCB00ED97BB /* NSRange.swift */; };
 		5BF7AEB91BCD51F9008F214A /* NSSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F441BCC5DCB00ED97BB /* NSSet.swift */; };
-		5BF7AEBA1BCD51F9008F214A /* NSString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F451BCC5DCB00ED97BB /* NSString.swift */; };
 		5BF7AEBB1BCD51F9008F214A /* NSSwiftRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F461BCC5DCB00ED97BB /* NSSwiftRuntime.swift */; };
 		5BF7AEBC1BCD51F9008F214A /* Thread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F471BCC5DCB00ED97BB /* Thread.swift */; };
 		5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F491BCC5DCB00ED97BB /* NSTimeZone.swift */; };
@@ -501,6 +519,10 @@
 		555683BC1C1250E70041D4C6 /* TestNSUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUserDefaults.swift; sourceTree = "<group>"; usesTabs = 1; };
 		5B0163BA1D024EB7003CCD96 /* DateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponents.swift; sourceTree = "<group>"; };
 		5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRegularExpression.swift; sourceTree = "<group>"; };
+		5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSNumberBridge.swift; sourceTree = "<group>"; };
+		5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFNumber.swift; sourceTree = "<group>"; };
+		5B187B2B1F0D2EC1004E49B3 /* NSCFTimeZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFTimeZone.swift; sourceTree = "<group>"; };
+		5B187B401F0D656C004E49B3 /* NSCFStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFStream.swift; sourceTree = "<group>"; };
 		5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLSessionInterface.c; sourceTree = "<group>"; };
 		5B1FD9C21D6D160F0080E83C /* CFURLSessionInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLSessionInterface.h; sourceTree = "<group>"; };
 		5B1FD9C81D6D16580080E83C /* Configuration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
@@ -511,11 +533,14 @@
 		5B1FD9D21D6D16580080E83C /* TaskRegistry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskRegistry.swift; sourceTree = "<group>"; };
 		5B1FD9E01D6D178E0080E83C /* libcurl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcurl.3.dylib; path = usr/lib/libcurl.3.dylib; sourceTree = SDKROOT; };
 		5B1FD9E21D6D17B80080E83C /* TestNSURLSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLSession.swift; sourceTree = "<group>"; };
+		5B21B1A11EFF070A0096C47E /* NSStringBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSStringBridge.swift; sourceTree = "<group>"; };
+		5B21B1A51EFF25EF0096C47E /* NSStringPrivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSStringPrivate.swift; sourceTree = "<group>"; };
 		5B23AB861CE62D17000DB898 /* Boxing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Boxing.swift; sourceTree = "<group>"; };
 		5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReferenceConvertible.swift; sourceTree = "<group>"; };
 		5B23AB8A1CE62F9B000DB898 /* PersonNameComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonNameComponents.swift; sourceTree = "<group>"; };
 		5B23AB8C1CE63228000DB898 /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFCharacterSet.swift; sourceTree = "<group>"; };
+		5B3153551F15169900049DBA /* CFInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CFInterface.swift; sourceTree = "<group>"; };
 		5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSStringEncodings.swift; sourceTree = "<group>"; };
 		5B4092111D1B30B40022B067 /* ExtraStringAPIs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtraStringAPIs.swift; sourceTree = "<group>"; };
 		5B40F9EB1C124F45000E72E3 /* CFXMLInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLInterface.c; sourceTree = "<group>"; };
@@ -523,6 +548,8 @@
 		5B40F9F11C125187000E72E3 /* TestNSXMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSXMLParser.swift; sourceTree = "<group>"; };
 		5B40F9F31C12524C000E72E3 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		5B424C751D0B6E5B007B39C8 /* IndexPath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexPath.swift; sourceTree = "<group>"; };
+		5B523FB61F00B57900D93A2A /* NSSwiftString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSSwiftString.swift; sourceTree = "<group>"; };
+		5B523FB81F01503400D93A2A /* NSString0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSString0.swift; sourceTree = "<group>"; };
 		5B5BFEAB1E6CC0C200AC8D9E /* NSCFBoolean.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSCFBoolean.swift; sourceTree = "<group>"; };
 		5B5C5EEF1CE61FA4001346BD /* Date.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
 		5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftFoundation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -675,11 +702,13 @@
 		5B5D89A51BBDC06800234F36 /* CFStringEncodingDatabase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringEncodingDatabase.c; sourceTree = "<group>"; };
 		5B5D89A71BBDC09700234F36 /* CFStringScanner.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringScanner.c; sourceTree = "<group>"; };
 		5B5D89A91BBDC11100234F36 /* CFLocaleKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFLocaleKeys.c; sourceTree = "<group>"; };
+		5B5F7D8B1EFDDDEA007787D0 /* NSString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSString.swift; sourceTree = "<group>"; };
 		5B6228BA1C179041009587FE /* CFRunArray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFRunArray.c; sourceTree = "<group>"; };
 		5B6228BC1C179049009587FE /* CFRunArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRunArray.h; sourceTree = "<group>"; };
 		5B6228BE1C179052009587FE /* CFAttributedString.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFAttributedString.c; sourceTree = "<group>"; };
 		5B6228C01C17905B009587FE /* CFAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedString.h; sourceTree = "<group>"; };
 		5B628EDE1D1C995C00CA9570 /* MeasurementFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MeasurementFormatter.swift; sourceTree = "<group>"; };
+		5B65A41C1F0DB6DF00667869 /* NSPlaceholderCharacterSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPlaceholderCharacterSet.swift; sourceTree = "<group>"; };
 		5B6E11A61DA451E7009B48A3 /* CFLocale_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFLocale_Private.h; sourceTree = "<group>"; };
 		5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter_Private.h; sourceTree = "<group>"; };
 		5B6F17921C48631C00935030 /* TestNSNull.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSNull.swift; sourceTree = "<group>"; };
@@ -696,6 +725,14 @@
 		5BA9BEA51CF3D747009DBD6C /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CharacterSet.swift; sourceTree = "<group>"; };
 		5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		5BAE36B91F2FDAE00090253F /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
+		5BAE36BA1F2FDAE00090253F /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
+		5BAF0F501F10420E00A3E87E /* NSCFData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSCFData.swift; sourceTree = "<group>"; };
+		5BAF0F521F1054F700A3E87E /* NSConcreteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSConcreteData.swift; sourceTree = "<group>"; };
+		5BAF0F541F10553300A3E87E /* NSConcreteMutableData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSConcreteMutableData.swift; sourceTree = "<group>"; };
+		5BAF0F561F1055AC00A3E87E /* NSSubrangeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSSubrangeData.swift; sourceTree = "<group>"; };
+		5BAF0F581F1055D200A3E87E /* NSZeroData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSZeroData.swift; sourceTree = "<group>"; };
+		5BAF0F5A1F105E0C00A3E87E /* NSDataPrivate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSDataPrivate.swift; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestNSCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCharacterSet.swift; sourceTree = "<group>"; };
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BC46D531D05D6D900005853 /* DateInterval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateInterval.swift; sourceTree = "<group>"; };
@@ -733,7 +770,6 @@
 		5BDC3F421BCC5DCB00ED97BB /* NSPropertyList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSPropertyList.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3F431BCC5DCB00ED97BB /* NSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSRange.swift; sourceTree = "<group>"; };
 		5BDC3F441BCC5DCB00ED97BB /* NSSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSSet.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
-		5BDC3F451BCC5DCB00ED97BB /* NSString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSString.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3F461BCC5DCB00ED97BB /* NSSwiftRuntime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSSwiftRuntime.swift; sourceTree = "<group>"; };
 		5BDC3F471BCC5DCB00ED97BB /* Thread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Thread.swift; sourceTree = "<group>"; };
 		5BDC3F481BCC5DCB00ED97BB /* NSTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSTimer.swift; sourceTree = "<group>"; };
@@ -1401,6 +1437,8 @@
 				EA66F6791BF9401E00136161 /* Info.plist */,
 				CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */,
 				B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */,
+				5BAE36B91F2FDAE00090253F /* NSString-UTF32-BE-data.txt */,
+				5BAE36BA1F2FDAE00090253F /* NSString-UTF32-LE-data.txt */,
 				B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
@@ -1650,6 +1688,7 @@
 				5B23AB861CE62D17000DB898 /* Boxing.swift */,
 				5BD31D1F1D5CE8C400563814 /* Bridging.swift */,
 				5B23AB881CE62D4D000DB898 /* ReferenceConvertible.swift */,
+				5B3153551F15169900049DBA /* CFInterface.swift */,
 			);
 			name = Runtime;
 			sourceTree = "<group>";
@@ -1684,6 +1723,7 @@
 				EAB57B711BD1C7A5004AC5C5 /* NSPortMessage.swift */,
 				EADE0B761BD15DFF00C49C64 /* NSRunLoop.swift */,
 				EADE0B791BD15DFF00C49C64 /* NSStream.swift */,
+				5B187B401F0D656C004E49B3 /* NSCFStream.swift */,
 				5BDC3F481BCC5DCB00ED97BB /* NSTimer.swift */,
 			);
 			name = RunLoop;
@@ -1697,9 +1737,14 @@
 				EADE0B7B1BD15DFF00C49C64 /* NSTextCheckingResult.swift */,
 				EADE0B4F1BD09E3100C49C64 /* NSAttributedString.swift */,
 				5BDC3F311BCC5DCB00ED97BB /* NSCharacterSet.swift */,
+				5B65A41C1F0DB6DF00667869 /* NSPlaceholderCharacterSet.swift */,
 				5B2A98CC1D021886008A0B75 /* NSCFCharacterSet.swift */,
 				5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */,
-				5BDC3F451BCC5DCB00ED97BB /* NSString.swift */,
+				5B5F7D8B1EFDDDEA007787D0 /* NSString.swift */,
+				5B523FB61F00B57900D93A2A /* NSSwiftString.swift */,
+				5B523FB81F01503400D93A2A /* NSString0.swift */,
+				5B21B1A51EFF25EF0096C47E /* NSStringPrivate.swift */,
+				5B21B1A11EFF070A0096C47E /* NSStringBridge.swift */,
 				5B40920F1D1B304C0022B067 /* NSStringEncodings.swift */,
 				5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */,
 				5B94E8811C430DE70055C035 /* NSStringAPI.swift */,
@@ -1719,7 +1764,9 @@
 				5B7818591D6CB5CD004A01F2 /* CGFloat.swift */,
 				EADE0B4D1BD09E0800C49C64 /* NSAffineTransform.swift */,
 				5BDC3F3D1BCC5DCB00ED97BB /* NSNumber.swift */,
+				5B187B121F0ACAD2004E49B3 /* NSNumberBridge.swift */,
 				5B5BFEAB1E6CC0C200AC8D9E /* NSCFBoolean.swift */,
+				5B187B141F0ACAFB004E49B3 /* NSCFNumber.swift */,
 				D31302001C30CEA900295652 /* NSConcreteValue.swift */,
 				D3E8D6D01C367AB600295652 /* NSSpecialValue.swift */,
 				5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */,
@@ -1768,6 +1815,7 @@
 				5BC46D531D05D6D900005853 /* DateInterval.swift */,
 				5B5C5EEF1CE61FA4001346BD /* Date.swift */,
 				5BDC3F491BCC5DCB00ED97BB /* NSTimeZone.swift */,
+				5B187B2B1F0D2EC1004E49B3 /* NSCFTimeZone.swift */,
 				5BCD03811D3EE35C00E3FF9B /* TimeZone.swift */,
 			);
 			name = DateTime;
@@ -1788,6 +1836,12 @@
 			children = (
 				EADE0B6B1BD15DFF00C49C64 /* NSNull.swift */,
 				5BDC3F331BCC5DCB00ED97BB /* NSData.swift */,
+				5BAF0F5A1F105E0C00A3E87E /* NSDataPrivate.swift */,
+				5BAF0F501F10420E00A3E87E /* NSCFData.swift */,
+				5BAF0F521F1054F700A3E87E /* NSConcreteData.swift */,
+				5BAF0F541F10553300A3E87E /* NSConcreteMutableData.swift */,
+				5BAF0F561F1055AC00A3E87E /* NSSubrangeData.swift */,
+				5BAF0F581F1055D200A3E87E /* NSZeroData.swift */,
 				5BA9BEA51CF3D747009DBD6C /* Data.swift */,
 				EADE0B741BD15DFF00C49C64 /* Progress.swift */,
 				EA0812681DA71C8A00651B70 /* ProgressFraction.swift */,
@@ -2015,7 +2069,7 @@
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
 						CreatedOnToolsVersion = 7.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0900;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
@@ -2026,12 +2080,13 @@
 					};
 					5BDC405B1BD6D83B00ED97BB = {
 						CreatedOnToolsVersion = 7.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0900;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
 					9F0DD33E1ECD734200F68030 = {
 						CreatedOnToolsVersion = 8.3.2;
+						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
 					EA66F66E1BF56CCB00136161 = {
@@ -2076,7 +2131,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5BAE36BB1F2FDAE00090253F /* NSString-UTF32-BE-data.txt in Resources */,
 				D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */,
+				5BAE36BC1F2FDAE00090253F /* NSString-UTF32-LE-data.txt in Resources */,
 				528776191BF27D9500CB0090 /* Test.plist in Resources */,
 				EA66F6481BF1619600136161 /* NSURLTestData.plist in Resources */,
 				D3A597FA1C3415F000295652 /* NSKeyedUnarchiver-UUIDTest.plist in Resources */,
@@ -2114,9 +2171,11 @@
 				63DCE9D21EAA430100E9CB02 /* ISO8601DateFormatter.swift in Sources */,
 				5BF7AE831BCD50CD008F214A /* NSArray.swift in Sources */,
 				B9974B971EDF4A22007F15B8 /* MultiHandle.swift in Sources */,
+				5BAF0F511F10420E00A3E87E /* NSCFData.swift in Sources */,
 				EADE0B991BD15DFF00C49C64 /* EnergyFormatter.swift in Sources */,
 				EADE0BBF1BD15E0000C49C64 /* NSURLError.swift in Sources */,
 				EADE0BAF1BD15E0000C49C64 /* PersonNameComponentsFormatter.swift in Sources */,
+				5BAF0F531F1054F700A3E87E /* NSConcreteData.swift in Sources */,
 				EADE0B941BD15DFF00C49C64 /* NSCompoundPredicate.swift in Sources */,
 				528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */,
 				5B23AB8D1CE63228000DB898 /* URL.swift in Sources */,
@@ -2134,30 +2193,40 @@
 				EADE0B921BD15DFF00C49C64 /* NSCache.swift in Sources */,
 				EADE0BAB1BD15E0000C49C64 /* Operation.swift in Sources */,
 				5BECBA3C1D1CAF8800B39B1F /* Unit.swift in Sources */,
+				5B187B411F0D656C004E49B3 /* NSCFStream.swift in Sources */,
 				5B2A98CD1D021886008A0B75 /* NSCFCharacterSet.swift in Sources */,
 				EADE0B9A1BD15DFF00C49C64 /* NSExpression.swift in Sources */,
 				EADE0BB01BD15E0000C49C64 /* NSPort.swift in Sources */,
+				5BAF0F591F1055D200A3E87E /* NSZeroData.swift in Sources */,
 				EADE0BB91BD15E0000C49C64 /* NSTextCheckingResult.swift in Sources */,
 				EA0812691DA71C8A00651B70 /* ProgressFraction.swift in Sources */,
 				5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */,
 				EADE0B951BD15DFF00C49C64 /* DateComponentsFormatter.swift in Sources */,
+				5B187B131F0ACAD2004E49B3 /* NSNumberBridge.swift in Sources */,
+				5BAF0F551F10553300A3E87E /* NSConcreteMutableData.swift in Sources */,
 				EADE0BBD1BD15E0000C49C64 /* NSURLCredential.swift in Sources */,
+				5B187B2C1F0D2EC1004E49B3 /* NSCFTimeZone.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* NSXMLElement.swift in Sources */,
+				5B3153561F15169900049DBA /* CFInterface.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* NSJSONSerialization.swift in Sources */,
-				5BF7AEBA1BCD51F9008F214A /* NSString.swift in Sources */,
 				5BF7AEB81BCD51F9008F214A /* NSRange.swift in Sources */,
 				EADE0B501BD09E3100C49C64 /* NSAttributedString.swift in Sources */,
 				5BF7AEBB1BCD51F9008F214A /* NSSwiftRuntime.swift in Sources */,
+				5B187B151F0ACAFB004E49B3 /* NSCFNumber.swift in Sources */,
 				5B5C5EF01CE61FA4001346BD /* Date.swift in Sources */,
 				EADE0B9B1BD15DFF00C49C64 /* FileHandle.swift in Sources */,
 				B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */,
+				5B5F7D8C1EFDDDEA007787D0 /* NSString.swift in Sources */,
+				5B21B1A21EFF070A0096C47E /* NSStringBridge.swift in Sources */,
 				EADE0BB11BD15E0000C49C64 /* NSPredicate.swift in Sources */,
 				5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */,
 				EADE0BCB1BD15E0000C49C64 /* NSXMLNode.swift in Sources */,
 				5BF7AEB01BCD51F9008F214A /* NSLocale.swift in Sources */,
 				EADE0BA31BD15E0000C49C64 /* NSKeyedArchiver.swift in Sources */,
 				5BF7AEAD1BCD51F9008F214A /* NSError.swift in Sources */,
+				5B523FB91F01503400D93A2A /* NSString0.swift in Sources */,
 				EADE0BB61BD15E0000C49C64 /* NSSortDescriptor.swift in Sources */,
+				5B65A41D1F0DB6DF00667869 /* NSPlaceholderCharacterSet.swift in Sources */,
 				5B23AB871CE62D17000DB898 /* Boxing.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* Bundle.swift in Sources */,
 				5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */,
@@ -2180,12 +2249,14 @@
 				5BD31D411D5D1BC300563814 /* Set.swift in Sources */,
 				5BD31D241D5CECC400563814 /* Array.swift in Sources */,
 				5BF7AEBC1BCD51F9008F214A /* Thread.swift in Sources */,
+				5BAF0F5B1F105E0C00A3E87E /* NSDataPrivate.swift in Sources */,
 				3EDCE5101EF04D8100C2EC04 /* JSONEncoder.swift in Sources */,
 				D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */,
 				5BF7AEA81BCD51F9008F214A /* NSData.swift in Sources */,
 				5B424C761D0B6E5B007B39C8 /* IndexPath.swift in Sources */,
 				EADE0BB51BD15E0000C49C64 /* NSScanner.swift in Sources */,
 				EADE0BA01BD15DFF00C49C64 /* NSIndexPath.swift in Sources */,
+				5BAF0F571F1055AC00A3E87E /* NSSubrangeData.swift in Sources */,
 				5BF7AEB51BCD51F9008F214A /* NSPathUtilities.swift in Sources */,
 				EADE0BC21BD15E0000C49C64 /* NSURLRequest.swift in Sources */,
 				EADE0B9D1BD15DFF00C49C64 /* NSGeometry.swift in Sources */,
@@ -2194,6 +2265,7 @@
 				5BF7AEB61BCD51F9008F214A /* ProcessInfo.swift in Sources */,
 				EADE0BB31BD15E0000C49C64 /* NSRegularExpression.swift in Sources */,
 				EADE0BA41BD15E0000C49C64 /* LengthFormatter.swift in Sources */,
+				5B21B1A61EFF25EF0096C47E /* NSStringPrivate.swift in Sources */,
 				5BDC3FCA1BCF176100ED97BB /* NSCFArray.swift in Sources */,
 				B9974B961EDF4A22007F15B8 /* TransferState.swift in Sources */,
 				EADE0BB21BD15E0000C49C64 /* Progress.swift in Sources */,
@@ -2217,6 +2289,7 @@
 				5BF7AEAF1BCD51F9008F214A /* Host.swift in Sources */,
 				EADE0B4E1BD09E0800C49C64 /* NSAffineTransform.swift in Sources */,
 				EADE0BC71BD15E0000C49C64 /* NSXMLDocument.swift in Sources */,
+				5B523FB71F00B57900D93A2A /* NSSwiftString.swift in Sources */,
 				5BDC3FCE1BCF17D300ED97BB /* NSCFDictionary.swift in Sources */,
 				5B1FD9DA1D6D16580080E83C /* NSURLSession.swift in Sources */,
 				EADE0BA81BD15E0000C49C64 /* NSNotificationQueue.swift in Sources */,
@@ -2630,6 +2703,7 @@
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
@@ -2702,6 +2776,7 @@
 				SWIFT_INDEX_STORE_ENABLE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
@@ -2811,6 +2886,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 				WRAPPER_EXTENSION = app;
 			};
@@ -2836,6 +2912,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;
 				WRAPPER_EXTENSION = app;
 			};
@@ -2859,7 +2936,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -2879,7 +2957,8 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.xdgTestHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

@@ -111,24 +111,26 @@ class TestNSKeyedArchiver : XCTestCase {
 
     private func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
                               decode: (NSKeyedUnarchiver) -> Bool) {
-        // Archiving using custom NSMutableData instance
-        let data = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWith: data)
-        
-        XCTAssertTrue(encode(archiver))
-        archiver.finishEncoding()
-        
-        let unarchiver = NSKeyedUnarchiver(forReadingWithData: Data._unconditionallyBridgeFromObjectiveC(data))
-        XCTAssertTrue(decode(unarchiver))
-        
-        // Archiving using the default initializer
-        let archiver1 = NSKeyedArchiver()
-        
-        XCTAssertTrue(encode(archiver1))
-        let archivedData = archiver1.encodedData
-        
-        let unarchiver1 = NSKeyedUnarchiver(forReadingWithData: archivedData)
-        XCTAssertTrue(decode(unarchiver1))
+        autoreleasepool {
+            // Archiving using custom NSMutableData instance
+            let data = NSMutableData()
+            let archiver = NSKeyedArchiver(forWritingWith: data)
+            
+            XCTAssertTrue(encode(archiver))
+            archiver.finishEncoding()
+            
+            let unarchiver = NSKeyedUnarchiver(forReadingWithData: Data._unconditionallyBridgeFromObjectiveC(data))
+            XCTAssertTrue(decode(unarchiver))
+            
+            // Archiving using the default initializer
+            let archiver1 = NSKeyedArchiver()
+            
+            XCTAssertTrue(encode(archiver1))
+            let archivedData = archiver1.encodedData
+            
+            let unarchiver1 = NSKeyedUnarchiver(forReadingWithData: archivedData)
+            XCTAssertTrue(decode(unarchiver1))
+        }
     }
     
     private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {

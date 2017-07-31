@@ -206,6 +206,10 @@ internal func NSInvalidArgument(_ message: String, method: String = #function, f
     fatalError("\(method): \(message)", file: file, line: line)
 }
 
+internal func _NSMethodExceptionProem(_ obj: NSObject, _ cmd: StaticString = #function) -> String {
+    return "\(type(of: obj)).\(cmd)"
+}
+
 internal struct _CFInfo {
     // This must match _CFRuntimeBase
     var info: UInt32

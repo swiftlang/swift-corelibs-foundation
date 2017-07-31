@@ -36,7 +36,7 @@ public func NSTemporaryDirectory() -> String {
 internal extension String {
     
     internal var _startOfLastPathComponent : String.CharacterView.Index {
-        precondition(!hasSuffix("/") && length > 1)
+        precondition(!hasSuffix("/") && utf16.count > 1)
         
         let characterView = characters
         let startPos = characterView.startIndex
@@ -87,7 +87,7 @@ internal extension String {
     }
     
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
-        if str.length == 0 {
+        if str.utf16.count == 0 {
             return self
         }
         if self == "" {
@@ -124,7 +124,7 @@ internal extension String {
                 }
             }
         }
-        if stripTrailing && result.length > 1 && result.hasSuffix("/") {
+        if stripTrailing && result.utf16.count > 1 && result.hasSuffix("/") {
             result.remove(at: result.characters.index(before: result.characters.endIndex))
         }
         return result
@@ -177,7 +177,7 @@ public extension NSString {
     
     public var lastPathComponent : String {
         let fixedSelf = _stringByFixingSlashes()
-        if fixedSelf.length <= 1 {
+        if fixedSelf.utf16.count <= 1 {
             return fixedSelf
         }
         
@@ -242,7 +242,7 @@ public extension NSString {
     }
     
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
-        if str.length == 0 {
+        if str.utf16.count == 0 {
             return _swiftObject
         }
         if self == "" {
@@ -260,7 +260,7 @@ public extension NSString {
     
     public var pathExtension : String {
         let fixedSelf = _stringByFixingSlashes()
-        if fixedSelf.length <= 1 {
+        if fixedSelf.utf16.count <= 1 {
             return ""
         }
 
@@ -273,7 +273,7 @@ public extension NSString {
     
     public var deletingPathExtension: String {
         let fixedSelf = _stringByFixingSlashes()
-        if fixedSelf.length <= 1 {
+        if fixedSelf.utf16.count <= 1 {
             return fixedSelf
         }
         if let extensionPos = (fixedSelf._startOfPathExtension) {

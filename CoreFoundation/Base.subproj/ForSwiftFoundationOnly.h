@@ -52,6 +52,7 @@ struct _NSObjectBridge {
     CFHashCode (*hash)(CFTypeRef object);
     bool (*isEqual)(CFTypeRef object, CFTypeRef other);
     _Nonnull CFTypeRef (*_Nonnull copyWithZone)(_Nonnull CFTypeRef object, _Nullable CFTypeRef zone);
+    _Nonnull CFStringRef (*_Nonnull _copyDescription)(_Nonnull CFTypeRef object);
 };
 
 struct _NSArrayBridge {
@@ -211,7 +212,7 @@ struct _NSCharacterSetBridge {
     _Nonnull CFMutableCharacterSetRef (*_Nonnull mutableCopy)(CFTypeRef cset);
     bool (*_Nonnull longCharacterIsMember)(CFTypeRef cset, UTF32Char ch);
     bool (*_Nonnull hasMemberInPlane)(CFTypeRef cset, uint8_t thePlane);
-    _Nonnull CFCharacterSetRef (*_Nonnull invertedSet)(CFTypeRef cset);
+    _Nonnull CFCharacterSetRef (*_Nonnull createInvertedSet)(CFTypeRef cset);
 };
 
 struct _NSMutableCharacterSetBridge {
@@ -230,6 +231,49 @@ struct _NSNumberBridge {
     bool (*_Nonnull _getValue)(CFTypeRef number, void *value, CFNumberType type);
 };
 
+struct _NSInputStreamBridge {
+    CFStreamStatus (*_Nonnull streamStatus)(CFTypeRef stream);
+    CFStreamError (*_Nonnull _cfStreamError)(CFTypeRef stream);
+    CFErrorRef _Nullable (*_Nonnull streamError)(CFTypeRef stream);
+    void (*_Nonnull open)(CFTypeRef stream);
+    void (*_Nonnull close)(CFTypeRef stream);
+    bool (*_Nonnull hasBytesAvailable)(CFTypeRef stream);
+    CFIndex (*_Nonnull read)(CFTypeRef stream, uint8_t *buffer, CFIndex maxLength);
+    bool (*_Nonnull getBuffer)(CFTypeRef stream, uint8_t *_Nullable*_Nonnull bufferPtr, CFIndex *length);
+    CFTypeRef _Nullable (*_Nonnull copyPropertyForKey)(CFTypeRef stream, CFStringRef key);
+    bool (*_Nonnull setPropertyForKey)(CFTypeRef stream, CFTypeRef _Nullable value, CFStringRef key);
+    void (*_Nonnull scheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
+    void (*_Nonnull unscheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
+};
+
+struct _NSOutputStreamBridge {
+    CFStreamStatus (*_Nonnull streamStatus)(CFTypeRef stream);
+    CFStreamError (*_Nonnull _cfStreamError)(CFTypeRef stream);
+    CFErrorRef _Nullable (*_Nonnull streamError)(CFTypeRef stream);
+    void (*_Nonnull open)(CFTypeRef stream);
+    void (*_Nonnull close)(CFTypeRef stream);
+    bool (*_Nonnull hasSpaceAvailable)(CFTypeRef stream);
+    CFIndex (*_Nonnull write)(CFTypeRef stream, const uint8_t *buffer, CFIndex maxLength);
+    CFTypeRef _Nullable (*_Nonnull copyPropertyForKey)(CFTypeRef stream, CFStringRef key);
+    bool (*_Nonnull setPropertyForKey)(CFTypeRef stream, CFTypeRef _Nullable value, CFStringRef key);
+    void (*_Nonnull scheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
+    void (*_Nonnull unscheduleWithRunLoop)(CFTypeRef stream, CFRunLoopRef rl, CFStringRef mode);
+};
+
+struct _NSDataBridge {
+    CFIndex (*_Nonnull length)(CFTypeRef data);
+    const void *_Nullable (*_Nonnull bytes)(CFTypeRef data);
+    void (*_Nonnull  getBytes)(CFTypeRef data, void *buffer, CFRange range);
+};
+
+struct _NSMutableDataBridge {
+    uint8_t *_Nullable (*_Nonnull mutableBytes)(CFTypeRef data);
+    void (*_Nonnull setLength)(CFTypeRef data, CFIndex newLength);
+    void (*_Nonnull increaseLengthBy)(CFTypeRef data, CFIndex extraLength);
+    void (*_Nonnull appendBytes)(CFTypeRef data, const uint8_t *bytes, CFIndex length);
+    void (*_Nonnull replaceBytesInRange)(CFTypeRef data, CFRange range, void *_Nullable newBytes, CFIndex newLength);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -245,6 +289,10 @@ struct _CFSwiftBridge {
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
+    struct _NSInputStreamBridge NSInputStream;
+    struct _NSOutputStreamBridge NSOutputStream;
+    struct _NSDataBridge NSData;
+    struct _NSMutableDataBridge NSMutableData;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
@@ -285,6 +333,9 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
+
+CF_EXPORT void *_Nullable _CFReadStreamGetClient(CFReadStreamRef readStream);
+CF_EXPORT void *_Nullable _CFWriteStreamGetClient(CFWriteStreamRef writeStream);
 
 extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);

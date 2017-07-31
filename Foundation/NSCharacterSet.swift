@@ -10,72 +10,39 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
-let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
-let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
-let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
-let kCFCharacterSetDecimalDigit = CFCharacterSetPredefinedSet.decimalDigit
-let kCFCharacterSetLetter = CFCharacterSetPredefinedSet.letter
-let kCFCharacterSetLowercaseLetter = CFCharacterSetPredefinedSet.lowercaseLetter
-let kCFCharacterSetUppercaseLetter = CFCharacterSetPredefinedSet.uppercaseLetter
-let kCFCharacterSetNonBase = CFCharacterSetPredefinedSet.nonBase
-let kCFCharacterSetDecomposable = CFCharacterSetPredefinedSet.decomposable
-let kCFCharacterSetAlphaNumeric = CFCharacterSetPredefinedSet.alphaNumeric
-let kCFCharacterSetPunctuation = CFCharacterSetPredefinedSet.punctuation
-let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.capitalizedLetter
-let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.symbol
-let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.newline
-let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
-#endif
-
-
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     typealias CFType = CFCharacterSet
-    private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
-    private var _hashValue = CFHashCode(0)
-    private var _buffer: UnsafeMutableRawPointer? = nil
-    private var _length = CFIndex(0)
-    private var _annex: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    internal var _cfMutableObject: CFMutableCharacterSet {
-        return unsafeBitCast(self, to: CFMutableCharacterSet.self)
-    }
-    
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return bitmapRepresentation.hashValue
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFCharacterSetGetTypeID()) else {
-            fatalError("Could not obtain CFRuntimeClass of CFCharacterSet")
+        guard let other = value else { return false }
+        if let cset = other as? CharacterSet {
+            return bitmapRepresentation == cset._bridgeToObjectiveC().bitmapRepresentation
+        } else if let cset = other as? NSCharacterSet {
+            return bitmapRepresentation == cset.bitmapRepresentation
         }
-
-        guard let equalFunction = runtimeClass.pointee.equal else {
-            fatalError("Could not obtain equal function from CFRuntimeClass of CFCharacterSet")
-        }
-
-        switch value {
-        case let other as CharacterSet: return equalFunction(self._cfObject, other._cfObject) == true
-        case let other as NSCharacterSet: return equalFunction(self._cfObject, other._cfObject) == true
-        default: return false
-        }
+        return false
     }
     
-    open override var description: String {
-        return CFCopyDescription(_cfObject)._swiftObject
-    }
-    
-    public override init() {
+    internal init(placeholder: ()) {
         super.init()
-        _CFCharacterSetInitWithCharactersInRange(_cfMutableObject, CFRangeMake(0, 0));
     }
-
-    deinit {
-        _CFDeinit(self)
+    
+    public convenience override init() {
+        if type(of: self) == NSCharacterSet.self {
+            let cf = CFCharacterSetCreateWithCharactersInRange(kCFAllocatorSystemDefault, CFRangeMake(0, 0))
+            self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
+        } else {
+            self.init(placeholder: ())
+        }
+        
     }
     
     open class var controlCharacters: CharacterSet {
@@ -138,19 +105,19 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return CFCharacterSetGetPredefined(kCFCharacterSetNewline)._swiftObject
     }
 
-    public init(range aRange: NSRange) {
-        super.init()
-        _CFCharacterSetInitWithCharactersInRange(_cfMutableObject, CFRangeMake(aRange.location, aRange.length))
+    public convenience init(range aRange: NSRange) {
+        let cf = CFCharacterSetCreateWithCharactersInRange(kCFAllocatorSystemDefault, CFRangeMake(0, 0))
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
-    public init(charactersIn aString: String) {
-        super.init()
-        _CFCharacterSetInitWithCharactersInString(_cfMutableObject, aString._cfObject)
+    public convenience init(charactersIn aString: String) {
+        let cf = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, aString._cfObject)
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
-    public init(bitmapRepresentation data: Data) {
-        super.init()
-        _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, data._cfObject)
+    public convenience init(bitmapRepresentation data: Data) {
+        let cf = CFCharacterSetCreateWithBitmapRepresentation(kCFAllocatorSystemDefault, data._cfObject)
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
     public convenience init?(contentsOfFile fName: String) {
@@ -171,32 +138,38 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return longCharacterIsMember(UInt32(aCharacter))
     }
     
+    /* This abstract implementation of bitmapRepresentation, in terms of characterIsMember:, is probably too slow to be useful except for debugging...  However, it does make all character sets "work" if they implement only characterIsMember:.
+     */
     open var bitmapRepresentation: Data {
-        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._swiftObject
+        let numCharacters = 65536
+        let bitsPerByte = 8
+        let logBPB = 3
+        let bitmapRepSize = numCharacters / bitsPerByte
+        var data = Data(count: bitmapRepSize)
+        for ch in 0..<65535 {
+            if characterIsMember(unichar(ch)) {
+                data.withUnsafeMutableBytes { map in
+                    map.advanced(by: ch >> logBPB).pointee |= UInt8(truncatingIfNeeded: 1 << (ch & (bitsPerByte - 1)))
+                }
+            }
+        }
+        return data
     }
     
     open var inverted: CharacterSet {
-        let copy = mutableCopy() as! NSMutableCharacterSet
-        copy.invert()
-        return copy._swiftObject
+        return _NSPlaceholderCharacterSet.__new(self, options: .inverted)._swiftObject
     }
     
     open func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
-            return _CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFType.self), theLongChar)
-        } else if type(of: self) == _NSCFCharacterSet.self {
-            return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     open func isSuperset(of theOtherSet: CharacterSet) -> Bool {
-        return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
+        NSRequiresConcreteImplementation()
     }
     
     open override func copy() -> Any {
@@ -204,13 +177,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
-            return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
-        } else if type(of: self) == _NSCFCharacterSet.self {
-            return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     open override func mutableCopy() -> Any {
@@ -218,54 +185,66 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     }
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
-        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
-            return _CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        } else if type(of: self) == _NSCFCharacterSet.self {
-            return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        } else {
-            NSRequiresConcreteImplementation()
-        }
+        NSRequiresConcreteImplementation()
     }
     
     open func encode(with aCoder: NSCoder) {
         NSUnimplemented()
     }
+    
+    internal var isMutable: Bool { return false }
+    
+    internal func makeImmutable() { }
+    
+    internal func _expandedCFCharacterSet() -> CFCharacterSet? { return nil }
 }
 
 open class NSMutableCharacterSet : NSCharacterSet {
-
+    
+    internal override init(placeholder: ()) {
+        super.init(placeholder: ())
+    }
+    
+    public convenience init() {
+        if type(of: self) == NSMutableCharacterSet.self {
+            self.init(factory: unsafeBitCast(CFCharacterSetCreateMutable(nil), to: NSMutableCharacterSet.self))
+        } else {
+            self.init(placeholder: ())
+        }
+    }
+    
     public convenience required init(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
     open func addCharacters(in aRange: NSRange) {
-        CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
+        NSRequiresConcreteImplementation()
     }
     
     open func removeCharacters(in aRange: NSRange) {
-        CFCharacterSetRemoveCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
+        NSRequiresConcreteImplementation()
     }
     
     open func addCharacters(in aString: String) {
-        CFCharacterSetAddCharactersInString(_cfMutableObject, aString._cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open func removeCharacters(in aString: String) {
-        CFCharacterSetRemoveCharactersInString(_cfMutableObject, aString._cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open func formUnion(with otherSet: CharacterSet) {
-        CFCharacterSetUnion(_cfMutableObject, otherSet._cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open func formIntersection(with otherSet: CharacterSet) {
-        CFCharacterSetIntersect(_cfMutableObject, otherSet._cfObject)
+        NSRequiresConcreteImplementation()
     }
     
     open func invert() {
-        CFCharacterSetInvert(_cfMutableObject)
+        NSRequiresConcreteImplementation()
     }
-
+    
     open class func control() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetControl)), to: NSMutableCharacterSet.self)
     }
@@ -325,6 +304,10 @@ open class NSMutableCharacterSet : NSCharacterSet {
     open class func newline() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetNewline)), to: NSMutableCharacterSet.self)
     }
+    
+    internal override var isMutable: Bool { return true }
+    
+    internal override func makeImmutable() { }
 }
 
 extension CharacterSet : _CFBridgeable, _NSBridgeable {
@@ -362,3 +345,5 @@ extension NSCharacterSet : _StructTypeBridgeable {
         return CharacterSet._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSCharacterSet : _NSFactory { }

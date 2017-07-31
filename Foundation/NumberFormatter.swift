@@ -100,7 +100,7 @@ open class NumberFormatter : Formatter {
     }
     
     open func number(from string: String) -> NSNumber? {
-        var range = CFRange(location: 0, length: string.length)
+        var range = CFRange(location: 0, length: string.utf16.count)
         let number = withUnsafeMutablePointer(to: &range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
 
             #if os(OSX) || os(iOS)

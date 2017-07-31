@@ -10,6 +10,12 @@
 
 import CoreFoundation
 
+extension Bool : _CFBridgeable {
+    var _cfObject: CFBoolean {
+        return self ? kCFBooleanTrue : kCFBooleanFalse
+    }
+}
+
 internal class __NSCFBoolean : NSNumber {
     override var hash: Int {
         return Int(bitPattern: CFHash(unsafeBitCast(self, to: CFBoolean.self)))
