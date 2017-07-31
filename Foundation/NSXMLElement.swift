@@ -327,9 +327,10 @@ open class XMLElement: XMLNode {
 
 extension XMLElement {
     /*!
-        @method setAttributesAsDictionary:
+        @method setAttributesAs:
         @abstract Set the attributes base on a name-value dictionary.
-        @discussion This method is deprecated and does not function correctly. Use -setAttributesWithDictionary: instead.
+        @discussion This method is deprecated and does not function correctly. Use -setAttributesWith: instead.
      */
+    @available(*, unavailable, renamed:"setAttributesWith")
     public func setAttributesAs(_ attributes: [NSObject : AnyObject]) { NSUnimplemented() }
 }
