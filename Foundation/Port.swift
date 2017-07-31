@@ -7,13 +7,15 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 public typealias SocketNativeHandle = Int32
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 extension Port {
     public static let didBecomeInvalidNotification  = NSNotification.Name(rawValue:  "NSPortDidBecomeInvalidNotification")
 }
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 open class Port : NSObject, NSCopying, NSCoding {
     
     
@@ -22,23 +24,23 @@ open class Port : NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open func invalidate() {
-        NSUnimplemented()
+        NSUnsupported()
     }
 
     open var isValid: Bool {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     // TODO: this delegate situation is confusing on all platforms
@@ -52,11 +54,11 @@ open class Port : NSObject, NSCopying, NSCoding {
     // and stop monitoring if needed when removed;
     // These methods should not be called directly!
     open func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
-        NSUnimplemented()
+        NSUnsupported()
     }
 
     open func remove(from runLoop: RunLoop, forMode mode: RunLoopMode) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var reservedSpaceLength: Int {
@@ -64,18 +66,20 @@ open class Port : NSObject, NSCopying, NSCoding {
     }
     
     open func sendBeforeDate(_ limitDate: Date, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
-        NSUnimplemented()
+        NSUnsupported()
     }
 
     open func sendBeforeDate(_ limitDate: Date, msgid msgID: Int, components: NSMutableArray?, from receivePort: Port?, reserved headerSpaceReserved: Int) -> Bool {
-        NSUnimplemented()
+        NSUnsupported()
     }
 }
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 extension PortDelegate {
     func handle(_ message: PortMessage) { }
 }
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 public protocol PortDelegate : class {
     func handlePortMessage(_ message: PortMessage)
 }
@@ -83,60 +87,62 @@ public protocol PortDelegate : class {
 // A subclass of Port which can be used for local
 // message sending on all platforms.
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 open class MessagePort : Port {
 }
 
 // A subclass of Port which can be used for remote
 // message sending on all platforms.
 
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 open class SocketPort : Port {
     
     public convenience override init() {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public convenience init?(tcpPort port: UInt16) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: Data) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public init?(protocolFamily family: Int32, socketType type: Int32, protocol: Int32, socket sock: SocketNativeHandle) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public convenience init?(remoteWithTCPPort port: UInt16, host hostName: String?) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     public init(remoteWithProtocolFamily family: Int32, socketType type: Int32, protocol: Int32, address: Data) {
-        NSUnimplemented()
+        NSUnsupported()
     }
 
     open var protocolFamily: Int32 {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var socketType: Int32 {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var `protocol`: Int32 {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var address: Data {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var socket: SocketNativeHandle {
-        NSUnimplemented()
+        NSUnsupported()
     }
 }
 
