@@ -25,7 +25,7 @@
 /// store and retrieve data, category methods can use the
 /// `propertyForKey(_:,inRequest:)` and
 /// `setProperty(_:,forKey:,inRequest:)` class methods on
-/// `NSURLProtocol`. See the `NSHTTPURLRequest` on `NSURLRequest` and
+/// `URLProtocol`. See the `NSHTTPURLRequest` on `NSURLRequest` and
 /// `NSMutableHTTPURLRequest` on `NSMutableURLRequest` for examples of
 /// such extensions.
 ///
@@ -110,7 +110,7 @@ extension NSURLRequest {
 /// categories that are available. The `NSHTTPURLRequest` category on
 /// `NSURLRequest` is an example.
 ///
-/// Objects of this class are used with the `NSURLSession` API to perform the
+/// Objects of this class are used with the `URLSession` API to perform the
 /// load of a URL.
 open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying {
     
@@ -334,7 +334,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
 /// object for a series of URL loads instead of creating an immutable
 /// `NSURLRequest` for each load. This programming model is supported by
 /// the following contract stipulation between `NSMutableURLRequest` and the
-/// `NSURLSession` API: `NSURLSession` makes a deep copy of each
+/// `URLSession` API: `URLSession` makes a deep copy of each
 /// `NSMutableURLRequest` object passed to it.
 ///
 /// `NSMutableURLRequest` is designed to be extended to support
