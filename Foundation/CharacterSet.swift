@@ -445,7 +445,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     internal init(_bridged characterSet: NSCharacterSet) {
-        _storage = _CharacterSetStorage(immutableReference: characterSet.copy() as! CFCharacterSet)
+        _storage = _CharacterSetStorage(immutableReference: unsafeBitCast(characterSet.copy() as! NSCharacterSet, to: CFCharacterSet.self))
     }
     
     fileprivate init(_uncopiedImmutableReference characterSet: CFCharacterSet) {
