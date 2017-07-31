@@ -74,10 +74,7 @@ class TestNSCharacterSet : XCTestCase {
             ("test_SubtractEmptySet", test_SubtractEmptySet),
             ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
             ("test_SymmetricDifference", test_SymmetricDifference),
-            ("test_Bitmap", test_Bitmap),
-            ("test_AnnexPlanes", test_AnnexPlanes),
-            ("test_Planes", test_Planes),
-            ("test_InlineBuffer", test_InlineBuffer),
+            ("test_Bitmap", test_bitmap),
             ("test_Equatable", test_Equatable),
         ]
     }
