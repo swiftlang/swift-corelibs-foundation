@@ -56,7 +56,12 @@ open class JSONSerialization : NSObject {
      */
     open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
-        func isValidJSONObjectInternal(_ obj: Any) -> Bool {
+        func isValidJSONObjectInternal(_ obj: Any?) -> Bool {
+            // Emulate the SE-0140 behavior bridging behavior for nils
+            guard let obj = obj else {
+                return true
+            }
+            
             // object is Swift.String, NSNull, Int, Bool, or UInt
             if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt {
                 return true
@@ -72,7 +77,7 @@ open class JSONSerialization : NSObject {
             }
 
             // object is Swift.Array
-            if let array = obj as? [Any] {
+            if let array = obj as? [Any?] {
                 for element in array {
                     guard isValidJSONObjectInternal(element) else {
                         return false
@@ -82,7 +87,7 @@ open class JSONSerialization : NSObject {
             }
 
             // object is Swift.Dictionary
-            if let dictionary = obj as? [String: Any] {
+            if let dictionary = obj as? [String: Any?] {
                 for (_, value) in dictionary {
                     guard isValidJSONObjectInternal(value) else {
                         return false
@@ -103,7 +108,7 @@ open class JSONSerialization : NSObject {
         }
 
         // top level object must be an Swift.Array or Swift.Dictionary
-        guard obj is [Any] || obj is [String: Any] else {
+        guard obj is [Any?] || obj is [String: Any?] else {
             return false
         }
 
@@ -308,8 +313,12 @@ private struct JSONWriter {
         self.writer = writer
     }
     
-    mutating func serializeJSON(_ obj: Any) throws {
+    mutating func serializeJSON(_ obj: Any?) throws {
 
+        guard let obj = obj else {
+            try serializeNull()
+            return
+        }
         // For better performance, the most expensive conditions to evaluate should be last.
         switch (obj) {
         case let str as String:
@@ -320,12 +329,12 @@ private struct JSONWriter {
             try serializeInt(value: num)
         case let num as UInt:
             try serializeUInt(value: num)
-        case let array as Array<Any>:
+        case let array as Array<Any?>:
             try serializeArray(array)
-        case let dict as Dictionary<AnyHashable, Any>:
+        case let dict as Dictionary<AnyHashable, Any?>:
             try serializeDictionary(dict)
-        case let null as NSNull:
-            try serializeNull(null)
+        case is NSNull:
+            try serializeNull()
         case _ where _SwiftValue.store(obj) is NSNumber:
             try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
         default:
@@ -471,7 +480,7 @@ private struct JSONWriter {
         }
     }
 
-    mutating func serializeArray(_ array: [Any]) throws {
+    mutating func serializeArray(_ array: [Any?]) throws {
         writer("[")
         if pretty {
             writer("\n")
@@ -497,7 +506,7 @@ private struct JSONWriter {
         writer("]")
     }
 
-    mutating func serializeDictionary(_ dict: Dictionary<AnyHashable, Any>) throws {
+    mutating func serializeDictionary(_ dict: Dictionary<AnyHashable, Any?>) throws {
         writer("{")
         if pretty {
             writer("\n")
@@ -506,7 +515,7 @@ private struct JSONWriter {
 
         var first = true
 
-        func serializeDictionaryElement(key: AnyHashable, value: Any) throws {
+        func serializeDictionaryElement(key: AnyHashable, value: Any?) throws {
             if first {
                 first = false
             } else if pretty {
@@ -553,7 +562,7 @@ private struct JSONWriter {
         writer("}")
     }
 
-    func serializeNull(_ null: NSNull) throws {
+    func serializeNull() throws {
         writer("null")
     }
     

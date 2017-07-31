@@ -872,11 +872,16 @@ extension TestNSJSONSerialization {
                     "0",
                     NSNumber(value: Int(0))
                 )
-            )
+            ),
         ]
         for testCase in trueJSON {
             XCTAssertTrue(JSONSerialization.isValidJSONObject(testCase))
         }
+        
+        // [Any?.none]
+        let optionalAny: Any? = nil
+        let anyArray: [Any] = [optionalAny as Any]
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(anyArray))
     }
 
     func test_isValidJSONObjectFalse() {
@@ -1069,6 +1074,24 @@ extension TestNSJSONSerialization {
         
         let dict2 = [["a":NSNull()], ["b":NSNull()], ["c":NSNull()]]
         XCTAssertEqual(try trySerialize(dict2), "[{\"a\":null},{\"b\":null},{\"c\":null}]")
+        
+        let arr3 = [nil] as [Any?]
+        XCTAssertEqual(try trySerialize(arr3), "[null]")
+        
+        let dict3 = ["a":nil] as [String: Any?]
+        XCTAssertEqual(try trySerialize(dict3), "{\"a\":null}")
+        
+        let arr4 = [nil, nil, nil] as [Any?]
+        XCTAssertEqual(try trySerialize(arr4), "[null,null,null]")
+        
+        let dict4 = [["a": nil] as [String: Any?], ["b": nil] as [String: Any?], ["c": nil] as [String: Any?]]
+        XCTAssertEqual(try trySerialize(dict4), "[{\"a\":null},{\"b\":null},{\"c\":null}]")
+        
+        let arr5 = [Optional<Any>.none]
+        XCTAssertEqual(try trySerialize(arr5), "[null]")
+        
+        let arr6: Array<Optional<Any>> = [Bool?.none, String?.none, Int?.none, [Any?]?.none]
+        XCTAssertEqual(try trySerialize(arr6), "[null,null,null,null]")
     }
 
     func test_serialize_complexObject() {
@@ -1117,6 +1140,9 @@ extension TestNSJSONSerialization {
         
         dict = ["a":["b":["c":["d":1]]]]
         XCTAssertEqual(try trySerialize(dict), "{\"a\":{\"b\":{\"c\":{\"d\":1}}}}")
+        
+        dict = ["a":["b":["c":[1, Optional<Any>.none]]]]
+        XCTAssertEqual(try trySerialize(dict), "{\"a\":{\"b\":{\"c\":[1,null]}}}")
     }
     
     func test_serialize_number() {
