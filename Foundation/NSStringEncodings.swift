@@ -173,7 +173,11 @@ private let replacementUnichar: unichar = 0xFFFD
 
 internal func __NSCharToUnicharCFWrapper(_ ch: UInt8) -> unichar {
     var retChar: unichar = 0
+#if os(OSX) || os(iOS)
     return __CFCharToUniCharFunc!(0, ch, &retChar).boolValue ? retChar : replacementUnichar
+#else
+    return __CFCharToUniCharFunc!(0, ch, &retChar) ? retChar : replacementUnichar
+#endif
 }
 
 internal func __NSASCIICharToUnichar(_ ch: UInt8) -> unichar {

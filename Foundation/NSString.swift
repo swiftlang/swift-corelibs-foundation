@@ -533,11 +533,11 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     // Normally these would be in extensions, however we want to allow overriding
     
-    internal func _indexError(_ input: Int, _ max: Int, _ fn: String = #function) -> Never {
+    internal func _indexError(_ input: Int, _ max: Int, _ fn: String = #function) -> Void {
         fatalError("\(type(of: self)).\(fn): Index \(input) outf bounds; string length \(max)")
     }
     
-    internal func _rangeError(_ input: NSRange, _ max: Int, _ fn: String = #function) -> Never {
+    internal func _rangeError(_ input: NSRange, _ max: Int, _ fn: String = #function) -> Void {
         fatalError("\(type(of: self)).\(fn): Range \(input) outf bounds; string length \(max)")
     }
     

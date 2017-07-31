@@ -464,82 +464,82 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a character set containing the characters in Unicode General Category Cc and Cf.
     public static var controlCharacters : CharacterSet {
-        return CharacterSet(_builtIn: .control)
+        return CharacterSet(_builtIn: kCFCharacterSetControl)
     }
     
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
     public static var whitespaces : CharacterSet {
-        return CharacterSet(_builtIn: .whitespace)
+        return CharacterSet(_builtIn: kCFCharacterSetWhitespace)
     }
     
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
     public static var whitespacesAndNewlines : CharacterSet {
-        return CharacterSet(_builtIn: .whitespaceAndNewline)
+        return CharacterSet(_builtIn: kCFCharacterSetWhitespaceAndNewline)
     }
     
     /// Returns a character set containing the characters in the category of Decimal Numbers.
     public static var decimalDigits : CharacterSet {
-        return CharacterSet(_builtIn: .decimalDigit)
+        return CharacterSet(_builtIn: kCFCharacterSetDecimalDigit)
     }
     
     /// Returns a character set containing the characters in Unicode General Category L* & M*.
     public static var letters : CharacterSet {
-        return CharacterSet(_builtIn: .letter)
+        return CharacterSet(_builtIn: kCFCharacterSetLetter)
     }
     
     /// Returns a character set containing the characters in Unicode General Category Ll.
     public static var lowercaseLetters : CharacterSet {
-        return CharacterSet(_builtIn: .lowercaseLetter)
+        return CharacterSet(_builtIn: kCFCharacterSetLowercaseLetter)
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lu and Lt.
     public static var uppercaseLetters : CharacterSet {
-        return CharacterSet(_builtIn: .uppercaseLetter)
+        return CharacterSet(_builtIn: kCFCharacterSetUppercaseLetter)
     }
     
     /// Returns a character set containing the characters in Unicode General Category M*.
     public static var nonBaseCharacters : CharacterSet {
-        return CharacterSet(_builtIn: .nonBase)
+        return CharacterSet(_builtIn: kCFCharacterSetNonBase)
     }
     
     /// Returns a character set containing the characters in Unicode General Categories L*, M*, and N*.
     public static var alphanumerics : CharacterSet {
-        return CharacterSet(_builtIn: .alphaNumeric)
+        return CharacterSet(_builtIn: kCFCharacterSetAlphaNumeric)
     }
     
     /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of "standard decomposition" in version 3.2 of the Unicode character encoding standard.
     public static var decomposables : CharacterSet {
-        return CharacterSet(_builtIn: .decomposable)
+        return CharacterSet(_builtIn: kCFCharacterSetDecomposable)
     }
     
     /// Returns a character set containing values in the category of Non-Characters or that have not yet been defined in version 3.2 of the Unicode standard.
     public static var illegalCharacters : CharacterSet {
-        return CharacterSet(_builtIn: .illegal)
+        return CharacterSet(_builtIn: kCFCharacterSetIllegal)
     }
     
     @available(*, unavailable, renamed: "punctuationCharacters")
     public static var punctuation : CharacterSet {
-        return CharacterSet(_builtIn: .punctuation)
+        return CharacterSet(_builtIn: kCFCharacterSetPunctuation)
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
     public static var punctuationCharacters : CharacterSet {
-        return CharacterSet(_builtIn: .punctuation)
+        return CharacterSet(_builtIn: kCFCharacterSetPunctuation)
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.
     public static var capitalizedLetters : CharacterSet {
-        return CharacterSet(_builtIn: .capitalizedLetter)
+        return CharacterSet(_builtIn: kCFCharacterSetCapitalizedLetter)
     }
     
     /// Returns a character set containing the characters in Unicode General Category S*.
     public static var symbols : CharacterSet {
-        return CharacterSet(_builtIn: .symbol)
+        return CharacterSet(_builtIn: kCFCharacterSetSymbol)
     }
     
     /// Returns a character set containing the newline characters (`U+000A ~ U+000D`, `U+0085`, `U+2028`, and `U+2029`).
     public static var newlines : CharacterSet {
-        return CharacterSet(_builtIn: .newline)
+        return CharacterSet(_builtIn: kCFCharacterSetNewline)
     }
     
     // MARK: Static functions, from NSURL
@@ -865,20 +865,21 @@ extension NSCharacterSet : _HasCustomAnyHashableRepresentation {
     }
 }
 
-extension CharacterSet : Codable {
-    private enum CodingKeys : Int, CodingKey {
-        case bitmap
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let bitmap = try container.decode(Data.self, forKey: .bitmap)
-        self.init(bitmapRepresentation: bitmap)
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(self.bitmapRepresentation, forKey: .bitmap)
-    }
-}
+//extension CharacterSet : Codable {
+//    private enum CodingKeys : Int, CodingKey {
+//        case bitmap
+//    }
+//
+//    public init(from decoder: Decoder) throws {
+//        let container = try decoder.container(keyedBy: CodingKeys.self)
+//        let bitmap = try container.decode(Data.self, forKey: .bitmap)
+//        self.init(bitmapRepresentation: bitmap)
+//    }
+//
+//    public func encode(to encoder: Encoder) throws {
+//        var container = encoder.container(keyedBy: CodingKeys.self)
+//        try container.encode(self.bitmapRepresentation, forKey: .bitmap)
+//    }
+//}
+//
 
