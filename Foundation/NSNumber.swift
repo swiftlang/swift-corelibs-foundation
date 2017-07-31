@@ -609,35 +609,34 @@ open class NSNumber : NSValue {
     }
     
     open override func encode(with aCoder: NSCoder) {
-        if !aCoder.allowsKeyedCoding {
-            NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        if let keyedCoder = aCoder as? NSKeyedArchiver {
+            keyedCoder._encodePropertyList(self)
         } else {
-            if let keyedCoder = aCoder as? NSKeyedArchiver {
-                keyedCoder._encodePropertyList(self)
+            if CFGetTypeID(self) == CFBooleanGetTypeID() {
+                aCoder.encode(boolValue, forKey: "NS.boolval")
             } else {
-                if CFGetTypeID(self) == CFBooleanGetTypeID() {
+                switch objCType.pointee {
+                case 0x42:
                     aCoder.encode(boolValue, forKey: "NS.boolval")
-                } else {
-                    switch objCType.pointee {
-                    case 0x42:
-                        aCoder.encode(boolValue, forKey: "NS.boolval")
-                        break
-                    case 0x63: fallthrough
-                    case 0x43: fallthrough
-                    case 0x73: fallthrough
-                    case 0x53: fallthrough
-                    case 0x69: fallthrough
-                    case 0x49: fallthrough
-                    case 0x6C: fallthrough
-                    case 0x4C: fallthrough
-                    case 0x71: fallthrough
-                    case 0x51:
-                        aCoder.encode(int64Value, forKey: "NS.intval")
-                    case 0x66: fallthrough
-                    case 0x64:
-                        aCoder.encode(doubleValue, forKey: "NS.dblval")
-                    default: break
-                    }
+                    break
+                case 0x63: fallthrough
+                case 0x43: fallthrough
+                case 0x73: fallthrough
+                case 0x53: fallthrough
+                case 0x69: fallthrough
+                case 0x49: fallthrough
+                case 0x6C: fallthrough
+                case 0x4C: fallthrough
+                case 0x71: fallthrough
+                case 0x51:
+                    aCoder.encode(int64Value, forKey: "NS.intval")
+                case 0x66: fallthrough
+                case 0x64:
+                    aCoder.encode(doubleValue, forKey: "NS.dblval")
+                default: break
                 }
             }
         }
