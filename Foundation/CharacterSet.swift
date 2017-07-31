@@ -101,11 +101,11 @@ fileprivate final class _CharacterSetStorage : Hashable {
         switch _backing {
         case .immutable(let cs):
             let cf = CFCharacterSetCreateBitmapRepresentation(nil, cs)
-            let ns = _unsafeReferenceCast(cf, to: NSData.self)
+            let ns = unsafeBitCast(cf, to: NSData.self)
             return Data._unconditionallyBridgeFromObjectiveC(ns)
         case .mutable(let cs):
             let cf = CFCharacterSetCreateBitmapRepresentation(nil, cs)
-            let ns = _unsafeReferenceCast(cf, to: NSData.self)
+            let ns = unsafeBitCast(cf, to: NSData.self)
             return Data._unconditionallyBridgeFromObjectiveC(ns)
         }
     }
@@ -166,7 +166,7 @@ fileprivate final class _CharacterSetStorage : Hashable {
     }
     
     fileprivate func insert(charactersIn string: String) {
-        let cf = _unsafeReferenceCast(NSString(string: string), to: CFString.self)
+        let cf = unsafeBitCast(NSString(string: string), to: CFString.self)
         switch _backing {
         case .immutable(let cs):
             let r = CFCharacterSetCreateMutableCopy(nil, cs)!
@@ -179,7 +179,7 @@ fileprivate final class _CharacterSetStorage : Hashable {
     }
     
     fileprivate func remove(charactersIn string: String) {
-        let cf = _unsafeReferenceCast(NSString(string: string), to: CFString.self)
+        let cf = unsafeBitCast(NSString(string: string), to: CFString.self)
         switch _backing {
         case .immutable(let cs):
             let r = CFCharacterSetCreateMutableCopy(nil, cs)!
@@ -351,11 +351,11 @@ fileprivate final class _CharacterSetStorage : Hashable {
         switch _backing {
         case .immutable(let cs):
             let cf = CFCopyDescription(cs)
-            let ns = _unsafeReferenceCast(cf, to: NSString.self)
+            let ns = unsafeBitCast(cf, to: NSString.self)
             return String(ns)
         case .mutable(let cs):
             let cf = CFCopyDescription(cs)
-            let ns = _unsafeReferenceCast(cf, to: NSString.self)
+            let ns = unsafeBitCast(cf, to: NSString.self)
             return String(ns)
         }
     }
@@ -369,9 +369,9 @@ fileprivate final class _CharacterSetStorage : Hashable {
     public func bridgedReference() -> NSCharacterSet {
         switch _backing {
         case .immutable(let cs):
-            return _unsafeReferenceCast(cs, to: NSCharacterSet.self)
+            return unsafeBitCast(cs, to: NSCharacterSet.self)
         case .mutable(let cs):
-            return _unsafeReferenceCast(cs, to: NSCharacterSet.self)
+            return unsafeBitCast(cs, to: NSCharacterSet.self)
         }
     }
 }
@@ -415,7 +415,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// - parameter string: The string content to inspect for characters.
     public init(charactersIn string: String) {
         let ns = NSString(string: string)
-        let cf = _unsafeReferenceCast(ns, to: CFString.self)
+        let cf = unsafeBitCast(ns, to: CFString.self)
         _storage = _CharacterSetStorage(immutableReference: CFCharacterSetCreateWithCharactersInString(nil, cf))
     }
     
@@ -425,7 +425,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// - parameter data: The bitmap representation.
     public init(bitmapRepresentation data: Data) {
         let ns = data._bridgeToObjectiveC()
-        let cf = _unsafeReferenceCast(ns, to: CFData.self)
+        let cf = unsafeBitCast(ns, to: CFData.self)
         _storage = _CharacterSetStorage(immutableReference: CFCharacterSetCreateWithBitmapRepresentation(nil, cf))
     }
     
@@ -437,7 +437,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: file), options: .mappedIfSafe)
             let ns = data._bridgeToObjectiveC()
-            let cf = _unsafeReferenceCast(ns, to: CFData.self)
+            let cf = unsafeBitCast(ns, to: CFData.self)
             _storage = _CharacterSetStorage(immutableReference: CFCharacterSetCreateWithBitmapRepresentation(nil, cf))
         } catch {
             return nil

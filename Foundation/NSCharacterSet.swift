@@ -38,7 +38,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     public convenience override init() {
         if type(of: self) == NSCharacterSet.self {
             let cf = CFCharacterSetCreateWithCharactersInRange(kCFAllocatorSystemDefault, CFRangeMake(0, 0))
-            self.init(factory: _unsafeReferenceCast(cf, to: NSCharacterSet.self))
+            self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
         } else {
             self.init(placeholder: ())
         }
@@ -107,17 +107,17 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
 
     public convenience init(range aRange: NSRange) {
         let cf = CFCharacterSetCreateWithCharactersInRange(kCFAllocatorSystemDefault, CFRangeMake(0, 0))
-        self.init(factory: _unsafeReferenceCast(cf, to: NSCharacterSet.self))
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
     public convenience init(charactersIn aString: String) {
         let cf = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, aString._cfObject)
-        self.init(factory: _unsafeReferenceCast(cf, to: NSCharacterSet.self))
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
     public convenience init(bitmapRepresentation data: Data) {
         let cf = CFCharacterSetCreateWithBitmapRepresentation(kCFAllocatorSystemDefault, data._cfObject)
-        self.init(factory: _unsafeReferenceCast(cf, to: NSCharacterSet.self))
+        self.init(factory: unsafeBitCast(cf, to: NSCharacterSet.self))
     }
     
     public convenience init?(contentsOfFile fName: String) {
@@ -207,7 +207,7 @@ open class NSMutableCharacterSet : NSCharacterSet {
     
     public convenience init() {
         if type(of: self) == NSMutableCharacterSet.self {
-            self.init(factory: _unsafeReferenceCast(CFCharacterSetCreateMutable(nil), to: NSMutableCharacterSet.self))
+            self.init(factory: unsafeBitCast(CFCharacterSetCreateMutable(nil), to: NSMutableCharacterSet.self))
         } else {
             self.init(placeholder: ())
         }

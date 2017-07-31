@@ -33,27 +33,27 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     }
     
     override func characterIsMember(_ aCharacter: unichar) -> Bool {
-        return CFCharacterSetIsCharacterMember(_unsafeReferenceCast(self, to: CFCharacterSet.self), UniChar(aCharacter))
+        return CFCharacterSetIsCharacterMember(unsafeBitCast(self, to: CFCharacterSet.self), UniChar(aCharacter))
     }
     
     override var bitmapRepresentation: Data {
-        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._swiftObject
+        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, unsafeBitCast(self, to: CFCharacterSet.self))._swiftObject
     }
     
     override var inverted: CharacterSet {
-        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._swiftObject
+        return CFCharacterSetCreateInvertedSet(kCFAllocatorSystemDefault, unsafeBitCast(self, to: CFCharacterSet.self))._swiftObject
     }
     
     override func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        return CFCharacterSetIsLongCharacterMember(_unsafeReferenceCast(self, to: CFCharacterSet.self), theLongChar)
+        return CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFCharacterSet.self), theLongChar)
     }
     
     override func isSuperset(of theOtherSet: CharacterSet) -> Bool {
-        return CFCharacterSetIsSupersetOfSet(_unsafeReferenceCast(self, to: CFCharacterSet.self), theOtherSet._cfObject)
+        return CFCharacterSetIsSupersetOfSet(unsafeBitCast(self, to: CFCharacterSet.self), theOtherSet._cfObject)
     }
     
     override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_unsafeReferenceCast(self, to: CFCharacterSet.self), CFIndex(thePlane))
+        return CFCharacterSetHasMemberInPlane(unsafeBitCast(self, to: CFCharacterSet.self), CFIndex(thePlane))
     }
     
     override func copy() -> Any {
@@ -61,40 +61,40 @@ internal class _NSCFCharacterSet : NSMutableCharacterSet {
     }
     
     override func copy(with zone: NSZone? = nil) -> Any {
-        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))
+        return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, unsafeBitCast(self, to: CFCharacterSet.self))
     }
     
     override func mutableCopy(with zone: NSZone? = nil) -> Any {
-        return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _unsafeReferenceCast(self, to: CFCharacterSet.self))._nsObject
+        return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, unsafeBitCast(self, to: CFCharacterSet.self))._nsObject
     }
     
     
     override func addCharacters(in aRange: NSRange) {
-        CFCharacterSetAddCharactersInRange(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
+        CFCharacterSetAddCharactersInRange(unsafeBitCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
     }
     
     override func removeCharacters(in aRange: NSRange) {
-        CFCharacterSetRemoveCharactersInRange(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
+        CFCharacterSetRemoveCharactersInRange(unsafeBitCast(self, to: CFMutableCharacterSet.self) , CFRangeMake(aRange.location, aRange.length))
     }
     
     override func addCharacters(in aString: String) {
-        CFCharacterSetAddCharactersInString(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
+        CFCharacterSetAddCharactersInString(unsafeBitCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
     }
     
     override func removeCharacters(in aString: String) {
-        CFCharacterSetRemoveCharactersInString(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
+        CFCharacterSetRemoveCharactersInString(unsafeBitCast(self, to: CFMutableCharacterSet.self), aString._cfObject)
     }
     
     override func formUnion(with otherSet: CharacterSet) {
-        CFCharacterSetUnion(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), _unsafeReferenceCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
+        CFCharacterSetUnion(unsafeBitCast(self, to: CFMutableCharacterSet.self), unsafeBitCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
     }
     
     override func formIntersection(with otherSet: CharacterSet) {
-        CFCharacterSetIntersect(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self), _unsafeReferenceCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
+        CFCharacterSetIntersect(unsafeBitCast(self, to: CFMutableCharacterSet.self), unsafeBitCast(otherSet._bridgeToObjectiveC(), to: CFCharacterSet.self))
     }
     
     override func invert() {
-        CFCharacterSetInvert(_unsafeReferenceCast(self, to: CFMutableCharacterSet.self))
+        CFCharacterSetInvert(unsafeBitCast(self, to: CFMutableCharacterSet.self))
     }
 }
 

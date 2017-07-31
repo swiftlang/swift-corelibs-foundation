@@ -39,14 +39,14 @@ internal struct CFSInt128Struct {
 
 internal final class __NSCFNumber : NSNumber {
     override var hash: Int {
-        return Int(bitPattern: CFHash(_unsafeReferenceCast(self, to: CFNumber.self)))
+        return Int(bitPattern: CFHash(unsafeBitCast(self, to: CFNumber.self)))
     }
     
     override func getValue(_ value: UnsafeMutableRawPointer) {
-        let type = _CFNumberGetType2(_unsafeReferenceCast(self, to: CFNumber.self))
+        let type = _CFNumberGetType2(unsafeBitCast(self, to: CFNumber.self))
         if type == kCFNumberSInt128Type {
             var s = CFSInt128Struct(high: 0, low: 0)
-            CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), type, &s)
+            CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), type, &s)
             if s.high != 0 {
                 value.assumingMemoryBound(to: UInt64.self).pointee = UInt64.max
             } else {
@@ -54,14 +54,14 @@ internal final class __NSCFNumber : NSNumber {
             }
             return
         }
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), type, value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), type, value)
     }
     
     override var objCType: UnsafePointer<Int8> {
         func _objCType(_ staticString: StaticString) -> UnsafePointer<Int8> {
             return UnsafeRawPointer(staticString.utf8Start).assumingMemoryBound(to: Int8.self)
         }
-        let type = _CFNumberGetType2(_unsafeReferenceCast(self, to: CFNumber.self))
+        let type = _CFNumberGetType2(unsafeBitCast(self, to: CFNumber.self))
         switch type {
         case kCFNumberSInt8Type: return _objCType("c")
         case kCFNumberSInt16Type: return _objCType("s")
@@ -77,90 +77,90 @@ internal final class __NSCFNumber : NSNumber {
     
     override var int8Value: Int8 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return Int8(truncatingIfNeeded: value)
     }
     
     override var uint8Value: UInt8 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return UInt8(truncatingIfNeeded: value)
     }
     
     override var int16Value: Int16 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return Int16(truncatingIfNeeded: value)
     }
     
     override var uint16Value: UInt16 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return UInt16(truncatingIfNeeded: value)
     }
     
     override var int32Value: Int32 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return Int32(truncatingIfNeeded: value)
     }
     
     override var uint32Value: UInt32 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return UInt32(truncatingIfNeeded: value)
     }
     
     override var intValue: Int {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return Int(truncatingIfNeeded: value)
     }
     
     override var uintValue: UInt {
         #if arch(x86_64) || arch(arm64)
             var value = CFSInt128Struct(high: 0, low: 0)
-            CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt128Type, &value)
+            CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt128Type, &value)
             return UInt(value.low)
         #else
             var value: Int64 = 0
-            CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+            CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
             return UInt(bitPattern: value)
         #endif
     }
     
     override var int64Value: Int64 {
         var value: Int64 = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt64Type, &value)
         return value
     }
     
     override var uint64Value: UInt64 {
         var value = CFSInt128Struct(high: 0, low: 0)
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt128Type, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt128Type, &value)
         return UInt64(value.low)
     }
     
     override var floatValue: Float {
         var value: Float = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberFloatType, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberFloatType, &value)
         return value
     }
     
     override var doubleValue: Double {
         var value: Double = 0
-        CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberDoubleType, &value)
+        CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberDoubleType, &value)
         return value
     }
     
     override var boolValue: Bool {
-        if CFNumberIsFloatType(_unsafeReferenceCast(self, to: CFNumber.self)) {
+        if CFNumberIsFloatType(unsafeBitCast(self, to: CFNumber.self)) {
             var value: Double = 0
-            CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberDoubleType, &value)
+            CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberDoubleType, &value)
             return value == 0 ? false : true
         } else {
             var value: Int32 = 0
-            CFNumberGetValue(_unsafeReferenceCast(self, to: CFNumber.self), kCFNumberSInt32Type, &value)
+            CFNumberGetValue(unsafeBitCast(self, to: CFNumber.self), kCFNumberSInt32Type, &value)
             return value == 0 ? false : true
         }
     }

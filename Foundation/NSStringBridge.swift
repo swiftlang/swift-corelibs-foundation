@@ -10,17 +10,17 @@
 import CoreFoundation
 
 extension NSString : _CFBridgeable, _SwiftBridgeable {
-    var _cfObject: CFString { return _unsafeReferenceCast(self, to: CFString.self) }
+    var _cfObject: CFString { return unsafeBitCast(self, to: CFString.self) }
     var _swiftObject: String { return String(self) }
 }
 
 extension CFString : _NSBridgeable, _SwiftBridgeable {
-    var _nsObject: NSString { return _unsafeReferenceCast(self, to: NSString.self) }
+    var _nsObject: NSString { return unsafeBitCast(self, to: NSString.self) }
     var _swiftObject: String { return String(_nsObject) }
 }
 
 extension String : _CFBridgeable, _NSBridgeable {
-    var _cfObject: CFString { return _unsafeReferenceCast(_nsObject, to: CFString.self) }
+    var _cfObject: CFString { return unsafeBitCast(_nsObject, to: CFString.self) }
     var _nsObject: NSString { return NSString(string: self) }
 }
 

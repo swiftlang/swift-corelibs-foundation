@@ -77,22 +77,22 @@ internal final class _NSPlaceholderCharacterSet : NSCharacterSet {
     }
     
     override func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        let res = CFCharacterSetIsLongCharacterMember(_unsafeReferenceCast(_original, to: CFCharacterSet.self), theLongChar)
+        let res = CFCharacterSetIsLongCharacterMember(unsafeBitCast(_original, to: CFCharacterSet.self), theLongChar)
         return _inverted ? !res : res
     }
     
     override func isSuperset(of theOtherSet: CharacterSet) -> Bool {
-        let other = _unsafeReferenceCast(theOtherSet._bridgeToObjectiveC(), to: CFCharacterSet.self)
+        let other = unsafeBitCast(theOtherSet._bridgeToObjectiveC(), to: CFCharacterSet.self)
         if let inverted = _invertedSet {
-            return CFCharacterSetIsSupersetOfSet(_unsafeReferenceCast(inverted, to: CFCharacterSet.self), other)
+            return CFCharacterSetIsSupersetOfSet(unsafeBitCast(inverted, to: CFCharacterSet.self), other)
         } else {
-            var result = CFCharacterSetIsSupersetOfSet(_unsafeReferenceCast(_original, to: CFCharacterSet.self), other)
+            var result = CFCharacterSetIsSupersetOfSet(unsafeBitCast(_original, to: CFCharacterSet.self), other)
             if _inverted {
                 if result {
                     result = false
                 } else {
                     _expandInverted()
-                    return CFCharacterSetIsSupersetOfSet(_unsafeReferenceCast(_invertedSet!, to: CFCharacterSet.self), other)
+                    return CFCharacterSetIsSupersetOfSet(unsafeBitCast(_invertedSet!, to: CFCharacterSet.self), other)
                 }
             }
             return result
@@ -105,7 +105,7 @@ internal final class _NSPlaceholderCharacterSet : NSCharacterSet {
             _expandInverted()
             set = _invertedSet!
         }
-        return CFCharacterSetHasMemberInPlane(_unsafeReferenceCast(set, to: CFCharacterSet.self), CFIndex(plane))
+        return CFCharacterSetHasMemberInPlane(unsafeBitCast(set, to: CFCharacterSet.self), CFIndex(plane))
     }
     
     override func isEqual(_ value: Any?) -> Bool {
@@ -121,7 +121,7 @@ internal final class _NSPlaceholderCharacterSet : NSCharacterSet {
         
         var set = _original
         if otherSet === self { return true }
-        if _isCF && otherSet._expandedCFCharacterSet() === _unsafeReferenceCast(_original, to: CFCharacterSet.self) {
+        if _isCF && otherSet._expandedCFCharacterSet() === unsafeBitCast(_original, to: CFCharacterSet.self) {
             return true
         }
         
@@ -139,7 +139,7 @@ internal final class _NSPlaceholderCharacterSet : NSCharacterSet {
             _expandInverted()
             set = _invertedSet!
         }
-        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _unsafeReferenceCast(set, to: CFCharacterSet.self))._swiftObject
+        return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, unsafeBitCast(set, to: CFCharacterSet.self))._swiftObject
     }
     
     override func replacementObject(for aCoder: NSCoder) -> Any? {

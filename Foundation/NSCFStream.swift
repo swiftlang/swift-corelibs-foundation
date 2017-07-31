@@ -45,7 +45,7 @@ fileprivate func _inputStreamCallbackFunc(_ stream: CFReadStream?, _ type: CFStr
         return
     }
     let delegate = _streamDelegatesLock.synchronized { _streamDelegates[client]?.object }
-    delegate?.stream(_unsafeReferenceCast(s, to: InputStream.self), handleEvent: Stream.Event.init(rawValue: type.rawValue))
+    delegate?.stream(unsafeBitCast(s, to: InputStream.self), handleEvent: Stream.Event.init(rawValue: type.rawValue))
 }
 
 fileprivate func _outputStreamCallbackFunc(_ stream: CFWriteStream?, _ type: CFStreamEventType, _ clientCallBackInfo: UnsafeMutableRawPointer?) {
@@ -54,34 +54,34 @@ fileprivate func _outputStreamCallbackFunc(_ stream: CFWriteStream?, _ type: CFS
             return
     }
     let delegate = _streamDelegatesLock.synchronized { _streamDelegates[client]?.object }
-    delegate?.stream(_unsafeReferenceCast(s, to: InputStream.self), handleEvent: Stream.Event.init(rawValue: type.rawValue))
+    delegate?.stream(unsafeBitCast(s, to: InputStream.self), handleEvent: Stream.Event.init(rawValue: type.rawValue))
 }
 
 internal final class _NSCFInputStream : InputStream {
     deinit {
-        if let obj = _CFReadStreamGetClient(_unsafeReferenceCast(self, to: CFReadStream.self)) {
+        if let obj = _CFReadStreamGetClient(unsafeBitCast(self, to: CFReadStream.self)) {
             _streamDelegates[obj] = nil
         }
     }
     
     
     override func open() {
-        CFReadStreamOpen(_unsafeReferenceCast(self, to: CFReadStream.self))
+        CFReadStreamOpen(unsafeBitCast(self, to: CFReadStream.self))
     }
     
     override func close() {
-        CFReadStreamClose(_unsafeReferenceCast(self, to: CFReadStream.self))
+        CFReadStreamClose(unsafeBitCast(self, to: CFReadStream.self))
     }
     
     override var delegate: StreamDelegate? {
         get {
-            guard let obj = _CFReadStreamGetClient(_unsafeReferenceCast(self, to: CFReadStream.self)) else {
+            guard let obj = _CFReadStreamGetClient(unsafeBitCast(self, to: CFReadStream.self)) else {
                 return nil
             }
             return _streamDelegatesLock.synchronized { _streamDelegates[obj]?.object }
         }
         set {
-            if let obj = _CFReadStreamGetClient(_unsafeReferenceCast(self, to: CFReadStream.self)) {
+            if let obj = _CFReadStreamGetClient(unsafeBitCast(self, to: CFReadStream.self)) {
                 _streamDelegatesLock.synchronized {
                     _streamDelegates[obj] = nil
                 }
@@ -101,41 +101,41 @@ internal final class _NSCFInputStream : InputStream {
                 ctx.info = nil
             }
             
-            CFReadStreamSetClient(_unsafeReferenceCast(self, to: CFReadStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _inputStreamCallbackFunc, &ctx)
+            CFReadStreamSetClient(unsafeBitCast(self, to: CFReadStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventHasBytesAvailable | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _inputStreamCallbackFunc, &ctx)
         }
     }
     
     override func property(forKey key: Stream.PropertyKey) -> Any? {
-        return _SwiftValue.fetch(CFReadStreamCopyProperty(_unsafeReferenceCast(self, to: CFReadStream.self), _unsafeReferenceCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self)))
+        return _SwiftValue.fetch(CFReadStreamCopyProperty(unsafeBitCast(self, to: CFReadStream.self), unsafeBitCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self)))
     }
     
     override func setProperty(_ property: Any?, forKey key: Stream.PropertyKey) -> Bool {
-        return CFReadStreamSetProperty(_unsafeReferenceCast(self, to: CFReadStream.self), _unsafeReferenceCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self), _SwiftValue.store(property))
+        return CFReadStreamSetProperty(unsafeBitCast(self, to: CFReadStream.self), unsafeBitCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self), _SwiftValue.store(property))
     }
     
     override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFReadStreamScheduleWithRunLoop(_unsafeReferenceCast(self, to: CFReadStream.self), aRunLoop.getCFRunLoop(), _unsafeReferenceCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
+        CFReadStreamScheduleWithRunLoop(unsafeBitCast(self, to: CFReadStream.self), aRunLoop.getCFRunLoop(), unsafeBitCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
     }
     
     override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFReadStreamUnscheduleFromRunLoop(_unsafeReferenceCast(self, to: CFReadStream.self), aRunLoop.getCFRunLoop(), _unsafeReferenceCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
+        CFReadStreamUnscheduleFromRunLoop(unsafeBitCast(self, to: CFReadStream.self), aRunLoop.getCFRunLoop(), unsafeBitCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
     }
     
     override var streamStatus: Stream.Status {
-        return Stream.Status(rawValue: UInt(bitPattern: CFReadStreamGetStatus(_unsafeReferenceCast(self, to: CFReadStream.self)).rawValue))!
+        return Stream.Status(rawValue: UInt(bitPattern: CFReadStreamGetStatus(unsafeBitCast(self, to: CFReadStream.self)).rawValue))!
     }
     
     override var streamError: Error? {
-        guard let err = CFReadStreamCopyError(_unsafeReferenceCast(self, to: CFReadStream.self)) else { return nil }
+        guard let err = CFReadStreamCopyError(unsafeBitCast(self, to: CFReadStream.self)) else { return nil }
         return err._nsObject
     }
     
     override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return CFReadStreamRead(_unsafeReferenceCast(self, to: CFReadStream.self), buffer, len)
+        return CFReadStreamRead(unsafeBitCast(self, to: CFReadStream.self), buffer, len)
     }
     
     override func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
-        let incomingBuffer = CFReadStreamGetBuffer(_unsafeReferenceCast(self, to: CFReadStream.self), 0, len)
+        let incomingBuffer = CFReadStreamGetBuffer(unsafeBitCast(self, to: CFReadStream.self), 0, len)
         guard len.pointee > 0 else {
             return false
         }
@@ -150,28 +150,28 @@ internal final class _NSCFInputStream : InputStream {
     }
     
     override var hasBytesAvailable: Bool {
-        return CFReadStreamHasBytesAvailable(_unsafeReferenceCast(self, to: CFReadStream.self))
+        return CFReadStreamHasBytesAvailable(unsafeBitCast(self, to: CFReadStream.self))
     }
 }
 
 internal final class _NSCFOutputStream : OutputStream {
     override func open() {
-        CFWriteStreamOpen(_unsafeReferenceCast(self, to: CFWriteStream.self))
+        CFWriteStreamOpen(unsafeBitCast(self, to: CFWriteStream.self))
     }
     
     override func close() {
-        CFWriteStreamClose(_unsafeReferenceCast(self, to: CFWriteStream.self))
+        CFWriteStreamClose(unsafeBitCast(self, to: CFWriteStream.self))
     }
     
     override var delegate: StreamDelegate? {
         get {
-            guard let obj = _CFWriteStreamGetClient(_unsafeReferenceCast(self, to: CFWriteStream.self)) else {
+            guard let obj = _CFWriteStreamGetClient(unsafeBitCast(self, to: CFWriteStream.self)) else {
                 return nil
             }
             return _streamDelegatesLock.synchronized { _streamDelegates[obj]?.object }
         }
         set {
-            if let obj = _CFWriteStreamGetClient(_unsafeReferenceCast(self, to: CFWriteStream.self)) {
+            if let obj = _CFWriteStreamGetClient(unsafeBitCast(self, to: CFWriteStream.self)) {
                 _streamDelegatesLock.synchronized {
                     _streamDelegates[obj] = nil
                 }
@@ -191,141 +191,141 @@ internal final class _NSCFOutputStream : OutputStream {
                 ctx.info = nil
             }
             
-            CFWriteStreamSetClient(_unsafeReferenceCast(self, to: CFWriteStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _outputStreamCallbackFunc, &ctx)
+            CFWriteStreamSetClient(unsafeBitCast(self, to: CFWriteStream.self), CFOptionFlags(bitPattern: kCFStreamEventOpenCompleted | kCFStreamEventCanAcceptBytes | kCFStreamEventErrorOccurred | kCFStreamEventEndEncountered), _outputStreamCallbackFunc, &ctx)
         }
     }
     
     
     override func property(forKey key: Stream.PropertyKey) -> Any? {
-        return _SwiftValue.fetch(CFWriteStreamCopyProperty(_unsafeReferenceCast(self, to: CFWriteStream.self), _unsafeReferenceCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self)))
+        return _SwiftValue.fetch(CFWriteStreamCopyProperty(unsafeBitCast(self, to: CFWriteStream.self), unsafeBitCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self)))
     }
     
     override func setProperty(_ property: Any?, forKey key: Stream.PropertyKey) -> Bool {
-        return CFWriteStreamSetProperty(_unsafeReferenceCast(self, to: CFWriteStream.self), _unsafeReferenceCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self), _SwiftValue.store(property))
+        return CFWriteStreamSetProperty(unsafeBitCast(self, to: CFWriteStream.self), unsafeBitCast(NSString(string: key.rawValue), to: CFStreamPropertyKey.self), _SwiftValue.store(property))
     }
     
     override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFWriteStreamScheduleWithRunLoop(_unsafeReferenceCast(self, to: CFWriteStream.self), aRunLoop.getCFRunLoop(), _unsafeReferenceCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
+        CFWriteStreamScheduleWithRunLoop(unsafeBitCast(self, to: CFWriteStream.self), aRunLoop.getCFRunLoop(), unsafeBitCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
     }
     
     override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFWriteStreamUnscheduleFromRunLoop(_unsafeReferenceCast(self, to: CFWriteStream.self), aRunLoop.getCFRunLoop(), _unsafeReferenceCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
+        CFWriteStreamUnscheduleFromRunLoop(unsafeBitCast(self, to: CFWriteStream.self), aRunLoop.getCFRunLoop(), unsafeBitCast(NSString(string: mode.rawValue), to: CFRunLoopMode.self))
     }
     
     override var streamStatus: Stream.Status {
-        return Stream.Status(rawValue: UInt(bitPattern: CFWriteStreamGetStatus(_unsafeReferenceCast(self, to: CFWriteStream.self)).rawValue))!
+        return Stream.Status(rawValue: UInt(bitPattern: CFWriteStreamGetStatus(unsafeBitCast(self, to: CFWriteStream.self)).rawValue))!
     }
     
     override var streamError: Error? {
-        guard let err = CFWriteStreamCopyError(_unsafeReferenceCast(self, to: CFWriteStream.self)) else { return nil }
+        guard let err = CFWriteStreamCopyError(unsafeBitCast(self, to: CFWriteStream.self)) else { return nil }
         return err._nsObject
     }
     
     override func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
-        return CFWriteStreamWrite(_unsafeReferenceCast(self, to: CFWriteStream.self), buffer, len)
+        return CFWriteStreamWrite(unsafeBitCast(self, to: CFWriteStream.self), buffer, len)
     }
     
     override var hasSpaceAvailable: Bool {
-        return CFWriteStreamCanAcceptBytes(_unsafeReferenceCast(self, to: CFWriteStream.self))
+        return CFWriteStreamCanAcceptBytes(unsafeBitCast(self, to: CFWriteStream.self))
     }
 }
 
 /// Mark -
 
 internal func _CFSwiftInputStreamGetStreamStatus(_ stream: CFTypeRef) -> CFStreamStatus {
-    return CFStreamStatus(rawValue: CFIndex(bitPattern: _unsafeReferenceCast(stream, to: InputStream.self).streamStatus.rawValue))!
+    return CFStreamStatus(rawValue: CFIndex(bitPattern: unsafeBitCast(stream, to: InputStream.self).streamStatus.rawValue))!
 }
 
 internal func _CFSwiftInputStreamGetCFStreamError(_ stream: CFTypeRef) -> CFStreamError {
-    return _unsafeReferenceCast(stream, to: InputStream.self)._cfStreamError
+    return unsafeBitCast(stream, to: InputStream.self)._cfStreamError
 }
 
 internal func _CFSwiftInputStreamGetStreamError(_ stream: CFTypeRef) -> Unmanaged<CFError>? {
-    guard let err = _unsafeReferenceCast(stream, to: InputStream.self).streamError else { return nil }
+    guard let err = unsafeBitCast(stream, to: InputStream.self).streamError else { return nil }
     return Unmanaged.passUnretained((err as! NSError)._cfObject)
 }
 
 internal func _CFSwiftInputStreamOpen(_ stream: CFTypeRef) {
-    _unsafeReferenceCast(stream, to: InputStream.self).open()
+    unsafeBitCast(stream, to: InputStream.self).open()
 }
 
 internal func _CFSwiftInputStreamClose(_ stream: CFTypeRef) {
-    _unsafeReferenceCast(stream, to: InputStream.self).close()
+    unsafeBitCast(stream, to: InputStream.self).close()
 }
 
 internal func _CFSwiftInputStreamHasBytesAvailable(_ stream: CFTypeRef) -> Bool {
-    return _unsafeReferenceCast(stream, to: InputStream.self).hasBytesAvailable
+    return unsafeBitCast(stream, to: InputStream.self).hasBytesAvailable
 }
 
 internal func _CFSwiftInputStreamRead(_ stream: CFTypeRef, _ buffer: UnsafeMutablePointer<UInt8>, _ length: CFIndex) -> CFIndex {
-    return _unsafeReferenceCast(stream, to: InputStream.self).read(buffer, maxLength: length)
+    return unsafeBitCast(stream, to: InputStream.self).read(buffer, maxLength: length)
 }
 
 internal func _CFSwiftInputStreamGetBuffer(_ stream: CFTypeRef, _ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, _ length: UnsafeMutablePointer<CFIndex>) -> Bool {
-    return _unsafeReferenceCast(stream, to: InputStream.self).getBuffer(buffer, length: length)
+    return unsafeBitCast(stream, to: InputStream.self).getBuffer(buffer, length: length)
 }
 
 internal func _CFSwiftInputStreamCopyPropertyForKey(_ stream: CFTypeRef, _ key: CFString) -> Unmanaged<CFTypeRef>? {
-    guard let result = _SwiftValue.store(_unsafeReferenceCast(stream, to: InputStream.self).property(forKey: Stream.PropertyKey(rawValue: key._swiftObject))) else { return nil }
-    return Unmanaged.passRetained(_unsafeReferenceCast(result, to: CFTypeRef.self))
+    guard let result = _SwiftValue.store(unsafeBitCast(stream, to: InputStream.self).property(forKey: Stream.PropertyKey(rawValue: key._swiftObject))) else { return nil }
+    return Unmanaged.passRetained(unsafeBitCast(result, to: CFTypeRef.self))
 }
 
 internal func _CFSwiftInputStreamSetPropertyForKey(_ stream: CFTypeRef, _ value: CFTypeRef?, _ key: CFString) -> Bool {
-    return _unsafeReferenceCast(stream, to: InputStream.self).setProperty(_SwiftValue.fetch(value), forKey: Stream.PropertyKey(rawValue: key._swiftObject))
+    return unsafeBitCast(stream, to: InputStream.self).setProperty(_SwiftValue.fetch(value), forKey: Stream.PropertyKey(rawValue: key._swiftObject))
 }
 
 internal func _CFSwiftInputStreamScheduleWithRunLoop(_ stream: CFTypeRef, _ rl: CFRunLoop, _ mode: CFString) {
-    _unsafeReferenceCast(stream, to: InputStream.self).schedule(in: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
+    unsafeBitCast(stream, to: InputStream.self).schedule(in: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
 }
 
 internal func _CFSwiftInputStreamUnscheduleWithRunLoop(_ stream: CFTypeRef, _ rl: CFRunLoop, _ mode: CFString) {
-    _unsafeReferenceCast(stream, to: InputStream.self).remove(from: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
+    unsafeBitCast(stream, to: InputStream.self).remove(from: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
 }
 
 /// Mark -
 
 internal func _CFSwiftOutputStreamGetStreamStatus(_ stream: CFTypeRef) -> CFStreamStatus {
-    return CFStreamStatus(rawValue: CFIndex(bitPattern: _unsafeReferenceCast(stream, to: OutputStream.self).streamStatus.rawValue))!
+    return CFStreamStatus(rawValue: CFIndex(bitPattern: unsafeBitCast(stream, to: OutputStream.self).streamStatus.rawValue))!
 }
 
 internal func _CFSwiftOutputStreamGetCFStreamError(_ stream: CFTypeRef) -> CFStreamError {
-    return _unsafeReferenceCast(stream, to: OutputStream.self)._cfStreamError
+    return unsafeBitCast(stream, to: OutputStream.self)._cfStreamError
 }
 
 internal func _CFSwiftOutputStreamGetStreamError(_ stream: CFTypeRef) -> Unmanaged<CFError>? {
-    guard let err = _unsafeReferenceCast(stream, to: OutputStream.self).streamError else { return nil }
+    guard let err = unsafeBitCast(stream, to: OutputStream.self).streamError else { return nil }
     return Unmanaged.passUnretained((err as! NSError)._cfObject)
 }
 
 internal func _CFSwiftOutputStreamOpen(_ stream: CFTypeRef) {
-    _unsafeReferenceCast(stream, to: OutputStream.self).open()
+    unsafeBitCast(stream, to: OutputStream.self).open()
 }
 
 internal func _CFSwiftOutputStreamClose(_ stream: CFTypeRef) {
-    _unsafeReferenceCast(stream, to: OutputStream.self).close()
+    unsafeBitCast(stream, to: OutputStream.self).close()
 }
 
 internal func _CFSwiftOutputStreamHasSpaceAvailable(_ stream: CFTypeRef) -> Bool {
-    return _unsafeReferenceCast(stream, to: OutputStream.self).hasSpaceAvailable
+    return unsafeBitCast(stream, to: OutputStream.self).hasSpaceAvailable
 }
 
 internal func _CFSwiftOutputStreamWrite(_ stream: CFTypeRef, _ buffer: UnsafePointer<UInt8>, _ length: CFIndex) -> CFIndex {
-    return _unsafeReferenceCast(stream, to: OutputStream.self).write(buffer, maxLength: length)
+    return unsafeBitCast(stream, to: OutputStream.self).write(buffer, maxLength: length)
 }
 
 internal func _CFSwiftOutputStreamCopyPropertyForKey(_ stream: CFTypeRef, _ key: CFString) -> Unmanaged<CFTypeRef>? {
-    guard let result = _SwiftValue.store(_unsafeReferenceCast(stream, to: OutputStream.self).property(forKey: Stream.PropertyKey(rawValue: key._swiftObject))) else { return nil }
-    return Unmanaged.passRetained(_unsafeReferenceCast(result, to: CFTypeRef.self))
+    guard let result = _SwiftValue.store(unsafeBitCast(stream, to: OutputStream.self).property(forKey: Stream.PropertyKey(rawValue: key._swiftObject))) else { return nil }
+    return Unmanaged.passRetained(unsafeBitCast(result, to: CFTypeRef.self))
 }
 
 internal func _CFSwiftOutputStreamSetPropertyForKey(_ stream: CFTypeRef, _ value: CFTypeRef?, _ key: CFString) -> Bool {
-    return _unsafeReferenceCast(stream, to: OutputStream.self).setProperty(_SwiftValue.fetch(value), forKey: Stream.PropertyKey(rawValue: key._swiftObject))
+    return unsafeBitCast(stream, to: OutputStream.self).setProperty(_SwiftValue.fetch(value), forKey: Stream.PropertyKey(rawValue: key._swiftObject))
 }
 
 internal func _CFSwiftOutputStreamScheduleWithRunLoop(_ stream: CFTypeRef, _ rl: CFRunLoop, _ mode: CFString) {
-    _unsafeReferenceCast(stream, to: OutputStream.self).schedule(in: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
+    unsafeBitCast(stream, to: OutputStream.self).schedule(in: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
 }
 
 internal func _CFSwiftOutputStreamUnscheduleWithRunLoop(_ stream: CFTypeRef, _ rl: CFRunLoop, _ mode: CFString) {
-    _unsafeReferenceCast(stream, to: OutputStream.self).remove(from: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
+    unsafeBitCast(stream, to: OutputStream.self).remove(from: _CFRunLoopGet2(rl) as! RunLoop, forMode: RunLoopMode(rawValue: mode._swiftObject))
 }

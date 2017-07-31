@@ -29,12 +29,12 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
                 guard let tz = CFTimeZoneCreate(kCFAllocatorSystemDefault, tzName._cfObject, data._cfObject) else {
                     return nil
                 }
-                self.init(factory: _unsafeReferenceCast(tz, to: NSTimeZone.self))
+                self.init(factory: unsafeBitCast(tz, to: NSTimeZone.self))
             } else {
                 guard let tz = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, tzName._cfObject, true) else {
                     return nil
                 }
-                self.init(factory: _unsafeReferenceCast(tz, to: NSTimeZone.self))
+                self.init(factory: unsafeBitCast(tz, to: NSTimeZone.self))
             }
             
         } else {
@@ -72,8 +72,8 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // `init(forSecondsFromGMT:)` is not a failable initializer, so we need a designated initializer that isn't failable.
     internal convenience init(_name tzName: String) {
         if type(of: self) == NSTimeZone.self {
-            let cf = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, _unsafeReferenceCast(NSString(string: tzName), to: CFString.self), true)!
-            self.init(factory: _unsafeReferenceCast(cf, to: NSTimeZone.self))
+            let cf = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, unsafeBitCast(NSString(string: tzName), to: CFString.self), true)!
+            self.init(factory: unsafeBitCast(cf, to: NSTimeZone.self))
         } else {
             self.init()
         }

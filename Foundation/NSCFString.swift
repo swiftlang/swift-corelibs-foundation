@@ -79,11 +79,11 @@ internal class _NSCFString : NSMutableString {
     }
     
     override func _fastCStringContents(_ nullTerminationRequired: Bool) -> UnsafePointer<Int8>? {
-        return CFStringGetCStringPtr(_unsafeReferenceCast(self, to: CFString.self), CFStringGetSystemEncoding())
+        return CFStringGetCStringPtr(unsafeBitCast(self, to: CFString.self), CFStringGetSystemEncoding())
     }
     
     override func _fastCharacterContents() -> UnsafePointer<unichar>? {
-        return CFStringGetCharactersPtr(_unsafeReferenceCast(self, to: CFString.self))
+        return CFStringGetCharactersPtr(unsafeBitCast(self, to: CFString.self))
     }
 }
 

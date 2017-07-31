@@ -64,7 +64,7 @@ internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unman
 }
 
 internal func _CFSwiftCopyDescription(_ cf: CFTypeRef) -> Unmanaged<CFString> {
-    let desc = _unsafeReferenceCast(cf, to: NSObject.self).description
+    let desc = unsafeBitCast(cf, to: NSObject.self).description
     let cf = desc._cfObject
     return Unmanaged.passRetained(cf)
 }

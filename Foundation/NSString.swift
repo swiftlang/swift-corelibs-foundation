@@ -319,7 +319,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     override open var hash: Int {
         get {
-            return Int(bitPattern: CFStringHashNSString(_unsafeReferenceCast(self, to: CFString.self)))
+            return Int(bitPattern: CFStringHashNSString(unsafeBitCast(self, to: CFString.self)))
         }
     }
     
@@ -335,7 +335,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) { /* "NoCopy" is a hint */
         if type(of: self) == NSString.self {
             let cf = CFStringCreateWithCharactersNoCopy(kCFAllocatorDefault, characters, length, freeBuffer ? kCFAllocatorMalloc : kCFAllocatorNull)
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -344,7 +344,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init(characters: UnsafePointer<unichar>, length: Int) {
         if type(of: self) == NSString.self {
             let cf = CFStringCreateWithCharacters(kCFAllocatorDefault, characters, length)
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             let buffer = UnsafeMutablePointer<unichar>.allocate(capacity: length)
             buffer.initialize(from: characters, count: length)
@@ -355,7 +355,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init?(utf8String nullTerminatedCString: UnsafePointer<Int8>) {
         if type(of: self) == NSString.self {
             let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, CFStringEncoding(kCFStringEncodingUTF8))
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             self.init(bytes: nullTerminatedCString, length: Int(strlen(nullTerminatedCString)), encoding: String.Encoding.utf8.rawValue)
         }
@@ -387,8 +387,8 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init(format: String, locale: Any?, arguments argList: CVaListPointer) {
         if type(of: self) == NSString.self {
             let loc = _SwiftValue.store(locale)
-            let cf = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, _unsafeReferenceCast(loc, to: Optional<CFDictionary>.self), _unsafeReferenceCast(NSString(string: format), to: CFString.self), argList)
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            let cf = CFStringCreateWithFormatAndArguments(kCFAllocatorDefault, unsafeBitCast(loc, to: Optional<CFDictionary>.self), unsafeBitCast(NSString(string: format), to: CFString.self), argList)
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -402,7 +402,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 guard let cf = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) -> CFString? in
                     return CFStringCreateWithBytes(kCFAllocatorDefault, bytes, data.count, CFStringConvertNSStringEncodingToEncoding(encoding), true)
                 }) else { return nil }
-                self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+                self.init(factory: unsafeBitCast(cf, to: NSString.self))
             }
         } else {
             NSRequiresConcreteImplementation()
@@ -412,7 +412,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init?(bytes: UnsafeRawPointer, length len: Int, encoding: UInt) {
         if type(of: self) == NSString.self {
             let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytes.assumingMemoryBound(to: UInt8.self), len, CFStringConvertNSStringEncodingToEncoding(encoding), true)
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -421,7 +421,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init?(bytesNoCopy bytes: UnsafeMutableRawPointer, length len: Int, encoding: UInt, freeWhenDone freeBuffer: Bool) { /* "NoCopy" is a hint */
         if type(of: self) == NSString.self {
             let cf = _CFStringCreateWithBytesNoCopy(kCFAllocatorDefault, bytes.assumingMemoryBound(to: UInt8.self), len, CFStringConvertNSStringEncodingToEncoding(encoding), true, freeBuffer ? kCFAllocatorMalloc : kCFAllocatorNull).takeRetainedValue()
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -430,7 +430,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init?(cString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
         if type(of: self) == NSString.self {
             let cf = CFStringCreateWithCString(kCFAllocatorDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding))
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
             NSRequiresConcreteImplementation()
         }
@@ -501,9 +501,9 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
             enc?.pointee = detectedEncoding
             if type(of: self) == NSString.self {
-                self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+                self.init(factory: unsafeBitCast(cf, to: NSString.self))
             } else {
-                self.init(string: _unsafeReferenceCast(cf, to: NSString.self))
+                self.init(string: unsafeBitCast(cf, to: NSString.self))
             }
         }
     }
@@ -525,9 +525,9 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         enc?.pointee = detectedEncoding
         if type(of: self) == NSString.self {
-            self.init(factory: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(factory: unsafeBitCast(cf, to: NSString.self))
         } else {
-            self.init(string: _unsafeReferenceCast(cf, to: NSString.self))
+            self.init(string: unsafeBitCast(cf, to: NSString.self))
         }
     }
     
@@ -679,7 +679,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 CFStringSetExternalCharactersNoCopy(currentSubstring!, selfChars, range.length, range.length)
             }
             
-            if other.range(of: String(_unsafeReferenceCast(currentSubstring, to: NSString.self)), options: mask.union(.anchored), range: NSMakeRange(0, otherLen)).length > 0 { // Match
+            if other.range(of: String(unsafeBitCast(currentSubstring, to: NSString.self)), options: mask.union(.anchored), range: NSMakeRange(0, otherLen)).length > 0 { // Match
                 lastMatch = range
                 low = probe + 1
             } else {
@@ -761,9 +761,9 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             loc = l._bridgeToObjectiveC()
         }
         
-        let cf = _unsafeReferenceCast(self, to: CFString.self)
-        let cfFindStr = _unsafeReferenceCast(findStr, to: CFString.self)
-        let cfLoc = _unsafeReferenceCast(loc, to: Optional<CFLocale>.self)
+        let cf = unsafeBitCast(self, to: CFString.self)
+        let cfFindStr = unsafeBitCast(findStr, to: CFString.self)
+        let cfLoc = unsafeBitCast(loc, to: Optional<CFLocale>.self)
         if CFStringFindWithOptionsAndLocale(cf, cfFindStr, CFRangeMake(fRange.location, fRange.length), CFStringCompareFlags(rawValue: options), cfLoc, &result) {
             return NSMakeRange(result.location, result.length)
         } else {
@@ -790,7 +790,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         
         let set = searchSet._bridgeToObjectiveC()
         
-        if CFStringFindCharacterFromSet(_unsafeReferenceCast(self, to: CFString.self), _unsafeReferenceCast(set, to: CFCharacterSet.self), CFRangeMake(fRange.location, fRange.length), CFStringCompareFlags(rawValue: mask.rawValue), &range) {
+        if CFStringFindCharacterFromSet(unsafeBitCast(self, to: CFString.self), unsafeBitCast(set, to: CFCharacterSet.self), CFRangeMake(fRange.location, fRange.length), CFStringCompareFlags(rawValue: mask.rawValue), &range) {
             return NSMakeRange(range.location, range.length)
         } else {
             return NSMakeRange(NSNotFound, 0)
@@ -801,7 +801,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if index >= length {
             fatalError("The index \(index) is invalid)")
         }
-        let result = CFStringGetRangeOfCharacterClusterAtIndex(_unsafeReferenceCast(self, to: CFString.self), index, kCFStringComposedCharacterCluster)
+        let result = CFStringGetRangeOfCharacterClusterAtIndex(unsafeBitCast(self, to: CFString.self), index, kCFStringComposedCharacterCluster)
         return NSMakeRange(result.location, result.length)
     }
     
@@ -930,23 +930,23 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     open func uppercased(with locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-        CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
-        CFStringUppercase(string, _unsafeReferenceCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
-        return String(_unsafeReferenceCast(string, to: NSString.self))
+        CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
+        CFStringUppercase(string, unsafeBitCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
+        return String(unsafeBitCast(string, to: NSString.self))
     }
     
     open func lowercased(with locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-        CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
-        CFStringLowercase(string, _unsafeReferenceCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
-        return String(_unsafeReferenceCast(string, to: NSString.self))
+        CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
+        CFStringLowercase(string, unsafeBitCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
+        return String(unsafeBitCast(string, to: NSString.self))
     }
     
     open func capitalized(with locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-        CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
-        CFStringCapitalize(string, _unsafeReferenceCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
-        return String(_unsafeReferenceCast(string, to: NSString.self))
+        CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
+        CFStringCapitalize(string, unsafeBitCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
+        return String(unsafeBitCast(string, to: NSString.self))
     }
     
     internal func _getBlockStart(_ startPtr: UnsafeMutablePointer<Int>?, end endPtr: UnsafeMutablePointer<Int>?, contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>?, for range: NSRange, stopAtLineSeparators line: Bool) {
@@ -1177,7 +1177,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 let externalRep = options.contains(.externalRepresentation)
                 let failOnPartial = options.contains(.failOnPartialEncodingConversion)
                 let bytePtr = buffer?.bindMemory(to: UInt8.self, capacity: maxBufferCount)
-                numCharsProcessed = __CFStringEncodeByteStream(_unsafeReferenceCast(self, to: CFString.self), range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, bytePtr, bytePtr != nil ? maxBufferCount : 0, &totalBytesWritten)
+                numCharsProcessed = __CFStringEncodeByteStream(unsafeBitCast(self, to: CFString.self), range.location, range.length, externalRep, cfStringEncoding, lossyOk ? (encoding == String.Encoding.ascii.rawValue ? 0xFF : 0x3F) : 0, bytePtr, bytePtr != nil ? maxBufferCount : 0, &totalBytesWritten)
                 if (failOnPartial && numCharsProcessed < range.length) || numCharsProcessed == 0 {
                     result = false
                 }
@@ -1205,7 +1205,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let len = length
         var numBytes: CFIndex = 0
         let cfEnc = CFStringConvertNSStringEncodingToEncoding(enc)
-        let convertedLen = __CFStringEncodeByteStream(_unsafeReferenceCast(self, to: CFString.self), 0, len, false, cfEnc, 0, nil, 0, &numBytes)
+        let convertedLen = __CFStringEncodeByteStream(unsafeBitCast(self, to: CFString.self), 0, len, false, cfEnc, 0, nil, 0, &numBytes)
         return convertedLen != len ? 0 : numBytes
     }
     
@@ -1240,7 +1240,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     
     open class func localizedName(of encoding: UInt) -> String {
-        guard let name = _unsafeReferenceCast(CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(encoding)), to: Optional<NSString>.self) else {
+        guard let name = unsafeBitCast(CFStringGetNameOfEncoding(CFStringConvertNSStringEncodingToEncoding(encoding)), to: Optional<NSString>.self) else {
             return ""
         }
         //        return NSLocalizedStringFromTableInBundle(String(name), "EncodingNames", _NSFoundatioNBundle(), @"Encoding name")
@@ -1261,36 +1261,36 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     open var decomposedStringWithCanonicalMapping: String {
         get {
             let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-            CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
+            CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
             CFStringNormalize(string, kCFStringNormalizationFormD)
-            return String(_unsafeReferenceCast(string, to: NSString.self))
+            return String(unsafeBitCast(string, to: NSString.self))
         }
     }
     
     open var precomposedStringWithCanonicalMapping: String {
         get {
             let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-            CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
+            CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
             CFStringNormalize(string, kCFStringNormalizationFormC)
-            return String(_unsafeReferenceCast(string, to: NSString.self))
+            return String(unsafeBitCast(string, to: NSString.self))
         }
     }
     
     open var decomposedStringWithCompatibilityMapping: String {
         get {
             let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-            CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
+            CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
             CFStringNormalize(string, kCFStringNormalizationFormKD)
-            return String(_unsafeReferenceCast(string, to: NSString.self))
+            return String(unsafeBitCast(string, to: NSString.self))
         }
     }
     
     open var precomposedStringWithCompatibilityMapping: String {
         get {
             let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-            CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
+            CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
             CFStringNormalize(string, kCFStringNormalizationFormKC)
-            return String(_unsafeReferenceCast(string, to: NSString.self))
+            return String(unsafeBitCast(string, to: NSString.self))
         }
     }
     
@@ -1385,9 +1385,9 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         precondition(padLen > 0, "empty pad string")
         precondition(padLen < padIndex, "out of range of pad index")
         
-        let mStr = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, _unsafeReferenceCast(self, to: CFString.self))!
-        CFStringPad(mStr, _unsafeReferenceCast(padStr, to: CFString.self), newLength, padIndex)
-        return String(_unsafeReferenceCast(mStr, to: NSString.self))
+        let mStr = CFStringCreateMutableCopy(kCFAllocatorDefault, 0, unsafeBitCast(self, to: CFString.self))!
+        CFStringPad(mStr, unsafeBitCast(padStr, to: CFString.self), newLength, padIndex)
+        return String(unsafeBitCast(mStr, to: NSString.self))
     }
     
     
@@ -1395,9 +1395,9 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
      */
     open func folding(options: NSString.CompareOptions = [], locale: Locale?) -> String {
         let string = CFStringCreateMutable(kCFAllocatorDefault, 0)
-        CFStringReplaceAll(string, _unsafeReferenceCast(self, to: CFString.self))
-        CFStringFold(string, CFStringCompareFlags(rawValue: options.rawValue), _unsafeReferenceCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
-        return String(_unsafeReferenceCast(string, to: NSString.self))
+        CFStringReplaceAll(string, unsafeBitCast(self, to: CFString.self))
+        CFStringFold(string, CFStringCompareFlags(rawValue: options.rawValue), unsafeBitCast(locale?._bridgeToObjectiveC(), to: Optional<CFLocale>.self))
+        return String(unsafeBitCast(string, to: NSString.self))
     }
     
     internal func _replacingOccurrences(ofRegularExpression pattern: String, withTemplate template: String, options: NSString.CompareOptions, range searchRange: NSRange) -> String {
@@ -1447,10 +1447,10 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     // Returns nil if reverse not applicable or transform is invalid
     open func applyingTransform(_ transform: StringTransform, reverse: Bool) -> String? {
         let str = CFStringCreateMutable(kCFAllocatorDefault, 0)
-        CFStringReplaceAll(str, _unsafeReferenceCast(self, to: CFString.self))
+        CFStringReplaceAll(str, unsafeBitCast(self, to: CFString.self))
         
-        if CFStringTransform(str, nil, _unsafeReferenceCast(NSString(string: transform.rawValue), to: CFString.self), reverse) {
-            return String(_unsafeReferenceCast(str, to: NSString.self))
+        if CFStringTransform(str, nil, unsafeBitCast(NSString(string: transform.rawValue), to: CFString.self), reverse) {
+            return String(unsafeBitCast(str, to: NSString.self))
         }
         return nil
     }
@@ -1657,7 +1657,7 @@ extension StringEncodingDetectionOptionsKey {
 open class NSMutableString : NSString {
     public convenience override init() {
         if type(of: self) == NSMutableString.self {
-            self.init(factory: _unsafeReferenceCast(CFStringCreateMutable(kCFAllocatorDefault, 0), to: NSMutableString.self))
+            self.init(factory: unsafeBitCast(CFStringCreateMutable(kCFAllocatorDefault, 0), to: NSMutableString.self))
         } else {
             self.init(capacity: 0)
         }
@@ -1727,7 +1727,7 @@ open class NSMutableString : NSString {
             opts |= CFOptionFlags(kCFCompareNonliteral)
         }
         
-        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorDefault, _unsafeReferenceCast(self, to: CFString.self), _unsafeReferenceCast(NSString(string: target), to: CFString.self), CFRangeMake(searchRange.location, searchRange.length), CFStringCompareFlags(rawValue: opts)) else {
+        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorDefault, unsafeBitCast(self, to: CFString.self), unsafeBitCast(NSString(string: target), to: CFString.self), CFRangeMake(searchRange.location, searchRange.length), CFStringCompareFlags(rawValue: opts)) else {
             return 0
         }
         
@@ -1745,7 +1745,7 @@ open class NSMutableString : NSString {
     
     open func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer?) -> Bool {
         var cfRange = CFRangeMake(range.location, range.length)
-        guard CFStringTransform(_unsafeReferenceCast(self, to: CFMutableString.self), &cfRange, _unsafeReferenceCast(NSString(string: transform), to: CFString.self), reverse) else {
+        guard CFStringTransform(unsafeBitCast(self, to: CFMutableString.self), &cfRange, unsafeBitCast(NSString(string: transform), to: CFString.self), reverse) else {
             return false
         }
         resultingRange?.pointee = NSMakeRange(cfRange.location, cfRange.length)
@@ -1758,7 +1758,7 @@ open class NSMutableString : NSString {
     
     public convenience init(capacity: Int) {
         if type(of: self) == NSMutableString.self {
-            self.init(factory: _unsafeReferenceCast(CFStringCreateMutable(kCFAllocatorDefault, 0), to: NSMutableString.self))
+            self.init(factory: unsafeBitCast(CFStringCreateMutable(kCFAllocatorDefault, 0), to: NSMutableString.self))
         } else {
             self.init(())
         }
@@ -1823,7 +1823,7 @@ extension NSString {
     open func propertyList() -> Any {
         var errorStr: Unmanaged<CFString>? = nil
         
-        let result = _CFPropertyListCreateFromXMLString(kCFAllocatorDefault, _unsafeReferenceCast(self, to: CFString.self), 0, &errorStr, true, nil)
+        let result = _CFPropertyListCreateFromXMLString(kCFAllocatorDefault, unsafeBitCast(self, to: CFString.self), 0, &errorStr, true, nil)
         if let err = errorStr {
             let errorString = err.takeRetainedValue()
             if let d = data(using: String.Encoding.utf8.rawValue, allowLossyConversion: false) {
@@ -1834,7 +1834,7 @@ extension NSString {
                     fatalError("\(error)")
                 }
             } else {
-                fatalError(String(_unsafeReferenceCast(errorString, to: NSString.self)))
+                fatalError(String(unsafeBitCast(errorString, to: NSString.self)))
             }
         }
         return _SwiftValue.fetch(result)!

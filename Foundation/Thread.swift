@@ -38,7 +38,7 @@ internal class NSThreadSpecific<T: NSObject> {
         guard let specific = _CFThreadSpecificGet(key) else {
             return nil
         }
-        return _unsafeReferenceCast(specific, to: T.self)
+        return unsafeBitCast(specific, to: T.self)
     }
     
     internal func set(_ value: T?) {

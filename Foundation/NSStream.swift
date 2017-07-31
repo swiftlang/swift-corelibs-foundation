@@ -136,8 +136,8 @@ open class InputStream: Stream {
     
     public convenience init(data: Data) {
         if type(of: self) == InputStream.self {
-            let stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, _unsafeReferenceCast(data._bridgeToObjectiveC(), to: CFData.self))
-            self.init(factory: _unsafeReferenceCast(stream, to: InputStream.self))
+            let stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, unsafeBitCast(data._bridgeToObjectiveC(), to: CFData.self))
+            self.init(factory: unsafeBitCast(stream, to: InputStream.self))
         } else {
             self.init()
         }
@@ -145,8 +145,8 @@ open class InputStream: Stream {
     
     public convenience init?(url: URL) {
         if type(of: self) == InputStream.self {
-            let stream = CFReadStreamCreateWithFile(kCFAllocatorSystemDefault, _unsafeReferenceCast(url._bridgeToObjectiveC(), to: CFURL.self))
-            self.init(factory: _unsafeReferenceCast(stream, to: InputStream.self))
+            let stream = CFReadStreamCreateWithFile(kCFAllocatorSystemDefault, unsafeBitCast(url._bridgeToObjectiveC(), to: CFURL.self))
+            self.init(factory: unsafeBitCast(stream, to: InputStream.self))
         } else {
             self.init()
         }
@@ -185,7 +185,7 @@ open class OutputStream : Stream {
     public convenience init(toMemory: ()) {
         if type(of: self) == OutputStream.self {
             let stream = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorSystemDefault, kCFAllocatorDefault)
-            self.init(factory: _unsafeReferenceCast(stream, to: OutputStream.self))
+            self.init(factory: unsafeBitCast(stream, to: OutputStream.self))
         } else {
             self.init()
         }
@@ -194,7 +194,7 @@ open class OutputStream : Stream {
     public convenience init(toBuffer buffer: UnsafeMutablePointer<UInt8>, capacity: Int) {
         if type(of: self) == OutputStream.self {
             let stream = CFWriteStreamCreateWithBuffer(kCFAllocatorSystemDefault, buffer, capacity)
-            self.init(factory: _unsafeReferenceCast(stream, to: OutputStream.self))
+            self.init(factory: unsafeBitCast(stream, to: OutputStream.self))
         } else {
             self.init()
         }
@@ -202,11 +202,11 @@ open class OutputStream : Stream {
     
     public convenience init?(url: URL, append shouldAppend: Bool) {
         if type(of: self) == OutputStream.self {
-            let stream = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, _unsafeReferenceCast(url._bridgeToObjectiveC(), to: CFURL.self))
+            let stream = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, unsafeBitCast(url._bridgeToObjectiveC(), to: CFURL.self))
             if shouldAppend {
                 CFWriteStreamSetProperty(stream, kCFStreamPropertyAppendToFile, kCFBooleanTrue)
             }
-            self.init(factory: _unsafeReferenceCast(stream, to: OutputStream.self))
+            self.init(factory: unsafeBitCast(stream, to: OutputStream.self))
         } else {
             self.init()
         }
