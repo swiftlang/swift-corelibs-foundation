@@ -514,12 +514,18 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         var detectedEncoding: UInt = String.Encoding.utf8.rawValue
         var advance = 0
         let cf = readResult.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> CFString in
-            if len >= 2  && bytePtr[0] == 254 && bytePtr[1] == 255 {
+            if len >= 4 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE && bytePtr[2] == 0x00 && bytePtr[3] == 0x00 {
+                detectedEncoding = String.Encoding.utf32LittleEndian.rawValue
+                advance = 4
+            } else if len >= 2 && bytePtr[0] == 0xFE && bytePtr[1] == 0xFF {
                 detectedEncoding = String.Encoding.utf16BigEndian.rawValue
                 advance = 2
-            } else if len >= 2 && bytePtr[0] == 255 && bytePtr[1] == 254 {
+            } else if len >= 2 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE {
                 detectedEncoding = String.Encoding.utf16LittleEndian.rawValue
                 advance = 2
+            } else if len >= 4 && bytePtr[0] == 0x00 && bytePtr[1] == 0x00 && bytePtr[2] == 0xFE && bytePtr[3] == 0xFF {
+                detectedEncoding = String.Encoding.utf32BigEndian.rawValue
+                advance = 4
             }
             return CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr.advanced(by: advance), len - advance, CFStringConvertNSStringEncodingToEncoding(detectedEncoding), true)
         }
