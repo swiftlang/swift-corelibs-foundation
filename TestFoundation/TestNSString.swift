@@ -68,6 +68,10 @@ class TestNSString : XCTestCase {
             ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
             ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
+            ("test_FromContentsOfFileUsedEncodingUTF16LEBOM", test_FromContentsOfFileUsedEncodingUTF16LEBOM),
+            ("test_FromContentsOfFileUsedEncodingUTF16BEBOM", test_FromContentsOfFileUsedEncodingUTF16BEBOM),
+            ("test_FromContentsOfFileUsedEncodingUTF32LEBOM", test_FromContentsOfFileUsedEncodingUTF32LEBOM),
+            ("test_FromContentsOfFileUsedEncodingUTF32BEBOM", test_FromContentsOfFileUsedEncodingUTF32BEBOM),
             ("test_FromContentOfFile",test_FromContentOfFile),
             ("test_swiftStringUTF16", test_swiftStringUTF16),
             // This test takes forever on build servers; it has been seen up to 1852.084 seconds
@@ -303,35 +307,110 @@ class TestNSString : XCTestCase {
     }
 
     func test_FromContentsOfURLUsedEncodingUTF16BE() {
-      guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-BE-data", withExtension: "txt") else {
-        XCTFail("URL for NSString-UTF16-BE-data.txt is nil")
-        return
-      }
-
-      do {
-          var encoding: UInt = 0
-          let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
-          XCTAssertEqual(string, "NSString fromURL usedEncoding test with UTF16 BE file", "Wrong result when reading UTF16BE file")
-          XCTAssertEqual(encoding, String.Encoding.utf16BigEndian.rawValue, "Wrong encoding detected from UTF16BE file")
-      } catch {
-          XCTFail("Unable to init NSString from contentsOf:usedEncoding:")
-      }
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-BE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF16-BE-data.txt is nil")
+            return
+        }
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString fromURL usedEncoding test with UTF16 BE file", "Wrong result when reading UTF16BE file")
+            XCTAssertEqual(encoding, String.Encoding.utf16BigEndian.rawValue, "Wrong encoding detected from UTF16BE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOf:usedEncoding:")
+        }
     }
-
+    
     func test_FromContentsOfURLUsedEncodingUTF16LE() {
-      guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-LE-data", withExtension: "txt") else {
-        XCTFail("URL for NSString-UTF16-LE-data.txt is nil")
-        return
-      }
-
-      do {
-          var encoding: UInt = 0
-          let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
-          XCTAssertEqual(string, "NSString fromURL usedEncoding test with UTF16 LE file", "Wrong result when reading UTF16LE file")
-          XCTAssertEqual(encoding, String.Encoding.utf16LittleEndian.rawValue, "Wrong encoding detected from UTF16LE file")
-      } catch {
-          XCTFail("Unable to init NSString from contentOf:usedEncoding:")
-      }
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-LE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF16-LE-data.txt is nil")
+            return
+        }
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOf: testFileURL, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString fromURL usedEncoding test with UTF16 LE file", "Wrong result when reading UTF16LE file")
+            XCTAssertEqual(encoding, String.Encoding.utf16LittleEndian.rawValue, "Wrong encoding detected from UTF16LE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentOf:usedEncoding:")
+        }
+    }
+    
+    func test_FromContentsOfFileUsedEncodingUTF16LEBOM() {
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-LE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF16-LE-data.txt is nil")
+            return
+        }
+        
+        let testFilePath = testFileURL.path
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOfFile: testFilePath, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString fromURL usedEncoding test with UTF16 LE file", "Wrong result when reading UTF16LE file")
+            XCTAssertEqual(encoding, String.Encoding.utf16LittleEndian.rawValue, "Wrong encoding detected from UTF16LE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:usedEncoding:")
+        }
+        
+    }
+    
+    func test_FromContentsOfFileUsedEncodingUTF16BEBOM() {
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF16-BE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF16-BE-data.txt is nil")
+            return
+        }
+        
+        let testFilePath = testFileURL.path
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOfFile: testFilePath, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString fromURL usedEncoding test with UTF16 BE file", "Wrong result when reading UTF16BE file")
+            XCTAssertEqual(encoding, String.Encoding.utf16BigEndian.rawValue, "Wrong encoding detected from UTF16BE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:usedEncoding:")
+        }
+        
+    }
+    
+    func test_FromContentsOfFileUsedEncodingUTF32LEBOM() {
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF32-LE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF32-LE-data.txt is nil")
+            return
+        }
+        
+        let testFilePath = testFileURL.path
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOfFile: testFilePath, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString contentsOfFile usedEncoding test with UTF32 LE file", "Wrong result when reading UTF32LE file")
+            XCTAssertEqual(encoding, String.Encoding.utf32LittleEndian.rawValue, "Wrong encoding detected from UTF32LE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:usedEncoding:")
+        }
+        
+    }
+    
+    func test_FromContentsOfFileUsedEncodingUTF32BEBOM() {
+        guard let testFileURL = testBundle().url(forResource: "NSString-UTF32-BE-data", withExtension: "txt") else {
+            XCTFail("URL for NSString-UTF32-BE-data.txt is nil")
+            return
+        }
+        
+        let testFilePath = testFileURL.path
+        
+        do {
+            var encoding: UInt = 0
+            let string = try NSString(contentsOfFile: testFilePath, usedEncoding: &encoding)
+            XCTAssertEqual(string, "\u{FEFF}NSString contentsOfFile usedEncoding test with UTF32 BE file", "Wrong result when reading UTF32LE file")
+            XCTAssertEqual(encoding, String.Encoding.utf32BigEndian.rawValue, "Wrong encoding detected from UTF32BE file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:usedEncoding:")
+        }
     }
 
     func test_FromContentOfFile() {
