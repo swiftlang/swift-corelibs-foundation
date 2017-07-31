@@ -306,11 +306,21 @@ class TestCodable : XCTestCase {
     }
 
     // MARK: - TimeZone
-    lazy var timeZoneValues: [TimeZone] = [
-        TimeZone(identifier: "America/Los_Angeles")!,
-        TimeZone(identifier: "UTC")!,
-        TimeZone.current
-    ]
+    lazy var timeZoneValues: [TimeZone] = {
+        var values = [
+            TimeZone(identifier: "America/Los_Angeles")!,
+            TimeZone(identifier: "UTC")!,
+            ]
+        
+        #if !os(Linux)
+            // Disabled due to [SR-5598] bug, which occurs on Linux, and breaks
+            // TimeZone.current == TimeZone(identifier: TimeZone.current.identifier) equality,
+            // causing encode -> decode -> compare test to fail.
+            values.append(TimeZone.current)
+        #endif
+        
+        return values
+    }()
 
     func test_TimeZone_JSON() {
         for timeZone in timeZoneValues {
@@ -319,22 +329,34 @@ class TestCodable : XCTestCase {
     }
 
     // MARK: - Calendar
-    lazy var calendarValues: [Calendar] = [
-        Calendar(identifier: .gregorian),
-        Calendar(identifier: .buddhist),
-        Calendar(identifier: .chinese),
-        Calendar(identifier: .coptic),
-        Calendar(identifier: .ethiopicAmeteMihret),
-        Calendar(identifier: .ethiopicAmeteAlem),
-        Calendar(identifier: .hebrew),
-        Calendar(identifier: .iso8601),
-        Calendar(identifier: .indian),
-        Calendar(identifier: .islamic),
-        Calendar(identifier: .islamicCivil),
-        Calendar(identifier: .japanese),
-        Calendar(identifier: .persian),
-        Calendar(identifier: .republicOfChina),
-        ]
+    lazy var calendarValues: [Calendar] = {
+        var values = [
+            Calendar(identifier: .gregorian),
+            Calendar(identifier: .buddhist),
+            Calendar(identifier: .chinese),
+            Calendar(identifier: .coptic),
+            Calendar(identifier: .ethiopicAmeteMihret),
+            Calendar(identifier: .ethiopicAmeteAlem),
+            Calendar(identifier: .hebrew),
+            Calendar(identifier: .iso8601),
+            Calendar(identifier: .indian),
+            Calendar(identifier: .islamic),
+            Calendar(identifier: .islamicCivil),
+            Calendar(identifier: .japanese),
+            Calendar(identifier: .persian),
+            Calendar(identifier: .republicOfChina),
+            ]
+
+        #if os(Linux)
+            // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
+            // serializing and deserializing TimeZone.current
+            for index in values.indices {
+                values[index].timeZone = TimeZone(identifier: "UTC")!
+            }
+        #endif
+
+        return values
+    }()
 
     func test_Calendar_JSON() {
         for calendar in calendarValues {
@@ -365,7 +387,15 @@ class TestCodable : XCTestCase {
     ]
 
     func test_DateComponents_JSON() {
-        let calendar = Calendar(identifier: .gregorian)
+        #if os(Linux)
+            var calendar = Calendar(identifier: .gregorian)
+            // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
+            // serializing and deserializing TimeZone.current
+            calendar.timeZone = TimeZone(identifier: "UTC")!
+        #else
+            let calendar = Calendar(identifier: .gregorian)
+        #endif
+
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
         expectRoundTripEqualityThroughJSON(for: components)
     }
