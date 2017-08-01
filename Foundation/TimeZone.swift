@@ -80,12 +80,15 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     /// - parameter seconds: The number of seconds from GMT.
     /// - returns: A time zone, or `nil` if a valid time zone could not be created from `seconds`.
     public init?(secondsFromGMT seconds: Int) {
-        if let r = NSTimeZone(forSecondsFromGMT: seconds) as NSTimeZone? {
-            _wrapped = r
-            _autoupdating = false
-        } else {
-            return nil
-        }
+        // Seconds boundaries check should actually be placed in NSTimeZone.init(forSecondsFromGMT:) which should return
+        // nil if the check fails. However, NSTimeZone.init(forSecondsFromGMT:) is not a failable initializer, so it
+        // cannot return nil.
+        // It is not a failable initializer because we want to have parity with Darwin's NSTimeZone, which is
+        // Objective-C and has a wrong _Nonnull annotation.
+        if (seconds < -18 * 3600 || 18 * 3600 < seconds) { return nil }
+
+        _wrapped = NSTimeZone(forSecondsFromGMT: seconds)
+        _autoupdating = false
     }
     
     /// Returns a time zone identified by a given abbreviation.

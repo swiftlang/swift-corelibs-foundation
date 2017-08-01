@@ -153,6 +153,12 @@ class TestNSTimeZone: XCTestCase {
 
         let tz3 = TimeZone(identifier: "GMT-9999")
         XCTAssertNil(tz3)
+
+        XCTAssertNotNil(TimeZone(secondsFromGMT:  -18 * 3600))
+        XCTAssertNotNil(TimeZone(secondsFromGMT:  18 * 3600))
+
+        XCTAssertNil(TimeZone(secondsFromGMT:  -18 * 3600 - 1))
+        XCTAssertNil(TimeZone(secondsFromGMT:  18 * 3600 + 1))
     }
 
     func test_initializingTimeZoneWithAbbreviation() {
