@@ -55,7 +55,6 @@ internal final class _EasyHandle {
     weak var delegate: _EasyHandleDelegate?
     fileprivate var headerList: _CurlStringList?
     fileprivate var pauseState: _PauseState = []
-    internal var fileLength: Int64 = 0
     internal var timeoutTimer: _TimeoutSource!
     #if os(Android)
     static fileprivate var _CAInfoFile: UnsafeMutablePointer<Int8>?
@@ -100,7 +99,7 @@ internal protocol _EasyHandleDelegate: class {
     func didReceive(data: Data) -> _EasyHandle._Action
     /// Handle header data read from the network.
     /// - returns: the action to be taken: abort, proceed, or pause.
-    func didReceive(headerData data: Data) -> _EasyHandle._Action
+    func didReceive(headerData data: Data, contentLength: Int64) -> _EasyHandle._Action
     /// Fill a buffer with data to be sent.
     ///
     /// - parameter data: The buffer to fill
@@ -454,7 +453,7 @@ fileprivate extension _EasyHandle {
             }
             var length = Double()
             try! CFURLSession_easy_getinfo_double(handle.rawHandle, CFURLSessionInfoCONTENT_LENGTH_DOWNLOAD, &length).asError()
-            return handle.didReceive(headerData: data, size: size, nmemb: nmemb, fileLength: length)
+            return handle.didReceive(headerData: data, size: size, nmemb: nmemb, contentLength: length)
         }.asError()
 
         // socket options
@@ -513,11 +512,10 @@ fileprivate extension _EasyHandle {
     /// data.
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_HEADERFUNCTION.html>
-    func didReceive(headerData data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, fileLength: Double) -> Int {
-        self.fileLength = Int64(fileLength)
+    func didReceive(headerData data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, contentLength: Double) -> Int {
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
-            switch delegate?.didReceive(headerData: buffer) {
+            switch delegate?.didReceive(headerData: buffer, contentLength: Int64(contentLength)) {
             case .some(.proceed): return size * nmemb
             case .some(.abort): return 0
             case .some(.pause):
