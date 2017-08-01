@@ -143,7 +143,7 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     
     /// Number of body bytes already received
-    open fileprivate(set) var countOfBytesReceived: Int64 {
+    open internal(set) var countOfBytesReceived: Int64 {
         get {
             semaphore.wait()
             defer {
@@ -160,7 +160,7 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _countOfBytesReceived: Int64 = 0
     
     /// Number of body bytes already sent */
-    open fileprivate(set) var countOfBytesSent: Int64 {
+    open internal(set) var countOfBytesSent: Int64 {
         get {
             semaphore.wait()
             defer {
@@ -178,10 +178,10 @@ open class URLSessionTask : NSObject, NSCopying {
     fileprivate var _countOfBytesSent: Int64 = 0
     
     /// Number of body bytes we expect to send, derived from the Content-Length of the HTTP request */
-    open fileprivate(set) var countOfBytesExpectedToSend: Int64 = 0
+    open internal(set) var countOfBytesExpectedToSend: Int64 = 0
     
     /// Number of byte bytes we expect to receive, usually derived from the Content-Length header of an HTTP response. */
-    open fileprivate(set) var countOfBytesExpectedToReceive: Int64 = 0
+    open internal(set) var countOfBytesExpectedToReceive: Int64 = 0
     
     /// The taskDescription property is available for the developer to
     /// provide a descriptive label for the task.
