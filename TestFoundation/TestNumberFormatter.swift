@@ -62,7 +62,7 @@ class TestNumberFormatter: XCTestCase {
     func test_currencyCode() {
         // Disabled due to [SR-250]
         /*
-        let numberFormatter = NSNumberFormatter()
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyCode = "T"
         numberFormatter.currencyDecimalSeparator = "_"
@@ -86,7 +86,7 @@ class TestNumberFormatter: XCTestCase {
     func test_currencyDecimalSeparator() {
         // Disabled due to [SR-250]
         /*
-        let numberFormatter = NSNumberFormatter()
+        let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .CurrencyStyle
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"

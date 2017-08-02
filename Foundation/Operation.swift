@@ -423,7 +423,7 @@ open class OperationQueue: NSObject {
          the enqueued operation in this callout. So once the dispatch_block is created
          the operation must NOT be touched; since it has nothing to do with the actual
          execution. The only differential is that the block enqueued to dispatch_async
-         is balanced with the number of Operations enqueued to the NSOperationQueue.
+         is balanced with the number of Operations enqueued to the OperationQueue.
          */
         lock.lock()
         ops.forEach { (operation: Operation) -> Void in
@@ -591,7 +591,7 @@ open class OperationQueue: NSObject {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         return _main
 #else
-        fatalError("NSOperationQueue requires libdispatch")
+        fatalError("OperationQueue requires libdispatch")
 #endif
     }
 }

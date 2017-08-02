@@ -78,9 +78,9 @@ open class EnergyFormatter: Formatter {
         super.init()
     }
 
-    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
+    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatter.Style.decimal
     open var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
-    open var isForFoodEnergyUse: Bool // default is NO; if it is set to YES, NSEnergyFormatterUnitKilocalorie may be “C” instead of “kcal"
+    open var isForFoodEnergyUse: Bool // default is NO; if it is set to YES, EnergyFormatter.Unit.kilocalorie may be “C” instead of “kcal"
 
     // Format a combination of a number and an unit to a localized string.
     open func string(fromValue value: Double, unit: Unit) -> String {

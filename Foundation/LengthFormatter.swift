@@ -38,7 +38,7 @@ open class LengthFormatter : Formatter {
         super.init(coder:coder)
     }
     
-    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
+    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatter.Style.decimal
     open var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
     
     open var isForPersonHeightUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromMeters: and -unitStringFromMeters: is considered as a person's height
@@ -158,7 +158,7 @@ open class LengthFormatter : Formatter {
     open override func objectValue(_ string: String) throws -> Any? { return nil }
     
     
-    /// Maps NSLengthFormatter.Unit enum to UnitLength class. Used for measurement conversion.
+    /// Maps LengthFormatter.Unit enum to UnitLength class. Used for measurement conversion.
     private static let unitLength: [Unit:UnitLength] = [.millimeter:.millimeters,
                                                  .centimeter:.centimeters,
                                                  .meter:.meters,

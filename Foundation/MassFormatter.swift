@@ -36,8 +36,8 @@ open class MassFormatter : Formatter {
         super.init(coder:coder)
     }
     
-    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NSNumberFormatter with NSNumberFormatterDecimalStyle
-    open var unitStyle: UnitStyle // default is NSFormattingUnitStyleMedium
+    /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatter.Style.decimal
+    open var unitStyle: UnitStyle // default is Formatting.UnitStyle.medium
     
     open var isForPersonMassUse: Bool // default is NO; if it is set to YES, the number argument for -stringFromKilograms: and -unitStringFromKilograms: is considered as a person’s mass
     
