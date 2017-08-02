@@ -103,13 +103,16 @@ open class FileHandle : NSObject, NSSecureCoding {
             dynamicBuffer = _CFReallocf(dynamicBuffer!, total)
         }
         
-        if (0 == total) {
+        if total == 0 {
             free(dynamicBuffer)
         }
-        
-        if total > 0 {
+        else if total > 0 {
             let bytePtr = dynamicBuffer!.bindMemory(to: UInt8.self, capacity: total)
-            return Data(bytesNoCopy: bytePtr, count: total, deallocator: .none)
+            return Data(bytesNoCopy: bytePtr, count: total, deallocator: .free)
+        }
+        else {
+            assertionFailure("The total number of read bytes must not be negative")
+            free(dynamicBuffer)
         }
         
         return Data()
