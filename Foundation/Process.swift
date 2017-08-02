@@ -171,23 +171,23 @@ open class Process: NSObject {
     
     open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
-    // standard I/O channels; could be either an NSFileHandle or an NSPipe
+    // standard I/O channels; could be either a FileHandle or a Pipe
     open var standardInput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
-                         "standardInput must be either NSPipe or NSFileHandle")
+                         "standardInput must be either Pipe or FileHandle")
         }
     }
     open var standardOutput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
-                         "standardOutput must be either NSPipe or NSFileHandle")
+                         "standardOutput must be either Pipe or FileHandle")
         }
     }
     open var standardError: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
-                         "standardError must be either NSPipe or NSFileHandle")
+                         "standardError must be either Pipe or FileHandle")
         }
     }
     

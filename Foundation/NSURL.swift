@@ -575,7 +575,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                    "use getFileSystemRepresentation to handle this case")
     }
     
-    // Whether the scheme is file:; if [myURL isFileURL] is YES, then [myURL path] is suitable for input into NSFileManager or NSPathUtilities.
+    // Whether the scheme is file:; if myURL.isFileURL is true, then myURL.path is suitable for input into FileManager or NSPathUtilities.
     open var isFileURL: Bool {
         return _CFURLIsFileURL(_cfObject)
     }
