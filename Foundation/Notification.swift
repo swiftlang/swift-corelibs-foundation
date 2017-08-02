@@ -18,7 +18,7 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     public typealias ReferenceType = NSNotification
     
     /// A tag identifying the notification.
-    public var name: Name
+    public var name: Notification.Name
     
     /// An object that the poster wishes to send to observers.
     ///

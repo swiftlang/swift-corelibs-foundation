@@ -23,7 +23,7 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         }
     }
 
-    private(set) open var name: Name
+    private(set) open var name: NSNotification.Name
     
     private(set) open var object: Any?
     
@@ -33,8 +33,12 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         /* do not invoke; not a valid initializer for this class */
         fatalError()
     }
+
+    public convenience init(name: NSNotification.Name, object: Any?) {
+        self.init(name: name, object: object, userInfo: nil)
+    }
     
-    public init(name: Name, object: Any?, userInfo: [AnyHashable : Any]? = nil) {
+    public init(name: NSNotification.Name, object: Any?, userInfo: [AnyHashable : Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
@@ -169,7 +173,11 @@ open class NotificationCenter: NSObject {
         }
     }
 
-    open func post(name aName: Notification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
+    open func post(name aName: NSNotification.Name, object anObject: Any?) {
+        post(name: aName, object: anObject, userInfo: nil)
+    }
+
+    open func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
         let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
         post(notification)
     }
@@ -188,7 +196,7 @@ open class NotificationCenter: NSObject {
         })
     }
     
-    open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
