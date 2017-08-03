@@ -882,7 +882,7 @@ static const CFRuntimeClass __CFBundleClass = {
 };
 
 // From CFBundle_Resources.c
-CF_PRIVATE void _CFBundleResourcesInitialize();
+CF_PRIVATE void _CFBundleResourcesInitialize(void);
 
 CFTypeID CFBundleGetTypeID(void) {
     static dispatch_once_t initOnce;

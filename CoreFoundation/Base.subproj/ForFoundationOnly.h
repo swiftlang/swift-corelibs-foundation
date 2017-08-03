@@ -631,12 +631,12 @@ CF_EXPORT _CFStringFileSystemRepresentationError _CFStringGetFileSystemRepresent
 
 
 
-CF_EXPORT CFIndex __CFProcessorCount();
-CF_EXPORT uint64_t __CFMemorySize();
+CF_EXPORT CFIndex __CFProcessorCount(void);
+CF_EXPORT uint64_t __CFMemorySize(void);
 CF_EXPORT CFStringRef _CFProcessNameString(void);
-CF_EXPORT CFIndex __CFActiveProcessorCount();
-CF_EXPORT CFDictionaryRef __CFGetEnvironment();
-CF_EXPORT int32_t __CFGetPid();
+CF_EXPORT CFIndex __CFActiveProcessorCount(void);
+CF_EXPORT CFDictionaryRef __CFGetEnvironment(void);
+CF_EXPORT int32_t __CFGetPid(void);
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void);
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);

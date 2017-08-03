@@ -138,7 +138,7 @@ struct _NSMutableStringBridge {
 };
 
 struct _NSXMLParserBridge {
-    _CFXMLInterface _Nullable (*_Nonnull currentParser)();
+    _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
     _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface interface, const char *url, const char * identifier, _CFXMLInterfaceParserContext context, _CFXMLInterfaceExternalEntityLoader originalLoaderFunction);
     
     _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
@@ -300,7 +300,7 @@ CF_EXPORT CFHashCode __CFHashDouble(double d);
 typedef pthread_key_t _CFThreadSpecificKey;
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
 CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
-CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate();
+CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_t _CFThreadRef;

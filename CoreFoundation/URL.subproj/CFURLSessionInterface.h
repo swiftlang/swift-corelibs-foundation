@@ -546,11 +546,11 @@ CF_EXPORT int const CFURLSessionSeekOk;
 CF_EXPORT int const CFURLSessionSeekCantSeek;
 CF_EXPORT int const CFURLSessionSeekFail;
 
-CF_EXPORT CFURLSessionEasyHandle _Nonnull CFURLSessionEasyHandleInit();
+CF_EXPORT CFURLSessionEasyHandle _Nonnull CFURLSessionEasyHandleInit(void);
 CF_EXPORT void CFURLSessionEasyHandleDeinit(CFURLSessionEasyHandle _Nonnull handle);
 CF_EXPORT CFURLSessionEasyCode CFURLSessionEasyHandleSetPauseState(CFURLSessionEasyHandle _Nonnull handle, int send, int receive);
 
-CF_EXPORT CFURLSessionMultiHandle _Nonnull CFURLSessionMultiHandleInit();
+CF_EXPORT CFURLSessionMultiHandle _Nonnull CFURLSessionMultiHandleInit(void);
 CF_EXPORT CFURLSessionMultiCode CFURLSessionMultiHandleDeinit(CFURLSessionMultiHandle _Nonnull handle);
 CF_EXPORT CFURLSessionMultiCode CFURLSessionMultiHandleAddHandle(CFURLSessionMultiHandle _Nonnull handle, CFURLSessionEasyHandle _Nonnull curl);
 CF_EXPORT CFURLSessionMultiCode CFURLSessionMultiHandleRemoveHandle(CFURLSessionMultiHandle _Nonnull handle, CFURLSessionEasyHandle _Nonnull curl);
