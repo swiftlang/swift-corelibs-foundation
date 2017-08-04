@@ -66,7 +66,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
         if (CFStringGetCString(ln, buffer, BUFFER_SIZE, kCFStringEncodingASCII)) localeName = buffer;
     }
     
-    static void (^flushCache)() = ^{
+    static void (^flushCache)(void) = ^{
         __cficu_udatpg_close(ptg);
         ptg = NULL;
         free((void *)ptgLocaleName);
@@ -1506,7 +1506,7 @@ static UDate __CFDateFormatterCorrectTimeToARangeAroundCurrentDate(UCalendar *ca
         }
     } else {
         if (period < INT_MAX && futureMax > period) {
-            futureRange.location = 1,
+            futureRange.location = 1;
             futureRange.length = futureMax - period;
         }
         if (pastMin <= 0) {
