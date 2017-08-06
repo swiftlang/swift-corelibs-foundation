@@ -399,7 +399,11 @@ extension CGRect {
 
 extension CGRect: Equatable {
     public static func ==(lhs: CGRect, rhs: CGRect) -> Bool {
-        return lhs.origin == rhs.origin && lhs.size == rhs.size
+        if lhs.isNull && rhs.isNull { return true }
+
+        let r1 = lhs.standardized
+        let r2 = rhs.standardized
+        return r1.origin == r2.origin && r1.size == r2.size
     }
 }
 

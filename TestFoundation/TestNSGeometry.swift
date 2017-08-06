@@ -58,6 +58,7 @@ class TestNSGeometry : XCTestCase {
             ("test_CGRect_IsNull", test_CGRect_IsNull),
             ("test_CGRect_IsInfinite", test_CGRect_IsInfinite),
             ("test_CGRect_IsEmpty", test_CGRect_IsEmpty),
+            ("test_CGRect_Equatable", test_CGRect_Equatable),
             ("test_CGRect_CalculatedGeometricProperties", test_CGRect_CalculatedGeometricProperties),
             ("test_CGRect_Standardized", test_CGRect_Standardized),
             ("test_CGRect_Integral", test_CGRect_Integral),
@@ -305,6 +306,37 @@ class TestNSGeometry : XCTestCase {
 
         XCTAssertFalse(CGRect.infinite.isEmpty)
         XCTAssertFalse(CGRect.infinite.isEmpty)
+    }
+
+    func test_CGRect_Equatable() {
+        XCTAssertEqual(CGRect(x: 10, y: 20, width: 30, height: 40), CGRect(x: 10, y: 20, width: 30, height: 40))
+        XCTAssertEqual(CGRect(x: -10, y: -20, width: -30, height: -40), CGRect(x: -10, y: -20, width: -30, height: -40))
+        XCTAssertEqual(CGRect(x: -10, y: -20, width: 30, height: 40), CGRect(x: 20, y: 20, width: -30, height: -40))
+
+        XCTAssertNotEqual(CGRect(x: 10, y: 20, width: 30, height: 40), CGRect(x: 10, y: 20, width: 30, height: -40))
+        XCTAssertNotEqual(CGRect(x: 10, y: 20, width: 30, height: 40), CGRect(x: 10, y: 20, width: -30, height: 40))
+        XCTAssertNotEqual(CGRect(x: 10, y: 20, width: 30, height: 40), CGRect(x: 10, y: -20, width: 30, height: 40))
+        XCTAssertNotEqual(CGRect(x: 10, y: 20, width: 30, height: 40), CGRect(x: -10, y: 20, width: 30, height: 40))
+
+        XCTAssertEqual(CGRect.infinite, CGRect.infinite)
+        XCTAssertEqual(CGRect.null, CGRect.null)
+        XCTAssertNotEqual(CGRect.infinite, CGRect.null)
+
+        var r1 = CGRect.null
+        r1.size = CGSize(width: 20, height: 20)
+        XCTAssertEqual(r1, CGRect.null)
+
+        var r2 = CGRect.null
+        r2.origin.x = 20
+        XCTAssertEqual(r2, CGRect.null)
+
+        var r3 = CGRect.null
+        r3.origin.y = 20
+        XCTAssertEqual(r3, CGRect.null)
+
+        var r4 = CGRect.null
+        r4.origin = CGPoint(x: 10, y: 20)
+        XCTAssertNotEqual(r4, CGRect.null)
     }
 
     func test_CGRect_CalculatedGeometricProperties() {
