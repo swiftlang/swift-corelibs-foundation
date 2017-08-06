@@ -488,7 +488,7 @@ extension NSString {
     internal func _rangeOfRegularExpressionPattern(regex pattern: String, options mask: CompareOptions, range searchRange: NSRange, locale: Locale?) -> NSRange {
         var matchedRange = NSMakeRange(NSNotFound, 0)
         let regexOptions: NSRegularExpression.Options = mask.contains(.caseInsensitive) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = mask.contains(.anchored) ? .anchored : []
+        let matchingOptions: NSRegularExpression.MatchingOptions = mask.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             matchedRange = regex.rangeOfFirstMatch(in: _swiftObject, options: matchingOptions, range: searchRange)
         }
@@ -1061,7 +1061,7 @@ extension NSString {
     
     internal func _stringByReplacingOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range: NSRange) -> String {
         let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
+        let matchingOptions: NSRegularExpression.MatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.stringByReplacingMatches(in: _swiftObject, options: matchingOptions, range: range, withTemplate: replacement)
         }
@@ -1391,7 +1391,7 @@ extension NSMutableString {
     
     internal func _replaceOccurrencesOfRegularExpressionPattern(_ pattern: String, withTemplate replacement: String, options: CompareOptions, range searchRange: NSRange) -> Int {
         let regexOptions: NSRegularExpression.Options = options.contains(.caseInsensitive) ? .caseInsensitive : []
-        let matchingOptions: NSMatchingOptions = options.contains(.anchored) ? .anchored : []
+        let matchingOptions: NSRegularExpression.MatchingOptions = options.contains(.anchored) ? .anchored : []
         if let regex = _createRegexForPattern(pattern, regexOptions) {
             return regex.replaceMatches(in: self, options: matchingOptions, range: searchRange, withTemplate: replacement)
         }
