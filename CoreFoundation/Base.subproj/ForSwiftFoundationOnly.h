@@ -27,6 +27,7 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
+#include <execinfo.h>
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -294,6 +295,7 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 CF_EXPORT Boolean _CFIsMainThread(void);
+CF_EXPORT pthread_t _CFMainPThread;
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
