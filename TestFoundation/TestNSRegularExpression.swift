@@ -29,6 +29,7 @@ class TestNSRegularExpression : XCTestCase {
             ("test_Equal", test_Equal),
             ("test_NSCoding", test_NSCoding),
             ("test_defaultOptions", test_defaultOptions),
+            ("test_badPattern", test_badPattern),
         ]
     }
     
@@ -371,5 +372,15 @@ class TestNSRegularExpression : XCTestCase {
                       "Some message-/tmp/foo.swift-123")
         let str = NSMutableString(string: text)
         XCTAssertEqual(regex!.replaceMatches(in: str, range: range, withTemplate: "$1-$2-$3"), 1)
+    }
+
+    func test_badPattern() {
+        do {
+            _ = try NSRegularExpression(pattern: "(", options: [])
+            XCTFail()
+        } catch {
+            let err = String(describing: error)
+            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(}")
+        }
     }
 }
