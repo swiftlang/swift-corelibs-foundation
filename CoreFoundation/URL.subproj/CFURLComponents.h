@@ -102,12 +102,12 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
 CF_EXPORT CFStringRef _Nullable _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string);
 
 // These return singletons
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet();
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet();
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet();
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet();
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet();
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet(void);
 
 CF_EXPORT _Nullable CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef components);
 CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values);
