@@ -808,11 +808,11 @@ CFAllocatorRef CFGetAllocator(CFTypeRef cf) {
 }
 
 
-extern CFTypeID CFBinaryHeapGetTypeID();
-extern CFTypeID CFBitVectorGetTypeID();
-extern CFTypeID CFTreeGetTypeID();
-extern CFTypeID CFPlugInInstanceGetTypeID();
-extern CFTypeID CFStringTokenizerGetTypeID();
+extern CFTypeID CFBinaryHeapGetTypeID(void);
+extern CFTypeID CFBitVectorGetTypeID(void);
+extern CFTypeID CFTreeGetTypeID(void);
+extern CFTypeID CFPlugInInstanceGetTypeID(void);
+extern CFTypeID CFStringTokenizerGetTypeID(void);
 extern CFTypeID CFStorageGetTypeID(void);
 extern void __CFAllocatorInitialize(void);
 extern void __CFStringInitialize(void);
@@ -821,7 +821,7 @@ extern void __CFCharacterSetInitialize(void);
 extern void __CFPFactoryInitialize(void);
 extern void __CFPlugInInitialize(void);
 #if (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX) && DEPLOYMENT_RUNTIME_SWIFT
-CF_PRIVATE void __CFTSDInitialize();
+CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
 // From CFPlatform.c
@@ -1005,7 +1005,7 @@ void __CFInitialize(void) {
         memset(__CFRuntimeObjCClassTable, 0, sizeof(__CFRuntimeObjCClassTable));
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-        extern uintptr_t __CFSwiftGetBaseClass();
+        extern uintptr_t __CFSwiftGetBaseClass(void);
         
         uintptr_t NSCFType = __CFSwiftGetBaseClass();
         for (CFIndex idx = 1; idx < __CFRuntimeClassTableSize; idx++) {
@@ -1107,7 +1107,7 @@ void __CFInitialize(void) {
 #endif
         
 #if DEPLOYMENT_RUNTIME_SWIFT
-        extern void __CFInitializeSwift();
+        extern void __CFInitializeSwift(void);
         __CFInitializeSwift();
         __CFNumberInitialize(); /* needs to happen after Swift bridge is initialized */
 #endif

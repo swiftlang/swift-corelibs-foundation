@@ -157,7 +157,7 @@ CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 
 CF_PRIVATE os_log_t _CFOSLog(void);
 
-CF_PRIVATE CFIndex __CFActiveProcessorCount();
+CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 
 #ifndef CLANG_ANALYZER_NORETURN
 #if __has_feature(attribute_analyzer_noreturn)
@@ -325,7 +325,7 @@ extern Boolean __CFStringScanHex(CFStringInlineBuffer *buf, SInt32 *indexPtr, un
 extern const char *__CFgetenv(const char *n);
 extern const char *__CFgetenvIfNotRestricted(const char *n);    // Returns NULL in a restricted process
 
-CF_PRIVATE Boolean __CFProcessIsRestricted();
+CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // This is really about the availability of C99. We don't have that on Windows, but we should everywhere else.
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -587,8 +587,8 @@ CF_PRIVATE SInt32 _CFGetFileProperties(CFAllocatorRef alloc, CFURLRef pathURL, B
 
 /* ==================== Simple path manipulation ==================== */
 
-CF_EXPORT UniChar _CFGetSlash();
-CF_PRIVATE CFStringRef _CFGetSlashStr();
+CF_EXPORT UniChar _CFGetSlash(void);
+CF_PRIVATE CFStringRef _CFGetSlashStr(void);
 CF_EXPORT Boolean _CFIsAbsolutePath(UniChar *unichars, CFIndex length);
 CF_PRIVATE void _CFAppendTrailingPathSlash2(CFMutableStringRef path);
 CF_PRIVATE void _CFAppendConditionalTrailingPathSlash2(CFMutableStringRef path);
@@ -733,7 +733,7 @@ extern void *__CFLookupCoreServicesInternalFunction(const char *name);
 CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *str1, CFRange str1Range, CFStringInlineBuffer *str2, CFRange str2Range, CFOptionFlags options, const void *compareLocale);
 
 
-CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages();
+CF_PRIVATE CFArrayRef _CFBundleCopyUserLanguages(void);
 
 
 // This should only be used in CF types, not toll-free bridged objects!

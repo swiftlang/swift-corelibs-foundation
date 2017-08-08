@@ -100,7 +100,7 @@ typedef void (*_CFXMLInterfaceStructuredErrorFunc)(_CFXMLInterface ctx, _CFXMLIn
 
 void _CFSetupXMLInterface(void);
 _CFXMLInterfaceParserInput _CFXMLInterfaceNoNetExternalEntityLoader(const char *URL, const char *ID, _CFXMLInterfaceParserContext ctxt);
-_CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler();
+_CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler(void);
 void _CFXMLInterfaceDestroySAXHandler(_CFXMLInterfaceSAXHandler handler);
 void _CFXMLInterfaceSetStructuredErrorFunc(_CFXMLInterface ctx, _CFXMLInterfaceStructuredErrorFunc _Nullable  handler);
 _CFXMLInterfaceParserContext  _CFXMLInterfaceCreatePushParserCtxt(_CFXMLInterfaceSAXHandler _Nullable sax, _CFXMLInterface  user_data, const char * chunk, int size, const char *_Nullable filename);

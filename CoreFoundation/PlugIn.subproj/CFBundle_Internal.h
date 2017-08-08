@@ -144,7 +144,7 @@ CF_PRIVATE SInt32 _CFBundleCurrentArchitecture(void);
 CF_PRIVATE Boolean _CFBundleGetObjCImageInfo(CFBundleRef bundle, uint32_t *objcVersion, uint32_t *objcFlags);
 
 #if defined(BINARY_SUPPORT_DYLD)
-CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable();
+CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable(void);
 CF_PRIVATE Boolean _CFBundleGrokObjCImageInfoFromMainExecutable(uint32_t *objcVersion, uint32_t *objcFlags);
 #endif
 
