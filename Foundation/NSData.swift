@@ -146,6 +146,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         self.init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
     }
+
     public convenience init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: readOptionsMask)
         self.init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
@@ -380,7 +381,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         
         let length = Int(info.st_size)
-        
+        if length == 0 && (info.st_mode & S_IFMT == S_IFREG) {
+            return try readZeroSizeFile(fd)
+        }
+
         if options.contains(.alwaysMapped) {
             let data = mmap(nil, length, PROT_READ, MAP_PRIVATE, fd, 0)
             
@@ -411,6 +415,37 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         
         return NSDataReadResult(bytes: data, length: length) { buffer, length in
+            free(buffer)
+        }
+    }
+
+    internal static func readZeroSizeFile(_ fd: Int32) throws -> NSDataReadResult {
+        let blockSize = 1024 * 1024 // 1MB
+        var data: UnsafeMutableRawPointer? = nil
+        var bytesRead = 0
+        var amt = 0
+
+        repeat {
+            data = realloc(data, bytesRead + blockSize)
+            amt = read(fd, data!.advanced(by: bytesRead), blockSize)
+
+            // Dont continue on EINTR or EAGAIN as the file position may not
+            // have changed, see read(2).
+            if amt < 0 {
+                free(data!)
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+            }
+            bytesRead += amt
+        } while amt > 0
+
+        if bytesRead == 0 {
+            free(data!)
+            data = malloc(0)
+        } else {
+            data = realloc(data, bytesRead) // shrink down the allocated block.
+        }
+
+        return NSDataReadResult(bytes: data!, length: bytesRead) { buffer, length in
             free(buffer)
         }
     }

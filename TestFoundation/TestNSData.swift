@@ -37,6 +37,8 @@ class TestNSData: XCTestCase {
             ("test_base64Data_medium", test_base64Data_medium),
             ("test_base64Data_small", test_base64Data_small),
             ("test_openingNonExistentFile", test_openingNonExistentFile),
+            ("test_contentsOfFile", test_contentsOfFile),
+            ("test_contentsOfZeroFile", test_contentsOfZeroFile),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
             // ("test_dataHash", test_dataHash),   Disabled due to lack of brdiging in swift runtime -- infinite loops
@@ -906,6 +908,47 @@ extension TestNSData {
         }
 
         XCTAssertTrue(didCatchError)
+    }
+
+    func test_contentsOfFile() {
+        let testDir = testBundle().resourcePath
+        let filename = testDir!.appending("/NSStringTestData.txt")
+
+        let contents = NSData(contentsOfFile: filename)
+        XCTAssertNotNil(contents)
+        if let contents = contents {
+            let ptr =  UnsafeMutableRawPointer(mutating: contents.bytes)
+            let str = String(bytesNoCopy: ptr, length: contents.length,
+                         encoding: .ascii, freeWhenDone: false)
+            XCTAssertEqual(str, "swift-corelibs-foundation")
+        }
+    }
+
+    func test_contentsOfZeroFile() {
+#if os(Linux)
+        guard FileManager.default.fileExists(atPath: "/proc/self") else {
+            return
+        }
+        let contents = NSData(contentsOfFile: "/proc/self/cmdline")
+        XCTAssertNotNil(contents)
+        if let contents = contents {
+            XCTAssertTrue(contents.length > 0)
+            let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
+            let str = String(bytesNoCopy: ptr, length: contents.length,
+                             encoding: .ascii, freeWhenDone: false)
+            XCTAssertNotNil(str)
+            if let str = str {
+                XCTAssertTrue(str.hasSuffix("TestFoundation"))
+            }
+        }
+
+        do {
+            let maps = try String(contentsOfFile: "/proc/self/maps", encoding: .utf8)
+            XCTAssertTrue(maps.count > 0)
+        } catch {
+            XCTFail("Cannot read /proc/self/maps: \(String(describing: error))")
+        }
+#endif
     }
 
     func test_basicReadWrite() {
