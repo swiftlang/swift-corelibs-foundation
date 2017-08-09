@@ -177,7 +177,7 @@ extension NSRegularExpression {
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
-    public func enumerateMatches(in string: String, options: NSMatchingOptions, range: NSRange, using block: @escaping (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateMatches(in string: String, options: NSMatchingOptions = [], range: NSRange, using block: @escaping (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
 #if os(OSX) || os(iOS)
@@ -189,7 +189,7 @@ extension NSRegularExpression {
         }
     }
     
-    public func matches(in string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] {
+    public func matches(in string: String, options: NSMatchingOptions = [], range: NSRange) -> [NSTextCheckingResult] {
         var matches = [NSTextCheckingResult]()
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
@@ -200,7 +200,7 @@ extension NSRegularExpression {
         
     }
     
-    public func numberOfMatches(in string: String, options: NSMatchingOptions, range: NSRange) -> Int {
+    public func numberOfMatches(in string: String, options: NSMatchingOptions = [], range: NSRange) -> Int {
         var count = 0
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion).union(.OmitResult), range: range) {_,_,_ in 
             count += 1
@@ -208,7 +208,7 @@ extension NSRegularExpression {
         return count
     }
     
-    public func firstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSTextCheckingResult? {
+    public func firstMatch(in string: String, options: NSMatchingOptions = [], range: NSRange) -> NSTextCheckingResult? {
         var first: NSTextCheckingResult?
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             first = result
@@ -217,7 +217,7 @@ extension NSRegularExpression {
         return first
     }
     
-    public func rangeOfFirstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSRange {
+    public func rangeOfFirstMatch(in string: String, options: NSMatchingOptions = [], range: NSRange) -> NSRange {
         var firstRange = NSMakeRange(NSNotFound, 0)
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
@@ -244,7 +244,7 @@ extension NSRegularExpression {
     
     /* NSRegularExpression also provides find-and-replace methods for both immutable and mutable strings.  The replacement is treated as a template, with $0 being replaced by the contents of the matched range, $1 by the contents of the first capture group, and so on.  Additional digits beyond the maximum required to represent the number of capture groups will be treated as ordinary characters, as will a $ not followed by digits.  Backslash will escape both $ and itself.
     */
-    public func stringByReplacingMatches(in string: String, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> String {
+    public func stringByReplacingMatches(in string: String, options: NSMatchingOptions = [], range: NSRange, withTemplate templ: String) -> String {
         var str: String = ""
         let length = string.length
         var previousRange = NSMakeRange(0, 0)
@@ -272,7 +272,7 @@ extension NSRegularExpression {
         return str
     }
     
-    public func replaceMatches(in string: NSMutableString, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> Int {
+    public func replaceMatches(in string: NSMutableString, options: NSMatchingOptions = [], range: NSRange, withTemplate templ: String) -> Int {
         let results = matches(in: string._swiftObject, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         var count = 0
         var offset = 0
