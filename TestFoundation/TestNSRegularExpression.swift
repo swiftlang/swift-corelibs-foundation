@@ -28,6 +28,7 @@ class TestNSRegularExpression : XCTestCase {
             ("test_complexRegularExpressions", test_complexRegularExpressions),
             ("test_Equal", test_Equal),
             ("test_NSCoding", test_NSCoding),
+            ("test_defaultOptions", test_defaultOptions),
         ]
     }
     
@@ -351,5 +352,24 @@ class TestNSRegularExpression : XCTestCase {
         let regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
         let regularExpressionB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: regularExpressionA)) as! NSRegularExpression
         XCTAssertEqual(regularExpressionA, regularExpressionB, "Archived then unarchived `NSRegularExpression` must be equal.")
+    }
+
+    // Check all of the following functions do not need to be passed options:
+    func test_defaultOptions() {
+        let pattern = ".*fatal error: (.*): file (.*), line ([0-9]+)$"
+        let text = "fatal error: Some message: file /tmp/foo.swift, line 123"
+        let regex = try? NSRegularExpression(pattern: pattern)
+        XCTAssertNotNil(regex)
+        let range = NSRange(text.startIndex..., in: text)
+        regex!.enumerateMatches(in: text, range: range, using: {_,_,_ in })
+        XCTAssertEqual(regex!.matches(in: text, range: range).first?.numberOfRanges, 4)
+        XCTAssertEqual(regex!.numberOfMatches(in: text, range: range), 1)
+        XCTAssertEqual(regex!.firstMatch(in: text, range: range)?.numberOfRanges, 4)
+        XCTAssertEqual(regex!.rangeOfFirstMatch(in: text, range: range),
+                       NSMakeRange(0, 56))
+        XCTAssertEqual(regex!.stringByReplacingMatches(in: text, range: range, withTemplate: "$1-$2-$3"),
+                      "Some message-/tmp/foo.swift-123")
+        let str = NSMutableString(string: text)
+        XCTAssertEqual(regex!.replaceMatches(in: str, range: range, withTemplate: "$1-$2-$3"), 1)
     }
 }
