@@ -139,13 +139,7 @@ open class JSONSerialization : NSObject {
         } else if let container = value as? Dictionary<AnyHashable, Any> {
             try writer.serializeJSON(container)
         } else {
-            if stream {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                    "NSDebugDescription" : "Top-level object was not NSArray or NSDictionary"
-                    ])
-            } else {
-                fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
-            }
+            fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
         }
         
         let count = jsonStr.lengthOfBytes(using: .utf8)

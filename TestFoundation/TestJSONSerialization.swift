@@ -945,7 +945,6 @@ extension TestJSONSerialization {
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
             ("test_jsonObjectToOutputStreamFile", test_jsonObjectToOutputStreamFile),
-            ("test_invalidJsonObjectToStreamBuffer", test_invalidJsonObjectToStreamBuffer),
             ("test_jsonObjectToOutputStreamInsufficientBuffer", test_jsonObjectToOutputStreamInsufficientBuffer),
             ("test_booleanJSONObject", test_booleanJSONObject),
             ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
@@ -1313,14 +1312,6 @@ extension TestJSONSerialization {
         } catch {
             XCTFail("Error occurred while writing to stream")
         }
-    }
-    
-    func test_invalidJsonObjectToStreamBuffer() {
-        let str = "Invalid JSON"
-        let buffer = Array<UInt8>(repeating: 0, count: 10)
-        let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
-        outputStream.open()
-        XCTAssertThrowsError(try JSONSerialization.writeJSONObject(str, toStream: outputStream, options: []))
     }
     
     func test_booleanJSONObject() {
