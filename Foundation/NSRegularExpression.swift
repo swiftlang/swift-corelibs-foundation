@@ -85,7 +85,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
             _internal = regex
         } else {
-            throw error!.takeRetainedValue()._nsObject
+            throw error!.takeRetainedValue()
         }
     }
     
