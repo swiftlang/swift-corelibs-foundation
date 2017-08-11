@@ -475,6 +475,23 @@ private struct JSONWriter {
         switch num._cfTypeID {
         case CFBooleanGetTypeID():
             serializeBool(num.boolValue)
+        case CFNumberGetTypeID():
+            switch num._cfNumberType() {
+            case kCFNumberSInt8Type: fallthrough
+            case kCFNumberSInt16Type: fallthrough
+            case kCFNumberSInt32Type: fallthrough
+            case kCFNumberSInt64Type: fallthrough
+            case kCFNumberCharType: fallthrough
+            case kCFNumberShortType: fallthrough
+            case kCFNumberIntType: fallthrough
+            case kCFNumberLongType: fallthrough
+            case kCFNumberLongLongType:
+                try serializeInt(value: num.intValue)
+            case kCFNumberFloatType: fallthrough
+            case kCFNumberDoubleType: fallthrough
+            default:
+                writer(_serializationString(for: num))
+            }
         default:
             writer(_serializationString(for: num))
         }
