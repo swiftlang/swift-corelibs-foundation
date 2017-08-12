@@ -405,7 +405,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         let buffer = malloc(bytesNeeded)!.bindMemory(to: UInt8.self, capacity: bytesNeeded)
         let bytesFilled = CFURLGetBytes(_cfObject, buffer, bytesNeeded)
         if bytesFilled == bytesNeeded {
-            return Data(bytesNoCopy: buffer, count: bytesNeeded, deallocator: .none)
+            return Data(bytesNoCopy: buffer, count: bytesNeeded, deallocator: .free)
         } else {
             fatalError()
         }
