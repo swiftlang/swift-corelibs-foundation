@@ -92,7 +92,7 @@ open class ProcessInfo: NSObject {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
         
-        let versionComponents = productVersion._swiftObject.characters.split(separator: ".").map(String.init).flatMap({ Int($0) })
+        let versionComponents = productVersion._swiftObject.split(separator: ".").map(String.init).flatMap({ Int($0) })
         let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
         let minorVersion = versionComponents.dropFirst(1).first ?? fallbackMinor
         let patchVersion = versionComponents.dropFirst(2).first ?? fallbackPatch

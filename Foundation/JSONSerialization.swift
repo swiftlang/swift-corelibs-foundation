@@ -286,8 +286,8 @@ internal extension JSONSerialization {
 //MARK: - JSONSerializer
 private struct JSONWriter {
     
-    private let maxUIntLength = String(describing: UInt.max).characters.count
-    private let maxIntLength = String(describing: Int.max).characters.count
+    private let maxUIntLength = String(describing: UInt.max).count
+    private let maxIntLength = String(describing: Int.max).count
     var indent = 0
     let pretty: Bool
     let sortedKeys: Bool

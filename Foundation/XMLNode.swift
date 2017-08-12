@@ -421,7 +421,7 @@ open class XMLNode: NSObject, NSCopying {
         var entityChars: [Character] = []
         var inEntity = false
         var startIndex = 0
-        for (index, char) in string.characters.enumerated() {
+        for (index, char) in string.enumerated() {
             if char == "&" {
                 inEntity = true
                 startIndex = index
@@ -440,7 +440,7 @@ open class XMLNode: NSObject, NSCopying {
             }
         }
 
-        var result: [Character] = Array(string.characters)
+        var result: [Character] = Array(string)
         let doc = _CFXMLNodeGetDocument(_xmlNode)!
         for (range, entity) in entities {
             var entityPtr = _CFXMLGetDocEntity(doc, entity)
@@ -452,7 +452,7 @@ open class XMLNode: NSObject, NSCopying {
             }
             if let validEntity = entityPtr {
                 let replacement = _CFXMLCopyEntityContent(validEntity)?._swiftObject ?? ""
-                result.replaceSubrange(range, with: replacement.characters)
+                result.replaceSubrange(range, with: replacement)
             } else {
                 result.replaceSubrange(range, with: []) // This appears to be how Darwin Foundation does it
             }

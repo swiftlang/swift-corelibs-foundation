@@ -35,18 +35,16 @@ public func NSTemporaryDirectory() -> String {
 
 internal extension String {
     
-    internal var _startOfLastPathComponent : String.CharacterView.Index {
+    internal var _startOfLastPathComponent : String.Index {
         precondition(!hasSuffix("/") && length > 1)
         
-        let characterView = characters
-        let startPos = characterView.startIndex
-        let endPos = characterView.endIndex
-        var curPos = endPos
+        let startPos = startIndex
+        var curPos = endIndex
         
         // Find the beginning of the component
         while curPos > startPos {
-            let prevPos = characterView.index(before: curPos)
-            if characterView[prevPos] == "/" {
+            let prevPos = index(before: curPos)
+            if self[prevPos] == "/" {
                 break
             }
             curPos = prevPos
@@ -55,19 +53,16 @@ internal extension String {
 
     }
 
-    internal var _startOfPathExtension : String.CharacterView.Index? {
+    internal var _startOfPathExtension : String.Index? {
         precondition(!hasSuffix("/"))
         
-        let characterView = self.characters
-        let endPos = characterView.endIndex
-        var curPos = endPos
-        
+        var curPos = endIndex
         let lastCompStartPos = _startOfLastPathComponent
         
         // Find the beginning of the extension
         while curPos > lastCompStartPos {
-            let prevPos = characterView.index(before: curPos)
-            let char = characterView[prevPos]
+            let prevPos = index(before: curPos)
+            let char = self[prevPos]
             if char == "/" {
                 return nil
             } else if char == "." {
@@ -125,7 +120,7 @@ internal extension String {
             }
         }
         if stripTrailing && result.length > 1 && result.hasSuffix("/") {
-            result.remove(at: result.characters.index(before: result.characters.endIndex))
+            result.remove(at: result.index(before: result.endIndex))
         }
         return result
     }
@@ -181,7 +176,7 @@ public extension NSString {
             return fixedSelf
         }
         
-        return String(fixedSelf.characters.suffix(from: fixedSelf._startOfLastPathComponent))
+        return String(fixedSelf.suffix(from: fixedSelf._startOfLastPathComponent))
     }
     
     public var deletingLastPathComponent : String {
@@ -202,7 +197,7 @@ public extension NSString {
         
         // all common cases
         case let startOfLast:
-            return String(fixedSelf.characters.prefix(upTo: fixedSelf.index(before: startOfLast)))
+            return String(fixedSelf.prefix(upTo: fixedSelf.index(before: startOfLast)))
         }
     }
     
@@ -236,7 +231,7 @@ public extension NSString {
             }
         }
         if stripTrailing && result.hasSuffix("/") {
-            result.remove(at: result.characters.index(before: result.characters.endIndex))
+            result.remove(at: result.index(before: result.endIndex))
         }
         return result
     }
@@ -265,7 +260,7 @@ public extension NSString {
         }
 
         if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.characters.suffix(from: extensionPos))
+            return String(fixedSelf.suffix(from: extensionPos))
         } else {
             return ""
         }
@@ -277,7 +272,7 @@ public extension NSString {
             return fixedSelf
         }
         if let extensionPos = (fixedSelf._startOfPathExtension) {
-            return String(fixedSelf.characters.prefix(upTo: fixedSelf.characters.index(before: extensionPos)))
+            return String(fixedSelf.prefix(upTo: fixedSelf.index(before: extensionPos)))
         } else {
             return fixedSelf
         }
@@ -297,9 +292,9 @@ public extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.characters.index(of: "/") ?? _swiftObject.endIndex
-        let startOfUserName = _swiftObject.characters.index(after: _swiftObject.characters.startIndex)
-        let userName = String(_swiftObject.characters[startOfUserName..<endOfUserName])
+        let endOfUserName = _swiftObject.index(of: "/") ?? _swiftObject.endIndex
+        let startOfUserName = _swiftObject.index(after: _swiftObject.startIndex)
+        let userName = String(_swiftObject[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
         
         guard let homeDir = NSHomeDirectoryForUser(optUserName) else {
@@ -478,7 +473,7 @@ public extension NSString {
             return strings.first
         }
         
-        var sequences = strings.map({ $0.characters.makeIterator() })
+        var sequences = strings.map({ $0.makeIterator() })
         var prefix: [Character] = []
         loop: while true {
             var char: Character? = nil
@@ -490,8 +485,8 @@ public extension NSString {
                 }
                 
                 if char != nil {
-                    let lhs = caseSensitive ? char : String(char!).lowercased().characters.first!
-                    let rhs = caseSensitive ? c : String(c).lowercased().characters.first!
+                    let lhs = caseSensitive ? char : String(char!).lowercased().first!
+                    let rhs = caseSensitive ? c : String(c).lowercased().first!
                     if lhs != rhs {
                         break loop
                     }
