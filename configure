@@ -32,6 +32,8 @@ from lib.product import StaticAndDynamicLibrary
 from lib.product import Application
 from lib.product import Executable
 
+from lib.pkg_config import PkgConfig
+
 from lib.script import Script
 
 from lib.target import ArchSubType

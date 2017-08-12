@@ -15,8 +15,8 @@ foundation.GCC_PREFIX_HEADER = 'CoreFoundation/Base.subproj/CoreFoundation_Prefi
 
 swift_cflags = ['-DDEPLOYMENT_RUNTIME_SWIFT']
 if Configuration.current.target.sdk == OSType.Linux:
-	foundation.CFLAGS = '`${PKG_CONFIG} icu-uc icu-i18n --cflags-only-I` -DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CoreFoundation/CharacterSets"'
-	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc `${PKG_CONFIG} icu-uc icu-i18n --libs` -Wl,-Bsymbolic '
+	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CoreFoundation/CharacterSets"'
+	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc -Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
@@ -61,35 +61,55 @@ foundation.CFLAGS += " ".join([
 	'-Wno-unused-variable',
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
-	'-I${SYSROOT}/usr/include/libxml2',
-	'-I${SYSROOT}/usr/include/curl',
 	'-I./',
 ])
 
 swift_cflags += [
 	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
-	'-I${SYSROOT}/usr/include/libxml2',
-	'-I${SYSROOT}/usr/include/curl'
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
 	swift_cflags += [
 		'-I${XCTEST_BUILD_DIR}',
 		'-L${XCTEST_BUILD_DIR}',
-		'-I${SYSROOT}/usr/include/libxml2',
-		'-I${SYSROOT}/usr/include/curl'
 	]
 
-triple = Configuration.current.target.triple
-if triple.find("linux") != -1:
-	foundation.LDFLAGS += '-lcurl '
+if Configuration.current.requires_pkg_config:
+    pkg_config_dependencies = [
+        'icu-i18n',
+        'icu-uc',
+        'libcurl',
+        'libxml-2.0',
+    ]
+    for package_name in pkg_config_dependencies:
+        try:
+            package = PkgConfig(package_name)
+        except PkgConfig.Error as e:
+            sys.exit("pkg-config error for package {}: {}".format(package_name, e))
+        foundation.CFLAGS += ' {} '.format(' '.join(package.cflags))
+        foundation.LDFLAGS += ' {} '.format(' '.join(package.ldflags))
+        swift_cflags += package.swiftc_flags
+else:
+	foundation.CFLAGS += ''.join([
+		'-I${SYSROOT}/usr/include/curl ',
+		'-I${SYSROOT}/usr/include/libxml2 ',
+	])
+	foundation.LDFLAGS += ''.join([
+		'-lcurl ',
+		'-lxml2 ',
+	])
+	swift_cflags += ''.join([
+		'-I${SYSROOT}/usr/include/curl ',
+		'-I${SYSROOT}/usr/include/libxml2 ',
+	])
 
+triple = Configuration.current.target.triple
 if triple == "armv7-none-linux-androideabi":
 	foundation.LDFLAGS += '-llog '
 else:
 	foundation.LDFLAGS += '-lpthread '
 
-foundation.LDFLAGS += '-ldl -lm -lswiftCore -lxml2 '
+foundation.LDFLAGS += '-ldl -lm -lswiftCore '
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
