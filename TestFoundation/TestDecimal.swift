@@ -260,7 +260,7 @@ class TestDecimal: XCTestCase {
                     var failed: Bool = false
                     var count = 0
                     let SIG_FIG = 14
-                    for (a, b) in zip(answerDescription.characters, approximationDescription.characters) {
+                    for (a, b) in zip(answerDescription, approximationDescription) {
                         if a != b {
                             failed = true
                             break

@@ -135,7 +135,7 @@ class TestStream : XCTestCase {
             XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
             let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
             outputStream?.close()
-            XCTAssertEqual(myString.characters.count, result)
+            XCTAssertEqual(myString.count, result)
             XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
             removeTestFile(filePath!)
         } else {
@@ -154,7 +154,7 @@ class TestStream : XCTestCase {
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
         outputStream.close()
         XCTAssertEqual(Stream.Status.closed, outputStream.streamStatus)
-        XCTAssertEqual(myString.characters.count, result)
+        XCTAssertEqual(myString.count, result)
         XCTAssertEqual(NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), NSString(string: myString))
     }
     
@@ -169,7 +169,7 @@ class TestStream : XCTestCase {
             XCTAssertEqual(Stream.Status.open, outputStream!.streamStatus)
             let result: Int? = outputStream?.write(encodedData, maxLength: encodedData.count)
             outputStream?.close()
-            XCTAssertEqual(myString.characters.count, result)
+            XCTAssertEqual(myString.count, result)
             XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
             removeTestFile(filePath!)
         } else {
@@ -186,7 +186,7 @@ class TestStream : XCTestCase {
         outputStream.open()
         XCTAssertEqual(Stream.Status.open, outputStream.streamStatus)
         let result: Int? = outputStream.write(encodedData, maxLength: encodedData.count)
-        XCTAssertEqual(myString.characters.count, result)
+        XCTAssertEqual(myString.count, result)
         //verify the data written
         let dataWritten  = outputStream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey)
         if let nsdataWritten = dataWritten as? NSData {
