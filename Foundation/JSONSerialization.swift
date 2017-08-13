@@ -577,9 +577,12 @@ private struct JSONWriter {
             writer(" ")
         }
     }
-    
+
     //[SR-2151] https://bugs.swift.org/browse/SR-2151
     private mutating func _serializationString(for number: NSNumber) -> String {
+        if !CFNumberIsFloatType(number._cfObject) {
+            return number.stringValue
+        }
         return CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, number._cfObject)._swiftObject
     }
 }
