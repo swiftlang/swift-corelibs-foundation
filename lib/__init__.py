@@ -11,6 +11,7 @@ __all__ = [
     "config",
     "path",
     "phases",
+    "pkg_config",
     "product",
     "script",
     "target",
