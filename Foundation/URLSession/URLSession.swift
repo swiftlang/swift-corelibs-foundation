@@ -171,6 +171,13 @@
 import CoreFoundation
 import Dispatch
 
+extension URLSession {
+    public enum DelayedRequestDisposition {
+        case cancel
+        case continueLoading
+        case useNewRequest
+    }
+}
 
 fileprivate var sessionCounter = Int32(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
