@@ -34,7 +34,7 @@ internal func _pathComponents(_ path: String?) -> [String]? {
         if p.length == 0 {
             return result
         } else {
-            let characterView = p.characters
+            let characterView = p
             var curPos = characterView.startIndex
             let endPos = characterView.endIndex
             if characterView[curPos] == "/" {
@@ -738,7 +738,7 @@ extension NSURL {
                 }
             }
             if stripTrailing && result.hasSuffix("/") {
-                result.remove(at: result.characters.index(before: result.characters.endIndex))
+                result.remove(at: result.index(before: result.endIndex))
             }
             return result
         }
@@ -757,7 +757,7 @@ extension NSURL {
             return fixedSelf
         }
         
-        return String(fixedSelf.characters.suffix(from: fixedSelf._startOfLastPathComponent))
+        return String(fixedSelf.suffix(from: fixedSelf._startOfLastPathComponent))
     }
     
     open var pathExtension: String? {
@@ -769,7 +769,7 @@ extension NSURL {
         }
         
         if let extensionPos = fixedSelf._startOfPathExtension {
-            return String(fixedSelf.characters.suffix(from: extensionPos))
+            return String(fixedSelf.suffix(from: extensionPos))
         } else {
             return ""
         }

@@ -100,7 +100,7 @@ class _TCPSocket {
     }
     
     func split(_ str: String, _ count: Int) -> [String] {
-        return stride(from: 0, to: str.characters.count, by: count).map { i -> String in
+        return stride(from: 0, to: str.count, by: count).map { i -> String in
             let startIndex = str.index(str.startIndex, offsetBy: i)
             let endIndex   = str.index(startIndex, offsetBy: count, limitedBy: str.endIndex) ?? str.endIndex
             return String(str[startIndex..<endIndex])
@@ -346,7 +346,7 @@ public class TestURLSessionServer {
         }
 
         if uri == "/country.txt" {
-            let text = capitals[String(uri.characters.dropFirst())]!
+            let text = capitals[String(uri.dropFirst())]!
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
@@ -356,7 +356,7 @@ public class TestURLSessionServer {
         }
 
 	if uri == "/UnitedStates" {
-            let value = capitals[String(uri.characters.dropFirst())]!
+            let value = capitals[String(uri.dropFirst())]!
             let text = request.getCommaSeparatedHeaders()
             let host = request.headers[1].components(separatedBy: " ")[1]
             let ip = host.components(separatedBy: ":")[0]
@@ -366,7 +366,7 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(newHost + "/" + value)", body: text)
             return httpResponse 
         }
-        return _HTTPResponse(response: .OK, body: capitals[String(uri.characters.dropFirst())]!) 
+        return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 
     func stop() {

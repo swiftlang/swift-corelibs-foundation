@@ -1298,11 +1298,11 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
     // To determine the expected results, compare grapheme clusters,
     // scalar-to-scalar, of the NFD form of the strings.
     let lhsNFDGraphemeClusters =
-        lhs.decomposedStringWithCanonicalMapping.characters.map {
+        lhs.decomposedStringWithCanonicalMapping.map {
             Array(String($0).unicodeScalars)
     }
     let rhsNFDGraphemeClusters =
-        rhs.decomposedStringWithCanonicalMapping.characters.map {
+        rhs.decomposedStringWithCanonicalMapping.map {
             Array(String($0).unicodeScalars)
     }
     let expectHasPrefix = lhsNFDGraphemeClusters.starts(

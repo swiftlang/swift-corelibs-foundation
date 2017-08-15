@@ -292,7 +292,7 @@ extension String {
       aString,
       options: mask,
       range: _toNSRange(
-        range ?? self.characters.startIndex..<self.characters.endIndex
+        range ?? self.startIndex..<self.endIndex
       ),
       locale: locale?._bridgeToObjectiveC()
     )
@@ -1060,7 +1060,7 @@ extension String {
         from: aSet,
         options: mask,
         range: _toNSRange(
-          aRange ?? self.characters.startIndex..<self.characters.endIndex
+          aRange ?? self.startIndex..<self.endIndex
         )
       )
     )
@@ -1120,7 +1120,7 @@ extension String {
         of: aString,
         options: mask,
         range: _toNSRange(
-          searchRange ?? self.characters.startIndex..<self.characters.endIndex
+          searchRange ?? self.startIndex..<self.endIndex
         ),
         locale: locale
       )
@@ -1343,7 +1343,7 @@ extension String {
       with: replacement,
       options: options,
       range: _toNSRange(
-        searchRange ?? self.characters.startIndex..<self.characters.endIndex
+        searchRange ?? self.startIndex..<self.endIndex
       )
     )
     : _ns.replacingOccurrences(of: target, with: replacement)
