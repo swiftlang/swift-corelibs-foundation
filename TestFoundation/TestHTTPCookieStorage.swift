@@ -230,7 +230,7 @@ class TestHTTPCookieStorage: XCTestCase {
         let bundlePath = Bundle.main.bundlePath
         var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
         if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
-            bundleName = bundleName.substring(to: range.lowerBound)
+            bundleName = String(bundleName[..<range.lowerBound])
         }
         if let xdg_data_home = getenv("XDG_DATA_HOME") {
             destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
@@ -251,7 +251,7 @@ class TestHTTPCookieStorage: XCTestCase {
         let exeName = "/xdgTestHelper/xdgTestHelper"
         #endif
 
-        task.launchPath = bundlePath.substring(to: pathIndex!) + exeName
+        task.launchPath = bundlePath[..<pathIndex!] + exeName
         var environment = ProcessInfo.processInfo.environment
         let testPath = NSHomeDirectory() + "/TestXDG"
         environment["XDG_DATA_HOME"] = testPath
