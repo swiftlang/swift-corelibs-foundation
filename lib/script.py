@@ -117,7 +117,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         if Configuration.current.build_mode == Configuration.Debug:
             swift_flags += "-g -Onone "
         elif Configuration.current.build_mode == Configuration.Release:
-            swift_flags += "-O "
+            swift_flags += "-O -whole-module-optimization "
 
         swift_flags += Configuration.current.extra_swift_flags
         
