@@ -266,22 +266,143 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     neither stable nor human-readable.
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
-    let aClassNameWithPrefix : String
-    let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
-    
-    switch components.count {
-    case 1:
-        guard !aClassName.hasPrefix("_Tt") else {
-            NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
+    switch aClassName {
+    case "NSAffineTransform": return NSAffineTransform.self
+    case "NSArray": return NSArray.self
+    case "NSByteCountFormatter": return ByteCountFormatter.self
+    case "NSCachedURLResponse": return CachedURLResponse.self
+    case "NSCalendar": return NSCalendar.self
+    case "NSCharacterSet": return NSCharacterSet.self
+    case "NSCoder": return NSCoder.self
+    case "NSComparisonPredicate": return NSComparisonPredicate.self
+    case "NSCompoundPredicate": return NSCompoundPredicate.self
+    case "NSConditionLock": return NSConditionLock.self
+    case "NSCountedSet": return NSCountedSet.self
+    case "NSData": return NSData.self
+    case "NSDate": return NSDate.self
+    case "NSDateComponents": return NSDateComponents.self
+    case "NSDateComponentsFormatter": return DateComponentsFormatter.self
+    case "NSDateFormatter": return DateFormatter.self
+    case "NSDateInterval": return NSDateInterval.self
+    case "NSDateIntervalFormatter": return DateIntervalFormatter.self
+    case "NSDecimalNumber": return NSDecimalNumber.self
+    case "NSDecimalNumberHandler": return NSDecimalNumberHandler.self
+    case "NSDictionary": return NSDictionary.self
+    case "NSDimension": return Dimension.self
+    case "NSDirectoryEnumerator": return FileManager.DirectoryEnumerator.self
+    case "NSEnumerator": return NSEnumerator.self
+    case "NSError": return NSError.self
+    case "NSExpression": return NSExpression.self
+    case "NSFileHandle": return FileHandle.self
+    case "NSFileManager": return FileManager.self
+    case "NSFormatter": return Formatter.self
+    case "NSHTTPCookie": return HTTPCookie.self
+    case "NSHTTPURLResponse": return HTTPURLResponse.self
+    case "NSIndexPath": return NSIndexPath.self
+    case "NSIndexSet": return NSIndexSet.self
+    case "NSISO8601DateFormatter": return ISO8601DateFormatter.self
+    case "NSJSONSerialization": return JSONSerialization.self
+    case "NSKeyedArchiver": return NSKeyedArchiver.self
+    case "NSKeyedUnarchiver": return NSKeyedUnarchiver.self
+    case "NSLengthFormatter": return LengthFormatter.self
+    case "NSMassFormatter": return MassFormatter.self
+    case "NSMeasurement": return NSMeasurement.self
+    case "NSMeasurementFormatter": return MeasurementFormatter.self
+    case "NSMessagePort": return MessagePort.self
+    case "NSMutableArray": return NSMutableArray.self
+    case "NSMutableAttributedString": return NSMutableAttributedString.self
+    case "NSMutableCharacterSet": return NSMutableCharacterSet.self
+    case "NSMutableData": return NSMutableData.self
+    case "NSMutableDictionary": return NSMutableDictionary.self
+    case "NSMutableIndexSet": return NSMutableIndexSet.self
+    case "NSMutableOrderedSet": return NSMutableOrderedSet.self
+    case "NSMutableSet": return NSMutableSet.self
+    case "NSMutableString": return NSMutableString.self
+    case "NSMutableURLRequest": return NSMutableURLRequest.self
+    case "NSNull": return NSNull.self
+    case "NSNumber": return NSNumber.self
+    case "NSNumberFormatter": return NumberFormatter.self
+    case "NSObject": return NSObject.self
+    case "NSOperation": return Operation.self
+    case "NSOrderedSet": return NSOrderedSet.self
+    case "NSOutputStream": return OutputStream.self
+    case "NSPersonNameComponents": return NSPersonNameComponents.self
+    case "NSPersonNameComponentsFormatter": return PersonNameComponentsFormatter.self
+    case "NSPort": return Port.self
+    case "NSPortMessage": return PortMessage.self
+    case "NSPredicate": return NSPredicate.self
+    case "NSProgress": return Progress.self
+    case "NSPropertyListSerialization": return PropertyListSerialization.self
+    case "NSSet": return NSSet.self
+    case "NSSocketPort": return SocketPort.self
+    case "NSString": return NSString.self
+    case "NSThread": return Thread.self
+    case "NSTimer": return Timer.self
+    case "NSTimeZone": return NSTimeZone.self
+    case "NSUnit": return Unit.self
+    case "NSUnitAcceleration": return UnitAcceleration.self
+    case "NSUnitAngle": return UnitAngle.self
+    case "NSUnitArea": return UnitArea.self
+    case "NSUnitConcentrationMass": return UnitConcentrationMass.self
+    case "NSUnitConverter": return UnitConverter.self
+    case "NSUnitConverterLinear": return UnitConverterLinear.self
+    case "NSUnitDispersion": return UnitDispersion.self
+    case "NSUnitDuration": return UnitDuration.self
+    case "NSUnitElectricCharge": return UnitElectricCharge.self
+    case "NSUnitElectricCurrent": return UnitElectricCurrent.self
+    case "NSUnitElectricPotentialDifference": return UnitElectricPotentialDifference.self
+    case "NSUnitElectricResistance": return UnitElectricResistance.self
+    case "NSUnitEnergy": return UnitEnergy.self
+    case "NSUnitFrequency": return UnitFrequency.self
+    case "NSUnitFuelEfficiency": return UnitFuelEfficiency.self
+    case "NSUnitIlluminance": return UnitIlluminance.self
+    case "NSUnitLength": return UnitLength.self
+    case "NSUnitMass": return UnitMass.self
+    case "NSUnitPower": return UnitPower.self
+    case "NSUnitPressure": return UnitPressure.self
+    case "NSUnitSpeed": return UnitSpeed.self
+    case "NSUnitTemperature": return UnitTemperature.self
+    case "NSUnitVolume": return UnitVolume.self
+    case "NSURL": return NSURL.self
+    case "NSURLAuthenticationChallenge": return URLAuthenticationChallenge.self
+    case "NSURLCache": return URLCache.self
+    case "NSURLCredential": return URLCredential.self
+    case "NSURLProtectionSpace": return URLProtectionSpace.self
+    case "NSURLProtocol": return URLProtocol.self
+    case "NSURLQueryItem": return NSURLQueryItem.self
+    case "NSURLRequest": return NSURLRequest.self
+    case "NSURLResponse": return URLResponse.self
+    case "NSURLSession": return URLSession.self
+    case "NSURLSessionConfiguration": return URLSessionConfiguration.self
+    case "NSURLSessionDataTask": return URLSessionDataTask.self
+    case "NSURLSessionDownloadTask": return URLSessionDownloadTask.self
+    case "NSURLSessionStreamTask": return URLSessionStreamTask.self
+    case "NSURLSessionTask": return URLSessionTask.self
+    case "NSURLSessionUploadTask": return URLSessionUploadTask.self
+    case "NSUUID": return NSUUID.self
+    case "NSValue": return NSValue.self
+    case "NSXMLDocument": return XMLDocument.self
+    case "NSXMLDTD": return XMLDTD.self
+    case "NSXMLParser": return XMLParser.self
+    default:
+        let aClassNameWithPrefix : String
+        let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
+        
+        switch components.count {
+        case 1:
+            guard !aClassName.hasPrefix("_Tt") else {
+                NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
+                return nil
+            }
+            aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        case 2:
+            aClassNameWithPrefix = aClassName
+        default:
+            NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
             return nil
         }
-        aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
-    case 2:
-        aClassNameWithPrefix = aClassName
-    default:
-        NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
-        return nil
+        
+        return _typeByName(aClassNameWithPrefix) as? AnyClass
     }
     
-    return _typeByName(aClassNameWithPrefix) as? AnyClass
 }
