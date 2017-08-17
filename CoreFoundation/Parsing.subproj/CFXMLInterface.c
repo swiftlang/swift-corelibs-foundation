@@ -893,8 +893,8 @@ CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath) {
         CFArrayAppendValue(results, nodes->nodeTab[i]);
     }
 
-    xmlFree(context);
-    xmlFree(evalResult);
+    xmlXPathFreeContext(context);
+    xmlXPathFreeObject(evalResult);
 
     return results;
 }
