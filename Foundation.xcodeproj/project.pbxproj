@@ -2686,6 +2686,7 @@
 				OTHER_LDFLAGS = (
 					"-twolevel_namespace",
 					"-Wl,-alias_list,CoreFoundation/Base.subproj/SymbolAliases",
+					"-Wl,-all_load",
 					"-sectcreate",
 					__UNICODE,
 					__csbitmaps,

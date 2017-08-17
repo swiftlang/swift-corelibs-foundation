@@ -790,6 +790,7 @@ public final class _DataStorage {
     }
 }
 
+@_versioned
 internal class _NSSwiftData : NSData {
     var _backing: _DataStorage!
     var _range: Range<Data.Index>!
