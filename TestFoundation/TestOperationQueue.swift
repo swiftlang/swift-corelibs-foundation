@@ -175,12 +175,17 @@ class AsyncOperation: Operation {
 
     override internal(set) var isExecuting: Bool {
         get {
-            return _executing
+            lock.lock()
+            let wasExecuting = _executing
+            lock.unlock()
+            return wasExecuting
         }
         set {
-            if _executing != newValue {
+            if isExecuting != newValue {
                 willChangeValue(forKey: "isExecuting")
+                lock.lock()
                 _executing = newValue
+                lock.unlock()
                 didChangeValue(forKey: "isExecuting")
             }
         }
@@ -188,12 +193,17 @@ class AsyncOperation: Operation {
 
     override internal(set) var isFinished: Bool {
         get {
-            return _finished
+            lock.lock()
+            let wasFinished = _finished
+            lock.unlock()
+            return wasFinished
         }
         set {
-            if _finished != newValue {
+            if isFinished != newValue {
                 willChangeValue(forKey: "isFinished")
+                lock.lock()
                 _finished = newValue
+                lock.unlock()
                 didChangeValue(forKey: "isFinished")
             }
         }
@@ -213,10 +223,8 @@ class AsyncOperation: Operation {
 
         queue.async {
             sleep(1)
-            self.lock.lock()
             self.isExecuting = false
             self.isFinished = true
-            self.lock.unlock()
         }
     }
 
