@@ -40,22 +40,18 @@ class TestThread : XCTestCase {
     }
     
     func test_threadStart() {
-        var started = false
         let condition = NSCondition()
         let thread = Thread() {
             condition.lock()
-            started = true
             condition.broadcast()
             condition.unlock()
         }
         thread.start()
         
         condition.lock()
-        if !started {
-            condition.wait()
-        }
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
-        XCTAssertTrue(started)
+        XCTAssertTrue(ok, "NSCondition wait timed out")
     }
     
     func test_threadName() {
@@ -98,11 +94,9 @@ class TestThread : XCTestCase {
         XCTAssertTrue(c.isExecuting)
         XCTAssertTrue(c.isEqual(t))
 
-        var started = false
         let condition = NSCondition()
         let thread = Thread() {
             condition.lock()
-            started = true
             XCTAssertFalse(Thread.isMainThread)
             XCTAssertFalse(Thread.mainThread == Thread.current)
             condition.broadcast()
@@ -111,10 +105,9 @@ class TestThread : XCTestCase {
         thread.start()
 
         condition.lock()
-        if !started {
-            condition.wait()
-        }
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
+        XCTAssertTrue(ok, "NSCondition wait timed out")
     }
 
     func test_callStackSymbols() {
