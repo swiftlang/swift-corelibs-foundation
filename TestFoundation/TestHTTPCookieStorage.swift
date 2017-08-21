@@ -14,6 +14,7 @@
     import SwiftFoundation
     import SwiftXCTest
 #endif
+import Dispatch
 
 class TestHTTPCookieStorage: XCTestCase {
 
@@ -24,6 +25,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
     static var allTests: [(String, (TestHTTPCookieStorage) -> () throws -> Void)] {
         return [
+            ("test_sharedCookieStorageAccessedFromMultipleThreads", test_sharedCookieStorageAccessedFromMultipleThreads),
             ("test_BasicStorageAndRetrieval", test_BasicStorageAndRetrieval),
             ("test_deleteCookie", test_deleteCookie),
             ("test_removeCookies", test_removeCookies),
@@ -32,6 +34,27 @@ class TestHTTPCookieStorage: XCTestCase {
             ("test_setCookiesForURLWithMainDocumentURL", test_setCookiesForURLWithMainDocumentURL),
             ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
         ]
+    }
+
+    func test_sharedCookieStorageAccessedFromMultipleThreads() {
+        let q = DispatchQueue.global()
+        let syncQ = DispatchQueue(label: "TestHTTPCookieStorage.syncQ")
+        var allCookieStorages: [HTTPCookieStorage] = []
+        let g = DispatchGroup()
+        for _ in 0..<64 {
+            g.enter()
+            q.async {
+                let mySharedCookieStore = HTTPCookieStorage.shared
+                syncQ.async {
+                    allCookieStorages.append(mySharedCookieStore)
+                    g.leave()
+                }
+            }
+        }
+        g.wait()
+        let cookieStorages = syncQ.sync { allCookieStorages }
+        let mySharedCookieStore = HTTPCookieStorage.shared
+        XCTAssertTrue(cookieStorages.reduce(true, { $0 && $1 === mySharedCookieStore }), "\(cookieStorages)")
     }
 
     func test_BasicStorageAndRetrieval() {
