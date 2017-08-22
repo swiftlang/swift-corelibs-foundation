@@ -35,6 +35,12 @@ struct _HTTPUtils {
     static let EMPTY = ""
 }
 
+extension UInt16 {
+    public init(networkByteOrder input: UInt16) {
+        self.init(bigEndian: input)
+    }
+}
+
 class _TCPSocket {
   
     private var listenSocket: Int32!
@@ -55,12 +61,15 @@ class _TCPSocket {
         return r
     }
 
-    init(port: UInt16) throws {
+    public private(set) var port: UInt16
+
+    init(port: UInt16?) throws {
         #if os(Linux)
             let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
         #else
             let SOCKSTREAM = SOCK_STREAM
         #endif
+        self.port = port ?? 0
         listenSocket = try attempt("socket", valid: isNotNegative, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
         var on: Int = 1
         _ = try attempt("setsockopt", valid: isZero, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<Int>.size)))
@@ -70,16 +79,26 @@ class _TCPSocket {
             let addr = UnsafePointer<sockaddr>($0)
             _ = try attempt("bind", valid: isZero, bind(listenSocket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
         })
+
+        var actualSA = sockaddr_in()
+        withUnsafeMutablePointer(to: &actualSA) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { (ptr: UnsafeMutablePointer<sockaddr>) in
+                var len = socklen_t(MemoryLayout<sockaddr>.size)
+                getsockname(listenSocket, ptr, &len)
+            }
+        }
+
+        self.port = UInt16(networkByteOrder: actualSA.sin_port)
     }
 
-    private func createSockaddr(_ port: UInt16) -> sockaddr_in {
+    private func createSockaddr(_ port: UInt16?) -> sockaddr_in {
         // Listen on the loopback address so that OSX doesnt pop up a dialog
         // asking to accept incoming connections if the firewall is enabled.
         let addr = UInt32(INADDR_LOOPBACK).bigEndian
         #if os(Linux)
-            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port ?? 0), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #else
-            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port ?? 0), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #endif
     }
 
@@ -133,20 +152,27 @@ class _TCPSocket {
     }
 
     func shutdown() {
-        close(connectionSocket)
+        if let connectionSocket = self.connectionSocket {
+            close(connectionSocket)
+        }
         close(listenSocket)
     }
 }
 
 class _HTTPServer {
 
-    let socket: _TCPSocket 
+    let socket: _TCPSocket
+    var port: UInt16 {
+        get {
+            return self.socket.port
+        }
+    }
     
-    init(port: UInt16) throws {
+    init(port: UInt16?) throws {
         socket = try _TCPSocket(port: port)
     }
 
-    public class func create(port: UInt16) throws -> _HTTPServer {
+    public class func create(port: UInt16?) throws -> _HTTPServer {
         return try _HTTPServer(port: port)
     }
 
@@ -159,7 +185,7 @@ class _HTTPServer {
     }
    
     public func request() throws -> _HTTPRequest {
-       return _HTTPRequest(request: try socket.readData()) 
+       return try _HTTPRequest(request: socket.readData())
     }
 
     public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
@@ -307,8 +333,13 @@ public class TestURLSessionServer {
     let startDelay: TimeInterval?
     let sendDelay: TimeInterval?
     let bodyChunks: Int?
+    var port: UInt16 {
+        get {
+            return self.httpServer.port
+        }
+    }
     
-    public init (port: UInt16, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
+    public init (port: UInt16?, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         httpServer = try _HTTPServer.create(port: port)
         self.startDelay = startDelay
         self.sendDelay = sendDelay
@@ -404,23 +435,28 @@ public class ServerSemaphore {
 }
 
 class LoopbackServerTest : XCTestCase {
-    static var serverPort: Int = -1
+    private static let staticSyncQ = DispatchQueue(label: "org.swift.TestFoundation.HTTPServer.StaticSyncQ")
+
+    private static var _serverPort: Int = -1
+    static var serverPort: Int {
+        get {
+            return staticSyncQ.sync { _serverPort }
+        }
+        set {
+            staticSyncQ.sync { _serverPort = newValue }
+        }
+    }
 
     override class func setUp() {
         super.setUp()
         func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-            let start = 21961
-            for port in start...(start+100) { //we must find at least one port to bind
-                do {
-                    serverPort = port
-                    let test = try TestURLSessionServer(port: UInt16(port), startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
-                    try test.start(started: condition)
-                    try test.readAndRespond()
-                    test.stop()
-                } catch let e as ServerError {
-                    if e.operation == "bind" { continue }
-                    throw e
-                }
+            while true {
+                let test = try TestURLSessionServer(port: nil, startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
+                serverPort = Int(test.port)
+                try test.start(started: condition)
+                try test.readAndRespond()
+                serverPort = -2
+                test.stop()
             }
         }
 
