@@ -26,6 +26,8 @@ import Dispatch
 #endif
 
 public let globalDispatchQueue = DispatchQueue.global()
+public let dispatchQueueMake: (String) -> DispatchQueue = { DispatchQueue.init(label: $0) }
+public let dispatchGroupMake: () -> DispatchGroup = DispatchGroup.init
 
 struct _HTTPUtils {
     static let CRLF = "\r\n"

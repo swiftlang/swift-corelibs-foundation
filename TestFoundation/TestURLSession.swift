@@ -43,6 +43,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_illegalHTTPServerResponses", test_illegalHTTPServerResponses),
             ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
             ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
+            ("test_concurrentRequests", test_concurrentRequests),
         ]
     }
     
@@ -459,6 +460,34 @@ class TestURLSession : LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 20)
     }
+
+    func test_concurrentRequests() {
+        let syncQ = dispatchQueueMake("test_dataTaskWithURL.syncQ")
+        var dataTasks: [DataTask] = []
+        let g = dispatchGroupMake()
+        for f in 0..<640 {
+            g.enter()
+            let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
+            let expectation = self.expectation(description: "GET \(urlString) [\(f)]: with a delegate")
+            globalDispatchQueue.async {
+                let url = URL(string: urlString)!
+                let d = DataTask(with: expectation)
+                d.run(with: url)
+                syncQ.async {
+                    dataTasks.append(d)
+                    g.leave()
+                }
+            }
+        }
+        waitForExpectations(timeout: 12)
+        g.wait()
+        for d in syncQ.sync(execute: {dataTasks}) {
+            if !d.error {
+                XCTAssertEqual(d.capital, "Kathmandu", "test_dataTaskWithURLRequest returned an unexpected result")
+            }
+        }
+    }
+
 }
 
 class SharedDelegate: NSObject {
@@ -488,19 +517,73 @@ class SessionDelegate: NSObject, URLSessionDelegate {
 }
 
 class DataTask : NSObject {
+    let syncQ = dispatchQueueMake("org.swift.TestFoundation.TestURLSession.DataTask.syncQ")
     let dataTaskExpectation: XCTestExpectation!
-    var capital = "unknown"
-    var session: URLSession! = nil
-    var task: URLSessionDataTask! = nil
-    var cancelExpectation: XCTestExpectation?
-    var responseReceivedExpectation: XCTestExpectation?
-    var protocols: [AnyClass]?
+    let protocols: [AnyClass]?
+
+    /* all the following var _XYZ need to be synchronized on syncQ.
+       We can't just assert that we're on main thread here as we're modified in the URLSessionDataDelegate extension
+       for DataTask
+     */
+    var _capital = "unknown"
+    var capital: String {
+        get {
+            return self.syncQ.sync { self._capital }
+        }
+        set {
+            self.syncQ.sync { self._capital = newValue }
+        }
+    }
+    var _session: URLSession! = nil
+    var session: URLSession! {
+        get {
+            return self.syncQ.sync { self._session }
+        }
+        set {
+            self.syncQ.sync { self._session = newValue }
+        }
+    }
+    var _task: URLSessionDataTask! = nil
+    var task: URLSessionDataTask! {
+        get {
+            return self.syncQ.sync { self._task }
+        }
+        set {
+            self.syncQ.sync { self._task = newValue }
+        }
+    }
+    var _cancelExpectation: XCTestExpectation?
+    var cancelExpectation: XCTestExpectation? {
+        get {
+            return self.syncQ.sync { self._cancelExpectation }
+        }
+        set {
+            self.syncQ.sync { self._cancelExpectation = newValue }
+        }
+    }
+    var _responseReceivedExpectation: XCTestExpectation?
+    var responseReceivedExpectation: XCTestExpectation? {
+        get {
+            return self.syncQ.sync { self._responseReceivedExpectation }
+        }
+        set {
+            self.syncQ.sync { self._responseReceivedExpectation = newValue }
+        }
+    }
     
-    public var error = false
+    private var _error = false
+    public var error: Bool {
+        get {
+            return self.syncQ.sync { self._error }
+        }
+        set {
+            self.syncQ.sync { self._error = newValue }
+        }
+    }
     
     init(with expectation: XCTestExpectation, protocolClasses: [AnyClass]? = nil) {
         dataTaskExpectation = expectation
-	protocols = protocolClasses
+        protocols = protocolClasses
     }
     
     func run(with request: URLRequest) {

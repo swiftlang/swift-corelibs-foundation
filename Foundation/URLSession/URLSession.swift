@@ -172,11 +172,13 @@ import CoreFoundation
 import Dispatch
 
 
+fileprivate let globalVarSyncQ = DispatchQueue(label: "org.swift.Foundation.URLSession.GlobalVarSyncQ")
 fileprivate var sessionCounter = Int32(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
-    //TODO: find an alternative for OSAtomicIncrement32Barrier() on Linux
-    sessionCounter += 1
-    return sessionCounter
+    return globalVarSyncQ.sync {
+        sessionCounter += 1
+        return sessionCounter
+    }
 }
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
