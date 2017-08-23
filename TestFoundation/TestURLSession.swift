@@ -36,7 +36,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
             ("test_httpRedirection", test_httpRedirection),
-            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
+            //("test_httpRedirectionTimeout", test_httpRedirectionTimeout), /* temporarily disabled (https://bugs.swift.org/browse/SR-5751) */
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
@@ -312,6 +312,8 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
+    /*
+     // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
     func test_httpRedirectionTimeout() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
         var req = URLRequest(url: URL(string: urlString)!)
@@ -324,11 +326,14 @@ class TestURLSession : LoopbackServerTest {
             if let e = error as? URLError {
                 XCTAssertEqual(e.code, .timedOut, "Unexpected error code")
                 return
+            } else {
+                XCTFail("test unexpectedly succeeded (response=\(response.debugDescription))")
             }
         }
         task.resume()
         waitForExpectations(timeout: 12)
     }
+    */
 
     func test_http0_9SimpleResponses() {
         for brokenCity in ["Pompeii", "Sodom"] {
