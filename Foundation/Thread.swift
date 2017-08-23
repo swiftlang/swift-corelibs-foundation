@@ -13,29 +13,23 @@ import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
-
 import CoreFoundation
-
-// for some reason having this take a generic causes a crash...
-private func _compiler_crash_fix(_ key: _CFThreadSpecificKey, _ value: AnyObject?) {
-    _CThreadSpecificSet(key, value)
-}
 
 internal class NSThreadSpecific<T: NSObject> {
     private var key = _CFThreadSpecificKeyCreate()
-    
+
     internal func get(_ generator: () -> T) -> T {
         if let specific = _CFThreadSpecificGet(key) {
             return specific as! T
         } else {
             let value = generator()
-            _compiler_crash_fix(key, value)
+            _CThreadSpecificSet(key, value)
             return value
         }
     }
-    
+
     internal func set(_ value: T) {
-        _compiler_crash_fix(key, value)
+        _CThreadSpecificSet(key, value)
     }
 }
 
@@ -57,18 +51,33 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
 }
 
 open class Thread : NSObject {
-    
+
     static internal var _currentThread = NSThreadSpecific<Thread>()
     open class var current: Thread {
         return Thread._currentThread.get() {
-            return Thread(thread: pthread_self())
+            if Thread.isMainThread {
+                return mainThread
+            } else {
+                return Thread(thread: pthread_self())
+            }
         }
     }
-    
-    open class var isMainThread: Bool { NSUnimplemented() }
-    
+
+    open class var isMainThread: Bool {
+        return _CFIsMainThread()
+    }
+
     // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
-    open class var mainThread: Thread { NSUnimplemented() }
+    private static let _mainThread: Thread = {
+        var thread = Thread(thread: _CFMainPThread)
+        thread._status = .executing
+        return thread
+    }()
+
+    open class var mainThread: Thread {
+        return _mainThread
+    }
+
 
     /// Alternative API for detached thread creation
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative to creation via selector
@@ -77,11 +86,11 @@ open class Thread : NSObject {
         let t = Thread(block: block)
         t.start()
     }
-    
+
     open class func isMultiThreaded() -> Bool {
         return true
     }
-    
+
     open class func sleep(until date: Date) {
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
@@ -127,9 +136,10 @@ open class Thread : NSObject {
     }
 
     open class func exit() {
+        Thread.current._status = .finished
         pthread_exit(nil)
     }
-    
+
     internal var _main: () -> Void = {}
 #if os(OSX) || os(iOS) || CYGWIN
     private var _thread: pthread_t? = nil
@@ -145,12 +155,12 @@ open class Thread : NSObject {
     internal var _cancelled = false
     /// - Note: this differs from the Darwin implementation in that the keys must be Strings
     open var threadDictionary = [String : Any]()
-    
+
     internal init(thread: pthread_t) {
         // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }
-    
+
     public override init() {
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
@@ -158,7 +168,7 @@ open class Thread : NSObject {
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
     }
-    
+
     public convenience init(block: @escaping () -> Swift.Void) {
         self.init()
         _main = block
@@ -185,11 +195,11 @@ open class Thread : NSObject {
         }
 #endif
     }
-    
+
     open func main() {
         _main()
     }
-    
+
     open var name: String? {
         didSet {
             if _thread == Thread.current._thread {
@@ -227,25 +237,52 @@ open class Thread : NSObject {
     open var isFinished: Bool {
         return _status == .finished
     }
-    
+
     open var isCancelled: Bool {
         return _cancelled
     }
-    
+
     open var isMainThread: Bool {
-        NSUnimplemented()
+        return self === Thread.mainThread
     }
-    
+
     open func cancel() {
         _cancelled = true
     }
 
-    open class var callStackReturnAddresses: [NSNumber] {
-        NSUnimplemented()
+
+    private class func backtraceAddresses<T>(_ body: (UnsafeMutablePointer<UnsafeMutableRawPointer?>, Int) -> [T]) -> [T] {
+        // Same as swift/stdlib/public/runtime/Errors.cpp backtrace
+        let maxSupportedStackDepth = 128;
+        let addrs = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: maxSupportedStackDepth)
+        defer { addrs.deallocate(capacity: maxSupportedStackDepth) }
+        let count = backtrace(addrs, Int32(maxSupportedStackDepth))
+        let addressCount = max(0, min(Int(count), maxSupportedStackDepth))
+        return body(addrs, addressCount)
     }
-    
+
+    open class var callStackReturnAddresses: [NSNumber] {
+        return backtraceAddresses({ (addrs, count) in
+            UnsafeBufferPointer(start: addrs, count: count).map {
+                NSNumber(value: UInt(bitPattern: $0))
+            }
+        })
+    }
+
     open class var callStackSymbols: [String] {
-        NSUnimplemented()
+        return backtraceAddresses({ (addrs, count) in
+            var symbols: [String] = []
+            if let bs = backtrace_symbols(addrs, Int32(count)) {
+                symbols = UnsafeBufferPointer(start: bs, count: count).map {
+                    guard let symbol = $0 else {
+                        return "<null>"
+                    }
+                    return String(cString: symbol)
+                }
+                free(bs)
+            }
+            return symbols
+        })
     }
 }
 

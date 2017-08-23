@@ -278,7 +278,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `Process`        | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, and `resume()` remain unimplemented                                            |
     | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
     | `ProcessInfo`    | Complete        | Substantial   |                                                                                                                           |
-    | `Thread`         | Incomplete      | Incomplete    | `isMainThread`, `mainThread`, `name`, `callStackReturnAddresses`, and `callStackSymbols` remain unimplemented             |
+    | `Thread`         | Complete        | Incomplete    |                                                                                                                           |
     | `Operation`      | Complete        | Incomplete    |                                                                                                                           |
     | `BlockOperation` | Complete        | Incomplete    |                                                                                                                           |
     | `OperationQueue` | Complete        | Incomplete    |                                                                                                                           |

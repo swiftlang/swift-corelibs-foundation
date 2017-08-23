@@ -24,6 +24,9 @@ class TestThread : XCTestCase {
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),
             ("test_threadName", test_threadName),
+            ("test_mainThread", test_mainThread),
+            ("test_callStackSymbols", test_callStackSymbols),
+            ("test_callStackReurnAddresses", test_callStackReturnAddresses),
         ]
     }
 
@@ -33,25 +36,22 @@ class TestThread : XCTestCase {
         XCTAssertNotNil(thread1)
         XCTAssertNotNil(thread2)
         XCTAssertEqual(thread1, thread2)
+        XCTAssertEqual(thread1, Thread.mainThread)
     }
     
     func test_threadStart() {
-        var started = false
         let condition = NSCondition()
         let thread = Thread() {
             condition.lock()
-            started = true
             condition.broadcast()
             condition.unlock()
         }
         thread.start()
         
         condition.lock()
-        if !started {
-            condition.wait()
-        }
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
-        XCTAssertTrue(started)
+        XCTAssertTrue(ok, "NSCondition wait timed out")
     }
     
     func test_threadName() {
@@ -83,5 +83,42 @@ class TestThread : XCTestCase {
         thread3.name = "Thread3"
         XCTAssertEqual(thread3.name, "Thread3")
         XCTAssertNotEqual(thread3.name, getPThreadName())
+    }
+
+    func test_mainThread() {
+        XCTAssertTrue(Thread.isMainThread)
+        let t = Thread.mainThread
+        XCTAssertTrue(t.isMainThread)
+        let c = Thread.current
+        XCTAssertTrue(c.isMainThread)
+        XCTAssertTrue(c.isExecuting)
+        XCTAssertTrue(c.isEqual(t))
+
+        let condition = NSCondition()
+        let thread = Thread() {
+            condition.lock()
+            XCTAssertFalse(Thread.isMainThread)
+            XCTAssertFalse(Thread.mainThread == Thread.current)
+            condition.broadcast()
+            condition.unlock()
+        }
+        thread.start()
+
+        condition.lock()
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
+        condition.unlock()
+        XCTAssertTrue(ok, "NSCondition wait timed out")
+    }
+
+    func test_callStackSymbols() {
+        let symbols = Thread.callStackSymbols
+        XCTAssertTrue(symbols.count > 0)
+        XCTAssertTrue(symbols.count <= 128)
+    }
+
+    func test_callStackReturnAddresses() {
+        let addresses = Thread.callStackReturnAddresses
+        XCTAssertTrue(addresses.count > 0)
+        XCTAssertTrue(addresses.count <= 128)
     }
 }

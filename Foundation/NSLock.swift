@@ -230,12 +230,16 @@ open class NSCondition: NSObject, NSLocking {
         }
         var ts = timespec()
         ts.tv_sec = Int(floor(ti))
-        ts.tv_nsec = Int((ti - Double(ts.tv_sec)) * 1000000000.0)
+        ts.tv_nsec = Int((ti - Double(ts.tv_sec)) * 1_000_000_000.0)
         var tv = timeval()
         withUnsafeMutablePointer(to: &tv) { t in
             gettimeofday(t, nil)
             ts.tv_sec += t.pointee.tv_sec
-            ts.tv_nsec += Int((t.pointee.tv_usec * 1000000) / 1000000000)
+            ts.tv_nsec += Int(t.pointee.tv_usec) * 1000
+            if ts.tv_nsec >= 1_000_000_000 {
+                ts.tv_sec += ts.tv_nsec / 1_000_000_000
+                ts.tv_nsec = ts.tv_nsec % 1_000_000_000
+            }
         }
         let retVal: Int32 = withUnsafePointer(to: &ts) { t in
             return pthread_cond_timedwait(cond, mutex, t)

@@ -180,6 +180,12 @@ const char *_CFProcessPath(void) {
     }
     return __CFProcessPath;
 }
+
+#else
+
+Boolean _CFIsMainThread(void) {
+    return pthread_main_np() == 1;
+}
 #endif
 
 CF_PRIVATE CFStringRef _CFProcessNameString(void) {

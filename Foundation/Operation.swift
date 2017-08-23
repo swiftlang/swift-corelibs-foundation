@@ -9,13 +9,8 @@
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
-#if os(Linux) || os(Android)
+#endif
 import CoreFoundation
-private func pthread_main_np() -> Int32 {
-    return _CFIsMainThread() ? 1 : 0
-}
-#endif
-#endif
 
 open class Operation : NSObject {
     let lock = NSLock()
@@ -570,7 +565,7 @@ open class OperationQueue: NSObject {
     open class var current: OperationQueue? {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         guard let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey) else {
-            if pthread_main_np() == 1 {
+            if _CFIsMainThread() {
                 return OperationQueue.main
             } else {
                 return nil
