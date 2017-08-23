@@ -65,7 +65,15 @@ open class Thread : NSObject {
         }
     }
     
-    open class var isMainThread: Bool { NSUnimplemented() }
+    open class var isMainThread: Bool {
+        #if os(macOS) || os(tvOS) || os(iOS) || os(watchOS)
+            return pthread_main_np() != 0
+        #elseif os(Linux) || os(Android)
+            return _CFIsMainThread()
+        #else
+            NSUnimplemented()
+        #endif
+    }
     
     // !!! NSThread's mainThread property is incorrectly exported as "main", which conflicts with its "main" method.
     open class var mainThread: Thread { NSUnimplemented() }
