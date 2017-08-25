@@ -913,7 +913,7 @@ class TestNSString : XCTestCase {
             let path = NSString(string: "~\(userName)/")
             let result = path.expandingTildeInPath
           	// next assert fails in VirtualBox because home directory for unknown user resolved to /var/run/vboxadd
-            XCTAssert(result == "~\(userName)", "Return copy of reciver if home directory could no be resolved.")
+            XCTAssertEqual(result, "~\(userName)", "Return copy of receiver if home directory could not be resolved.")
         }
     }
     

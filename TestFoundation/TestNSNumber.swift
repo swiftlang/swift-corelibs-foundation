@@ -297,7 +297,12 @@ class TestNSNumber : XCTestCase {
         let uintSize = MemoryLayout<UInt>.size
         switch uintSize {
         case 4: XCTAssertEqual(NSNumber(value: Int16.min).uintValue, 4294934528)
-        case 8: XCTAssertEqual(NSNumber(value: Int16.min).uintValue, 18446744073709518848)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int16.min).uintValue, 18446744073709518848)
+#endif
         default: XCTFail("Unexpected UInt size: \(uintSize)")
         }
 
@@ -402,7 +407,12 @@ class TestNSNumber : XCTestCase {
         let uintSize = MemoryLayout<UInt>.size
         switch uintSize {
         case 4: XCTAssertEqual(NSNumber(value: Int32.min).uintValue, 2147483648)
-        case 8: XCTAssertEqual(NSNumber(value: Int32.min).uintValue, 18446744071562067968)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int32.min).uintValue, 18446744071562067968)
+#endif
         default: XCTFail("Unexpected UInt size: \(uintSize)")
         }
 
@@ -466,7 +476,12 @@ class TestNSNumber : XCTestCase {
         let intSize = MemoryLayout<Int>.size
         switch intSize {
         case 4: XCTAssertEqual(NSNumber(value: UInt32.max).intValue, -1)
-        case 8: XCTAssertEqual(NSNumber(value: UInt32.max).intValue, 4294967295)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: UInt32.max).intValue, 4294967295)
+#endif
         default: XCTFail("Unexpected Int size: \(intSize)")
         }
         XCTAssertEqual(NSNumber(value: UInt32.max).uintValue, 4294967295)
@@ -511,14 +526,24 @@ class TestNSNumber : XCTestCase {
         let intSize = MemoryLayout<Int>.size
         switch intSize {
         case 4: XCTAssertEqual(NSNumber(value: Int64.min).intValue, 0)
-        case 8: XCTAssertEqual(NSNumber(value: Int64.min).intValue, -9223372036854775808)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int64.min).intValue, -9223372036854775808)
+#endif
         default: XCTFail("Unexpected Int size: \(intSize)")
         }
 
         let uintSize = MemoryLayout<UInt>.size
         switch uintSize {
         case 4: XCTAssertEqual(NSNumber(value: Int64.min).uintValue, 0)
-        case 8: XCTAssertEqual(NSNumber(value: Int64.min).uintValue, 9223372036854775808)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int64.min).uintValue, 9223372036854775808)
+#endif
         default: XCTFail("Unexpected UInt size: \(uintSize)")
         }
 
@@ -541,13 +566,23 @@ class TestNSNumber : XCTestCase {
 
         switch intSize {
         case 4: XCTAssertEqual(NSNumber(value: Int64.max).intValue, -1)
-        case 8: XCTAssertEqual(NSNumber(value: Int64.max).intValue, 9223372036854775807)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int64.max).intValue, 9223372036854775807)
+#endif
         default: XCTFail("Unexpected Int size: \(intSize)")
         }
 
         switch uintSize {
         case 4: XCTAssertEqual(NSNumber(value: Int64.max).uintValue, 4294967295)
-        case 8: XCTAssertEqual(NSNumber(value: Int64.max).uintValue, 9223372036854775807)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: Int64.max).uintValue, 9223372036854775807)
+#endif
         default: XCTFail("Unexpected UInt size: \(uintSize)")
         }
 
@@ -592,7 +627,12 @@ class TestNSNumber : XCTestCase {
         let uintSize = MemoryLayout<UInt>.size
         switch uintSize {
         case 4: XCTAssertEqual(NSNumber(value: UInt64.max).uintValue, 4294967295)
-        case 8: XCTAssertEqual(NSNumber(value: UInt64.max).uintValue, 18446744073709551615)
+        case 8:
+#if arch(arm)
+                break
+#else
+                XCTAssertEqual(NSNumber(value: UInt64.max).uintValue, 18446744073709551615)
+#endif
         default: XCTFail("Unexpected UInt size: \(uintSize)")
         }
 
@@ -638,8 +678,9 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual(NSNumber(value: Int.min).uint64Value, 18446744071562067968)
 
             XCTAssertEqual(NSNumber(value: Int.min).intValue, -2147483648)
+#if !arch(arm)
             XCTAssertEqual(NSNumber(value: Int.min).uintValue, 18446744071562067968)
-
+#endif
             XCTAssertEqual(NSNumber(value: Int.min).floatValue, Float(Int.min))
             XCTAssertEqual(NSNumber(value: Int.min).doubleValue, Double(Int.min))
 
@@ -664,6 +705,9 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual(NSNumber(value: Int.max).doubleValue, Double(Int.max))
 
         case (8, 8):
+#if arch(arm)
+            break
+#else
             XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)
 
             XCTAssertEqual(NSNumber(value: Int.min).int8Value, 0)
@@ -701,7 +745,7 @@ class TestNSNumber : XCTestCase {
 
             XCTAssertEqual(NSNumber(value: Int.max).floatValue, Float(Int.max))
             XCTAssertEqual(NSNumber(value: Int.max).doubleValue, Double(Int.max))
-
+#endif
         default: XCTFail("Unexpected mismatched Int & UInt sizes: \(intSize) & \(uintSize)")
         }
     }
@@ -743,7 +787,9 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual(NSNumber(value: UInt.max).uint32Value, 4294967295)
             XCTAssertEqual(NSNumber(value: UInt.max).uint64Value, 4294967295)
 
+#if !arch(arm)
             XCTAssertEqual(NSNumber(value: UInt.max).intValue, 4294967295)
+#endif
             XCTAssertEqual(NSNumber(value: UInt.max).uintValue, 4294967295)
 
             XCTAssertEqual(NSNumber(value: UInt.max).floatValue, Float(UInt.max))
@@ -763,7 +809,9 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual(NSNumber(value: UInt.max).uint64Value, 18446744073709551615)
 
             XCTAssertEqual(NSNumber(value: UInt.max).intValue, -1)
+#if !arch(arm)
             XCTAssertEqual(NSNumber(value: UInt.max).uintValue, 18446744073709551615)
+#endif
 
             XCTAssertEqual(NSNumber(value: UInt.max).floatValue, Float(UInt.max))
             XCTAssertEqual(NSNumber(value: UInt.max).doubleValue, Double(UInt.max))

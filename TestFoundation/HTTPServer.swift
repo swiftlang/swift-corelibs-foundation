@@ -70,7 +70,7 @@ class _TCPSocket {
     public private(set) var port: UInt16
 
     init(port: UInt16?) throws {
-        #if os(Linux)
+        #if os(Linux) && !os(Android)
             let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
         #else
             let SOCKSTREAM = SOCK_STREAM
@@ -102,7 +102,9 @@ class _TCPSocket {
         // asking to accept incoming connections if the firewall is enabled.
         let addr = UInt32(INADDR_LOOPBACK).bigEndian
         let netPort = UInt16(bigEndian: port ?? 0)
-        #if os(Linux)
+        #if os(Android)
+            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), __pad: (0,0,0,0,0,0,0,0))
+        #elseif os(Linux)
             return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #else
             return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))

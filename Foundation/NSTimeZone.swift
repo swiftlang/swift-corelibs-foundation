@@ -29,6 +29,15 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 
     public init?(name tzName: String, data aData: Data?) {
+#if os(Android)
+        var tzName = tzName
+        if tzName == "UTC" || tzName == "GMT" {
+            tzName = "GMT+0000"
+        }
+        else if !(tzName.hasPrefix("GMT+") || tzName.hasPrefix("GMT-")) {
+            NSLog("Time zone database not available on Android")
+        }
+#endif
         super.init()
         if !_CFTimeZoneInit(_cfObject, tzName._cfObject, aData?._cfObject) {
             return nil
@@ -170,6 +179,14 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 extension NSTimeZone {
 
     open class var system: TimeZone {
+#if os(Android)
+        var now = time(nil), info = tm()
+        if localtime_r(&now, &info) != nil {
+            // NOTE: this is not a real time zone but a fixed offset from GMT.
+            // It will be incorrect outside the current daylight saving period.
+            return TimeZone(reference: NSTimeZone(forSecondsFromGMT: info.tm_gmtoff))
+        }
+#endif
         return CFTimeZoneCopySystem()._swiftObject
     }
 

@@ -212,6 +212,9 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_cancelTask() {
+#if os(Android)
+        XCTFail("Intermittent failures on Android")
+#else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         let url = URL(string: urlString)!
         let d = DataTask(with: expectation(description: "GET \(urlString): task cancelation"))
@@ -219,6 +222,7 @@ class TestURLSession : LoopbackServerTest {
         d.run(with: url)
         d.cancel()
         waitForExpectations(timeout: 12)
+#endif
     }
     
     func test_verifyRequestHeaders() {
@@ -467,10 +471,16 @@ class TestURLSession : LoopbackServerTest {
     }
 
     func test_concurrentRequests() {
+#if os(Android)
+        let tasks = 10
+        XCTFail("640 tasks causes other tests to fail on Android")
+#else
+        let tasks = 640
+#endif
         let syncQ = dispatchQueueMake("test_dataTaskWithURL.syncQ")
         var dataTasks: [DataTask] = []
         let g = dispatchGroupMake()
-        for f in 0..<640 {
+        for f in 0..<tasks {
             g.enter()
             let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
             let expectation = self.expectation(description: "GET \(urlString) [\(f)]: with a delegate")

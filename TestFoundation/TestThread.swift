@@ -20,6 +20,9 @@ import CoreFoundation
 
 class TestThread : XCTestCase {
     static var allTests: [(String, (TestThread) -> () throws -> Void)] {
+#if os(Android)
+        return []
+#endif
         return [
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),

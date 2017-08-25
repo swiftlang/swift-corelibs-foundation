@@ -155,6 +155,10 @@ class TestNSAttributedString : XCTestCase {
     }
     
     func test_enumerateAttributes() {
+#if os(Android)
+        // Invalid dictionary returned by CFAttributedStringGetAttributesAndLongestEffectiveRange
+        XCTFail("Intermittent failures on Android")
+#else
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
         let attrKey1 = "attribute.placeholder.key1"
@@ -213,6 +217,7 @@ class TestNSAttributedString : XCTestCase {
         }
         XCTAssertEqual(rangeDescriptionString, "(0,10)")
         XCTAssertEqual(attrsDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
+#endif
     }
 }
 
