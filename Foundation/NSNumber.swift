@@ -203,6 +203,10 @@ private struct CFSInt128Struct {
     var low: UInt64
 }
 
+private func fudgeResultType<T, U>(_ t: T) -> U {
+  return unsafeBitCast(t, to: U.self)
+}
+
 open class NSNumber : NSValue {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
@@ -263,7 +267,7 @@ open class NSNumber : NSValue {
     
     private convenience init(bytes: UnsafeRawPointer, numberType: CFNumberType) {
         let cfnumber = CFNumberCreate(nil, numberType, bytes)
-        self.init(factory: { unsafeBitCast(cfnumber, to: NSNumber.self) })
+        self.init(factory: { fudgeResultType(cfnumber) })
     }
     
     public convenience init(value: Int8) {
@@ -346,7 +350,7 @@ open class NSNumber : NSValue {
     }
 
     public convenience init(value: Bool) {
-        self.init(factory: value._bridgeToObjectiveC)
+        self.init(factory: { fudgeResultType(value._bridgeToObjectiveC()) })
     }
 
     override internal init() {
