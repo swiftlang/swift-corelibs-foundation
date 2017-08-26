@@ -157,11 +157,12 @@ open class NSValue : NSObject, NSCopying, NSSecureCoding, NSCoding {
 extension NSValue : _Factory {}
 
 internal protocol _Factory {
-    init(factory: () -> Self)
+    associatedtype StaticSelf = Self
+    init(factory: () -> StaticSelf)
 }
 
 extension _Factory {
-    init(factory: () -> Self) {
-        self = factory()
+    init(factory: () -> StaticSelf) {
+        self = factory() as! Self
     }
 }
