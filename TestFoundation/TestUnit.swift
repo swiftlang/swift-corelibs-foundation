@@ -53,6 +53,51 @@ class TestUnit: XCTestCase {
 
         XCTAssertEqual(u1, d1)
         XCTAssertNotEqual(d1, u1)
+
+        func testEquality<T: Dimension>(ofDimensionSubclass: T.Type) {
+            let u0 = Unit(symbol: s1)
+            let d1 = Dimension(symbol: s1, converter: uc1)
+
+            let u1 = T(symbol: s1, converter: uc1)
+            let u2 = T(symbol: s1, converter: uc1)
+            let u3 = T(symbol: s1, converter: uc2)
+            let u4 = T(symbol: s2, converter: uc1)
+
+            XCTAssertEqual(u1, u2)
+            XCTAssertEqual(u2, u1)
+            XCTAssertNotEqual(u1, u3)
+            XCTAssertNotEqual(u3, u1)
+            XCTAssertNotEqual(u1, u4)
+            XCTAssertNotEqual(u4, u1)
+
+            XCTAssertEqual(u0, u1)
+            XCTAssertNotEqual(u1, u0)
+
+            XCTAssertEqual(d1, u1)
+            XCTAssertNotEqual(u1, d1)
+        }
+
+        testEquality(ofDimensionSubclass: UnitAcceleration.self)
+        testEquality(ofDimensionSubclass: UnitAngle.self)
+        testEquality(ofDimensionSubclass: UnitArea.self)
+        testEquality(ofDimensionSubclass: UnitConcentrationMass.self)
+        testEquality(ofDimensionSubclass: UnitDispersion.self)
+        testEquality(ofDimensionSubclass: UnitDuration.self)
+        testEquality(ofDimensionSubclass: UnitElectricCharge.self)
+        testEquality(ofDimensionSubclass: UnitElectricCurrent.self)
+        testEquality(ofDimensionSubclass: UnitElectricPotentialDifference.self)
+        testEquality(ofDimensionSubclass: UnitElectricResistance.self)
+        testEquality(ofDimensionSubclass: UnitEnergy.self)
+        testEquality(ofDimensionSubclass: UnitFrequency.self)
+        testEquality(ofDimensionSubclass: UnitFuelEfficiency.self)
+        testEquality(ofDimensionSubclass: UnitIlluminance.self)
+        testEquality(ofDimensionSubclass: UnitLength.self)
+        testEquality(ofDimensionSubclass: UnitMass.self)
+        testEquality(ofDimensionSubclass: UnitPower.self)
+        testEquality(ofDimensionSubclass: UnitPressure.self)
+        testEquality(ofDimensionSubclass: UnitSpeed.self)
+        testEquality(ofDimensionSubclass: UnitTemperature.self)
+        testEquality(ofDimensionSubclass: UnitVolume.self)
     }
 
 }
