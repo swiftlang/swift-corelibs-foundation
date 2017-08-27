@@ -47,7 +47,7 @@ There is no _Complete_ status for test coverage because there are always additio
     |------------------------------|-----------------|---------------|--------------------------------------------------------------------------------------------------------------------|
     | `URLAuthenticationChallenge` | Unimplemented   | None          |                                                                                                                    |
     | `URLCache`                   | Unimplemented   | None          |                                                                                                                    |
-    | `URLCredential`              | Complete | Incomplete    | 									                                                                                  |
+    | `URLCredential`              | Complete        | Incomplete    |                                                                                                                    |
     | `URLCredentialStorage`       | Unimplemented   | None          |                                                                                                                    |
     | `NSURLError*`                | Complete        | N/A           |                                                                                                                    |
     | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |
@@ -96,13 +96,13 @@ There is no _Complete_ status for test coverage because there are always additio
     | `DateComponentFormatter`        | Unimplemented   | None          |                                                                                           |
     | `DateIntervalFormatter`         | Unimplemented   | None          |                                                                                           |
     | `EnergyFormatter`               | Unimplemented   | None          |                                                                                           |
-    | `ISO8601DateFormatter`        | Unimplemented   | None          |                                                                                           |
-    | `LengthFormatter`               | Complete 	    | Substantial   |                                                                                           |
+    | `ISO8601DateFormatter`          | Unimplemented   | None          |                                                                                           |
+    | `LengthFormatter`               | Complete        | Substantial   |                                                                                           |
     | `MassFormatter`                 | Complete        | Substantial   | Needs localization                                                                        |
     | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
     | `PersonNameComponentsFormatter` | Unimplemented   | None          |                                                                                           |
     | `ByteCountFormatter`            | Mostly Complete | Substantial   | `init?(coder:)` remains unimplemented                                                     |
-    | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` remain unimplemented 										 |
+    | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` remain unimplemented                                              |
     | `Formatter`                     | Complete        | N/A           |                                                                                           |
     | `MeasurementFormatter`          | Unimplemented   | None          |                                                                                           |
 
@@ -123,8 +123,8 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name                 | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
-    | `NSJSONSerialization`       | Mostly Complete | Substantial   | `jsonObject(with:options:)` with streams remains unimplemented             |
-    | `NSKeyedArchiver`           | Complete        | Substantial   |                              |
+    | `NSJSONSerialization`       | Mostly Complete | Substantial   | `jsonObject(with:options:)` with streams remains unimplemented                |
+    | `NSKeyedArchiver`           | Complete        | Substantial   |                                                                               |
     | `NSKeyedCoderOldStyleArray` | N/A             | N/A           | For internal use only                                                         |
     | `NSKeyedUnarchiver`         | Mostly Complete | Substantial   | `decodingFailurePolicy.set` remains unimplemented                             |
     | `NSKeyedArchiverHelpers`    | N/A             | N/A           | For internal use only                                                         |
@@ -152,7 +152,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name           | Status          | Test Coverage | Notes                                                                                                                                                               |
     |-----------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | `NSOrderedSet`        | Mostly Complete | Substantial   | `NS[Mutable]Copying`, and `array` & `set` (and associated indexing methods) remain unimplemented                        |
+    | `NSOrderedSet`        | Mostly Complete | Substantial   | `NS[Mutable]Copying`, and `array` & `set` (and associated indexing methods) remain unimplemented                                                                    |
     | `NSMutableOrderedSet` | Mostly Complete | Substantial   | `NSCoding` and `sortRange(_:options:, usingComparator:)` with non-empty options remain unimplemented                                                                |
     | `NSCFArray`           | N/A             | N/A           | For internal use only                                                                                                                                               |
     | `NSIndexSet`          | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, and concurrent `enumerateWithOptions(_:range:paramType:returnType:block:)` remain unimplemented                                            |
@@ -197,10 +197,10 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name                 | Status          | Test Coverage | Notes                                                                                                                                                            |
     |-----------------------------|-----------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-    | `NSRegularExpression`       | Complete        | Substantial   |                                                                                                                                 |
+    | `NSRegularExpression`       | Complete        | Substantial   |                                                                                                                                                                  |
     | `Scanner`                   | Mostly Complete | Incomplete    | `scanHex<T: _FloatLike>(_:locale:locationToScanFrom:to:)` and `localizedScannerWithString(_:)` remain unimplemented                                              |
     | `NSTextCheckingResult`      | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, `resultType`, and `range(at:)` remain unimplemented                                                                                     |
-    | `NSAttributedString`        | Incomplete      | Incomplete    | `NSCoding`, `NS[Mutable]Copying`, `attributedSubstring(from:)`, `isEqual(to:)`, `init(NSAttributedString:)` remain unimplemented |
+    | `NSAttributedString`        | Incomplete      | Incomplete    | `NSCoding`, `NS[Mutable]Copying`, `attributedSubstring(from:)`, `isEqual(to:)`, `init(NSAttributedString:)` remain unimplemented                                 |
     | `NSMutableAttributedString` | Unimplemented   | Incomplete    | Only `addAttribute(_:value:range:)` is implemented                                                                                                               |
     | `NSCharacterSet`            | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
     | `NSMutableCharacterSet`     | Mostly Complete | None          | Decoding remains unimplemented                                                                                                                                   |
@@ -216,14 +216,14 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name                       | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
-    | `NSRange`                         | Complete 		  | Incomplete    | 															                |
+    | `NSRange`                         | Complete        | Incomplete    |                                                                               |
     | `Decimal`                         | Unimplemented   | None          |                                                                               |
     | `NSDecimalNumber`                 | Unimplemented   | None          |                                                                               |
     | `NSDecimalNumberHandler`          | Unimplemented   | None          |                                                                               |
     | `CGPoint`                         | Complete        | Substantial   |                                                                               |
     | `CGSize`                          | Complete        | Substantial   |                                                                               |
     | `CGRect`                          | Complete        | Substantial   |                                                                               |
-    | `NSEdgeInsets`                    | Mostly Complete | None          | 															                |
+    | `NSEdgeInsets`                    | Mostly Complete | None          |                                                                               |
     | `NSGeometry`                      | Mostly Complete | Substantial   | `NSIntegralRectWithOptions` `.AlignRectFlipped` support remains unimplemented |
     | `CGFloat`                         | Complete        | Substantial   |                                                                               |
     | `AffineTransform`                 | Complete        | None          |                                                                               |
@@ -265,7 +265,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | Entity Name    | Statues         | Test Coverage | Notes                                                                                                                         |
     |----------------|-----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------|
     | `UserDefaults` | Incomplete      | None          | `dictionaryRepresentation()`, domain support, and forced objects remain unimplemented. Unit tests are currently commented out |
-    | `NSLocale`     | Complete		   | Incomplete    | Only unit test asserts locale key constant names																             |
+    | `NSLocale`     | Complete        | Incomplete    | Only unit test asserts locale key constant names                                                                              |
     | `Locale`       | Complete        | Incomplete    | Only unit test asserts value copying                                                                                          |
 
 * **OS**: Mechanisms for interacting with the operating system on a file system level as well as process and thread level
@@ -282,24 +282,24 @@ There is no _Complete_ status for test coverage because there are always additio
     | `Operation`      | Complete        | Incomplete    |                                                                                                                           |
     | `BlockOperation` | Complete        | Incomplete    |                                                                                                                           |
     | `OperationQueue` | Complete        | Incomplete    |                                                                                                                           |
-    | `Lock`           | Mostly Complete | None          | `lock(before:)` remains unimplemented                                                                                     |
+    | `Lock`           | Complete        | Incomplete    |                                                                                                                           |
     | `ConditionLock`  | Complete        | None          |                                                                                                                           |
-    | `RecursiveLock`  | Mostly Complete | None          | `lock(before:)` remains unimplemented                                                                                     |
-    | `Condition`      | Complete        | None          |                                                                                                                           |
+    | `RecursiveLock`  | Complete        | None          |                                                                                                                           |
+    | `Condition`      | Complete        | Incomplete    |                                                                                                                           |
 
 * **DateTime**: Classes for representing dates, timezones, and calendars.
 
     | Entity Name        | Status          | Test Coverage | Notes                                                                                                                           |
     |--------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------------|
-    | `NSCalendar`       | Complete		   | None          | `autoupdatingCurrent`, and `enumerateDates` remain unimplemented                    								  |
-    | `NSDateComponents` | Complete		   | None          | 								                                                                     |
+    | `NSCalendar`       | Complete        | None          | `autoupdatingCurrent`, and `enumerateDates` remain unimplemented                                                                |
+    | `NSDateComponents` | Complete        | None          |                                                                                                                                 |
     | `Calendar`         | Complete        | Incomplete    |                                                                                                                                 |
     | `DateComponents`   | Complete        | Incomplete    |                                                                                                                                 |
-    | `NSDate`           | Complete		   | Incomplete    |                                    |
+    | `NSDate`           | Complete        | Incomplete    |                                                                                                                                 |
     | `NSDateInterval`   | Complete        | None          |                                                                                                                                 |
     | `DateInterval`     | Complete        | None          |                                                                                                                                 |
     | `Date`             | Complete        | Incomplete    |                                                                                                                                 |
-    | `NSTimeZone`       | Mostly Complete | Incomplete    | `local`, `timeZoneDataVersion` and setting `abbreviationDictionary` remain unimplemented 					  |
+    | `NSTimeZone`       | Mostly Complete | Incomplete    | `local`, `timeZoneDataVersion` and setting `abbreviationDictionary` remain unimplemented                                        |
     | `TimeZone`         | Complete        | Incomplete    |                                                                                                                                 |
 
 * **Notifications**: Classes for loosely coupling events from a set of many observers.
