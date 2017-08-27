@@ -79,6 +79,19 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     }
     
     public static var supportsSecureCoding: Bool { return true }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitConverterLinear else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return self.coefficient == other.coefficient
+            && self.constant == other.constant
+    }
 }
 
 private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
@@ -115,6 +128,18 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     }
     
     fileprivate static var supportsSecureCoding: Bool { return true }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitConverterReciprocal else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return self.reciprocal == other.reciprocal
+    }
 }
 
 /*
