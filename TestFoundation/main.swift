@@ -104,4 +104,5 @@ XCTMain([
     testCase(TestMassFormatter.allTests),
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
+    testCase(TestUnit.allTests),
 ])

@@ -152,6 +152,18 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     }
 
     public static var supportsSecureCoding: Bool { return true }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Unit else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return self.symbol == other.symbol
+    }
 }
 
 open class Dimension : Unit {
@@ -192,6 +204,18 @@ open class Dimension : Unit {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         aCoder.encode(self.converter, forKey:"converter")
+    }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Dimension else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object) && self.converter == other.converter
     }
 }
 
@@ -234,6 +258,18 @@ open class UnitAcceleration : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitAcceleration else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitAngle : Dimension {
@@ -308,6 +344,18 @@ open class UnitAngle : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitAngle else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitArea : Dimension {
@@ -446,6 +494,18 @@ open class UnitArea : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitArea else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitConcentrationMass : Dimension {
@@ -494,6 +554,18 @@ open class UnitConcentrationMass : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitConcentrationMass else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitDispersion : Dimension {
@@ -528,6 +600,18 @@ open class UnitDispersion : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitDispersion else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitDuration : Dimension {
@@ -577,6 +661,18 @@ open class UnitDuration : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitDuration else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitElectricCharge : Dimension {
@@ -650,6 +746,18 @@ open class UnitElectricCharge : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitElectricCharge else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitElectricCurrent : Dimension {
@@ -716,6 +824,18 @@ open class UnitElectricCurrent : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitElectricCurrent else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitElectricPotentialDifference : Dimension {
@@ -783,6 +903,18 @@ open class UnitElectricPotentialDifference : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitElectricPotentialDifference else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitElectricResistance : Dimension {
@@ -849,6 +981,18 @@ open class UnitElectricResistance : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitElectricResistance else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitEnergy : Dimension {
@@ -915,6 +1059,18 @@ open class UnitEnergy : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitEnergy else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitFrequency : Dimension {
@@ -1005,6 +1161,18 @@ open class UnitFrequency : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitFrequency else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitFuelEfficiency : Dimension {
@@ -1055,6 +1223,18 @@ open class UnitFuelEfficiency : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitFuelEfficiency else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitLength : Dimension {
@@ -1256,6 +1436,18 @@ open class UnitLength : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitLength else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitIlluminance : Dimension {
@@ -1289,6 +1481,18 @@ open class UnitIlluminance : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitIlluminance else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitMass : Dimension {
@@ -1442,6 +1646,18 @@ open class UnitMass : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitMass else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitPower : Dimension {
@@ -1555,6 +1771,18 @@ open class UnitPower : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitPower else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitPressure : Dimension {
@@ -1661,6 +1889,18 @@ open class UnitPressure : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitPressure else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitSpeed : Dimension {
@@ -1719,6 +1959,18 @@ open class UnitSpeed : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitSpeed else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitTemperature : Dimension {
@@ -1774,6 +2026,18 @@ open class UnitTemperature : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitTemperature else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
 
 open class UnitVolume : Dimension {
@@ -2047,4 +2311,16 @@ open class UnitVolume : Dimension {
     
     public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
     open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
+
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UnitVolume else {
+            return false
+        }
+
+        if self === other {
+            return true
+        }
+
+        return super.isEqual(object)
+    }
 }
