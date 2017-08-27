@@ -152,7 +152,7 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     open private(set) var symbol: String
     
     
-    public init(symbol: String) {
+    public required init(symbol: String) {
         self.symbol = symbol
     }
     
@@ -196,8 +196,7 @@ open class Dimension : Unit {
     
     open private(set) var converter: UnitConverter
     
-    
-    public init(symbol: String, converter: UnitConverter) {
+    public required init(symbol: String, converter: UnitConverter) {
         self.converter = converter
         super.init(symbol: symbol)
     }
@@ -222,7 +221,11 @@ open class Dimension : Unit {
         self.converter = converter
         super.init(symbol: symbol)
     }
-    
+
+    public required init(symbol: String) {
+        fatalError("You must use the designated initializer.")
+    }
+
     open override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
         guard aCoder.allowsKeyedCoding else {
@@ -249,6 +252,14 @@ open class UnitAcceleration : Dimension {
     /*
      Base unit - metersPerSecondSquared
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let metersPerSecondSquared   = "m/s²"
@@ -260,8 +271,8 @@ open class UnitAcceleration : Dimension {
         static let gravity                  = 9.81
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var metersPerSecondSquared: UnitAcceleration {
@@ -302,6 +313,14 @@ open class UnitAngle : Dimension {
     /*
      Base unit - degrees
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let degrees      = "°"
@@ -321,8 +340,8 @@ open class UnitAngle : Dimension {
         static let revolutions  = 360.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -388,6 +407,14 @@ open class UnitArea : Dimension {
     /*
      Base unit - squareMeters
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let squareMegameters     = "Mm²"
@@ -423,8 +450,8 @@ open class UnitArea : Dimension {
         static let hectares             = 10000.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -538,6 +565,14 @@ open class UnitConcentrationMass : Dimension {
     /*
      Base unit - gramsPerLiter
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let gramsPerLiter            = "g/L"
@@ -551,8 +586,8 @@ open class UnitConcentrationMass : Dimension {
         static let millimolesPerLiter       = 18.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -598,6 +633,14 @@ open class UnitDispersion : Dimension {
     /*
      Base unit - partsPerMillion
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let partsPerMillion  = "ppm"
@@ -607,8 +650,8 @@ open class UnitDispersion : Dimension {
         static let partsPerMillion  = 1.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -644,6 +687,14 @@ open class UnitDuration : Dimension {
     /*
      Base unit - seconds
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let seconds  = "s"
@@ -657,8 +708,8 @@ open class UnitDuration : Dimension {
         static let hours    = 3600.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var seconds: UnitDuration {
@@ -704,6 +755,14 @@ open class UnitElectricCharge : Dimension {
     /*
      Base unit - coulombs
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let coulombs         = "C"
@@ -723,8 +782,8 @@ open class UnitElectricCharge : Dimension {
         static let microampereHours = 0.0036
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -790,6 +849,15 @@ open class UnitElectricCurrent : Dimension {
     /*
      Base unit - amperes
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
+
     private struct Symbol {
         static let megaamperes  = "MA"
         static let kiloamperes  = "kA"
@@ -807,8 +875,8 @@ open class UnitElectricCurrent : Dimension {
         
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -868,6 +936,14 @@ open class UnitElectricPotentialDifference : Dimension {
     /*
      Base unit - volts
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let megavolts  = "MV"
@@ -886,8 +962,8 @@ open class UnitElectricPotentialDifference : Dimension {
         
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -947,6 +1023,14 @@ open class UnitElectricResistance : Dimension {
     /*
      Base unit - ohms
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let megaohms  = "MΩ"
@@ -965,8 +1049,8 @@ open class UnitElectricResistance : Dimension {
         
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var megaohms: UnitElectricResistance {
@@ -1025,6 +1109,14 @@ open class UnitEnergy : Dimension {
     /*
      Base unit - joules
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let kilojoules       = "kJ"
@@ -1043,8 +1135,8 @@ open class UnitEnergy : Dimension {
         
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var kilojoules: UnitEnergy {
@@ -1103,6 +1195,14 @@ open class UnitFrequency : Dimension {
     /*
      Base unit - hertz
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let terahertz    = "THz"
@@ -1126,8 +1226,8 @@ open class UnitFrequency : Dimension {
         static let nanohertz    = 1e-9
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -1205,6 +1305,14 @@ open class UnitFuelEfficiency : Dimension {
     /*
      Base unit - litersPer100Kilometers
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let litersPer100Kilometers   = "L/100km"
@@ -1218,8 +1326,8 @@ open class UnitFuelEfficiency : Dimension {
         static let milesPerGallon           = 235.215
     }
     
-    private init(symbol: String, reciprocal: Double) {
-        super.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
+    private convenience init(symbol: String, reciprocal: Double) {
+        self.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
     }
     
     
@@ -1267,6 +1375,14 @@ open class UnitLength : Dimension {
     /*
      Base unit - meters
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let megameters           = "Mm"
@@ -1318,8 +1434,8 @@ open class UnitLength : Dimension {
         static let parsecs              = 3.086e+16
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var megameters: UnitLength {
@@ -1480,6 +1596,14 @@ open class UnitIlluminance : Dimension {
     /*
      Base unit - lux
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let lux   = "lx"
@@ -1489,8 +1613,8 @@ open class UnitIlluminance : Dimension {
         static let lux   = 1.0
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var lux: UnitIlluminance {
@@ -1525,6 +1649,14 @@ open class UnitMass : Dimension {
     /*
      Base unit - kilograms
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let kilograms    = "kg"
@@ -1564,8 +1696,8 @@ open class UnitMass : Dimension {
         static let slugs        = 14.5939
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var kilograms: UnitMass {
@@ -1690,6 +1822,14 @@ open class UnitPower : Dimension {
     /*
      Base unit - watts
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let terawatts  = "TW"
@@ -1719,8 +1859,8 @@ open class UnitPower : Dimension {
         static let horsepower = 745.7
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     open class var terawatts: UnitPower {
@@ -1815,6 +1955,14 @@ open class UnitPressure : Dimension {
     /*
      Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let newtonsPerMetersSquared  = "N/m²"
@@ -1842,8 +1990,8 @@ open class UnitPressure : Dimension {
         static let poundsForcePerSquareInch = 6894.76
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -1933,6 +2081,14 @@ open class UnitSpeed : Dimension {
     /*
      Base unit - metersPerSecond
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let metersPerSecond      = "m/s"
@@ -1948,8 +2104,8 @@ open class UnitSpeed : Dimension {
         static let knots                = 0.514444
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
@@ -2003,6 +2159,14 @@ open class UnitTemperature : Dimension {
     /*
      Base unit - kelvin
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let kelvin     = "K"
@@ -2022,8 +2186,8 @@ open class UnitTemperature : Dimension {
         static let fahrenheit = 255.37222222222427
     }
     
-    private init(symbol: String, coefficient: Double, constant: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient, constant: constant))
+    private convenience init(symbol: String, coefficient: Double, constant: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient, constant: constant))
     }
     
     open class var kelvin: UnitTemperature {
@@ -2070,6 +2234,14 @@ open class UnitVolume : Dimension {
     /*
      Base unit - liters
      */
+
+    public required init(symbol: String) {
+        fatalError("init(symbol:) has not been implemented")
+    }
+
+    public required init(symbol: String, converter: UnitConverter) {
+        super.init(symbol: symbol, converter: converter)
+    }
     
     private struct Symbol {
         static let megaliters           = "ML"
@@ -2139,8 +2311,8 @@ open class UnitVolume : Dimension {
         static let metricCups           = 0.25
     }
     
-    private init(symbol: String, coefficient: Double) {
-        super.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
+    private convenience init(symbol: String, coefficient: Double) {
+        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     
