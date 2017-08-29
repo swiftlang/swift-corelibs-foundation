@@ -79,16 +79,16 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
     }
     
     public static var supportsSecureCoding: Bool { return true }
-
+    
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitConverterLinear else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return self.coefficient == other.coefficient
             && self.constant == other.constant
     }
@@ -128,16 +128,16 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     }
     
     fileprivate static var supportsSecureCoding: Bool { return true }
-
+    
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitConverterReciprocal else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return self.reciprocal == other.reciprocal
     }
 }
@@ -175,18 +175,18 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         }
         aCoder.encode(self.symbol._bridgeToObjectiveC(), forKey:"NS.symbol")
     }
-
+    
     public static var supportsSecureCoding: Bool { return true }
-
+    
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? Unit else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return self.symbol == other.symbol
     }
 }
@@ -221,11 +221,12 @@ open class Dimension : Unit {
         self.converter = converter
         super.init(symbol: symbol)
     }
-
+    
     public required init(symbol: String) {
-        fatalError("You must use the designated initializer.")
+        let T = type(of: self)
+        fatalError("\(T) must be initialized with designated initializer \(T).init(symbol: String, converter: UnitConverter)")
     }
-
+    
     open override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
         guard aCoder.allowsKeyedCoding else {
@@ -233,16 +234,16 @@ open class Dimension : Unit {
         }
         aCoder.encode(self.converter, forKey:"converter")
     }
-
+    
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? Dimension else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object) && self.converter == other.converter
     }
 }
@@ -252,14 +253,6 @@ open class UnitAcceleration : Dimension {
     /*
      Base unit - metersPerSecondSquared
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let metersPerSecondSquared   = "m/s²"
@@ -291,19 +284,15 @@ open class UnitAcceleration : Dimension {
         return UnitAcceleration.metersPerSecondSquared
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitAcceleration else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -313,14 +302,6 @@ open class UnitAngle : Dimension {
     /*
      Base unit - degrees
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let degrees      = "°"
@@ -343,7 +324,6 @@ open class UnitAngle : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var degrees: UnitAngle {
         get {
@@ -385,19 +365,15 @@ open class UnitAngle : Dimension {
         return UnitAngle.degrees
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitAngle else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -407,14 +383,6 @@ open class UnitArea : Dimension {
     /*
      Base unit - squareMeters
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let squareMegameters     = "Mm²"
@@ -453,7 +421,6 @@ open class UnitArea : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var squareMegameters: UnitArea {
         get {
@@ -543,19 +510,15 @@ open class UnitArea : Dimension {
         return UnitArea.squareMeters
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitArea else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -565,14 +528,6 @@ open class UnitConcentrationMass : Dimension {
     /*
      Base unit - gramsPerLiter
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let gramsPerLiter            = "g/L"
@@ -589,7 +544,6 @@ open class UnitConcentrationMass : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var gramsPerLiter: UnitConcentrationMass {
         get {
@@ -611,19 +565,15 @@ open class UnitConcentrationMass : Dimension {
         return UnitConcentrationMass.gramsPerLiter
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitConcentrationMass else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -633,14 +583,6 @@ open class UnitDispersion : Dimension {
     /*
      Base unit - partsPerMillion
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let partsPerMillion  = "ppm"
@@ -654,7 +596,6 @@ open class UnitDispersion : Dimension {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
-    
     open class var partsPerMillion: UnitDispersion {
         get {
             return UnitDispersion(symbol: Symbol.partsPerMillion, coefficient: Coefficient.partsPerMillion)
@@ -665,19 +606,15 @@ open class UnitDispersion : Dimension {
         return UnitDispersion.partsPerMillion
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitDispersion else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -687,14 +624,6 @@ open class UnitDuration : Dimension {
     /*
      Base unit - seconds
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let seconds  = "s"
@@ -734,19 +663,15 @@ open class UnitDuration : Dimension {
         return UnitDuration.seconds
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitDuration else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -755,14 +680,6 @@ open class UnitElectricCharge : Dimension {
     /*
      Base unit - coulombs
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let coulombs         = "C"
@@ -785,7 +702,6 @@ open class UnitElectricCharge : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var coulombs: UnitElectricCharge {
         get {
@@ -827,19 +743,15 @@ open class UnitElectricCharge : Dimension {
         return UnitElectricCharge.coulombs
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricCharge else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -849,15 +761,7 @@ open class UnitElectricCurrent : Dimension {
     /*
      Base unit - amperes
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
-
+    
     private struct Symbol {
         static let megaamperes  = "MA"
         static let kiloamperes  = "kA"
@@ -878,7 +782,6 @@ open class UnitElectricCurrent : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var megaamperes: UnitElectricCurrent {
         get {
@@ -914,19 +817,15 @@ open class UnitElectricCurrent : Dimension {
         return UnitElectricCurrent.amperes
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricCurrent else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -936,14 +835,6 @@ open class UnitElectricPotentialDifference : Dimension {
     /*
      Base unit - volts
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let megavolts  = "MV"
@@ -965,7 +856,6 @@ open class UnitElectricPotentialDifference : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var megavolts: UnitElectricPotentialDifference {
         get {
@@ -1001,19 +891,15 @@ open class UnitElectricPotentialDifference : Dimension {
         return UnitElectricPotentialDifference.volts
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricPotentialDifference else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1023,14 +909,6 @@ open class UnitElectricResistance : Dimension {
     /*
      Base unit - ohms
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let megaohms  = "MΩ"
@@ -1087,19 +965,15 @@ open class UnitElectricResistance : Dimension {
         return UnitElectricResistance.ohms
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricResistance else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1109,14 +983,6 @@ open class UnitEnergy : Dimension {
     /*
      Base unit - joules
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let kilojoules       = "kJ"
@@ -1173,19 +1039,15 @@ open class UnitEnergy : Dimension {
         return UnitEnergy.joules
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitEnergy else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1195,14 +1057,6 @@ open class UnitFrequency : Dimension {
     /*
      Base unit - hertz
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let terahertz    = "THz"
@@ -1229,7 +1083,6 @@ open class UnitFrequency : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var terahertz: UnitFrequency {
         get {
@@ -1283,19 +1136,15 @@ open class UnitFrequency : Dimension {
         return UnitFrequency.hertz
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitFrequency else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1305,14 +1154,6 @@ open class UnitFuelEfficiency : Dimension {
     /*
      Base unit - litersPer100Kilometers
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let litersPer100Kilometers   = "L/100km"
@@ -1329,7 +1170,6 @@ open class UnitFuelEfficiency : Dimension {
     private convenience init(symbol: String, reciprocal: Double) {
         self.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
     }
-    
     
     open class var litersPer100Kilometers: UnitFuelEfficiency {
         get {
@@ -1353,19 +1193,15 @@ open class UnitFuelEfficiency : Dimension {
         return UnitFuelEfficiency.litersPer100Kilometers
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitFuelEfficiency else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1375,14 +1211,6 @@ open class UnitLength : Dimension {
     /*
      Base unit - meters
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let megameters           = "Mm"
@@ -1574,19 +1402,15 @@ open class UnitLength : Dimension {
         return UnitLength.meters
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitLength else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1596,14 +1420,6 @@ open class UnitIlluminance : Dimension {
     /*
      Base unit - lux
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let lux   = "lx"
@@ -1627,19 +1443,15 @@ open class UnitIlluminance : Dimension {
         return UnitIlluminance.lux
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitIlluminance else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1649,14 +1461,6 @@ open class UnitMass : Dimension {
     /*
      Base unit - kilograms
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let kilograms    = "kg"
@@ -1800,19 +1604,15 @@ open class UnitMass : Dimension {
         return UnitMass.kilograms
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitMass else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1822,14 +1622,6 @@ open class UnitPower : Dimension {
     /*
      Base unit - watts
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let terawatts  = "TW"
@@ -1933,19 +1725,15 @@ open class UnitPower : Dimension {
         return UnitPower.watts
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitPower else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -1955,14 +1743,6 @@ open class UnitPressure : Dimension {
     /*
      Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let newtonsPerMetersSquared  = "N/m²"
@@ -1993,7 +1773,6 @@ open class UnitPressure : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var newtonsPerMetersSquared: UnitPressure {
         get {
@@ -2059,19 +1838,15 @@ open class UnitPressure : Dimension {
         return UnitPressure.newtonsPerMetersSquared
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitPressure else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -2081,14 +1856,6 @@ open class UnitSpeed : Dimension {
     /*
      Base unit - metersPerSecond
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let metersPerSecond      = "m/s"
@@ -2107,7 +1874,6 @@ open class UnitSpeed : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var metersPerSecond: UnitSpeed {
         get {
@@ -2137,19 +1903,15 @@ open class UnitSpeed : Dimension {
         return UnitSpeed.metersPerSecond
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitSpeed else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -2159,14 +1921,6 @@ open class UnitTemperature : Dimension {
     /*
      Base unit - kelvin
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let kelvin     = "K"
@@ -2212,19 +1966,15 @@ open class UnitTemperature : Dimension {
         return UnitTemperature.kelvin
     }
     
-    
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitTemperature else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
@@ -2234,14 +1984,6 @@ open class UnitVolume : Dimension {
     /*
      Base unit - liters
      */
-
-    public required init(symbol: String) {
-        fatalError("init(symbol:) has not been implemented")
-    }
-
-    public required init(symbol: String, converter: UnitConverter) {
-        super.init(symbol: symbol, converter: converter)
-    }
     
     private struct Symbol {
         static let megaliters           = "ML"
@@ -2314,7 +2056,6 @@ open class UnitVolume : Dimension {
     private convenience init(symbol: String, coefficient: Double) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
-    
     
     open class var megaliters: UnitVolume {
         get {
@@ -2506,18 +2247,15 @@ open class UnitVolume : Dimension {
         return UnitVolume.liters
     }
     
-    public required init?(coder aDecoder: NSCoder) { super.init(coder: aDecoder) }
-    open override func encode(with aCoder: NSCoder) { super.encode(with: aCoder) }
-
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitVolume else {
             return false
         }
-
+        
         if self === other {
             return true
         }
-
+        
         return super.isEqual(object)
     }
 }
