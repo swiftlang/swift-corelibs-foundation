@@ -24,6 +24,7 @@ class TestUnitConverter: XCTestCase {
             ("test_baseUnit", test_linearity),
             ("test_linearity", test_linearity),
             ("test_bijectivity", test_bijectivity),
+            ("test_equality", test_equality),
         ]
     }
     
@@ -266,6 +267,23 @@ class TestUnitConverter: XCTestCase {
         XCTAssertEqual(testIdentity(UnitVolume.imperialQuarts), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitVolume.imperialGallons), 1, accuracy: delta)
         XCTAssertEqual(testIdentity(UnitVolume.metricCups), 1, accuracy: delta)
+    }
+
+    func test_equality() {
+        let u1 = UnitConverterLinear(coefficient: 1, constant: 2)
+        let u2 = UnitConverterLinear(coefficient: 1, constant: 2)
+        XCTAssertEqual(u1, u2)
+        XCTAssertEqual(u2, u1)
+
+        let u3 = UnitConverterLinear(coefficient: 1, constant: 3)
+        XCTAssertNotEqual(u1, u3)
+        XCTAssertNotEqual(u3, u1)
+
+        let u4 = UnitConverterLinear(coefficient: 2, constant: 2)
+        XCTAssertNotEqual(u1, u4)
+        XCTAssertNotEqual(u4, u1)
+
+        // Cannot test UnitConverterReciprocal due to no support for @testable import.
     }
     
 }
