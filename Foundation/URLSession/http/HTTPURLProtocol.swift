@@ -13,13 +13,14 @@ import Dispatch
 internal class _HTTPURLProtocol: URLProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
-    fileprivate var tempFileURL: URL
+    fileprivate lazy var tempFileURL: URL = {
+        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
+        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
+        return URL(fileURLWithPath: fileName)
+    }()
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
-        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
-        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
-        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
@@ -27,9 +28,6 @@ internal class _HTTPURLProtocol: URLProtocol {
 
     public required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         self.internalState = _InternalState.initial
-        let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".tmp"
-        _ = FileManager.default.createFile(atPath: fileName, contents: nil)
-        self.tempFileURL = URL(fileURLWithPath: fileName)
         super.init(request: request, cachedResponse: cachedResponse, client: client)
         self.easyHandle = _EasyHandle(delegate: self)
     }

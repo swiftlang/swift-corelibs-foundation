@@ -33,7 +33,7 @@ open class URLSessionTask : NSObject, NSCopying {
     internal var suspendCount = 1
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
-    fileprivate var _protocol: URLProtocol! = nil
+    fileprivate var _protocol: URLProtocol? = nil
     private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
     
     /// All operations must run on this queue.
@@ -178,8 +178,8 @@ open class URLSessionTask : NSObject, NSCopying {
             self.workQueue.async {
                 let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
                 self.error = urlError
-                self._protocol.stopLoading()
-                self._protocol.client?.urlProtocol(self._protocol, didFailWithError: urlError)
+                self._protocol?.stopLoading()
+                self._protocol?.client?.urlProtocol(self._protocol!, didFailWithError: urlError)
             }
         }
     }
@@ -235,7 +235,7 @@ open class URLSessionTask : NSObject, NSCopying {
             
             if self.suspendCount == 1 {
                 self.workQueue.async {
-                    self._protocol.stopLoading()
+                    self._protocol?.stopLoading()
                 }
             }
         }
@@ -250,7 +250,21 @@ open class URLSessionTask : NSObject, NSCopying {
             self.updateTaskState()
             if self.suspendCount == 0 {
                 self.workQueue.async {
-                    self._protocol.startLoading()
+                    if let _protocol = self._protocol {
+                        _protocol.startLoading()
+                    }
+                    else if self.error == nil {
+                        var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "unsupported URL"]
+                        if let url = self.originalRequest?.url {
+                            userInfo[NSURLErrorFailingURLErrorKey] = url
+                            userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                        }
+                        let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                                  code: NSURLErrorUnsupportedURL,
+                                                                  userInfo: userInfo))
+                        self.error = urlError
+                        _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
+                    }
                 }
             }
         }
@@ -547,6 +561,7 @@ extension _ProtocolClient : URLProtocolClient {
                 session.taskRegistry.remove(task)
             }
         }
+        task._protocol = nil
     }
 
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
@@ -574,6 +589,10 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
         guard let task = `protocol`.task else { fatalError() }
+        urlProtocol(task: task, didFailWithError: error)
+    }
+
+    func urlProtocol(task: URLSessionTask, didFailWithError error: Error) {
         guard let session = task.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
@@ -602,6 +621,7 @@ extension _ProtocolClient : URLProtocolClient {
                 session.taskRegistry.remove(task)
             }
         }
+        task._protocol = nil
     }
 
     func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {
