@@ -256,7 +256,7 @@ open class NSNumber : NSValue {
             fatalError("unsupported CFNumberType: '\(numberType)'")
         }
     }
-    
+
     deinit {
         _CFDeinit(self)
     }
@@ -536,13 +536,25 @@ open class NSNumber : NSValue {
         }
     }
 
+    private static let _numberFormatterForNilLocale: CFNumberFormatter = {
+        let formatter: CFNumberFormatter
+        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
+        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObjectiveC())
+        return formatter
+    }()
+
     open func description(withLocale locale: Locale?) -> String {
+        // CFNumberFormatterCreateStringWithNumber() does not like numbers of type
+        // SInt128Type, as it loses the type when looking it up and treats it as
+        // an SInt64Type, so special case them.
+        if _CFNumberGetType2(_cfObject) == kCFNumberSInt128Type {
+            return String(format: "%@", unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
+        }
+
         let aLocale = locale
         let formatter: CFNumberFormatter
         if (aLocale == nil) {
-            formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-            CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObjectiveC())
-
+            formatter = NSNumber._numberFormatterForNilLocale
         } else {
             formatter = CFNumberFormatterCreate(nil, aLocale?._cfObject, kCFNumberFormatterDecimalStyle)
         }
