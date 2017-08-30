@@ -29,7 +29,7 @@ open class URLSessionTask : NSObject, NSCopying {
     internal var suspendCount = 1
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
-    fileprivate var _protocol: URLProtocol! = nil
+    fileprivate var _protocol: URLProtocol? = nil
     private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
     
     /// All operations must run on this queue.
