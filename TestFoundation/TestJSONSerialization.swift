@@ -829,6 +829,7 @@ extension TestJSONSerialization {
         return [
             ("test_isValidJSONObjectTrue", test_isValidJSONObjectTrue),
             ("test_isValidJSONObjectFalse", test_isValidJSONObjectFalse),
+            ("test_validNumericJSONObjects", test_validNumericJSONObjects)
         ]
     }
 
@@ -924,6 +925,36 @@ extension TestJSONSerialization {
         }
     }
 
+    func test_validNumericJSONObjects() {
+        // All of the numeric types supported by JSONSerialization
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([nil, NSNull()]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([true, false]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([Int.min, Int8.min, Int16.min, Int32.min, Int64.min]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([UInt.min, UInt8.min, UInt16.min, UInt32.min, UInt64.min]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([Float.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]))
+
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: true), NSNumber(value: Float.greatestFiniteMagnitude), NSNumber(value: Double.greatestFiniteMagnitude)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: Int.max), NSNumber(value: Int8.max), NSNumber(value: Int16.max), NSNumber(value: Int32.max), NSNumber(value: Int64.max)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSNumber(value: UInt.max), NSNumber(value: UInt8.max), NSNumber(value: UInt16.max), NSNumber(value: UInt32.max), NSNumber(value: UInt64.max)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([NSDecimalNumber(booleanLiteral: true), NSDecimalNumber(decimal: Decimal.greatestFiniteMagnitude), NSDecimalNumber(floatLiteral: Double.greatestFiniteMagnitude), NSDecimalNumber(integerLiteral: Int.min)]))
+        XCTAssertTrue(JSONSerialization.isValidJSONObject([Decimal(123), Decimal(Double.leastNonzeroMagnitude)]))
+
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.nan))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(-Float.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Float.nan)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Float.infinity)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: -Float.infinity)))
+
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(Double.nan))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(Double.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(-Double.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Double.nan)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Double.infinity)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: -Double.infinity)))
+
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSDecimalNumber(decimal: Decimal(floatLiteral: Double.nan))))
+    }
 }
 
 // MARK: - serializationTests
@@ -941,6 +972,14 @@ extension TestJSONSerialization {
             ("test_serialize_IntMin", test_serialize_IntMin),
             ("test_serialize_UIntMax", test_serialize_UIntMax),
             ("test_serialize_UIntMin", test_serialize_UIntMin),
+            ("test_serialize_8BitSizes", test_serialize_8BitSizes),
+            ("test_serialize_16BitSizes", test_serialize_16BitSizes),
+            ("test_serialize_32BitSizes", test_serialize_32BitSizes),
+            ("test_serialize_64BitSizes", test_serialize_64BitSizes),
+            ("test_serialize_Float", test_serialize_Float),
+            ("test_serialize_Double", test_serialize_Double),
+            ("test_serialize_Decimal", test_serialize_Decimal),
+            ("test_serialize_NSDecimalNumber", test_serialize_NSDecimalNumber),
             ("test_serialize_stringEscaping", test_serialize_stringEscaping),
             ("test_jsonReadingOffTheEndOfBuffers", test_jsonReadingOffTheEndOfBuffers),
             ("test_jsonObjectToOutputStreamBuffer", test_jsonObjectToOutputStreamBuffer),
@@ -1172,7 +1211,80 @@ extension TestJSONSerialization {
         let json: [Any] = [UInt.min]
         XCTAssertEqual(try trySerialize(json), "[\(UInt.min)]")
     }
-    
+
+    func test_serialize_8BitSizes() {
+        let json1 = [Int8.min, Int8(-1), Int8(0), Int8(1), Int8.max]
+        XCTAssertEqual(try trySerialize(json1), "[-128,-1,0,1,127]")
+        let json2 = [UInt8.min, UInt8(0), UInt8(1), UInt8.max]
+        XCTAssertEqual(try trySerialize(json2), "[0,0,1,255]")
+    }
+
+    func test_serialize_16BitSizes() {
+        let json1 = [Int16.min, Int16(-1), Int16(0), Int16(1), Int16.max]
+        XCTAssertEqual(try trySerialize(json1), "[-32768,-1,0,1,32767]")
+        let json2 = [UInt16.min, UInt16(0), UInt16(1), UInt16.max]
+        XCTAssertEqual(try trySerialize(json2), "[0,0,1,65535]")
+    }
+
+    func test_serialize_32BitSizes() {
+        let json1 = [Int32.min, Int32(-1), Int32(0), Int32(1), Int32.max]
+        XCTAssertEqual(try trySerialize(json1), "[-2147483648,-1,0,1,2147483647]")
+        let json2 = [UInt32.min, UInt32(0), UInt32(1), UInt32.max]
+        XCTAssertEqual(try trySerialize(json2), "[0,0,1,4294967295]")
+    }
+
+    func test_serialize_64BitSizes() {
+        let json1 = [Int64.min, Int64(-1), Int64(0), Int64(1), Int64.max]
+        XCTAssertEqual(try trySerialize(json1), "[-9223372036854775808,-1,0,1,9223372036854775807]")
+        let json2 = [UInt64.min, UInt64(0), UInt64(1), UInt64.max]
+        XCTAssertEqual(try trySerialize(json2), "[0,0,1,18446744073709551615]")
+    }
+
+    func test_serialize_Float() {
+        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-0,0]")
+        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-340282346638529000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[340282346638529000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,0,1]")
+    }
+
+    func test_serialize_Double() {
+        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-0,0]")
+        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-0,0]")
+        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Double(-1.0),  Double(1.0)]), "[-1,1]")
+    }
+
+    func test_serialize_Decimal() {
+        XCTAssertEqual(try trySerialize([-Decimal.leastFiniteMagnitude]), "[3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Decimal.leastFiniteMagnitude]), "[-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([-Decimal.leastNonzeroMagnitude]), "[-0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001]")
+        XCTAssertEqual(try trySerialize([Decimal.leastNonzeroMagnitude]), "[0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001]")
+        XCTAssertEqual(try trySerialize([-Decimal.greatestFiniteMagnitude]), "[-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Decimal.greatestFiniteMagnitude]), "[3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([Decimal(Int8.min), Decimal(Int8(0)), Decimal(Int8.max)]), "[-128,0,127]")
+        XCTAssertEqual(try trySerialize([Decimal(string: "-0.0"), Decimal(string: "0.000"), Decimal(string: "1.0000")]), "[0,0,1]")
+    }
+
+    func test_serialize_NSDecimalNumber() {
+        let dn0: [Any] = [NSDecimalNumber(floatLiteral: -Double.leastNonzeroMagnitude)]
+        let dn1: [Any] = [NSDecimalNumber(floatLiteral: Double.leastNonzeroMagnitude)]
+        let dn2: [Any] = [NSDecimalNumber(floatLiteral: -Double.leastNormalMagnitude)]
+        let dn3: [Any] = [NSDecimalNumber(floatLiteral: Double.leastNormalMagnitude)]
+        let dn4: [Any] = [NSDecimalNumber(floatLiteral: -Double.greatestFiniteMagnitude)]
+        let dn5: [Any] = [NSDecimalNumber(floatLiteral: Double.greatestFiniteMagnitude)]
+
+        XCTAssertEqual(try trySerialize(dn0), "[-0.00000000000000000000000000000000000000000000000000000000000000000004940656458412464128]")
+        XCTAssertEqual(try trySerialize(dn1), "[0.00000000000000000000000000000000000000000000000000000000000000000004940656458412464128]")
+        XCTAssertEqual(try trySerialize(dn2), "[-0.0000000000000000000000000000000000000000000000000002225073858507201792]")
+        XCTAssertEqual(try trySerialize(dn3), "[0.0000000000000000000000000000000000000000000000000002225073858507201792]")
+        XCTAssertEqual(try trySerialize(dn4), "[-17976931348623167488000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize(dn5), "[17976931348623167488000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([NSDecimalNumber(string: "0.0001"), NSDecimalNumber(string: "0.00"), NSDecimalNumber(string: "-0.0")]), "[0.0001,0,0]")
+        XCTAssertEqual(try trySerialize([NSDecimalNumber(integerLiteral: Int(Int16.min)), NSDecimalNumber(integerLiteral: 0), NSDecimalNumber(integerLiteral: Int(Int16.max))]), "[-32768,0,32767]")
+        XCTAssertEqual(try trySerialize([NSDecimalNumber(booleanLiteral: true), NSDecimalNumber(booleanLiteral: false)]), "[1,0]")
+    }
+
     func test_serialize_stringEscaping() {
         var json = ["foo"]
         XCTAssertEqual(try trySerialize(json), "[\"foo\"]")

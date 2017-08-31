@@ -405,22 +405,12 @@ class TestJSONEncoder : XCTestCase {
     // UInt and Int
     func test_codingOfUIntMinMax() {
 
-        let encoder = JSONEncoder()
-
         struct MyValue: Codable {
-            let intMin:Int = Int.min
-            let intMax:Int = Int.max
-            let uintMin:UInt = UInt.min
-            let uintMax:UInt = UInt.max
+            let int64Min = Int64.min
+            let int64Max = Int64.max
+            let uint64Min = UInt64.min
+            let uint64Max = UInt64.max
         }
-
-        let myValue = MyValue()
-        let myDictI: [String:Any] = ["intMin": myValue.intMin, "intMax": myValue.intMax]
-        let myDictU: [String:Any] = ["uintMin": myValue.uintMin, "uintMax": myValue.uintMax]
-        let myDict1: [String:Any] = ["intMin": myValue.intMin]
-        let myDict2: [String:Any] = ["intMax": myValue.intMax]
-        let myDict3: [String:Any] = ["uintMin": myValue.uintMin]
-        let myDict4: [String:Any] = ["uintMax": myValue.uintMax]
 
         func compareJSON(_ s1: String, _ s2: String) {
             let ss1 = s1.trimmingCharacters(in: CharacterSet(charactersIn: "{}")).split(separator: Character(",")).sorted()
@@ -429,39 +419,15 @@ class TestJSONEncoder : XCTestCase {
         }
 
         do {
+            let encoder = JSONEncoder()
+            let myValue = MyValue()
             let result = try encoder.encode(myValue)
             let r = String(data: result, encoding: .utf8) ?? "nil"
-            compareJSON(r, "{\"uintMin\":0,\"uintMax\":18446744073709551615,\"intMin\":-9223372036854775808,\"intMax\":9223372036854775807}")
-
-            let resultI = try JSONSerialization.data(withJSONObject: myDictI)
-            let rI = String(data: resultI, encoding: .utf8) ?? "nil"
-            compareJSON(rI, "{\"intMin\":-9223372036854775808,\"intMax\":9223372036854775807}")
-
-            let resultU = try JSONSerialization.data(withJSONObject: myDictU)
-            let rU = String(data: resultU, encoding: .utf8) ?? "nil"
-            compareJSON(rU, "{\"uintMax\":18446744073709551615,\"uintMin\":0}")
-
-            let result1 = try JSONSerialization.data(withJSONObject: myDict1)
-            let r1 = String(data: result1, encoding: .utf8) ?? "nil"
-            XCTAssertEqual(r1, "{\"intMin\":-9223372036854775808}")
-
-            let result2 = try JSONSerialization.data(withJSONObject: myDict2)
-            let r2 = String(data: result2, encoding: .utf8) ?? "nil"
-            XCTAssertEqual(r2, "{\"intMax\":9223372036854775807}")
-
-            let result3 = try JSONSerialization.data(withJSONObject: myDict3)
-            let r3 = String(data: result3, encoding: .utf8) ?? "nil"
-            XCTAssertEqual(r3, "{\"uintMin\":0}")
-
-            let result4 = try JSONSerialization.data(withJSONObject: myDict4)
-            let r4 = String(data: result4, encoding: .utf8) ?? "nil"
-            XCTAssertEqual(r4, "{\"uintMax\":18446744073709551615}")
+            compareJSON(r, "{\"uint64Min\":0,\"uint64Max\":18446744073709551615,\"int64Min\":-9223372036854775808,\"int64Max\":9223372036854775807}")
         } catch {
             XCTFail(String(describing: error))
         }
     }
-
-
 
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
