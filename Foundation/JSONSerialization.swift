@@ -63,7 +63,9 @@ open class JSONSerialization : NSObject {
             }
             
             // object is Swift.String, NSNull, Int, Bool, or UInt
-            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt {
+            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt ||
+                obj is Int8 || obj is Int16 || obj is Int32 || obj is Int64 ||
+                obj is UInt8 || obj is UInt16 || obj is UInt32 || obj is UInt64 {
                 return true
             }
 
@@ -73,6 +75,10 @@ open class JSONSerialization : NSObject {
             }
             // object is a Float and is not NaN or infinity
             if let number = obj as? Float  {
+                return number.isFinite
+            }
+
+            if let number = obj as? Decimal {
                 return number.isFinite
             }
 
@@ -99,8 +105,11 @@ open class JSONSerialization : NSObject {
             // object is NSNumber and is not NaN or infinity
             // For better performance, this (most expensive) test should be last.
             if let number = _SwiftValue.store(obj) as? NSNumber {
-                let invalid = number.doubleValue.isInfinite || number.doubleValue.isNaN
-                return !invalid
+                if CFNumberIsFloatType(number._cfObject) {
+                    return number.doubleValue.isFinite
+                } else {
+                    return true
+                }
             }
 
             // invalid object
@@ -285,9 +294,7 @@ internal extension JSONSerialization {
 
 //MARK: - JSONSerializer
 private struct JSONWriter {
-    
-    private let maxUIntLength = String(describing: UInt.max).count
-    private let maxIntLength = String(describing: Int.max).count
+
     var indent = 0
     let pretty: Bool
     let sortedKeys: Bool
@@ -320,13 +327,37 @@ private struct JSONWriter {
         case let boolValue as Bool:
             serializeBool(boolValue)
         case let num as Int:
-            try serializeInt(value: num)
+            serializeInteger(value: num)
+        case let num as Int8:
+            serializeInteger(value: num)
+        case let num as Int16:
+            serializeInteger(value: num)
+        case let num as Int32:
+            serializeInteger(value: num)
+        case let num as Int64:
+            serializeInteger(value: num)
         case let num as UInt:
-            try serializeUInt(value: num)
+            serializeInteger(value: num)
+        case let num as UInt8:
+            serializeInteger(value: num)
+        case let num as UInt16:
+            serializeInteger(value: num)
+        case let num as UInt32:
+            serializeInteger(value: num)
+        case let num as UInt64:
+            serializeInteger(value: num)
         case let array as Array<Any?>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any?>:
             try serializeDictionary(dict)
+        case let num as Float:
+            try serializeNumber(NSNumber(value: num))
+        case let num as Double:
+            try serializeNumber(NSNumber(value: num))
+        case let num as Decimal:
+            writer(num.description)
+        case let num as NSDecimalNumber:
+            writer(num.description)
         case is NSNull:
             try serializeNull()
         case _ where _SwiftValue.store(obj) is NSNumber:
@@ -336,92 +367,33 @@ private struct JSONWriter {
         }
     }
 
-    private func serializeUInt(value: UInt) throws {
-        if value == 0 {
-            writer("0")
-            return
-        }
-        var array: [UInt] = []
-        var stringResult = ""
-        //Maximum length of an UInt
-        array.reserveCapacity(maxUIntLength)
-        stringResult.reserveCapacity(maxUIntLength)
-        var number = value
-        
-        while number != 0 {
-            array.append(number % 10)
+    private func serializeInteger<T: UnsignedInteger>(value: T, isNegative: Bool = false) {
+        let maxIntLength = 22   // 20 digits in UInt64 + optional sign + trailing '\0'
+        let ZERO: CChar = 0x30  // ASCII '0' == 0x30
+        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
+
+        var number = UInt64(value)
+        var buffer = Array<CChar>(repeating: 0, count: maxIntLength)
+        var pos = maxIntLength - 1
+
+        repeat {
+            pos -= 1
+            buffer[pos] = ZERO + CChar(number % 10)
             number /= 10
+        } while number != 0
+
+        if isNegative {
+            pos -= 1
+            buffer[pos] = MINUS
         }
-        
-        /*
-         Step backwards through the array and append the values to the string. This way the values are appended in the correct order.
-         */
-        var counter = array.count
-        while counter > 0 {
-            counter -= 1
-            let digit: UInt = array[counter]
-            switch digit {
-            case 0: stringResult.append("0")
-            case 1: stringResult.append("1")
-            case 2: stringResult.append("2")
-            case 3: stringResult.append("3")
-            case 4: stringResult.append("4")
-            case 5: stringResult.append("5")
-            case 6: stringResult.append("6")
-            case 7: stringResult.append("7")
-            case 8: stringResult.append("8")
-            case 9: stringResult.append("9")
-            default: fatalError()
-            }
-        }
-        
-        writer(stringResult)
+        let output = String(cString: Array(buffer.suffix(from: pos)))
+        writer(output)
     }
-    
-    private func serializeInt(value: Int) throws {
-        if value == 0 {
-            writer("0")
-            return
-        }
-        var array: [Int] = []
-        var stringResult = ""
-        array.reserveCapacity(maxIntLength)
-        //Account for a negative sign
-        stringResult.reserveCapacity(maxIntLength + 1)
-        var number = value
-        
-        while number != 0 {
-            array.append(number % 10)
-            number /= 10
-        }
-        //If negative add minus sign before adding any values
-        if value < 0 {
-            stringResult.append("-")
-        }
-        /*
-         Step backwards through the array and append the values to the string. This way the values are appended in the correct order.
-         */
-        var counter = array.count
-        while counter > 0 {
-            counter -= 1
-            let digit = array[counter]
-            switch digit {
-            case 0: stringResult.append("0")
-            case 1, -1: stringResult.append("1")
-            case 2, -2: stringResult.append("2")
-            case 3, -3: stringResult.append("3")
-            case 4, -4: stringResult.append("4")
-            case 5, -5: stringResult.append("5")
-            case 6, -6: stringResult.append("6")
-            case 7, -7: stringResult.append("7")
-            case 8, -8: stringResult.append("8")
-            case 9, -9: stringResult.append("9")
-            default: fatalError()
-            }
-        }
-        writer(stringResult)
+
+    private func serializeInteger<T: SignedInteger>(value: T) {
+        serializeInteger(value: UInt64(value.magnitude), isNegative: value < 0)
     }
-    
+
     func serializeString(_ str: String) throws {
         writer("\"")
         for scalar in str.unicodeScalars {
@@ -462,15 +434,20 @@ private struct JSONWriter {
     }
 
     mutating func serializeNumber(_ num: NSNumber) throws {
-        if num.doubleValue.isInfinite || num.doubleValue.isNaN {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
-        }
-        
-        switch num._cfTypeID {
-        case CFBooleanGetTypeID():
-            serializeBool(num.boolValue)
-        default:
-            writer(_serializationString(for: num))
+        if CFNumberIsFloatType(num._cfObject) {
+            if !num.doubleValue.isFinite {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
+            }
+
+            let string = CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, num._cfObject)._swiftObject
+            writer(string)
+        } else {
+            switch num._cfTypeID {
+            case CFBooleanGetTypeID():
+                serializeBool(num.boolValue)
+            default:
+                writer(num.stringValue)
+            }
         }
     }
 
@@ -578,13 +555,6 @@ private struct JSONWriter {
         }
     }
 
-    //[SR-2151] https://bugs.swift.org/browse/SR-2151
-    private mutating func _serializationString(for number: NSNumber) -> String {
-        if !CFNumberIsFloatType(number._cfObject) {
-            return number.stringValue
-        }
-        return CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, number._cfObject)._swiftObject
-    }
 }
 
 //MARK: - JSONDeserializer
