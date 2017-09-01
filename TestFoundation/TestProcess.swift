@@ -334,7 +334,7 @@ private func parseEnv(_ env: String) throws -> [String: String] {
         guard let range = line.range(of: "=") else {
             throw Error.InvalidEnvironmentVariable(line)
         }
-        result[line.substring(to: range.lowerBound)] = line.substring(from: range.upperBound)
+        result[String(line[..<range.lowerBound])] = String(line[range.upperBound...])
     }
     return result
 }
