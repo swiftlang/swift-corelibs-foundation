@@ -62,7 +62,6 @@ open class JSONSerialization : NSObject {
                 return true
             }
             
-            // object is Swift.String, NSNull, Int, Bool, or UInt
             if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt ||
                 obj is Int8 || obj is Int16 || obj is Int32 || obj is Int64 ||
                 obj is UInt8 || obj is UInt16 || obj is UInt32 || obj is UInt64 {
@@ -435,8 +434,18 @@ private struct JSONWriter {
 
     mutating func serializeNumber(_ num: NSNumber) throws {
         if CFNumberIsFloatType(num._cfObject) {
-            if !num.doubleValue.isFinite {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Number cannot be infinity or NaN"])
+            let dv = num.doubleValue
+            if !dv.isFinite {
+                let value: String
+                if dv.isNaN {
+                    value = "NaN"
+                } else if dv.isInfinite {
+                    value = "infinite"
+                } else {
+                    value = String(dv)
+                }
+
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(value)) in JSON write"])
             }
 
             let string = CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, num._cfObject)._swiftObject
