@@ -20,7 +20,7 @@ extension unichar : ExpressibleByUnicodeScalarLiteral {
     }
 }
 
-// Placeholder for a future implementation
+/// Returns a localized string, using the main bundle if one is not specified.
 public
 func NSLocalizedString(_ key: String,
                        tableName: String? = nil,

@@ -19,6 +19,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "CFURLSessionInterface.h"
+#include <CoreFoundation/CFString.h>
 #include <curl/curl.h>
 
 FILE* aa = NULL;
@@ -31,6 +32,11 @@ static CFURLSessionMultiCode MakeMultiCode(CURLMcode value) {
     return (CFURLSessionMultiCode) { value };
 }
 
+CFStringRef CFURLSessionCreateErrorDescription(int value) {
+    const char *description = curl_easy_strerror(value);
+    return CFStringCreateWithBytes(kCFAllocatorSystemDefault,
+        (const uint8_t *)description, strlen(description), kCFStringEncodingUTF8, NO);
+}
 
 CFURLSessionEasyHandle _Nonnull CFURLSessionEasyHandleInit() {
     return curl_easy_init();
@@ -135,6 +141,7 @@ CFURLSessionEasyCode CFURLSessionInit(void) {
     return MakeEasyCode(curl_global_init(CURL_GLOBAL_SSL));
 }
 
+int const CFURLSessionEasyErrorSize = { CURL_ERROR_SIZE + 1 };
 
 CFURLSessionEasyCode const CFURLSessionEasyCodeOK = { CURLE_OK };
 CFURLSessionEasyCode const CFURLSessionEasyCodeUNSUPPORTED_PROTOCOL = { CURLE_UNSUPPORTED_PROTOCOL };
