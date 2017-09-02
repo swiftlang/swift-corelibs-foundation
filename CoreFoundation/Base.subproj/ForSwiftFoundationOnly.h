@@ -27,10 +27,9 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
-#include <execinfo.h>
 
-#if __has_include(<malloc/malloc.h>)
-#include <malloc/malloc.h>
+#if __has_include(<execinfo.h>)
+#include <execinfo.h>
 #endif
 
 #if __has_include(<malloc/malloc.h>)

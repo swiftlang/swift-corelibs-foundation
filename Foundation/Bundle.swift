@@ -53,8 +53,16 @@ open class Bundle: NSObject {
         self.init(path: url.path)
     }
     
-    public init(for aClass: AnyClass) { NSUnimplemented() }
-    
+#if os(Android)
+    public convenience init(for aClass: AnyClass) {
+        self.init(path: Bundle.main.bundlePath)!
+    }
+#else
+    public init(for aClass: AnyClass) {
+        NSUnimplemented()
+    }
+#endif
+
     public init?(identifier: String) {
         super.init()
         

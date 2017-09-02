@@ -33,6 +33,9 @@ public func NSLogv(_ format: String, _ args: CVaListPointer) {
     CFLog1(kCFLogLevelWarning, message._cfObject)
 #else
     CFLog1(Int32(kCFLogLevelWarning), message._cfObject)
+#if os(Android)
+    print(message)
+#endif
 #endif
 }
 

@@ -250,7 +250,7 @@ open class Thread : NSObject {
         _cancelled = true
     }
 
-
+#if !os(Android)
     private class func backtraceAddresses<T>(_ body: (UnsafeMutablePointer<UnsafeMutableRawPointer?>, Int) -> [T]) -> [T] {
         // Same as swift/stdlib/public/runtime/Errors.cpp backtrace
         let maxSupportedStackDepth = 128;
@@ -284,6 +284,15 @@ open class Thread : NSObject {
             return symbols
         })
     }
+#else
+    open class var callStackReturnAddresses: [NSNumber] {
+        NSUnimplemented()
+    }
+
+    open class var callStackSymbols: [String] {
+        NSUnimplemented()
+    }
+#endif
 }
 
 extension NSNotification.Name {
