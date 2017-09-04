@@ -178,7 +178,7 @@ open class NotificationCenter: NSObject {
         removeObserver(observer, name: nil, object: nil)
     }
 
-    open func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
+    open func removeObserver(_ observer: Any, name aName: Notification.Name?, object: Any?) {
         guard let observer = observer as? NSObject else {
             return
         }
