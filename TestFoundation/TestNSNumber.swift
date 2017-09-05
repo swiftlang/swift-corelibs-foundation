@@ -1132,5 +1132,6 @@ class TestNSNumber : XCTestCase {
         XCTAssertTrue(NSNumber(value: Int8.max) == NSNumber(value: Double(127)))
         XCTAssertTrue(NSNumber(value: UInt16.min) == NSNumber(value: Float(0)))
         XCTAssertTrue(NSNumber(value: UInt16.max) == NSNumber(value: Double(65535)))
+        XCTAssertTrue(NSNumber(value: 1.1) != NSNumber(value: Int64(1)))
     }
 }

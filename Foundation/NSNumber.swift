@@ -226,40 +226,9 @@ open class NSNumber : NSValue {
         case let other as Bool:
             return boolValue == other
         case let other as NSNumber:
-            // CFEqual() requires both values to be the same type.
-            if _CFNumberGetType2(_cfObject) == _CFNumberGetType2(other._cfObject) {
-                return CFEqual(_cfObject, other._cfObject)
-            }
-            // If either NSNumber is a bool, use a specific test.
-            if CFGetTypeID(self) == CFBooleanGetTypeID() {
-                return testBool(self.boolValue, other)
-            } else if CFGetTypeID(other) == CFBooleanGetTypeID() {
-                return testBool(other.boolValue, self)
-            }
             return compare(other) == .orderedSame
         default:
             return false
-        }
-    }
-
-    private func testBool(_ boolean: Bool, _ nonBoolean: NSNumber) -> Bool {
-        let isOne: Bool
-        let isZero: Bool
-
-        // false is only equal to 0,
-        // true is only equal to exactly 1, not any non-zero value.
-        // isOne and isZero can both be false.
-        if !CFNumberIsFloatType(nonBoolean._cfObject) {
-            isOne = (nonBoolean.intValue == 1)
-            isZero = (nonBoolean.intValue == 0)
-        } else {
-            isOne = (nonBoolean.doubleValue == Double(1))
-            isZero = (nonBoolean.doubleValue == Double(0))
-        }
-        if boolean == true {
-            return isOne
-        } else {
-            return isZero
         }
     }
 
