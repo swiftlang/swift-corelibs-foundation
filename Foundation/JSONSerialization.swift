@@ -105,7 +105,9 @@ open class JSONSerialization : NSObject {
             // For better performance, this (most expensive) test should be last.
             if let number = _SwiftValue.store(obj) as? NSNumber {
                 if CFNumberIsFloatType(number._cfObject) {
-                    return number.doubleValue.isFinite
+                    let dv = number.doubleValue
+                    let invalid = dv.isInfinite || dv.isNaN
+                    return !invalid
                 } else {
                     return true
                 }
@@ -368,8 +370,8 @@ private struct JSONWriter {
 
     private func serializeInteger<T: UnsignedInteger>(value: T, isNegative: Bool = false) {
         let maxIntLength = 22   // 20 digits in UInt64 + optional sign + trailing '\0'
-        let ZERO: CChar = 0x30  // ASCII '0' == 0x30
-        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
+        let asciiZero: CChar = 0x30  // ASCII '0' == 0x30
+        let asciiMinus: CChar = 0x2d // ASCII '-' == 0x2d
 
         var number = UInt64(value)
         var buffer = Array<CChar>(repeating: 0, count: maxIntLength)
@@ -377,13 +379,13 @@ private struct JSONWriter {
 
         repeat {
             pos -= 1
-            buffer[pos] = ZERO + CChar(number % 10)
+            buffer[pos] = asciiZero + CChar(number % 10)
             number /= 10
         } while number != 0
 
         if isNegative {
             pos -= 1
-            buffer[pos] = MINUS
+            buffer[pos] = asciiMinus
         }
         let output = String(cString: Array(buffer.suffix(from: pos)))
         writer(output)

@@ -941,13 +941,17 @@ extension TestJSONSerialization {
 
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.nan))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Float.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(-Float.infinity))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Float.nan)))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Float.infinity)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: -Float.infinity)))
 
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Double.nan))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(Double.infinity))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(-Double.infinity))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Double.nan)))
         XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: Double.infinity)))
+        XCTAssertFalse(JSONSerialization.isValidJSONObject(NSNumber(value: -Double.infinity)))
 
         XCTAssertFalse(JSONSerialization.isValidJSONObject(NSDecimalNumber(decimal: Decimal(floatLiteral: Double.nan))))
     }

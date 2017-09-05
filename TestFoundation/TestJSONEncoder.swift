@@ -406,10 +406,10 @@ class TestJSONEncoder : XCTestCase {
     func test_codingOfUIntMinMax() {
 
         struct MyValue: Codable {
-            let intMin = Int64.min
-            let intMax = Int64.max
-            let uintMin = UInt64.min
-            let uintMax = UInt64.max
+            let int64Min = Int64.min
+            let int64Max = Int64.max
+            let uint64Min = UInt64.min
+            let uint64Max = UInt64.max
         }
 
         func compareJSON(_ s1: String, _ s2: String) {
@@ -423,7 +423,7 @@ class TestJSONEncoder : XCTestCase {
             let myValue = MyValue()
             let result = try encoder.encode(myValue)
             let r = String(data: result, encoding: .utf8) ?? "nil"
-            compareJSON(r, "{\"uintMin\":0,\"uintMax\":18446744073709551615,\"intMin\":-9223372036854775808,\"intMax\":9223372036854775807}")
+            compareJSON(r, "{\"uint64Min\":0,\"uint64Max\":18446744073709551615,\"int64Min\":-9223372036854775808,\"int64Max\":9223372036854775807}")
         } catch {
             XCTFail(String(describing: error))
         }
