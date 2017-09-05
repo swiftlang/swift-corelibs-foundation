@@ -1122,8 +1122,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     
     @_versioned
     internal init(backing: _DataStorage, range: Range<Index>) {
-        _backing = backing
-        _sliceRange = range
+        _backing = backing.mutableCopy(range)
+        _sliceRange = 0..<range.count
     }
     
     @_versioned
