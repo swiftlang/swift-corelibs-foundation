@@ -7,27 +7,27 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
+@available(*,deprecated,message:"Not available on non-Darwin platforms")
 open class PortMessage : NSObject {
     
     public init(sendPort: Port?, receivePort replyPort: Port?, components: [AnyObject]?) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var components: [AnyObject]? {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var receivePort: Port? {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var sendPort: Port? {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open func sendBeforeDate(_ date: Date) -> Bool {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     open var msgid: UInt32
