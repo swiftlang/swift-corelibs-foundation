@@ -989,6 +989,7 @@ extension TestJSONSerialization {
             ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
             ("test_serializeDecimalNumberJSONObject", test_serializeDecimalNumberJSONObject),
             ("test_serializeSortedKeys", test_serializeSortedKeys),
+            ("test_colonPrettyPrintingMatchesDarwin", test_colonPrettyPrintingMatchesDarwin),
         ]
     }
 
@@ -1477,6 +1478,11 @@ extension TestJSONSerialization {
 
         dict = ["c": ["c":1,"b":1,"a":1],"b":["c":1,"b":1,"a":1],"a":["c":1,"b":1,"a":1]]
         XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
+    }
+
+    func test_colonPrettyPrintingMatchesDarwin() {
+        let dictionary = ["key": 4]
+        XCTAssertEqual(try trySerialize(dictionary, options: .prettyPrinted), "{\n  \"key\" : 4\n}")
     }
 
     fileprivate func createTestFile(_ path: String,_contents: Data) -> String? {

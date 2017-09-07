@@ -512,7 +512,7 @@ private struct JSONWriter {
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
             }
-            pretty ? writer(": ") : writer(":")
+            pretty ? writer(" : ") : writer(":")
             try serializeJSON(value)
         }
 
