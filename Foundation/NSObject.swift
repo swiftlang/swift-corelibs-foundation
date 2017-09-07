@@ -8,6 +8,7 @@
 //
 
 import CoreFoundation
+@_exported import Dispatch
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
 ///
