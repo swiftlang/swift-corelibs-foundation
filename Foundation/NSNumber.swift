@@ -226,7 +226,7 @@ open class NSNumber : NSValue {
         case let other as Bool:
             return boolValue == other
         case let other as NSNumber:
-            return CFEqual(_cfObject, other._cfObject)
+            return compare(other) == .orderedSame
         default:
             return false
         }
