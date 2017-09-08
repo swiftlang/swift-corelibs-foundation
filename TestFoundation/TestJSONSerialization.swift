@@ -989,7 +989,7 @@ extension TestJSONSerialization {
             ("test_serialize_dictionaryWithDecimal", test_serialize_dictionaryWithDecimal),
             ("test_serializeDecimalNumberJSONObject", test_serializeDecimalNumberJSONObject),
             ("test_serializeSortedKeys", test_serializeSortedKeys),
-            ("test_colonPrettyPrintingMatchesDarwin", test_colonPrettyPrintingMatchesDarwin),
+            ("test_serializePrettyPrinted", test_serializePrettyPrinted),
         ]
     }
 
@@ -1480,7 +1480,7 @@ extension TestJSONSerialization {
         XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
     }
 
-    func test_colonPrettyPrintingMatchesDarwin() {
+    func test_serializePrettyPrinted() {
         let dictionary = ["key": 4]
         XCTAssertEqual(try trySerialize(dictionary, options: .prettyPrinted), "{\n  \"key\" : 4\n}")
     }
