@@ -1301,7 +1301,7 @@ CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
     return (CFTypeRef)pthread_getspecific(key);
 }
 
-void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     if (value != NULL) {
         swift_retain((void *)value);
         pthread_setspecific(key, value);
