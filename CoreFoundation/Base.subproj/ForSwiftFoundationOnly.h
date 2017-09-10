@@ -301,7 +301,7 @@ CF_EXPORT CFHashCode __CFHashDouble(double d);
 
 typedef pthread_key_t _CFThreadSpecificKey;
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
-CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
+CF_EXPORT void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
 CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 
 typedef pthread_attr_t _CFThreadAttributes;
