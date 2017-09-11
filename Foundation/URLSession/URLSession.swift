@@ -192,7 +192,6 @@ public let NSURLSessionTransferSizeUnknown: Int64 = -1
 open class URLSession : NSObject {
     fileprivate let _configuration: _Configuration
     fileprivate let multiHandle: _MultiHandle
-    fileprivate let taskIdentifierLock = NSLock()
     fileprivate var nextTaskIdentifier = 1
     internal let workQueue: DispatchQueue 
     /// This queue is used to make public attributes on `URLSessionTask` instances thread safe.
@@ -407,7 +406,7 @@ extension URLSession._Request {
 
 fileprivate extension URLSession {
     func createNextTaskIdentifier() -> Int {
-        return taskIdentifierLock.synchronized {
+        return workQueue.sync {
             let i = nextTaskIdentifier
             nextTaskIdentifier += 1
             return i
