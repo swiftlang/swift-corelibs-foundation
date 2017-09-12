@@ -38,6 +38,8 @@ class TestAffineTransform : XCTestCase {
             ("test_AppendTransform", test_AppendTransform),
             ("test_PrependTransform", test_PrependTransform),
             ("test_TransformComposition", test_TransformComposition),
+            ("test_hashing_identity", test_hashing_identity),
+            ("test_hashing_values", test_hashing_values),
             ("test_Equal", test_Equal),
             ("test_NSCoding", test_NSCoding),
         ]
