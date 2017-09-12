@@ -460,6 +460,12 @@ open class NSNumber : NSValue {
         CFNumberGetValue(_cfObject, kCFNumberSInt128Type, &value)
         return .init(truncatingIfNeeded: value.low)
     }
+
+    private var int128Value: CFSInt128Struct {
+        var value = CFSInt128Struct(high: 0, low: 0)
+        CFNumberGetValue(_cfObject, kCFNumberSInt128Type, &value)
+        return value
+    }
     
     open var floatValue: Float {
         var value: Float = 0
@@ -516,22 +522,26 @@ open class NSNumber : NSValue {
     }
 
     open func compare(_ otherNumber: NSNumber) -> ComparisonResult {
-        switch (objCType.pointee, otherNumber.objCType.pointee) {
-        case (0x66, _), (_, 0x66), (0x66, 0x66): fallthrough // 'f' float
-        case (0x64, _), (_, 0x64), (0x64, 0x64):             // 'd' double
+        switch (_cfNumberType(), otherNumber._cfNumberType()) {
+        case (kCFNumberFloatType, _), (_, kCFNumberFloatType): fallthrough
+        case (kCFNumberDoubleType, _), (_, kCFNumberDoubleType):
             let (lhs, rhs) = (doubleValue, otherNumber.doubleValue)
+            // Apply special handling for NaN as <, >, == always return false
+            // when comparing with NaN
+            if lhs.isNaN && rhs.isNaN { return .orderedSame }
+            if lhs.isNaN { return .orderedAscending }
+            if rhs.isNaN { return .orderedDescending }
+
             if lhs < rhs { return .orderedAscending }
             if lhs > rhs { return .orderedDescending }
             return .orderedSame
-        case (0x51, _), (_, 0x51), (0x51, 0x51):             // 'q' unsigned long long
-            let (lhs, rhs) = (uint64Value, otherNumber.uint64Value)
-            if lhs < rhs { return .orderedAscending }
-            if lhs > rhs { return .orderedDescending }
-            return .orderedSame
-        case (_, _):
-            let (lhs, rhs) = (int64Value, otherNumber.int64Value)
-            if lhs < rhs { return .orderedAscending }
-            if lhs > rhs { return .orderedDescending }
+
+        default: // For signed and unsigned integers expand upto S128Int
+            let (lhs, rhs) = (int128Value, otherNumber.int128Value)
+            if lhs.high < rhs.high { return .orderedAscending }
+            if lhs.high > rhs.high { return .orderedDescending }
+            if lhs.low < rhs.low { return .orderedAscending }
+            if lhs.low > rhs.low { return .orderedDescending }
             return .orderedSame
         }
     }
