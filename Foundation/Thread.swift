@@ -23,13 +23,13 @@ internal class NSThreadSpecific<T: NSObject> {
             return specific as! T
         } else {
             let value = generator()
-            _CThreadSpecificSet(key, value)
+            _CFThreadSpecificSet(key, value)
             return value
         }
     }
 
     internal func set(_ value: T) {
-        _CThreadSpecificSet(key, value)
+        _CFThreadSpecificSet(key, value)
     }
 }
 
