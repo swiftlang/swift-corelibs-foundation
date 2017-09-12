@@ -338,6 +338,10 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
         return other === self
             || (other.transformStruct == self.transformStruct)
     }
+
+    open override var hashValue: Int {
+        return transformStruct.hashValue
+    }
     
     public static var supportsSecureCoding: Bool {
         return true
