@@ -159,6 +159,9 @@ class TestFileManager : XCTestCase {
             let fileModificationDate = attrs[.modificationDate] as? Date
             XCTAssertGreaterThan(Date().timeIntervalSince1970, fileModificationDate!.timeIntervalSince1970)
             
+            let fileCreationDate = attrs[.creationDate] as? Date
+            XCTAssertGreaterThan(Date().timeIntervalSince1970, fileCreationDate!.timeIntervalSince1970)
+
             let filePosixPermissions = attrs[.posixPermissions] as? NSNumber
             XCTAssertNotEqual(filePosixPermissions!.int64Value, 0)
             
