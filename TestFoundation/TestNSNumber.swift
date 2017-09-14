@@ -1133,5 +1133,29 @@ class TestNSNumber : XCTestCase {
         XCTAssertTrue(NSNumber(value: UInt16.min) == NSNumber(value: Float(0)))
         XCTAssertTrue(NSNumber(value: UInt16.max) == NSNumber(value: Double(65535)))
         XCTAssertTrue(NSNumber(value: 1.1) != NSNumber(value: Int64(1)))
+        let num = NSNumber(value: Int8.min)
+        XCTAssertFalse(num == NSNumber(value: num.uint64Value))
+
+        let num1 = NSNumber(value: Float.nan)
+        XCTAssertEqual(num1.compare(num1), ComparisonResult.orderedSame)
+
+        let num2 = NSNumber(value: num1.uint8Value) // 0
+        XCTAssertFalse(num1 == num2)
+        XCTAssertFalse(num2 == num1)
+        XCTAssertEqual(num1.compare(num2), ComparisonResult.orderedAscending)
+        XCTAssertEqual(num2.compare(num1), ComparisonResult.orderedDescending)
+
+        let num3 = NSNumber(value: Double.nan)
+        XCTAssertEqual(num3.compare(num3), ComparisonResult.orderedSame)
+
+        let num4 = NSNumber(value: num3.intValue) // 0
+        XCTAssertFalse(num3 == num2)
+        XCTAssertFalse(num4 == num3)
+        XCTAssertEqual(num3.compare(num4), ComparisonResult.orderedAscending)
+        XCTAssertEqual(num4.compare(num3), ComparisonResult.orderedDescending)
+
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).compare(NSNumber(value: 0)), ComparisonResult.orderedDescending)
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).compare(NSNumber(value: 0)), ComparisonResult.orderedDescending)
+        XCTAssertTrue(NSNumber(value: Double(-0.0)) == NSNumber(value: Double(0.0)))
     }
 }
