@@ -406,9 +406,11 @@ extension URLSession._Request {
 
 fileprivate extension URLSession {
     func createNextTaskIdentifier() -> Int {
-        let i = nextTaskIdentifier
-        nextTaskIdentifier += 1
-        return i
+        return workQueue.sync {
+            let i = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            return i
+        }
     }
 }
 
