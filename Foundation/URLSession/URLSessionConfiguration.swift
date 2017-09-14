@@ -209,4 +209,22 @@ open class URLSessionConfiguration : NSObject, NSCopying {
      */
      open var protocolClasses: [AnyClass]?
 
+     /* A Boolean value that indicates whether the session should wait for connectivity to become available, or fail immediately */
+     @available(*, unavailable, message: "Not available on non-Darwin platforms")
+     open var waitsForConnectivity: Bool { NSUnsupported() }
+
+     /* A service type that specifies the Multipath TCP connection policy for transmitting data over Wi-Fi and cellular interfaces*/
+     @available(*, unavailable, message: "Not available on non-Darwin platforms")
+     open var multipathServiceType: URLSessionConfiguration.MultipathServiceType { NSUnsupported() }
+
+}
+
+@available(*, unavailable, message: "Not available on non-Darwin platforms")
+extension URLSessionConfiguration {
+    public enum MultipathServiceType {
+        case none
+        case handover
+        case interactive
+        case aggregate
+    }
 }
