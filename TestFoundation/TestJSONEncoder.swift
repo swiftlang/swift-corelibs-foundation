@@ -446,8 +446,8 @@ class TestJSONEncoder : XCTestCase {
                                    outputFormatting: JSONEncoder.OutputFormatting = [],
                                    dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate,
                                    dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
-                                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64Encode,
-                                   dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64Decode,
+                                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64,
+                                   dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64,
                                    nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw,
                                    nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw) where T : Codable, T : Equatable {
         var payload: Data! = nil

@@ -65,7 +65,7 @@ open class JSONEncoder {
     /// The strategy to use for encoding `Data` values.
     public enum DataEncodingStrategy {
         /// Encoded the `Data` as a Base64-encoded string. This is the default strategy.
-        case base64Encode
+        case base64
 
         /// Encode the `Data` as a custom value encoded by the given closure.
         ///
@@ -88,8 +88,8 @@ open class JSONEncoder {
     /// The strategy to use in encoding dates. Defaults to `.deferredToDate`.
     open var dateEncodingStrategy: DateEncodingStrategy = .deferredToDate
 
-    /// The strategy to use in encoding binary data. Defaults to `.base64Encode`.
-    open var dataEncodingStrategy: DataEncodingStrategy = .base64Encode
+    /// The strategy to use in encoding binary data. Defaults to `.base64`.
+    open var dataEncodingStrategy: DataEncodingStrategy = .base64
 
     /// The strategy to use in encoding non-conforming numbers. Defaults to `.throw`.
     open var nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy = .throw
@@ -672,7 +672,7 @@ extension _JSONEncoder {
 
     fileprivate func box(_ data: Data) throws -> NSObject {
         switch self.options.dataEncodingStrategy {
-        case .base64Encode:
+        case .base64:
             return NSString(string: data.base64EncodedString())
 
         case .custom(let closure):
@@ -827,7 +827,7 @@ open class JSONDecoder {
     /// The strategy to use for decoding `Data` values.
     public enum DataDecodingStrategy {
         /// Decode the `Data` from a Base64-encoded string. This is the default strategy.
-        case base64Decode
+        case base64
 
         /// Decode the `Data` as a custom value decoded by the given closure.
         case custom((_ decoder: Decoder) throws -> Data)
@@ -845,8 +845,8 @@ open class JSONDecoder {
     /// The strategy to use in decoding dates. Defaults to `.deferredToDate`.
     open var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
 
-    /// The strategy to use in decoding binary data. Defaults to `.base64Decode`.
-    open var dataDecodingStrategy: DataDecodingStrategy = .base64Decode
+    /// The strategy to use in decoding binary data. Defaults to `.base64`.
+    open var dataDecodingStrategy: DataDecodingStrategy = .base64
 
     /// The strategy to use in decoding non-conforming numbers. Defaults to `.throw`.
     open var nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy = .throw
@@ -2042,7 +2042,7 @@ extension _JSONDecoder {
         guard !(value is NSNull) else { return nil }
 
         switch self.options.dataDecodingStrategy {
-        case .base64Decode:
+        case .base64:
             guard let string = value as? String else {
                 throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
             }
