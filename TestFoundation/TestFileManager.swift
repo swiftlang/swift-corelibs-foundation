@@ -53,10 +53,10 @@ class TestFileManager : XCTestCase {
         // Ensure attempting to create the directory again fails gracefully.
         XCTAssertNil(try? fm.createDirectory(atPath: path, withIntermediateDirectories:false, attributes:nil))
 
-        var isDir = false
+        var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
         XCTAssertTrue(exists)
-        XCTAssertTrue(isDir)
+        XCTAssertTrue(isDir.boolValue)
 
         do {
             try fm.removeItem(atPath: path)
@@ -74,10 +74,10 @@ class TestFileManager : XCTestCase {
         
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
-        var isDir = false
+        var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
         XCTAssertTrue(exists)
-        XCTAssertFalse(isDir)
+        XCTAssertFalse(isDir.boolValue)
         
         do {
             try fm.removeItem(atPath: path)
@@ -467,9 +467,9 @@ class TestFileManager : XCTestCase {
         }
         
         func directoryExists(atPath path: String) -> Bool {
-            var isDir = false
+            var isDir: ObjCBool = false
             let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
-            return exists && isDir
+            return exists && isDir.boolValue
         }
         
         func createDirectory(atPath path: String) {

@@ -238,7 +238,7 @@ class TestHTTPCookieStorage: XCTestCase {
             destPath = NSHomeDirectory() + "/.local/share" + bundleName + "/.cookies.shared"
         }
         let fm = FileManager.default
-        var isDir = false
+        var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)
         XCTAssertTrue(exists)
         //Test by setting the environmental variable

@@ -115,7 +115,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
                 attributesInRange = attributes(at: currentIndex, longestEffectiveRange: &attributesEffectiveRange, in: enumerationRange)
             }
             
-            var shouldStop = false
+            var shouldStop: ObjCBool = false
             block(attributesInRange, attributesEffectiveRange, &shouldStop)
             stop.pointee = shouldStop
             
@@ -133,7 +133,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
                 attributeInRange = attribute(attrName, at: currentIndex, longestEffectiveRange: &attributeEffectiveRange, in: enumerationRange)
             }
             
-            var shouldStop = false
+            var shouldStop: ObjCBool = false
             block(attributeInRange, attributeEffectiveRange, &shouldStop)
             stop.pointee = shouldStop
             
@@ -232,10 +232,10 @@ private extension NSAttributedString {
     func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
         var attributeEnumerationRange = AttributeEnumerationRange(range: enumerationRange, reversed: reversed)
         while attributeEnumerationRange.hasMore {
-            var stop = false
+            var stop: ObjCBool = false
             let effectiveRange = block(attributeEnumerationRange.currentIndex, &stop)
             attributeEnumerationRange.advance(step: effectiveRange.length)
-            if stop {
+            if stop.boolValue {
                 break
             }
         }
