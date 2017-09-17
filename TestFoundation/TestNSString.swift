@@ -265,21 +265,21 @@ class TestNSString : XCTestCase {
 
     func test_FromNullTerminatedCStringInASCII() {
         let bytes = mockASCIIStringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.ascii.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.ascii.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromNullTerminatedCStringInUTF8() {
         let bytes = mockUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedNullTerminatedCStringInUTF8() {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
     }
 

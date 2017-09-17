@@ -1221,18 +1221,6 @@ extension NSString {
             free(bytes)
         }
     }
-    
-    public convenience init?(CString nullTerminatedCString: UnsafePointer<Int8>, encoding: UInt) {
-        guard let cf = CFStringCreateWithCString(kCFAllocatorSystemDefault, nullTerminatedCString, CFStringConvertNSStringEncodingToEncoding(encoding)) else {
-            return nil
-        }
-        var str: String?
-        if String._conditionallyBridgeFromObjectiveC(cf._nsObject, result: &str) {
-            self.init(str!)
-        } else {
-            return nil
-        }
-    }
 
     public convenience init(contentsOf url: URL, encoding enc: UInt) throws {
         let readResult = try NSData(contentsOf: url, options: [])
