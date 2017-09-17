@@ -16,14 +16,18 @@ import Dispatch
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
-    import Glibc
     import XCTest
 #else
-    import CoreFoundation
     import SwiftFoundation
-    import Darwin
     import SwiftXCTest
 #endif
+
+#if os(OSX) || os(iOS)
+    import Darwin
+#elseif os(Linux)
+    import Glibc
+#endif
+
 
 public let globalDispatchQueue = DispatchQueue.global()
 public let dispatchQueueMake: (String) -> DispatchQueue = { DispatchQueue.init(label: $0) }
@@ -97,10 +101,11 @@ class _TCPSocket {
         // Listen on the loopback address so that OSX doesnt pop up a dialog
         // asking to accept incoming connections if the firewall is enabled.
         let addr = UInt32(INADDR_LOOPBACK).bigEndian
+        let netPort = UInt16(bigEndian: port ?? 0)
         #if os(Linux)
-            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port ?? 0), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #else
-            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port ?? 0), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #endif
     }
 
