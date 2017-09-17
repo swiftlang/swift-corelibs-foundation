@@ -29,8 +29,8 @@ class TestNSArray : XCTestCase {
             ("test_objectAtIndex", test_objectAtIndex),
             ("test_binarySearch", test_binarySearch),
             ("test_binarySearchFringeCases", test_binarySearchFringeCases),
-            ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
-            ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_replaceObjectsInRange_withObjectsFrom", test_replaceObjectsInRange_withObjectsFrom),
+            ("test_replaceObjectsInRange_withObjectsFrom_range", test_replaceObjectsInRange_withObjectsFrom_range),
             ("test_replaceObjectAtIndex", test_replaceObjectAtIndex),
             ("test_removeObjectsInArray", test_removeObjectsInArray),
             ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
@@ -174,7 +174,7 @@ class TestNSArray : XCTestCase {
             NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
             NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
         let array = NSMutableArray(array: numbers)
-        array.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
+        array.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFrom: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
         XCTAssertTrue((array[0] as! NSNumber).intValue == 8)
         XCTAssertTrue((array[1] as! NSNumber).intValue == 9)
         XCTAssertTrue((array[2] as! NSNumber).intValue == 2)
@@ -278,7 +278,7 @@ class TestNSArray : XCTestCase {
         return .orderedDescending
     }
     
-    func test_replaceObjectsInRange_withObjectsFromArray() {
+    func test_replaceObjectsInRange_withObjectsFrom() {
         let array1 = NSMutableArray(array:[
             "foo1",
             "bar1",
@@ -289,7 +289,7 @@ class TestNSArray : XCTestCase {
             "bar2",
             "baz2"]
         
-        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFromArray: array2)
+        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFrom: array2)
         
         XCTAssertEqual(array1[0] as? String, "foo2", "Expected foo2 but was \(array1[0])")
         XCTAssertEqual(array1[1] as? String, "bar2", "Expected bar2 but was \(array1[1])")
@@ -297,7 +297,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array1[3] as? String, "baz1", "Expected baz1 but was \(array1[3])")
     }
     
-    func test_replaceObjectsInRange_withObjectsFromArray_range() {
+    func test_replaceObjectsInRange_withObjectsFrom_range() {
         let array1 = NSMutableArray(array:[
             "foo1",
             "bar1",
@@ -398,7 +398,7 @@ class TestNSArray : XCTestCase {
             let r = right as! String
             return l.localizedCaseInsensitiveCompare(r)
         }
-        mutableStringsInput1.sort(comparator)
+        mutableStringsInput1.sort(comparator: comparator)
         mutableStringsInput2.sort(options: [], usingComparator: comparator)
         XCTAssertTrue(mutableStringsInput1.isEqual(to: Array(mutableStringsInput2)))
     }

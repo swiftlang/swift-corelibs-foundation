@@ -715,7 +715,7 @@ open class NSMutableArray : NSArray {
         }
     }
     
-    open func addObjectsFromArray(_ otherArray: [Any]) {
+    open func addObjects(from otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
             _storage += otherArray.map { _SwiftValue.store($0) as AnyObject }
         } else {
@@ -794,10 +794,10 @@ open class NSMutableArray : NSArray {
     open func replaceObjects(in range: NSRange, withObjectsFrom otherArray: [Any], range otherRange: NSRange) {
         var list = [Any]()
         otherArray._bridgeToObjectiveC().getObjects(&list, range:otherRange)
-        replaceObjects(in: range, withObjectsFromArray:list)
+        replaceObjects(in: range, withObjectsFrom: list)
     }
     
-    open func replaceObjects(in range: NSRange, withObjectsFromArray otherArray: [Any]) {
+    open func replaceObjects(in range: NSRange, withObjectsFrom otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
             for idx in 0..<range.length {
@@ -815,7 +815,7 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage = otherArray.map { _SwiftValue.store($0) }
         } else {
-            replaceObjects(in: NSMakeRange(0, count), withObjectsFromArray: otherArray)
+            replaceObjects(in: NSMakeRange(0, count), withObjectsFrom: otherArray)
         }
     }
     
@@ -844,7 +844,7 @@ open class NSMutableArray : NSArray {
         for countedRange in indexes.rangeView {
             let range = NSMakeRange(countedRange.lowerBound, countedRange.upperBound - countedRange.lowerBound)
             let subObjects = objects[objectIndex..<objectIndex + range.length]
-            self.replaceObjects(in: range, withObjectsFromArray: Array(subObjects))
+            self.replaceObjects(in: range, withObjectsFrom: Array(subObjects))
             objectIndex += range.length
         }
     }
@@ -853,8 +853,8 @@ open class NSMutableArray : NSArray {
         self.setArray(self.sortedArray(compare, context: context))
     }
 
-    open func sort(_ cmptr: Comparator) {
-        self.sort(options: [], usingComparator: cmptr)
+    open func sort(comparator: Comparator) {
+        self.sort(options: [], usingComparator: comparator)
     }
 
     open func sort(options opts: NSSortOptions, usingComparator cmptr: Comparator) {
