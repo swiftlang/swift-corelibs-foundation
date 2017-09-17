@@ -86,7 +86,7 @@ open class NSKeyedUnarchiver : NSCoder {
         return root
     }
     
-    public convenience init(forReadingWithData data: Data) {
+    public convenience init(forReadingWith data: Data) {
         self.init(stream: Stream.data(data))
     }
     
@@ -863,7 +863,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
 
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
-        let keyedUnarchiver = NSKeyedUnarchiver(forReadingWithData: data)
+        let keyedUnarchiver = NSKeyedUnarchiver(forReadingWith: data)
         let root = try keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
         keyedUnarchiver.finishDecoding()
         return root
