@@ -10,12 +10,17 @@
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
 import Foundation
 import XCTest
-import Glibc
 #else
 import SwiftFoundation
 import SwiftXCTest
-import Darwin
 #endif
+
+#if os(OSX) || os(iOS)
+    import Darwin
+#elseif os(Linux)
+    import Glibc
+#endif
+
 
 internal func testBundle() -> Bundle {
     return Bundle.main

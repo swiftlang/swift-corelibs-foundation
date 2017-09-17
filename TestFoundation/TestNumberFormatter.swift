@@ -14,7 +14,6 @@
     import SwiftFoundation
     import SwiftXCTest
 #endif
-import CoreFoundation
 
 class TestNumberFormatter: XCTestCase {
 
