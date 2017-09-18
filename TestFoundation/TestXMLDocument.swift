@@ -17,7 +17,6 @@
     import SwiftXCTest
 #endif
 
-import CoreFoundation
 
 class TestXMLDocument : XCTestCase {
 
