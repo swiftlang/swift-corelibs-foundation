@@ -45,37 +45,39 @@ open class UserDefaults: NSObject {
         //Force the returned value to an NSObject
         switch CFGetTypeID(anObj) {
         case CFStringGetTypeID():
-            return (anObj as! CFString)._nsObject
+            return unsafeBitCast(anObj, to: NSString.self)
             
         case CFNumberGetTypeID():
-            return (anObj as! CFNumber)._nsObject
+            return unsafeBitCast(anObj, to: NSNumber.self)
             
         case CFURLGetTypeID():
-            return (anObj as! CFURL)._nsObject
+            return unsafeBitCast(anObj, to: NSURL.self)
             
         case CFArrayGetTypeID():
-            return (anObj as! CFArray)._nsObject
+            return unsafeBitCast(anObj, to: NSArray.self)
             
         case CFDictionaryGetTypeID():
-            return (anObj as! CFDictionary)._nsObject
-
+            return unsafeBitCast(anObj, to: NSDictionary.self)
+            
         case CFDataGetTypeID():
-            return (anObj as! CFData)._nsObject
+            return unsafeBitCast(anObj, to: NSData.self)
             
         default:
             return getFromRegistered()
         }
     }
+
     open func set(_ value: Any?, forKey defaultName: String) {
         guard let value = value else {
             CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
             return
         }
         
-        var cfType: CFTypeRef? = nil
+        let cfType: CFTypeRef
 		
-		//FIXME: is this needed? Am I overcomplicating things?
-        //Foundation types
+		// Convert the input value to the internal representation. All values are
+        // represented as CFTypeRef objects internally because we store the defaults
+        // in a CFPreferences type.
         if let bType = value as? NSNumber {
             cfType = bType._cfObject
         } else if let bType = value as? NSString {
@@ -84,11 +86,26 @@ open class UserDefaults: NSObject {
             cfType = bType._cfObject
         } else if let bType = value as? NSDictionary {
             cfType = bType._cfObject
+        } else if let bType = value as? NSData {
+            cfType = bType._cfObject
+        } else if let bType = value as? NSURL {
+            set(URL(reference: bType), forKey: defaultName)
+            return
+        } else if let bType = value as? String {
+            cfType = bType._cfObject
         } else if let bType = value as? URL {
 			set(bType, forKey: defaultName)
 			return
+        } else if let bType = value as? Int {
+            var cfValue = Int64(bType)
+            cfType = CFNumberCreate(nil, kCFNumberSInt64Type, &cfValue)
+        } else if let bType = value as? Double {
+            var cfValue = bType
+            cfType = CFNumberCreate(nil, kCFNumberDoubleType, &cfValue)
         } else if let bType = value as? Data {
             cfType = bType._cfObject
+        } else {
+            fatalError("The type of 'value' passed to UserDefaults.set(forKey:) is not supported.")
         }
         
         CFPreferencesSetAppValue(defaultName._cfObject, cfType, suite?._cfObject ?? kCFPreferencesCurrentApplication)
@@ -140,10 +157,10 @@ open class UserDefaults: NSObject {
     }
     open func data(forKey defaultName: String) -> Data? {
         guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? Data else {
+              let bVal = aVal as? NSData else {
             return nil
         }
-        return bVal
+        return Data(referencing: bVal)
     }
     open func stringArray(forKey defaultName: String) -> [String]? {
         guard let aVal = object(forKey: defaultName),
@@ -153,39 +170,61 @@ open class UserDefaults: NSObject {
         return _SwiftValue.fetch(nonOptional: bVal) as? [String]
     }
     open func integer(forKey defaultName: String) -> Int {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSNumber else {
+        guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        return bVal.intValue
+        if let bVal = aVal as? NSNumber {
+            return bVal.intValue
+        }
+        if let bVal = aVal as? NSString {
+            return bVal.integerValue
+        }
+        return 0
     }
     open func float(forKey defaultName: String) -> Float {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSNumber else {
+        guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        return bVal.floatValue
+        if let bVal = aVal as? NSNumber {
+            return bVal.floatValue
+        }
+        if let bVal = aVal as? NSString {
+            return bVal.floatValue
+        }
+        return 0
     }
     open func double(forKey defaultName: String) -> Double {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSNumber else {
+        guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        return bVal.doubleValue
+        if let bVal = aVal as? NSNumber {
+            return bVal.doubleValue
+        }
+        if let bVal = aVal as? NSString {
+            return bVal.doubleValue
+        }
+        return 0
     }
     open func bool(forKey defaultName: String) -> Bool {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSNumber else {
+        guard let aVal = object(forKey: defaultName) else {
             return false
         }
-        return bVal.boolValue
+        if let bVal = aVal as? NSNumber {
+            return bVal.boolValue
+        }
+        if let bVal = aVal as? NSString {
+            return bVal.boolValue
+        }
+        return false
     }
     open func url(forKey defaultName: String) -> URL? {
         guard let aVal = object(forKey: defaultName) else {
             return nil
         }
         
-        if let bVal = aVal as? NSString {
+        if let bVal = aVal as? NSURL {
+            return URL(reference: bVal)
+        } else if let bVal = aVal as? NSString {
             let cVal = bVal.expandingTildeInPath
             
             return URL(fileURLWithPath: cVal)
@@ -227,10 +266,32 @@ open class UserDefaults: NSObject {
     
     open func register(defaults registrationDictionary: [String : Any]) {
         for (key, value) in registrationDictionary {
-            registeredDefaults[key] = value
+            let nsValue: NSObject
+
+            // Converts a value to the internal representation. Internalized values are
+            // stored as NSObject derived objects in the registration dictionary.
+            if let val = value as? String {
+                nsValue = val._nsObject
+            } else if let val = value as? URL {
+                nsValue = val.path._nsObject
+            } else if let val = value as? Int {
+                nsValue = NSNumber(value: val)
+            } else if let val = value as? Double {
+                nsValue = NSNumber(value: val)
+            } else if let val = value as? Bool {
+                nsValue = NSNumber(value: val)
+            } else if let val = value as? Data {
+                nsValue = val._nsObject
+            } else if let val = value as? NSObject {
+                nsValue = val
+            } else {
+                fatalError("The type of 'value' passed to UserDefaults.register(defaults:) is not supported.")
+            }
+
+            registeredDefaults[key] = nsValue
         }
     }
-    
+
     open func addSuite(named suiteName: String) {
         CFPreferencesAddSuitePreferencesToApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
