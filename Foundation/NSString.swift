@@ -1248,33 +1248,37 @@ extension NSString {
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
         let readResult = try NSData(contentsOf: url, options:[])
 
-        var offset = 0
+        let encoding: UInt
+        let offset: Int
         let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
         if readResult.length >= 4 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE && bytePtr[2] == 0x00 && bytePtr[3] == 0x00 {
-            enc?.pointee = String.Encoding.utf32LittleEndian.rawValue
+            encoding = String.Encoding.utf32LittleEndian.rawValue
             offset = 4
         }
         else if readResult.length >= 2 && bytePtr[0] == 0xFE && bytePtr[1] == 0xFF {
-            enc?.pointee = String.Encoding.utf16BigEndian.rawValue
+            encoding = String.Encoding.utf16BigEndian.rawValue
             offset = 2
         }
         else if readResult.length >= 2 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE {
-            enc?.pointee = String.Encoding.utf16LittleEndian.rawValue
+            encoding = String.Encoding.utf16LittleEndian.rawValue
             offset = 2
         }
         else if readResult.length >= 4 && bytePtr[0] == 0x00 && bytePtr[1] == 0x00 && bytePtr[2] == 0xFE && bytePtr[3] == 0xFF {
-            enc?.pointee = String.Encoding.utf32BigEndian.rawValue
+            encoding = String.Encoding.utf32BigEndian.rawValue
             offset = 4
         }
         else {
             //Need to work on more conditions. This should be the default
-            enc?.pointee = String.Encoding.utf8.rawValue
+            encoding = String.Encoding.utf8.rawValue
+            offset = 0
         }
+
+        enc?.pointee = encoding
 
         // Since the encoding being passed includes the byte order the BOM wont be checked or skipped, so pass offset to
         // manually skip the BOM header.
-        guard let enc = enc, let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
-                                                              CFStringConvertNSStringEncodingToEncoding(enc.pointee), true) else {
+        guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
+                                               CFStringConvertNSStringEncodingToEncoding(encoding), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to create a string using the specified encoding."
                 ])
@@ -1286,11 +1290,11 @@ extension NSString {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
                 "NSDebugDescription" : "Unable to bridge CFString to String."
                 ])
-        }    
+        }
     }
     
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        NSUnimplemented()    
+        try self.init(contentsOf: URL(fileURLWithPath: path), usedEncoding: enc)
     }
 }
 
