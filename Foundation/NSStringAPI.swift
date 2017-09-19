@@ -759,6 +759,16 @@ extension StringProtocol where Index == String.Index {
     using encoding: String.Encoding,
     allowLossyConversion: Bool = false
   ) -> Data? {
+    let ephemeralString = _ephemeralString
+    if ephemeralString._core.isASCII {
+        switch encoding {
+                case .utf8: return Data(
+                    bytes: UnsafeRawPointer(ephemeralString._core.startASCII), count: ephemeralString._core.count)
+                default:  return _ns.data(
+                    using: encoding.rawValue,
+                    allowLossyConversion: allowLossyConversion)
+        }
+    }
     return _ns.data(
       using: encoding.rawValue,
       allowLossyConversion: allowLossyConversion)
