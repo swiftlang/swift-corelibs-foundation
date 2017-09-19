@@ -49,7 +49,7 @@ class TestByteCountFormatter : XCTestCase {
     
     func test_DefaultValues() {
         let formatter = ByteCountFormatter()
-        XCTAssertEqual(formatter.allowedUnits, ByteCountFormatter.Units.useDefault)
+        XCTAssertEqual(formatter.allowedUnits, [])
         XCTAssertEqual(formatter.countStyle, ByteCountFormatter.CountStyle.file)
         XCTAssertEqual(formatter.allowsNonnumericFormatting, true)
         XCTAssertEqual(formatter.includesUnit, true)
@@ -68,7 +68,7 @@ class TestByteCountFormatter : XCTestCase {
         formatter.allowedUnits = .useGB
         XCTAssertEqual(formatter.string(fromByteCount: 0), "Zero KB")
         
-        formatter.allowedUnits = .useDefault
+        formatter.allowedUnits = []
         formatter.allowsNonnumericFormatting = false
         XCTAssertEqual(formatter.string(fromByteCount: 0), "0 bytes")
         
@@ -91,7 +91,7 @@ class TestByteCountFormatter : XCTestCase {
         formatter.allowedUnits = .useGB
         XCTAssertEqual(formatter.string(fromByteCount: 1), "0 GB")
         
-        formatter.allowedUnits = .useDefault
+        formatter.allowedUnits = []
         formatter.isAdaptive = false
         XCTAssertEqual(formatter.string(fromByteCount: 1), "1 byte")
         
@@ -365,7 +365,7 @@ class TestByteCountFormatter : XCTestCase {
         XCTAssertEqual(formatter.string(fromByteCount: 11999), "12.0 KB")
         XCTAssertEqual(formatter.string(fromByteCount: 900000), "900 KB")
         XCTAssertEqual(formatter.string(fromByteCount: 12345678), "12.3 MB")
-        XCTAssertEqual(formatter.string(fromByteCount: 123456789), "123.5 MB")
+        XCTAssertEqual(formatter.string(fromByteCount: 123456789), "123 MB")
         XCTAssertEqual(formatter.string(fromByteCount: 1234567898), "1.23 GB")
         XCTAssertEqual(formatter.string(fromByteCount: 12345678987), "12.3 GB")
     }
