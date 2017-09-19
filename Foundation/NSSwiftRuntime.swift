@@ -26,6 +26,12 @@ import CoreFoundation
 
 public typealias ObjCBool = Bool
 
+public extension ObjCBool {
+    public var boolValue: Bool {
+        return self
+    }
+}
+
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
     
