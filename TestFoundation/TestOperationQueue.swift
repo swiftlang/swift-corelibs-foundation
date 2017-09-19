@@ -28,6 +28,7 @@ class TestOperationQueue : XCTestCase {
             ("test_MainQueueGetter", test_MainQueueGetter),
             ("test_CurrentQueueOnMainQueue", test_CurrentQueueOnMainQueue),
             ("test_CurrentQueueOnBackgroundQueue", test_CurrentQueueOnBackgroundQueue),
+            ("test_CurrentQueueOnBackgroundQueueWithSelfCancel", test_CurrentQueueOnBackgroundQueueWithSelfCancel),
             ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
         ]
@@ -135,6 +136,20 @@ class TestOperationQueue : XCTestCase {
         waitForExpectations(timeout: 1)
     }
     
+    func test_CurrentQueueOnBackgroundQueueWithSelfCancel() {
+        let operationQueue = OperationQueue()
+        operationQueue.maxConcurrentOperationCount = 1
+        let expectation = self.expectation(description: "Background execution")
+        operationQueue.addOperation {
+            XCTAssertEqual(operationQueue, OperationQueue.current)
+            expectation.fulfill()
+            // Canceling operation X from inside operation X should not cause the app to a crash
+            operationQueue.cancelAllOperations()
+        }
+        
+        waitForExpectations(timeout: 1)
+    }
+
     func test_CurrentQueueWithCustomUnderlyingQueue() {
         let expectation = self.expectation(description: "Background execution")
         
