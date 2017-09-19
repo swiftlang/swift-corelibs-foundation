@@ -13,8 +13,6 @@ extension ByteCountFormatter {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
-        // This causes default units appropriate for the platform to be used. Specifying any units explicitly causes just those units to be used in showing the number.
-        public static let useDefault = Units(rawValue: 0)
         //  Specifying any of the following causes the specified units to be used in showing the number.
         public static let useBytes = Units(rawValue: 1 << 0)
         public static let useKB = Units(rawValue: 1 << 1)
@@ -50,9 +48,9 @@ open class ByteCountFormatter : Formatter {
         NSUnimplemented()
     }
     
-    /* Specify the units that can be used in the output. If ByteCountFormatter.Units.useDefault, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
+    /* Specify the units that can be used in the output. If ByteCountFormatter.Units is empty, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).
      */
-    open var allowedUnits: Units = .useDefault
+    open var allowedUnits: Units = []
     
     /* Specify how the count is displayed by indicating the number of bytes to be used for kilobyte. The default setting is ByteCountFormatter.CountStyle.fileCount, which is the system specific value for file and storage sizes.
      */
@@ -127,52 +125,52 @@ open class ByteCountFormatter : Formatter {
      */
     private func convertValue(fromByteCount byteCount: Int64, for byteSize: [Unit: Double]) -> String {
         let byte = Double(byteCount)
-        if byte == 0, allowsNonnumericFormatting, allowedUnits == .useDefault, includesUnit, includesCount {
+        if byte == 0, allowsNonnumericFormatting, allowedUnits == [], includesUnit, includesCount {
             return partsToIncludeFor(value: "Zero", unit: Unit.KB)
         } else if byte == 1 || byte == -1 {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return formatNumberFor(bytes: byte, unit: Unit.byte)
             } else {
                 return valueToUseFor(byteCount: byte, unit: allowedUnits)
             }
         } else if  byte < byteSize[Unit.KB]! && byte > -byteSize[Unit.KB]!{
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return formatNumberFor(bytes: byte, unit: Unit.bytes)
             } else {
                 return valueToUseFor(byteCount: byte, unit: allowedUnits)
             }
         } else if byte < byteSize[Unit.MB]! && byte > -byteSize[Unit.MB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .KB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
         } else if byte < byteSize[Unit.GB]! && byte > -byteSize[Unit.GB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .MB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
         } else if byte < byteSize[Unit.TB]! && byte > -byteSize[Unit.TB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .GB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
         } else if byte < byteSize[Unit.PB]! && byte > -byteSize[Unit.PB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .TB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
         } else if byte < byteSize[Unit.EB]! && byte > -byteSize[Unit.EB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .PB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
             
         } else {
-            if allowedUnits.contains(.useAll) || allowedUnits == .useDefault {
+            if allowedUnits.contains(.useAll) || allowedUnits == [] {
                 return divide(byte, by: byteSize, for: .EB)
             }
             return valueToUseFor(byteCount: byte, unit: allowedUnits)
@@ -297,7 +295,7 @@ open class ByteCountFormatter : Formatter {
             } else {
                 if lengthOfInt(number: Int(bytes)) == 3 {
                     numberFormatter.usesSignificantDigits = false
-                    numberFormatter.maximumFractionDigits = 1
+                    numberFormatter.maximumFractionDigits = 0
                 } else {
                     numberFormatter.maximumSignificantDigits = 3
                     numberFormatter.minimumSignificantDigits = 3
@@ -376,7 +374,7 @@ open class ByteCountFormatter : Formatter {
         } else if includesCount, includesUnit {
             return "\(value) \(unit)"
         } else if includesCount, !includesUnit {
-            if value == "Zero", allowedUnits == .useDefault {
+            if value == "Zero", allowedUnits == [] {
                 return "0"
             } else {
                 return value
