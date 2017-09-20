@@ -508,6 +508,8 @@ class TestNSData: XCTestCase {
             ("test_sliceHash", test_sliceHash),
             ("test_slice_resize_growth", test_slice_resize_growth),
 //            ("test_sliceEnumeration", test_sliceEnumeration),
+            ("test_sliceInsertion", test_sliceInsertion),
+            ("test_sliceDeletion", test_sliceDeletion),
         ]
     }
     
@@ -3952,5 +3954,31 @@ extension TestNSData {
         XCTAssertEqual(Data(bytes: [0]), regionData[2]) //fails
     }
  */
+    
+    func test_sliceInsertion() {
+        // https://bugs.swift.org/browse/SR-5810
+        let baseData = Data([0, 1, 2, 3, 4, 5])
+        var sliceData = baseData[2..<4]
+        let sliceDataEndIndexBeforeInsertion = sliceData.endIndex
+        let elementToInsert: UInt8 = 0x07
+        sliceData.insert(elementToInsert, at: sliceData.startIndex)
+        XCTAssertEqual(sliceData.first, elementToInsert)
+        XCTAssertEqual(sliceData.startIndex, 2)
+        XCTAssertEqual(sliceDataEndIndexBeforeInsertion, 4)
+        XCTAssertEqual(sliceData.endIndex, sliceDataEndIndexBeforeInsertion + 1)
+    }
+    
+    func test_sliceDeletion() {
+        // https://bugs.swift.org/browse/SR-5810
+        let baseData = Data([0, 1, 2, 3, 4, 5, 6, 7])
+        let sliceData = baseData[2..<6]
+        var mutableSliceData = sliceData
+        let numberOfElementsToDelete = 2
+        let subrangeToDelete = mutableSliceData.startIndex..<mutableSliceData.startIndex.advanced(by: numberOfElementsToDelete)
+        mutableSliceData.removeSubrange(subrangeToDelete)
+        XCTAssertEqual(sliceData[sliceData.startIndex + numberOfElementsToDelete], mutableSliceData.first)
+        XCTAssertEqual(mutableSliceData.startIndex, 2)
+        XCTAssertEqual(mutableSliceData.endIndex, sliceData.endIndex - numberOfElementsToDelete)
+    }
 }
 
