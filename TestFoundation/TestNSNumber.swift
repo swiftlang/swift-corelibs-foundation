@@ -1091,8 +1091,8 @@ class TestNSNumber : XCTestCase {
 
     func test_Equals() {
         // Booleans: false only equals 0, true only equals 1
-        XCTAssertTrue(NSNumber(value: true) == NSNumber(value: true))
-        XCTAssertTrue(NSNumber(value: true) == NSNumber(value: 1))
+        XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Bool(true)))
+        XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Int(1)))
         XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Float(1)))
         XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Double(1)))
         XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Int8(1)))
@@ -1102,8 +1102,8 @@ class TestNSNumber : XCTestCase {
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Double(1234.56)))
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: 2))
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Int.max))
-        XCTAssertTrue(NSNumber(value: false) == NSNumber(value: false))
-        XCTAssertTrue(NSNumber(value: false) == NSNumber(value: 0))
+        XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Bool(false)))
+        XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Int(0)))
         XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Float(0)))
         XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Double(0)))
         XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Int8(0)))
