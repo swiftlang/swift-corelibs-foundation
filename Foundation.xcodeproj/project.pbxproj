@@ -21,6 +21,7 @@
 		528776141BF2629700CB0090 /* FoundationErrors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 522C253A1BF16E1600804FC6 /* FoundationErrors.swift */; };
 		528776191BF27D9500CB0090 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = 528776181BF27D9500CB0090 /* Test.plist */; };
 		555683BD1C1250E70041D4C6 /* TestUserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555683BC1C1250E70041D4C6 /* TestUserDefaults.swift */; };
+		559451EC1F706BFA002807FB /* CFXMLPreferencesDomain.c in Sources */ = {isa = PBXBuildFile; fileRef = 559451EA1F706BF5002807FB /* CFXMLPreferencesDomain.c */; };
 		5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0163BA1D024EB7003CCD96 /* DateComponents.swift */; };
 		5B13B3251C582D4700651CE2 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA66F6381BF1619600136161 /* main.swift */; };
 		5B13B3261C582D4C00651CE2 /* TestAffineTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */; };
@@ -504,6 +505,7 @@
 		52829AD61C160D64003BC4EF /* TestCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCalendar.swift; sourceTree = "<group>"; };
 		528776181BF27D9500CB0090 /* Test.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Test.plist; sourceTree = "<group>"; };
 		555683BC1C1250E70041D4C6 /* TestUserDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUserDefaults.swift; sourceTree = "<group>"; usesTabs = 1; };
+		559451EA1F706BF5002807FB /* CFXMLPreferencesDomain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFXMLPreferencesDomain.c; sourceTree = "<group>"; };
 		5B0163BA1D024EB7003CCD96 /* DateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateComponents.swift; sourceTree = "<group>"; };
 		5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRegularExpression.swift; sourceTree = "<group>"; };
 		5B1FD9C11D6D160F0080E83C /* CFURLSessionInterface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLSessionInterface.c; sourceTree = "<group>"; };
@@ -1034,6 +1036,7 @@
 			isa = PBXGroup;
 			children = (
 				5B5D886A1BBC948300234F36 /* CFApplicationPreferences.c */,
+				559451EA1F706BF5002807FB /* CFXMLPreferencesDomain.c */,
 				5B5D898B1BBDBF6500234F36 /* CFPreferences.c */,
 				5B5D886C1BBC94C400234F36 /* CFPreferences.h */,
 			);
@@ -2027,7 +2030,7 @@
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
 						CreatedOnToolsVersion = 7.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0900;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
@@ -2306,6 +2309,7 @@
 				5B7C8A8B1BEA7FE200C5B690 /* CFBigNumber.c in Sources */,
 				5B7C8A7D1BEA7FCE00C5B690 /* CFBinaryHeap.c in Sources */,
 				5B7C8A7E1BEA7FCE00C5B690 /* CFBitVector.c in Sources */,
+				559451EC1F706BFA002807FB /* CFXMLPreferencesDomain.c in Sources */,
 				5B7C8A8F1BEA7FEC00C5B690 /* CFBinaryPList.c in Sources */,
 				5B7C8A911BEA7FEC00C5B690 /* CFPropertyList.c in Sources */,
 				5B7C8AB41BEA801700C5B690 /* CFStringEncodingDatabase.c in Sources */,

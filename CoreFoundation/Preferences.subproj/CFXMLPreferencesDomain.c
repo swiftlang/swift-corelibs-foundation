@@ -16,10 +16,12 @@
 #include <CoreFoundation/CFDate.h>
 #include "CFInternal.h"
 #include <time.h>
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#endif
+#if DEPLOYMENT_TARGET_MACOSX
 #include <mach/mach.h>
 #include <mach/mach_syscalls.h>
 #endif
@@ -102,7 +104,7 @@ static Boolean _createDirectory(CFURLRef dirURL, Boolean worldReadable) {
     if (parentURL) CFRelease(parentURL);
     if (!parentExists) return false;
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
     mode = worldReadable ? S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH : S_IRWXU;
 #else
     mode = 0666;
@@ -306,7 +308,7 @@ static Boolean _writeXMLFile(CFURLRef url, CFMutableDictionaryRef dict, Boolean 
         CFDataRef data = CFPropertyListCreateData(alloc, dict, desiredFormat, 0, NULL);
         if (data) {
             SInt32 mode;
-#if DEPLOYMENT_TARGET_MACOSX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
             mode = isWorldReadable ? S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH : S_IRUSR|S_IWUSR;
 #else
 	    mode = 0666;

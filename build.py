@@ -282,6 +282,7 @@ sources = CompileSources([
 	'CoreFoundation/PlugIn.subproj/CFPlugIn_PlugIn.c',
 	'CoreFoundation/Preferences.subproj/CFApplicationPreferences.c',
 	'CoreFoundation/Preferences.subproj/CFPreferences.c',
+    'CoreFoundation/Preferences.subproj/CFXMLPreferencesDomain.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMachPort.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMessagePort.c',
 	'CoreFoundation/RunLoop.subproj/CFRunLoop.c',

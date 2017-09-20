@@ -445,7 +445,7 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
     CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
@@ -479,7 +479,7 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 	CFRelease(appName);
     }
     if (fileName) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
         theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLPOSIXPathStyle, false, prefDir);
 #elif DEPLOYMENT_TARGET_WINDOWS
 		theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLWindowsPathStyle, false, prefDir);
@@ -496,10 +496,6 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 static CFURLRef _CFPreferencesURLForStandardDomain(CFStringRef domainName, CFStringRef userName, CFStringRef hostName) {
     return _CFPreferencesURLForStandardDomainWithSafetyLevel(domainName, userName, hostName, __CFSafeLaunchLevel);
 }
-
-const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks = {
-    
-};
 
 CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef  domainName, CFStringRef  userName, CFStringRef  hostName) {
     CFPreferencesDomainRef domain;
