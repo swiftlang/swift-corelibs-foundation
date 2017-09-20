@@ -50,7 +50,7 @@ class TestNSData: XCTestCase {
             ("testCopyBytes_oversized", testCopyBytes_oversized),
             ("testCopyBytes_ranges", testCopyBytes_ranges),
             ("testCopyBytes_undersized", testCopyBytes_undersized),
-             ("testCopyBytes", testCopyBytes),
+            ("testCopyBytes", testCopyBytes),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
             ("testEquality", testEquality),
@@ -65,8 +65,6 @@ class TestNSData: XCTestCase {
             ("testReplaceSubrange3", testReplaceSubrange3),
             ("testReplaceSubrange4", testReplaceSubrange4),
             ("testReplaceSubrange5", testReplaceSubrange5),
-            
-            
             ("test_description", test_description),
             ("test_emptyDescription", test_emptyDescription),
             ("test_longDescription", test_longDescription),
@@ -95,11 +93,12 @@ class TestNSData: XCTestCase {
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
             ("test_repeatingValueInitialization", test_repeatingValueInitialization),
-            
             ("test_sliceAppending", test_sliceAppending),
             ("test_replaceSubrange", test_replaceSubrange),
             ("test_sliceWithUnsafeBytes", test_sliceWithUnsafeBytes),
             ("test_sliceIteration", test_sliceIteration),
+            ("test_sliceInsertion", test_sliceInsertion),
+            ("test_sliceDeletion", test_sliceDeletion),
         ]
     }
     
@@ -1163,6 +1162,28 @@ extension TestNSData {
         }
         XCTAssertEqual(found[0], 2)
         XCTAssertEqual(found[1], 3)
+    }
+    
+    func test_sliceInsertion() {
+        // https://bugs.swift.org/browse/SR-5810
+        let baseData = Data([0, 1, 2, 3, 4, 5])
+        var sliceData = baseData[2..<4]
+        let elementToInsert: UInt8 = 0x07
+        sliceData.insert(elementToInsert, at: sliceData.startIndex)
+        XCTAssertEqual(sliceData.first, elementToInsert)
+        XCTAssertEqual(sliceData.startIndex, 0)
+        XCTAssertEqual(sliceData.endIndex, Array(sliceData).count)
+    }
+    
+    func test_sliceDeletion() {
+        // https://bugs.swift.org/browse/SR-5810
+        let baseData = Data([0, 1, 2, 3, 4, 5])
+        let sliceData = baseData[2..<4]
+        var mutableSliceData = sliceData
+        mutableSliceData.removeSubrange(mutableSliceData.startIndex..<mutableSliceData.startIndex.advanced(by: 1))
+        XCTAssertEqual(sliceData[sliceData.startIndex.advanced(by: 1)], mutableSliceData.first)
+        XCTAssertEqual(mutableSliceData.startIndex, 0)
+        XCTAssertEqual(mutableSliceData.endIndex, Array(mutableSliceData).count)
     }
 }
 
