@@ -386,7 +386,7 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
 #else
     buffer.capacity = amount;
 #endif
-    buffer.onStack = (pthread_main_np() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
+    buffer.onStack = (_CFIsMainThread() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
     buffer.memory = buffer.onStack ? alloca(buffer.capacity) : malloc(buffer.capacity);
     if (buffer.memory == NULL) { return false; }
     applier(&buffer);
