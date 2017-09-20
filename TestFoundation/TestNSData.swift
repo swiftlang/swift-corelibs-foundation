@@ -55,7 +55,7 @@ class TestNSData: XCTestCase {
                 // Need to allocate the buffer now.
                 // It doesn't matter if the buffer is uniquely referenced or not here.
                 let buffer = malloc(length)
-                memset(buffer, 1, length)
+                memset(buffer!, 1, length)
                 let bytePtr = buffer!.bindMemory(to: UInt8.self, capacity: length)
                 let result = UnsafeMutableBufferPointer(start: bytePtr, count: length)
                 _pointer = result
@@ -66,7 +66,7 @@ class TestNSData: XCTestCase {
         override func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
             if let d = _pointer {
                 // Get the real data from the buffer
-                memmove(buffer, d.baseAddress, length)
+                memmove(buffer, d.baseAddress!, length)
             } else {
                 // A more efficient implementation of getBytes in the case where no one has asked for our backing bytes
                 memset(buffer, 1, length)
@@ -118,9 +118,9 @@ class TestNSData: XCTestCase {
                     // Copy the data to our new length buffer
                     let newBuffer = malloc(newValue)!
                     if newValue <= _length {
-                        memmove(newBuffer, ptr.baseAddress, newValue)
+                        memmove(newBuffer, ptr.baseAddress!, newValue)
                     } else if newValue > _length {
-                        memmove(newBuffer, ptr.baseAddress, _length)
+                        memmove(newBuffer, ptr.baseAddress!, _length)
                         memset(newBuffer + _length, 1, newValue - _length)
                     }
                     let bytePtr = newBuffer.bindMemory(to: UInt8.self, capacity: newValue)
@@ -137,7 +137,7 @@ class TestNSData: XCTestCase {
                 // Need to allocate the buffer now.
                 // It doesn't matter if the buffer is uniquely referenced or not here.
                 let buffer = malloc(length)
-                memset(buffer, 1, length)
+                memset(buffer!, 1, length)
                 let bytePtr = buffer!.bindMemory(to: UInt8.self, capacity: length)
                 let result = UnsafeMutableBufferPointer(start: bytePtr, count: length)
                 _pointer = result
@@ -150,10 +150,10 @@ class TestNSData: XCTestCase {
             let newBuffer = malloc(newBufferLength)
             if let ptr = _pointer {
                 // Copy the existing data to the new box, then return its pointer
-                memmove(newBuffer, ptr.baseAddress, newBufferLength)
+                memmove(newBuffer!, ptr.baseAddress!, newBufferLength)
             } else {
                 // Set new data to 1s
-                memset(newBuffer, 1, newBufferLength)
+                memset(newBuffer!, 1, newBufferLength)
             }
             let bytePtr = newBuffer!.bindMemory(to: UInt8.self, capacity: newBufferLength)
             let result = UnsafeMutableBufferPointer(start: bytePtr, count: newBufferLength)
@@ -165,7 +165,7 @@ class TestNSData: XCTestCase {
         override func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
             if let d = _pointer {
                 // Get the real data from the buffer
-                memmove(buffer, d.baseAddress, length)
+                memmove(buffer, d.baseAddress!, length)
             } else {
                 // A more efficient implementation of getBytes in the case where no one has asked for our backing bytes
                 memset(buffer, 1, length)
