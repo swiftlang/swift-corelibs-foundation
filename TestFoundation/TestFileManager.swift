@@ -31,6 +31,7 @@ class TestFileManager : XCTestCase {
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
             ("test_homedirectoryForUser", test_homedirectoryForUser),
+            ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
         ]
     }
     
@@ -524,5 +525,26 @@ class TestFileManager : XCTestCase {
         XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
         XCTAssertNil(filemanger.homeDirectory(forUser: ""))
         XCTAssertNotNil(filemanger.homeDirectoryForCurrentUser)
+    }
+    
+    func test_temporaryDirectoryForUser() {
+        let filemanger = FileManager.default
+        let tmpDir = filemanger.temporaryDirectory
+        XCTAssertNotNil(tmpDir)
+        let tmpFileUrl = tmpDir.appendingPathComponent("test.bin")
+        let tmpFilePath = tmpFileUrl.path
+        
+        do {
+            if filemanger.fileExists(atPath: tmpFilePath) {
+                try filemanger.removeItem(at: tmpFileUrl)
+            }
+            
+            try "hello world".write(to: tmpFileUrl, atomically: false, encoding: .utf8)
+            XCTAssert(filemanger.fileExists(atPath: tmpFilePath))
+
+            try filemanger.removeItem(at: tmpFileUrl)
+        } catch {
+            XCTFail("Unable to write a file to the temporary directory: \(tmpDir), err: \(error)")
+        }
     }
 }
