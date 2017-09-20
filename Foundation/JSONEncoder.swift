@@ -64,6 +64,9 @@ open class JSONEncoder {
 
     /// The strategy to use for encoding `Data` values.
     public enum DataEncodingStrategy {
+        /// Defer to `Data` for choosing an encoding.
+        case deferredToData
+        
         /// Encoded the `Data` as a Base64-encoded string. This is the default strategy.
         case base64Encode
 
@@ -98,7 +101,7 @@ open class JSONEncoder {
     open var userInfo: [CodingUserInfoKey : Any] = [:]
 
     /// Options set on the top-level encoder to pass down the encoding hierarchy.
-    fileprivate struct _Options {
+    internal struct _Options {
         let dateEncodingStrategy: DateEncodingStrategy
         let dataEncodingStrategy: DataEncodingStrategy
         let nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy
@@ -150,14 +153,14 @@ open class JSONEncoder {
 
 // MARK: - _JSONEncoder
 
-fileprivate class _JSONEncoder : Encoder {
+internal class _JSONEncoder : Encoder {
     // MARK: Properties
 
     /// The encoder's storage.
     fileprivate var storage: _JSONEncodingStorage
 
     /// Options set on the top-level encoder.
-    fileprivate let options: JSONEncoder._Options
+    internal let options: JSONEncoder._Options
 
     /// The path to the current point in encoding.
     public var codingPath: [CodingKey]
@@ -672,6 +675,11 @@ extension _JSONEncoder {
 
     fileprivate func box(_ data: Data) throws -> NSObject {
         switch self.options.dataEncodingStrategy {
+        case .deferredToData:
+            // Must be called with a surrounding with(pushedKey:) call.
+            try data.encode(to: self)
+            return self.storage.popContainer()
+            
         case .base64Encode:
             return NSString(string: data.base64EncodedString())
 
@@ -826,6 +834,9 @@ open class JSONDecoder {
 
     /// The strategy to use for decoding `Data` values.
     public enum DataDecodingStrategy {
+        /// Defer to `Data` for decoding.
+        case deferredToData
+        
         /// Decode the `Data` from a Base64-encoded string. This is the default strategy.
         case base64Decode
 
@@ -855,7 +866,7 @@ open class JSONDecoder {
     open var userInfo: [CodingUserInfoKey : Any] = [:]
 
     /// Options set on the top-level encoder to pass down the decoding hierarchy.
-    fileprivate struct _Options {
+    internal struct _Options {
         let dateDecodingStrategy: DateDecodingStrategy
         let dataDecodingStrategy: DataDecodingStrategy
         let nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy
@@ -893,14 +904,14 @@ open class JSONDecoder {
 
 // MARK: - _JSONDecoder
 
-fileprivate class _JSONDecoder : Decoder {
+internal class _JSONDecoder : Decoder {
     // MARK: Properties
 
     /// The decoder's storage.
     fileprivate var storage: _JSONDecodingStorage
 
     /// Options set on the top-level decoder.
-    fileprivate let options: JSONDecoder._Options
+    internal let options: JSONDecoder._Options
 
     /// The path to the current point in encoding.
     private(set) public var codingPath: [CodingKey]
@@ -2042,6 +2053,12 @@ extension _JSONDecoder {
         guard !(value is NSNull) else { return nil }
 
         switch self.options.dataDecodingStrategy {
+        case .deferredToData:
+            self.storage.push(container: value)
+            let data = try Data(from: self)
+            self.storage.popContainer()
+            return data
+            
         case .base64Decode:
             guard let string = value as? String else {
                 throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)

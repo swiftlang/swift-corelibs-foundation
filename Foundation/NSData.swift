@@ -956,6 +956,19 @@ open class NSMutableData : NSData {
     }
 }
 
+extension NSData {
+    internal func _isCompact() -> Bool {
+        var regions = 0
+        enumerateBytes { (_, _, stop) in
+            regions += 1
+            if regions > 1 {
+                stop.pointee = true
+            }
+        }
+        return regions <= 1
+    }
+}
+
 extension NSData : _StructTypeBridgeable {
     public typealias _StructType = Data
     public func _bridgeToSwift() -> Data {
