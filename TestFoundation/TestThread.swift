@@ -41,14 +41,15 @@ class TestThread : XCTestCase {
     
     func test_threadStart() {
         let condition = NSCondition()
+        condition.lock()
+
         let thread = Thread() {
             condition.lock()
             condition.broadcast()
             condition.unlock()
         }
         thread.start()
-        
-        condition.lock()
+
         let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
@@ -95,6 +96,8 @@ class TestThread : XCTestCase {
         XCTAssertTrue(c.isEqual(t))
 
         let condition = NSCondition()
+        condition.lock()
+
         let thread = Thread() {
             condition.lock()
             XCTAssertFalse(Thread.isMainThread)
@@ -104,7 +107,6 @@ class TestThread : XCTestCase {
         }
         thread.start()
 
-        condition.lock()
         let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
