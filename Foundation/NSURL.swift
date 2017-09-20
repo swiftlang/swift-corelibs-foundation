@@ -309,7 +309,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
 
         let thePath = _standardizedPath(path)
         
-        var isDir : Bool = false
+        var isDir: ObjCBool = false
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
@@ -323,7 +323,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             let _ = FileManager.default.fileExists(atPath: absolutePath, isDirectory: &isDir)
         }
 
-        self.init(fileURLWithPath: thePath, isDirectory: isDir, relativeTo: baseURL)
+        self.init(fileURLWithPath: thePath, isDirectory: isDir.boolValue, relativeTo: baseURL)
     }
 
     public convenience init(fileURLWithPath path: String, isDirectory isDir: Bool) {
@@ -339,7 +339,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             thePath = path
         }
 
-        var isDir : Bool = false
+        var isDir: ObjCBool = false
         if thePath.hasSuffix("/") {
             isDir = true
         } else {
@@ -348,7 +348,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             }
         }
         super.init()
-        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, nil)
+        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir.boolValue, nil)
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
@@ -779,8 +779,8 @@ extension NSURL {
         var result : URL? = appendingPathComponent(pathComponent, isDirectory: false)
         if !pathComponent.hasSuffix("/") && isFileURL {
             if let urlWithoutDirectory = result {
-                var isDir : Bool = false
-                if FileManager.default.fileExists(atPath: urlWithoutDirectory.path, isDirectory: &isDir) && isDir {
+                var isDir: ObjCBool = false
+                if FileManager.default.fileExists(atPath: urlWithoutDirectory.path, isDirectory: &isDir) && isDir.boolValue {
                     result = self.appendingPathComponent(pathComponent, isDirectory: true)
                 }
             }
@@ -859,14 +859,14 @@ extension NSURL {
         }
 
         // It might be a responsibility of NSURL(fileURLWithPath:). Check it.
-        var isExistingDirectory = false
+        var isExistingDirectory: ObjCBool = false
         let _ = FileManager.default.fileExists(atPath: resolvedPath, isDirectory: &isExistingDirectory)
 
         if excludeSystemDirs {
             resolvedPath = resolvedPath._tryToRemovePathPrefix("/private") ?? resolvedPath
         }
 
-        if isExistingDirectory && !resolvedPath.hasSuffix("/") {
+        if isExistingDirectory.boolValue && !resolvedPath.hasSuffix("/") {
             resolvedPath += "/"
         }
         

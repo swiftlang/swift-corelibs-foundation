@@ -255,7 +255,7 @@ extension NSSet {
             withUnsafeMutablePointer(to: &stop) { stop in
                 block(obj, stop)
             }
-            if stop {
+            if stop.boolValue {
                 break
             }
         }

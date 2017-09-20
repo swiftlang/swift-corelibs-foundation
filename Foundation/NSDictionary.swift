@@ -467,11 +467,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 lock.lock()
                 var stop = sharedStop
                 lock.unlock()
-                if stop { return }
+                if stop.boolValue { return }
                 
                 closure(keys[idx], objects[idx], &stop)
                 
-                if stop {
+                if stop.boolValue {
                     lock.lock()
                     sharedStop = stop
                     lock.unlock()

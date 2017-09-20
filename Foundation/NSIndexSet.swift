@@ -396,9 +396,9 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let iteration = withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> (Int) -> Void in
             return { (rangeIdx) in
                 lock.lock()
-                var stop = sharedStop
+                var stop = ObjCBool(sharedStop)
                 lock.unlock()
-                if stop { return }
+                if stop.boolValue { return }
                 
                 let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: Int64(rangeIdx))
                 let curRange = rangeSequence[idx]
@@ -407,9 +407,9 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     if intersection.length > 0 {
                         let _ = closure(intersection as! P, &stop)
                     }
-                    if stop {
+                    if stop.boolValue {
                         lock.lock()
-                        sharedStop = stop
+                        sharedStop = stop.boolValue
                         lock.unlock()
                         return
                     }
@@ -426,9 +426,9 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                         } else {
                             let _ = closure(idx as! P, &stop)
                         }
-                        if stop {
+                        if stop.boolValue {
                             lock.lock()
-                            sharedStop = stop
+                            sharedStop = stop.boolValue
                             lock.unlock()
                             return
                         }

@@ -35,7 +35,7 @@ class XDGCheck {
         storage.setCookie(simpleCookie!)
         let fm = FileManager.default
         let destPath = xdg_data_home! + "/xdgTestHelper/.cookies.shared"
-        var isDir = false
+        var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir) 
         if (!exists) {
             print("Expected cookie path: ", destPath)

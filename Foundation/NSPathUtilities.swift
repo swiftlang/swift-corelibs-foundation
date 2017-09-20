@@ -408,9 +408,9 @@ public extension NSString {
             return false
         }
         
-        var isDirectory = false
+        var isDirectory: ObjCBool = false
         let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
-        return exists && isDirectory
+        return exists && isDirectory.boolValue
     }
     
     internal typealias _FileNamePredicate = (String?) -> Bool
