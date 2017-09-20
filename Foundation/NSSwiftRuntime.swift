@@ -82,6 +82,12 @@ extension ObjCBool : CustomStringConvertible {
     }
 }
 
+public extension ObjCBool {
+    public var boolValue: Bool {
+        return self
+    }
+}
+
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
     

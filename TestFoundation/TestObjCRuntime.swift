@@ -28,7 +28,21 @@ class TestObjCRuntime: XCTestCase {
         return [
             ("testStringFromClass", testStringFromClass),
             ("testClassFromString", testClassFromString),
+            ("testObjCBoolIsCompatible", testObjCBoolIsCompatible),
         ]
+    }
+
+    func testObjCBoolIsCompatible() {
+        let isTrue: ObjCBool = ObjCBool(booleanLiteral: true)
+        let isTrueToo: ObjCBool = ObjCBool(true)
+        let isFalse: ObjCBool = ObjCBool(booleanLiteral: false)
+        let isFalseToo: ObjCBool = ObjCBool(false)
+
+        XCTAssertTrue(isTrue.boolValue)
+        XCTAssertTrue(isTrueToo.boolValue)
+
+        XCTAssertFalse(isFalse.boolValue)
+        XCTAssertFalse(isFalseToo.boolValue)
     }
 
     func testStringFromClass() {
