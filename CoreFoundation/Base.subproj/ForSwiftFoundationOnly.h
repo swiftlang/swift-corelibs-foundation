@@ -33,6 +33,10 @@
 #include <malloc/malloc.h>
 #endif
 
+#if __has_include(<malloc/malloc.h>)
+#include <malloc/malloc.h>
+#endif
+
 _CF_EXPORT_SCOPE_BEGIN
 
 struct __CFSwiftObject {
