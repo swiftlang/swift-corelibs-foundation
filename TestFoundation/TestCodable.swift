@@ -72,6 +72,18 @@ func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) where T : Equ
     expectRoundTripEquality(of: value, encode: encode, decode: decode)
 }
 
+func expectRoundTripEqualityThroughPlist<T : Codable>(for value: T) where T : Equatable {
+    let encode = { (_ value: T) throws -> Data in
+        return try PropertyListEncoder().encode(value)
+    }
+    
+    let decode = { (_ data: Data) throws -> T in
+        return try PropertyListDecoder().decode(T.self, from: data)
+    }
+    
+    expectRoundTripEquality(of: value, encode: encode, decode: decode)
+}
+
 // MARK: - Helper Types
 // A wrapper around a UUID that will allow it to be encoded at the top level of an encoder.
 struct UUIDCodingWrapper : Codable, Equatable {
@@ -102,6 +114,12 @@ class TestCodable : XCTestCase {
         }
     }
 
+    func test_PersonNameComponents_Plist() {
+        for components in personNameComponentsValues {
+            expectRoundTripEqualityThroughPlist(for: components)
+        }
+    }
+
     // MARK: - UUID
     lazy var uuidValues: [UUID] = [
         UUID(),
@@ -114,6 +132,13 @@ class TestCodable : XCTestCase {
         for uuid in uuidValues {
             // We have to wrap the UUID since we cannot have a top-level string.
             expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid))
+        }
+    }
+
+    func test_UUID_Plist() {
+        for uuid in uuidValues {
+            // We have to wrap the UUID since we cannot have a top-level string.
+            expectRoundTripEqualityThroughPlist(for: UUIDCodingWrapper(uuid))
         }
     }
 
@@ -132,6 +157,12 @@ class TestCodable : XCTestCase {
         }
     }
 
+    func test_URL_Plist() {
+        for url in urlValues {
+            expectRoundTripEqualityThroughPlist(for: url)
+        }
+    }
+
     // MARK: - NSRange
     lazy var nsrangeValues: [NSRange] = [
         NSRange(),
@@ -142,6 +173,12 @@ class TestCodable : XCTestCase {
     func test_NSRange_JSON() {
         for range in nsrangeValues {
             expectRoundTripEqualityThroughJSON(for: range)
+        }
+    }
+
+    func test_NSRange_Plist() {
+        for range in nsrangeValues {
+            expectRoundTripEqualityThroughPlist(for: range)
         }
     }
 
@@ -163,6 +200,12 @@ class TestCodable : XCTestCase {
         }
     }
 
+    func test_Locale_Plist() {
+        for locale in localeValues {
+            expectRoundTripEqualityThroughPlist(for: locale)
+        }
+    }
+
     // MARK: - IndexSet
     lazy var indexSetValues: [IndexSet] = [
         IndexSet(),
@@ -173,6 +216,12 @@ class TestCodable : XCTestCase {
     func test_IndexSet_JSON() {
         for indexSet in indexSetValues {
             expectRoundTripEqualityThroughJSON(for: indexSet)
+        }
+    }
+
+    func test_IndexSet_Plist() {
+        for indexSet in indexSetValues {
+            expectRoundTripEqualityThroughPlist(for: indexSet)
         }
     }
 
@@ -187,6 +236,12 @@ class TestCodable : XCTestCase {
     func test_IndexPath_JSON() {
         for indexPath in indexPathValues {
             expectRoundTripEqualityThroughJSON(for: indexPath)
+        }
+    }
+
+    func test_IndexPath_Plist() {
+        for indexPath in indexPathValues {
+            expectRoundTripEqualityThroughPlist(for: indexPath)
         }
     }
 
@@ -213,6 +268,12 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: transform)
         }
     }
+    
+    func test_AffineTransform_Plist() {
+        for transform in affineTransformValues {
+            expectRoundTripEqualityThroughPlist(for: transform)
+        }
+    }
 
     // MARK: - Decimal
     lazy var decimalValues: [Decimal] = [
@@ -230,6 +291,13 @@ class TestCodable : XCTestCase {
         }
     }
     
+    func test_Decimal_Plist() {
+        for decimal in decimalValues {
+            expectRoundTripEqualityThroughPlist(for: decimal)
+        }
+    }
+
+    
     // MARK: - CGPoint
     lazy var cgpointValues: [CGPoint] = [
         CGPoint(),
@@ -243,6 +311,12 @@ class TestCodable : XCTestCase {
     func test_CGPoint_JSON() {
         for point in cgpointValues {
             expectRoundTripEqualityThroughJSON(for: point)
+        }
+    }
+    
+    func test_CGPoint_Plist() {
+        for point in cgpointValues {
+            expectRoundTripEqualityThroughPlist(for: point)
         }
     }
     
@@ -262,6 +336,12 @@ class TestCodable : XCTestCase {
         }
     }
     
+    func test_CGSize_Plist() {
+        for size in cgsizeValues {
+            expectRoundTripEqualityThroughPlist(for: size)
+        }
+    }
+
     // MARK: - CGRect
     lazy var cgrectValues: [CGRect] = [
         CGRect(),
@@ -279,6 +359,12 @@ class TestCodable : XCTestCase {
         }
     }
     
+    func test_CGRect_Plist() {
+        for rect in cgrectValues {
+            expectRoundTripEqualityThroughPlist(for: rect)
+        }
+    }
+
     // MARK: - CharacterSet
     lazy var characterSetValues: [CharacterSet] = [
         CharacterSet.controlCharacters,
@@ -304,6 +390,12 @@ class TestCodable : XCTestCase {
             expectRoundTripEqualityThroughJSON(for: characterSet)
         }
     }
+    
+    func test_CharacterSet_Plist() {
+        for characterSet in characterSetValues {
+            expectRoundTripEqualityThroughPlist(for: characterSet)
+        }
+    }
 
     // MARK: - TimeZone
     lazy var timeZoneValues: [TimeZone] = {
@@ -325,6 +417,12 @@ class TestCodable : XCTestCase {
     func test_TimeZone_JSON() {
         for timeZone in timeZoneValues {
             expectRoundTripEqualityThroughJSON(for: timeZone)
+        }
+    }
+
+    func test_TimeZone_Plist() {
+        for timeZone in timeZoneValues {
+            expectRoundTripEqualityThroughPlist(for: timeZone)
         }
     }
 
@@ -364,6 +462,12 @@ class TestCodable : XCTestCase {
         }
     }
 
+    func test_Calendar_Plist() {
+        for calendar in calendarValues {
+            expectRoundTripEqualityThroughPlist(for: calendar)
+        }
+    }
+
     // MARK: - DateComponents
     lazy var dateComponents: Set<Calendar.Component> = [
         .era,
@@ -400,11 +504,31 @@ class TestCodable : XCTestCase {
         expectRoundTripEqualityThroughJSON(for: components)
     }
 
+    func test_DateComponents_Plist() {
+        #if os(Linux)
+            var calendar = Calendar(identifier: .gregorian)
+            // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
+            // serializing and deserializing TimeZone.current
+            calendar.timeZone = TimeZone(identifier: "UTC")!
+        #else
+            let calendar = Calendar(identifier: .gregorian)
+        #endif
+        
+        let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
+        expectRoundTripEqualityThroughPlist(for: components)
+    }
+
     // MARK: - Measurement
     func test_Measurement_JSON() {
         expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
         expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms))
         expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles))
+    }
+
+    func test_Measurement_Plist() {
+        expectRoundTripEqualityThroughPlist(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
+        expectRoundTripEqualityThroughPlist(for: Measurement(value: 42, unit: UnitMass.kilograms))
+        expectRoundTripEqualityThroughPlist(for: Measurement(value: 42, unit: UnitLength.miles))
     }
 }
 
@@ -412,22 +536,39 @@ extension TestCodable {
     static var allTests: [(String, (TestCodable) -> () throws -> Void)] {
         return [
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
+            ("test_PersonNameComponents_Plist", test_PersonNameComponents_Plist),
             ("test_UUID_JSON", test_UUID_JSON),
+            ("test_UUID_Plist", test_UUID_Plist),
             ("test_URL_JSON", test_URL_JSON),
+            ("test_URL_Plist", test_URL_Plist),
             ("test_NSRange_JSON", test_NSRange_JSON),
+            ("test_NSRange_Plist", test_NSRange_Plist),
             ("test_Locale_JSON", test_Locale_JSON),
+            ("test_Locale_Plist", test_Locale_Plist),
             ("test_IndexSet_JSON", test_IndexSet_JSON),
+            ("test_IndexSet_Plist", test_IndexSet_Plist),
             ("test_IndexPath_JSON", test_IndexPath_JSON),
+            ("test_IndexPath_Plist", test_IndexPath_Plist),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
+            ("test_AffineTransform_Plist", test_AffineTransform_Plist),
             ("test_Decimal_JSON", test_Decimal_JSON),
+            ("test_Decimal_Plist", test_Decimal_Plist),
             ("test_CGPoint_JSON", test_CGPoint_JSON),
+            ("test_CGPoint_Plist", test_CGPoint_Plist),
             ("test_CGSize_JSON", test_CGSize_JSON),
+            ("test_CGSize_Plist", test_CGSize_Plist),
             ("test_CGRect_JSON", test_CGRect_JSON),
+            ("test_CGRect_Plist", test_CGRect_Plist),
             ("test_CharacterSet_JSON", test_CharacterSet_JSON),
+            ("test_CharacterSet_Plist", test_CharacterSet_Plist),
             ("test_TimeZone_JSON", test_TimeZone_JSON),
+            ("test_TimeZone_Plist", test_TimeZone_Plist),
             ("test_Calendar_JSON", test_Calendar_JSON),
+            ("test_Calendar_Plist", test_Calendar_Plist),
             ("test_DateComponents_JSON", test_DateComponents_JSON),
+            ("test_DateComponents_Plist", test_DateComponents_Plist),
             ("test_Measurement_JSON", test_Measurement_JSON),
+            ("test_Measurement_Plist", test_Measurement_JSON),
         ]
     }
 }

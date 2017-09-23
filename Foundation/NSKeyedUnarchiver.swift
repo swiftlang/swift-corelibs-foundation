@@ -868,6 +868,46 @@ open class NSKeyedUnarchiver : NSCoder {
         keyedUnarchiver.finishDecoding()
         return root
     }
+    
+    /// Decodes a decodable value associated with a given key.
+    ///
+    /// - Parameters:
+    ///   - type:   The expected type of the encoded value.
+    ///   - key:    The key with which the encoded value is associated.
+    /// - Returns:  The decoded object of type `type', or nil.
+    public func decodeDecodable<T : Decodable>(_ type: T.Type, forKey key: String) -> T? {
+        guard let value = self.decodeObject(of: NSPropertyListClasses, forKey: key) else {
+            return nil
+        }
+        
+        let plistDecoder = PropertyListDecoder()
+        do {
+            return try plistDecoder.decode(T.self, fromTopLevel: value)
+        } catch {
+            self.failWithError(error)
+            return nil
+        }
+    }
+
+    /// Decodes a top-level decodable value associated with a given key.
+    ///
+    /// - Parameters:
+    ///   - type:   The expected type of the encoded value.
+    ///   - key:    The key with which the encoded value is associated.
+    /// - Returns:  The decoded object of type `type', or nil.
+    public func decodeTopLevelDecodable<T : Decodable>(_ type: T.Type, forKey key: String) throws -> T? {
+        guard let value = try self.decodeTopLevelObject(of: NSPropertyListClasses, forKey: key) else {
+            return nil
+        }
+        
+        let plistDecoder = PropertyListDecoder()
+        do {
+            return try plistDecoder.decode(T.self, fromTopLevel: value)
+        } catch {
+            self.failWithError(error)
+            throw error;
+        }
+    }
 }
 
 public protocol NSKeyedUnarchiverDelegate : class {
