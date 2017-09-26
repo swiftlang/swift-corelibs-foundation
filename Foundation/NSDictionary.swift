@@ -32,6 +32,10 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return nil
     }
     
+    open func value(forKey key: String) -> Any? {
+        NSUnsupported()
+    }
+    
     open func keyEnumerator() -> NSEnumerator {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
