@@ -762,6 +762,8 @@ extension StringProtocol where Index == String.Index {
     let ephemeralString = _ephemeralString
     if ephemeralString._core.isASCII {
         switch encoding {
+                case .ascii: fallthrough
+                case .nonLossyASCII: fallthrough
                 case .utf8: return Data(
                     bytes: UnsafeRawPointer(ephemeralString._core.startASCII), count: ephemeralString._core.count)
                 default:  return _ns.data(
