@@ -39,13 +39,14 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         
         return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
+    
     @available(*, deprecated)
     public convenience init?(contentsOfFile path: String) {
-        self.init(contentsOfURL: URL(fileURLWithPath: path))
+        self.init(contentsOf: URL(fileURLWithPath: path))
     }
     
     @available(*, deprecated)
-    public convenience init?(contentsOfURL url: URL) {
+    public convenience init?(contentsOf url: URL) {
         do {
             guard let plistDoc = try? Data(contentsOf: url) else { return nil }
             let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
