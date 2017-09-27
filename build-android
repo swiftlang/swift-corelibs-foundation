@@ -104,23 +104,16 @@ if [ ! -f libFoundation.so ]; then
         cp $SWIFT_PATH/swift-corelibs-libdispatch/dispatch/*.h $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch
         cp $SWIFT_PATH/swift-corelibs-libdispatch/private/*.h $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch
 	
-        # Build foundation
-        # Remove default foundation implementation and fetch the version with android support
-
         pushd $SWIFT_PATH
             pushd swift-corelibs-foundation
                 # Libfoundation script is not completely prepared to handle cross compilation yet.
                 ln -s $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift $ANDROID_STANDALONE_SYSROOT/usr/lib/
                 cp $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift/android/armv7/* $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift/android/
-                #cp $ANDROID_NDK_PATH/sysroot/usr/include/ifaddrs.h $ANDROID_NDK_PATH/platforms/android-21/arch-arm/usr/include/ 
 
                 # Search path for curl seems to be wrong in foundation
                 ln -s $ANDROID_STANDALONE_SYSROOT/usr/include/curl $ANDROID_STANDALONE_SYSROOT/usr/include/curl/curl
-                
                 ln -s $ANDROID_STANDALONE_SYSROOT/usr/include/libxml2/libxml $ANDROID_STANDALONE_SYSROOT/usr/include/libxml
  
-                   #SDKROOT=$ANDROID_STANDALONE_SYSROOT/usr \
-
                 env \
                     SWIFTC="$SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/bin/swiftc" \
                     CLANG="$SWIFT_ANDROID_BUILD_PATH/llvm-linux-x86_64/bin/clang" \
@@ -140,12 +133,6 @@ if [ ! -f libFoundation.so ]; then
                         -DLIBDISPATCH_SOURCE_DIR=$SWIFT_PATH/swift-corelibs-libdispatch \
                         -DLIBDISPATCH_BUILD_DIR=$SWIFT_PATH/swift-corelibs-libdispatch &&
 
-                # Prepend SYSROOT env variable to ninja.build script
-                # SYSROOT is not being passed from build.py / script.py to the ninja file yet
-                #echo "SYSROOT=$ANDROID_STANDALONE_SYSROOT" > build.ninja.new
-                #cat build.ninja >> build.ninja.new
-                #rm build.ninja
-                #mv build.ninja.new build.ninja
                 cp -r /usr/include/uuid $ANDROID_STANDALONE_SYSROOT/usr/include 
                 sed -ie "s/-I.\/ -I\/usr\/include\/x86_64-linux-gnu  -I\/usr\/include\/x86_64-linux-gnu    -I\/usr\/include\/libxml2//" build.ninja
                 sed -ie "s/-licui18n/-licui18nswift/g" build.ninja
@@ -157,19 +144,9 @@ if [ ! -f libFoundation.so ]; then
                 # There's no installation script for foundation yet, so the installation needs to be done manually.
                 # Apparently the installation for the main script is in swift repo.
                 rsync -av $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/Foundation.swift* $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7/
-                #cp $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/Foundation.swift* $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7
-                #cp $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/libFoundation.so $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7
-
                 rsync -av $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.* $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.* $ANDROID_ICU_PATH/armeabi-v7a/libicu{uc,i18n,data}swift.so $ANDROID_NDK_PATH/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/libFoundation.so  $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7
-                #for i in $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/libicu*.so; do $ANDROID_NDK_PATH/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/arm-linux-androideabi/bin/strip $i; mv $i ${i/libicu/libscu}; done
-                #rpl -R -e libicu libscu $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/lib*.so &&
-                #rsync -av $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/usr/lib/swift/CoreFoundation $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
-
-                # Undo those nasty changes
-                #rm $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift/linux/armv7
 
                 # prep install so it can be used to build foundation
-                #cp -r $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift 
                 cp -r $SWIFT_PATH/swift-corelibs-foundation/.build/libxml2/include/libxml $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
                 cp -r $SWIFT_PATH/swift-corelibs-foundation/.build/curl/include/curl $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
             popd
