@@ -169,7 +169,7 @@ open class NotificationCenter: NSObject {
         }
     }
 
-    open func post(name aName: NSNotification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
+    open func post(name aName: Notification.Name, object anObject: Any?, userInfo aUserInfo: [AnyHashable : Any]? = nil) {
         let notification = Notification(name: aName, object: anObject, userInfo: aUserInfo)
         post(notification)
     }
@@ -189,11 +189,11 @@ open class NotificationCenter: NSObject {
     }
 
     @available(*,obsoleted:4.0,renamed:"addObserver(forName:object:queue:using:)")
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         return addObserver(forName: name, object: obj, queue: queue, using: block)
     }
 
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    open func addObserver(forName name: Notification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
         let object = NSObject()
         
         let newObserver = NSNotificationReceiver()
