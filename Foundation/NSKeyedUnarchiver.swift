@@ -52,11 +52,26 @@ open class NSKeyedUnarchiver : NSCoder {
     private var _cache : Array<_NSKeyedArchiverUID> = []
     private var _allowedClasses : Array<[AnyClass]> = []
     private var _error : Error? = nil
+    private var _decodingFailurePolicy : NSCoder.DecodingFailurePolicy = .setErrorAndReturn
     
     override open var error: Error? {
         return _error
     }
     
+    override open func failWithError(_ error: Error) {
+        switch self.decodingFailurePolicy {
+        case .raiseException:
+            if let userInfo = error._userInfo as? [String : Any],
+               let debugDescription = userInfo["NSDebugDescription"] {
+                fatalError("*** NSKeyedUnarchiver.init: \(debugDescription)")
+            } else {
+                fatalError("*** NSKeyedUnarchiver.init: decoding error")
+            }
+        case .setErrorAndReturn:
+            self._error = error
+        }
+    }
+
     open class func unarchiveObject(with data: Data) -> Any? {
         do {
             return try unarchiveTopLevelObjectWithData(data)
@@ -98,7 +113,6 @@ open class NSKeyedUnarchiver : NSCoder {
             try _readPropertyList()
         } catch {
             failWithError(error)
-            self._error = error
         }
     }
   
@@ -203,7 +217,12 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _validateStillDecoding() -> Bool {
+        if self.error != nil {
+            return false
+        }
+
         if self._flags.contains(UnarchiverFlags.FinishedDecoding) {
+            // FIXME should this be a fatal error?
             fatalError("Decoder already finished")
         }
         
@@ -245,6 +264,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
             }
             
+            // FIXME should this be a fatal error?
             fatalError("Value was of unexpected class \(assertedClass!)")
         } else {
             return true
@@ -375,7 +395,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
         return NSError(domain: NSCocoaErrorDomain,
-                               code: code.rawValue, userInfo: [ "NSDebugDescription" : description ])
+                       code: code.rawValue, userInfo: [ "NSDebugDescription" : description ])
     }
     
     private func _replacementObject(_ decodedObject: Any?) -> Any? {
@@ -425,7 +445,9 @@ open class NSKeyedUnarchiver : NSCoder {
     private func _decodeObject(_ objectRef: Any) throws -> Any? {
         var object : Any? = nil
 
-        let _ = _validateStillDecoding()
+        if !_validateStillDecoding() {
+            return nil
+        }
 
         if !(objectRef is _NSKeyedArchiverUID) {
             throw _decodingError(CocoaError.coderReadCorrupt,
@@ -509,7 +531,10 @@ open class NSKeyedUnarchiver : NSCoder {
         Decode a value type in the current decoding context
      */
     internal func _decodeValue<T>(forKey key: String? = nil) -> T? {
-        let _ = _validateStillDecoding()
+        if !_validateStillDecoding() {
+            return nil
+        }
+
         return _objectInCurrentDecodingContext(forKey: key)
     }
 
@@ -544,7 +569,6 @@ open class NSKeyedUnarchiver : NSCoder {
             }
         } catch {
             failWithError(error)
-            self._error = error
         }
         
         return array
@@ -608,7 +632,6 @@ open class NSKeyedUnarchiver : NSCoder {
             return try _decodeObject(forKey: key)
         } catch {
             failWithError(error)
-            self._error = error
         }
         return nil
     }
@@ -623,7 +646,6 @@ open class NSKeyedUnarchiver : NSCoder {
                 return try _decodeObject(forKey: key)
             } catch {
                 failWithError(error)
-                self._error = error
             }
         }        
         return nil
@@ -659,7 +681,6 @@ open class NSKeyedUnarchiver : NSCoder {
             return try _decodeObject(forKey: nil)
         } catch {
             failWithError(error)
-            self._error = error
         }
         
         return nil
@@ -855,10 +876,10 @@ open class NSKeyedUnarchiver : NSCoder {
     
     open override var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
         get {
-            return .setErrorAndReturn
+            return self._decodingFailurePolicy
         }
         set {
-            NSUnimplemented();
+            self._decodingFailurePolicy = decodingFailurePolicy
         }
     }
 
@@ -905,7 +926,7 @@ open class NSKeyedUnarchiver : NSCoder {
             return try plistDecoder.decode(T.self, fromTopLevel: value)
         } catch {
             self.failWithError(error)
-            throw error;
+            throw error
         }
     }
 }

@@ -14,6 +14,7 @@ extension NSCoder {
     /// supports exceptions here, and there may be other approaches supported
     /// in the future, so its included for completeness.
     public enum DecodingFailurePolicy : Int {
+        case raiseException
         case setErrorAndReturn
     }
 }
@@ -699,15 +700,9 @@ open class NSCoder : NSObject {
     }
     
     open func failWithError(_ error: Error) {
-        NSUnimplemented()
-        // NOTE: disabled for now due to bridging uncertainty
-        // if let debugDescription = error.userInfo["NSDebugDescription"] {
-        //    NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
-        // } else {
-        //    NSLog("*** NSKeyedUnarchiver.init: decoding error")
-        // }
+        NSRequiresConcreteImplementation()
     }
-    
+
     open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
         return .setErrorAndReturn
     }
