@@ -18,12 +18,15 @@ import CoreFoundation
 @_exported import Glibc
 #endif
 
+@_exported import Dispatch
+
 #if os(Android) // shim required for bzero
 @_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
     memset(ptr, 0, size)
 }
 #endif
 
+#if !_runtime(_ObjC)
 /// The Objective-C BOOL type.
 ///
 /// On 64-bit iOS, the Objective-C BOOL type is a typedef of C/C++
@@ -81,6 +84,7 @@ extension ObjCBool : CustomStringConvertible {
         return self.boolValue.description
     }
 }
+#endif
 
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
