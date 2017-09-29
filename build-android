@@ -10,6 +10,8 @@
 # See https://swift.org/LICENSE.txt for license information
 # See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 
+#set -e
+
 cd "$(dirname $0)/.." || exit 1
 SWIFT_PATH=$PWD
 
@@ -78,7 +80,7 @@ if [ ! -f $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.so ]; then
     pushd curl
         autoreconf -i
         ./configure --host=arm-linux-androideabi --enable-shared --disable-static --disable-dependency-tracking --with-zlib=$ANDROID_STANDALONE_SYSROOT/usr --with-ssl=$ANDROID_STANDALONE_SYSROOT/usr --without-ca-bundle --without-ca-path --enable-ipv6 --enable-http --enable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-sspi --disable-manual --target=arm-linux-androideabi --build=x86_64-unknown-linux-gnu --prefix=$ANDROID_STANDALONE_SYSROOT/usr
-        make
+        make || exit 1
         make install
     popd
 fi
@@ -89,8 +91,8 @@ if [ ! -f $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.so ]; then
     pushd libxml2
         autoreconf -i
         ./configure --with-sysroot=$ANDROID_STANDALONE_SYSROOT --with-zlib=$ANDROID_STANDALONE_SYSROOT/usr --prefix=$ANDROID_STANDALONE_SYSROOT/usr --host=$CHOST --without-lzma --disable-static --enable-shared --without-http --without-html --without-ftp
-        make libxml2.la
-        make install-libLTLIBRARIES
+        make libxml2.la || exit 1
+        make install-libLTLIBRARIES || exit 1
         pushd include
             make install
         popd
