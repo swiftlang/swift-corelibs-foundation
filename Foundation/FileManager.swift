@@ -343,6 +343,9 @@ open class FileManager : NSObject {
         This method replaces fileSystemAttributesAtPath:.
      */
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
+#if os(Android)
+        NSUnimplemented()
+#else
         // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
         #if os(OSX) || os(iOS)
             var s = statfs()
@@ -371,6 +374,7 @@ open class FileManager : NSObject {
         result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
         
         return result
+#endif
     }
     
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
