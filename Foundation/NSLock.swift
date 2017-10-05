@@ -320,12 +320,22 @@ private func timedLock(mutex: _PthreadMutexPointer, endTime: Date,
 
     var timeSpec = timeSpecFrom(date: endTime)
     while var ts = timeSpec {
-        pthread_mutex_lock(timeoutMutex)
-        pthread_cond_timedwait(timeoutCond, timeoutMutex, &ts)
-        pthread_mutex_unlock(timeoutMutex)
-        if pthread_mutex_trylock(mutex) == 0 {
+        let lockval = pthread_mutex_lock(timeoutMutex)
+        precondition(lockval == 0)
+        let waitval = pthread_cond_timedwait(timeoutCond, timeoutMutex, &ts)
+        precondition(waitval == 0 || waitval == ETIMEDOUT)
+        let unlockval = pthread_mutex_unlock(timeoutMutex)
+        precondition(unlockval == 0)
+
+        if waitval == ETIMEDOUT {
+            return false
+        }
+        let tryval = pthread_mutex_trylock(mutex)
+        precondition(tryval == 0 || tryval == EBUSY)
+        if tryval == 0 { // The lock was obtained.
             return true
         }
+        // pthread_cond_timedwait didnt timeout so wait some more.
         timeSpec = timeSpecFrom(date: endTime)
     }
     return false
