@@ -20,3 +20,5 @@ Build
 *.swp
 *.orig
 .arcconfig
+
+build.ninjae

@@ -1325,10 +1325,12 @@ CF_SWIFT_EXPORT void _CFThreadSetName(const char *_Nullable name) {
 }
 
 CF_SWIFT_EXPORT int _CFThreadGetName(char *buf, int length) {
+#if !TARGET_OS_ANDROID
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getname_np(pthread_self(), buf, length);
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
+#endif
 #endif
     return -1;
 }

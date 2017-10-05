@@ -28,7 +28,9 @@
 #if __has_include(<sys/syslog.h>)
 #include <sys/syslog.h>
 #else
+#if !TARGET_OS_ANDROID
 #include <syslog.h>
+#endif
 #endif
 #include <CoreFoundation/CFURLPriv.h>
 #endif

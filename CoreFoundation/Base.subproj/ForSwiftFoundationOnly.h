@@ -27,7 +27,10 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
+
+#if !TARGET_OS_ANDROID
 #include <execinfo.h>
+#endif
 
 #if __has_include(<malloc/malloc.h>)
 #include <malloc/malloc.h>
