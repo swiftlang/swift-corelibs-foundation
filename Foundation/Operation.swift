@@ -43,13 +43,15 @@ open class Operation : NSObject {
     }
     
     open func start() {
-        lock.lock()
-        _executing = true
-        lock.unlock()
-        main()
-        lock.lock()
-        _executing = false
-        lock.unlock()
+        if !isCancelled {
+            lock.lock()
+            _executing = true
+            lock.unlock()
+            main()
+            lock.lock()
+            _executing = false
+            lock.unlock()
+        }
         finish()
     }
     
@@ -79,9 +81,13 @@ open class Operation : NSObject {
     }
     
     open func cancel() {
+        // Note that calling cancel() is advisory. It is up to the main() function to
+        // call isCancelled at appropriate points in its execution flow and to do the
+        // actual canceling work. Eventually main() will invoke finish() and this is
+        // where we then leave the groups and unblock other operations that might
+        // depend on us.
         lock.lock()
         _cancelled = true
-        _leaveGroups()
         lock.unlock()
     }
     
