@@ -218,23 +218,23 @@ class TestFileManager : XCTestCase {
             
             let systemNumber = attrs[.systemNumber] as? NSNumber
             XCTAssertNotNil(systemNumber)
-            XCTAssertGreaterThan(systemNumber!.int64Value, 0)
+            XCTAssertNotEqual(systemNumber!.uint64Value, 0)
             
             let systemFreeSize = attrs[.systemFreeSize] as? NSNumber
             XCTAssertNotNil(systemFreeSize)
-            XCTAssertGreaterThan(systemFreeSize!.int64Value, 0)
+            XCTAssertNotEqual(systemFreeSize!.uint64Value, 0)
             
             let systemSize = attrs[.systemSize] as? NSNumber
             XCTAssertNotNil(systemSize)
-            XCTAssertGreaterThan(systemSize!.int64Value, systemFreeSize!.int64Value)
+            XCTAssertGreaterThan(systemSize!.uint64Value, systemFreeSize!.uint64Value)
             
             let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
             XCTAssertNotNil(systemFreeNodes)
-            XCTAssertGreaterThan(systemFreeNodes!.int64Value, 0)
+            XCTAssertNotEqual(systemFreeNodes!.uint64Value, 0)
             
             let systemNodes = attrs[.systemNodes] as? NSNumber
             XCTAssertNotNil(systemNodes)
-            XCTAssertGreaterThan(systemNodes!.int64Value, systemFreeNodes!.int64Value)
+            XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
             
         } catch let err {
             XCTFail("\(err)")
