@@ -343,14 +343,28 @@ open class FileManager : NSObject {
         This method replaces fileSystemAttributesAtPath:.
      */
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        var s = statfs()
-        guard statfs(path, &s) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: path)
-        }
+        // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
+        #if os(OSX) || os(iOS)
+            var s = statfs()
+            guard statfs(path, &s) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+        #else
+            var s = statvfs()
+            guard statvfs(path, &s) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+        #endif
+        
         
         var result = [FileAttributeKey : Any]()
-        let blockSize = UInt64(s.f_bsize)
-        result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
+        #if os(OSX) || os(iOS)
+            let blockSize = UInt64(s.f_bsize)
+            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
+        #else
+            let blockSize = UInt64(s.f_frsize)
+            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
+        #endif
         result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
         result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
         result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
