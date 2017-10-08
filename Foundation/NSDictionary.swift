@@ -32,12 +32,33 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return nil
     }
     
+    open func value(forKey key: String) -> Any? {
+        NSUnsupported()
+    }
+    
     open func keyEnumerator() -> NSEnumerator {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
         
         return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
+    }
+    
+    @available(*, deprecated)
+    public convenience init?(contentsOfFile path: String) {
+        self.init(contentsOf: URL(fileURLWithPath: path))
+    }
+    
+    @available(*, deprecated)
+    public convenience init?(contentsOf url: URL) {
+        do {
+            guard let plistDoc = try? Data(contentsOf: url) else { return nil }
+            let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
+            guard let plistDictionary = plistDict else { return nil }
+            self.init(dictionary: plistDictionary)
+        } catch {
+            return nil
+        }
     }
     
     public override convenience init() {
@@ -467,11 +488,11 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 lock.lock()
                 var stop = sharedStop
                 lock.unlock()
-                if stop { return }
+                if stop.boolValue { return }
                 
                 closure(keys[idx], objects[idx], &stop)
                 
-                if stop {
+                if stop.boolValue {
                     lock.lock()
                     sharedStop = stop
                     lock.unlock()
@@ -583,20 +604,6 @@ open class NSMutableDictionary : NSDictionary {
         super.init(objects: objects, forKeys: keys, count: cnt)
     }
     
-    public convenience init?(contentsOfFile path: String) {
-        self.init(contentsOfURL: URL(fileURLWithPath: path))
-    }
-    
-    public convenience init?(contentsOfURL url: URL) {
-        do {
-            guard let plistDoc = try? Data(contentsOf: url) else { return nil }
-            let plistDict = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Dictionary<AnyHashable,Any>
-            guard let plistDictionary = plistDict else { return nil }
-            self.init(dictionary: plistDictionary)
-        } catch {
-            return nil
-        }
-    }
 }
 
 extension NSMutableDictionary {

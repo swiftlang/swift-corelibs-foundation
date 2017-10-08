@@ -211,7 +211,7 @@ class TestNSDictionary : XCTestCase {
             let d1: NSDictionary = ["Hello":["world":"again"]]
             let isWritten = d1.write(toFile: testFilePath!, atomically: true)
             if(isWritten) {
-                let dict = NSMutableDictionary.init(contentsOfFile: testFilePath!)
+                let dict = NSDictionary(contentsOfFile: testFilePath!)
                 XCTAssert(dict == d1)
             } else {
                 XCTFail("Write to file failed")

@@ -399,6 +399,13 @@ class TestCodable : XCTestCase {
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
         expectRoundTripEqualityThroughJSON(for: components)
     }
+
+    // MARK: - Measurement
+    func test_Measurement_JSON() {
+        expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
+        expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms))
+        expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles))
+    }
 }
 
 extension TestCodable {
@@ -420,6 +427,7 @@ extension TestCodable {
             ("test_TimeZone_JSON", test_TimeZone_JSON),
             ("test_Calendar_JSON", test_Calendar_JSON),
             ("test_DateComponents_JSON", test_DateComponents_JSON),
+            ("test_Measurement_JSON", test_Measurement_JSON),
         ]
     }
 }

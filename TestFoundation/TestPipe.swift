@@ -35,7 +35,7 @@ class TestPipe : XCTestCase {
         aPipe.fileHandleForWriting.write(stringAsData!)
         
         // Then read it out again
-        let data = aPipe.fileHandleForReading.readData(ofLength: text.characters.count)
+        let data = aPipe.fileHandleForReading.readData(ofLength: text.count)
         
         // Confirm that we did read data
         XCTAssertNotNil(data)

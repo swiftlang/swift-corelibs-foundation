@@ -28,6 +28,7 @@ class TestOperationQueue : XCTestCase {
             ("test_MainQueueGetter", test_MainQueueGetter),
             ("test_CurrentQueueOnMainQueue", test_CurrentQueueOnMainQueue),
             ("test_CurrentQueueOnBackgroundQueue", test_CurrentQueueOnBackgroundQueue),
+            ("test_CurrentQueueOnBackgroundQueueWithSelfCancel", test_CurrentQueueOnBackgroundQueueWithSelfCancel),
             ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
         ]
@@ -135,6 +136,20 @@ class TestOperationQueue : XCTestCase {
         waitForExpectations(timeout: 1)
     }
     
+    func test_CurrentQueueOnBackgroundQueueWithSelfCancel() {
+        let operationQueue = OperationQueue()
+        operationQueue.maxConcurrentOperationCount = 1
+        let expectation = self.expectation(description: "Background execution")
+        operationQueue.addOperation {
+            XCTAssertEqual(operationQueue, OperationQueue.current)
+            expectation.fulfill()
+            // Canceling operation X from inside operation X should not cause the app to a crash
+            operationQueue.cancelAllOperations()
+        }
+        
+        waitForExpectations(timeout: 1)
+    }
+
     func test_CurrentQueueWithCustomUnderlyingQueue() {
         let expectation = self.expectation(description: "Background execution")
         
@@ -175,12 +190,17 @@ class AsyncOperation: Operation {
 
     override internal(set) var isExecuting: Bool {
         get {
-            return _executing
+            lock.lock()
+            let wasExecuting = _executing
+            lock.unlock()
+            return wasExecuting
         }
         set {
-            if _executing != newValue {
+            if isExecuting != newValue {
                 willChangeValue(forKey: "isExecuting")
+                lock.lock()
                 _executing = newValue
+                lock.unlock()
                 didChangeValue(forKey: "isExecuting")
             }
         }
@@ -188,12 +208,17 @@ class AsyncOperation: Operation {
 
     override internal(set) var isFinished: Bool {
         get {
-            return _finished
+            lock.lock()
+            let wasFinished = _finished
+            lock.unlock()
+            return wasFinished
         }
         set {
-            if _finished != newValue {
+            if isFinished != newValue {
                 willChangeValue(forKey: "isFinished")
+                lock.lock()
                 _finished = newValue
+                lock.unlock()
                 didChangeValue(forKey: "isFinished")
             }
         }
@@ -213,10 +238,8 @@ class AsyncOperation: Operation {
 
         queue.async {
             sleep(1)
-            self.lock.lock()
             self.isExecuting = false
             self.isFinished = true
-            self.lock.unlock()
         }
     }
 

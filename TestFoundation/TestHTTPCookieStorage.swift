@@ -14,6 +14,7 @@
     import SwiftFoundation
     import SwiftXCTest
 #endif
+import Dispatch
 
 class TestHTTPCookieStorage: XCTestCase {
 
@@ -24,6 +25,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
     static var allTests: [(String, (TestHTTPCookieStorage) -> () throws -> Void)] {
         return [
+            ("test_sharedCookieStorageAccessedFromMultipleThreads", test_sharedCookieStorageAccessedFromMultipleThreads),
             ("test_BasicStorageAndRetrieval", test_BasicStorageAndRetrieval),
             ("test_deleteCookie", test_deleteCookie),
             ("test_removeCookies", test_removeCookies),
@@ -32,6 +34,27 @@ class TestHTTPCookieStorage: XCTestCase {
             ("test_setCookiesForURLWithMainDocumentURL", test_setCookiesForURLWithMainDocumentURL),
             ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
         ]
+    }
+
+    func test_sharedCookieStorageAccessedFromMultipleThreads() {
+        let q = DispatchQueue.global()
+        let syncQ = DispatchQueue(label: "TestHTTPCookieStorage.syncQ")
+        var allCookieStorages: [HTTPCookieStorage] = []
+        let g = DispatchGroup()
+        for _ in 0..<64 {
+            g.enter()
+            q.async {
+                let mySharedCookieStore = HTTPCookieStorage.shared
+                syncQ.async {
+                    allCookieStorages.append(mySharedCookieStore)
+                    g.leave()
+                }
+            }
+        }
+        g.wait()
+        let cookieStorages = syncQ.sync { allCookieStorages }
+        let mySharedCookieStore = HTTPCookieStorage.shared
+        XCTAssertTrue(cookieStorages.reduce(true, { $0 && $1 === mySharedCookieStore }), "\(cookieStorages)")
     }
 
     func test_BasicStorageAndRetrieval() {
@@ -230,7 +253,7 @@ class TestHTTPCookieStorage: XCTestCase {
         let bundlePath = Bundle.main.bundlePath
         var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
         if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
-            bundleName = bundleName.substring(to: range.lowerBound)
+            bundleName = String(bundleName[..<range.lowerBound])
         }
         if let xdg_data_home = getenv("XDG_DATA_HOME") {
             destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
@@ -238,7 +261,7 @@ class TestHTTPCookieStorage: XCTestCase {
             destPath = NSHomeDirectory() + "/.local/share" + bundleName + "/.cookies.shared"
         }
         let fm = FileManager.default
-        var isDir = false
+        var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)
         XCTAssertTrue(exists)
         //Test by setting the environmental variable
@@ -251,7 +274,7 @@ class TestHTTPCookieStorage: XCTestCase {
         let exeName = "/xdgTestHelper/xdgTestHelper"
         #endif
 
-        task.launchPath = bundlePath.substring(to: pathIndex!) + exeName
+        task.launchPath = bundlePath[..<pathIndex!] + exeName
         var environment = ProcessInfo.processInfo.environment
         let testPath = NSHomeDirectory() + "/TestXDG"
         environment["XDG_DATA_HOME"] = testPath

@@ -401,6 +401,34 @@ class TestJSONEncoder : XCTestCase {
         test_codingOf(value: URL(string: "https://swift.org")!, toAndFrom: "\"https://swift.org\"")
     }
 
+
+    // UInt and Int
+    func test_codingOfUIntMinMax() {
+
+        struct MyValue: Codable {
+            let int64Min = Int64.min
+            let int64Max = Int64.max
+            let uint64Min = UInt64.min
+            let uint64Max = UInt64.max
+        }
+
+        func compareJSON(_ s1: String, _ s2: String) {
+            let ss1 = s1.trimmingCharacters(in: CharacterSet(charactersIn: "{}")).split(separator: Character(",")).sorted()
+            let ss2 = s2.trimmingCharacters(in: CharacterSet(charactersIn: "{}")).split(separator: Character(",")).sorted()
+            XCTAssertEqual(ss1, ss2)
+        }
+
+        do {
+            let encoder = JSONEncoder()
+            let myValue = MyValue()
+            let result = try encoder.encode(myValue)
+            let r = String(data: result, encoding: .utf8) ?? "nil"
+            compareJSON(r, "{\"uint64Min\":0,\"uint64Max\":18446744073709551615,\"int64Min\":-9223372036854775808,\"int64Max\":9223372036854775807}")
+        } catch {
+            XCTFail(String(describing: error))
+        }
+    }
+
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
         return "{}".data(using: .utf8)!
@@ -418,8 +446,8 @@ class TestJSONEncoder : XCTestCase {
                                    outputFormatting: JSONEncoder.OutputFormatting = [],
                                    dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate,
                                    dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
-                                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64Encode,
-                                   dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64Decode,
+                                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64,
+                                   dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64,
                                    nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw,
                                    nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw) where T : Codable, T : Equatable {
         var payload: Data! = nil
@@ -986,6 +1014,7 @@ extension TestJSONEncoder {
             ("test_codingOfUInt64", test_codingOfUInt64),
             ("test_codingOfInt", test_codingOfInt),
             ("test_codingOfUInt", test_codingOfUInt),
+            ("test_codingOfUIntMinMax", test_codingOfUIntMinMax),
             ("test_codingOfFloat", test_codingOfFloat),
             ("test_codingOfDouble", test_codingOfDouble),
             ("test_codingOfString", test_codingOfString),

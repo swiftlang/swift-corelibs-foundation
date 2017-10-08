@@ -793,7 +793,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         size_t zoneInfoDirLen = CFStringGetLength(__tzZoneInfo);
         if (strncmp(linkbuf, tzZoneInfo, zoneInfoDirLen) == 0) {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + zoneInfoDirLen,
-                                           strlen(linkbuf) - zoneInfoDirLen + 2, kCFStringEncodingUTF8, false);
+                                           strlen(linkbuf) - zoneInfoDirLen + 1, kCFStringEncodingUTF8, false);
         } else {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf, strlen(linkbuf), kCFStringEncodingUTF8, false);
         }

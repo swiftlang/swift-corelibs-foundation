@@ -10,12 +10,17 @@
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
 import Foundation
 import XCTest
-import Glibc
 #else
 import SwiftFoundation
 import SwiftXCTest
-import Darwin
 #endif
+
+#if os(OSX) || os(iOS)
+    import Darwin
+#elseif os(Linux)
+    import Glibc
+#endif
+
 
 internal func testBundle() -> Bundle {
     return Bundle.main
@@ -58,6 +63,7 @@ XCTMain([
     testCase(TestNotificationQueue.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSNumber.allTests),
+    testCase(TestNSNumberBridging.allTests),
     testCase(TestNumberFormatter.allTests),
     testCase(TestOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
@@ -73,7 +79,7 @@ XCTMain([
     testCase(TestNSSet.allTests),
     testCase(TestStream.allTests),
     testCase(TestNSString.allTests),
-//    testCase(TestThread.allTests),
+    testCase(TestThread.allTests),
     testCase(TestProcess.allTests),
     testCase(TestNSTextCheckingResult.allTests),
     testCase(TestTimer.allTests),
@@ -104,4 +110,5 @@ XCTMain([
     testCase(TestMassFormatter.allTests),
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
+    testCase(TestUnit.allTests),
 ])

@@ -77,7 +77,8 @@ open class Bundle: NSObject {
     open var isLoaded: Bool {
         return CFBundleIsExecutableLoaded(_bundle)
     }
-    open func unload() -> Bool { NSUnimplemented() }
+    @available(*,deprecated,message:"Not available on non-Darwin platforms")
+    open func unload() -> Bool { NSUnsupported() }
     
     open func preflight() throws {
         var unmanagedError:Unmanaged<CFError>? = nil

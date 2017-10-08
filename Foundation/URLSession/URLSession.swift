@@ -137,11 +137,6 @@
 /// - SeeAlso: https://curl.haxx.se/libcurl/c/threadsafe.html
 /// - SeeAlso: URLSession+libcurl.swift
 ///
-/// The (publicly accessible) attributes of an `URLSessionTask` are made thread
-/// safe by using a concurrent libdispatch queue and only doing writes with a
-/// barrier while allowing concurrent reads. A single queue is shared for all
-/// tasks of a given session for this isolation. C.f. `taskAttributesIsolation`.
-///
 /// ## HTTP and RFC 2616
 ///
 /// Most of HTTP is defined in [RFC 2616](https://tools.ietf.org/html/rfc2616).
@@ -171,12 +166,21 @@
 import CoreFoundation
 import Dispatch
 
+extension URLSession {
+    public enum DelayedRequestDisposition {
+        case cancel
+        case continueLoading
+        case useNewRequest
+    }
+}
 
+fileprivate let globalVarSyncQ = DispatchQueue(label: "org.swift.Foundation.URLSession.GlobalVarSyncQ")
 fileprivate var sessionCounter = Int32(0)
 fileprivate func nextSessionIdentifier() -> Int32 {
-    //TODO: find an alternative for OSAtomicIncrement32Barrier() on Linux
-    sessionCounter += 1
-    return sessionCounter
+    return globalVarSyncQ.sync {
+        sessionCounter += 1
+        return sessionCounter
+    }
 }
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
@@ -185,9 +189,6 @@ open class URLSession : NSObject {
     fileprivate let multiHandle: _MultiHandle
     fileprivate var nextTaskIdentifier = 1
     internal let workQueue: DispatchQueue 
-    /// This queue is used to make public attributes on `URLSessionTask` instances thread safe.
-    /// - Note: It's a **concurrent** queue.
-    internal let taskAttributesIsolation: DispatchQueue 
     internal let taskRegistry = URLSession._TaskRegistry()
     fileprivate let identifier: Int32
     fileprivate var invalidated = false
@@ -213,7 +214,6 @@ open class URLSession : NSObject {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
-        self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
         self.delegateQueue = OperationQueue()
         self.delegateQueue.maxConcurrentOperationCount = 1
         self.delegate = nil
@@ -236,7 +236,6 @@ open class URLSession : NSObject {
         initializeLibcurl()
         identifier = nextSessionIdentifier()
         self.workQueue = DispatchQueue(label: "URLSession<\(identifier)>")
-        self.taskAttributesIsolation = DispatchQueue(label: "URLSession<\(identifier)>.taskAttributes", attributes: DispatchQueue.Attributes.concurrent)
         if let _queue = queue {
            self.delegateQueue = _queue
         } else {
@@ -397,9 +396,11 @@ extension URLSession._Request {
 
 fileprivate extension URLSession {
     func createNextTaskIdentifier() -> Int {
-        let i = nextTaskIdentifier
-        nextTaskIdentifier += 1
-        return i
+        return workQueue.sync {
+            let i = nextTaskIdentifier
+            nextTaskIdentifier += 1
+            return i
+        }
     }
 }
 

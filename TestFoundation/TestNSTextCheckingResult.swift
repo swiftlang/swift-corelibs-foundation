@@ -30,21 +30,21 @@ class TestNSTextCheckingResult: XCTestCase {
            let patternOptions: NSRegularExpression.Options = []
            let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
            let searchString = "1x030cy"
-           let searchOptions: NSMatchingOptions = []
+           let searchOptions: NSRegularExpression.MatchingOptions = []
            let searchRange = NSMakeRange(0,7)
            let match: NSTextCheckingResult =  regex.firstMatch(in: searchString, options: searchOptions, range: searchRange)!
            //Positive offset
-           var result = match.resultByAdjustingRangesWithOffset(1)
+           var result = match.adjustingRanges(offset: 1)
            XCTAssertEqual(result.range(at: 0).location, 6)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 6)
            //Negative offset
-           result = match.resultByAdjustingRangesWithOffset(-2)
+           result = match.adjustingRanges(offset: -2)
            XCTAssertEqual(result.range(at: 0).location, 3)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 3)
            //ZeroOffset
-           result = match.resultByAdjustingRangesWithOffset(0)
+           result = match.adjustingRanges(offset: 0)
            XCTAssertEqual(result.range(at: 0).location, 5)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 5)

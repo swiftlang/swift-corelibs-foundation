@@ -27,6 +27,15 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
+#include <execinfo.h>
+
+#if __has_include(<malloc/malloc.h>)
+#include <malloc/malloc.h>
+#endif
+
+#if __has_include(<malloc/malloc.h>)
+#include <malloc/malloc.h>
+#endif
 
 _CF_EXPORT_SCOPE_BEGIN
 
@@ -138,7 +147,7 @@ struct _NSMutableStringBridge {
 };
 
 struct _NSXMLParserBridge {
-    _CFXMLInterface _Nullable (*_Nonnull currentParser)();
+    _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
     _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface interface, const char *url, const char * identifier, _CFXMLInterfaceParserContext context, _CFXMLInterfaceExternalEntityLoader originalLoaderFunction);
     
     _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
@@ -294,13 +303,14 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 CF_EXPORT Boolean _CFIsMainThread(void);
+CF_EXPORT pthread_t _CFMainPThread;
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
 typedef pthread_key_t _CFThreadSpecificKey;
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
-CF_EXPORT void _CThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
-CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate();
+CF_EXPORT void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
+CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_t _CFThreadRef;
@@ -342,6 +352,54 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
+
+
+typedef struct {
+    void *_Nonnull memory;
+    size_t capacity;
+    _Bool onStack;
+} _ConditionalAllocationBuffer;
+
+static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
+#if TARGET_OS_MAC
+    size_t amount = malloc_good_size(amt);
+#else
+    size_t amount = amt;
+#endif
+    if (amount <= buffer->capacity) { return true; }
+    void *newMemory;
+    if (buffer->onStack) {
+        newMemory = malloc(amount);
+        if (newMemory == NULL) { return false; }
+        memcpy(newMemory, buffer->memory, buffer->capacity);
+        buffer->onStack = false;
+    } else {
+        newMemory = realloc(buffer->memory, amount);
+        if (newMemory == NULL) { return false; }
+    }
+    if (newMemory == NULL) { return false; }
+    buffer->memory = newMemory;
+    buffer->capacity = amount;
+    return true;
+}
+
+static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+    _ConditionalAllocationBuffer buffer;
+#if TARGET_OS_MAC
+    buffer.capacity = malloc_good_size(amount);
+#else
+    buffer.capacity = amount;
+#endif
+    buffer.onStack = (_CFIsMainThread() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
+    buffer.memory = buffer.onStack ? alloca(buffer.capacity) : malloc(buffer.capacity);
+    if (buffer.memory == NULL) { return false; }
+    applier(&buffer);
+    if (!buffer.onStack) {
+        free(buffer.memory);
+    }
+    return true;
+}
+
 
 _CF_EXPORT_SCOPE_END
 

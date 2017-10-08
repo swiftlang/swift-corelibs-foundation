@@ -29,6 +29,7 @@ class TestDateFormatter: XCTestCase {
             ("test_dateStyleFull",     test_dateStyleFull),
             ("test_customDateFormat", test_customDateFormat),
             ("test_setLocalizedDateFormatFromTemplate", test_setLocalizedDateFormatFromTemplate),
+            ("test_dateFormatString", test_dateFormatString),
         ]
     }
     
@@ -295,4 +296,45 @@ class TestDateFormatter: XCTestCase {
         XCTAssertEqual(f.dateFormat, dateFormat)
     }
 
+    func test_dateFormatString() {
+        let f = DateFormatter()
+        f.timeZone = TimeZone(abbreviation: DEFAULT_TIMEZONE)
+        
+        //.full cases have been commented out as they're not working correctly on Linux
+        let formats: [String: (DateFormatter.Style, DateFormatter.Style)] = [
+            "": (.none, .none),
+            "h:mm a": (.none, .short),
+            "h:mm:ss a": (.none, .medium),
+            "h:mm:ss a z": (.none, .long),
+//            "h:mm:ss a zzzz": (.none, .full),
+            "M/d/yy": (.short, .none),
+            "M/d/yy, h:mm a": (.short, .short),
+            "M/d/yy, h:mm:ss a": (.short, .medium),
+            "M/d/yy, h:mm:ss a z": (.short, .long),
+//            "M/d/yy, h:mm:ss a zzzz": (.short, .full),
+            "MMM d, y": (.medium, .none),
+            //These tests currently fail, there seems to be a difference in behavior in the CoreFoundation methods called to construct the format strings.
+//            "MMM d, y 'at' h:mm a": (.medium, .short),
+//            "MMM d, y 'at' h:mm:ss a": (.medium, .medium),
+//            "MMM d, y 'at' h:mm:ss a z": (.medium, .long),
+//            "MMM d, y 'at' h:mm:ss a zzzz": (.medium, .full),
+            "MMMM d, y": (.long, .none),
+            "MMMM d, y 'at' h:mm a": (.long, .short),
+            "MMMM d, y 'at' h:mm:ss a": (.long, .medium),
+            "MMMM d, y 'at' h:mm:ss a z": (.long, .long),
+//            "MMMM d, y 'at' h:mm:ss a zzzz": (.long, .full),
+//            "EEEE, MMMM d, y": (.full, .none),
+//            "EEEE, MMMM d, y 'at' h:mm a": (.full, .short),
+//            "EEEE, MMMM d, y 'at' h:mm:ss a": (.full, .medium),
+//            "EEEE, MMMM d, y 'at' h:mm:ss a z": (.full, .long),
+//            "EEEE, MMMM d, y 'at' h:mm:ss a zzzz": (.full, .full),
+        ]
+        
+        for (dateFormat, styles) in formats {
+            f.dateStyle = styles.0
+            f.timeStyle = styles.1
+            
+            XCTAssertEqual(f.dateFormat, dateFormat)
+        }
+    }
 }

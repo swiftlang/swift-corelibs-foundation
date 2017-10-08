@@ -260,7 +260,7 @@ class TestDecimal: XCTestCase {
                     var failed: Bool = false
                     var count = 0
                     let SIG_FIG = 14
-                    for (a, b) in zip(answerDescription.characters, approximationDescription.characters) {
+                    for (a, b) in zip(answerDescription, approximationDescription) {
                         if a != b {
                             failed = true
                             break
@@ -289,6 +289,9 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(.minus, d.sign)
         d.negate()
         XCTAssertEqual(.plus, d.sign)
+        var e = Decimal(0)
+        e.negate()
+        XCTAssertEqual(e, 0)
         XCTAssertTrue(Decimal(3.5).isEqual(to: Decimal(3.5)))
         XCTAssertTrue(Decimal.nan.isEqual(to: Decimal.nan))
         XCTAssertTrue(Decimal(1.28).isLess(than: Decimal(2.24)))
@@ -404,7 +407,7 @@ class TestDecimal: XCTestCase {
         XCTAssertNotEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &NaN, 5, .plain))
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
 
-        XCTAssertFalse(Double(NSDecimalNumber(decimal:Decimal(0))).isNaN)
+        XCTAssertFalse(Double(truncating: NSDecimalNumber(decimal: Decimal(0))).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {

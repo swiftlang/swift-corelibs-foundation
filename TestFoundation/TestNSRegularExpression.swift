@@ -28,6 +28,8 @@ class TestNSRegularExpression : XCTestCase {
             ("test_complexRegularExpressions", test_complexRegularExpressions),
             ("test_Equal", test_Equal),
             ("test_NSCoding", test_NSCoding),
+            ("test_defaultOptions", test_defaultOptions),
+            ("test_badPattern", test_badPattern),
         ]
     }
     
@@ -164,7 +166,7 @@ class TestNSRegularExpression : XCTestCase {
         simpleRegularExpressionTestWithPattern(NSRegularExpression.escapedPattern(for: "+\\{}[].^$?#<=!&*()"), target:"+\\{}[].^$?#<=!&*() abc", looking:true, match:false)
     }
     
-    func replaceRegularExpressionTest(_ patternString: String, _ patternOptions: NSRegularExpression.Options, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ templ: String, _ numberOfMatches: Int, _ result: String, file: StaticString = #file, line: UInt = #line) {
+    func replaceRegularExpressionTest(_ patternString: String, _ patternOptions: NSRegularExpression.Options, _ searchString: String, _ searchOptions: NSRegularExpression.MatchingOptions, _ searchRange: NSRange, _ templ: String, _ numberOfMatches: Int, _ result: String, file: StaticString = #file, line: UInt = #line) {
         do {
             let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
             let mutableString = NSMutableString(string: searchString)
@@ -205,7 +207,7 @@ class TestNSRegularExpression : XCTestCase {
         replaceRegularExpressionTest("([1-9]a)([1-9]b)([1-9]c)([1-9]d)([1-9]e)([1-9]f)([1-9]z)", [], "9a3b4c8d3e1f2z,9a3b4c8d3e1f2z", [], NSMakeRange(0,29), "$2$4$1 is your key", 2, "3b8d9a is your key,3b8d9a is your key")
     }
     
-    func complexRegularExpressionTest(_ patternString: String, _ patternOptions: NSRegularExpression.Options, _ searchString: String, _ searchOptions: NSMatchingOptions, _ searchRange: NSRange, _ numberOfMatches: Int, _ firstMatchOverallRange: NSRange, _ firstMatchFirstCaptureRange: NSRange, _ firstMatchLastCaptureRange: NSRange, file: StaticString = #file, line: UInt = #line) {
+    func complexRegularExpressionTest(_ patternString: String, _ patternOptions: NSRegularExpression.Options, _ searchString: String, _ searchOptions: NSRegularExpression.MatchingOptions, _ searchRange: NSRange, _ numberOfMatches: Int, _ firstMatchOverallRange: NSRange, _ firstMatchFirstCaptureRange: NSRange, _ firstMatchLastCaptureRange: NSRange, file: StaticString = #file, line: UInt = #line) {
         do {
             let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
             let matches = regex.matches(in: searchString, options: searchOptions, range: searchRange)
@@ -351,5 +353,34 @@ class TestNSRegularExpression : XCTestCase {
         let regularExpressionA = try! NSRegularExpression(pattern: "[a-z]+", options: [.caseInsensitive, .allowCommentsAndWhitespace])
         let regularExpressionB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: regularExpressionA)) as! NSRegularExpression
         XCTAssertEqual(regularExpressionA, regularExpressionB, "Archived then unarchived `NSRegularExpression` must be equal.")
+    }
+
+    // Check all of the following functions do not need to be passed options:
+    func test_defaultOptions() {
+        let pattern = ".*fatal error: (.*): file (.*), line ([0-9]+)$"
+        let text = "fatal error: Some message: file /tmp/foo.swift, line 123"
+        let regex = try? NSRegularExpression(pattern: pattern)
+        XCTAssertNotNil(regex)
+        let range = NSRange(text.startIndex..., in: text)
+        regex!.enumerateMatches(in: text, range: range, using: {_,_,_ in })
+        XCTAssertEqual(regex!.matches(in: text, range: range).first?.numberOfRanges, 4)
+        XCTAssertEqual(regex!.numberOfMatches(in: text, range: range), 1)
+        XCTAssertEqual(regex!.firstMatch(in: text, range: range)?.numberOfRanges, 4)
+        XCTAssertEqual(regex!.rangeOfFirstMatch(in: text, range: range),
+                       NSMakeRange(0, 56))
+        XCTAssertEqual(regex!.stringByReplacingMatches(in: text, range: range, withTemplate: "$1-$2-$3"),
+                      "Some message-/tmp/foo.swift-123")
+        let str = NSMutableString(string: text)
+        XCTAssertEqual(regex!.replaceMatches(in: str, range: range, withTemplate: "$1-$2-$3"), 1)
+    }
+
+    func test_badPattern() {
+        do {
+            _ = try NSRegularExpression(pattern: "(", options: [])
+            XCTFail()
+        } catch {
+            let err = String(describing: error)
+            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(}")
+        }
     }
 }

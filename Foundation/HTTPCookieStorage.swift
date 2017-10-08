@@ -36,20 +36,40 @@ extension HTTPCookie {
 */
 open class HTTPCookieStorage: NSObject {
 
+    /* both sharedStorage and sharedCookieStorages are synchronized on sharedSyncQ */
     private static var sharedStorage: HTTPCookieStorage?
     private static var sharedCookieStorages: [String: HTTPCookieStorage] = [:] //for group storage containers
+    private static let sharedSyncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.sharedSyncQ")
+
+    /* only modified in init */
     private var cookieFilePath: String!
-    private let workQueue: DispatchQueue = DispatchQueue(label: "HTTPCookieStorage.workqueue")
-    var allCookies: [String: HTTPCookie]
+
+    /* synchronized on syncQ, please don't use _allCookies directly outside of init/deinit */
+    private var _allCookies: [String: HTTPCookie]
+    private var allCookies: [String: HTTPCookie] {
+        get {
+            if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+                dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
+            }
+            return self._allCookies
+        }
+        set {
+            if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+                dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
+            }
+            self._allCookies = newValue
+        }
+    }
+    private let syncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.syncQ")
 
     private init(cookieStorageName: String) {
-        allCookies = [:]
+        _allCookies = [:]
         cookieAcceptPolicy = .always
         super.init()
         let bundlePath = Bundle.main.bundlePath
         var bundleName = bundlePath.components(separatedBy: "/").last!
         if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
-            bundleName = bundleName.substring(to: range.lowerBound)
+            bundleName = String(bundleName[..<range.lowerBound])
         }
         let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName
         cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
@@ -59,9 +79,11 @@ open class HTTPCookieStorage: NSObject {
     private func loadPersistedCookies() {
         guard let cookies = NSMutableDictionary(contentsOfFile: cookieFilePath) else { return }
         var cookies0 = _SwiftValue.fetch(cookies) as? [String: [String: Any]] ?? [:]
-        for key in cookies0.keys {
-            if let cookie = createCookie(cookies0[key]!) {
-                allCookies[key] = cookie
+        self.syncQ.sync {
+            for key in cookies0.keys {
+                if let cookie = createCookie(cookies0[key]!) {
+                    allCookies[key] = cookie
+                }
             }
         }
     }
@@ -87,11 +109,7 @@ open class HTTPCookieStorage: NSObject {
     }
 
     open var cookies: [HTTPCookie]? {
-        var theCookies: [HTTPCookie]?
-        workQueue.sync {
-                theCookies = Array(self.allCookies.values)
-        }
-        return theCookies
+        return Array(self.syncQ.sync { self.allCookies.values })
     }
     
     /*!
@@ -103,10 +121,12 @@ open class HTTPCookieStorage: NSObject {
     */
     open class var shared: HTTPCookieStorage {
         get {
-            if sharedStorage == nil {
-                sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
+            return sharedSyncQ.sync {
+                if sharedStorage == nil {
+                    sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
+                }
+                return sharedStorage!
             }
-            return sharedStorage!
         }
     }
     
@@ -122,12 +142,14 @@ open class HTTPCookieStorage: NSObject {
         method with the same identifier will return the same cookie storage instance.
      */
     open class func sharedCookieStorage(forGroupContainerIdentifier identifier: String) -> HTTPCookieStorage {
-        guard let cookieStorage = sharedCookieStorages[identifier] else {
-            let newCookieStorage = HTTPCookieStorage(cookieStorageName: identifier)
-            sharedCookieStorages[identifier] = newCookieStorage
-            return newCookieStorage
+        return sharedSyncQ.sync {
+            guard let cookieStorage = sharedCookieStorages[identifier] else {
+                let newCookieStorage = HTTPCookieStorage(cookieStorageName: identifier)
+                sharedCookieStorages[identifier] = newCookieStorage
+                return newCookieStorage
+            }
+            return cookieStorage
         }
-        return cookieStorage
     }
 
     
@@ -138,7 +160,7 @@ open class HTTPCookieStorage: NSObject {
         same name, domain and path, if any.
     */
     open func setCookie(_ cookie: HTTPCookie) {
-        workQueue.sync {
+        self.syncQ.sync {
             guard cookieAcceptPolicy != .never else { return }
 
             //add or override
@@ -173,9 +195,13 @@ open class HTTPCookieStorage: NSObject {
     }
 
     private func updatePersistentStore() {
+        if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+            dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
+        }
+
         //persist cookies
         var persistDictionary: [String : [String : Any]] = [:]
-        let persistable = allCookies.filter { (_, value) in
+        let persistable = self.allCookies.filter { (_, value) in
             value.expiresDate != nil &&
             value.isSessionOnly == false &&
             value.expiresDate!.timeIntervalSinceNow > 0
@@ -190,14 +216,22 @@ open class HTTPCookieStorage: NSObject {
     }
 
     /*!
+        @method lockedDeleteCookie:
+        @abstract Delete the specified cookie, for internal callers already on syncQ.
+    */
+    private func lockedDeleteCookie(_ cookie: HTTPCookie) {
+        let key = cookie.domain + cookie.path + cookie.name
+        self.allCookies.removeValue(forKey: key)
+        updatePersistentStore()
+    }
+
+    /*!
         @method deleteCookie:
         @abstract Delete the specified cookie
     */
     open func deleteCookie(_ cookie: HTTPCookie) {
-        let key = cookie.domain + cookie.path + cookie.name
-        workQueue.sync {
-            self.allCookies.removeValue(forKey: key)
-            updatePersistentStore()
+        self.syncQ.sync {
+            self.lockedDeleteCookie(cookie)
         }
     }
     
@@ -206,13 +240,15 @@ open class HTTPCookieStorage: NSObject {
      @abstract Delete all cookies from the cookie storage since the provided date.
      */
     open func removeCookies(since date: Date) {
-        let cookiesSinceDate = allCookies.values.filter {
-            $0.properties![.created] as! Double >  date.timeIntervalSinceReferenceDate
+        self.syncQ.sync {
+            let cookiesSinceDate = self.allCookies.values.filter {
+                $0.properties![.created] as! Double >  date.timeIntervalSinceReferenceDate
+            }
+            for cookie in cookiesSinceDate {
+                lockedDeleteCookie(cookie)
+            }
+            updatePersistentStore()
         }
-        for cookie in cookiesSinceDate {
-            deleteCookie(cookie)
-        }
-        updatePersistentStore()
     }
 
     /*!
@@ -226,12 +262,8 @@ open class HTTPCookieStorage: NSObject {
         into a set of header fields to add to a request.
     */
     open func cookies(for url: URL) -> [HTTPCookie]? {
-        var cookies: [HTTPCookie]?
         guard let host = url.host else { return nil }
-        workQueue.sync {
-            cookies = Array(allCookies.values.filter{ $0.domain == host })
-        }
-        return cookies
+        return Array(self.syncQ.sync(execute: {allCookies}).values.filter{ $0.domain == host })
     }
     
     /*!

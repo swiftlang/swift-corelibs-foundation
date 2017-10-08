@@ -87,7 +87,7 @@ internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingRe
 
 extension NSTextCheckingResult {
     
-    public func resultByAdjustingRangesWithOffset(_ offset: Int) -> NSTextCheckingResult {
+    public func adjustingRanges(offset: Int) -> NSTextCheckingResult {
         let count = self.numberOfRanges
         var newRanges = [NSRange]()
         for idx in 0..<count {

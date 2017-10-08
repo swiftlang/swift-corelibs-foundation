@@ -9,13 +9,8 @@
 
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 import Dispatch
-#if os(Linux) || os(Android)
+#endif
 import CoreFoundation
-private func pthread_main_np() -> Int32 {
-    return _CFIsMainThread() ? 1 : 0
-}
-#endif
-#endif
 
 open class Operation : NSObject {
     let lock = NSLock()
@@ -48,13 +43,15 @@ open class Operation : NSObject {
     }
     
     open func start() {
-        lock.lock()
-        _executing = true
-        lock.unlock()
-        main()
-        lock.lock()
-        _executing = false
-        lock.unlock()
+        if !isCancelled {
+            lock.lock()
+            _executing = true
+            lock.unlock()
+            main()
+            lock.lock()
+            _executing = false
+            lock.unlock()
+        }
         finish()
     }
     
@@ -84,9 +81,13 @@ open class Operation : NSObject {
     }
     
     open func cancel() {
+        // Note that calling cancel() is advisory. It is up to the main() function to
+        // call isCancelled at appropriate points in its execution flow and to do the
+        // actual canceling work. Eventually main() will invoke finish() and this is
+        // where we then leave the groups and unblock other operations that might
+        // depend on us.
         lock.lock()
         _cancelled = true
-        _leaveGroups()
         lock.unlock()
     }
     
@@ -570,7 +571,7 @@ open class OperationQueue: NSObject {
     open class var current: OperationQueue? {
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
         guard let specific = DispatchQueue.getSpecific(key: OperationQueue.OperationQueueKey) else {
-            if pthread_main_np() == 1 {
+            if _CFIsMainThread() {
                 return OperationQueue.main
             } else {
                 return nil

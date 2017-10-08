@@ -42,13 +42,14 @@ extension XMLParser {
 }
 
 private func UTF8STRING(_ bytes: UnsafePointer<UInt8>?) -> String? {
-    guard let bytes = bytes else { return nil }
-    // strlen operates on the wrong type, char*. We can't rebind the memory to a different type without knowing its length,
-    // but since we know strlen is in libc, it's safe to directly bitcast the pointer without worrying about multiple accesses
-    // of different types visible to the compiler.
-    let len = strlen(unsafeBitCast(bytes, to: UnsafePointer<Int8>.self))
-    let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: bytes, count: Int(len)))
-    return str
+    guard let bytes = bytes else {
+        return nil
+    }
+    if let (str, _) = String.decodeCString(bytes, as: UTF8.self,
+                                           repairingInvalidCodeUnits: false) {
+        return str
+    }
+    return nil
 }
 
 internal func _NSXMLParserCurrentParser() -> _CFXMLInterface? {

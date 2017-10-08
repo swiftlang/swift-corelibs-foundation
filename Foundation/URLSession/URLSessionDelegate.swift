@@ -119,6 +119,8 @@ public protocol URLSessionTaskDelegate : URLSessionDelegate {
      * nil, which implies that no error occurred and this task is complete.
      */
      func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
+    
+     func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
 }
 
 extension URLSessionTaskDelegate {
@@ -137,6 +139,8 @@ extension URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) { }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) { }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) { }
 }
 
 /*
@@ -194,6 +198,7 @@ public protocol URLSessionDataDelegate : URLSessionTaskDelegate {
      * message to receive the resource data.
      */
      func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void)
+    
 }
 
 extension URLSessionDataDelegate {

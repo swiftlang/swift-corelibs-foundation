@@ -85,7 +85,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
             _internal = regex
         } else {
-            throw error!.takeRetainedValue()._nsObject
+            throw error!.takeRetainedValue()
         }
     }
     
@@ -114,33 +114,36 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     }
 }
 
-public struct NSMatchingOptions : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let reportProgress = NSMatchingOptions(rawValue: 1 << 0) /* Call the block periodically during long-running match operations. */
-    public static let reportCompletion = NSMatchingOptions(rawValue: 1 << 1) /* Call the block once after the completion of any matching. */
-    public static let anchored = NSMatchingOptions(rawValue: 1 << 2) /* Limit matches to those at the start of the search range. */
-    public static let withTransparentBounds = NSMatchingOptions(rawValue: 1 << 3) /* Allow matching to look beyond the bounds of the search range. */
-    public static let withoutAnchoringBounds = NSMatchingOptions(rawValue: 1 << 4) /* Prevent ^ and $ from automatically matching the beginning and end of the search range. */
-    internal static let OmitResult = NSMatchingOptions(rawValue: 1 << 13)
-}
+extension NSRegularExpression {
 
-public struct NSMatchingFlags : OptionSet {
-    public let rawValue : UInt
-    public init(rawValue: UInt) { self.rawValue = rawValue }
-    
-    public static let progress = NSMatchingFlags(rawValue: 1 << 0) /* Set when the block is called to report progress during a long-running match operation. */
-    public static let completed = NSMatchingFlags(rawValue: 1 << 1) /* Set when the block is called after completion of any matching. */
-    public static let hitEnd = NSMatchingFlags(rawValue: 1 << 2) /* Set when the current match operation reached the end of the search range. */
-    public static let requiredEnd = NSMatchingFlags(rawValue: 1 << 3) /* Set when the current match depended on the location of the end of the search range. */
-    public static let internalError = NSMatchingFlags(rawValue: 1 << 4) /* Set when matching failed due to an internal error. */
+    public struct MatchingOptions : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+
+        public static let reportProgress = MatchingOptions(rawValue: 1 << 0) /* Call the block periodically during long-running match operations. */
+        public static let reportCompletion = MatchingOptions(rawValue: 1 << 1) /* Call the block once after the completion of any matching. */
+        public static let anchored = MatchingOptions(rawValue: 1 << 2) /* Limit matches to those at the start of the search range. */
+        public static let withTransparentBounds = MatchingOptions(rawValue: 1 << 3) /* Allow matching to look beyond the bounds of the search range. */
+        public static let withoutAnchoringBounds = MatchingOptions(rawValue: 1 << 4) /* Prevent ^ and $ from automatically matching the beginning and end of the search range. */
+        internal static let OmitResult = MatchingOptions(rawValue: 1 << 13)
+    }
+
+    public struct MatchingFlags : OptionSet {
+        public let rawValue : UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+
+        public static let progress = MatchingFlags(rawValue: 1 << 0) /* Set when the block is called to report progress during a long-running match operation. */
+        public static let completed = MatchingFlags(rawValue: 1 << 1) /* Set when the block is called after completion of any matching. */
+        public static let hitEnd = MatchingFlags(rawValue: 1 << 2) /* Set when the current match operation reached the end of the search range. */
+        public static let requiredEnd = MatchingFlags(rawValue: 1 << 3) /* Set when the current match depended on the location of the end of the search range. */
+        public static let internalError = MatchingFlags(rawValue: 1 << 4) /* Set when matching failed due to an internal error. */
+    }
 }
 
 internal class _NSRegularExpressionMatcher {
     var regex: NSRegularExpression
-    var block: (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void
-    init(regex: NSRegularExpression, block: @escaping (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    var block: (NSTextCheckingResult?, NSRegularExpression.MatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void
+    init(regex: NSRegularExpression, block: @escaping (NSTextCheckingResult?, NSRegularExpression.MatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.regex = regex
         self.block = block
     }
@@ -155,16 +158,16 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
         let opts = options
 #endif
         stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
-            matcher.block(nil, NSMatchingFlags(rawValue: opts), $0)
+            matcher.block(nil, NSRegularExpression.MatchingFlags(rawValue: opts), $0)
         })
     } else {
         let result = ranges!.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
             NSTextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
         }
 #if os(OSX) || os(iOS)
-        let flags = NSMatchingFlags(rawValue: options.rawValue)
+        let flags = NSRegularExpression.MatchingFlags(rawValue: options.rawValue)
 #else
-        let flags = NSMatchingFlags(rawValue: options)
+        let flags = NSRegularExpression.MatchingFlags(rawValue: options)
 #endif
         stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
             matcher.block(result, flags, $0)
@@ -177,7 +180,7 @@ extension NSRegularExpression {
     /* The fundamental matching method on NSRegularExpression is a block iterator.  There are several additional convenience methods, for returning all matches at once, the number of matches, the first match, or the range of the first match.  Each match is specified by an instance of NSTextCheckingResult (of type NSTextCheckingTypeRegularExpression) in which the overall match range is given by the range property (equivalent to range at:0) and any capture group ranges are given by range at: for indexes from 1 to numberOfCaptureGroups.  {NSNotFound, 0} is used if a particular capture group does not participate in the match.
     */
     
-    public func enumerateMatches(in string: String, options: NSMatchingOptions, range: NSRange, using block: @escaping (NSTextCheckingResult?, NSMatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+    public func enumerateMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange, using block: @escaping (NSTextCheckingResult?, NSRegularExpression.MatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
 #if os(OSX) || os(iOS)
@@ -189,9 +192,9 @@ extension NSRegularExpression {
         }
     }
     
-    public func matches(in string: String, options: NSMatchingOptions, range: NSRange) -> [NSTextCheckingResult] {
+    public func matches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> [NSTextCheckingResult] {
         var matches = [NSTextCheckingResult]()
-        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 matches.append(match)
             }
@@ -200,7 +203,7 @@ extension NSRegularExpression {
         
     }
     
-    public func numberOfMatches(in string: String, options: NSMatchingOptions, range: NSRange) -> Int {
+    public func numberOfMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> Int {
         var count = 0
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion).union(.OmitResult), range: range) {_,_,_ in 
             count += 1
@@ -208,18 +211,18 @@ extension NSRegularExpression {
         return count
     }
     
-    public func firstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSTextCheckingResult? {
+    public func firstMatch(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> NSTextCheckingResult? {
         var first: NSTextCheckingResult?
-        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             first = result
             stop.pointee = true
         }
         return first
     }
     
-    public func rangeOfFirstMatch(in string: String, options: NSMatchingOptions, range: NSRange) -> NSRange {
+    public func rangeOfFirstMatch(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> NSRange {
         var firstRange = NSMakeRange(NSNotFound, 0)
-        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSMatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
+        enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 firstRange = match.range
             } else {
@@ -244,7 +247,7 @@ extension NSRegularExpression {
     
     /* NSRegularExpression also provides find-and-replace methods for both immutable and mutable strings.  The replacement is treated as a template, with $0 being replaced by the contents of the matched range, $1 by the contents of the first capture group, and so on.  Additional digits beyond the maximum required to represent the number of capture groups will be treated as ordinary characters, as will a $ not followed by digits.  Backslash will escape both $ and itself.
     */
-    public func stringByReplacingMatches(in string: String, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> String {
+    public func stringByReplacingMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange, withTemplate templ: String) -> String {
         var str: String = ""
         let length = string.length
         var previousRange = NSMakeRange(0, 0)
@@ -272,7 +275,7 @@ extension NSRegularExpression {
         return str
     }
     
-    public func replaceMatches(in string: NSMutableString, options: NSMatchingOptions, range: NSRange, withTemplate templ: String) -> Int {
+    public func replaceMatches(in string: NSMutableString, options: NSRegularExpression.MatchingOptions = [], range: NSRange, withTemplate templ: String) -> Int {
         let results = matches(in: string._swiftObject, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         var count = 0
         var offset = 0

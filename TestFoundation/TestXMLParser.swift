@@ -86,10 +86,10 @@ class TestXMLParser : XCTestCase {
             return xmlUnderTest
         }
         if let open = encoding.range(of: "(") {
-            encoding = encoding.substring(from: open.upperBound)
+            encoding = String(encoding[open.upperBound...])
         }
         if let close = encoding.range(of: ")") {
-            encoding = encoding.substring(to: close.lowerBound)
+            encoding = String(encoding[..<close.lowerBound])
         }
         return "<?xml version='1.0' encoding='\(encoding.uppercased())' standalone='no'?>\n\(xmlUnderTest)\n"
     }

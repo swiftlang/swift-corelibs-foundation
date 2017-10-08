@@ -21,22 +21,23 @@
 import CoreFoundation
 import Dispatch
 
-
 /// A cancelable object that refers to the lifetime
 /// of processing a given request.
 open class URLSessionTask : NSObject, NSCopying {
+    
+    public var countOfBytesClientExpectsToReceive: Int64 { NSUnimplemented() }
+    public var countOfBytesClientExpectsToSend: Int64 { NSUnimplemented() }
+    public var earliestBeginDate: Date? { NSUnimplemented() }
+    
     /// How many times the task has been suspended, 0 indicating a running task.
     internal var suspendCount = 1
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
-    fileprivate var _protocol: URLProtocol! = nil
+    fileprivate var _protocol: URLProtocol? = nil
+    private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
     
     /// All operations must run on this queue.
     internal let workQueue: DispatchQueue 
-    /// Using dispatch semaphore to make public attributes thread safe.
-    /// A semaphore is a simpler option against the usage of concurrent queue
-    /// as the critical sections are very short.
-    fileprivate let semaphore = DispatchSemaphore(value: 1)    
     
     public override init() {
         // Darwin Foundation oddly allows calling this initializer, even though
@@ -62,7 +63,8 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
         self.session = session
-        self.workQueue = session.workQueue
+        /* make sure we're actually having a serial queue as it's used for synchronization */
+        self.workQueue = DispatchQueue.init(label: "org.swift.URLSessionTask.WorkQueue", target: session.workQueue)
         self.taskIdentifier = taskIdentifier
         self.originalRequest = request
         self.body = body
@@ -108,31 +110,19 @@ open class URLSessionTask : NSObject, NSCopying {
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open internal(set) var currentRequest: URLRequest? {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._currentRequest
+            return self.syncQ.sync { return self._currentRequest }
         }
         set {
-            semaphore.wait()
-            self._currentRequest = newValue
-            semaphore.signal()
+            self.syncQ.sync { self._currentRequest = newValue }
         }
     }
     fileprivate var _currentRequest: URLRequest? = nil
     /*@NSCopying*/ open internal(set) var response: URLResponse? {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._response
+            return self.syncQ.sync { return self._response }
         }
         set {
-            semaphore.wait()
-            self._response = newValue
-            semaphore.signal()
+            self.syncQ.sync { self._response = newValue }
         }
     }
     fileprivate var _response: URLResponse? = nil
@@ -145,16 +135,10 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already received
     open internal(set) var countOfBytesReceived: Int64 {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._countOfBytesReceived
+            return self.syncQ.sync { return self._countOfBytesReceived }
         }
         set {
-            semaphore.wait()
-            self._countOfBytesReceived = newValue
-            semaphore.signal()
+            self.syncQ.sync { self._countOfBytesReceived = newValue }
         }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
@@ -162,16 +146,10 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes already sent */
     open internal(set) var countOfBytesSent: Int64 {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._countOfBytesSent
+            return self.syncQ.sync { return self._countOfBytesSent }
         }
         set {
-            semaphore.wait()
-            self._countOfBytesSent = newValue
-            semaphore.signal()
+            self.syncQ.sync { self._countOfBytesSent = newValue }
         }
     }
     
@@ -200,8 +178,8 @@ open class URLSessionTask : NSObject, NSCopying {
             self.workQueue.async {
                 let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
                 self.error = urlError
-                self._protocol.stopLoading()
-                self._protocol.client?.urlProtocol(self._protocol, didFailWithError: urlError)
+                self._protocol?.stopLoading()
+                self._protocol?.client?.urlProtocol(self._protocol!, didFailWithError: urlError)
             }
         }
     }
@@ -211,16 +189,10 @@ open class URLSessionTask : NSObject, NSCopying {
      */
     open var state: URLSessionTask.State {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._state
+            return self.syncQ.sync { self._state }
         }
         set {
-            semaphore.wait()
-            self._state = newValue
-            semaphore.signal()
+            self.syncQ.sync { self._state = newValue }
         }
     }
     fileprivate var _state: URLSessionTask.State = .suspended
@@ -263,7 +235,7 @@ open class URLSessionTask : NSObject, NSCopying {
             
             if self.suspendCount == 1 {
                 self.workQueue.async {
-                    self._protocol.stopLoading()
+                    self._protocol?.stopLoading()
                 }
             }
         }
@@ -278,7 +250,21 @@ open class URLSessionTask : NSObject, NSCopying {
             self.updateTaskState()
             if self.suspendCount == 0 {
                 self.workQueue.async {
-                    self._protocol.startLoading()
+                    if let _protocol = self._protocol {
+                        _protocol.startLoading()
+                    }
+                    else if self.error == nil {
+                        var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "unsupported URL"]
+                        if let url = self.originalRequest?.url {
+                            userInfo[NSURLErrorFailingURLErrorKey] = url
+                            userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                        }
+                        let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                                  code: NSURLErrorUnsupportedURL,
+                                                                  userInfo: userInfo))
+                        self.error = urlError
+                        _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
+                    }
                 }
             }
         }
@@ -301,16 +287,10 @@ open class URLSessionTask : NSObject, NSCopying {
     /// URLSessionTask.highPriority, but use is not restricted to these.
     open var priority: Float {
         get {
-            semaphore.wait()
-            defer {
-                semaphore.signal()
-            }
-            return self._priority
+            return self.workQueue.sync { return self._priority }
         }
         set {
-            semaphore.wait()
-            self._priority = newValue
-            semaphore.signal()
+            self.workQueue.sync { self._priority = newValue }
         }
     }
     fileprivate var _priority: Float = URLSessionTask.defaultPriority
@@ -325,6 +305,12 @@ extension URLSessionTask {
         case canceling
         /// The task has completed and the session will receive no more delegate notifications
         case completed
+    }
+}
+
+extension URLSessionTask : ProgressReporting {
+    public var progress: Progress {
+        NSUnimplemented()
     }
 }
 
@@ -555,7 +541,9 @@ extension _ProtocolClient : URLProtocolClient {
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didCompleteWithError: nil)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                task.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         case .noDelegate:
             task.state = .completed
@@ -573,6 +561,7 @@ extension _ProtocolClient : URLProtocolClient {
                 session.taskRegistry.remove(task)
             }
         }
+        task._protocol = nil
     }
 
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
@@ -600,13 +589,19 @@ extension _ProtocolClient : URLProtocolClient {
 
     func urlProtocol(_ protocol: URLProtocol, didFailWithError error: Error) {
         guard let task = `protocol`.task else { fatalError() }
+        urlProtocol(task: task, didFailWithError: error)
+    }
+
+    func urlProtocol(task: URLSessionTask, didFailWithError error: Error) {
         guard let session = task.session as? URLSession else { fatalError() }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didCompleteWithError: error as Error)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                task.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         case .noDelegate:
             task.state = .completed
@@ -615,7 +610,9 @@ extension _ProtocolClient : URLProtocolClient {
             session.delegateQueue.addOperation {
                 completion(nil, nil, error)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                task.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
@@ -624,6 +621,7 @@ extension _ProtocolClient : URLProtocolClient {
                 session.taskRegistry.remove(task)
             }
         }
+        task._protocol = nil
     }
 
     func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {

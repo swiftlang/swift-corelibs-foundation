@@ -158,7 +158,7 @@ open class FileManager : NSObject {
                 } else if let attr = attributes {
                     try self.setAttributes(attr, ofItemAtPath: path)
                 }
-            } else if isDir {
+            } else if isDir.boolValue {
                 return
             } else {
                 throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
@@ -406,9 +406,9 @@ open class FileManager : NSObject {
     }
     
     open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
-        var isDir = false
+        var isDir: ObjCBool = false
         if self.fileExists(atPath: srcPath, isDirectory: &isDir) {
-            if !isDir {
+            if !isDir.boolValue {
                 // TODO: Symlinks should be copied instead of hard-linked.
                 if link(srcPath, dstPath) == -1 {
                     throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
@@ -532,12 +532,13 @@ open class FileManager : NSObject {
             if let isDirectory = isDirectory {
                 if (s.st_mode & S_IFMT) == S_IFLNK {
                     if stat(path, &s) >= 0 {
-                        isDirectory.pointee = (s.st_mode & S_IFMT) == S_IFDIR
+                        isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
                     } else {
                         return false
                     }
                 } else {
-                    isDirectory.pointee = (s.st_mode & S_IFMT) == S_IFDIR
+                    let isDir = (s.st_mode & S_IFMT) == S_IFDIR
+                    isDirectory.pointee = ObjCBool(isDir)
                 }
             }
 
@@ -718,7 +719,11 @@ extension FileManager {
     open var homeDirectoryForCurrentUser: URL {
         return homeDirectory(forUser: CFCopyUserName().takeRetainedValue()._swiftObject)!
     }
-    open var temporaryDirectory: URL { NSUnimplemented() }
+    
+    open var temporaryDirectory: URL {
+        return URL(fileURLWithPath: NSTemporaryDirectory())
+    }
+    
     open func homeDirectory(forUser userName: String) -> URL? {
         guard !userName.isEmpty else { return nil }
         guard let url = CFCopyHomeDirectoryURLForUser(userName._cfObject) else { return nil }

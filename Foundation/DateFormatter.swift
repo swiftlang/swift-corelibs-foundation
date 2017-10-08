@@ -142,9 +142,23 @@ open class DateFormatter : Formatter {
         }
     }
 
-    open var dateStyle: Style = .none { willSet { _dateFormat = nil; _reset() } }
+    open var dateStyle: Style = .none {
+        willSet {
+            _dateFormat = nil
+        }
+        didSet {
+            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
+        }
+    }
 
-    open var timeStyle: Style = .none { willSet { _dateFormat = nil; _reset() } }
+    open var timeStyle: Style = .none {
+        willSet {
+            _dateFormat = nil
+        }
+        didSet {
+            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
+        }
+    }
 
     /*@NSCopying*/ open var locale: Locale! = .current { willSet { _reset() } }
 

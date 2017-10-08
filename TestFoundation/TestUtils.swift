@@ -41,7 +41,7 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
                     print(err)
                     return false
                 }
-            } else if !isDir {
+            } else if !isDir.boolValue {
                 return false
             }
             

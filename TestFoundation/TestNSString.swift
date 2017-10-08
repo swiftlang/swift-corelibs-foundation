@@ -66,6 +66,8 @@ class TestNSString : XCTestCase {
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
             ("test_FromContentsOfURL",test_FromContentsOfURL),
+            ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
+            ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
             ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
             ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
             ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
@@ -96,7 +98,6 @@ class TestNSString : XCTestCase {
             ("test_mutableStringConstructor", test_mutableStringConstructor),
             ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
             ("test_PrefixSuffix", test_PrefixSuffix),
-            ("test_utf16StringRangeCount", test_StringUTF16ViewIndexStrideableRange),
             ("test_reflection", { _ in test_reflection }),
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
@@ -266,21 +267,21 @@ class TestNSString : XCTestCase {
 
     func test_FromNullTerminatedCStringInASCII() {
         let bytes = mockASCIIStringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.ascii.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.ascii.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockASCIIString) ?? false)
     }
 
     func test_FromNullTerminatedCStringInUTF8() {
         let bytes = mockUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNotNil(string)
         XCTAssertTrue(string?.isEqual(to: mockUTF8String) ?? false)
     }
 
     func test_FromMalformedNullTerminatedCStringInUTF8() {
         let bytes = mockMalformedUTF8StringBytes + [0x00]
-        let string = NSString(CString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
+        let string = NSString(cString: bytes.map { Int8(bitPattern: $0) }, encoding: String.Encoding.utf8.rawValue)
         XCTAssertNil(string)
     }
 
@@ -301,6 +302,32 @@ class TestNSString : XCTestCase {
             XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOf:encoding")
         } catch {
             XCTFail("Unable to init NSString from contentsOf:encoding:")
+        }
+    }
+
+    func test_FromContentOfFileUsedEncodingIgnored() {
+        let testFilePath = testBundle().path(forResource: "NSStringTestData", ofType: "txt")
+        XCTAssertNotNil(testFilePath)
+        
+        do {
+            let str = try NSString(contentsOfFile: testFilePath!, usedEncoding: nil)
+            XCTAssertEqual(str, "swift-corelibs-foundation")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:encoding:")
+        }
+    }
+    
+    func test_FromContentOfFileUsedEncodingUTF8() {
+        let testFilePath = testBundle().path(forResource: "NSStringTestData", ofType: "txt")
+        XCTAssertNotNil(testFilePath)
+        
+        do {
+            var encoding: UInt = 0
+            let str = try NSString(contentsOfFile: testFilePath!, usedEncoding: &encoding)
+            XCTAssertEqual(str, "swift-corelibs-foundation")
+            XCTAssertEqual(encoding, String.Encoding.utf8.rawValue, "Wrong encoding detected from UTF8 file")
+        } catch {
+            XCTFail("Unable to init NSString from contentsOfFile:encoding:")
         }
     }
 
@@ -1070,34 +1097,6 @@ class TestNSString : XCTestCase {
         }
     }
     
-    //[SR-1988] Ranges of String.UTF16View.Index have negative count
-    func test_StringUTF16ViewIndexStrideableRange(){
-        let testStrings = ["", "\u{0000}", "a", "aa", "ab", "\u{007f}", "\u{0430}", "\u{0430}\u{0431}\u{0432}","\u{1f425}"]
-        
-        func checkStrideable<S : Strideable>(
-            instances: [S],
-            distances: [S.Stride],
-            distanceOracle: (Int, Int) -> S.Stride
-            ) {
-            for i in instances.indices {
-                let first = instances[i]
-                for j in instances.indices {
-                    let second = instances[j]
-                    XCTAssertTrue(distanceOracle(i, j) == first.distance(to: second))
-                    XCTAssertTrue(second == first.advanced(by: distanceOracle(i, j)))
-                }
-            }
-        }
-        testStrings.forEach{
-            let utf16 = $0.utf16
-            var indicies = Array(utf16.indices)
-            indicies.append(utf16.indices.endIndex)
-            checkStrideable(instances: indicies,
-                            distances: Array(0..<utf16.count),
-                       distanceOracle: {$1 - $0})
-        }
-    }
-    
     func test_mutableStringConstructor() {
         let mutableString = NSMutableString(string: "Test")
         XCTAssertEqual(mutableString, "Test")
@@ -1327,11 +1326,11 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
     // To determine the expected results, compare grapheme clusters,
     // scalar-to-scalar, of the NFD form of the strings.
     let lhsNFDGraphemeClusters =
-        lhs.decomposedStringWithCanonicalMapping.characters.map {
+        lhs.decomposedStringWithCanonicalMapping.map {
             Array(String($0).unicodeScalars)
     }
     let rhsNFDGraphemeClusters =
-        rhs.decomposedStringWithCanonicalMapping.characters.map {
+        rhs.decomposedStringWithCanonicalMapping.map {
             Array(String($0).unicodeScalars)
     }
     let expectHasPrefix = lhsNFDGraphemeClusters.starts(

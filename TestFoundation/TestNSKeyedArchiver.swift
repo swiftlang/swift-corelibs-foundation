@@ -106,6 +106,7 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_user_class", test_archive_user_class),
             ("test_archive_uuid_bvref", test_archive_uuid_byref),
             ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
+            ("test_archive_unhashable", test_archive_unhashable),
         ]
     }
 
@@ -118,7 +119,7 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(encode(archiver))
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWithData: Data._unconditionallyBridgeFromObjectiveC(data))
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: Data._unconditionallyBridgeFromObjectiveC(data))
         XCTAssertTrue(decode(unarchiver))
         
         // Archiving using the default initializer
@@ -127,10 +128,10 @@ class TestNSKeyedArchiver : XCTestCase {
         XCTAssertTrue(encode(archiver1))
         let archivedData = archiver1.encodedData
         
-        let unarchiver1 = NSKeyedUnarchiver(forReadingWithData: archivedData)
+        let unarchiver1 = NSKeyedUnarchiver(forReadingWith: archivedData)
         XCTAssertTrue(decode(unarchiver1))
     }
-    
+
     private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
@@ -311,5 +312,31 @@ class TestNSKeyedArchiver : XCTestCase {
     func test_archive_uuid_byvalue() {
         let uuid = UUID()
         return test_archive(uuid, classes: [NSUUID.self])
+    }
+
+    func test_archive_unhashable() {
+        let data = """
+            {
+              "args": {},
+              "headers": {
+                "Accept": "*/*",
+                "Accept-Encoding": "deflate, gzip",
+                "Accept-Language": "en",
+                "Connection": "close",
+                "Host": "httpbin.org",
+                "User-Agent": "TestFoundation (unknown version) curl/7.54.0"
+              },
+              "origin": "0.0.0.0",
+              "url": "https://httpbin.org/get"
+            }
+            """.data(using: .utf8)!
+        do {
+            let json = try JSONSerialization.jsonObject(with: data)
+            _ = NSKeyedArchiver.archivedData(withRootObject: json)
+            XCTAssert(true, "NSKeyedArchiver.archivedData handles unhashable")
+        }
+        catch {
+            XCTFail("test_archive_unhashable, de-serialization error \(error)")
+        }
     }
 }

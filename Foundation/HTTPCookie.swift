@@ -249,7 +249,7 @@ open class HTTPCookie : NSObject {
         _domain = canonicalDomain
 
         if let
-            secureString = properties[.secure] as? String, !secureString.characters.isEmpty
+            secureString = properties[.secure] as? String, !secureString.isEmpty
         {
             _secure = true
         } else {
@@ -267,8 +267,7 @@ open class HTTPCookie : NSObject {
         _version = version
 
         if let portString = properties[.port] as? String, _version == 1 {
-            _portList = portString.characters
-                .split(separator: ",")
+            _portList = portString.split(separator: ",")
                 .flatMap { Int(String($0)) }
                 .map { NSNumber(value: $0) }
         } else {
@@ -361,8 +360,8 @@ open class HTTPCookie : NSObject {
         }
         //Remove the final trailing semicolon and whitespace
         if ( cookieString.length > 0 ) {
-            cookieString.characters.removeLast()
-            cookieString.characters.removeLast()
+            cookieString.removeLast()
+            cookieString.removeLast()
         }
         return ["Cookie": cookieString]
     }
@@ -624,7 +623,7 @@ fileprivate extension String {
     }
 
     func insertComma(at index:Int) -> String {
-        return  String(self.characters.prefix(index)) + ","  + String(self.characters.suffix(self.characters.count-index))
+        return  String(self.prefix(index)) + ","  + String(self.suffix(self.count-index))
     }
 }
 
