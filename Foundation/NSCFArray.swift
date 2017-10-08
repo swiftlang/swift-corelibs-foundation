@@ -20,7 +20,7 @@ internal final class _NSCFArray : NSMutableArray {
         fatalError()
     }
     
-    required init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
+    required init(objects: UnsafePointer<AnyObject>?, count cnt: Int) {
         fatalError()
     }
     
