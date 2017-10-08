@@ -1373,8 +1373,8 @@ extension TestJSONSerialization {
             outputStream.open()
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
-            if(result > -1) {
-                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+            if result > -1 {
+                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}\0\0\0\0\0\0\0")
             }
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -1390,7 +1390,7 @@ extension TestJSONSerialization {
                 outputStream?.open()
                 let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream!, options: [])
                 outputStream?.close()
-                if(result > -1) {
+                if result > -1 {
                     let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
                     var buffer = [UInt8](repeating: 0, count: 20)
                     fileStream.open()
@@ -1398,7 +1398,7 @@ extension TestJSONSerialization {
                         let resultRead: Int = fileStream.read(&buffer, maxLength: buffer.count)
                         fileStream.close()
                         if(resultRead > -1){
-                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}\0\0\0\0\0\0\0")
                         }
                     }
                     removeTestFile(filePath!)
@@ -1419,8 +1419,8 @@ extension TestJSONSerialization {
         do {
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
-            if(result > -1) {
-                XCTAssertNotEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+            if result > -1 {
+                XCTAssertNotEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}\0\0\0\0\0\0\0")
             }
         } catch {
             XCTFail("Error occurred while writing to stream")
