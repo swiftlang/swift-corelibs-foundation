@@ -38,10 +38,10 @@ extension String : _ObjectTypeBridgeable {
                 result = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: buffer, count: length))
             } else {
                 // Retrieving Unicode characters is unreliable; instead retrieve UTF8-encoded bytes
-                let max = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8)
+                let max = CFStringGetMaximumSizeForEncoding(length, CFStringEncoding(kCFStringEncodingUTF8))
                 let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: max)
                 var count: CFIndex = -1
-                CFStringGetBytes(cf, CFRangeMake(0, length), kCFStringEncodingUTF8, 0, false, buffer, max, &count)
+                CFStringGetBytes(cf, CFRangeMake(0, length), CFStringEncoding(kCFStringEncodingUTF8), 0, false, buffer, max, &count)
                 let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: buffer, count: count))
                 buffer.deinitialize(count: length)
                 buffer.deallocate(capacity: length)
