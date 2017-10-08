@@ -1224,8 +1224,7 @@ let comparisonTests = [
     ComparisonTest("\r\n", "t"),
     ComparisonTest("\r\n", "\n",
         reason: "blocked on rdar://problem/19036555"),
-    ComparisonTest("\u{0}", "\u{0}\u{0}",
-        reason: "rdar://problem/19034601"),
+    ComparisonTest("\u{0}", "\u{0}\u{0}"),
 
     // Whitespace
     // U+000A LINE FEED (LF)
