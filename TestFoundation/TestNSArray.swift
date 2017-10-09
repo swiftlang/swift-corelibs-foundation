@@ -24,6 +24,8 @@ class TestNSArray : XCTestCase {
     static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("test_constructors", test_constructors),
+            ("test_constructorWithCopyItems", test_constructorWithCopyItems),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_objectAtIndex", test_objectAtIndex),
@@ -43,7 +45,8 @@ class TestNSArray : XCTestCase {
             ("test_copying", test_copying),
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
-            ("test_initWithContentsOfFile", test_initWithContentsOfFile)
+            ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_readWriteURL", test_readWriteURL)
         ]
     }
     
@@ -52,6 +55,45 @@ class TestNSArray : XCTestCase {
         let array2 : NSArray = ["foo", "bar"]
         XCTAssertEqual(array.count, 0)
         XCTAssertEqual(array2.count, 2)
+    }
+
+    func test_constructors() {
+        let arrayNil = NSArray(objects: nil, count: 0)
+        XCTAssertEqual(arrayNil.count, 0)
+
+        let array1 = NSArray(object: "foo")
+        XCTAssertEqual(array1.count, 1)
+
+        let testStrings: [AnyObject] = [NSString(string:"foo"), NSString(string: "bar")]
+        testStrings.withUnsafeBufferPointer { ptr in
+            let array2 = NSArray(objects: ptr.baseAddress, count: 1)
+            XCTAssertEqual(array1, array2)
+        }
+
+        let array3 = NSArray(objects: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        XCTAssertEqual(array3.count, 3)
+        let array4 = NSArray(array: ["foo", "bar", "baz"])
+        XCTAssertEqual(array4.count, 3)
+        let array5 = NSArray(arrayLiteral: "foo", "bar", "baz")
+        XCTAssertEqual(array5.count, 3)
+        XCTAssertEqual(array3, array4)
+        XCTAssertEqual(array3, array5)
+        XCTAssertEqual(array4, array5)
+
+    }
+
+    func test_constructorWithCopyItems() {
+        let foo = "foo" as NSMutableString
+
+        let array1 = NSArray(array: [foo], copyItems: false)
+        let array2 = NSArray(array: [foo], copyItems: true)
+
+        XCTAssertEqual(array1[0] as! String, "foo")
+        XCTAssertEqual(array2[0] as! String, "foo")
+
+        foo.append("1")
+        XCTAssertEqual(array1[0] as! String, "foo1")
+        XCTAssertEqual(array2[0] as! String, "foo")
     }
     
     func test_enumeration() {
@@ -464,7 +506,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
-        func test_initWithContentsOfFile() {
+    func test_initWithContentsOfFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {
             let a1: NSArray = ["foo", "bar"]
@@ -504,7 +546,23 @@ class TestNSArray : XCTestCase {
             XCTFail("Temporary file creation failed")
         }
     }
-    
+
+    func test_readWriteURL() {
+        let data = NSArray(arrayLiteral: "one", "two", "three", "four", "five")
+        do {
+            let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString
+            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            let testFile = tempDir + "/readWriteURL.txt"
+            let url = URL(fileURLWithPath: testFile)
+            try data.write(to: url)
+            let data2 = try NSArray(contentsOf: url, error: ())
+            XCTAssertEqual(data, data2)
+            removeTestFile(testFile)
+        } catch let e {
+            XCTFail("Failed to write to file: \(e)")
+        }
+    }
+
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {

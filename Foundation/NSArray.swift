@@ -49,7 +49,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
     }
 
-    convenience init(objects elements: AnyObject...) {
+    public convenience init(objects elements: AnyObject...) {
         self.init(objects: elements, count: elements.count)
     }
 
