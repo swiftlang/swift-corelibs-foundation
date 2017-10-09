@@ -43,6 +43,7 @@ class TestNSNumber : XCTestCase {
             ("test_description", test_description ),
             ("test_descriptionWithLocale", test_descriptionWithLocale ),
             ("test_objCType", test_objCType ),
+            ("test_stringValue", test_stringValue),
         ]
     }
     
@@ -1018,5 +1019,72 @@ class TestNSNumber : XCTestCase {
 
         XCTAssertEqual("f" /* 0x66 */, objCType(NSNumber(value: Float.greatestFiniteMagnitude)))
         XCTAssertEqual("d" /* 0x64 */, objCType(NSNumber(value: Double.greatestFiniteMagnitude)))
+    }
+
+    func test_stringValue() {
+
+        if UInt.max == UInt32.max {
+            XCTAssertEqual(NSNumber(value: UInt.min).stringValue, "0")
+            XCTAssertEqual(NSNumber(value: UInt.min + 1).stringValue, "1")
+            XCTAssertEqual(NSNumber(value: UInt.max).stringValue, "4294967295")
+            XCTAssertEqual(NSNumber(value: UInt.max - 1).stringValue, "4294967294")
+        } else if UInt.max == UInt64.max {
+            XCTAssertEqual(NSNumber(value: UInt.min).stringValue, "0")
+            XCTAssertEqual(NSNumber(value: UInt.min + 1).stringValue, "1")
+            XCTAssertEqual(NSNumber(value: UInt.max).stringValue, "18446744073709551615")
+            XCTAssertEqual(NSNumber(value: UInt.max - 1).stringValue, "18446744073709551614")
+        }
+
+        XCTAssertEqual(NSNumber(value: UInt8.min).stringValue, "0")
+        XCTAssertEqual(NSNumber(value: UInt8.min + 1).stringValue, "1")
+        XCTAssertEqual(NSNumber(value: UInt8.max).stringValue, "255")
+        XCTAssertEqual(NSNumber(value: UInt8.max - 1).stringValue, "254")
+
+        XCTAssertEqual(NSNumber(value: UInt16.min).stringValue, "0")
+        XCTAssertEqual(NSNumber(value: UInt16.min + 1).stringValue, "1")
+        XCTAssertEqual(NSNumber(value: UInt16.max).stringValue, "65535")
+        XCTAssertEqual(NSNumber(value: UInt16.max - 1).stringValue, "65534")
+
+        XCTAssertEqual(NSNumber(value: UInt32.min).stringValue, "0")
+        XCTAssertEqual(NSNumber(value: UInt32.min + 1).stringValue, "1")
+        XCTAssertEqual(NSNumber(value: UInt32.max).stringValue, "4294967295")
+        XCTAssertEqual(NSNumber(value: UInt32.max - 1).stringValue, "4294967294")
+
+        XCTAssertEqual(NSNumber(value: UInt64.min).stringValue, "0")
+        XCTAssertEqual(NSNumber(value: UInt64.min + 1).stringValue, "1")
+        XCTAssertEqual(NSNumber(value: UInt64.max).stringValue, "18446744073709551615")
+        XCTAssertEqual(NSNumber(value: UInt64.max - 1).stringValue, "18446744073709551614")
+
+        if Int.max == Int32.max {
+            XCTAssertEqual(NSNumber(value: Int.min).stringValue, "-2147483648")
+            XCTAssertEqual(NSNumber(value: Int.min + 1).stringValue, "-2147483647")
+            XCTAssertEqual(NSNumber(value: Int.max).stringValue, "2147483647")
+            XCTAssertEqual(NSNumber(value: Int.max - 1).stringValue, "2147483646")
+        } else if Int.max == Int64.max {
+            XCTAssertEqual(NSNumber(value: Int.min).stringValue, "-9223372036854775808")
+            XCTAssertEqual(NSNumber(value: Int.min + 1).stringValue, "-9223372036854775807")
+            XCTAssertEqual(NSNumber(value: Int.max).stringValue, "9223372036854775807")
+            XCTAssertEqual(NSNumber(value: Int.max - 1).stringValue, "9223372036854775806")
+        }
+
+        XCTAssertEqual(NSNumber(value: Int8.min).stringValue, "-128")
+        XCTAssertEqual(NSNumber(value: Int8.min + 1).stringValue, "-127")
+        XCTAssertEqual(NSNumber(value: Int8.max).stringValue, "127")
+        XCTAssertEqual(NSNumber(value: Int8.max - 1).stringValue, "126")
+
+        XCTAssertEqual(NSNumber(value: Int16.min).stringValue, "-32768")
+        XCTAssertEqual(NSNumber(value: Int16.min + 1).stringValue, "-32767")
+        XCTAssertEqual(NSNumber(value: Int16.max).stringValue, "32767")
+        XCTAssertEqual(NSNumber(value: Int16.max - 1).stringValue, "32766")
+
+        XCTAssertEqual(NSNumber(value: Int32.min).stringValue, "-2147483648")
+        XCTAssertEqual(NSNumber(value: Int32.min + 1).stringValue, "-2147483647")
+        XCTAssertEqual(NSNumber(value: Int32.max).stringValue, "2147483647")
+        XCTAssertEqual(NSNumber(value: Int32.max - 1).stringValue, "2147483646")
+
+        XCTAssertEqual(NSNumber(value: Int64.min).stringValue, "-9223372036854775808")
+        XCTAssertEqual(NSNumber(value: Int64.min + 1).stringValue, "-9223372036854775807")
+        XCTAssertEqual(NSNumber(value: Int64.max).stringValue, "9223372036854775807")
+        XCTAssertEqual(NSNumber(value: Int64.max - 1).stringValue, "9223372036854775806")
     }
 }
