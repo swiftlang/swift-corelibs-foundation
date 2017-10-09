@@ -241,11 +241,11 @@ extension Stream {
 #endif
 
 extension StreamDelegate {
-    func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event) { }
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) { }
 }
 
 public protocol StreamDelegate : class {
-    func stream(_ aStream: Stream, handleEvent eventCode: Stream.Event)
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event)
 }
 
 // MARK: -
