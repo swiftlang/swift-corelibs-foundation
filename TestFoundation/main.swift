@@ -58,6 +58,7 @@ XCTMain([
     testCase(TestNotificationQueue.allTests),
     testCase(TestNSNull.allTests),
     testCase(TestNSNumber.allTests),
+    testCase(TestNSNumberBridging.allTests),
     testCase(TestNumberFormatter.allTests),
     testCase(TestOperationQueue.allTests),
     testCase(TestNSOrderedSet.allTests),
