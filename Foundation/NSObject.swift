@@ -7,6 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+// @_exported import of Dispatch here makes it available to all
+// classes in Foundation and all sources that import Foundation.
+// This brings it into line with Darwin usage for compatbility.
+@_exported import Dispatch
+
 import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
