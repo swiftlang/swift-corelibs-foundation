@@ -47,7 +47,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.urlCredentialStorage = nil
         self.urlCache = nil
         self.shouldUseExtendedBackgroundIdleMode = false
-        self.protocolClasses = [_HTTPURLProtocol.self]
+        self.protocolClasses = [_HTTPURLProtocol.self, _FTPURLProtocol.self]
         super.init()
     }
     

@@ -19,83 +19,6 @@
 
 import CoreFoundation
 
-
-extension _HTTPURLProtocol {
-    /// An HTTP header being parsed.
-    ///
-    /// It can either be complete (i.e. the final CR LF CR LF has been
-    /// received), or partial.
-    internal enum _ParsedResponseHeader {
-        case partial(_ResponseHeaderLines)
-        case complete(_ResponseHeaderLines)
-        init() {
-            self = .partial(_ResponseHeaderLines())
-        }
-    }
-    /// A type safe wrapper around multiple lines of headers.
-    ///
-    /// This can be converted into an `HTTPURLResponse`.
-    internal struct _ResponseHeaderLines {
-        let lines: [String]
-        init() {
-            self.lines = []
-        }
-        init(headerLines: [String]) {
-            self.lines = headerLines
-        }
-    }
-}
-
-extension _HTTPURLProtocol._ParsedResponseHeader {
-    /// Parse a header line passed by libcurl.
-    ///
-    /// These contain the <CRLF> ending and the final line contains nothing but
-    /// that ending.
-    /// - Returns: Returning nil indicates failure. Otherwise returns a new
-    ///     `ParsedResponseHeader` with the given line added.
-    func byAppending(headerLine data: Data) -> _HTTPURLProtocol._ParsedResponseHeader? {
-        // The buffer must end in CRLF
-        guard
-            2 <= data.count &&
-                data[data.endIndex - 2] == _HTTPCharacters.CR &&
-                data[data.endIndex - 1] == _HTTPCharacters.LF
-            else { return nil }
-        let lineBuffer = data.subdata(in: Range(data.startIndex..<data.endIndex-2))
-        guard let line = String(data: lineBuffer, encoding: String.Encoding.utf8) else { return nil}
-        return byAppending(headerLine: line)
-    }
-    /// Append a status line.
-    ///
-    /// If the line is empty, it marks the end of the header, and the result
-    /// is a complete header. Otherwise it's a partial header.
-    /// - Note: Appending a line to a complete header results in a partial
-    ///     header with just that line.
-    private func byAppending(headerLine line: String) -> _HTTPURLProtocol._ParsedResponseHeader {
-        if line.isEmpty {
-            switch self {
-            case .partial(let header): return .complete(header)
-            case .complete: return .partial(_HTTPURLProtocol._ResponseHeaderLines())
-            }
-        } else {
-            let header = partialResponseHeader
-            return .partial(header.byAppending(headerLine: line))
-        }
-    }
-    private var partialResponseHeader: _HTTPURLProtocol._ResponseHeaderLines {
-        switch self {
-        case .partial(let header): return header
-        case .complete: return _HTTPURLProtocol._ResponseHeaderLines()
-        }
-    }
-}
-private extension _HTTPURLProtocol._ResponseHeaderLines {
-    /// Returns a copy of the lines with the new line appended to it.
-    func byAppending(headerLine line: String) -> _HTTPURLProtocol._ResponseHeaderLines {
-        var l = self.lines
-        l.append(line)
-        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: l)
-    }
-}
 internal extension _HTTPURLProtocol._ResponseHeaderLines {
     /// Create an `NSHTTPRULResponse` from the lines.
     ///
@@ -230,10 +153,10 @@ private extension String {
         let methodRange = scalars.startIndex..<firstSpace.lowerBound
         let uriRange = remainder.startIndex..<secondSpace.lowerBound
         let versionRange = secondSpace.upperBound..<remainder.endIndex
-      
-        //TODO: is this necessary? If yes, this guard needs an alternate implementation 
-        //guard 0 < methodRange.count && 0 < uriRange.count && 0 < versionRange.count else { return nil } 
-
+        
+        //TODO: is this necessary? If yes, this guard needs an alternate implementation
+        //guard 0 < methodRange.count && 0 < uriRange.count && 0 < versionRange.count else { return nil }
+        
         let m = String(scalars[methodRange])
         let u = String(remainder[uriRange])
         let v = String(remainder[versionRange])
@@ -249,7 +172,7 @@ private extension String {
 ///
 /// - SeeAlso: `_HTTPURLProtocol.HTTPMessage.Header.createOne(from:)`
 private func createHeaders(from lines: ArraySlice<String>) -> [_HTTPURLProtocol._HTTPMessage._Header]? {
-
+    
     var headerLines = Array(lines)
     var headers: [_HTTPURLProtocol._HTTPMessage._Header] = []
     while !headerLines.isEmpty {
@@ -367,3 +290,5 @@ private extension UnicodeScalar {
         return !_HTTPCharacters.Separators.characterIsMember(UInt16(self.value))
     }
 }
+
+
