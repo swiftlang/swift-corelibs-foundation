@@ -326,6 +326,7 @@
 		B910957B1EEF237800A71930 /* NSString-UTF16-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */; };
 		B933A79E1F3055F700FE6846 /* NSString-UTF32-BE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */; };
 		B933A79F1F3055F700FE6846 /* NSString-UTF32-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */; };
+		B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */; };
 		B9974B961EDF4A22007F15B8 /* TransferState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B8F1EDF4A22007F15B8 /* TransferState.swift */; };
 		B9974B971EDF4A22007F15B8 /* MultiHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B901EDF4A22007F15B8 /* MultiHandle.swift */; };
 		B9974B981EDF4A22007F15B8 /* libcurlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */; };
@@ -795,6 +796,7 @@
 		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
+		B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSLock.swift; sourceTree = "<group>"; };
 		B9974B8F1EDF4A22007F15B8 /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TransferState.swift; path = http/TransferState.swift; sourceTree = "<group>"; };
 		B9974B901EDF4A22007F15B8 /* MultiHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MultiHandle.swift; path = http/MultiHandle.swift; sourceTree = "<group>"; };
 		B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = libcurlHelpers.swift; path = http/libcurlHelpers.swift; sourceTree = "<group>"; };
@@ -1498,6 +1500,7 @@
 				400E22641C1A4E58007C5933 /* TestProcessInfo.swift */,
 				EA01AAEB1DA839C4008F4E07 /* TestProgress.swift */,
 				5E5835F31C20C9B500C81317 /* TestThread.swift */,
+				B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */,
 				CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */,
 				D4FE895A1D703D1100DA7986 /* TestURLRequest.swift */,
 				5B6F17961C48631C00935030 /* TestUtils.swift */,
@@ -2445,6 +2448,7 @@
 				D512D17C1CD883F00032E6A5 /* TestFileHandle.swift in Sources */,
 				D4FE895B1D703D1100DA7986 /* TestURLRequest.swift in Sources */,
 				684C79011F62B611005BD73E /* TestNSNumberBridging.swift in Sources */,
+				B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */,
 				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
 				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,
 				5B13B3311C582D4C00651CE2 /* TestIndexPath.swift in Sources */,
