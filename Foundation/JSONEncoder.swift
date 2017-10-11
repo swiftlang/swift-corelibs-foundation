@@ -101,7 +101,7 @@ open class JSONEncoder {
     open var userInfo: [CodingUserInfoKey : Any] = [:]
 
     /// Options set on the top-level encoder to pass down the encoding hierarchy.
-    internal struct _Options {
+    fileprivate struct _Options {
         let dateEncodingStrategy: DateEncodingStrategy
         let dataEncodingStrategy: DataEncodingStrategy
         let nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy
@@ -153,14 +153,14 @@ open class JSONEncoder {
 
 // MARK: - _JSONEncoder
 
-internal class _JSONEncoder : Encoder {
+fileprivate class _JSONEncoder : Encoder {
     // MARK: Properties
 
     /// The encoder's storage.
     fileprivate var storage: _JSONEncodingStorage
 
     /// Options set on the top-level encoder.
-    internal let options: JSONEncoder._Options
+    fileprivate let options: JSONEncoder._Options
 
     /// The path to the current point in encoding.
     public var codingPath: [CodingKey]
@@ -866,7 +866,7 @@ open class JSONDecoder {
     open var userInfo: [CodingUserInfoKey : Any] = [:]
 
     /// Options set on the top-level encoder to pass down the decoding hierarchy.
-    internal struct _Options {
+    fileprivate struct _Options {
         let dateDecodingStrategy: DateDecodingStrategy
         let dataDecodingStrategy: DataDecodingStrategy
         let nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy
@@ -904,14 +904,14 @@ open class JSONDecoder {
 
 // MARK: - _JSONDecoder
 
-internal class _JSONDecoder : Decoder {
+fileprivate class _JSONDecoder : Decoder {
     // MARK: Properties
 
     /// The decoder's storage.
     fileprivate var storage: _JSONDecodingStorage
 
     /// Options set on the top-level decoder.
-    internal let options: JSONDecoder._Options
+    fileprivate let options: JSONDecoder._Options
 
     /// The path to the current point in encoding.
     private(set) public var codingPath: [CodingKey]
