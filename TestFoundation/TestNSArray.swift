@@ -379,7 +379,7 @@ class TestNSArray : XCTestCase {
         let resultNumbers = NSArray(array: inputNumbers).sortedArray(comparator:) { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
+            return l < r ? .orderedAscending : (l == r ? .orderedSame : .orderedDescending)
         }
         XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).intValue}, expectedNumbers)
     }
@@ -410,7 +410,7 @@ class TestNSArray : XCTestCase {
         func compare(_ left: Any, right:Any,  context: UnsafeMutableRawPointer?) -> Int {
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? -1 : (l > r ? 0 : 1)
+            return l < r ? -1 : (l == r ? 0 : 1)
         }
         mutableInput.sort(compare, context: UnsafeMutableRawPointer(bitPattern: 0))
 
@@ -426,7 +426,7 @@ class TestNSArray : XCTestCase {
         mutableInput.sort { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
+            return l < r ? .orderedAscending : (l == r ? .orderedSame : .orderedDescending)
         }
 
         XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).intValue}, expectedNumbers)
