@@ -24,6 +24,7 @@ class TestFileManager : XCTestCase {
             ("test_moveFile", test_moveFile),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileAttributes", test_fileAttributes),
+            ("test_fileSystemAttributes", test_fileSystemAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
             ("test_directoryEnumerator", test_directoryEnumerator),
             ("test_pathEnumerator",test_pathEnumerator),
@@ -203,6 +204,40 @@ class TestFileManager : XCTestCase {
             try fm.removeItem(atPath: path)
         } catch {
             XCTFail("Failed to clean up files")
+        }
+    }
+    
+    func test_fileSystemAttributes() {
+        let fm = FileManager.default
+        let path = NSTemporaryDirectory()
+        
+        do {
+            let attrs = try fm.attributesOfFileSystem(forPath: path)
+            
+            XCTAssertTrue(attrs.count > 0)
+            
+            let systemNumber = attrs[.systemNumber] as? NSNumber
+            XCTAssertNotNil(systemNumber)
+            XCTAssertNotEqual(systemNumber!.uint64Value, 0)
+            
+            let systemFreeSize = attrs[.systemFreeSize] as? NSNumber
+            XCTAssertNotNil(systemFreeSize)
+            XCTAssertNotEqual(systemFreeSize!.uint64Value, 0)
+            
+            let systemSize = attrs[.systemSize] as? NSNumber
+            XCTAssertNotNil(systemSize)
+            XCTAssertGreaterThan(systemSize!.uint64Value, systemFreeSize!.uint64Value)
+            
+            let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
+            XCTAssertNotNil(systemFreeNodes)
+            XCTAssertNotEqual(systemFreeNodes!.uint64Value, 0)
+            
+            let systemNodes = attrs[.systemNodes] as? NSNumber
+            XCTAssertNotNil(systemNodes)
+            XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
+            
+        } catch let err {
+            XCTFail("\(err)")
         }
     }
     

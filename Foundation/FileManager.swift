@@ -343,7 +343,34 @@ open class FileManager : NSObject {
         This method replaces fileSystemAttributesAtPath:.
      */
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        NSUnimplemented()
+        // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
+        #if os(OSX) || os(iOS)
+            var s = statfs()
+            guard statfs(path, &s) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+        #else
+            var s = statvfs()
+            guard statvfs(path, &s) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+        #endif
+        
+        
+        var result = [FileAttributeKey : Any]()
+        #if os(OSX) || os(iOS)
+            let blockSize = UInt64(s.f_bsize)
+            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
+        #else
+            let blockSize = UInt64(s.f_frsize)
+            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
+        #endif
+        result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
+        result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
+        result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
+        result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
+        
+        return result
     }
     
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
