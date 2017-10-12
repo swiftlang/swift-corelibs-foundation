@@ -69,8 +69,8 @@ class TestNSLock: XCTestCase {
     func test_threadsAndLocks() {
         let condition = NSCondition()
         let lock = NSLock()
-        let threadCount = 1000
-        let endSeconds: Double = 10
+        let threadCount = 10
+        let endSeconds: Double = 2
 
         let endTime = Date.init(timeIntervalSinceNow: endSeconds)
         var threadsStarted = Array<Bool>(repeating: false, count: threadCount)
@@ -85,8 +85,8 @@ class TestNSLock: XCTestCase {
                 condition.lock()
                 condition.wait()
                 condition.unlock()
-                for _ in 1...100 {
-                    let r = (endSeconds * drand48()) / 100
+                for _ in 1...50 {
+                    let r = (endSeconds * drand48()) / 50
                     Thread.sleep(forTimeInterval: r)
                     if lock.lock(before: endTime) {
                         lock.unlock()
