@@ -115,12 +115,16 @@ class TestNSLocale : XCTestCase {
     }
  
     func test_localeProperties(){
+#if os(Android)
+        XCTFail("Locale lookup unavailable on Android")
+#else
         let enUSID = "en_US"
         let locale = Locale(identifier: enUSID)
         XCTAssertEqual(String(describing: locale.languageCode!), "en")
         XCTAssertEqual(String(describing: locale.decimalSeparator!), ".")
         XCTAssertEqual(String(describing: locale.currencyCode!), "USD")
         XCTAssertEqual(String(describing: locale.collatorIdentifier!), enUSID)
+#endif
     }
 
 }

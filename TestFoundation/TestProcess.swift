@@ -17,6 +17,9 @@
 
 class TestProcess : XCTestCase {
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
+#if os(Android)
+	return []
+#else
         return [
                    ("test_exit0" , test_exit0),
                    ("test_exit1" , test_exit1),
@@ -34,8 +37,10 @@ class TestProcess : XCTestCase {
                    ("test_no_environment", test_no_environment),
                    ("test_custom_environment", test_custom_environment),
         ]
+#endif
     }
     
+#if !os(Android)
     func test_exit0() {
         
         let process = Process()
@@ -281,6 +286,7 @@ class TestProcess : XCTestCase {
             XCTFail("Test failed: \(error)")
         }
     }
+#endif
 }
 
 private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
@@ -303,6 +309,7 @@ private enum Error: Swift.Error {
     case InvalidEnvironmentVariable(String)
 }
 
+#if !os(Android)
 private func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
@@ -353,5 +360,5 @@ private func parseEnv(_ env: String) throws -> [String: String] {
     }
     return result
 }
-
+#endif
 

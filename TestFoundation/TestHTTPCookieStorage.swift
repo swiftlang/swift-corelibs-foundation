@@ -239,6 +239,7 @@ class TestHTTPCookieStorage: XCTestCase {
     }
 
     func test_cookieInXDGSpecPath() {
+#if !os(Android)
         //Test without setting the environment variable
         let testCookie = HTTPCookie(properties: [
            .name: "TestCookie0",
@@ -287,5 +288,6 @@ class TestHTTPCookieStorage: XCTestCase {
         let terminationReason = task.terminationReason
         XCTAssertEqual(terminationReason, Process.TerminationReason.exit)
         try? fm.removeItem(atPath: testPath)
+#endif
     }
 }

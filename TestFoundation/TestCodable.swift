@@ -307,6 +307,7 @@ class TestCodable : XCTestCase {
 
     // MARK: - TimeZone
     lazy var timeZoneValues: [TimeZone] = {
+#if !os(Android)
         var values = [
             TimeZone(identifier: "America/Los_Angeles")!,
             TimeZone(identifier: "UTC")!,
@@ -318,7 +319,12 @@ class TestCodable : XCTestCase {
             // causing encode -> decode -> compare test to fail.
             values.append(TimeZone.current)
         #endif
-        
+#else
+        var values = [
+            TimeZone(identifier: "UTC")!,
+            TimeZone.current
+            ]
+#endif
         return values
     }()
 

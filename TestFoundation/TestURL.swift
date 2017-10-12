@@ -78,6 +78,9 @@ class TestURL : XCTestCase {
         #if os(OSX)
         let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
         let relativePath = "Documents"
+        #elseif os(Android)
+        let baseURL = URL(fileURLWithPath: "/data", isDirectory: true)
+        let relativePath = "local"
         #elseif os(Linux)
         let baseURL = URL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
@@ -260,6 +263,10 @@ class TestURL : XCTestCase {
             return false
         }
         
+        #if os(Android)
+        chdir("/data/local/tmp")
+        #endif
+
         let cwd = FileManager.default.currentDirectoryPath
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
         // 1 for path separator
@@ -309,7 +316,7 @@ class TestURL : XCTestCase {
         let actualLength = strlen(fileSystemRep)
         // 1 for path separator
         let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
-        XCTAssertTrue(UInt(actualLength) == expectedLength, "fileSystemRepresentation was too short")
+        XCTAssertEqual(UInt(actualLength), expectedLength, "fileSystemRepresentation was too short")
         XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
@@ -364,7 +371,7 @@ class TestURL : XCTestCase {
         let actualLength = UInt(strlen(fileSystemRep))
         // 1 for path separator
         let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
-        XCTAssertTrue(actualLength == expectedLength, "fileSystemRepresentation was too short")
+        XCTAssertEqual(actualLength, expectedLength, "fileSystemRepresentation was too short")
         XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
         let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
         let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
@@ -426,7 +433,11 @@ class TestURL : XCTestCase {
     }
     
     func test_reachable() {
+        #if os(Android)
+        var url = URL(fileURLWithPath: "/data")
+        #else
         var url = URL(fileURLWithPath: "/usr")
+        #endif
         XCTAssertEqual(true, try? url.checkResourceIsReachable())
         
         url = URL(string: "https://www.swift.org")!
@@ -451,7 +462,11 @@ class TestURL : XCTestCase {
             XCTFail()
         }
         
+        #if os(Android)
+        var nsURL = NSURL(fileURLWithPath: "/data")
+        #else
         var nsURL = NSURL(fileURLWithPath: "/usr")
+        #endif
         XCTAssertEqual(true, try? nsURL.checkResourceIsReachable())
         
         nsURL = NSURL(string: "https://www.swift.org")!

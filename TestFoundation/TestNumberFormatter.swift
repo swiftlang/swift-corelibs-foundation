@@ -162,9 +162,11 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter.plusSign = sign
         XCTAssertEqual(numberFormatter.plusSign, sign)
 
+#if !os(Android)
         let formattedString = numberFormatter.string(from: 420000000000000000)
         XCTAssertNotNil(formattedString)
         XCTAssertEqual(formattedString, "4.2E👍17")
+#endif
 
         // Verify a negative exponent does not have the 👍
         let noPlusString = numberFormatter.string(from: -0.420)

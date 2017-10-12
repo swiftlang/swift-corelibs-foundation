@@ -515,7 +515,7 @@ class TestNSData: XCTestCase {
     
     func test_writeToURLOptions() {
         let saveData = try! Data(contentsOf: Bundle.main.url(forResource: "Test", withExtension: "plist")!)
-        let savePath = URL(fileURLWithPath: "/var/tmp/Test.plist")
+        let savePath = URL(fileURLWithPath: NSTemporaryDirectory() + "Test1.plist")
         do {
             try saveData.write(to: savePath, options: .atomic)
             let fileManager = FileManager.default

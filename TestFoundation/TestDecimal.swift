@@ -277,7 +277,7 @@ class TestDecimal: XCTestCase {
                 }
             }
         }
-        XCTAssertEqual(Decimal(186243*15673), Decimal(186243) * Decimal(15673))
+        XCTAssertEqual(Decimal(186243 * 15673 as Int64), Decimal(186243) * Decimal(15673))
     }
 
     func test_Misc() {
@@ -308,7 +308,9 @@ class TestDecimal: XCTestCase {
         XCTAssertFalse(Decimal.nan.isTotallyOrdered(belowOrEqualTo: Decimal(2.3)))
         XCTAssertTrue(Decimal(2) < Decimal(3))
         XCTAssertTrue(Decimal(3) > Decimal(2))
+#if !arch(arm)
         XCTAssertEqual(3275573729074, Decimal(1234).hashValue)
+#endif
         XCTAssertEqual(Decimal(-9), Decimal(1) - Decimal(10))
         XCTAssertEqual(Decimal(3), Decimal(2).nextUp)
         XCTAssertEqual(Decimal(2), Decimal(3).nextDown)
