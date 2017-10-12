@@ -41,11 +41,14 @@ class TestNSLock: XCTestCase {
         }
 
         let thread = Thread() {
+            lock.lock()
+
+            // Now wake up the main thread so it can try to obtain the lock that
+            // this thread just obtained.
             condition.lock()
             condition.signal()
             condition.unlock()
 
-            lock.lock()
             Thread.sleep(forTimeInterval: 8)
             lock.unlock()
         }
