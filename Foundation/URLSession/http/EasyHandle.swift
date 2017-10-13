@@ -56,6 +56,7 @@ internal final class _EasyHandle {
     fileprivate var headerList: _CurlStringList?
     fileprivate var pauseState: _PauseState = []
     internal var timeoutTimer: _TimeoutSource!
+    internal lazy var errorBuffer = [UInt8](repeating: 0, count: Int(CFURLSessionEasyErrorSize))
     #if os(Android)
     static fileprivate var _CAInfoFile: UnsafeMutablePointer<Int8>?
     #endif
@@ -89,8 +90,8 @@ extension _EasyHandle {
 }
 
 internal extension _EasyHandle {
-    func completedTransfer(withErrorCode errorCode: Int?) {
-        delegate?.transferCompleted(withErrorCode: errorCode)
+    func completedTransfer(withError error: NSError?) {
+        delegate?.transferCompleted(withError: error)
     }
 }
 internal protocol _EasyHandleDelegate: class {
@@ -107,7 +108,7 @@ internal protocol _EasyHandleDelegate: class {
     func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> _EasyHandle._WriteBufferResult
     /// The transfer for this handle completed.
     /// - parameter errorCode: An NSURLError code, or `nil` if no error occured.
-    func transferCompleted(withErrorCode errorCode: Int?)
+    func transferCompleted(withError error: NSError?)
     /// Seek the input stream to the given position
     func seekInputStream(to position: UInt64) throws
     /// Gets called during the transfer to update progress.
@@ -146,7 +147,8 @@ extension _EasyHandle {
     /// Set error buffer for error messages
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_ERRORBUFFER.html
     func set(errorBuffer buffer: UnsafeMutableBufferPointer<UInt8>?) {
-        try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionERRORBUFFER, buffer?.baseAddress ?? nil).asError()
+        let buffer = buffer ?? errorBuffer.withUnsafeMutableBufferPointer { $0 }
+        try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionERRORBUFFER, buffer.baseAddress).asError()
     }
     /// Request failure on HTTP response >= 400
     func set(failOnHTTPErrorCode flag: Bool) {
