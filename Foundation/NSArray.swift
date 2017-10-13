@@ -31,20 +31,20 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         _storage.reserveCapacity(0)
     }
 
-    public required init(objects: UnsafePointer<AnyObject>?, count cnt: Int) {
-        precondition(cnt >= 0)
-        precondition(cnt == 0 || objects != nil)
+    public required init(objects: UnsafePointer<AnyObject>?, count: Int) {
+        precondition(count >= 0)
+        precondition(count == 0 || objects != nil)
 
-        _storage.reserveCapacity(cnt)
-        for idx in 0..<cnt {
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
             _storage.append(objects![idx])
         }
     }
 
-    public convenience init(objects: UnsafePointer<AnyObject>, count cnt: Int) {
+    public convenience init(objects: UnsafePointer<AnyObject>, count: Int) {
         self.init()
-        _storage.reserveCapacity(cnt)
-        for idx in 0..<cnt {
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
             _storage.append(objects[idx])
         }
     }
@@ -754,13 +754,13 @@ open class NSMutableArray : NSArray {
         }
     }
     
-    public required init(objects: UnsafePointer<AnyObject>?, count cnt: Int) {
-        precondition(cnt >= 0)
-        precondition(cnt == 0 || objects != nil)
+    public required init(objects: UnsafePointer<AnyObject>?, count: Int) {
+        precondition(count >= 0)
+        precondition(count == 0 || objects != nil)
 
         super.init()
-        _storage.reserveCapacity(cnt)
-        for idx in 0..<cnt {
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
             _storage.append(objects![idx])
         }
     }
