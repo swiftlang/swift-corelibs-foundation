@@ -205,16 +205,16 @@ class TestNSData: XCTestCase {
             ("test_contentsOfZeroFile", test_contentsOfZeroFile),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
-            // ("test_dataHash", test_dataHash),   Disabled due to lack of brdiging in swift runtime -- infinite loops
+            ("test_dataHash", test_dataHash),
             ("test_genericBuffers", test_genericBuffers),
-            // ("test_writeFailure", test_writeFailure), segfaults
+            ("test_writeFailure", test_writeFailure),
             ("testBasicConstruction", testBasicConstruction),
             ("testBridgingDefault", testBridgingDefault),
             ("testBridgingMutable", testBridgingMutable),
             ("testCopyBytes_oversized", testCopyBytes_oversized),
             ("testCopyBytes_ranges", testCopyBytes_ranges),
             ("testCopyBytes_undersized", testCopyBytes_undersized),
-             ("testCopyBytes", testCopyBytes),
+            ("testCopyBytes", testCopyBytes),
             ("testCustomDeallocator", testCustomDeallocator),
             ("testDataInSet", testDataInSet),
             ("testEquality", testEquality),
@@ -229,8 +229,7 @@ class TestNSData: XCTestCase {
             ("testReplaceSubrange3", testReplaceSubrange3),
             ("testReplaceSubrange4", testReplaceSubrange4),
             ("testReplaceSubrange5", testReplaceSubrange5),
-            
-            
+
             ("test_description", test_description),
             ("test_emptyDescription", test_emptyDescription),
             ("test_longDescription", test_longDescription),
@@ -259,7 +258,7 @@ class TestNSData: XCTestCase {
             ("test_initDataWithCount", test_initDataWithCount),
             ("test_emptyStringToData", test_emptyStringToData),
             ("test_repeatingValueInitialization", test_repeatingValueInitialization),
-            
+
             ("test_sliceAppending", test_sliceAppending),
             ("test_replaceSubrange", test_replaceSubrange),
             ("test_sliceWithUnsafeBytes", test_sliceWithUnsafeBytes),

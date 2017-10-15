@@ -76,10 +76,10 @@ class TestCharacterSet : XCTestCase {
             ("test_InlineBuffer", test_InlineBuffer),
             ("test_Equatable", test_Equatable),
             // The following tests must remain disabled until SR-2509 is resolved.
-            // ("test_Subtracting", test_Subtracting),
-            // ("test_SubtractEmptySet", test_SubtractEmptySet),
-            // ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
-            // ("test_SymmetricDifference", test_SymmetricDifference),
+            ("test_Subtracting", test_Subtracting),
+            ("test_SubtractEmptySet", test_SubtractEmptySet),
+            ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
+            ("test_SymmetricDifference", test_SymmetricDifference),
         ]
     }
     
