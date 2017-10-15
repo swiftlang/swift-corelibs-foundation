@@ -32,23 +32,17 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
     public var m22: CGFloat
     public var tX: CGFloat
     public var tY: CGFloat
-    
+
+    // init() returns affine transformation matrix with identity values.
     public init() {
-        self.init(m11: CGFloat(), m12: CGFloat(), m21: CGFloat(), m22: CGFloat(), tX: CGFloat(), tY: CGFloat())
+        self.init(m11: 1.0, m12: 0.0,
+                  m21: 0.0, m22: 1.0,
+                   tX: 0.0,  tY: 0.0)
     }
+
     public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) {
         (self.m11, self.m12, self.m21, self.m22) = (m11, m12, m21, m22)
         (self.tX, self.tY) = (tX, tY)
-    }
-
-    private init(reference: NSAffineTransform) {
-        self = reference.transformStruct
-    }
-
-    private var reference : NSAffineTransform {
-        let ref = NSAffineTransform()
-        ref.transformStruct = self
-        return ref
     }
 
     /**
@@ -279,8 +273,57 @@ public struct AffineTransform : ReferenceConvertible, Hashable, CustomStringConv
     }
 }
 
+public struct NSAffineTransformStruct {
+    public var m11: CGFloat
+    public var m12: CGFloat
+    public var m21: CGFloat
+    public var m22: CGFloat
+    public var tX: CGFloat
+    public var tY: CGFloat
+
+    // This is NOT an identity matrix
+    public init() {
+        m11 = 0.0
+        m12 = 0.0
+        m21 = 0.0
+        m22 = 0.0
+        tX = 0.0
+        tY = 0.0
+    }
+
+    public init(m11: CGFloat, m12: CGFloat, m21: CGFloat, m22: CGFloat, tX: CGFloat, tY: CGFloat) {
+        self.m11 = m11
+        self.m12 = m12
+        self.m21 = m21
+        self.m22 = m22
+        self.tX = tX
+        self.tY = tY
+    }
+}
+
 open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
-    
+
+    private var affineTransform: AffineTransform
+
+    public var transformStruct: NSAffineTransformStruct {
+        get {
+            return NSAffineTransformStruct(m11: affineTransform.m11,
+                                           m12: affineTransform.m12,
+                                           m21: affineTransform.m21,
+                                           m22: affineTransform.m22,
+                                           tX: affineTransform.tX,
+                                           tY: affineTransform.tY)
+        }
+        set {
+            affineTransform.m11 = newValue.m11
+            affineTransform.m12 = newValue.m12
+            affineTransform.m21 = newValue.m21
+            affineTransform.m22 = newValue.m22
+            affineTransform.tX = newValue.tX
+            affineTransform.tY = newValue.tY
+        }
+    }
+
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -301,7 +344,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        return NSAffineTransform(transform: self)
+        return NSAffineTransform(transform: affineTransform)
     }
     
     // Necessary because `NSObject.copy()` returns `self`.
@@ -328,19 +371,18 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
         let tX = floatPointer[4]
         let tY = floatPointer[5]
 
-        self.transformStruct = AffineTransform(m11: CGFloat(m11), m12: CGFloat(m12),
-                                               m21: CGFloat(m21), m22: CGFloat(m22),
-                                               tX: CGFloat(tX), tY: CGFloat(tY))
+        affineTransform = AffineTransform(m11: CGFloat(m11), m12: CGFloat(m12),
+                                          m21: CGFloat(m21), m22: CGFloat(m22),
+                                          tX: CGFloat(tX), tY: CGFloat(tY))
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NSAffineTransform else { return false }
-        return other === self
-            || (other.transformStruct == self.transformStruct)
+        return other === self || (other.affineTransform == self.affineTransform)
     }
 
     open override var hashValue: Int {
-        return transformStruct.hashValue
+        return affineTransform.hashValue
     }
     
     public static var supportsSecureCoding: Bool {
@@ -348,33 +390,35 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Initialization
-    public convenience init(transform: NSAffineTransform) {
+    public convenience init(transform: AffineTransform) {
         self.init()
-        transformStruct = transform.transformStruct
+        affineTransform = transform
     }
-    
+
+    // init() returns affine transformation matrix with identity values.
     public override init() {
-        transformStruct = AffineTransform(
+        affineTransform = AffineTransform(
             m11: CGFloat(1.0), m12: CGFloat(),
             m21: CGFloat(), m22: CGFloat(1.0),
             tX: CGFloat(), tY: CGFloat()
         )
     }
-    
+
     // Translating
     open func translateX(by deltaX: CGFloat, yBy deltaY: CGFloat) {
         let translation = AffineTransform(translationByX: deltaX, byY: deltaY)
-        transformStruct = translation.concatenated(transformStruct)
+        affineTransform = translation.concatenated(affineTransform)
     }
     
     // Rotating
     open func rotate(byDegrees angle: CGFloat) {
         let rotation = AffineTransform(rotationByDegrees: angle)
-        transformStruct = rotation.concatenated(transformStruct)
+        affineTransform = rotation.concatenated(affineTransform)
     }
+
     open func rotate(byRadians angle: CGFloat) {
         let rotation = AffineTransform(rotationByRadians: angle)
-        transformStruct = rotation.concatenated(transformStruct)
+        affineTransform = rotation.concatenated(affineTransform)
     }
     
     // Scaling
@@ -384,13 +428,13 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
 
     open func scaleX(by scaleX: CGFloat, yBy scaleY: CGFloat) {
         let scale = AffineTransform(scaleByX: scaleX, byY: scaleY)
-        transformStruct = scale.concatenated(transformStruct)
+        affineTransform = scale.concatenated(affineTransform)
     }
     
     // Inverting
     open func invert() {
-        if let inverse = transformStruct.inverted() {
-            transformStruct = inverse
+        if let inverse = affineTransform.inverted() {
+            affineTransform = inverse
         }
         else {
             preconditionFailure("NSAffineTransform: Transform has no inverse")
@@ -398,24 +442,22 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
     
     // Transforming with transform
-    open func append(_ transform: NSAffineTransform) {
-        transformStruct = transformStruct.concatenated(transform.transformStruct)
+    open func append(_ transform: AffineTransform) {
+        affineTransform = affineTransform.concatenated(transform)
     }
-    open func prepend(_ transform: NSAffineTransform) {
-        transformStruct = transform.transformStruct.concatenated(transformStruct)
+
+    open func prepend(_ transform: AffineTransform) {
+        affineTransform = transform.concatenated(affineTransform)
     }
     
     // Transforming points and sizes
     open func transform(_ aPoint: NSPoint) -> NSPoint {
-        return transformStruct.transform(aPoint)
+        return affineTransform.transform(aPoint)
     }
 
     open func transform(_ aSize: NSSize) -> NSSize {
-        return transformStruct.transform(aSize)
+        return affineTransform.transform(aSize)
     }
-
-    // Transform Struct
-    open var transformStruct: AffineTransform
 }
 
 extension AffineTransform : _ObjectTypeBridgeable {
@@ -429,9 +471,7 @@ extension AffineTransform : _ObjectTypeBridgeable {
 
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSAffineTransform {
-        let t = NSAffineTransform()
-        t.transformStruct = self
-        return t
+        return NSAffineTransform(transform: self)
     }
 
     public static func _forceBridgeFromObjectiveC(_ x: NSAffineTransform, result: inout AffineTransform?) {
@@ -441,7 +481,8 @@ extension AffineTransform : _ObjectTypeBridgeable {
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSAffineTransform, result: inout AffineTransform?) -> Bool {
-        result = x.transformStruct
+        let ts = x.transformStruct
+        result = AffineTransform(m11: ts.m11, m12: ts.m12, m21: ts.m21, m22: ts.m22, tX: ts.tX, tY: ts.tY)
         return true // Can't fail
     }
 
