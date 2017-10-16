@@ -65,6 +65,7 @@ open class Host: NSObject {
     }
     
     internal func _resolveCurrent() {
+#if !os(Android)
         var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
         if getifaddrs(&ifaddr) != 0 {
             return
@@ -88,6 +89,7 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
+#endif
     }
     
     internal func _resolve() {
@@ -138,7 +140,7 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
-                    if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
+                    if getnameinfo(info.ai_addr, sa_len, host, numericCast(NI_MAXHOST), nil, 0, flags) == 0 {
                         content.append(String(cString: host))
                     }
                 }

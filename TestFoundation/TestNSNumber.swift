@@ -1076,7 +1076,7 @@ class TestNSNumber : XCTestCase {
             XCTAssertEqual(NSNumber(value: UInt.min).stringValue, "0")
             XCTAssertEqual(NSNumber(value: UInt.min + 1).stringValue, "1")
             XCTAssertEqual(NSNumber(value: UInt.max).stringValue, "4294967295")
-            XCTAssertEqual(NSNumber(value: UInt.max - 1).stringValue, "4294967294")
+            XCTAssertEqual(NSNumber(value: UInt.max - 1 as UInt).stringValue, "4294967294")
         } else if UInt.max == UInt64.max {
             XCTAssertEqual(NSNumber(value: UInt.min).stringValue, "0")
             XCTAssertEqual(NSNumber(value: UInt.min + 1).stringValue, "1")
@@ -1097,12 +1097,12 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: UInt32.min).stringValue, "0")
         XCTAssertEqual(NSNumber(value: UInt32.min + 1).stringValue, "1")
         XCTAssertEqual(NSNumber(value: UInt32.max).stringValue, "4294967295")
-        XCTAssertEqual(NSNumber(value: UInt32.max - 1).stringValue, "4294967294")
+        XCTAssertEqual(NSNumber(value: UInt32.max - 1 as UInt32).stringValue, "4294967294")
 
         XCTAssertEqual(NSNumber(value: UInt64.min).stringValue, "0")
         XCTAssertEqual(NSNumber(value: UInt64.min + 1).stringValue, "1")
         XCTAssertEqual(NSNumber(value: UInt64.max).stringValue, "18446744073709551615")
-        XCTAssertEqual(NSNumber(value: UInt64.max - 1).stringValue, "18446744073709551614")
+        XCTAssertEqual(NSNumber(value: UInt64.max - 1 as UInt64).stringValue, "18446744073709551614")
 
         if Int.max == Int32.max {
             XCTAssertEqual(NSNumber(value: Int.min).stringValue, "-2147483648")
@@ -1134,7 +1134,7 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Int64.min).stringValue, "-9223372036854775808")
         XCTAssertEqual(NSNumber(value: Int64.min + 1).stringValue, "-9223372036854775807")
         XCTAssertEqual(NSNumber(value: Int64.max).stringValue, "9223372036854775807")
-        XCTAssertEqual(NSNumber(value: Int64.max - 1).stringValue, "9223372036854775806")
+        XCTAssertEqual(NSNumber(value: Int64.max - 1 as Int64).stringValue, "9223372036854775806")
     }
 
     func test_Equals() {

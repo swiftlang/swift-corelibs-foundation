@@ -337,7 +337,8 @@ open class FileManager : NSObject {
         
         return result
     }
-    
+
+#if !os(Android)
     /* attributesOfFileSystemForPath:error: returns an NSDictionary of key/value pairs containing the attributes of the filesystem containing the provided path. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
      
         This method replaces fileSystemAttributesAtPath:.
@@ -372,7 +373,8 @@ open class FileManager : NSObject {
         
         return result
     }
-    
+#endif
+
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
      
         This method replaces createSymbolicLinkAtPath:pathContent:
