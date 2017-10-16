@@ -1519,7 +1519,7 @@ CFDictionaryRef __CFGetEnvironment() {
     static CFMutableDictionaryRef envDict = NULL;
     dispatch_once(&once, ^{
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-        extern char ***_NSGetEnviron();
+        extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
 #elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
         extern char **environ;

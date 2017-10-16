@@ -3233,7 +3233,7 @@ Boolean CFStringFindWithOptionsAndLocale(CFStringRef string, CFStringRef stringT
 
                                     do {
                                         str1Char = CFStringGetCharacterFromInlineBuffer(&inlineBuf1, --index);
-                                    } while (CFUniCharIsMemberOfBitmap(str1Char, graphemeBMP), (rangeToSearch.location < index));
+                                    } while (CFUniCharIsMemberOfBitmap(str1Char, graphemeBMP) && (rangeToSearch.location < index));
 
                                     if (str1Char < 0x0510) {
                                         while (++str1Index < maxStr1Index) if (!CFUniCharIsMemberOfBitmap(CFStringGetCharacterFromInlineBuffer(&inlineBuf1, str1Index), graphemeBMP)) break;
