@@ -98,13 +98,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -137,13 +134,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -176,13 +170,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -215,13 +206,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -254,12 +242,15 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                let expectedFloat = Float(exactly: int32!)
+                // these are disabled because of https://bugs.swift.org/browse/SR-4634
+                if (int32! != Int32.min && int32! != Int32.max &&
+                    int32! != Int32.min + 1 && int32! != Int32.max - 1) {
+                    testFloat(expectedFloat, float)
+                }
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
+                let expectedDouble = Double(exactly: int32!)
                 testDouble(expectedDouble, double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
@@ -293,12 +284,14 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                let expectedFloat = Float(exactly: uint32!)
+                // these are disabled because of https://bugs.swift.org/browse/SR-4634
+                if (uint32! != UInt32.max && uint32! != UInt32.max - 1) {
+                    testFloat(expectedFloat, float)
+                }
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
+                let expectedDouble = Double(exactly: uint32!)
                 testDouble(expectedDouble, double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
@@ -332,13 +325,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -371,13 +361,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -410,13 +397,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -449,13 +433,10 @@ class TestNSNumberBridging : XCTestCase {
                 XCTAssertEqual(Int(exactly: interestingValue), int)
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
-
                 let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
-                testFloat(expectedFloat, float)
+                XCTAssertEqual(Float(interestingValue), float)
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
-                testDouble(expectedDouble, double)
+                XCTAssertEqual(Double(interestingValue), double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
             testNumber(bridged)
@@ -489,11 +470,12 @@ class TestNSNumberBridging : XCTestCase {
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
 
-                let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
+                let float = Float(truncating: number!)
+                let expectedFloat = interestingValue
                 testFloat(expectedFloat, float)
-                let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
+
+                let double = Double(truncating: number!)
+                let expectedDouble = Double(reasonably: interestingValue)
                 testDouble(expectedDouble, double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
@@ -528,11 +510,12 @@ class TestNSNumberBridging : XCTestCase {
                 let uint = UInt(exactly: number!)
                 XCTAssertEqual(UInt(exactly: interestingValue), uint)
 
-                let float = Float(exactly: number!)
-                let expectedFloat = Float(exactly: interestingValue)
+                let float = Float(truncating: number!)
+                let expectedFloat = Float(reasonably: interestingValue)
                 testFloat(expectedFloat, float)
+
                 let double = Double(exactly: number!)
-                let expectedDouble = Double(exactly: interestingValue)
+                let expectedDouble = interestingValue
                 testDouble(expectedDouble, double)
             }
             let bridged = interestingValue._bridgeToObjectiveC()
