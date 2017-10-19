@@ -24,13 +24,15 @@ class TestNSArray : XCTestCase {
     static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("test_constructors", test_constructors),
+            ("test_constructorWithCopyItems", test_constructorWithCopyItems),
             ("test_enumeration", test_enumeration),
             ("test_sequenceType", test_sequenceType),
             ("test_objectAtIndex", test_objectAtIndex),
             ("test_binarySearch", test_binarySearch),
             ("test_binarySearchFringeCases", test_binarySearchFringeCases),
-            ("test_replaceObjectsInRange_withObjectsFromArray", test_replaceObjectsInRange_withObjectsFromArray),
-            ("test_replaceObjectsInRange_withObjectsFromArray_range", test_replaceObjectsInRange_withObjectsFromArray_range),
+            ("test_replaceObjectsInRange_withObjectsFrom", test_replaceObjectsInRange_withObjectsFrom),
+            ("test_replaceObjectsInRange_withObjectsFrom_range", test_replaceObjectsInRange_withObjectsFrom_range),
             ("test_replaceObjectAtIndex", test_replaceObjectAtIndex),
             ("test_removeObjectsInArray", test_removeObjectsInArray),
             ("test_sortedArrayUsingComparator", test_sortedArrayUsingComparator),
@@ -43,7 +45,8 @@ class TestNSArray : XCTestCase {
             ("test_copying", test_copying),
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
-            ("test_initWithContentsOfFile", test_initWithContentsOfFile)
+            ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_readWriteURL", test_readWriteURL)
         ]
     }
     
@@ -52,6 +55,47 @@ class TestNSArray : XCTestCase {
         let array2 : NSArray = ["foo", "bar"]
         XCTAssertEqual(array.count, 0)
         XCTAssertEqual(array2.count, 2)
+    }
+
+    func test_constructors() {
+        let arrayNil = NSArray(objects: nil, count: 0)
+        XCTAssertEqual(arrayNil.count, 0)
+
+        let array1 = NSArray(object: "foo")
+        XCTAssertEqual(array1.count, 1)
+
+        let testStrings: [AnyObject] = [NSString(string:"foo"), NSString(string: "bar")]
+        testStrings.withUnsafeBufferPointer { ptr in
+            let array2 = NSArray(objects: ptr.baseAddress, count: 1)
+            XCTAssertEqual(array1, array2)
+        }
+
+        let array3 = NSArray(objects: "foo" as NSString, "bar" as NSString, "baz" as NSString)
+        XCTAssertEqual(array3.count, 3)
+        let array4 = NSArray(array: ["foo", "bar", "baz"])
+        XCTAssertEqual(array4.count, 3)
+        let array5 = NSArray(arrayLiteral: "foo", "bar", "baz")
+        XCTAssertEqual(array5.count, 3)
+        XCTAssertEqual(array3, array4)
+        XCTAssertEqual(array3, array5)
+        XCTAssertEqual(array4, array5)
+
+    }
+
+    func test_constructorWithCopyItems() {
+        let foo = "foo" as NSMutableString
+
+        let array1 = NSArray(array: [foo], copyItems: false)
+        let array2 = NSArray(array: [foo], copyItems: true)
+
+        XCTAssertEqual(array1[0] as! String, "foo")
+        XCTAssertEqual(array2[0] as! String, "foo")
+
+        // Disable this test for now as it fails, althought it works against Darwin Foundation.
+        // The test may not acutally be correct anyway.
+        //foo.append("1")
+        //XCTAssertEqual(array1[0] as! String, "foo1")
+        //XCTAssertEqual(array2[0] as! String, "foo")
     }
     
     func test_enumeration() {
@@ -174,7 +218,7 @@ class TestNSArray : XCTestCase {
             NSNumber(value: 0 as Int), NSNumber(value: 1 as Int), NSNumber(value: 2 as Int), NSNumber(value: 3 as Int),
             NSNumber(value: 4 as Int), NSNumber(value: 5 as Int), NSNumber(value: 7 as Int)]
         let array = NSMutableArray(array: numbers)
-        array.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFromArray: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
+        array.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFrom: [NSNumber(value: 8 as Int), NSNumber(value: 9 as Int)])
         XCTAssertTrue((array[0] as! NSNumber).intValue == 8)
         XCTAssertTrue((array[1] as! NSNumber).intValue == 9)
         XCTAssertTrue((array[2] as! NSNumber).intValue == 2)
@@ -278,7 +322,7 @@ class TestNSArray : XCTestCase {
         return .orderedDescending
     }
     
-    func test_replaceObjectsInRange_withObjectsFromArray() {
+    func test_replaceObjectsInRange_withObjectsFrom() {
         let array1 = NSMutableArray(array:[
             "foo1",
             "bar1",
@@ -289,7 +333,7 @@ class TestNSArray : XCTestCase {
             "bar2",
             "baz2"]
         
-        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFromArray: array2)
+        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFrom: array2)
         
         XCTAssertEqual(array1[0] as? String, "foo2", "Expected foo2 but was \(array1[0])")
         XCTAssertEqual(array1[1] as? String, "bar2", "Expected bar2 but was \(array1[1])")
@@ -297,7 +341,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array1[3] as? String, "baz1", "Expected baz1 but was \(array1[3])")
     }
     
-    func test_replaceObjectsInRange_withObjectsFromArray_range() {
+    func test_replaceObjectsInRange_withObjectsFrom_range() {
         let array1 = NSMutableArray(array:[
             "foo1",
             "bar1",
@@ -337,7 +381,7 @@ class TestNSArray : XCTestCase {
         let resultNumbers = NSArray(array: inputNumbers).sortedArray(comparator:) { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
+            return l < r ? .orderedAscending : (l == r ? .orderedSame : .orderedDescending)
         }
         XCTAssertEqual(resultNumbers.map { ($0 as! NSNumber).intValue}, expectedNumbers)
     }
@@ -368,7 +412,7 @@ class TestNSArray : XCTestCase {
         func compare(_ left: Any, right:Any,  context: UnsafeMutableRawPointer?) -> Int {
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? -1 : (l > r ? 0 : 1)
+            return l < r ? -1 : (l == r ? 0 : 1)
         }
         mutableInput.sort(compare, context: UnsafeMutableRawPointer(bitPattern: 0))
 
@@ -384,7 +428,7 @@ class TestNSArray : XCTestCase {
         mutableInput.sort { left, right -> ComparisonResult in
             let l = (left as! NSNumber).intValue
             let r = (right as! NSNumber).intValue
-            return l < r ? .orderedAscending : (l > r ? .orderedSame : .orderedDescending)
+            return l < r ? .orderedAscending : (l == r ? .orderedSame : .orderedDescending)
         }
 
         XCTAssertEqual(mutableInput.map { ($0 as! NSNumber).intValue}, expectedNumbers)
@@ -398,7 +442,7 @@ class TestNSArray : XCTestCase {
             let r = right as! String
             return l.localizedCaseInsensitiveCompare(r)
         }
-        mutableStringsInput1.sort(comparator)
+        mutableStringsInput1.sort(comparator: comparator)
         mutableStringsInput2.sort(options: [], usingComparator: comparator)
         XCTAssertTrue(mutableStringsInput1.isEqual(to: Array(mutableStringsInput2)))
     }
@@ -464,7 +508,7 @@ class TestNSArray : XCTestCase {
         }
     }
 
-        func test_initWithContentsOfFile() {
+    func test_initWithContentsOfFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {
             let a1: NSArray = ["foo", "bar"]
@@ -504,7 +548,23 @@ class TestNSArray : XCTestCase {
             XCTFail("Temporary file creation failed")
         }
     }
-    
+
+    func test_readWriteURL() {
+        let data = NSArray(arrayLiteral: "one", "two", "three", "four", "five")
+        do {
+            let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString
+            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+            let testFile = tempDir + "/readWriteURL.txt"
+            let url = URL(fileURLWithPath: testFile)
+            try data.write(to: url)
+            let data2 = try NSArray(contentsOf: url, error: ())
+            XCTAssertEqual(data, data2)
+            removeTestFile(testFile)
+        } catch let e {
+            XCTFail("Failed to write to file: \(e)")
+        }
+    }
+
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {

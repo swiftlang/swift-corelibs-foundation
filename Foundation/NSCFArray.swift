@@ -20,7 +20,7 @@ internal final class _NSCFArray : NSMutableArray {
         fatalError()
     }
     
-    required init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
+    required init(objects: UnsafePointer<AnyObject>?, count cnt: Int) {
         fatalError()
     }
     
@@ -126,5 +126,5 @@ internal func _CFSwiftArrayRemoveAllValues(_ array: AnyObject) {
 
 internal func _CFSwiftArrayReplaceValues(_ array: AnyObject, _ range: CFRange, _ newValues: UnsafeMutablePointer<Unmanaged<AnyObject>>, _ newCount: CFIndex) {
     NSUnimplemented()
-//    (array as! NSMutableArray).replaceObjectsInRange(NSMakeRange(range.location, range.length), withObjectsFromArray: newValues.array(newCount))
+//    (array as! NSMutableArray).replaceObjectsInRange(NSMakeRange(range.location, range.length), withObjectsFrom: newValues.array(newCount))
 }

@@ -27,18 +27,33 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         return _SwiftValue.fetch(nonOptional: _storage[index])
     }
     
-    public convenience override init() {
-        self.init(objects: [], count:0)
+    public override init() {
+        _storage.reserveCapacity(0)
     }
-    
-    public required init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
-        _storage.reserveCapacity(cnt)
-        for idx in 0..<cnt {
+
+    public required init(objects: UnsafePointer<AnyObject>?, count: Int) {
+        precondition(count >= 0)
+        precondition(count == 0 || objects != nil)
+
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
+            _storage.append(objects![idx])
+        }
+    }
+
+    public convenience init(objects: UnsafePointer<AnyObject>, count: Int) {
+        self.init()
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
             _storage.append(objects[idx])
         }
     }
-    
-    required public convenience init(arrayLiteral elements: Any...) {
+
+    public convenience init(objects elements: AnyObject...) {
+        self.init(objects: elements, count: elements.count)
+    }
+
+    public required convenience init(arrayLiteral elements: Any...) {
         self.init(array: elements)
     }
     
@@ -168,7 +183,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     open func addingObjects(from otherArray: [Any]) -> [Any] {
         return allObjects + otherArray
     }
-    
+
     open func componentsJoined(by separator: String) -> String {
         // make certain to call NSObject's description rather than asking the string interpolator for the swift description
         return allObjects.map { "\($0)" }.joined(separator: separator)
@@ -188,8 +203,15 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
         return false
     }
-    
-    open func description(withLocale locale: Locale?) -> String { return description(withLocale: locale, indent: 0) }
+
+    override open var description: String {
+        return description(withLocale: nil)
+    }
+
+    open func description(withLocale locale: Locale?) -> String {
+        return description(withLocale: locale, indent: 0)
+    }
+
     open func description(withLocale locale: Locale?, indent level: Int) -> String {
         var descriptions = [String]()
         let cnt = count
@@ -406,12 +428,19 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         getObjects(&objects, range: range)
         return objects
     }
-    
+
+    open func write(to url: URL) throws {
+        let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
+        try pListData.write(to: url, options: .atomic)
+    }
+
+    @available(*, deprecated)
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
     }
-    
+
     // the atomically flag is ignored if url of a type that cannot be written atomically.
+    @available(*, deprecated)
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
             let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
@@ -421,7 +450,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return false
         }
     }
-    
+
     open func objects(at indexes: IndexSet) -> [Any] {
         var objs = [Any]()
         indexes.rangeView.forEach {
@@ -430,7 +459,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         
         return objs
     }
-    
+
     open subscript (idx: Int) -> Any {
         guard idx < count && idx >= 0 else {
             fatalError("\(self): Index out of bounds")
@@ -438,25 +467,29 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         
         return object(at: idx)
     }
-    
+
     open func enumerateObjects(_ block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         self.enumerateObjects(options: [], using: block)
     }
+
     open func enumerateObjects(options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         self.enumerateObjects(at: IndexSet(integersIn: 0..<count), options: opts, using: block)
     }
+
     open func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         s._bridgeToObjectiveC().enumerate(options: opts) { (idx, stop) in
             block(self.object(at: idx), idx, stop)
         }
     }
-    
+
     open func indexOfObject(passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
-        return indexOfObject([], passingTest: predicate)
+        return indexOfObject(options: [], passingTest: predicate)
     }
-    open func indexOfObject(_ opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+
+    open func indexOfObject(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         return indexOfObject(at: IndexSet(integersIn: 0..<count), options: opts, passingTest: predicate)
     }
+
     open func indexOfObject(at s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
         var result = NSNotFound
         enumerateObjects(at: s, options: opts) { (obj, idx, stop) -> Void in
@@ -467,13 +500,15 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
         return result
     }
-    
+
     open func indexesOfObjects(passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjects(options: [], passingTest: predicate)
     }
+
     open func indexesOfObjects(options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         return indexesOfObjects(at: IndexSet(integersIn: 0..<count), options: opts, passingTest: predicate)
     }
+
     open func indexesOfObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
         var result = IndexSet()
         enumerateObjects(at: s, options: opts) { (obj, idx, stop) in
@@ -589,22 +624,38 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         
         return lastEqual ? result + 1 : result
     }
-    
-    public convenience init?(contentsOfFile path: String) {
-        self.init(contentsOfURL: URL(fileURLWithPath: path))
+
+    public convenience init(contentsOf url: URL, error: ()) throws {
+        let plistDoc = try Data(contentsOf: url)
+        guard let plistArray = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Array<Any>
+            else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [NSURLErrorKey : url])
+        }
+        self.init(array: plistArray)
     }
-    
-    public convenience init?(contentsOfURL url: URL) {
+
+    @available(*, deprecated)
+    public convenience init?(contentsOfFile path: String) {
         do {
-            guard let plistDoc = try? Data(contentsOf: url),
-            let plistArray = try PropertyListSerialization.propertyList(from: plistDoc, options: [], format: nil) as? Array<Any>
-             else { return nil }
-            self.init(array: plistArray)
+            try self.init(contentsOf: URL(fileURLWithPath: path), error: ())
         } catch {
             return nil
         }
     }
-    
+
+    @available(*, deprecated)
+    public convenience init?(contentsOf url: URL) {
+        do {
+            try self.init(contentsOf: url, error: ())
+        } catch {
+            return nil
+        }
+    }
+
+    open func pathsMatchingExtensions(_ filterTypes: [String]) -> [String] {
+        NSUnimplemented()
+    }
+
     override open var _cfTypeID: CFTypeID {
         return CFArrayGetTypeID()
     }
@@ -664,7 +715,11 @@ open class NSMutableArray : NSArray {
         }
         _storage.insert(_SwiftValue.store(anObject), at: index)
     }
-    
+
+    open func insert(_ objects: [Any], at indexes: IndexSet) {
+        NSUnimplemented()
+    }
+
     open func removeLastObject() {
         if count > 0 {
             removeObject(at: count - 1)
@@ -687,22 +742,26 @@ open class NSMutableArray : NSArray {
         _storage.replaceSubrange(min..<max, with: [_SwiftValue.store(anObject) as AnyObject])
     }
     
-    public convenience init() {
-        self.init(capacity: 0)
+    public override init() {
+        super.init()
     }
     
     public init(capacity numItems: Int) {
-        super.init(objects: [], count: 0)
+        super.init(objects: nil, count: 0)
 
         if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(numItems)
         }
     }
     
-    public required convenience init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
-        self.init(capacity: cnt)
-        for idx in 0..<cnt {
-            _storage.append(objects[idx])
+    public required init(objects: UnsafePointer<AnyObject>?, count: Int) {
+        precondition(count >= 0)
+        precondition(count == 0 || objects != nil)
+
+        super.init()
+        _storage.reserveCapacity(count)
+        for idx in 0..<count {
+            _storage.append(objects![idx])
         }
     }
     
@@ -715,7 +774,7 @@ open class NSMutableArray : NSArray {
         }
     }
     
-    open func addObjectsFromArray(_ otherArray: [Any]) {
+    open func addObjects(from otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
             _storage += otherArray.map { _SwiftValue.store($0) as AnyObject }
         } else {
@@ -743,7 +802,7 @@ open class NSMutableArray : NSArray {
         }
     }
     
-    open func remove(_ anObject: Any, inRange range: NSRange) {
+    open func remove(_ anObject: Any, in range: NSRange) {
         let idx = index(of: anObject, in: range)
         if idx != NSNotFound {
             removeObject(at: idx)
@@ -757,7 +816,7 @@ open class NSMutableArray : NSArray {
         }
     }
     
-    open func removeObject(identicalTo anObject: Any, inRange range: NSRange) {
+    open func removeObject(identicalTo anObject: Any, in range: NSRange) {
         let idx = indexOfObjectIdentical(to: anObject, in: range)
         if idx != NSNotFound {
             removeObject(at: idx)
@@ -794,10 +853,10 @@ open class NSMutableArray : NSArray {
     open func replaceObjects(in range: NSRange, withObjectsFrom otherArray: [Any], range otherRange: NSRange) {
         var list = [Any]()
         otherArray._bridgeToObjectiveC().getObjects(&list, range:otherRange)
-        replaceObjects(in: range, withObjectsFromArray:list)
+        replaceObjects(in: range, withObjectsFrom: list)
     }
     
-    open func replaceObjects(in range: NSRange, withObjectsFromArray otherArray: [Any]) {
+    open func replaceObjects(in range: NSRange, withObjectsFrom otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
             for idx in 0..<range.length {
@@ -815,7 +874,7 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage = otherArray.map { _SwiftValue.store($0) }
         } else {
-            replaceObjects(in: NSMakeRange(0, count), withObjectsFromArray: otherArray)
+            replaceObjects(in: NSMakeRange(0, count), withObjectsFrom: otherArray)
         }
     }
     
@@ -844,7 +903,7 @@ open class NSMutableArray : NSArray {
         for countedRange in indexes.rangeView {
             let range = NSMakeRange(countedRange.lowerBound, countedRange.upperBound - countedRange.lowerBound)
             let subObjects = objects[objectIndex..<objectIndex + range.length]
-            self.replaceObjects(in: range, withObjectsFromArray: Array(subObjects))
+            self.replaceObjects(in: range, withObjectsFrom: Array(subObjects))
             objectIndex += range.length
         }
     }
@@ -853,11 +912,11 @@ open class NSMutableArray : NSArray {
         self.setArray(self.sortedArray(compare, context: context))
     }
 
-    open func sort(_ cmptr: Comparator) {
-        self.sort(options: [], usingComparator: cmptr)
+    open func sort(comparator: Comparator) {
+        self.sort(options: [], usingComparator: comparator)
     }
 
-    open func sort(options opts: NSSortOptions, usingComparator cmptr: Comparator) {
+    open func sort(options opts: NSSortOptions = [], usingComparator cmptr: Comparator) {
         self.setArray(self.sortedArray(options: opts, usingComparator: cmptr))
     }
     
