@@ -98,10 +98,10 @@ else:
 		'-lcurl ',
 		'-lxml2 ',
 	])
-	swift_cflags += ''.join([
-		'-I${SYSROOT}/usr/include/curl ',
-		'-I${SYSROOT}/usr/include/libxml2 ',
-	])
+	swift_cflags += [
+		'-I${SYSROOT}/usr/include/curl',
+		'-I${SYSROOT}/usr/include/libxml2',
+	]
 
 triple = Configuration.current.target.triple
 if triple == "armv7-none-linux-androideabi":
