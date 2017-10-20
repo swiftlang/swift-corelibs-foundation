@@ -24,7 +24,7 @@ class TestNSDictionary : XCTestCase {
     static var allTests: [(String, (TestNSDictionary) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
-//            ("test_ArrayConstruction", test_ArrayConstruction),
+            ("test_ArrayConstruction", test_ArrayConstruction),
             ("test_description", test_description),
             ("test_enumeration", test_enumeration),
             ("test_equality", test_equality),
@@ -60,12 +60,12 @@ class TestNSDictionary : XCTestCase {
         XCTAssertEqual(dict2[1] as? NSNumber, NSNumber(value: 2))
     }
     
-//    func test_ArrayConstruction() {
-//        let objects = ["foo", "bar", "baz"]
-//        let keys = ["foo", "bar", "baz"]
-//        let dict = NSDictionary(objects: objects, forKeys: keys)
-//        XCTAssertEqual(dict.count, 3)
-//    }
+    func test_ArrayConstruction() {
+        let objects = ["foo", "bar", "baz"]
+        let keys: [NSString] = ["foo", "bar", "baz"]
+        let dict = NSDictionary(objects: objects, forKeys: keys)
+        XCTAssertEqual(dict.count, 3)
+    }
     
     func test_enumeration() {
         let dict : NSDictionary = ["foo" : "bar", "whiz" : "bang", "toil" : "trouble"]
