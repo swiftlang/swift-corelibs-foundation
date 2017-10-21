@@ -1316,15 +1316,22 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
     return thread;
 }
 
-CF_SWIFT_EXPORT void _CFThreadSetName(const char *_Nullable name) {
+CF_SWIFT_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-    pthread_setname_np(name);
+    if (pthread_equal(pthread_self(), thread)) {
+        return pthread_setname_np(name);
+    }
+    return EINVAL;
 #elif DEPLOYMENT_TARGET_LINUX
-    pthread_setname_np(pthread_self(), name);
+    // pthread_setname_np will fail if name >= 16 characters
+    char short_name[16];
+    strncpy(short_name, name, 15);
+    short_name[15] = '\0';
+    return pthread_setname_np(thread, short_name);
 #endif
 }
 
-CF_SWIFT_EXPORT int _CFThreadGetName(char *buf, int length) {
+CF_SWIFT_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getname_np(pthread_self(), buf, length);
 #elif DEPLOYMENT_TARGET_ANDROID

@@ -43,6 +43,9 @@ internal enum _NSThreadStatus {
 private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
     let thread: Thread = NSObject.unretainedReference(context!)
     Thread._currentThread.set(thread)
+    if let name = thread.name {
+        _CFThreadSetName(pthread_self(), name)
+    }
     thread._status = .executing
     thread.main()
     thread._status = .finished
@@ -141,11 +144,12 @@ open class Thread : NSObject {
     }
 
     internal var _main: () -> Void = {}
-#if os(OSX) || os(iOS) || CYGWIN
-    private var _thread: pthread_t? = nil
-#elseif os(Linux) || os(Android)
+#if os(Android)
     private var _thread = pthread_t()
+#else
+    private var _thread: pthread_t? = nil
 #endif
+
 #if CYGWIN
     internal var _attr : pthread_attr_t? = nil
 #else
@@ -202,8 +206,8 @@ open class Thread : NSObject {
 
     open var name: String? {
         didSet {
-            if _thread == Thread.current._thread {
-                _CFThreadSetName(name)
+            if let thread = _thread {
+                _CFThreadSetName(thread, name ?? "" )
             }
         }
     }
