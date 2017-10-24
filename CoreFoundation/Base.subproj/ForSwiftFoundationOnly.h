@@ -343,6 +343,54 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
 
+
+typedef struct {
+    void *_Nonnull memory;
+    size_t capacity;
+    _Bool onStack;
+} _ConditionalAllocationBuffer;
+
+static inline _Bool _resizeConditionalAllocationBuffer(_ConditionalAllocationBuffer *_Nonnull buffer, size_t amt) {
+#if TARGET_OS_MAC
+    size_t amount = malloc_good_size(amt);
+#else
+    size_t amount = amt;
+#endif
+    if (amount <= buffer->capacity) { return true; }
+    void *newMemory;
+    if (buffer->onStack) {
+        newMemory = malloc(amount);
+        if (newMemory == NULL) { return false; }
+        memcpy(newMemory, buffer->memory, buffer->capacity);
+        buffer->onStack = false;
+    } else {
+        newMemory = realloc(buffer->memory, amount);
+        if (newMemory == NULL) { return false; }
+    }
+    if (newMemory == NULL) { return false; }
+    buffer->memory = newMemory;
+    buffer->capacity = amount;
+    return true;
+}
+
+static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((noescape)) ^ _Nonnull applier)(_ConditionalAllocationBuffer *_Nonnull)) {
+    _ConditionalAllocationBuffer buffer;
+#if TARGET_OS_MAC
+    buffer.capacity = malloc_good_size(amount);
+#else
+    buffer.capacity = amount;
+#endif
+    buffer.onStack = (_CFIsMainThread() != 0 ? buffer.capacity < 2048 : buffer.capacity < 512);
+    buffer.memory = buffer.onStack ? alloca(buffer.capacity) : malloc(buffer.capacity);
+    if (buffer.memory == NULL) { return false; }
+    applier(&buffer);
+    if (!buffer.onStack) {
+        free(buffer.memory);
+    }
+    return true;
+}
+
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */
