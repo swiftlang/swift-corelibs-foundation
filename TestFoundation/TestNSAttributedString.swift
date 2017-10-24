@@ -18,7 +18,6 @@
 #endif
 
 
-
 class TestNSAttributedString : XCTestCase {
     
     static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
@@ -30,7 +29,7 @@ class TestNSAttributedString : XCTestCase {
             ("test_enumerateAttributes", test_enumerateAttributes),
         ]
     }
-    
+
     func test_initWithString() {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
         let attrString = NSAttributedString(string: string)
@@ -43,7 +42,7 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(range.length, string.utf16.count)
         XCTAssertEqual(attrs.count, 0)
 
-        let attribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
+        let attribute = attrString.attribute(NSAttributedStringKey("invalid"), at: 0, effectiveRange: &range)
         XCTAssertNil(attribute)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, string.utf16.count)
@@ -51,7 +50,7 @@ class TestNSAttributedString : XCTestCase {
     
     func test_initWithStringAndAttributes() {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
-        let attributes: [String : AnyObject] = ["attribute.placeholder.key" : "attribute.placeholder.value" as NSString]
+        let attributes: [NSAttributedStringKey : AnyObject] = [NSAttributedStringKey("attribute.placeholder.key") : "attribute.placeholder.value" as NSString]
         
         let attrString = NSAttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
@@ -59,7 +58,7 @@ class TestNSAttributedString : XCTestCase {
         
         var range = NSRange()
         let attrs = attrString.attributes(at: 0, effectiveRange: &range)
-        guard let value = attrs["attribute.placeholder.key"] as? String else {
+        guard let value = attrs[NSAttributedStringKey("attribute.placeholder.key")] as? String else {
             XCTAssert(false, "attribute value not found")
             return
         }
@@ -67,16 +66,16 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(range.length, attrString.length)
         XCTAssertEqual(value, "attribute.placeholder.value")
 
-        let invalidAttribute = attrString.attribute("invalid", at: 0, effectiveRange: &range)
+        let invalidAttribute = attrString.attribute(NSAttributedStringKey("invalid"), at: 0, effectiveRange: &range)
         XCTAssertNil(invalidAttribute)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, string.utf16.count)
 
-        let attribute = attrString.attribute("attribute.placeholder.key", at: 0, effectiveRange: &range)
+        let attribute = attrString.attribute(NSAttributedStringKey("attribute.placeholder.key"), at: 0, effectiveRange: &range)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, attrString.length)
         guard let validAttribute = attribute as? NSString else {
-            XCTAssert(false, "attribuet not found")
+            XCTAssert(false, "attribute not found")
             return
         }
         XCTAssertEqual(validAttribute, "attribute.placeholder.value")
@@ -85,7 +84,7 @@ class TestNSAttributedString : XCTestCase {
     func test_longestEffectiveRange() {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
-        let attrKey = "attribute.placeholder.key"
+        let attrKey = NSAttributedStringKey("attribute.placeholder.key")
         let attrValue = "attribute.placeholder.value" as NSString
         
         let attrRange1 = NSRange(location: 0, length: 20)
@@ -110,12 +109,12 @@ class TestNSAttributedString : XCTestCase {
     func test_enumerateAttributeWithName() {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
-        let attrKey1 = "attribute.placeholder.key1"
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
         let attrValue1 = "attribute.placeholder.value1"
         let attrRange1 = NSRange(location: 0, length: 20)
         let attrRange2 = NSRange(location: 18, length: 10)
         
-        let attrKey3 = "attribute.placeholder.key3"
+        let attrKey3 = NSAttributedStringKey("attribute.placeholder.key3")
         let attrValue3 = "attribute.placeholder.value3"
         let attrRange3 = NSRange(location: 40, length: 5)
         
@@ -161,15 +160,15 @@ class TestNSAttributedString : XCTestCase {
 #else
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
-        let attrKey1 = "attribute.placeholder.key1"
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
         let attrValue1 = "attribute.placeholder.value1"
         let attrRange1 = NSRange(location: 0, length: 20)
         
-        let attrKey2 = "attribute.placeholder.key2"
+        let attrKey2 = NSAttributedStringKey("attribute.placeholder.key2")
         let attrValue2 = "attribute.placeholder.value2"
         let attrRange2 = NSRange(location: 18, length: 10)
         
-        let attrKey3 = "attribute.placeholder.key3"
+        let attrKey3 = NSAttributedStringKey("attribute.placeholder.key3")
         let attrValue3 = "attribute.placeholder.value3"
         let attrRange3 = NSRange(location: 40, length: 5)
         
@@ -235,9 +234,9 @@ fileprivate extension TestNSAttributedString {
         }
     }
     
-    fileprivate func describe(attrs: [String : Any]) -> String {
+    fileprivate func describe(attrs: [NSAttributedStringKey : Any]) -> String {
         if attrs.count > 0 {
-            return "[" + attrs.map({ "\($0):\($1)" }).sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
+            return "[" + attrs.map({ "\($0.rawValue):\($1)" }).sorted(by: { $0 < $1 }).joined(separator: ",") + "]"
         } else {
             return "[:]"
         }
