@@ -65,7 +65,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
 
     /// Returns the attributes for the character at a given index.
-    open func attributes(at location: Int, effectiveRange range: NSRangePointer) -> [NSAttributedStringKey : Any] {
+    open func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedStringKey : Any] {
         let rangeInfo = RangeInfo(
             rangePointer: range,
             shouldFetchLongestEffectiveRange: false,
@@ -278,16 +278,11 @@ private extension NSAttributedString {
         }
         
         let range = CFRange(location: 0, length: _string.length)
+        var attributes: [String : Any] = [:]
         if let attrs = attrs {
-            var _attrs: [String: Any] = [:]
-            for (key, value) in attrs {
-                _attrs[key.rawValue] = value
-            }
-            CFRunArrayInsert(_attributeArray, range, _attrs._cfObject)
-        } else {
-            let emptyAttrs = [String : AnyObject]()
-            CFRunArrayInsert(_attributeArray, range, emptyAttrs._cfObject)
+            attrs.forEach { attributes[$0.rawValue] = $1 }
         }
+        CFRunArrayInsert(_attributeArray, range, attributes._cfObject)
     }
 }
 
