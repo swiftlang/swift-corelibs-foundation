@@ -25,10 +25,9 @@ class TestNSData: XCTestCase {
             }
         }
         
-        init(length : Int) {
+        init(length: Int) {
             _length = length
-            super.init(bytes: nil, length: 0, copy: false, deallocator: nil)
-            _length = length
+            super.init()
         }
         
         required init?(coder aDecoder: NSCoder) {
@@ -92,10 +91,9 @@ class TestNSData: XCTestCase {
             }
         }
         
-        /*override*/ init(length : Int) {
+        override init(length: Int) {
             _length = length
-            super.init(bytes: nil, length: 0, copy: false, deallocator: nil)
-            _length = length
+            super.init()
         }
         
         required init?(coder aDecoder: NSCoder) {
