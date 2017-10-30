@@ -168,8 +168,13 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
             for idx in 0..<range.length {
                 // Since character is 2 bytes but the buffer is in term of 1 byte values, we have to split it up
                 let character = encodingView[start.advanced(by: idx + range.location)]
+#if _endian(big)
+                let byte0 = UInt8((character >> 8) & 0x00ff)
+                let byte1 = UInt8(character & 0x00ff)
+#else
                 let byte0 = UInt8(character & 0x00ff)
                 let byte1 = UInt8((character >> 8) & 0x00ff)
+#endif
                 buffer.advanced(by: idx * 2).initialize(to: byte0)
                 buffer.advanced(by: (idx * 2) + 1).initialize(to: byte1)
             }
