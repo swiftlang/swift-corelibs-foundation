@@ -177,18 +177,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
-    @available(*, deprecated)
-    /// Initializes a data object with the contents of the mapped file specified by a given path.
-    public init?(contentsOfMappedFile path: String) {
-        NSUnimplemented()
-    }
-
-    @available(*, deprecated)
-    /// Creates and returns a data object from the mapped file at a given path.
-    class func dataWithContentsOfMappedFile(_ path: String) -> Any? {
-        NSUnimplemented()
-    }
-
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
         super.init()
@@ -243,12 +231,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         super.init()
         _init(bytes: UnsafeMutableRawPointer(mutating: decodedBytes), length: decodedBytes.count, copy: true)
-    }
-
-    @available(*, deprecated)
-    /// Initializes a data object initialized with the given Base64 encoded string.
-    public init?(base64Encoding base64String: String) {
-        NSUnimplemented()
     }
 
     /// Initializes a data object with the given Base64 encoded data.
@@ -741,13 +723,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         getBytes(&decodedBytes, length: decodedBytes.count)
         let encodedBytes = NSData.base64EncodeBytes(decodedBytes, options: options)
         return Data(bytes: encodedBytes, count: encodedBytes.count)
-    }
-
-    @available(*, deprecated)
-    /// Initializes a Base64 encoded String from the data object.
-    /// Deprecated: You should transition to either base64EncodedString(options:) or base64EncodedData(options:)
-    func base64Encoding() -> String {
-        return base64EncodedString()
     }
 
     /// The ranges of ASCII characters that are used to encode data in Base64.
