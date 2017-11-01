@@ -50,6 +50,10 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         self.init(localeIdentifier: String._unconditionallyBridgeFromObjectiveC(identifier))
     }
     
+    deinit {
+        _CFDeinit(self)
+    }
+    
     open override func copy() -> Any {
         return copy(with: nil)
     }
