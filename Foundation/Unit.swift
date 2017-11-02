@@ -1632,8 +1632,8 @@ open class UnitPower : Dimension {
         static let milliwatts = "mW"
         static let microwatts = "µW"
         static let nanowatts  = "nW"
-        static let picowatts  = "nW"
-        static let femtowatts = "nHz"
+        static let picowatts  = "pW"
+        static let femtowatts = "fW"
         static let horsepower = "hp"
     }
     
