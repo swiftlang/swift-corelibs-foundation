@@ -75,6 +75,7 @@ class TestCharacterSet : XCTestCase {
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
             ("test_Equatable", test_Equatable),
+            ("test_EmptySubset", test_EmptySubset),
             // The following tests must remain disabled until SR-2509 is resolved.
             ("test_Subtracting", test_Subtracting),
             ("test_SubtractEmptySet", test_SubtractEmptySet),
@@ -353,4 +354,9 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
+    func test_EmptySubset() {
+        let set = CharacterSet()
+        XCTAssertTrue(set.isSubset(of: set))
+        XCTAssertFalse(set.isStrictSubset(of: set))
+    }
 }
