@@ -62,6 +62,7 @@ foundation.CFLAGS += " ".join([
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
 	'-I./',
+	'-I./closure',
 ])
 
 swift_cflags += [
