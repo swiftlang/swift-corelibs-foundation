@@ -99,6 +99,7 @@ class TestNSString : XCTestCase {
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
+            ("test_createCopy", test_createCopy),
         ]
     }
 
@@ -1168,6 +1169,16 @@ class TestNSString : XCTestCase {
         // SR-3363
         let s6 = NSString(string: "Beyonce\u{301} and Tay")
         XCTAssertEqual(s6.substring(with: NSMakeRange(7, 9)), "\u{301} and Tay")
+    }
+    
+    func test_createCopy() {
+        let string: NSMutableString = "foo"
+        let stringCopy = string.copy() as! NSString
+        XCTAssertEqual(string, stringCopy)
+        string.append("bar")
+        XCTAssertNotEqual(string, stringCopy)
+        XCTAssertEqual(string, "foobar")
+        XCTAssertEqual(stringCopy, "foo")
     }
 }
 
