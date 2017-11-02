@@ -52,10 +52,7 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
     ///
     /// - precondition: `end >= start`
     public init(start: Date, end: Date) {
-        if end < start {
-            fatalError("Reverse intervals are not allowed")
-        }
-        
+        precondition(end >= start, "Reverse intervals are not allowed")
         self.start = start
         duration = end.timeIntervalSince(start)
     }
