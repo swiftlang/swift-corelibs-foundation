@@ -1,7 +1,7 @@
 /*	CFBundlePriv.h
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -137,13 +137,13 @@ CFStringRef _CFBundleGetCurrentPlatform(void);
 
 /* This function will return a bundle object that is not from the existing caches, and will never be part of the result of any method that checks the caches (e.g., get all bundles). The bundle object itself may keep a cache, but you can just use this function to create another instance if you want to get a fresh cache. Note that any NSBundle-level API has yet another cache, which is not considered here. */
 CF_EXPORT
-CFBundleRef _CFBundleCreateUnique(CFAllocatorRef allocator, CFURLRef bundleURL) CF_AVAILABLE(10_11, 9_0);
+CFBundleRef _CFBundleCreateUnique(CFAllocatorRef allocator, CFURLRef bundleURL) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 
 /* For Code Signing */
 
 // This function is obsolete. Use CFBundleCreate instead.
 CF_EXPORT
-CFBundleRef _CFBundleCreateIfMightBeBundle(CFAllocatorRef allocator, CFURLRef url) CF_DEPRECATED(10_6, 10_10, 2_0, 8_0);
+CFBundleRef _CFBundleCreateIfMightBeBundle(CFAllocatorRef allocator, CFURLRef url) API_DEPRECATED("Use CFBundleCreate instead", macos(10.6,10.10), ios(2.0,8.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 // This function is for code signing only. Do not use this function.
 CF_EXPORT
@@ -153,7 +153,7 @@ CFBundleRef _CFBundleCreateWithExecutableURLIfMightBeBundle(CFAllocatorRef alloc
 /* Functions for examining the structure of a bundle */
 
 CF_EXPORT
-CFURLRef _CFBundleCopyResourceForkURL(CFBundleRef bundle) CF_AVAILABLE_MAC(10_0);
+CFURLRef _CFBundleCopyResourceForkURL(CFBundleRef bundle) API_AVAILABLE(macos(10.0)) API_UNAVAILABLE(ios, watchos, tvos);
 
 CF_EXPORT
 CFURLRef _CFBundleCopyInfoPlistURL(CFBundleRef bundle);
@@ -191,7 +191,7 @@ CFStringRef CFBundleCopyLocalizationForLocalizationInfo(SInt32 languageCode, SIn
     /* 0xFFFF for stringEncoding, if you do not wish to specify one of these. */ 
 
 // Get a localized string for a specific localization (including processing as strings dict file). This skips the usual cache for localized strings.
-CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName) CF_AVAILABLE(10_10, 8_0);
+CF_EXPORT CFStringRef CFBundleCopyLocalizedStringForLocalization(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName, CFStringRef localizationName) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
 void _CFBundleSetDefaultLocalization(CFStringRef localizationName);
@@ -217,14 +217,15 @@ CFStringRef _CFBundleCopyFileTypeForFileURL(CFURLRef url);
 CF_EXPORT
 CFStringRef _CFBundleCopyFileTypeForFileData(CFDataRef data);
 
+// This function will always return true.
 CF_EXPORT
-Boolean _CFBundleGetHasChanged(CFBundleRef bundle);
+Boolean _CFBundleGetHasChanged(CFBundleRef bundle) API_DEPRECATED("Function no longer supported", macos(10.0,10.13), ios(2.0,11.0), watchos(2.0,4.0), tvos(9.0,11.0));
 
 CF_EXPORT
-void _CFBundleFlushCaches(void) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void _CFBundleFlushCaches(void) API_DEPRECATED("Function no longer supported", macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-void _CFBundleFlushCachesForURL(CFURLRef url) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void _CFBundleFlushCachesForURL(CFURLRef url) API_DEPRECATED("Function no longer supported", macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
 void _CFBundleFlushBundleCaches(CFBundleRef bundle);    // The previous two functions flush cached resource paths; this one also flushes bundle-specific caches such as the info dictionary and strings files
@@ -244,8 +245,24 @@ CFURLRef _CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executablePath);
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <xpc/xpc.h>
 CF_EXPORT
-void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) CF_AVAILABLE(10_10, 8_0);
+void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 #endif
+
+
+/* CFString & Localization Debug Utilities */
+
+CF_EXPORT
+CFStringRef _CFDoubledStringCreate(CFStringRef theString) API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+
+CF_EXPORT
+CFStringRef _CFAccentuatedStringCreate(CFStringRef theString) API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+
+CF_EXPORT
+CFStringRef _CFAffixedStringCreate(CFStringRef theString, CFStringRef prefix, CFStringRef suffix) API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+
+CF_EXPORT
+CFStringRef _CFRLORightToLeftStringCreate(CFStringRef theString) API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+
 
 /* Functions deprecated as SPI */
 

@@ -1,7 +1,7 @@
 /*      CFBundle_Grok.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -933,6 +933,24 @@ CFStringRef _CFBundleCopyFileTypeForFileData(CFDataRef data) {
     CFStringRef extension = NULL;
     (void)_CFBundleGrokFileType(NULL, data, &extension, NULL, NULL, NULL, NULL, NULL, NULL);
     return extension;
+}
+
+CF_EXPORT CFDictionaryRef _CFBundleCopyInfoDictionaryForExecutableFileData(CFDataRef data, bool *canContainInfoPlist) {
+    CFDictionaryRef result = NULL;
+    UInt32 machtype = 0;
+    (void)_CFBundleGrokFileType(NULL, data, NULL, &machtype, NULL, &result, NULL, NULL, NULL);
+    if (canContainInfoPlist) {
+#if TARGET_OS_MAC
+        if (machtype == MH_EXECUTE || machtype == MH_DYLIB) {
+            *canContainInfoPlist = true;
+        } else {
+            *canContainInfoPlist = false;
+        }
+#else
+        *canContainInfoPlist = false;
+#endif
+    }
+    return result;
 }
 
 CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInExecutable(CFURLRef url) {

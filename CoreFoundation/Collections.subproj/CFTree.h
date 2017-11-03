@@ -1,7 +1,7 @@
 /*	CFTree.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -192,7 +192,6 @@ CFTreeRef CFTreeGetChildAtIndex(CFTreeRef tree, CFIndex idx);
 	@param children A C array of pointer-sized values to be filled with
 		children from the tree.  If this parameter is not a valid pointer to a 
                 C array of at least CFTreeGetChildCount() pointers, the behavior is undefined.
-        @result A reference to the specified child tree.
 */
 CF_EXPORT
 void CFTreeGetChildren(CFTreeRef tree, CFTreeRef *children);
@@ -202,7 +201,7 @@ void CFTreeGetChildren(CFTreeRef tree, CFTreeRef *children);
 	Calls a function once for each child of the tree.  Note that the applier
         only operates one level deep, and does not operate on descendents further
         removed than the immediate children of the tree.
-        @param heap The tree to be operated upon.  If this parameter is not a
+        @param tree The tree to be operated upon.  If this parameter is not a
 		valid CFTree, the behavior is undefined.
 	@param applier The callback function to call once for each child of
 		the given tree.  If this parameter is not a pointer to a 

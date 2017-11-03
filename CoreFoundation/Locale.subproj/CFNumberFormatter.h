@@ -1,7 +1,7 @@
 /*	CFNumberFormatter.h
-	Copyright (c) 2003-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2003-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -33,10 +33,10 @@ typedef CF_ENUM(CFIndex, CFNumberFormatterStyle) {	// number format styles
 	kCFNumberFormatterPercentStyle = 3,
 	kCFNumberFormatterScientificStyle = 4,
 	kCFNumberFormatterSpellOutStyle = 5,
-	kCFNumberFormatterOrdinalStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 6,
-	kCFNumberFormatterCurrencyISOCodeStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 8,
-	kCFNumberFormatterCurrencyPluralStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 9,
-	kCFNumberFormatterCurrencyAccountingStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 10,
+	kCFNumberFormatterOrdinalStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 6,
+	kCFNumberFormatterCurrencyISOCodeStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 8,
+	kCFNumberFormatterCurrencyPluralStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 9,
+	kCFNumberFormatterCurrencyAccountingStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 10,
 };
 
 
@@ -135,11 +135,11 @@ CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterNegativePrefix;		// CFStr
 CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterNegativeSuffix;		// CFString
 CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPerMillSymbol;		// CFString
 CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterInternationalCurrencySymbol; // CFString
-CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencyGroupingSeparator CF_AVAILABLE(10_5, 2_0); // CFString
-CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterIsLenient CF_AVAILABLE(10_5, 2_0);		// CFBoolean
-CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterUseSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFBoolean
-CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
-CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMaxSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencyGroupingSeparator API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterIsLenient API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));		// CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterUseSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMaxSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFNumber
 
 typedef CF_ENUM(CFIndex, CFNumberFormatterRoundingMode) {
     kCFNumberFormatterRoundCeiling = 0,

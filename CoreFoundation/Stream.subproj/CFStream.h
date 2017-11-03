@@ -1,7 +1,7 @@
 /*	CFStream.h
-	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -132,9 +132,9 @@ CFStreamStatus CFWriteStreamGetStatus(CFWriteStreamRef stream);
 
 /* Returns NULL if no error has occurred; otherwise returns the error. */
 CF_EXPORT
-CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream) CF_AVAILABLE(10_5, 2_0);
+CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 CF_EXPORT
-CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream) CF_AVAILABLE(10_5, 2_0);
+CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 /* Returns success/failure.  Opening a stream causes it to reserve all the system
    resources it requires.  If the stream can open non-blocking, this will always 
@@ -254,10 +254,10 @@ void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef ru
  * with a runloop will disassociate the stream from any existing dispatch queue.
  */
 CF_EXPORT
-void CFReadStreamSetDispatchQueue(CFReadStreamRef stream, dispatch_queue_t q) CF_AVAILABLE(10_9, 7_0);
+void CFReadStreamSetDispatchQueue(CFReadStreamRef stream, dispatch_queue_t q) API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-void CFWriteStreamSetDispatchQueue(CFWriteStreamRef stream, dispatch_queue_t q) CF_AVAILABLE(10_9, 7_0);
+void CFWriteStreamSetDispatchQueue(CFWriteStreamRef stream, dispatch_queue_t q) API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
 
 /*
  * Returns the previously set dispatch queue with an incremented retain count.  
@@ -265,10 +265,10 @@ void CFWriteStreamSetDispatchQueue(CFWriteStreamRef stream, dispatch_queue_t q) 
  * scheduled on a runloop subsequent to it having had a dispatch queue set.
  */
 CF_EXPORT
-dispatch_queue_t CFReadStreamCopyDispatchQueue(CFReadStreamRef stream) CF_AVAILABLE(10_9, 7_0);
+dispatch_queue_t CFReadStreamCopyDispatchQueue(CFReadStreamRef stream) API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-dispatch_queue_t CFWriteStreamCopyDispatchQueue(CFWriteStreamRef stream) CF_AVAILABLE(10_9, 7_0);
+dispatch_queue_t CFWriteStreamCopyDispatchQueue(CFWriteStreamRef stream) API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
 
 
 /* The following API is deprecated starting in 10.5; please use CFRead/WriteStreamCopyError(), above, instead */

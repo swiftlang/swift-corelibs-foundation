@@ -1,7 +1,7 @@
 /*	CoreFoundation_Prefix.h
-	Copyright (c) 2005-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2005-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -111,7 +111,7 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
     
 // hint to the analyzer that the caller is no longer responsable for the object and that it will be transfered to the reciver that is opaque to the caller
 #if __clang_analyzer__
-#define CF_TRANSFER_OWNERSHIP(obj) (typeof(obj))[(id)obj autorelease]
+#define CF_TRANSFER_OWNERSHIP(obj) (__typeof(obj))[(id)obj autorelease]
 #else
 #define CF_TRANSFER_OWNERSHIP(obj) obj
 #endif
@@ -212,6 +212,13 @@ bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volati
     
 void OSMemoryBarrier();
 
+#if TARGET_OS_CYGWIN
+#define HAVE_STRUCT_TIMESPEC 1
+#define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
+#define _NO_BOOL_TYPEDEF
+#undef interface
+#endif
+
 #include <malloc.h>
 CF_INLINE size_t malloc_size(void *memblock) {
     return malloc_usable_size(memblock);
@@ -252,14 +259,7 @@ void OSMemoryBarrier();
 
 #endif
 
-#if TARGET_OS_CYGWIN
-#define HAVE_STRUCT_TIMESPEC 1
-#define strncasecmp_l(a, b, c, d) strncasecmp(a, b, c)
-#define _NO_BOOL_TYPEDEF
-#undef interface
-#endif
-
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX    
 #if !defined(MIN)
 #define MIN(A,B)	((A) < (B) ? (A) : (B))
 #endif
@@ -457,6 +457,14 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 
 #if !defined(CF_PRIVATE)
 #define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#endif
+    
+#if !defined(CF_TEST_PRIVATE)
+#ifdef UNIT_TEST
+#define CF_TEST_PRIVATE
+#else
+#define CF_TEST_PRIVATE __attribute__((__visibility__("hidden"))) extern
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS

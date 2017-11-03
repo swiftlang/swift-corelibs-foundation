@@ -1,7 +1,7 @@
 /*	CFTree.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -41,7 +41,7 @@ enum {          /* Bits 0-1 */
 };
 
 CF_INLINE uint32_t __CFTreeGetCallBacksType(CFTreeRef tree) {
-    return (__CFBitfieldGetValue(tree->_base._cfinfo[CF_INFO_BITS], 1, 0));
+    return (__CFRuntimeGetValue(tree, 1, 0));
 }
 
 CF_INLINE const struct __CFTreeCallBacks *__CFTreeGetCallBacks(CFTreeRef tree) {
@@ -137,7 +137,7 @@ CFTreeRef CFTreeCreate(CFAllocatorRef allocator, const CFTreeContext *context) {
     memory->_rightmostChild = NULL;
 
     /* Start the context off in a recognizable state */
-    __CFBitfieldSetValue(memory->_base._cfinfo[CF_INFO_BITS], 1, 0, __kCFTreeHasNullCallBacks);
+    __CFRuntimeSetValue(memory, 1, 0, __kCFTreeHasNullCallBacks);
     CFTreeSetContext(memory, context);
     return memory;
 }
@@ -213,7 +213,7 @@ void CFTreeSetContext(CFTreeRef tree, const CFTreeContext *context) {
         FAULT_CALLBACK((void **)&(tree->_callbacks->release));
         FAULT_CALLBACK((void **)&(tree->_callbacks->copyDescription));
     }
-    __CFBitfieldSetValue(tree->_base._cfinfo[CF_INFO_BITS], 1, 0, newtype);
+    __CFRuntimeSetValue(tree, 1, 0, newtype);
     newcb = (struct __CFTreeCallBacks *)__CFTreeGetCallBacks(tree);
     if (NULL != newcb->retain) {
         tree->_info = (void *)INVOKE_CALLBACK1(newcb->retain, context->info);

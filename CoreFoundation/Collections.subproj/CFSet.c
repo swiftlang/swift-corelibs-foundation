@@ -1,7 +1,7 @@
 /*	CFSet.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-    Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+    Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
     Licensed under Apache License v2.0 with Runtime Library Exception
     See http://swift.org/LICENSE.txt for license information
     See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -402,7 +402,10 @@ void CFSetGetValues(CFHashRef hc, const_any_pointer_t *keybuf) {
 #endif
 #if CFDictionary
     if (CFDictionary) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSDictionary.getObjects, valuebuf, keybuf);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
     if (CFDictionary) CF_OBJC_FUNCDISPATCHV(CFSetGetTypeID(), void, (NSDictionary *)hc, getObjects:(id *)valuebuf andKeys:(id *)keybuf);
+#pragma GCC diagnostic pop
 #endif
 #if CFSet
     if (CFSet) CF_SWIFT_FUNCDISPATCHV(CFSetGetTypeID(), void, (CFSwiftRef)hc, NSSet.getObjects, keybuf);
@@ -466,11 +469,11 @@ CF_EXPORT void _CFSetSetCapacity(CFMutableHashRef hc, CFIndex cap) {
 }
 
 CF_INLINE CFIndex __CFSetGetKVOBit(CFHashRef hc) {
-    return __CFBitfieldGetValue(((CFRuntimeBase *)hc)->_cfinfo[CF_INFO_BITS], 0, 0);
+    return __CFRuntimeGetFlag(hc, 0);
 }
 
 CF_INLINE void __CFSetSetKVOBit(CFHashRef hc, CFIndex bit) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)hc)->_cfinfo[CF_INFO_BITS], 0, 0, ((uintptr_t)bit & 0x1));
+    __CFRuntimeSetFlag(hc, 0, ((uintptr_t)bit & 0x1));
 }
 
 // This function is for Foundation's benefit; no one else should use it.

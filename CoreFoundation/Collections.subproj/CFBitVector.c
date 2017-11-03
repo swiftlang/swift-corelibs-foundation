@@ -1,7 +1,7 @@
 /*	CFBitVector.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -46,11 +46,11 @@ struct __CFBitVector {
 };
 
 CF_INLINE UInt32 __CFBitVectorMutableVariety(const void *cf) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)cf)->_cfinfo[CF_INFO_BITS], 3, 2);
+    return __CFRuntimeGetValue(cf, 3, 2);
 }
 
 CF_INLINE void __CFBitVectorSetMutableVariety(void *cf, UInt32 v) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)cf)->_cfinfo[CF_INFO_BITS], 3, 2, v);
+    __CFRuntimeSetValue(cf, 3, 2, v);
 }
 
 CF_INLINE UInt32 __CFBitVectorMutableVarietyFromFlags(UInt32 flags) {
@@ -422,9 +422,8 @@ static void __CFBitVectorGrow(CFMutableBitVectorRef bv, CFIndex numNewValues) {
     CFAllocatorRef allocator = CFGetAllocator(bv);
     __CFBitVectorSetCapacity(bv, capacity);
     __CFBitVectorSetNumBuckets(bv, __CFBitVectorNumBucketsForCapacity(capacity));
-    *((void **)&bv->_buckets) = CFAllocatorReallocate(allocator, bv->_buckets, __CFBitVectorNumBuckets(bv) * sizeof(__CFBitVectorBucket), 0);
+    *((void **)&bv->_buckets) = __CFSafelyReallocateWithAllocator(allocator, bv->_buckets, __CFBitVectorNumBuckets(bv) * sizeof(__CFBitVectorBucket), 0, NULL);
     if (__CFOASafe) __CFSetLastAllocationEventName(bv->_buckets, "CFBitVector (store)");
-    if (NULL == bv->_buckets) HALT;
 }
 
 static __CFBitVectorBucket __CFBitVectorZeroBits(__CFBitVectorBucket bucketValue, __CFBitVectorBucket bucketValueMask, void *context) {

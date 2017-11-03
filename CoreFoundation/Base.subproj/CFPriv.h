@@ -1,7 +1,7 @@
 /*	CFPriv.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -46,6 +46,9 @@ CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
+CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
+CF_EXPORT uid_t _CFGetEUID(void);
+CF_EXPORT uid_t _CFGetEGID(void);
 
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
@@ -593,15 +596,18 @@ CF_INLINE struct timespec _CFFileTimeSpecFromAbsoluteTime(CFAbsoluteTime at) {
 CF_EXPORT bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
 
 // Returns a subset of the property list, only including the keyPaths in the CFSet. If the top level object is not a dictionary, you will get back an empty dictionary as the result.
-CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) CF_AVAILABLE(10_8, 6_0);
+CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+
+// Returns a set of the keys of the top-level dictionary of a plist. Optimized for bplist (though it works with XML too).  Only supports string keys. 
+CF_EXPORT CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFErrorRef *outError) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
 // Returns a subset of a bundle's Info.plist. The keyPaths follow the same rules as above CFPropertyList function. This function takes platform and product keys into account.
 typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
-} CF_ENUM_AVAILABLE(10_8, 6_0);
+} API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
-CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) CF_AVAILABLE(10_8, 6_0);
-CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) CF_AVAILABLE(10_8, 6_0);
+CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
 #if TARGET_OS_WIN32
 #include <CoreFoundation/CFNotificationCenter.h>
@@ -634,12 +640,12 @@ CF_EXPORT CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRe
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
 #endif
 
-CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
-CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
 
 
 CF_EXPORT void _CFGetPathExtensionRangesFromPathComponentUniChars(const UniChar *uchars, CFIndex ucharsLength, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) CF_AVAILABLE(10_11, 9_0);
+CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 CF_EXPORT Boolean _CFExtensionUniCharsIsValidToAppend(const UniChar *uchars, CFIndex ucharsLength) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 

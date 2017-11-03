@@ -1,7 +1,7 @@
 /*	CFUtilities.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -195,6 +195,17 @@ CF_PRIVATE CFDataRef _CFDataCreateFromURL(CFURLRef resourceURL, CFErrorRef *erro
     return result;
 }
 
+static CFStringRef copySystemVersionPath(CFStringRef suffix) {
+#if TARGET_IPHONE_SIMULATOR
+    const char *simulatorRoot = getenv("IPHONE_SIMULATOR_ROOT");
+    if (!simulatorRoot) simulatorRoot = getenv("CFFIXED_USER_HOME");
+    if (!simulatorRoot) simulatorRoot = "/";
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
+#else
+    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
+#endif
+}
+
 // Looks for localized version of "nonLocalized" in the SystemVersion bundle
 // If not found, and returnNonLocalizedFlag == true, will return the non localized string (retained of course), otherwise NULL
 // If bundlePtr != NULL, will use *bundlePtr and will return the bundle in there; otherwise bundle is created and released
@@ -203,7 +214,9 @@ static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRe
     CFStringRef localized = NULL;
     CFBundleRef locBundle = bundlePtr ? *bundlePtr : NULL;
     if (!locBundle) {
-        CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/System/Library/CoreServices/SystemVersion.bundle"), kCFURLPOSIXPathStyle, false);
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.bundle"));
+        CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path, kCFURLPOSIXPathStyle, false);
+        CFRelease(path);
         if (url) {
             locBundle = CFBundleCreate(kCFAllocatorSystemDefault, url);
             CFRelease(url);
@@ -305,37 +318,37 @@ CFStringRef CFCopySystemVersionString(void) {
     return versionString;
 }
 
-// Obsolete: These two functions cache the dictionaries to avoid calling _CFCopyVersionDictionary() more than once per dict desired
-// In fact, they do not cache any more, because the file can change after
-// apps are running in some situations, and apps need the new info.
-// Proper caching and testing to see if the file has changed, without race
-// conditions, would require semi-convoluted use of fstat().
-
-static CFStringRef copySystemVersionPath(CFStringRef suffix) {
-#if TARGET_IPHONE_SIMULATOR
-    const char *simulatorRoot = getenv("IPHONE_SIMULATOR_ROOT");
-    if (!simulatorRoot) simulatorRoot = getenv("CFFIXED_USER_HOME");
-    if (!simulatorRoot) simulatorRoot = "/";
-    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
-#else
-    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
-#endif
-}
-
-
 CFDictionaryRef _CFCopySystemVersionDictionary(void) {
-    // TODO: Populate this dictionary differently on non-Darwin platforms
-    CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
-    CFPropertyListRef plist = _CFCopyVersionDictionary(path);
-    CFRelease(path);
-    return (CFDictionaryRef)plist;
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        // TODO: Populate this dictionary differently on non-Darwin platforms
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
 }
 
 CFDictionaryRef _CFCopyServerVersionDictionary(void) {
-    CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/ServerVersion.plist"));
-    CFPropertyListRef plist = _CFCopyVersionDictionary(path);
-    CFRelease(path);
-    return (CFDictionaryRef)plist;
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/ServerVersion.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
 }
 
 CONST_STRING_DECL(_kCFSystemVersionProductNameKey, "ProductName")
@@ -470,19 +483,97 @@ CF_PRIVATE uint64_t __CFMemorySize() {
     return memsize;
 }
     
-CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
-#if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
-    uid_t uid;
-    gid_t gid;
-    if (0 == pthread_getugid_np(&uid, &gid)) {
-        if (euid) *euid = uid;
-        if (egid) *egid = gid;
-    } else
-#endif
-    {
-        if (euid) *euid = geteuid();
-        if (egid) *egid = getegid();
+#if TARGET_OS_MAC
+static uid_t _CFGetSVUID(BOOL *successful) {
+    uid_t uid = -1;
+    struct kinfo_proc kinfo;
+    u_int miblen = 4;
+    size_t  len;
+    int mib[miblen];
+    int ret;
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_PROC;
+    mib[2] = KERN_PROC_PID;
+    mib[3] = getpid();
+    len = sizeof(struct kinfo_proc);
+    ret = sysctl(mib, miblen, &kinfo, &len, NULL, 0);
+    if (ret != 0) {
+        uid = -1;
+        *successful = NO;
+    } else {
+        uid = kinfo.kp_eproc.e_pcred.p_svuid;
+        *successful = YES;
     }
+    return uid;
+}
+#endif
+
+CF_INLINE BOOL _CFCanChangeEUIDs(void) {
+#if TARGET_OS_MAC
+    static BOOL canChangeEUIDs;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        uid_t euid = geteuid();
+        uid_t uid = getuid();
+        BOOL gotSVUID = NO;
+        uid_t svuid = _CFGetSVUID(&gotSVUID);
+        canChangeEUIDs = (uid == 0 || uid != euid || svuid != euid || !gotSVUID);
+    });
+    return canChangeEUIDs;
+#else
+    return true;
+#endif
+}
+    
+typedef struct _ugids {
+    uid_t _euid;
+    uid_t _egid;
+} ugids;
+    
+CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
+    ugids(^lookup)() = ^{
+        ugids ids;
+#if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
+        if (0 != pthread_getugid_np(&ids._euid, &ids._egid))
+#endif
+        {
+            ids._euid = geteuid();
+            ids._egid = getegid();
+        }
+        return ids;
+    };
+    
+    ugids ids;
+    
+    if (_CFCanChangeEUIDs()) {
+        ids = lookup();
+    } else {
+        static ugids cachedUGIDs = { -1, -1 };
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            cachedUGIDs = lookup();
+        });
+        ids = cachedUGIDs;
+    }
+    
+    if (euid) *euid = ids._euid;
+    if (egid) *egid = ids._egid;
+}
+    
+CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid) {
+    __CFGetUGIDs(euid, egid);
+}
+    
+CF_EXPORT uid_t _CFGetEUID(void) {
+    uid_t euid;
+    __CFGetUGIDs(&euid, NULL);
+    return euid;
+}
+
+CF_EXPORT uid_t _CFGetEGID(void) {
+    uid_t egid;
+    __CFGetUGIDs(NULL, &egid);
+    return egid;
 }
 
 const char *_CFPrintForDebugger(const void *obj) {
@@ -978,39 +1069,39 @@ kern_return_t _CFDiscorporateMemoryMaterialize(CFDiscorporateMemory *hm) {
 
 #if SUDDEN_TERMINATION_ENABLE_VPROC
 
-static OSSpinLock __CFProcessKillingLock = OS_SPINLOCK_INIT;
+static os_unfair_lock __CFProcessKillingLock = OS_UNFAIR_LOCK_INIT;
 static CFIndex __CFProcessKillingDisablingCount = 1;
 static Boolean __CFProcessKillingWasTurnedOn = false;
 
 void _CFSuddenTerminationDisable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount++;
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationEnable(void) {
     // In our model the first call of _CFSuddenTerminationEnable() that does not balance a previous call of _CFSuddenTerminationDisable() actually enables sudden termination so we have to keep a count that's almost redundant with vproc's.
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount--;
     if (__CFProcessKillingDisablingCount==0 && !__CFProcessKillingWasTurnedOn) {
 	__CFProcessKillingWasTurnedOn = true;
     } else {
     }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
     // This is for when the caller wants to try to exit quickly if possible but not automatically exit the process when it next becomes clean, because quitting might still be cancelled by the user.
-    OSSpinLockLock(&__CFProcessKillingLock);
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
     // The user has had their final opportunity to cancel quitting. Exit as soon as the process is clean. Same carefulness as in _CFSuddenTerminationExitIfTerminationEnabled().
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     if (__CFProcessKillingWasTurnedOn) {
     }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 size_t _CFSuddenTerminationDisablingCount(void) {
@@ -1019,134 +1110,11 @@ size_t _CFSuddenTerminationDisablingCount(void) {
 
 #else
 
-#warning Building with vproc sudden termination API disabled.
-
-static OSSpinLockUnlock __CFProcessKillingLock = OS_SPINLOCK_INIT;
-static size_t __CFProcessKillingDisablingCount = 1;
-static Boolean __CFProcessExitNextTimeKillingIsEnabled = false;
-static int32_t __CFProcessExitStatus = 0;
-static int __CFProcessIsKillableNotifyToken;
-static Boolean __CFProcessIsKillableNotifyTokenIsFigured = false;
-
-CF_PRIVATE void _CFSetSuddenTerminationEnabled(Boolean isEnabled) {
-    if (!__CFProcessIsKillableNotifyTokenIsFigured) {
-        char *notificationName = NULL;
-        asprintf(&notificationName, "com.apple.isKillable.%i", getpid());
-        uint32_t notifyResult = notify_register_check(notificationName, &__CFProcessIsKillableNotifyToken);
-        if (notifyResult != NOTIFY_STATUS_OK) {
-            CFLog(kCFLogLevelError, CFSTR("%s: notify_register_check() returned %i."), __PRETTY_FUNCTION__, notifyResult);
-        }
-        free(notificationName);
-        __CFProcessIsKillableNotifyTokenIsFigured = true;
-    }
-    uint32_t notifyResult = notify_set_state(__CFProcessIsKillableNotifyToken, isEnabled);
-    if (notifyResult != NOTIFY_STATUS_OK) {
-        CFLog(kCFLogLevelError, CFSTR("%s: notify_set_state() returned %i"), __PRETTY_FUNCTION__, notifyResult);
-    }
-}
-
-void _CFSuddenTerminationDisable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _CFSetSuddenTerminationEnabled(false);
-    }
-    __CFProcessKillingDisablingCount++;
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationEnable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    __CFProcessKillingDisablingCount--;
-    if (__CFProcessKillingDisablingCount == 0) {
-        if (__CFProcessExitNextTimeKillingIsEnabled) {
-            _exit(__CFProcessExitStatus);
-        } else {
-            _CFSetSuddenTerminationEnabled(true);
-        }
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _exit(exitStatus);
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _exit(exitStatus);
-    } else {
-        __CFProcessExitNextTimeKillingIsEnabled = YES;
-        __CFProcessExitStatus = exitStatus;
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-size_t _CFSuddenTerminationDisablingCount(void) {
-    return __CFProcessKillingDisablingCount;
-}
+//The non-vproc implementation is present in the commit history, but long ago began failing to compile and nobody noticed. If you need to resurrect it, start there.
+#error Building with vproc sudden termination API disabled.
 
 #endif
 
-#endif
-
-#if 0
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-
-typedef void (^ThrottleTypeA)(void);		// allows calls per nanoseconds
-typedef void (^ThrottleTypeB)(uint64_t amt);	// allows amount per nanoseconds
-
-CF_PRIVATE ThrottleTypeA __CFCreateThrottleTypeA(uint16_t calls, uint64_t nanoseconds) {
-   struct mach_timebase_info info;
-   mach_timebase_info(&info);
-   uint64_t period = nanoseconds / info.numer * info.denom;
-
-   if (0 == calls || 0 == period) return NULL;
-
-   __block OSSpinLock b_lock = OS_SPINLOCK_INIT;
-   __block uint64_t b_values[calls];
-   __block uint64_t *b_oldest = b_values;
-   memset(b_values, 0, sizeof(b_values));
-
-   return Block_copy(^{
-               uint64_t curr_time = mach_absolute_time();
-               OSSpinLockLock(&b_lock);
-               uint64_t next_time = *b_oldest + period;
-               *b_oldest = (curr_time < next_time) ? next_time : curr_time;
-               b_oldest++;
-               if (b_values + calls <= b_oldest) b_oldest = b_values;
-               OSSpinLockUnlock(&b_lock);
-               if (curr_time < next_time) {
-                   mach_wait_until(next_time);
-               }
-           });
-}
-
-CF_PRIVATE ThrottleTypeB __CFCreateThrottleTypeB(uint64_t amount, uint64_t nanoseconds) {
-   struct mach_timebase_info info;
-   mach_timebase_info(&info);
-   uint64_t period = nanoseconds / info.numer * info.denom;
-
-   if (0 == amount || 0 == period) return NULL;
-
-   __block OSSpinLock b_lock = OS_SPINLOCK_INIT;
-   __block uint64_t b_sum = 0ULL;
-   __block uint16_t b_num_values = 8;
-   __block uint64_t *b_values = calloc(b_num_values, 2 * sizeof(uint64_t));
-   __block uint64_t *b_oldest = b_values;
-
-   return Block_copy(^(uint64_t amt){
-               OSSpinLockLock(&b_lock);
-// unimplemented
-               OSSpinLockUnlock(&b_lock);
-           });
-}
-
-#endif
 #endif
 
 #pragma mark File Reading
@@ -1448,9 +1416,11 @@ CF_INLINE Boolean __ExtensionIsValidToAppend(CFStringInlineBuffer *buffer) {
         // Look backwards for a period. If a period is found, it must not be the
         // last character and any characters after the period must be valid in an
         // extension, and all characters before the period are considered valid
-        // (this allow strings like "tar.gz" to be appended as an extension).
-        // If there's no period, the entire string must be characters valid in an
-        // extension. The extension may be of any length.
+        // except for the path separator character '/' (this allow strings like
+        // "tar.gz" to be appended as an extension). The path separator
+        // character '/' isn't allowed anywhere in the extension. If there's no
+        // period, the entire string must be characters valid in an extension.
+        // The extension may be of any length.
         
         CFIndex nameLen = buffer->rangeToBuffer.length;
         if ( nameLen ) {
@@ -1461,6 +1431,16 @@ CF_INLINE Boolean __ExtensionIsValidToAppend(CFStringInlineBuffer *buffer) {
                 if ( (UniChar)'.' == c ) {
                     // Found a period. If it's  the last character, then return false; otherwise true
                     result = i < nameLen - 1;
+                    if ( result ) {
+                        // check the rest of the string before the period for '/'
+                        for ( CFIndex j = i - 1; j >= 0; j-- ) {
+                            c = __CFStringGetCharacterFromInlineBufferQuickReverse(buffer, j);
+                            if ( c == (UniChar)'/'){
+                                result = false;
+                                break;
+                            }
+                        }
+                    }
                     break;
                 }
                 else if ( __IsInvalidExtensionCharacter(c) ) {

@@ -1,7 +1,7 @@
 /*	CFAvailability.h
-	Copyright (c) 2013-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2013-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,23 +10,23 @@
 #if !defined(__COREFOUNDATION_CFAVAILABILITY__)
 #define __COREFOUNDATION_CFAVAILABILITY__ 1
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if __has_include(<CoreFoundation/TargetConditionals.h>)
 #include <CoreFoundation/TargetConditionals.h>
-#else
+#elif __has_include(<TargetConditionals.h>)
 #include <TargetConditionals.h>
+#else
+#error Missing header TargetConditionals.h
 #endif
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-#define API_AVAILABLE(...)
-#define API_DEPRECATED(...)
-#else
-#if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_WIN32)
+#if __has_include(<Availability.h>) && __has_include(<os/Availability.h>) && __has_include(<AvailabilityMacros.h>)
 #include <Availability.h>
 #include <os/availability.h>
-
 // Even if unused, these must remain here for compatibility, because projects rely on them being included.
 #include <AvailabilityMacros.h>
-#endif
+#else
+#define API_AVAILABLE(...)
+#define API_DEPRECATED(...)
+#define API_UNAVAILABLE(...)
 #endif
 
 #ifndef __has_feature
@@ -112,14 +112,22 @@
 #endif
 
 // Enums and Options
+#if __has_attribute(enum_extensibility)
+#define __CF_ENUM_ATTRIBUTES __attribute__((enum_extensibility(open)))
+#define __CF_OPTIONS_ATTRIBUTES __attribute__((flag_enum,enum_extensibility(open)))
+#else
+#define __CF_ENUM_ATTRIBUTES
+#define __CF_OPTIONS_ATTRIBUTES
+#endif
+
 #define __CF_ENUM_GET_MACRO(_1, _2, NAME, ...) NAME
 #if (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && __has_feature(objc_fixed_enum))
-#define __CF_NAMED_ENUM(_type, _name)     enum _name : _type _name; enum _name : _type
-#define __CF_ANON_ENUM(_type)             enum : _type
+#define __CF_NAMED_ENUM(_type, _name)     enum __CF_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
+#define __CF_ANON_ENUM(_type)             enum __CF_ENUM_ATTRIBUTES : _type
 #if (__cplusplus)
-#define CF_OPTIONS(_type, _name) _type _name; enum : _type
+#define CF_OPTIONS(_type, _name) _type _name; enum __CF_OPTIONS_ATTRIBUTES : _type
 #else
-#define CF_OPTIONS(_type, _name) enum _name : _type _name; enum _name : _type
+#define CF_OPTIONS(_type, _name) enum __CF_OPTIONS_ATTRIBUTES _name : _type _name; enum _name : _type
 #endif
 #else
 #define __CF_NAMED_ENUM(_type, _name) _type _name; enum
@@ -156,10 +164,39 @@ CF_ENUM(CFIndex) {
 #if DEPLOYMENT_RUNTIME_SWIFT
 #define CF_STRING_ENUM
 #define CF_EXTENSIBLE_STRING_ENUM
+
+#define CF_TYPED_ENUM
+#define CF_TYPED_EXTENSIBLE_ENUM
 #else
 #define CF_STRING_ENUM _CF_TYPED_ENUM
 #define CF_EXTENSIBLE_STRING_ENUM _CF_TYPED_EXTENSIBLE_ENUM
+
+#define CF_TYPED_ENUM _CF_TYPED_ENUM
+#define CF_TYPED_EXTENSIBLE_ENUM _CF_TYPED_EXTENSIBLE_ENUM
 #endif
+
+#define __CF_ERROR_ENUM_GET_MACRO(_1, _2, NAME, ...) NAME
+#if ((__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && __has_feature(objc_fixed_enum))) && __has_attribute(ns_error_domain)
+#define __CF_NAMED_ERROR_ENUM(_domain, _name)     enum __attribute__((ns_error_domain(_domain))) _name : CFIndex _name; enum _name : CFIndex
+#define __CF_ANON_ERROR_ENUM(_domain)             enum __attribute__((ns_error_domain(_domain))) : CFIndex
+#else
+#define __CF_NAMED_ERROR_ENUM(_domain, _name) __CF_NAMED_ENUM(CFIndex, _name)
+#define __CF_ANON_ERROR_ENUM(_domain) __CF_ANON_ENUM(CFIndex)
+#endif
+
+/* CF_ERROR_ENUM supports the use of one or two arguments. The first argument is always the domain specifier for the enum. The second argument is an optional name of the typedef for the macro. When specifying a name for of the typedef, you must precede the macro with 'typedef' like so:
+ 
+ typedef CF_ERROR_ENUM(kCFSomeErrorDomain, SomeErrorCodes) {
+ ...
+ };
+ 
+ If you do not specify a typedef name, do not use 'typedef', like so:
+ 
+ CF_ERROR_ENUM(kCFSomeErrorDomain) {
+ ...
+ };
+ */
+#define CF_ERROR_ENUM(...) __CF_ERROR_ENUM_GET_MACRO(__VA_ARGS__, __CF_NAMED_ERROR_ENUM, __CF_ANON_ERROR_ENUM)(__VA_ARGS__)
 
 // Extension availability macros
 #define CF_EXTENSION_UNAVAILABLE(_msg)      __OS_EXTENSION_UNAVAILABLE(_msg)

@@ -1,7 +1,7 @@
 /*	CFCharacterSet.h
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -73,7 +73,7 @@ typedef CF_ENUM(CFIndex, CFCharacterSetPredefinedSet) {
     kCFCharacterSetPunctuation, /* Punctuation character set (Unicode General Category P*) */
     kCFCharacterSetCapitalizedLetter = 13, /* Titlecase character set (Unicode General Category Lt) */
     kCFCharacterSetSymbol = 14, /* Symbol character set (Unicode General Category S*) */
-    kCFCharacterSetNewline CF_ENUM_AVAILABLE(10_5, 2_0) = 15, /* Newline character set (U000A ~ U000D, U0085, U2028, and U2029) */
+    kCFCharacterSetNewline API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 15, /* Newline character set (U000A ~ U000D, U0085, U2028, and U2029) */
     kCFCharacterSetIllegal = 12/* Illegal character set */
 };
 
@@ -200,7 +200,7 @@ CF_EXPORT Boolean CFCharacterSetHasMemberInPlane(CFCharacterSetRef theSet, CFInd
 /*!
 	@function CFCharacterSetCreateMutable
 	Creates a new empty mutable character set.
-	@param allocator The CFAllocator which should be used to allocate
+	@param alloc The CFAllocator which should be used to allocate
 		memory for the array and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
@@ -213,7 +213,7 @@ CFMutableCharacterSetRef CFCharacterSetCreateMutable(CFAllocatorRef alloc);
 /*!
 	@function CFCharacterSetCreateCopy
 	Creates a new character set with the values from the given character set.  This function tries to compact the backing store where applicable.
-	@param allocator The CFAllocator which should be used to allocate
+	@param alloc The CFAllocator which should be used to allocate
 		memory for the array and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
@@ -229,7 +229,7 @@ CFCharacterSetRef CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetR
 /*!
 	@function CFCharacterSetCreateMutableCopy
 	Creates a new mutable character set with the values from the given character set.
-	@param allocator The CFAllocator which should be used to allocate
+	@param alloc The CFAllocator which should be used to allocate
 		memory for the array and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
@@ -270,7 +270,7 @@ CF_EXPORT Boolean CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, 
 /*!
 	@function CFCharacterSetCreateBitmapRepresentation
 	Creates a new immutable data with the bitmap representation from the given character set.
-	@param allocator The CFAllocator which should be used to allocate
+	@param alloc The CFAllocator which should be used to allocate
 		memory for the array and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
