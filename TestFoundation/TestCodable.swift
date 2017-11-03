@@ -33,28 +33,17 @@ private func makePersonNameComponents(namePrefix: String? = nil,
     return result
 }
 
-func expectRoundTripEquality<T : Codable>(of value: T, encode: (T) throws -> Data, decode: (Data) throws -> T) -> Bool where T : Equatable  {
-    let data: Data
+func expectRoundTripEquality<T : Codable>(of value: T, encode: (T) throws -> Data, decode: (Data) throws -> T) throws where T : Equatable  {
     do {
-        data = try encode(value)
-    } catch {
-        XCTFail("Unable to encode \(T.self) <\(value)>: \(error)")
-        return false
+        let data = try encode(value)
+        let decoded: T = try decode(data)
+        if value != decoded {
+            throw NSError(domain: "Decode mismatch", code: 0, userInfo: ["msg": "Decoded \(T.self) <\(decoded)> not equal to original <\(value)>"])
+        }
     }
-
-    let decoded: T
-    do {
-        decoded = try decode(data)
-    } catch {
-        XCTFail("Unable to decode \(T.self) <\(value)>: \(error)")
-        return false
-    }
-
-    XCTAssertEqual(value, decoded, "Decoded \(T.self) <\(decoded)> not equal to original <\(value)>")
-    return value == decoded
 }
 
-func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) -> Bool where T : Equatable  {
+func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) throws where T : Equatable {
     let inf = "INF", negInf = "-INF", nan = "NaN"
     let encode = { (_ value: T) throws -> Data in
         let encoder = JSONEncoder()
@@ -72,7 +61,7 @@ func expectRoundTripEqualityThroughJSON<T : Codable>(for value: T) -> Bool where
         return try decoder.decode(T.self, from: data)
     }
 
-    return expectRoundTripEquality(of: value, encode: encode, decode: decode)
+    try expectRoundTripEquality(of: value, encode: encode, decode: decode)
 }
 
 // MARK: - Helper Types
@@ -101,7 +90,11 @@ class TestCodable : XCTestCase {
 
     func test_PersonNameComponents_JSON() {
         for components in personNameComponentsValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: components))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: components)
+            } catch let error {
+                XCTFail("\(error) for \(components)")
+            }
         }
     }
 
@@ -116,7 +109,11 @@ class TestCodable : XCTestCase {
     func test_UUID_JSON() {
         for uuid in uuidValues {
             // We have to wrap the UUID since we cannot have a top-level string.
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid)))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid))
+            } catch let error {
+                XCTFail("\(error) for \(uuid)")
+            }
         }
     }
 
@@ -131,7 +128,11 @@ class TestCodable : XCTestCase {
 
     func test_URL_JSON() {
         for url in urlValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: url))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: url)
+            } catch let error {
+                XCTFail("\(error) for \(url)")
+            }
         }
     }
 
@@ -144,7 +145,11 @@ class TestCodable : XCTestCase {
 
     func test_NSRange_JSON() {
         for range in nsrangeValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: range))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: range)
+            } catch let error {
+                XCTFail("\(error) for \(range)")
+            }
         }
     }
 
@@ -162,7 +167,11 @@ class TestCodable : XCTestCase {
 
     func test_Locale_JSON() {
         for locale in localeValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: locale))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: locale)
+            } catch let error {
+                XCTFail("\(error) for \(locale)")
+            }
         }
     }
 
@@ -175,7 +184,11 @@ class TestCodable : XCTestCase {
 
     func test_IndexSet_JSON() {
         for indexSet in indexSetValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: indexSet))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: indexSet)
+            } catch let error {
+                XCTFail("\(error) for \(indexSet)")
+            }
         }
     }
 
@@ -189,7 +202,11 @@ class TestCodable : XCTestCase {
 
     func test_IndexPath_JSON() {
         for indexPath in indexPathValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: indexPath))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: indexPath)
+            } catch let error {
+                XCTFail("\(error) for \(indexPath)")
+            }
         }
     }
 
@@ -213,7 +230,11 @@ class TestCodable : XCTestCase {
 
     func test_AffineTransform_JSON() {
         for transform in affineTransformValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: transform))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: transform)
+            } catch let error {
+                XCTFail("\(error) for \(transform)")
+            }
         }
     }
 
@@ -229,7 +250,11 @@ class TestCodable : XCTestCase {
 
     func test_Decimal_JSON() {
         for decimal in decimalValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: decimal))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: decimal)
+            } catch let error {
+                XCTFail("\(error) for \(decimal)")
+            }
         }
     }
     
@@ -245,7 +270,11 @@ class TestCodable : XCTestCase {
     
     func test_CGPoint_JSON() {
         for point in cgpointValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: point))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: point)
+            } catch let error {
+                XCTFail("\(error) for \(point)")
+            }
         }
     }
     
@@ -261,7 +290,11 @@ class TestCodable : XCTestCase {
     
     func test_CGSize_JSON() {
         for size in cgsizeValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: size))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: size)
+            } catch let error {
+                XCTFail("\(error) for \(size)")
+            }
         }
     }
     
@@ -278,7 +311,11 @@ class TestCodable : XCTestCase {
     
     func test_CGRect_JSON() {
         for rect in cgrectValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: rect))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: rect)
+            } catch let error {
+                XCTFail("\(error) for \(rect)")
+            }
         }
     }
     
@@ -304,7 +341,11 @@ class TestCodable : XCTestCase {
     
     func test_CharacterSet_JSON() {
         for characterSet in characterSetValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: characterSet))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: characterSet)
+            } catch let error {
+                XCTFail("\(error) for \(characterSet)")
+            }
         }
     }
 
@@ -333,7 +374,11 @@ class TestCodable : XCTestCase {
 
     func test_TimeZone_JSON() {
         for timeZone in timeZoneValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: timeZone))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: timeZone)
+            } catch let error {
+                XCTFail("\(error) for \(timeZone)")
+            }
         }
     }
 
@@ -369,7 +414,11 @@ class TestCodable : XCTestCase {
 
     func test_Calendar_JSON() {
         for calendar in calendarValues {
-            XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: calendar))
+            do {
+                try expectRoundTripEqualityThroughJSON(for: calendar)
+            } catch let error {
+                XCTFail("\(error) for \(calendar)")
+            }
         }
     }
 
@@ -406,14 +455,22 @@ class TestCodable : XCTestCase {
         #endif
 
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
-        XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: components))
+        do {
+            try expectRoundTripEqualityThroughJSON(for: components)
+        } catch let error {
+            XCTFail("\(error)")
+        }
     }
 
     // MARK: - Measurement
     func test_Measurement_JSON() {
-        XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared)))
-        XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms)))
-        XCTAssertTrue(expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles)))
+        do {
+            try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
+            try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms))
+            try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles))
+        } catch let error {
+            XCTFail("\(error)")
+        }
     }
 }
 
