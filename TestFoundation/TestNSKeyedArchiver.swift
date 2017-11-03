@@ -52,35 +52,94 @@ public class NSUserClass : NSObject, NSSecureCoding {
 
 public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureCoding {
     var ivar : Int
+    var uuids : [UUID]
+    var tz : TimeZone
+    var date : Date
     
     public class var supportsSecureCoding: Bool {
         return true
     }
     
     public func encode(with aCoder : NSCoder) {
-        aCoder.encode(ivar, forKey:"$ivar") // also test escaping
+        let keyedEncoder = aCoder as! NSKeyedArchiver
+        
+        keyedEncoder.encode(ivar, forKey:"$ivar") // also test escaping
+        do {
+            try keyedEncoder.encodeEncodable(uuids, forKey: "uuids")
+        } catch {
+            keyedEncoder.failWithError(error)
+        }
+        do {
+            try keyedEncoder.encodeEncodable(tz, forKey: "tz")
+        } catch {
+            keyedEncoder.failWithError(error)
+        }
+        do {
+            try keyedEncoder.encodeEncodable(date, forKey: "date")
+        } catch {
+            keyedEncoder.failWithError(error)
+        }
+        do {
+            try keyedEncoder.encodeEncodable(ivar, forKey: "ivar")
+        } catch {
+            keyedEncoder.failWithError(error)
+        }
+        do {
+            try keyedEncoder.encodeEncodable(true, forKey: "bool")
+        } catch {
+            keyedEncoder.failWithError(error)
+        }
     }
     
-    init(_ value: Int) {
+    init(_ value: Int, uuids : [UUID], timeZone tz : TimeZone, date : Date) {
         self.ivar = value
+        self.uuids = uuids
+        self.tz = tz
+        self.date = date
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
+        let keyedDecoder = aDecoder as! NSKeyedUnarchiver
+        
+        self.ivar = keyedDecoder.decodeInteger(forKey: "$ivar")
+        guard let uuid = keyedDecoder.decodeDecodable([UUID].self, forKey: "uuids") else {
+            return nil
+        }
+        self.uuids = uuid
+        guard let tz = keyedDecoder.decodeDecodable(TimeZone.self, forKey: "tz") else {
+            return nil
+        }
+        self.tz = tz
+        guard let date = keyedDecoder.decodeDecodable(Date.self, forKey: "date") else {
+            return nil
+        }
+        self.date = date
+        guard let tmp = keyedDecoder.decodeDecodable(Int.self, forKey: "ivar") else {
+            return nil
+        }
+        if tmp != self.ivar {
+            return nil
+        }
+        guard let tmp2 = keyedDecoder.decodeDecodable(Bool.self, forKey: "bool") else {
+            return nil
+        }
+        if tmp2 != true {
+            return nil
+        }
     }
     
     public var description: String {
         get {
-            return "UserClass \(ivar)"
+            return "UserClass \(ivar) \(uuids) \(tz)"
         }
     }
     
     public static func ==(lhs: UserClass, rhs: UserClass) -> Bool {
-        return lhs.ivar == rhs.ivar
+        return lhs.ivar == rhs.ivar && lhs.uuids == rhs.uuids && lhs.tz == rhs.tz
     }
     
     public var hashValue: Int {
-        return ivar
+        return ivar ^ uuids.count ^ tz.hashValue
     }
 }
 
@@ -295,7 +354,15 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_user_class() {
-        let userClass = UserClass(1234)
+        var uuidValues: [UUID] = [
+            UUID(),
+            UUID(uuidString: "E621E1F8-C36C-495A-93FC-0C247A3E6E5F")!,
+            UUID(uuidString: "e621e1f8-c36c-495a-93fc-0c247a3e6e5f")!,
+            UUID(uuid: uuid_t(0xe6,0x21,0xe1,0xf8,0xc3,0x6c,0x49,0x5a,0x93,0xfc,0x0c,0x24,0x7a,0x3e,0x6e,0x5f))
+        ]
+        let tz = TimeZone(identifier: "America/Los_Angeles")!
+        let date = Date()
+        let userClass = UserClass(1234, uuids: uuidValues, timeZone: tz, date: date)
         test_archive(userClass)
     }
     
@@ -310,6 +377,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_uuid_byvalue() {
+        // XXX this works by accident, not by design: should we be testing it?
         let uuid = UUID()
         return test_archive(uuid, classes: [NSUUID.self])
     }

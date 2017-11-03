@@ -342,6 +342,8 @@
 		CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1C7F7C1E303B47008E331C /* TestNSError.swift */; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
 		D31302011C30CEA900295652 /* NSConcreteValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31302001C30CEA900295652 /* NSConcreteValue.swift */; };
+		D32F99AE1F725A3F00295652 /* PlistEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32F99AD1F725A3E00295652 /* PlistEncoder.swift */; };
+		D32F99B01F728B5600295652 /* TestPlistEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32F99AF1F728B5600295652 /* TestPlistEncoder.swift */; };
 		D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */; };
 		D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */; };
 		D3A597F41C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = D3A597F31C34142600295652 /* NSKeyedUnarchiver-NotificationTest.plist */; };
@@ -815,6 +817,8 @@
 		CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = NSStringTestData.txt; sourceTree = "<group>"; };
 		D3047AEB1C38BC3300295652 /* TestNSValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSValue.swift; sourceTree = "<group>"; };
 		D31302001C30CEA900295652 /* NSConcreteValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSConcreteValue.swift; sourceTree = "<group>"; };
+		D32F99AD1F725A3E00295652 /* PlistEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlistEncoder.swift; sourceTree = "<group>"; };
+		D32F99AF1F728B5600295652 /* TestPlistEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestPlistEncoder.swift; sourceTree = "<group>"; };
 		D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "NSKeyedUnarchiver-RangeTest.plist"; sourceTree = "<group>"; };
 		D39A14001C2D6E0A00295652 /* NSKeyedUnarchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSKeyedUnarchiver.swift; sourceTree = "<group>"; };
 		D3A597EF1C33A9E500295652 /* TestNSKeyedUnarchiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSKeyedUnarchiver.swift; sourceTree = "<group>"; };
@@ -1362,6 +1366,14 @@
 			path = xdgTestHelper;
 			sourceTree = "<group>";
 		};
+		D32F99AC1F725A2700295652 /* PlistEncoder */ = {
+			isa = PBXGroup;
+			children = (
+				D32F99AD1F725A3E00295652 /* PlistEncoder.swift */,
+			);
+			name = PlistEncoder;
+			sourceTree = "<group>";
+		};
 		E4F889331E9CF04D008A70EB /* http */ = {
 			isa = PBXGroup;
 			children = (
@@ -1440,6 +1452,7 @@
 				A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */,
 				BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */,
 				3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */,
+				D32F99AF1F728B5600295652 /* TestPlistEncoder.swift */,
 				DCA8120A1F046D13000D0C86 /* TestCodable.swift */,
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
@@ -1633,6 +1646,7 @@
 		EAB57B6C1BD1A852004AC5C5 /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
+				D32F99AC1F725A2700295652 /* PlistEncoder */,
 				3EDCE5121EF04D8600C2EC04 /* JSONEncoder */,
 				EADE0B641BD15DFF00C49C64 /* JSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
@@ -2228,6 +2242,7 @@
 				B9974B9B1EDF4A22007F15B8 /* HTTPBodySource.swift in Sources */,
 				5B94E8821C430DE70055C035 /* NSStringAPI.swift in Sources */,
 				5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */,
+				D32F99AE1F725A3F00295652 /* PlistEncoder.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
 				EADE0BAA1BD15E0000C49C64 /* NumberFormatter.swift in Sources */,
 				D39A14011C2D6E0A00295652 /* NSKeyedUnarchiver.swift in Sources */,
@@ -2457,6 +2472,7 @@
 				555683BD1C1250E70041D4C6 /* TestUserDefaults.swift in Sources */,
 				DCA8120B1F046D13000D0C86 /* TestCodable.swift in Sources */,
 				7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */,
+				D32F99B01F728B5600295652 /* TestPlistEncoder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

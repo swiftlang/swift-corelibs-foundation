@@ -478,6 +478,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/CGFloat.swift',
 	'Foundation/Codable.swift',
 	'Foundation/JSONEncoder.swift',
+	'Foundation/PlistEncoder.swift',
 ])
 
 swift_sources.add_dependency(headers)

@@ -29,11 +29,11 @@ internal func escapeArchiverKey(_ key: String) -> String {
 
 internal let NSPropertyListClasses : [AnyClass] = [
         NSArray.self,
-        NSDictionary.self,
-        NSString.self,
         NSData.self,
         NSDate.self,
-        NSNumber.self
+        NSDictionary.self,
+        NSNumber.self,
+        NSString.self
 ]
 
 /// `NSKeyedArchiver`, a concrete subclass of `NSCoder`, provides a way to encode objects
@@ -904,6 +904,17 @@ open class NSKeyedArchiver : NSCoder {
     open func classNameForClass(_ cls: AnyClass) -> String? {
         let clsName = String(reflecting: cls)
         return _classNameMap[clsName]
+    }
+    
+    /// Encodes a given value and associates it with a given key.
+    ///
+    /// - Parameters:
+    ///   - value:  The value to encode.
+    ///   - key:    The key with which to associate `value`.
+    public func encodeEncodable<T : Encodable>(_ value: T, forKey key: String) throws {
+        let plistEncoder = PropertyListEncoder()
+        let plist = try plistEncoder.encodeToTopLevelContainer(value)
+        self.encode(plist, forKey: key)
     }
 }
 
