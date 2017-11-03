@@ -1323,11 +1323,7 @@ CF_SWIFT_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name
     }
     return EINVAL;
 #elif DEPLOYMENT_TARGET_LINUX
-    // pthread_setname_np will fail if name >= 16 characters
-    char short_name[16];
-    strncpy(short_name, name, 15);
-    short_name[15] = '\0';
-    return pthread_setname_np(thread, short_name);
+    return pthread_setname_np(thread, name);
 #endif
 }
 

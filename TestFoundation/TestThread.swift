@@ -103,8 +103,9 @@ class TestThread : XCTestCase {
 #if os(OSX) || os(iOS)
             compareThreadName(to: "12345678901234567890")
 #elseif os(Linux)
-            // pthread_setname_np() only allows 15 characters on Linux
-            compareThreadName(to: "123456789012345")
+            // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
+            // and the previous name will still be there.
+            compareThreadName(to: "Thread2-2")
 #endif
             condition.lock()
             condition.signal()
