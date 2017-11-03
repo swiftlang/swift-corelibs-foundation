@@ -77,6 +77,7 @@ class TestNSString : XCTestCase {
             ("test_initializeWithFormat", test_initializeWithFormat),
             ("test_initializeWithFormat2", test_initializeWithFormat2),
             ("test_initializeWithFormat3", test_initializeWithFormat3),
+            ("test_appendingPathComponent", test_appendingPathComponent),
             ("test_deletingLastPathComponent", test_deletingLastPathComponent),
             ("test_getCString_simple", test_getCString_simple),
             ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
@@ -751,6 +752,32 @@ class TestNSString : XCTestCase {
             let string = NSString(format: "NSDictionary value is %d (%.1f)", locale: loc, arguments: pointer)
             XCTAssertEqual(string, "NSDictionary value is 1000 (42&0)")
         }
+    }
+
+    func test_appendingPathComponent() {
+        do {
+            let path: NSString = "/tmp"
+            let result = path.appendingPathComponent("scratch.tiff")
+            XCTAssertEqual(result, "/tmp/scratch.tiff")
+        }
+
+        do {
+            let path: NSString = "/tmp/"
+            let result = path.appendingPathComponent("scratch.tiff")
+            XCTAssertEqual(result, "/tmp/scratch.tiff")
+        }
+
+        do {
+            let path: NSString = "/"
+            let result = path.appendingPathComponent("scratch.tiff")
+            XCTAssertEqual(result, "/scratch.tiff")
+        }
+
+        do {
+            let path: NSString = ""
+            let result = path.appendingPathComponent("scratch.tiff")
+            XCTAssertEqual(result, "scratch.tiff")
+        }                        
     }
     
     func test_deletingLastPathComponent() {
