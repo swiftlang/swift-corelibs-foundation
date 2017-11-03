@@ -144,9 +144,7 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     open func truncateFile(atOffset offset: UInt64) {
-        if lseek(_fd, off_t(offset), SEEK_SET) == 0 {
-            ftruncate(_fd, off_t(offset))
-        }
+        ftruncate(_fd, off_t(offset))
     }
     
     open func synchronizeFile() {
