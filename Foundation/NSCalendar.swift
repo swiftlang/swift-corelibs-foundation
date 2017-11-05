@@ -449,7 +449,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _convert(_ comps: DateComponents) -> (Array<Int32>, Array<Int8>) {
         var vector = [Int32]()
         var compDesc = [Int8]()
-        _convert(comps.era, type: "E", vector: &vector, compDesc: &compDesc)
+        _convert(comps.era, type: "G", vector: &vector, compDesc: &compDesc)
         _convert(comps.year, type: "y", vector: &vector, compDesc: &compDesc)
         _convert(comps.quarter, type: "Q", vector: &vector, compDesc: &compDesc)
         if comps.weekOfYear != NSDateComponentUndefined {
@@ -520,7 +520,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     private func _setComp(_ unitFlags: Unit, field: Unit, vector: [Int32], compIndex: inout Int, setter: (Int32) -> Void) {
         if unitFlags.contains(field) {
-            setter(vector[compIndex])
+            if vector[compIndex] != -1 {
+                setter(vector[compIndex])
+            }
             compIndex += 1
         }
     }
