@@ -107,8 +107,7 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
     /// The getter for this property removes any percent encoding this component may have (if the component allows percent encoding). Setting this property assumes the subcomponent or component string is not percent encoded and will add percent encoding (if the component allows percent encoding).
     public var path: String {
         get {
-            guard let result = _handle.map({ $0.path }) else { return "" }
-            return result
+            return _handle.map { $0.path } ?? ""
         }
         set {
             _applyMutation { $0.path = newValue }
@@ -161,8 +160,7 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
     /// The getter for this property retains any percent encoding this component may have. Setting this properties assumes the component string is already correctly percent encoded. Attempting to set an incorrectly percent encoded string will cause a `fatalError`. Although ';' is a legal path character, it is recommended that it be percent-encoded for best compatibility with `URL` (`String.addingPercentEncoding(withAllowedCharacters:)` will percent-encode any ';' characters if you pass `CharacterSet.urlPathAllowed`).
     public var percentEncodedPath: String {
         get {
-            guard let result = _handle.map({ $0.percentEncodedPath }) else { return "" }
-            return result
+            return _handle.map { $0.percentEncodedPath } ?? ""
         }
         set {
             _applyMutation { $0.percentEncodedPath = newValue }
