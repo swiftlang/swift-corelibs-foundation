@@ -562,7 +562,11 @@ class TestCodable : XCTestCase {
 
     func test_URLComponents_JSON() {
         for (components) in urlComponentsValues {
-            expectRoundTripEqualityThroughJSON(for: components)
+            do {
+                try expectRoundTripEqualityThroughJSON(for: components)
+            } catch let error {
+                XCTFail("\(error)")
+            }
         }
     }
 }
