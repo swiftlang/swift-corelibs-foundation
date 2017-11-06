@@ -369,9 +369,9 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        let pointer = UnsafeMutableRawPointer.allocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
+        let pointer = UnsafeMutableRawPointer.allocate(byteCount: MemoryLayout<Float>.stride * 6, alignment: 1)
         defer {
-            pointer.deallocate(bytes: MemoryLayout<Float>.stride * 6, alignedTo: 1)
+            pointer.deallocate()
         }
         aDecoder.decodeValue(ofObjCType: "[6f]", at: pointer)
         

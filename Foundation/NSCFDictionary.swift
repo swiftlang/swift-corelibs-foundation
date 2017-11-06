@@ -71,8 +71,8 @@ internal final class _NSCFDictionary : NSMutableDictionary {
                 let key = unsafeBitCast(keys.advanced(by: idx).pointee!, to: NSObject.self)
                 keyArray.append(key)
             }
-            keys.deinitialize()
-            keys.deallocate(capacity: count)
+            keys.deinitialize(count: 1)
+            keys.deallocate()
         }
     }
 
