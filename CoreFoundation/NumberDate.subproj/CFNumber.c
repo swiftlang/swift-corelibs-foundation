@@ -874,15 +874,14 @@ static CFStringRef __CFNumberCopyDescription(CFTypeRef cf) {
 	CFStringAppendFormat(mstr, NULL, CFSTR("%s, type = %s}"), buffer, typeName);
     }
 #if OLD_CRAP_TOO
-if (! number->__old__) {
-
-printf("*** Test skipped in __CFNumberCopyDescription for number %p\n", cf);
-} else {
-CFStringRef test = __CFNumberCopyDescription_old(number->__old__);
-if (!CFEqual(test, mstr)) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyDescription: '%@' '%@'"), test, mstr);  FAIL();
-}
-}
+    if (! number->__old__) {
+        printf("*** Test skipped in __CFNumberCopyDescription for number %p\n", cf);
+    } else {
+        CFStringRef test = __CFNumberCopyDescription_old(number->__old__);
+        if (!CFEqual(test, mstr)) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyDescription: '%@' '%@'"), test, mstr);  FAIL();
+        }
+    }
 #endif
     return mstr;
 }
@@ -908,15 +907,15 @@ static CFStringRef __CFNumberCreateFormattingDescriptionAsFloat64(CFAllocatorRef
 CF_PRIVATE CFStringRef __CFNumberCopyFormattingDescriptionAsFloat64(CFTypeRef cf) {
     CFStringRef result = __CFNumberCreateFormattingDescriptionAsFloat64(kCFAllocatorSystemDefault, cf);
 #if OLD_CRAP_TOO
-CFNumberRef number = (CFNumberRef)cf;
-if (! number->__old__) {
-printf("*** Test skipped in __CFNumberCopyFormattingDescriptionAsFloat64 for number %p\n", cf);
-} else {
-CFStringRef test = __CFNumberCopyFormattingDescriptionAsFloat64_old(number->__old__);
-if (!CFEqual(test, result)) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyFormattingDescriptionAsFloat64: '%@' '%@'"), test, result);  FAIL();
-}
-}
+    CFNumberRef number = (CFNumberRef)cf;
+    if (! number->__old__) {
+        printf("*** Test skipped in __CFNumberCopyFormattingDescriptionAsFloat64 for number %p\n", cf);
+    } else {
+        CFStringRef test = __CFNumberCopyFormattingDescriptionAsFloat64_old(number->__old__);
+        if (!CFEqual(test, result)) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyFormattingDescriptionAsFloat64: '%@' '%@'"), test, result);  FAIL();
+        }
+    }
 #endif
     return result;
 }
@@ -950,15 +949,15 @@ static CFStringRef __CFNumberCopyFormattingDescription_new(CFTypeRef cf, CFDicti
 CF_PRIVATE CFStringRef __CFNumberCopyFormattingDescription(CFTypeRef cf, CFDictionaryRef formatOptions) {
     CFStringRef result = __CFNumberCopyFormattingDescription_new(cf, formatOptions);
 #if OLD_CRAP_TOO
-CFNumberRef number = (CFNumberRef)cf;
-if (! number->__old__) {
-printf("*** Test skipped in __CFNumberCopyFormattingDescription for number %p\n", cf);
-} else {
-CFStringRef test = __CFNumberCopyFormattingDescription_old(number->__old__, formatOptions);
-if (!CFEqual(test, result)) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyFormattingDescription: '%@' '%@'"), test, result);  FAIL();
-}
-}
+    CFNumberRef number = (CFNumberRef)cf;
+    if (! number->__old__) {
+        printf("*** Test skipped in __CFNumberCopyFormattingDescription for number %p\n", cf);
+    } else {
+        CFStringRef test = __CFNumberCopyFormattingDescription_old(number->__old__, formatOptions);
+        if (!CFEqual(test, result)) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyFormattingDescription: '%@' '%@'"), test, result);  FAIL();
+        }
+    }
 #endif
     return result;
 }
@@ -967,16 +966,16 @@ CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberCopyFormattingDescri
 static Boolean __CFNumberEqual(CFTypeRef cf1, CFTypeRef cf2) {
     Boolean b = CFNumberCompare((CFNumberRef)cf1, (CFNumberRef)cf2, 0) == kCFCompareEqualTo;
 #if OLD_CRAP_TOO
-CFNumberRef number1 = (CFNumberRef)cf1;
-CFNumberRef number2 = (CFNumberRef)cf2;
-if (! number1->__old__ || !number2->__old__) {
-printf("*** Test skipped in __CFNumberEqual for numbers %p %p\n", cf1, cf2);
-} else {
-Boolean b2 = __CFNumberEqual_old(number1->__old__, number2->__old__);
-if (b2 != b) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberEqual: '%d' '%d'"), b2, b);  FAIL();
-}
-}
+    CFNumberRef number1 = (CFNumberRef)cf1;
+    CFNumberRef number2 = (CFNumberRef)cf2;
+    if (! number1->__old__ || !number2->__old__) {
+        printf("*** Test skipped in __CFNumberEqual for numbers %p %p\n", cf1, cf2);
+    } else {
+        Boolean b2 = __CFNumberEqual_old(number1->__old__, number2->__old__);
+        if (b2 != b) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberEqual: '%d' '%d'"), b2, b);  FAIL();
+        }
+    }
 #endif
     return b;
 }
@@ -1001,15 +1000,15 @@ static CFHashCode __CFNumberHash(CFTypeRef cf) {
 	}
     }
 #if OLD_CRAP_TOO
-CFNumberRef number1 = (CFNumberRef)cf;
-if (! number1->__old__) {
-printf("*** Test skipped in __CFNumberHash for number %p\n", cf);
-} else {
-CFHashCode h2 = __CFNumberHash_old(number1->__old__);
-if (h2 != h) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberHash: '%d' '%d'"), h2, h);  FAIL();
-}
-}
+    CFNumberRef number1 = (CFNumberRef)cf;
+    if (! number1->__old__) {
+        printf("*** Test skipped in __CFNumberHash for number %p\n", cf);
+    } else {
+        CFHashCode h2 = __CFNumberHash_old(number1->__old__);
+        if (h2 != h) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in __CFNumberHash: '%d' '%d'"), h2, h);  FAIL();
+        }
+    }
 #endif
     return h;
 }
@@ -1306,14 +1305,14 @@ CFNumberType CFNumberGetType(CFNumberRef number) {
     if (kCFNumberSInt128Type == type) type = kCFNumberSInt64Type; // must hide this type, since it is not public
 //printf("  => %d\n", type);
 #if OLD_CRAP_TOO
-if (! number->__old__) {
-printf("*** Test skipped in CFNumberGetType for number %p\n", number);
-} else {
-CFNumberType t2 = CFNumberGetType_old(number->__old__);
-if (t2 != type) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberGetType: '%d' '%d'"), t2, type);  FAIL();
-}
-}
+    if (! number->__old__) {
+        printf("*** Test skipped in CFNumberGetType for number %p\n", number);
+    } else {
+        CFNumberType t2 = CFNumberGetType_old(number->__old__);
+        if (t2 != type) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberGetType: '%d' '%d'"), t2, type);  FAIL();
+        }
+    }
 #endif
     return type;
 }
@@ -1331,14 +1330,14 @@ CFIndex CFNumberGetByteSize(CFNumberRef number) {
     CFIndex r = 1 << __CFNumberTypeTable[CFNumberGetType(number)].lgByteSize;
 //printf("  => %d\n", r);
 #if OLD_CRAP_TOO
-if (! number->__old__) {
-printf("*** Test skipped in CFNumberGetByteSize for number %p\n", number);
-} else {
-CFIndex r2 = CFNumberGetByteSize_old(number->__old__);
-if (r2 != r) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberGetByteSize: '%d' '%d'"), r2, r);  FAIL();
-}
-}
+    if (! number->__old__) {
+        printf("*** Test skipped in CFNumberGetByteSize for number %p\n", number);
+    } else {
+        CFIndex r2 = CFNumberGetByteSize_old(number->__old__);
+        if (r2 != r) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberGetByteSize: '%d' '%d'"), r2, r);  FAIL();
+        }
+    }
 #endif
     return r;
 }
@@ -1349,14 +1348,14 @@ Boolean CFNumberIsFloatType(CFNumberRef number) {
     Boolean r = __CFNumberTypeTable[CFNumberGetType(number)].floatBit;
 //printf("  => %d\n", r);
 #if OLD_CRAP_TOO
-if (! number->__old__) {
-printf("*** Test skipped in CFNumberIsFloatType for number %p\n", number);
-} else {
-Boolean r2 = CFNumberIsFloatType_old(number->__old__);
-if (r2 != r) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberIsFloatType: '%d' '%d'"), r2, r);  FAIL();
-}
-}
+    if (! number->__old__) {
+        printf("*** Test skipped in CFNumberIsFloatType for number %p\n", number);
+    } else {
+        Boolean r2 = CFNumberIsFloatType_old(number->__old__);
+        if (r2 != r) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberIsFloatType: '%d' '%d'"), r2, r);  FAIL();
+        }
+    }
 #endif
     return r;
 }
@@ -1372,18 +1371,18 @@ Boolean CFNumberGetValue(CFNumberRef number, CFNumberType type, void *valuePtr) 
     Boolean r = __CFNumberGetValueCompat(number, type, valuePtr ? valuePtr : localMemory);
 //printf("  => %d\n", r);
 #if OLD_CRAP_TOO
-if (! number->__old__) {
-printf("*** Test skipped in CFNumberGetValue for number %p\n", number);
-} else {
-    uint8_t localMemory2[128];
-Boolean r2 = CFNumberGetValue_old(number->__old__, type, localMemory2);
-if (r2 != r) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL 1 in CFNumberGetValue: '%d' '%d'"), r2, r);  FAIL();
-}
-if (0 != memcmp(localMemory2, valuePtr, CFNumberGetByteSize(number))) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL 2 in CFNumberGetValue: BYTES NOT SAME"));  FAIL();
-}
-}
+    if (! number->__old__) {
+        printf("*** Test skipped in CFNumberGetValue for number %p\n", number);
+    } else {
+        uint8_t localMemory2[128];
+        Boolean r2 = CFNumberGetValue_old(number->__old__, type, localMemory2);
+        if (r2 != r) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL 1 in CFNumberGetValue: '%d' '%d'"), r2, r);  FAIL();
+        }
+        if (0 != memcmp(localMemory2, valuePtr, CFNumberGetByteSize(number))) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL 2 in CFNumberGetValue: BYTES NOT SAME"));  FAIL();
+        }
+    }
 #endif
     return r;
 }
@@ -1475,14 +1474,14 @@ CFComparisonResult CFNumberCompare(CFNumberRef number1, CFNumberRef number2, voi
     CFComparisonResult r = CFNumberCompare_new(number1, number2, context);
 //printf("  => %d\n", r);
 #if OLD_CRAP_TOO
-if (! number1->__old__ || !number2->__old__) {
-printf("*** Test skipped in CFNumberCompare for numbers %p %p\n", number1, number2);
-} else {
-CFComparisonResult r2 = CFNumberCompare_old(number1->__old__, number2->__old__, context);
-if (r2 != r) {
-CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberCompare: '%d' '%d'"), r2, r);  FAIL();
-}
-}
+    if (! number1->__old__ || !number2->__old__) {
+        printf("*** Test skipped in CFNumberCompare for numbers %p %p\n", number1, number2);
+    } else {
+        CFComparisonResult r2 = CFNumberCompare_old(number1->__old__, number2->__old__, context);
+        if (r2 != r) {
+            CFLog(kCFLogLevelWarning, CFSTR("*** TEST FAIL in CFNumberCompare: '%d' '%d'"), r2, r);  FAIL();
+        }
+    }
 #endif
     return r;
 }
