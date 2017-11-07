@@ -1191,7 +1191,7 @@ extension NSString {
     }
     
     public convenience init(format: NSString, _ args: CVarArg...) {
-        let str = withVaList(args) { (vaPtr) -> CFString! in
+        let str = withVaList(args) { (vaPtr) -> CFString? in
             CFStringCreateWithFormatAndArguments(kCFAllocatorSystemDefault, nil, format._cfObject, vaPtr)
         }!
         self.init(str._swiftObject)
