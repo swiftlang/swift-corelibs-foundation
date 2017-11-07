@@ -99,7 +99,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     public convenience init?(abbreviation: String) {
         let abbr = abbreviation._cfObject
-        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString!.self) else {
+        guard let name = unsafeBitCast(CFDictionaryGetValue(CFTimeZoneCopyAbbreviationDictionary(), unsafeBitCast(abbr, to: UnsafeRawPointer.self)), to: NSString?.self) else {
             return nil
         }
         self.init(name: name._swiftObject , data: nil)
