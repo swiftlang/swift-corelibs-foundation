@@ -523,7 +523,9 @@ class TestURLComponents : XCTestCase {
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
-            ("test_createURLWithComponents", test_createURLWithComponents)
+            ("test_createURLWithComponents", test_createURLWithComponents),
+            ("test_path", test_path),
+            ("test_percentEncodedPath", test_percentEncodedPath),
         ]
     }
     
@@ -617,4 +619,43 @@ class TestURLComponents : XCTestCase {
         XCTAssertEqual(urlComponents.queryItems?.count, 4)
     }
 
+    func test_path() {
+        let c1 = URLComponents()
+        XCTAssertEqual(c1.path, "")
+
+        let c2 = URLComponents(string: "http://swift.org")
+        XCTAssertEqual(c2?.path, "")
+
+        let c3 = URLComponents(string: "http://swift.org/")
+        XCTAssertEqual(c3?.path, "/")
+
+        let c4 = URLComponents(string: "http://swift.org/foo/bar")
+        XCTAssertEqual(c4?.path, "/foo/bar")
+
+        let c5 = URLComponents(string: "http://swift.org:80/foo/bar")
+        XCTAssertEqual(c5?.path, "/foo/bar")
+
+        let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
+        XCTAssertEqual(c6?.path, "/foo/b r")
+    }
+
+    func test_percentEncodedPath() {
+        let c1 = URLComponents()
+        XCTAssertEqual(c1.percentEncodedPath, "")
+
+        let c2 = URLComponents(string: "http://swift.org")
+        XCTAssertEqual(c2?.percentEncodedPath, "")
+
+        let c3 = URLComponents(string: "http://swift.org/")
+        XCTAssertEqual(c3?.percentEncodedPath, "/")
+
+        let c4 = URLComponents(string: "http://swift.org/foo/bar")
+        XCTAssertEqual(c4?.percentEncodedPath, "/foo/bar")
+
+        let c5 = URLComponents(string: "http://swift.org:80/foo/bar")
+        XCTAssertEqual(c5?.percentEncodedPath, "/foo/bar")
+
+        let c6 = URLComponents(string: "http://swift.org:80/foo/b%20r")
+        XCTAssertEqual(c6?.percentEncodedPath, "/foo/b%20r")
+    }
 }

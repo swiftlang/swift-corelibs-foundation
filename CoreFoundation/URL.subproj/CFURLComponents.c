@@ -556,11 +556,11 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPath(CFURLComponentsRef components) {
         components->_pathComponentValid = true;
     }
     if (!components->_pathComponent) {
-        result = CFSTR("");
+        result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
     } else {
         result = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_pathComponent);
         if (!result) {
-            result = CFSTR("");
+            result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
         }
     }
     __CFUnlock(&components->_lock);
@@ -745,7 +745,7 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPercentEncodedPath(CFURLComponentsRef 
     result = components->_pathComponent ? CFRetain(components->_pathComponent) : NULL;
     __CFUnlock(&components->_lock);
     
-    if (!result) result = CFSTR("");
+    if (!result) result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
     
     return ( result );
 }

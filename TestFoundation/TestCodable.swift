@@ -472,6 +472,103 @@ class TestCodable : XCTestCase {
             XCTFail("\(error)")
         }
     }
+
+    // MARK: - URLComponents
+    lazy var urlComponentsValues: [URLComponents] = [
+        URLComponents(),
+
+        URLComponents(string: "http://swift.org")!,
+        URLComponents(string: "http://swift.org:80")!,
+        URLComponents(string: "https://www.mywebsite.org/api/v42/something.php#param1=hi&param2=hello")!,
+        URLComponents(string: "ftp://johnny:apples@myftpserver.org:4242/some/path")!,
+
+        URLComponents(url: URL(string: "http://swift.org")!, resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(string: "http://swift.org:80")!, resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(string: "https://www.mywebsite.org/api/v42/something.php#param1=hi&param2=hello")!, resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(string: "ftp://johnny:apples@myftpserver.org:4242/some/path")!, resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(fileURLWithPath: NSTemporaryDirectory()), resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(fileURLWithPath: "/"), resolvingAgainstBaseURL: false)!,
+        URLComponents(url: URL(string: "documentation", relativeTo: URL(string: "http://swift.org")!)!, resolvingAgainstBaseURL: false)!,
+
+        URLComponents(url: URL(string: "http://swift.org")!, resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(string: "http://swift.org:80")!, resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(string: "https://www.mywebsite.org/api/v42/something.php#param1=hi&param2=hello")!, resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(string: "ftp://johnny:apples@myftpserver.org:4242/some/path")!, resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(fileURLWithPath: NSTemporaryDirectory()), resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(fileURLWithPath: "/"), resolvingAgainstBaseURL: true)!,
+        URLComponents(url: URL(string: "documentation", relativeTo: URL(string: "http://swift.org")!)!, resolvingAgainstBaseURL: true)!,
+
+        {
+            var components = URLComponents()
+            components.scheme = "https"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.user = "johnny"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.password = "apples"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.host = "0.0.0.0"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.port = 8080
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.path = ".."
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.query = "param1=hi&param2=there"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.fragment = "anchor"
+            return components
+        }(),
+
+        {
+            var components = URLComponents()
+            components.scheme = "ftp"
+            components.user = "johnny"
+            components.password = "apples"
+            components.host = "0.0.0.0"
+            components.port = 4242
+            components.path = "/some/file"
+            components.query = "utf8=✅"
+            components.fragment = "anchor"
+            return components
+        }()
+    ]
+
+    func test_URLComponents_JSON() {
+        for (components) in urlComponentsValues {
+            do {
+                try expectRoundTripEqualityThroughJSON(for: components)
+            } catch let error {
+                XCTFail("\(error)")
+            }
+        }
+    }
 }
 
 extension TestCodable {
@@ -494,6 +591,7 @@ extension TestCodable {
             ("test_Calendar_JSON", test_Calendar_JSON),
             ("test_DateComponents_JSON", test_DateComponents_JSON),
             ("test_Measurement_JSON", test_Measurement_JSON),
+            ("test_URLComponents_JSON", test_URLComponents_JSON),
         ]
     }
 }
