@@ -223,6 +223,7 @@ private = [
 	'CoreFoundation/String.subproj/CFRunArray.h',
 	'CoreFoundation/Locale.subproj/CFDateFormatter_Private.h',
 	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
+	'CoreFoundation/Parsing.subproj/CFPropertyList_Private.h',
 ],
 project = [
 ])
