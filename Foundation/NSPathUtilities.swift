@@ -82,13 +82,13 @@ internal extension String {
     }
     
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
-        if str.length == 0 {
+        if str.isEmpty {
             return self
         }
-        if self == "" {
-            return "/" + str
+        if isEmpty {
+            return str
         }
-        if self == "/" {
+        if hasSuffix("/") {
             return self + str
         }
         return self + "/" + str
@@ -237,16 +237,7 @@ public extension NSString {
     }
     
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
-        if str.length == 0 {
-            return _swiftObject
-        }
-        if self == "" {
-            return "/" + str
-        }
-        if self == "/" {
-            return _swiftObject + str
-        }
-        return _swiftObject + "/" + str
+        return _swiftObject._stringByAppendingPathComponent(str, doneAppending: doneAppending)
     }
     
     public func appendingPathComponent(_ str: String) -> String {
