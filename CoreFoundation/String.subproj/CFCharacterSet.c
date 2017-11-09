@@ -896,12 +896,16 @@ static Boolean __CFCharacterSetEqual(CFTypeRef cf1, CFTypeRef cf2) {
 
             case __kCFCharSetClassString:
                 if (isInvertStateIdentical) {
+                    const CFIndex len1 = __CFCSetStringLength((CFCharacterSetRef)cf1);
+                    if (len1 != __CFCSetStringLength((CFCharacterSetRef)cf2)) {
+                        return false;
+                    }
                     const UniChar *buf1 = __CFCSetStringBuffer((CFCharacterSetRef)cf1);
-                    const UniChar *buf1End = buf1 + __CFCSetStringLength((CFCharacterSetRef)cf1);
+                    const UniChar *buf1End = buf1 + len1;
                     const UniChar *buf2 = __CFCSetStringBuffer((CFCharacterSetRef)cf2);
-                    const UniChar *buf2End = buf2 + __CFCSetStringLength((CFCharacterSetRef)cf2);
+                    const UniChar *buf2End = buf2 + len1; // lengths are equal
 
-                    while ((buf1 < buf1End) && (buf2 < buf2End)) {
+                    while ((buf1 < buf1End) || (buf2 < buf2End)) {
                         UniChar char1 = *buf1;
                         UniChar char2 = *buf2;
 
@@ -1320,6 +1324,7 @@ Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, 
         if (!__CFCSetGenericInit(cset, __kCFCharSetClassRange)) return false;
         __CFCSetPutRangeFirstChar(cset, theRange.location);
         __CFCSetPutRangeLength(cset, theRange.length);
+        __CFCharacterSetHash(cset);
     } else {
         if (!__CFCSetGenericInit(cset, __kCFCharSetClassBitmap)) return false;
         __CFCSetPutBitmapBits(cset, NULL);
@@ -1338,6 +1343,7 @@ CFCharacterSetRef CFCharacterSetCreateWithCharactersInRange(CFAllocatorRef alloc
         if (!(cset = __CFCSetGenericCreate(allocator, __kCFCharSetClassRange))) return NULL;
         __CFCSetPutRangeFirstChar(cset, theRange.location);
         __CFCSetPutRangeLength(cset, theRange.length);
+        __CFCharacterSetHash(cset);
     } else {
         if (!(cset = __CFCSetGenericCreate(allocator, __kCFCharSetClassBitmap))) return NULL;
         __CFCSetPutBitmapBits(cset, NULL);
@@ -1366,6 +1372,7 @@ Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset,
         if (0 == length) {
             __CFCSetPutHasHashValue(cset, true); // _hashValue is 0
         } else if (length > 1) { // Check for surrogate
+            __CFCharacterSetHash(cset);
             const UTF16Char *characters = __CFCSetStringBuffer(cset);
             const UTF16Char *charactersLimit = characters + length;
             
@@ -1407,6 +1414,7 @@ CFCharacterSetRef CFCharacterSetCreateWithCharactersInString(CFAllocatorRef allo
         if (0 == length) {
 	    __CFCSetPutHasHashValue(cset, true); // _hashValue is 0
 	} else if (length > 1) { // Check for surrogate
+           __CFCharacterSetHash(cset);
 	    const UTF16Char *characters = __CFCSetStringBuffer(cset);
 	    const UTF16Char *charactersLimit = characters + length;
 
@@ -1507,6 +1515,7 @@ CF_INLINE Boolean __CFCharacterSetInitWithBitmapRepresentation(CFAllocatorRef al
                 }
             }
         }
+        __CFCharacterSetHash(cset);
     } else {
         __CFCSetPutBitmapBits(cset, NULL);
         __CFCSetPutHasHashValue(cset, true); // Hash value is 0
@@ -1547,7 +1556,7 @@ CFCharacterSetRef CFCharacterSetCreateInvertedSet(CFAllocatorRef alloc, CFCharac
 Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset) {
     if (!__CFCSetGenericInit(cset, __kCFCharSetClassBitmap| __kCFCharSetIsMutable)) return false;
     __CFCSetPutBitmapBits(cset, NULL);
-    __CFCSetPutHasHashValue(cset, true);
+    __CFCSetPutHasHashValue(cset, true); // Hash value is 0
     return true;
 }
 #endif
