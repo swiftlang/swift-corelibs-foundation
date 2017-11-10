@@ -2028,7 +2028,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0910;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
@@ -2501,14 +2501,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_MODULES_AUTOLINK = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -2550,14 +2556,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CLANG_MODULES_AUTOLINK = NO;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -2763,7 +2775,6 @@
 					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
 					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
-					"-Wno-nullability-completeness-on-arrays",
 					"-Wno-format-security",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
@@ -2805,7 +2816,6 @@
 					"-DCF_CHARACTERSET_UNICODE_DATA_B=\\\\\"CoreFoundation/CharacterSets/CFUnicodeData-B.mapping\\\\\"",
 					"-DCF_CHARACTERSET_UNICHAR_DB=\\\\\"CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data\\\\\"",
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
-					"-Wno-nullability-completeness-on-arrays",
 					"-Wno-format-security",
 				);
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;

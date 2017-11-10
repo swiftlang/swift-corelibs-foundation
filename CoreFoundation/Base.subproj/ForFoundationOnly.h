@@ -110,7 +110,7 @@ typedef struct {
     CFTypeRef _Null_unspecified 	(*_Null_unspecified fetchValue)(CFTypeRef context, void *domain, CFStringRef key); // Caller releases
     void	(*_Null_unspecified writeValue)(CFTypeRef context, void *domain, CFStringRef key, CFTypeRef value);
     Boolean	(*_Null_unspecified synchronize)(CFTypeRef context, void *domain);
-    void	(*_Null_unspecified getKeysAndValues)(CFAllocatorRef _Nullable alloc, CFTypeRef context, void *domain, void *_Null_unspecified * _Null_unspecified buf[], CFIndex *numKeyValuePairs);
+    void	(*_Null_unspecified getKeysAndValues)(CFAllocatorRef _Nullable alloc, CFTypeRef context, void *domain, void *_Null_unspecified * _Null_unspecified buf[_Nullable], CFIndex *numKeyValuePairs);
     CFDictionaryRef _Null_unspecified  (*_Null_unspecified copyDomainDictionary)(CFTypeRef context, void *domain);
     /* HACK - see comment on _CFPreferencesDomainSetIsWorldReadable(), below */
     void	(*setIsWorldReadable)(CFTypeRef context, void *domain, Boolean isWorldReadable);
