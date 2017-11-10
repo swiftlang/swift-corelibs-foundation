@@ -254,7 +254,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override var description: String {
-        return CFCopyDescription(_cfObject)._swiftObject
+        return self.absoluteString
     }
 
     deinit {
