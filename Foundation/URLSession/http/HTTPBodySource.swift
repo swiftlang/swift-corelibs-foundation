@@ -20,7 +20,7 @@ import CoreFoundation
 import Dispatch
 
 
-/// Turn `NSData` into `DispatchData`
+/// Turn `Data` into `DispatchData`
 internal func createDispatchData(_ data: Data) -> DispatchData {
     //TODO: Avoid copying data
     let buffer = UnsafeRawBufferPointer(start: data._backing.bytes,
