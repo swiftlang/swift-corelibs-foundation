@@ -158,7 +158,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// Number of body bytes we expect to send, derived from the Content-Length of the HTTP request */
     open internal(set) var countOfBytesExpectedToSend: Int64 = 0
     
-    /// Number of byte bytes we expect to receive, usually derived from the Content-Length header of an HTTP response. */
+    /// Number of bytes we expect to receive, usually derived from the Content-Length header of an HTTP response. */
     open internal(set) var countOfBytesExpectedToReceive: Int64 = 0
     
     /// The taskDescription property is available for the developer to
