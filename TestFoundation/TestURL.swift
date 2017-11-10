@@ -65,6 +65,7 @@ class TestURL : XCTestCase {
             ("test_copy", test_copy),
             ("test_itemNSCoding", test_itemNSCoding),
             ("test_dataRepresentation", test_dataRepresentation),
+            ("test_description", test_description),
         ]
     }
     
@@ -513,6 +514,11 @@ class TestURL : XCTestCase {
         let url2 = NSURL(dataRepresentation: url.dataRepresentation,
             relativeTo: nil)
         XCTAssertEqual(url, url2)
+    }
+
+   func test_description() {
+        let url = URL(string: "http://amazon.in")!
+        XCTAssertEqual(url.description, "http://amazon.in")
     }
 }
     
