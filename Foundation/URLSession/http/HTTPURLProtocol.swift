@@ -793,6 +793,11 @@ internal extension _HTTPURLProtocol {
             // For now, we'll notify the delegate, but won't pause the transfer,
             // and we'll disregard the completion handler:
             switch response.statusCode {
+            case 401:
+                let urlProtectionSpace = createProtectionSpace(response)
+                let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: nil,
+                                                                              previousFailureCount: 0, failureResponse: response, error: nil, sender: self)
+                self.client?.urlProtocol(self, didReceive: authenticationChallenge)
             case 301, 302, 303, 307:
                 break
             default:
@@ -804,6 +809,18 @@ internal extension _HTTPURLProtocol {
             break
         }
     }
+
+    func createProtectionSpace(_ response: HTTPURLResponse) -> URLProtectionSpace {
+        let host = response.url?.host ?? ""
+        let port = response.url?.port ?? 80        //we're doing http
+        let _protocol = response.url?.scheme
+        
+        let wwwAuthHeader = response.allHeaderFields["Www-Authenticate"] as! String
+        let authMethod = wwwAuthHeader.components(separatedBy: " ")[0]
+        let realm = String(String(wwwAuthHeader.components(separatedBy: "realm=")[1].dropFirst()).dropLast())
+        return URLProtectionSpace(host: host, port: port, `protocol`: _protocol, realm: realm, authenticationMethod: authMethod)
+    }
+
     /// Give the delegate a chance to tell us how to proceed once we have a
     /// response / complete header.
     ///

@@ -192,3 +192,18 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
         }
     }
 }
+
+extension HTTPURLProtocol : URLAuthenticationChallengeSender {
+
+    func cancel(_ challenge: URLAuthenticationChallenge) {
+
+    }
+
+    func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {
+
+    }
+
+    func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {
+
+    }
+}
