@@ -91,9 +91,9 @@ extension _HTTPURLProtocol._ParsedResponseHeader {
 private extension _HTTPURLProtocol._ResponseHeaderLines {
     /// Returns a copy of the lines with the new line appended to it.
     func byAppending(headerLine line: String) -> _HTTPURLProtocol._ResponseHeaderLines {
-        var l = self.lines
-        l.append(line)
-        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: l)
+        var lines = self.lines
+        lines.append(line)
+        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: lines)
     }
 }
 internal extension _HTTPURLProtocol._ResponseHeaderLines {
