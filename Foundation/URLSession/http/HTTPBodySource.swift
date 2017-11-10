@@ -20,7 +20,7 @@ import CoreFoundation
 import Dispatch
 
 
-/// Turn `NSData` into `dispatch_data_t`
+/// Turn `Data` into `DispatchData`
 internal func createDispatchData(_ data: Data) -> DispatchData {
     //TODO: Avoid copying data
     let buffer = UnsafeRawBufferPointer(start: data._backing.bytes,
@@ -28,13 +28,13 @@ internal func createDispatchData(_ data: Data) -> DispatchData {
     return DispatchData(bytes: buffer)
 }
 
-/// Copy data from `dispatch_data_t` into memory pointed to by an `UnsafeMutableBufferPointer`.
+/// Copy data from `DispatchData` into memory pointed to by an `UnsafeMutableBufferPointer`.
 internal func copyDispatchData<T>(_ data: DispatchData, infoBuffer buffer: UnsafeMutableBufferPointer<T>) {
     precondition(data.count <= (buffer.count * MemoryLayout<T>.size))
     _ = data.copyBytes(to: buffer)
 }
 
-/// Split `dispatch_data_t` into `(head, tail)` pair.
+/// Split `DispatchData` into `(head, tail)` pair.
 internal func splitData(dispatchData data: DispatchData, atPosition position: Int) -> (DispatchData,DispatchData) {
     return (data.subdata(in: 0..<position), data.subdata(in: position..<data.count))
 }
@@ -57,7 +57,7 @@ internal enum _HTTPBodySourceDataChunk {
     case error
 }
 
-/// A HTTP body data source backed by `dispatch_data_t`.
+/// A HTTP body data source backed by `DispatchData`.
 internal final class _HTTPBodyDataSource {
     var data: DispatchData! 
     init(data: DispatchData) {
@@ -91,7 +91,7 @@ extension _HTTPBodyDataSource : _HTTPBodySource {
 ///
 /// This allows non-blocking streaming of file data to the remote server.
 ///
-/// The source reads data using a `dispatch_io_t` channel, and hence reading
+/// The source reads data using a `DispatchIO` channel, and hence reading
 /// file data is non-blocking. It has a local buffer that it fills as calls
 /// to `getNextChunk(withLength:)` drain it.
 ///

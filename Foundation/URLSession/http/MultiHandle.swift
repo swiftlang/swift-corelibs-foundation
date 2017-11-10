@@ -350,8 +350,7 @@ fileprivate extension URLSession._MultiHandle {
             timeoutTimerFired()
         case .milliseconds(let milliseconds):
             if (timeoutSource == nil) || timeoutSource!.milliseconds != milliseconds {
-                //TODO: Could simply change the existing timer by calling
-                // dispatch_source_set_timer() again.
+                //TODO: Could simply change the existing timer by using DispatchSourceTimer again.
                 let block = DispatchWorkItem { [weak self] in
                     self?.timeoutTimerFired()
                 }
