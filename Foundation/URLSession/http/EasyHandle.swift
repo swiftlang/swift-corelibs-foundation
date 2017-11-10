@@ -43,8 +43,8 @@ import Dispatch
 /// needs to be configured for a specific transfer (e.g. the URL) will be
 /// configured on an easy handle.
 ///
-/// A single `URLSessionTask` may do multiple, sonecutive transfers, and
-/// as a result it will have to reconfigure it's easy handle between
+/// A single `URLSessionTask` may do multiple, consecutive transfers, and
+/// as a result it will have to reconfigure its easy handle between
 /// transfers. An easy handle can be re-used once its transfer has
 /// completed.
 ///

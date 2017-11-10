@@ -454,7 +454,7 @@ fileprivate extension URLSession {
  * as background sessions.
  *
  * Task objects are always created in a suspended state and
- * must be sent the -resume message before they will execute.
+ * must be sent the -resume message before they execute.
  */
 extension URLSession {
     /*

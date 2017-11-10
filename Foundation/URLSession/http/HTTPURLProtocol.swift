@@ -93,7 +93,7 @@ fileprivate extension _HTTPURLProtocol {
     fileprivate func configureEasyHandle(for request: URLRequest) {
         // At this point we will call the equivalent of curl_easy_setopt()
         // to configure everything on the handle. Since we might be re-using
-        // a handle, we must be sure to set everything and not rely on defaul
+        // a handle, we must be sure to set everything and not rely on default
         // values.
 
         //TODO: We could add a strong reference from the easy handle back to
@@ -568,7 +568,7 @@ extension _HTTPURLProtocol: _EasyHandleDelegate {
     }
 
     func seekInputStream(to position: UInt64) throws {
-        // We will reset the body sourse and seek forward.
+        // We will reset the body source and seek forward.
         NSUnimplemented()
     }
  

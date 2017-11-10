@@ -29,7 +29,7 @@ internal extension URLSession {
         /// default timeout for requests.  This will cause a timeout if no data is transmitted for the given timeout value, and is reset whenever data is transmitted.
         let timeoutIntervalForRequest: TimeInterval
         
-        /// default timeout for requests.  This will cause a timeout if a resource is not able to be retrieved within a given timeout.
+        /// default timeout for requests.  This will cause a timeout if a resource is not retrievable within a given timeout.
         let timeoutIntervalForResource: TimeInterval
         
         /// type of service for requests.
@@ -57,7 +57,7 @@ internal extension URLSession {
         /// Note that these headers are added to the request only if not already present.
         
         let httpAdditionalHeaders: [String : String]?
-        /// The maximum number of simultanous persistent connections per host
+        /// The maximum number of simultaneous persistent connections per host
         let httpMaximumConnectionsPerHost: Int
         
         /// The cookie storage object to use, or nil to indicate that no cookies should be handled

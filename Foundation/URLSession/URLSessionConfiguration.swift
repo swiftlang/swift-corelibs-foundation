@@ -181,7 +181,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
      Note that these headers are added to the request only if not already present. */
     open var httpAdditionalHeaders: [AnyHashable : Any]? = nil
     
-    /* The maximum number of simultanous persistent connections per host */
+    /* The maximum number of simultaneous persistent connections per host */
     open var httpMaximumConnectionsPerHost: Int
     
     /* The cookie storage object to use, or nil to indicate that no cookies should be handled */
