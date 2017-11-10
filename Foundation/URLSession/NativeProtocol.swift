@@ -243,7 +243,7 @@ class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }
 
     func seekInputStream(to position: UInt64) throws {
-        // We will reset the body sourse and seek forward.
+        // We will reset the body source and seek forward.
          NSUnimplemented()
     }
 
