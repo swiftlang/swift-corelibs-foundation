@@ -75,11 +75,12 @@ class TestCharacterSet : XCTestCase {
             ("test_Planes", test_Planes),
             ("test_InlineBuffer", test_InlineBuffer),
             ("test_Equatable", test_Equatable),
-            // The following tests must remain disabled until SR-2509 is resolved.
             ("test_Subtracting", test_Subtracting),
             ("test_SubtractEmptySet", test_SubtractEmptySet),
             ("test_SubtractNonEmptySet", test_SubtractNonEmptySet),
             ("test_SymmetricDifference", test_SymmetricDifference),
+            ("test_formUnion", test_formUnion),
+            ("test_union", test_union),
         ]
     }
     
@@ -353,4 +354,16 @@ class TestCharacterSet : XCTestCase {
         XCTAssertNotEqual(Box.alphanumerics, Box.decimalDigits)
     }
 
+    func test_formUnion() {
+        var charset = CharacterSet(charactersIn: "a")
+        charset.formUnion(CharacterSet(charactersIn: "A"))
+        XCTAssertTrue(charset.contains("A" as UnicodeScalar))
+    }
+    
+    func test_union() {
+        let charset = CharacterSet(charactersIn: "a")
+        let union = charset.union(CharacterSet(charactersIn: "A"))
+        XCTAssertTrue(union.contains("A" as UnicodeScalar))
+    }
+    
 }
