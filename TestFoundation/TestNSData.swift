@@ -509,6 +509,12 @@ class TestNSData: XCTestCase {
 //            ("test_sliceEnumeration", test_sliceEnumeration),
             ("test_sliceInsertion", test_sliceInsertion),
             ("test_sliceDeletion", test_sliceDeletion),
+            ("test_validateMutation_slice_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
+             test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
         ]
     }
     
@@ -3978,6 +3984,50 @@ extension TestNSData {
         XCTAssertEqual(sliceData[sliceData.startIndex + numberOfElementsToDelete], mutableSliceData.first)
         XCTAssertEqual(mutableSliceData.startIndex, 2)
         XCTAssertEqual(mutableSliceData.endIndex, sliceData.endIndex - numberOfElementsToDelete)
+    }
+    
+    func test_validateMutation_slice_withUnsafeMutableBytes_lengthLessThanLowerBound() {
+        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<6]
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
+            ptr.advanced(by: 1).pointee = 0xFF
+        }
+        XCTAssertEqual(data, Data(bytes: [4, 0xFF]))
+    }
+    
+    func test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
+        var data = Data(referencing: NSData(bytes: "hello world", length: 11))[4..<6]
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
+            ptr.advanced(by: 1).pointee = 0xFF
+        }
+        XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
+    }
+    
+    func test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
+        var base = Data(referencing: NSData(bytes: "hello world", length: 11))
+        base.append(contentsOf: [1, 2, 3, 4, 5, 6])
+        var data = base[4..<6]
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
+            ptr.advanced(by: 1).pointee = 0xFF
+        }
+        XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
+    }
+    
+    func test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
+        var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<6]
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
+            ptr.advanced(by: 1).pointee = 0xFF
+        }
+        XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
+    }
+    
+    func test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
+        var base = Data(referencing: AllOnesData(length: 1))
+        base.count = 10
+        var data = base[4..<6]
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
+            ptr.advanced(by: 1).pointee = 0xFF
+        }
+        XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
 }
 
