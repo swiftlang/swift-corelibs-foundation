@@ -39,19 +39,7 @@ import _SwiftFoundationOverlayShims
 import _SwiftCoreFoundationOverlayShims
     
 internal func __NSDataIsCompact(_ data: NSData) -> Bool {
-    if #available(OSX 10.10, iOS 9.0, tvOS 9.0, watchOS 2.0, *) {
-        return data._isCompact()
-    } else {
-        var compact = true
-        let len = data.length
-        data.enumerateBytes { (_, byteRange, stop) in
-            if byteRange.length != len {
-                compact = false
-            }
-            stop.pointee = true
-        }
-        return compact
-    }
+    return data._isCompact()
 }
 
 @_silgen_name("__NSDataWriteToURL")
