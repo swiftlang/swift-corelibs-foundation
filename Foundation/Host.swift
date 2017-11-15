@@ -95,6 +95,7 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
+        _resolved = true
 #endif
     }
     
