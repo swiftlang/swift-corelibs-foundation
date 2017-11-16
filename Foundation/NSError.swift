@@ -282,7 +282,7 @@ public extension CustomNSError {
 
     /// The error code within the given domain.
     var errorCode: Int {
-        return _getDefaultErrorCode(self)
+        return _swift_getDefaultErrorCode(self)
     }
 
     /// The default user-info dictionary.
