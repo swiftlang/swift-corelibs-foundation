@@ -1,7 +1,7 @@
 /*	CFXMLNode.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -20,6 +20,8 @@
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
+
+#define __CFXMLNode_DEPRECATION_MSG "CFXMLNode is deprecated, use NSXMLParser, NSXMLDocument or libxml2 library instead"
 
 CF_ENUM(CFIndex) {
 	kCFXMLNodeCurrentVersion = 1
@@ -153,38 +155,40 @@ typedef struct {
 */
 
 CF_EXPORT
-CFTypeID CFXMLNodeGetTypeID(void) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFTypeID CFXMLNodeGetTypeID(void) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Creates a new node based on xmlType, dataString, and additionalInfoPtr.  version (together with xmlType) determines the expected structure of additionalInfoPtr */
 CF_EXPORT
-CFXMLNodeRef CFXMLNodeCreate(CFAllocatorRef alloc, CFXMLNodeTypeCode xmlType, CFStringRef dataString, const void *additionalInfoPtr, CFIndex version) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLNodeRef CFXMLNodeCreate(CFAllocatorRef alloc, CFXMLNodeTypeCode xmlType, CFStringRef dataString, const void *additionalInfoPtr, CFIndex version) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Creates a copy of origNode (which may not be NULL). */
 CF_EXPORT
-CFXMLNodeRef CFXMLNodeCreateCopy(CFAllocatorRef alloc, CFXMLNodeRef origNode) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLNodeRef CFXMLNodeCreateCopy(CFAllocatorRef alloc, CFXMLNodeRef origNode) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-CFXMLNodeTypeCode CFXMLNodeGetTypeCode(CFXMLNodeRef node) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLNodeTypeCode CFXMLNodeGetTypeCode(CFXMLNodeRef node) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-CFStringRef CFXMLNodeGetString(CFXMLNodeRef node) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFStringRef CFXMLNodeGetString(CFXMLNodeRef node) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-const void *CFXMLNodeGetInfoPtr(CFXMLNodeRef node) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+const void *CFXMLNodeGetInfoPtr(CFXMLNodeRef node) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-CFIndex CFXMLNodeGetVersion(CFXMLNodeRef node) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFIndex CFXMLNodeGetVersion(CFXMLNodeRef node) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* CFXMLTreeRef */
 
 /* Creates a childless, parentless tree from node */
 CF_EXPORT
-CFXMLTreeRef CFXMLTreeCreateWithNode(CFAllocatorRef allocator, CFXMLNodeRef node) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLTreeRef CFXMLTreeCreateWithNode(CFAllocatorRef allocator, CFXMLNodeRef node) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Extracts and returns the node stored in xmlTree */
 CF_EXPORT
-CFXMLNodeRef CFXMLTreeGetNode(CFXMLTreeRef xmlTree) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLNodeRef CFXMLTreeGetNode(CFXMLTreeRef xmlTree) API_DEPRECATED(__CFXMLNode_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
+#undef __CFXMLNode_DEPRECATION_MSG
+    
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
 

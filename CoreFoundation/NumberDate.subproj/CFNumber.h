@@ -1,7 +1,7 @@
 /*	CFNumber.h
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -46,8 +46,8 @@ typedef CF_ENUM(CFIndex, CFNumberType) {
     kCFNumberDoubleType = 13,
     /* Other */
     kCFNumberCFIndexType = 14,
-    kCFNumberNSIntegerType CF_ENUM_AVAILABLE(10_5, 2_0) = 15,
-    kCFNumberCGFloatType CF_ENUM_AVAILABLE(10_5, 2_0) = 16,
+    kCFNumberNSIntegerType API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 15,
+    kCFNumberCGFloatType API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 16,
     kCFNumberMaxType = 16
 };
 

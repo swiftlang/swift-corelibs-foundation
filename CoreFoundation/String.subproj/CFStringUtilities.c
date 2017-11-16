@@ -1,7 +1,7 @@
 /*	CFStringUtilities.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -54,14 +54,14 @@ const CFStringEncoding* CFStringGetListOfAvailableEncodings() {
 
 CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
     static CFMutableDictionaryRef mappingTable = NULL;
-    static OSSpinLock mappingTableLock = OS_SPINLOCK_INIT;
+    static os_unfair_lock mappingTableLock = OS_UNFAIR_LOCK_INIT;
 
     CFStringRef theName = NULL;
 
     if (mappingTable) {
-        OSSpinLockLock(&mappingTableLock);
+        os_unfair_lock_lock(&mappingTableLock);
         theName = (CFStringRef)CFDictionaryGetValue(mappingTable, (const void*)(uintptr_t)theEncoding);
-        OSSpinLockUnlock(&mappingTableLock);
+        os_unfair_lock_unlock(&mappingTableLock);
     }
 
     if (!theName) {
@@ -72,7 +72,7 @@ CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
         }
         
         if (theName) {
-            OSSpinLockLock(&mappingTableLock);
+            os_unfair_lock_lock(&mappingTableLock);
 
             CFStringRef result = NULL;
             if (!mappingTable) {
@@ -82,10 +82,10 @@ CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
             }
             if (!result) {  // If not, add it in
                 CFDictionaryAddValue(mappingTable, (const void*)(uintptr_t)theEncoding, (const void*)theName);
-                OSSpinLockUnlock(&mappingTableLock);
+                os_unfair_lock_unlock(&mappingTableLock);
                 CFRelease(theName);
             } else {        // Otherwise use the one already in there
-                OSSpinLockUnlock(&mappingTableLock);
+                os_unfair_lock_unlock(&mappingTableLock);
                 CFRelease(theName);
                 theName = result;
             }
@@ -636,10 +636,10 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         if ((NULL != collator) && (__CompareTextDefault(collator, options, characters1, range1.length, characters2, range2.length, &isEqual, &order) == 0 /* noErr */)) {
             compResult = ((isEqual && !forcedOrdering) ? kCFCompareEqualTo : ((order < 0) ? kCFCompareLessThan : kCFCompareGreaterThan));
-        } else 
+        } else
 #endif
         {
-            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * range1.length) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
+            compResult = ((memcmp(characters1, characters2, sizeof(UniChar) * MIN(range1.length, range2.length)) < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);
         }
     } else {
         UniChar *buffer1 = NULL;
@@ -665,7 +665,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                             if (0 == buffer1Len) {
                                 buffer1 = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UTF16Char) * bufferSize, 0);
                             } else if (buffer1Len < range1.length) {
-                                buffer1 = (UniChar *)CFAllocatorReallocate(kCFAllocatorSystemDefault, buffer1, sizeof(UTF16Char) * bufferSize, 0);
+                                buffer1 = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, buffer1, sizeof(UTF16Char) * bufferSize, 0, NULL);
                             }
                             buffer1Len = bufferSize;
                         }
@@ -690,7 +690,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                             if (0 == buffer2Len) {
                                 buffer2 = (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(UTF16Char) * bufferSize, 0);
                             } else if (buffer2Len < range2.length) {
-                                buffer2 = (UniChar *)CFAllocatorReallocate(kCFAllocatorSystemDefault, buffer2, sizeof(UTF16Char) * bufferSize, 0);
+                                buffer2 = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, buffer2, sizeof(UTF16Char) * bufferSize, 0, NULL);
                             }
                             buffer2Len = bufferSize;
                         }

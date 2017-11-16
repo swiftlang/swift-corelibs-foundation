@@ -1,7 +1,7 @@
 /*	CFPlatform.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -123,6 +123,10 @@ const char *_CFProcessPath(void) {
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+Boolean _CFIsMainThread(void) {
+    return pthread_main_np() == 1;
+}
+
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 #if DEPLOYMENT_TARGET_MACOSX
@@ -179,12 +183,6 @@ const char *_CFProcessPath(void) {
         __CFprogname = __CFProcessPath;
     }
     return __CFProcessPath;
-}
-
-#else
-
-Boolean _CFIsMainThread(void) {
-    return pthread_main_np() == 1;
 }
 #endif
 
@@ -607,7 +605,7 @@ static void *__CFTSDGetSpecific() {
 #endif
 }
 
-CF_PRIVATE Boolean __CFMainThreadHasExited;
+CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
 static void __CFTSDFinalize(void *arg) {
     if (pthread_main_np()) {
         __CFMainThreadHasExited = true;
@@ -670,7 +668,7 @@ static __CFTSDTable *__CFTSDGetTable(const Boolean create) {
 
 // For the use of CF and Foundation only
 CF_EXPORT void *_CFGetTSDCreateIfNeeded(const uint32_t slot, const Boolean create) {
-    if (slot > CF_TSD_MAX_SLOTS) {
+    if (slot >= CF_TSD_MAX_SLOTS) {
         _CFLogSimple(kCFLogLevelError, "Error: TSD slot %d out of range (get)", slot);
         HALT;
     }
@@ -695,7 +693,7 @@ CF_EXPORT void *_CFGetTSD(uint32_t slot) {
 
 // For the use of CF and Foundation only
 CF_EXPORT void *_CFSetTSD(uint32_t slot, void *newVal, tsdDestructor destructor) {
-    if (slot > CF_TSD_MAX_SLOTS) {
+    if (slot >= CF_TSD_MAX_SLOTS) {
         _CFLogSimple(kCFLogLevelError, "Error: TSD slot %d out of range (set)", slot);
         HALT;
     }
@@ -1267,7 +1265,7 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...) {
     if (cnt < sz - 1) return cnt;
     sz = cnt + 8;
     char *oldret = *ret;
-    *ret = (char *) realloc(*ret, sz * sizeof(char));
+    *ret = __CFSafelyReallocate(*ret, sz * sizeof(char), NULL);
     if (!*ret && oldret) free(oldret);
     if (!*ret) return -1;
     va_start(args, format);

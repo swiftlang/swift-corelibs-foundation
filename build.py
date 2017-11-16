@@ -223,6 +223,7 @@ private = [
 	'CoreFoundation/String.subproj/CFRunArray.h',
 	'CoreFoundation/Locale.subproj/CFDateFormatter_Private.h',
 	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
+	'CoreFoundation/Parsing.subproj/CFPropertyList_Private.h',
 ],
 project = [
 ])
@@ -276,6 +277,10 @@ sources = CompileSources([
 	'CoreFoundation/PlugIn.subproj/CFBundle_Locale.c',
 	'CoreFoundation/PlugIn.subproj/CFBundle_Resources.c',
 	'CoreFoundation/PlugIn.subproj/CFBundle_Strings.c',
+	'CoreFoundation/PlugIn.subproj/CFBundle_Main.c',
+	'CoreFoundation/PlugIn.subproj/CFBundle_ResourceFork.c',
+	'CoreFoundation/PlugIn.subproj/CFBundle_Executable.c',
+	'CoreFoundation/PlugIn.subproj/CFBundle_DebugStrings.c',
 	'CoreFoundation/PlugIn.subproj/CFPlugIn.c',
 	'CoreFoundation/PlugIn.subproj/CFPlugIn_Factory.c',
 	'CoreFoundation/PlugIn.subproj/CFPlugIn_Instance.c',

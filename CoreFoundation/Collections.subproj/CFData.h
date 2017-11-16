@@ -1,7 +1,7 @@
 /*	CFData.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -67,10 +67,10 @@ void CFDataDeleteBytes(CFMutableDataRef theData, CFRange range);
 typedef CF_OPTIONS(CFOptionFlags, CFDataSearchFlags) {
     kCFDataSearchBackwards = 1UL << 0,
     kCFDataSearchAnchored = 1UL << 1
-} CF_ENUM_AVAILABLE(10_6, 4_0);
+} API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-CFRange CFDataFind(CFDataRef theData, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions) CF_AVAILABLE(10_6, 4_0);
+CFRange CFDataFind(CFDataRef theData, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

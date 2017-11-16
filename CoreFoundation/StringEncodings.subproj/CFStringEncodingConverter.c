@@ -1,7 +1,7 @@
 /*	CFStringEncodingConverter.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -580,7 +580,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
     const _CFEncodingConverter **commonConverterSlot = NULL;
     static _CFEncodingConverter *commonConverters[3] = {NULL, NULL, NULL}; // UTF8, MacRoman/WinLatin1, and the default encoding*
     static CFMutableDictionaryRef mappingTable = NULL;
-    static OSSpinLock lock = OS_SPINLOCK_INIT;
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
 
     switch (encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
@@ -598,15 +598,15 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 	default: if (CFStringGetSystemEncoding() == encoding) commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[2]); break;
     }
 
-    OSSpinLockLock(&lock);
+    os_unfair_lock_lock(&lock);
     converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
-    OSSpinLockUnlock(&lock);
+    os_unfair_lock_unlock(&lock);
 
     if (NULL == converter) {
         const CFStringEncodingConverter *definition = __CFStringEncodingConverterGetDefinition(encoding);
 
         if (NULL != definition) {
-            OSSpinLockLock(&lock);
+            os_unfair_lock_lock(&lock);
             converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
 
             if (NULL == converter) {
@@ -620,7 +620,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 		    *commonConverterSlot = converter;
 		}
             }
-            OSSpinLockUnlock(&lock);
+            os_unfair_lock_unlock(&lock);
         }
     }
 
