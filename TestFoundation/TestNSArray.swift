@@ -46,7 +46,10 @@ class TestNSArray : XCTestCase {
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
-            ("test_readWriteURL", test_readWriteURL)
+            ("test_readWriteURL", test_readWriteURL),
+            ("test_insertObjectAtIndex", test_insertObjectAtIndex),
+            ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
+            ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
         ]
     }
     
@@ -563,6 +566,52 @@ class TestNSArray : XCTestCase {
         } catch let e {
             XCTFail("Failed to write to file: \(e)")
         }
+    }
+
+    func test_insertObjectAtIndex() {
+        let a1 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a1.insert("a", at: 0)
+        XCTAssertEqual(a1, ["a", "one", "two", "three", "four"])
+        
+        let a2 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a2.insert("a", at: 4)
+        XCTAssertEqual(a2, ["one", "two", "three", "four", "a"])
+        
+        let a3 = NSMutableArray()
+        a3.insert("a", at: 0)
+        XCTAssertEqual(a3, ["a"])
+    }
+
+    func test_insertObjectsAtIndexes() {
+        let a1 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a1.insert(["a", "b"], at: [0, 1])
+        XCTAssertEqual(a1, ["a", "b", "one", "two", "three", "four"])
+
+        let a2 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a2.insert(["a", "b"], at: [1, 3])
+        XCTAssertEqual(a2, ["one", "a", "two", "b", "three", "four"])
+        
+        let a3 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a3.insert(["a", "b"], at: [5, 4])
+        XCTAssertEqual(a3, ["one", "two", "three", "four", "a", "b"])
+        
+        let a4 = NSMutableArray()
+        a4.insert(["a", "b"], at: [0, 1])
+        XCTAssertEqual(a4, ["a", "b"])
+    }
+
+    func test_replaceObjectsAtIndexesWithObjects() {
+        let a1 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a1.replaceObjects(at: [0], with: ["a"])
+        XCTAssertEqual(a1, ["a", "two", "three", "four"])
+
+        let a2 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a2.replaceObjects(at: [1, 2], with: ["a", "b"])
+        XCTAssertEqual(a2, ["one", "a", "b", "four"])
+
+        let a3 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
+        a3.replaceObjects(at: [3, 2, 1, 0], with: ["a", "b", "c", "d"])
+        XCTAssertEqual(a3, ["a", "b", "c", "d"])
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
