@@ -1316,6 +1316,9 @@ extension TestJSONSerialization {
         
         json = ["i\u{1f}"]
         XCTAssertEqual(try trySerialize(json), "[\"i\\u001f\"]")
+
+        json = ["j/"]
+        XCTAssertEqual(try trySerialize(json), "[\"j\\/\"]")
     }
 
     /* These are a programming error and should not be done
