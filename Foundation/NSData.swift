@@ -935,17 +935,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return result
     }
-
-    // MARK: Other methods
-    /// Returns a Boolean value indicating whether the sequence contains the given element.
-    func contains(_ element: UInt8) -> Bool {
-        NSUnimplemented()
-    }
-
-    /// Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.
-    func contains(where predicate: (UInt8) throws -> Bool) rethrows -> Bool {
-        NSUnimplemented()
-    }
 }
 
 // MARK: -
