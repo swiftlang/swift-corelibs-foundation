@@ -1051,83 +1051,45 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     }
     
     internal static func _toNSCalendarIdentifier(_ identifier: Identifier) -> NSCalendar.Identifier {
-        if #available(OSX 10.10, iOS 8.0, *) {
-            let identifierMap: [Identifier : NSCalendar.Identifier] =
-                [.gregorian: .gregorian,
-                 .buddhist: .buddhist,
-                 .chinese: .chinese,
-                 .coptic: .coptic,
-                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
-                 .hebrew: .hebrew,
-                 .iso8601: .ISO8601,
-                 .indian: .indian,
-                 .islamic: .islamic,
-                 .islamicCivil: .islamicCivil,
-                 .japanese: .japanese,
-                 .persian: .persian,
-                 .republicOfChina: .republicOfChina,
-                 .islamicTabular: .islamicTabular,
-                 .islamicUmmAlQura: .islamicUmmAlQura]
-            return identifierMap[identifier]!
-        } else {
-            let identifierMap: [Identifier : NSCalendar.Identifier] =
-                [.gregorian: .gregorian,
-                 .buddhist: .buddhist,
-                 .chinese: .chinese,
-                 .coptic: .coptic,
-                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
-                 .hebrew: .hebrew,
-                 .iso8601: .ISO8601,
-                 .indian: .indian,
-                 .islamic: .islamic,
-                 .islamicCivil: .islamicCivil,
-                 .japanese: .japanese,
-                 .persian: .persian,
-                 .republicOfChina: .republicOfChina]
-            return identifierMap[identifier]!
-        }
+        let identifierMap: [Identifier : NSCalendar.Identifier] =
+            [.gregorian: .gregorian,
+             .buddhist: .buddhist,
+             .chinese: .chinese,
+             .coptic: .coptic,
+             .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+             .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+             .hebrew: .hebrew,
+             .iso8601: .ISO8601,
+             .indian: .indian,
+             .islamic: .islamic,
+             .islamicCivil: .islamicCivil,
+             .japanese: .japanese,
+             .persian: .persian,
+             .republicOfChina: .republicOfChina,
+             .islamicTabular: .islamicTabular,
+             .islamicUmmAlQura: .islamicUmmAlQura]
+        return identifierMap[identifier]!
     }
     
     internal static func _fromNSCalendarIdentifier(_ identifier: NSCalendar.Identifier) -> Identifier {
-        if #available(OSX 10.10, iOS 8.0, *) {
-            let identifierMap: [NSCalendar.Identifier : Identifier] =
-                [.gregorian: .gregorian,
-                 .buddhist: .buddhist,
-                 .chinese: .chinese,
-                 .coptic: .coptic,
-                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
-                 .hebrew: .hebrew,
-                 .ISO8601: .iso8601,
-                 .indian: .indian,
-                 .islamic: .islamic,
-                 .islamicCivil: .islamicCivil,
-                 .japanese: .japanese,
-                 .persian: .persian,
-                 .republicOfChina: .republicOfChina,
-                 .islamicTabular: .islamicTabular,
-                 .islamicUmmAlQura: .islamicUmmAlQura]
-            return identifierMap[identifier]!
-        } else {
-            let identifierMap: [NSCalendar.Identifier : Identifier] =
-                [.gregorian: .gregorian,
-                 .buddhist: .buddhist,
-                 .chinese: .chinese,
-                 .coptic: .coptic,
-                 .ethiopicAmeteMihret: .ethiopicAmeteMihret,
-                 .ethiopicAmeteAlem: .ethiopicAmeteAlem,
-                 .hebrew: .hebrew,
-                 .ISO8601: .iso8601,
-                 .indian: .indian,
-                 .islamic: .islamic,
-                 .islamicCivil: .islamicCivil,
-                 .japanese: .japanese,
-                 .persian: .persian,
-                 .republicOfChina: .republicOfChina]
-            return identifierMap[identifier]!
-        }
+        let identifierMap: [NSCalendar.Identifier : Identifier] =
+            [.gregorian: .gregorian,
+             .buddhist: .buddhist,
+             .chinese: .chinese,
+             .coptic: .coptic,
+             .ethiopicAmeteMihret: .ethiopicAmeteMihret,
+             .ethiopicAmeteAlem: .ethiopicAmeteAlem,
+             .hebrew: .hebrew,
+             .ISO8601: .iso8601,
+             .indian: .indian,
+             .islamic: .islamic,
+             .islamicCivil: .islamicCivil,
+             .japanese: .japanese,
+             .persian: .persian,
+             .republicOfChina: .republicOfChina,
+             .islamicTabular: .islamicTabular,
+             .islamicUmmAlQura: .islamicUmmAlQura]
+        return identifierMap[identifier]!
     }
 }
 
