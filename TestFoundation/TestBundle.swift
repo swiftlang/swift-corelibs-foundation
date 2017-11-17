@@ -8,7 +8,6 @@
 //
 
 
-
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
@@ -18,6 +17,9 @@
 #endif
 
 
+internal func testBundle() -> Bundle {
+    return Bundle.main
+}
 
 class TestBundle : XCTestCase {
     
@@ -36,29 +38,35 @@ class TestBundle : XCTestCase {
     }
     
     func test_paths() {
-        let bundle = Bundle.main
-        
+        let bundle = testBundle()
+
         // bundlePath
         XCTAssert(!bundle.bundlePath.isEmpty)
         XCTAssertEqual(bundle.bundleURL.path, bundle.bundlePath)
         let path = bundle.bundlePath
-        
+
         // etc
         #if os(OSX)
         XCTAssertEqual("\(path)/Contents/Resources", bundle.resourcePath)
+#if DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual("\(path)/Contents/MacOS/DarwinCompatibilityTests", bundle.executablePath)
+#else
         XCTAssertEqual("\(path)/Contents/MacOS/TestFoundation", bundle.executablePath)
+#endif
         XCTAssertEqual("\(path)/Contents/Frameworks", bundle.privateFrameworksPath)
         XCTAssertEqual("\(path)/Contents/SharedFrameworks", bundle.sharedFrameworksPath)
         XCTAssertEqual("\(path)/Contents/SharedSupport", bundle.sharedSupportPath)
         #endif
         
         XCTAssertNil(bundle.path(forAuxiliaryExecutable: "no_such_file"))
+#if !DARWIN_COMPATIBILITY_TESTS
         XCTAssertNil(bundle.appStoreReceiptURL)
+#endif
     }
     
     func test_resources() {
-        let bundle = Bundle.main
-        
+        let bundle = testBundle()
+
         // bad resources
         XCTAssertNil(bundle.url(forResource: nil, withExtension: nil, subdirectory: nil))
         XCTAssertNil(bundle.url(forResource: "", withExtension: "", subdirectory: nil))
@@ -77,7 +85,7 @@ class TestBundle : XCTestCase {
     }
     
     func test_infoPlist() {
-        let bundle = Bundle.main
+        let bundle = testBundle()
         
         // bundleIdentifier
         XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
@@ -93,8 +101,8 @@ class TestBundle : XCTestCase {
     }
     
     func test_localizations() {
-        let bundle = Bundle.main
-        
+        let bundle = testBundle()
+
         XCTAssertEqual(["en"], bundle.localizations)
         XCTAssertEqual(["en"], bundle.preferredLocalizations)
         XCTAssertEqual(["en"], Bundle.preferredLocalizations(from: ["en", "pl", "es"]))
@@ -158,13 +166,13 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundleLoad(){
-        let bundle = Bundle.main
+        let bundle = testBundle()
         let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
     }
     
     func test_bundleLoadWithError(){
-        let bundleValid = Bundle.main
+        let bundleValid = testBundle()
         //test valid load using loadAndReturnError
         do{
             try bundleValid.loadAndReturnError()
@@ -184,7 +192,7 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundlePreflight(){
-        let bundleValid = Bundle.main
+        let bundleValid = testBundle()
         do{
             try bundleValid.preflight()
         }catch{

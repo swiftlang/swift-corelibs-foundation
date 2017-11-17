@@ -22,10 +22,6 @@ import SwiftXCTest
 #endif
 
 
-internal func testBundle() -> Bundle {
-    return Bundle.main
-}
-
 // ignore SIGPIPE which is sent when writing to closed file descriptors.
 _ = signal(SIGPIPE, SIG_IGN)
 
