@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -594,10 +594,6 @@ CF_PRIVATE SInt32 _CFGetFileProperties(CFAllocatorRef alloc, CFURLRef pathURL, B
     return _CFGetPathProperties(alloc, path, exists, posixMode, size, modTime, ownerID, dirContents);
 }
 
-CF_PRIVATE bool _CFURLExists(CFURLRef url) {
-    Boolean exists;
-    return url && (0 == _CFGetFileProperties(kCFAllocatorSystemDefault, url, &exists, NULL, NULL, NULL, NULL, NULL)) && exists;
-}
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #define WINDOWS_PATH_SEMANTICS
@@ -1096,22 +1092,15 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 for (CFIndex i = 0; i < CFArrayGetCount(stuffToPrefix); i++) {
                     CFStringRef onePrefix = CFArrayGetValueAtIndex(stuffToPrefix, i);
                     // Note: CFStringGetBytes does not null-terminate - we will do that below
-                    CFIndex usedBufLen = 0;
-                    startAt += CFStringGetBytes(onePrefix, CFRangeMake(0, CFStringGetLength(onePrefix)), CFStringFileSystemEncoding(), 0, false, (UInt8 *)fullPathToFile + startAt, sizeof(fullPathToFile) - startAt, &usedBufLen);
-                    if (startAt > 0) { // Add a / if the string did not have one
-                        // In some cases, startAt and usedBufLen differ (e.g. the num of bytes returned is less than the number written to the buffer).
-                        if (startAt < usedBufLen) {
-                            if (fullPathToFile[usedBufLen - 1] != (char)_CFGetSlash()) {
-                                fullPathToFile[usedBufLen] = (char)_CFGetSlash();
-                                startAt += (usedBufLen - startAt) + 1;
-                            }
-                        } else {
-                            if (fullPathToFile[startAt - 1] != (char)_CFGetSlash()) {
-                                fullPathToFile[startAt++] = (char)_CFGetSlash();
-                            }
+                    startAt += CFStringGetBytes(onePrefix, CFRangeMake(0, CFStringGetLength(onePrefix)), CFStringFileSystemEncoding(), 0, false, (UInt8 *)fullPathToFile + startAt, sizeof(fullPathToFile) - startAt, NULL);
+                    if (startAt > 0) {
+                        // Add a / if the string did not have one
+                        if (fullPathToFile[startAt - 1] != (char)_CFGetSlash()) {
+                            fullPathToFile[startAt++] = (char)_CFGetSlash();
                         }
                     }
                 }
+                
                 fullPathToFile[startAt] = 0;
             }
             
@@ -1177,7 +1166,6 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     }
 #endif
 }
-
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
@@ -1357,4 +1345,3 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 }
 
 #endif
-

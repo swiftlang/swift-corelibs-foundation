@@ -58,8 +58,7 @@ open class PropertyListSerialization : NSObject {
 #endif
             let options = CFOptionFlags(opt)
             let plistObj = _SwiftValue.store(plist)
-            let d = CFPropertyListCreateData(kCFAllocatorSystemDefault, plistObj, fmt, options, outErr)
-            return d?.takeRetainedValue()
+            return CFPropertyListCreateData(kCFAllocatorSystemDefault, plistObj, fmt, options, outErr)
         }
         if let res = result {
             return res._swiftObject

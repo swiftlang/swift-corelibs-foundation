@@ -1,7 +1,7 @@
 /*	CFPreferences.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -790,7 +790,7 @@ static void getVolatileKeysAndValues(CFAllocatorRef alloc, CFTypeRef context, vo
             CFDictionaryGetKeysAndValues(dict, (const void **)*buf, (const void **)values);
         } else if (alloc != kCFAllocatorNull) {
             if (*buf) {
-                *buf = __CFSafelyReallocateWithAllocator(alloc, *buf, count * 2 * sizeof(void *), 0, NULL);
+                *buf = (void **)CFAllocatorReallocate(alloc, *buf, count * 2 * sizeof(void *), 0);
             } else {
                 *buf = (void **)CFAllocatorAllocate(alloc, count*2*sizeof(void *), 0);
             }

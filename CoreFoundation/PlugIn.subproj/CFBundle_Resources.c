@@ -1,7 +1,7 @@
 /*      CFBundle_Resources.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -106,6 +106,22 @@ static CFStringRef _CFBundleGetResourceDirForVersion(uint8_t version) {
     return CFSTR("");
 }
 
+CF_PRIVATE void _CFBundleAppendResourceDir(CFMutableStringRef path, uint8_t version) {
+    if (1 == version) {
+        // /path/to/bundle/Support Files/
+        CFStringAppend(path, _CFBundleSupportFilesDirectoryName1);
+        _CFAppendTrailingPathSlash2(path);
+    } else if (2 == version) {
+        // /path/to/bundle/Contents/
+        CFStringAppend(path, _CFBundleSupportFilesDirectoryName2);
+        _CFAppendTrailingPathSlash2(path);
+    }
+    if (0 == version || 1 == version || 2 == version) {
+        // /path/to/bundle/<above>/Resources
+        CFStringAppend(path, _CFBundleResourcesDirectoryName);
+    }
+}
+
 CF_EXPORT CFURLRef CFBundleCopyResourceURL(CFBundleRef bundle, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subDirName) {
     if (!bundle) return NULL;
     CFURLRef result = (CFURLRef) _CFBundleCopyFindResources(bundle, NULL, NULL, resourceName, resourceType, subDirName, NULL, false, false, NULL);
@@ -173,6 +189,7 @@ CF_EXPORT CFArrayRef CFBundleCopyResourceURLsOfTypeInDirectory(CFURLRef bundleUR
 #pragma mark -
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_WINDOWS
+// Note that subDirName is expected to be the string for a URL
 CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     Boolean isDir = false, result = false;
     CFURLRef dirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, subDirName, url);
@@ -217,7 +234,6 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
     __block Boolean foundResources = false;
     __block Boolean foundSupportFiles2 = false;
     __block Boolean foundSupportFiles1 = false;
-    __block Boolean foundUnknown = false;
     
     _CFIterateDirectory(directoryPath, false, NULL, ^Boolean (CFStringRef fileName, CFStringRef fileNameWithPrefix, uint8_t fileType) {
         // We're looking for a few different names, and also some info on if it's a directory or not.
@@ -231,9 +247,6 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
             } else if (fileNameLen == supportFilesDirectoryLength && CFStringCompareWithOptions(fileName, _CFBundleSupportFilesDirectoryName1, CFRangeMake(0, supportFilesDirectoryLength), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
                 foundSupportFiles1 = true;
             }
-        } else if (fileType == DT_UNKNOWN) {
-            // We'll have to do a more expensive check later; readdir couldn't tell us what the kind of a file was. This may mean that we are looking on a network directory.
-            foundUnknown = true;
         }
         return true;
     });
@@ -256,11 +269,10 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
             localVersion = 1;
         }
     }
-
+    
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_WINDOWS
-    // Do a more substantial check for the subdirectories that make up version 0/1/2 bundles. These are sometimes symlinks (like in Frameworks) and they would have been missed by our check above.
-    // n.b. that the readdir above may return DT_UNKNOWN, for example, when the directory is on a network mount.
-    if (foundUnknown && localVersion == 3) {
+    // Do a more substantial check for the subdirectories that make up version 0/1/2 bundles. These are sometimes symlinks (like in Frameworks) and they would have been missed by our check above. Perhaps we can do a check for DT_LNK there as well, if it's sufficient instead of looking at the actual contents.
+    if (localVersion == 3) {
         if (hasFrameworkSuffix) {
             if (_CFBundleURLHasSubDir(url, _CFBundleResourcesURLFromBase0)) localVersion = 0;
             else if (_CFBundleURLHasSubDir(url, _CFBundleSupportFilesURLFromBase2)) localVersion = 2;
@@ -272,7 +284,7 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
         }
     }
 #endif
-    
+
     CFRelease(directoryPath);
     return localVersion;
 }
@@ -300,7 +312,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-     return CFSTR("Linux");
+    return CFSTR("Linux");
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return CFSTR("FreeBSD");
@@ -322,10 +334,68 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-     return CFSTR("Linux");
+    return CFSTR("Linux");
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return CFSTR("FreeBSD");
+#else
+#error Unknown or unspecified DEPLOYMENT_TARGET
+#endif
+}
+
+CF_PRIVATE CFStringRef _CFBundleGetAlternatePlatformExecutablesSubdirectoryName(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    return CFSTR("Mac OS X");
+#elif DEPLOYMENT_TARGET_WINDOWS
+    return CFSTR("WinNT");
+#elif DEPLOYMENT_TARGET_SOLARIS
+    return CFSTR("Solaris");
+#elif DEPLOYMENT_TARGET_HPUX
+    return CFSTR("HP-UX");
+#elif DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_CYGWIN
+    return CFSTR("Cygwin");
+#else
+    return CFSTR("Linux");
+#endif
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return CFSTR("FreeBSD");
+#else
+#error Unknown or unspecified DEPLOYMENT_TARGET
+#endif
+}
+
+CF_PRIVATE CFStringRef _CFBundleGetOtherPlatformExecutablesSubdirectoryName(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    return CFSTR("MacOSClassic");
+#elif DEPLOYMENT_TARGET_WINDOWS
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_HPUX
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_SOLARIS
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_LINUX
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return CFSTR("Other");
+#else
+#error Unknown or unspecified DEPLOYMENT_TARGET
+#endif
+}
+
+CF_PRIVATE CFStringRef _CFBundleGetOtherAlternatePlatformExecutablesSubdirectoryName(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    return CFSTR("Mac OS 8");
+#elif DEPLOYMENT_TARGET_WINDOWS
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_HPUX
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_SOLARIS
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_LINUX
+    return CFSTR("Other");
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return CFSTR("Other");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -530,10 +600,7 @@ static void _CFBundleSplitFileName(CFStringRef fileName, CFStringRef *noProductO
     }    
 }
 
-static Boolean _CFBundleReadDirectory(CFStringRef pathOfDir, CFStringRef subdirectory, CFMutableArrayRef allFiles, Boolean hasFileAdded, CFMutableDictionaryRef queryTable, CFMutableDictionaryRef typeDir, CFMutableDictionaryRef addedTypes, Boolean firstLproj, CFStringRef lprojName) {
-    
-    CFStringRef product = _CFBundleGetProductNameSuffix();
-    CFStringRef platform = _CFBundleGetPlatformNameSuffix();
+static Boolean _CFBundleReadDirectory(CFStringRef pathOfDir, CFStringRef subdirectory, CFMutableArrayRef allFiles, Boolean hasFileAdded, CFMutableDictionaryRef queryTable, CFMutableDictionaryRef typeDir, CFMutableDictionaryRef addedTypes, Boolean firstLproj, CFStringRef product, CFStringRef platform, CFStringRef lprojName) {
     
     CFArrayRef stuffToPrefix = NULL;
     if (lprojName && subdirectory) {
@@ -633,6 +700,14 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
     CFMutableArrayRef allFiles = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
     CFMutableDictionaryRef typeDir = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     
+    CFStringRef productName = _CFGetProductName();//CFSTR("iphone");
+    CFStringRef platformName = _CFGetPlatformName();//CFSTR("iphoneos");
+    if (CFEqual(productName, CFSTR("ipod"))) {
+        productName = CFSTR("iphone");
+    }
+    CFStringRef product = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("~%@"), productName);
+    CFStringRef platform = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("-%@"), platformName);
+    
     CFMutableStringRef path = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, inPath);
     
     if (resourcesDirectory) {
@@ -646,7 +721,7 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
         _CFAppendPathComponent2(path, subdirectory);
     }
     // read the content in sub dir and put them into query table
-    _CFBundleReadDirectory(path, subdirectory, allFiles, false, queryTable, typeDir, NULL, false, NULL);
+    _CFBundleReadDirectory(path, subdirectory, allFiles, false, queryTable, typeDir, NULL, false, product, platform, NULL);
     CFStringDelete(path, CFRangeMake(basePathLen, CFStringGetLength(path) - basePathLen));    // Strip the string back to the base path
     
     CFIndex numOfAllFiles = CFArrayGetCount(allFiles);
@@ -667,7 +742,7 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
         if (subdirectory) {
             _CFAppendPathComponent2(path, subdirectory);
         }
-        _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, firstLproj, lprojTargetWithLproj);
+        _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, firstLproj, product, platform, lprojTargetWithLproj);
         CFRelease(lprojTargetWithLproj);
         CFStringDelete(path, CFRangeMake(basePathLen, CFStringGetLength(path) - basePathLen));         // Strip the string back to the base path
         
@@ -683,7 +758,7 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
     if (subdirectory) {
         _CFAppendPathComponent2(path, subdirectory);
     }
-    _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, YES, _CFBundleBaseDirectoryWithLproj);
+    _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, YES, product, platform, _CFBundleBaseDirectoryWithLproj);
     CFStringDelete(path, CFRangeMake(basePathLen, CFStringGetLength(path) - basePathLen));    // Strip the string back to the base path
     
     if (!hasFileAdded && numOfAllFiles < CFArrayGetCount(allFiles)) {
@@ -702,7 +777,7 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
             if (subdirectory) {
                 _CFAppendPathComponent2(path, subdirectory);
             }
-            _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, false, lprojTargetWithLproj);
+            _CFBundleReadDirectory(path, subdirectory, allFiles, hasFileAdded, queryTable, typeDir, addedTypes, false, product, platform, lprojTargetWithLproj);
             CFRelease(lprojTargetWithLproj);
             CFStringDelete(path, CFRangeMake(basePathLen, CFStringGetLength(path) - basePathLen));         // Strip the string back to the base path
 
@@ -720,6 +795,8 @@ static CFDictionaryRef _createQueryTableAtPath(CFStringRef inPath, CFArrayRef la
         CFDictionarySetValue(queryTable, _CFBundleAllFiles, allFiles);
     }
     
+    CFRelease(platform);
+    CFRelease(product);
     CFRelease(allFiles);
     CFRelease(typeDir);
     
