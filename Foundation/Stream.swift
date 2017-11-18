@@ -157,7 +157,7 @@ open class InputStream: Stream {
     }
     
     open override var streamError: Error? {
-        return CFReadStreamCopyError(_stream)
+        return _CFReadStreamCopyError(_stream)
     }
 }
 
@@ -221,7 +221,7 @@ open class OutputStream : Stream {
     }
     
     open override var streamError: Error? {
-        return CFWriteStreamCopyError(_stream)
+        return _CFWriteStreamCopyError(_stream)
     }
 }
 

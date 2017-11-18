@@ -1,7 +1,7 @@
 /*	CFBundle_Internal.h
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -52,7 +52,7 @@ typedef struct __CFPlugInData {
     Boolean _isPlugIn;
     Boolean _loadOnDemand;
     Boolean _isDoingDynamicRegistration;
-    Boolean _registeredFactory;
+    Boolean _unused1;
     UInt32 _instanceCount;
     CFMutableArrayRef _factories;
 } _CFPlugInData;
@@ -61,6 +61,7 @@ struct __CFBundle {
     CFRuntimeBase _base;
     
     CFURLRef _url;
+    CFDateRef _modDate;
     
     CFDictionaryRef _infoDict;
     CFDictionaryRef _localInfoDict;
@@ -81,6 +82,9 @@ struct __CFBundle {
     
     /* dlfcn goop */
     void *_handleCookie;
+    
+    /* CFM<->DYLD glue */
+    CFMutableDictionaryRef _glueDict;
     
     /* Resource fork goop */
     _CFResourceData _resourceData;
@@ -135,13 +139,12 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void);
 CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void);
 
 CF_PRIVATE void _CFBundleFlushQueryTableCache(CFBundleRef bundle);
-CF_PRIVATE void _CFBundleFlushAllBundleCaches(void);
 
 CF_PRIVATE SInt32 _CFBundleCurrentArchitecture(void);
 CF_PRIVATE Boolean _CFBundleGetObjCImageInfo(CFBundleRef bundle, uint32_t *objcVersion, uint32_t *objcFlags);
 
 #if defined(BINARY_SUPPORT_DYLD)
-CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable();
+CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable(void);
 CF_PRIVATE Boolean _CFBundleGrokObjCImageInfoFromMainExecutable(uint32_t *objcVersion, uint32_t *objcFlags);
 #endif
 
@@ -156,32 +159,39 @@ CF_PRIVATE Boolean CFBundleAllowMixedLocalizations(void);
 
 // Misc
 
-CF_PRIVATE Boolean _CFIsResourceAtURL(CFURLRef url, Boolean *isDir);
-CF_PRIVATE Boolean _CFIsResourceAtPath(CFStringRef path, Boolean *isDir);
+extern Boolean _CFIsResourceAtURL(CFURLRef url, Boolean *isDir);
+extern Boolean _CFIsResourceAtPath(CFStringRef path, Boolean *isDir);
 
 CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url);
-CF_PRIVATE CFBundleRef _CFBundleCreateMain(CFAllocatorRef allocator, CFURLRef mainBundleURL);
+extern CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, UInt8 *version);
+extern CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef *infoPlistUrl, UInt8 version);
+extern CFURLRef _CFBundleCopySupportFilesDirectoryURLInDirectory(CFURLRef bundleURL, UInt8 version);
+extern CFURLRef _CFBundleCopyResourcesDirectoryURLInDirectory(CFURLRef bundleURL, UInt8 version);
 
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, UInt8 *version);
-CF_PRIVATE CFURLRef _CFBundleCopyResourcesDirectoryURLInDirectory(CFURLRef bundleURL, UInt8 version);
-
-CF_PRIVATE Boolean _CFBundleCouldBeBundle(CFURLRef url);
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInResourceForkWithAllocator(CFAllocatorRef alloc, CFURLRef url);
+extern Boolean _CFBundleCouldBeBundle(CFURLRef url);
+extern CFDictionaryRef _CFBundleCopyInfoDictionaryInResourceForkWithAllocator(CFAllocatorRef alloc, CFURLRef url);
 CF_PRIVATE CFStringRef _CFBundleCopyExecutableName(CFBundleRef bundle, CFURLRef url, CFDictionaryRef infoDict);
 #if DEPLOYMENT_TARGET_MACOSX
 CF_PRIVATE CFStringRef _CFBundleCopyBundleDevelopmentRegionFromVersResource(CFBundleRef bundle);
 #endif
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInExecutable(CFURLRef url);
-CF_PRIVATE CFArrayRef _CFBundleCopyArchitecturesForExecutable(CFURLRef url);
+extern CFDictionaryRef _CFBundleCopyInfoDictionaryInExecutable(CFURLRef url);
+extern CFArrayRef _CFBundleCopyArchitecturesForExecutable(CFURLRef url);
 
-CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void);
+extern CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void);
+extern CFStringRef _CFBundleGetAlternatePlatformExecutablesSubdirectoryName(void);
+extern CFStringRef _CFBundleGetOtherPlatformExecutablesSubdirectoryName(void);
+extern CFStringRef _CFBundleGetOtherAlternatePlatformExecutablesSubdirectoryName(void);
 
-CF_PRIVATE void _CFBundleScheduleForUnloading(CFBundleRef bundle);
-CF_PRIVATE void _CFBundleUnscheduleForUnloading(CFBundleRef bundle);
+extern CFStringRef _CFCreateStringFromVersionNumber(CFAllocatorRef alloc, UInt32 vers);
+extern UInt32 _CFVersionNumberFromString(CFStringRef versStr);
+
+extern void _CFBundleScheduleForUnloading(CFBundleRef bundle);
+extern void _CFBundleUnscheduleForUnloading(CFBundleRef bundle);
+extern void _CFBundleUnloadScheduledBundles(void);
+
+CF_PRIVATE void _CFBundleAppendResourceDir(CFMutableStringRef path, uint8_t version);
 
 CF_PRIVATE UInt8 _CFBundleLayoutVersion(CFBundleRef bundle);
-CF_PRIVATE uint8_t _CFBundleEffectiveLayoutVersion(CFBundleRef bundle);
-
 
 #if defined(BINARY_SUPPORT_DYLD)
 // DYLD API
@@ -216,6 +226,7 @@ extern void *_CFBundleDLLGetSymbolByName(CFBundleRef bundle, CFStringRef symbolN
 
 /* Private PlugIn-related CFBundle API */
 
+extern Boolean _CFBundleNeedsInitPlugIn(CFBundleRef bundle);
 extern void _CFBundleInitPlugIn(CFBundleRef bundle);
 extern void _CFBundlePlugInLoaded(CFBundleRef bundle);
 extern void _CFBundleDeallocatePlugIn(CFBundleRef bundle);
@@ -322,22 +333,14 @@ extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 #define _CFBundleMacOSXPlatformName CFSTR("macos")
 #define _CFBundleAlternateMacOSXPlatformName CFSTR("macosx")
 #define _CFBundleiPhoneOSPlatformName CFSTR("iphoneos")
+#define _CFBundleMacOS8PlatformName CFSTR("macosclassic")
+#define _CFBundleAlternateMacOS8PlatformName CFSTR("macos8")
 #define _CFBundleWindowsPlatformName CFSTR("windows")
 #define _CFBundleHPUXPlatformName CFSTR("hpux")
 #define _CFBundleSolarisPlatformName CFSTR("solaris")
 #define _CFBundleLinuxPlatformName CFSTR("linux")
 #define _CFBundleFreeBSDPlatformName CFSTR("freebsd")
-#define _CFBundleMacOSXPlatformNameSuffix CFSTR("-macos")
-#define _CFBundleAlternateMacOSXPlatformNameSuffix CFSTR("-macosx")
-#define _CFBundleiPhoneOSPlatformNameSuffix CFSTR("-iphoneos")
-#define _CFBundleWindowsPlatformNameSuffix CFSTR("-windows")
-#define _CFBundleHPUXPlatformNameSuffix CFSTR("-hpux")
-#define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
-#define _CFBundleLinuxPlatformNameSuffix CFSTR("-linux")
-#define _CFBundleFreeBSDPlatformNameSuffix CFSTR("-freebsd")
-
-CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void);
-CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void);
+#define _CFBundleCygwinPlatformName CFSTR("cygwin")
 
 #define _CFBundleDefaultStringTableName CFSTR("Localizable")
 #define _CFBundleStringTableType CFSTR("strings")

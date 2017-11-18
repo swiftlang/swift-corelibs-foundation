@@ -1,7 +1,7 @@
 /*	CFMessagePort.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -73,47 +73,47 @@ struct __CFMessagePort {
 /* Bit 3 in the base reserved bits is used for is-deallocing state */
 
 CF_INLINE Boolean __CFMessagePortIsValid(CFMessagePortRef ms) {
-    return __CFRuntimeGetFlag(ms, 0);
+    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 0, 0);
 }
 
 CF_INLINE void __CFMessagePortSetValid(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 0, true);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 0, 0, 1);
 }
 
 CF_INLINE void __CFMessagePortUnsetValid(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 0, false);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 0, 0, 0);
 }
 
 CF_INLINE Boolean __CFMessagePortExtraMachRef(CFMessagePortRef ms) {
-    return __CFRuntimeGetFlag(ms, 1);
+    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 1, 1);
 }
 
 CF_INLINE void __CFMessagePortSetExtraMachRef(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 1, true);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 1, 1, 1);
 }
 
 CF_INLINE void __CFMessagePortUnsetExtraMachRef(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 1, false);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 1, 1, 0);
 }
 
 CF_INLINE Boolean __CFMessagePortIsRemote(CFMessagePortRef ms) {
-    return __CFRuntimeGetFlag(ms, 2);
+    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 2, 2);
 }
 
 CF_INLINE void __CFMessagePortSetRemote(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 2, true);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 2, 2, 1);
 }
 
 CF_INLINE void __CFMessagePortUnsetRemote(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 2, false);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 2, 2, 0);
 }
 
 CF_INLINE Boolean __CFMessagePortIsDeallocing(CFMessagePortRef ms) {
-    return __CFRuntimeGetFlag(ms, 3);
+    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 3, 3);
 }
 
 CF_INLINE void __CFMessagePortSetIsDeallocing(CFMessagePortRef ms) {
-    __CFRuntimeSetFlag(ms, 3, true);
+    __CFBitfieldSetValue(((CFRuntimeBase *)ms)->_cfinfo[CF_INFO_BITS], 3, 3, 1);
 }
 
 CF_INLINE void __CFMessagePortLock(CFMessagePortRef ms) {
@@ -1144,7 +1144,7 @@ void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) 
                     if (MACH_RCV_TOO_LARGE != ret) HALT;
 
                     uint32_t newSize = round_msg(msg->msgh_size + MAX_TRAILER_SIZE);
-                    msg = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, msg, newSize, 0, NULL);
+                    msg = CFAllocatorReallocate(kCFAllocatorSystemDefault, msg, newSize, 0);
                     msg->msgh_size = newSize;
                 }
 
