@@ -77,14 +77,14 @@ private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
 
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
-    
+
     private var _base = _CFInfo(typeID: CFDataGetTypeID())
     private var _length: CFIndex = 0
     private var _capacity: CFIndex = 0
     private var _deallocator: UnsafeMutableRawPointer? = nil // for CF only
     private var _deallocHandler: _NSDataDeallocator? = _NSDataDeallocator() // for Swift
     private var _bytes: UnsafeMutablePointer<UInt8>? = nil
-    
+
     internal var _cfObject: CFType {
         if type(of: self) === NSData.self || type(of: self) === NSMutableData.self {
             return unsafeBitCast(self, to: CFType.self)
@@ -93,18 +93,17 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             return CFDataCreate(kCFAllocatorSystemDefault, bytePtr, self.length)
         }
     }
-    
+
     internal func _providesConcreteBacking() -> Bool {
         return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
     }
-    
+
     override open var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
 
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional     
-    public init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
-        super.init()
+    private func _init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         let options : CFOptionFlags = (type(of: self) == NSMutableData.self) ? __kCFMutable | __kCFGrowable : 0x0
         let bytePtr = bytes?.bindMemory(to: UInt8.self, capacity: length)
         if copy {
@@ -120,54 +119,91 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             _CFDataInit(unsafeBitCast(self, to: CFMutableData.self), options | __kCFDontDeallocate, length, bytePtr, length, true)
         }
     }
-    
-    public override convenience init() {
-        let dummyPointer = unsafeBitCast(NSData.self, to: UnsafeMutableRawPointer.self)
-        self.init(bytes: dummyPointer, length: 0, copy: false, deallocator: nil)
+
+    fileprivate init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+        super.init()
+        _init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
     
-    public convenience init(bytes: UnsafeRawPointer?, length: Int) {
-        self.init(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true, deallocator: nil)
+    public override init() {
+        super.init()
+        _init(bytes: nil, length: 0)
     }
-    
-    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int) {
-        self.init(bytes: bytes, length: length, copy: false, deallocator: nil)
+
+    /// Initializes a data object filled with a given number of bytes copied from a given buffer.
+    public init(bytes: UnsafeRawPointer?, length: Int) {
+        super.init()
+        _init(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true)
     }
-    
-    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, freeWhenDone b: Bool) {
-        self.init(bytes: bytes, length: length, copy: false) { buffer, length in
-            if b {
+
+    /// Initializes a data object filled with a given number of bytes of data from a given buffer.
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int) {
+        super.init()
+        _init(bytes: bytes, length: length)
+    }
+
+    /// Initializes a data object filled with a given number of bytes of data from a given buffer.
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, freeWhenDone: Bool) {
+        super.init()
+        _init(bytes: bytes, length: length, copy: false) { buffer, length in
+            if freeWhenDone {
                 free(buffer)
             }
         }
     }
 
-    // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional         
-    public convenience init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
-        self.init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
+    /// Initializes a data object filled with a given number of bytes of data from a given buffer, with a custom deallocator block.
+    /// NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+        super.init()
+        _init(bytes: bytes, length: length, copy: false, deallocator: deallocator)
     }
 
-    public convenience init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
+    /// Initializes a data object with the contents of the file at a given path.
+    public init(contentsOfFile path: String, options readOptionsMask: ReadingOptions = []) throws {
+        super.init()
         let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: readOptionsMask)
-        self.init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+        _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
     }
-    
-    public convenience init?(contentsOfFile path: String) {
+
+    /// Initializes a data object with the contents of the file at a given path.
+    public init?(contentsOfFile path: String) {
         do {
+            super.init()
             let readResult = try NSData.readBytesFromFileWithExtendedAttributes(path, options: [])
-            self.init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
         } catch {
             return nil
         }
     }
-    
-    public convenience init(data: Data) {
-        self.init(bytes:data._nsObject.bytes, length: data.count)
+
+    /// Initializes a data object with the contents of another data object.
+    public init(data: Data) {
+        super.init()
+        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
     }
-    
-    public convenience init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
+
+    /// Initializes a data object with the data from the location specified by a given URL.
+    public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
+        super.init()
+        try _contentsOf(url: url, options: readOptionsMask)
+    }
+
+    /// Initializes a data object with the data from the location specified by a given URL.
+    public init?(contentsOf url: URL) {
+        super.init()
+        do {
+            try _contentsOf(url: url)
+        } catch {
+            return nil
+        }
+    }
+
+    /// Initializes a data object with the data from the location specified by a given URL.
+    private func _contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws {
         if url.isFileURL {
-            try self.init(contentsOfFile: url.path, options: readOptionsMask)
+            let readResult = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
+            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
@@ -183,28 +219,29 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = resData else {
                 throw resError!
             }
-            self.init(data: data)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
         }
     }
-    
-    public convenience init?(base64Encoded base64String: String, options: Base64DecodingOptions = []) {
+
+    /// Initializes a data object with the given Base64 encoded string.
+    public init?(base64Encoded base64String: String, options: Base64DecodingOptions = []) {
         let encodedBytes = Array(base64String.utf8)
         guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
         }
-        self.init(bytes: decodedBytes, length: decodedBytes.count)
+        super.init()
+        _init(bytes: UnsafeMutableRawPointer(mutating: decodedBytes), length: decodedBytes.count, copy: true)
     }
-    
-    
-    /* Create an NSData from a Base-64, UTF-8 encoded NSData. By default, returns nil when the input is not recognized as valid Base-64.
-     */
-    public convenience init?(base64Encoded base64Data: Data, options: Base64DecodingOptions = []) {
+
+    /// Initializes a data object with the given Base64 encoded data.
+    public init?(base64Encoded base64Data: Data, options: Base64DecodingOptions = []) {
         var encodedBytes = [UInt8](repeating: 0, count: base64Data.count)
         base64Data._nsObject.getBytes(&encodedBytes, length: encodedBytes.count)
         guard let decodedBytes = NSData.base64DecodeBytes(encodedBytes, options: options) else {
             return nil
         }
-        self.init(bytes: decodedBytes, length: decodedBytes.count)
+        super.init()
+        _init(bytes: UnsafeMutableRawPointer(mutating: decodedBytes), length: decodedBytes.count, copy: true)
     }
     
     deinit {
@@ -215,12 +252,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             _CFDeinit(self._cfObject)
         }
     }
-    
+
     // MARK: - Funnel methods
+
+    /// The number of bytes contained by the data object.
     open var length: Int {
         return CFDataGetLength(_cfObject)
     }
-    
+
+    /// A pointer to the data object's contents.
     open var bytes: UnsafeRawPointer {
         guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
             //This could occure on empty data being encoded.
@@ -230,13 +270,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return UnsafeRawPointer(bytePtr)
     }
 
-    
-
     // MARK: - NSObject methods
     open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
-    
+
+    /// Returns a Boolean value indicating whether this data object is the same as another.
     open override func isEqual(_ value: Any?) -> Bool {
         if let data = value as? Data {
             return isEqual(to: data)
@@ -255,9 +294,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
 #endif
-        
         return false
     }
+
     open func isEqual(to other: Data) -> Bool {
         if length != other.count {
             return false
@@ -312,12 +351,12 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     override open var debugDescription: String {
         return "<\(byteDescription(limit: 1024))>"
     }
-    
+
+    /// A string that contains a hexadecimal representation of the data object’s contents in a property list format.
     override open var description: String {
         return "<\(byteDescription())>"
     }
-    
-    
+
     // MARK: - NSCoding methods
     open func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
@@ -328,7 +367,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
     
-    public required convenience init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
+        super.init()
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
@@ -336,7 +376,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            self.init(data: data._swiftObject)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
         } else {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }
@@ -344,7 +384,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
             
             guard let r = result else { return nil }
-            self.init(data: r)
+            _init(bytes: UnsafeMutableRawPointer(mutating: r._nsObject.bytes), length: r.count, copy: true)
         }
     }
     
@@ -481,7 +521,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
     }
-    
+
+    /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
         var fd : Int32
         var mode : mode_t? = nil
@@ -542,7 +583,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             }
         }
     }
-    
+
+    /// Writes the data object's bytes to the file specified by a given path.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         do {
@@ -552,7 +594,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return true
     }
-    
+
+    /// Writes the data object's bytes to the location specified by a given URL.
     /// NOTE: the 'atomically' flag is ignored if the url is not of a type the supports atomic writes
     open func write(to url: URL, atomically: Bool) -> Bool {
         if url.isFileURL {
@@ -561,9 +604,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return false
     }
 
-    ///    Write the contents of the receiver to a location specified by the given file URL.
+    ///    Writes the data object's bytes to the location specified by a given URL.
     ///
-    ///    - parameter url:              The location to which the receiver’s contents will be written.
+    ///    - parameter url:              The location to which the data objects's contents will be written.
     ///    - parameter writeOptionsMask: An option set specifying file writing options.
     ///
     ///    - throws: This method returns Void and is marked with the `throws` keyword to indicate that it throws an error in the event of failure.
@@ -577,19 +620,21 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         try write(toFile: url.path, options: writeOptionsMask)
     }
-    
-    
+
     // MARK: - Bytes
+    /// Copies a number of bytes from the start of the data object into a given buffer.
     open func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
         let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: length)
         CFDataGetBytes(_cfObject, CFRangeMake(0, length), bytePtr)
     }
-    
+
+    /// Copies a range of bytes from the data object into a given buffer.
     open func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
         let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: range.length)
         CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), bytePtr)
     }
-    
+
+    /// Returns a new data object containing the data object's bytes that fall within the limits specified by a given range.
     open func subdata(with range: NSRange) -> Data {
         if range.length == 0 {
             return Data()
@@ -600,7 +645,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let p = self.bytes.advanced(by: range.location).bindMemory(to: UInt8.self, capacity: range.length)
         return Data(bytes: p, count: range.length)
     }
-    
+
+    /// Finds and returns the range of the first occurrence of the given data, within the given range, subject to given options.
     open func range(of dataToFind: Data, options mask: SearchOptions = [], in searchRange: NSRange) -> NSRange {
         let dataToFind = dataToFind._nsObject
         guard dataToFind.length > 0 else {return NSRange(location: NSNotFound, length: 0)}
@@ -622,6 +668,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return location.map {NSRange(location: $0, length: search.count)} ?? NSRange(location: NSNotFound, length: 0)
     }
+
     private static func searchSubSequence<T : Collection, T2 : Sequence>(_ subSequence : T2, inSequence seq: T,anchored : Bool) -> T.Index? where T.Iterator.Element : Equatable, T.Iterator.Element == T2.Iterator.Element {
         for index in seq.indices {
             if seq.suffix(from: index).starts(with: subSequence) {
@@ -646,7 +693,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
-    /// 'block' is called once for each contiguous region of memory in the receiver (once total for contiguous NSDatas), until either all bytes have been enumerated, or the 'stop' parameter is set to true.
+    /// Enumerates each range of bytes in the data object using a block.
+    /// 'block' is called once for each contiguous region of memory in the data object (once total for contiguous NSDatas),
+    /// until either all bytes have been enumerated, or the 'stop' parameter is set to true.
     open func enumerateBytes(_ block: (UnsafeRawPointer, NSRange, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
         withUnsafeMutablePointer(to: &stop) { stopPointer in
@@ -656,10 +705,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             block(bytes, NSMakeRange(0, length), stopPointer)
         }
     }
-    
+
     // MARK: - Base64 Methods
 
-    /// Create a Base-64 encoded String from the receiver's contents using the given options.
+    /// Creates a Base64 encoded String from the data object using the given options.
     open func base64EncodedString(options: Base64EncodingOptions = []) -> String {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
@@ -668,7 +717,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return String(characters)
     }
 
-    /// Create a Base-64, UTF-8 encoded Data from the receiver's contents using the given options.
+    /// Creates a Base64, UTF-8 encoded Data from the data object using the given options.
     open func base64EncodedData(options: Base64EncodingOptions = []) -> Data {
         var decodedBytes = [UInt8](repeating: 0, count: self.length)
         getBytes(&decodedBytes, length: decodedBytes.count)
@@ -701,6 +750,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         case invalid
         case padding
     }
+
     private static func base64DecodeByte(_ byte: UInt8) -> Base64DecodedByte {
         guard byte != base64Padding else {return .padding}
         var decodedStart: UInt8 = 0
@@ -736,8 +786,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return 0
     }
-    
-    
+
     /**
      This method decodes Base64-encoded data.
      
@@ -809,8 +858,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return decodedBytes
     }
-    
-    
+
     /**
      This method encodes data in Base64.
      
@@ -887,7 +935,6 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
         return result
     }
-    
 }
 
 // MARK: -
@@ -913,29 +960,43 @@ extension CFData : _NSBridgeable, _SwiftBridgeable {
 // MARK: -
 open class NSMutableData : NSData {
     internal var _cfMutableObject: CFMutableData { return unsafeBitCast(self, to: CFMutableData.self) }
-    
+
+    public override init() {
+        super.init(bytes: nil, length: 0)
+    }
+
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
     public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
-    public init() {
-        self.init(bytes: nil, length: 0)
+
+    /// Initializes a data object filled with a given number of bytes copied from a given buffer.
+    public override init(bytes: UnsafeRawPointer?, length: Int) {
+        super.init(bytes: UnsafeMutableRawPointer(mutating: bytes), length: length, copy: true, deallocator: nil)
     }
-        
-    public convenience init?(capacity: Int) {
-        self.init(bytes: nil, length: 0)
+
+    /// Returns an initialized mutable data object capable of holding the specified number of bytes.
+    public init?(capacity: Int) {
+        super.init(bytes: nil, length: 0)
     }
-    
-    public convenience init?(length: Int) {
-        self.init(bytes: nil, length: 0)
+
+    /// Initializes and returns a mutable data object containing a given number of zeroed bytes.
+    public init?(length: Int) {
+        super.init(bytes: nil, length: 0)
         self.length = length
     }
-    
+
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+
     // MARK: - Funnel Methods
+    /// A pointer to the data contained by the mutable data object.
     open var mutableBytes: UnsafeMutableRawPointer {
         return UnsafeMutableRawPointer(CFDataGetMutableBytePtr(_cfMutableObject))
     }
-    
+
+    /// The number of bytes contained in the mutable data object.
     open override var length: Int {
         get {
             return CFDataGetLength(_cfObject)
@@ -951,40 +1012,45 @@ open class NSMutableData : NSData {
     }
 
     // MARK: - Mutability
+    /// Appends to the data object a given number of bytes from a given buffer.
     open func append(_ bytes: UnsafeRawPointer, length: Int) {
         let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
         CFDataAppendBytes(_cfMutableObject, bytePtr, length)
     }
-    
+
+    /// Appends the content of another data object to the data object.
     open func append(_ other: Data) {
         let otherLength = other.count
         other.withUnsafeBytes {
             append($0, length: otherLength)
         }
-        
     }
-    
+
+    /// Increases the length of the data object by a given number of bytes.
     open func increaseLength(by extraLength: Int) {
         CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
     }
-    
+
+    /// Replaces with a given set of bytes a given range within the contents of the data object.
     open func replaceBytes(in range: NSRange, withBytes bytes: UnsafeRawPointer) {
         let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, length)
     }
-    
+
+    /// Replaces with zeroes the contents of the data object in a given range.
     open func resetBytes(in range: NSRange) {
         bzero(mutableBytes.advanced(by: range.location), range.length)
     }
-    
+
+    /// Replaces the entire contents of the data object with the contents of another data object.
     open func setData(_ data: Data) {
         length = data.count
         data.withUnsafeBytes {
             replaceBytes(in: NSMakeRange(0, length), withBytes: $0)
         }
-        
     }
-    
+
+    /// Replaces with a given set of bytes a given range within the contents of the data object.
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
         let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
         CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
