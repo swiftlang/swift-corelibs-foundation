@@ -41,7 +41,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     deinit {
         if self._decoded {
             // Cannot deinitialize memory without knowing the element type.
-            self._addr.deallocate(bytes: self._count * self._size, alignedTo: 1)
+            self._addr.deallocate()
         }
     }
     
@@ -61,7 +61,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             return nil
         }
         
-        self._addr = UnsafeMutableRawPointer.allocate(bytes: self._count * self._size, alignedTo: 1)
+        self._addr = UnsafeMutableRawPointer.allocate(byteCount: self._count * self._size, alignment: 1)
         
         super.init()
         
@@ -95,7 +95,7 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
     
     func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutableRawPointer) {
         if type == self._type && count <= self._count {
-            addr.copyBytes(from: self._addr, count: count * self._size)
+            addr.copyMemory(from: self._addr, byteCount: count * self._size)
         }
     }
     
