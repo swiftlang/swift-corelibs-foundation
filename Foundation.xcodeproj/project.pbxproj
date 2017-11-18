@@ -302,12 +302,6 @@
 		5BF7AEBF1BCD51F9008F214A /* NSURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */; };
 		5BF7AEC01BCD51F9008F214A /* NSUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */; };
 		5BF7AEC11BCD51F9008F214A /* NSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */; };
-		5BF9B7F31FABBDB900EE1A7C /* CFPropertyList_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BF9B7F11FABBDB000EE1A7C /* CFPropertyList_Private.h */; };
-		5BF9B7FE1FABD5DA00EE1A7C /* CFBundle_DebugStrings.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF9B7F51FABD5D400EE1A7C /* CFBundle_DebugStrings.c */; };
-		5BF9B7FF1FABD5DA00EE1A7C /* CFBundle_Executable.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF9B7F81FABD5D500EE1A7C /* CFBundle_Executable.c */; };
-		5BF9B8001FABD5DA00EE1A7C /* CFBundle_Main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF9B7F41FABD5D300EE1A7C /* CFBundle_Main.c */; };
-		5BF9B8011FABD5DA00EE1A7C /* CFBundle_ResourceFork.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF9B7F61FABD5D400EE1A7C /* CFBundle_ResourceFork.c */; };
-		5BF9B8021FABD5DA00EE1A7C /* CFBundle_Tables.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF9B7F71FABD5D400EE1A7C /* CFBundle_Tables.c */; };
 		5FE52C951D147D1C00F7D270 /* TestNSTextCheckingResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FE52C941D147D1C00F7D270 /* TestNSTextCheckingResult.swift */; };
 		61E0117D1C1B5590000037DD /* RunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B761BD15DFF00C49C64 /* RunLoop.swift */; };
 		61E0117E1C1B55B9000037DD /* Timer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDC3F481BCC5DCB00ED97BB /* Timer.swift */; };
@@ -767,12 +761,6 @@
 		5BECBA391D1CAE9A00B39B1F /* NSMeasurement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSMeasurement.swift; sourceTree = "<group>"; };
 		5BECBA3B1D1CAF8800B39B1F /* Unit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Unit.swift; sourceTree = "<group>"; };
 		5BF7AEC21BCD568D008F214A /* ForSwiftFoundationOnly.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ForSwiftFoundationOnly.h; sourceTree = "<group>"; };
-		5BF9B7F11FABBDB000EE1A7C /* CFPropertyList_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFPropertyList_Private.h; sourceTree = "<group>"; };
-		5BF9B7F41FABD5D300EE1A7C /* CFBundle_Main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_Main.c; sourceTree = "<group>"; };
-		5BF9B7F51FABD5D400EE1A7C /* CFBundle_DebugStrings.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_DebugStrings.c; sourceTree = "<group>"; };
-		5BF9B7F61FABD5D400EE1A7C /* CFBundle_ResourceFork.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_ResourceFork.c; sourceTree = "<group>"; };
-		5BF9B7F71FABD5D400EE1A7C /* CFBundle_Tables.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_Tables.c; sourceTree = "<group>"; };
-		5BF9B7F81FABD5D500EE1A7C /* CFBundle_Executable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFBundle_Executable.c; sourceTree = "<group>"; };
 		5E5835F31C20C9B500C81317 /* TestThread.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestThread.swift; sourceTree = "<group>"; };
 		5EB6A15C1C188FC40037DCB8 /* TestJSONSerialization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestJSONSerialization.swift; sourceTree = "<group>"; };
 		5EF673AB1C28B527006212A3 /* TestNotificationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNotificationQueue.swift; sourceTree = "<group>"; };
@@ -1253,11 +1241,6 @@
 				5B5D89481BBDA9EE00234F36 /* CFPlugIn.c */,
 				5B5D89451BBDA9EE00234F36 /* CFPlugIn.h */,
 				5B5D89461BBDA9EE00234F36 /* CFPlugInCOM.h */,
-				5BF9B7F51FABD5D400EE1A7C /* CFBundle_DebugStrings.c */,
-				5BF9B7F81FABD5D500EE1A7C /* CFBundle_Executable.c */,
-				5BF9B7F41FABD5D300EE1A7C /* CFBundle_Main.c */,
-				5BF9B7F61FABD5D400EE1A7C /* CFBundle_ResourceFork.c */,
-				5BF9B7F71FABD5D400EE1A7C /* CFBundle_Tables.c */,
 			);
 			name = PlugIn;
 			path = CoreFoundation/PlugIn.subproj;
@@ -1270,7 +1253,6 @@
 				5B5D898F1BBDBFB100234F36 /* CFOldStylePList.c */,
 				5B5D88FB1BBC9B9500234F36 /* CFPropertyList.c */,
 				5B5D88FA1BBC9B9500234F36 /* CFPropertyList.h */,
-				5BF9B7F11FABBDB000EE1A7C /* CFPropertyList_Private.h */,
 				5B5D89961BBDBFDA00234F36 /* CFXMLInputStream.c */,
 				5B5D89951BBDBFDA00234F36 /* CFXMLInputStream.h */,
 				5B5D899A1BBDBFEA00234F36 /* CFXMLNode.c */,
@@ -1937,7 +1919,6 @@
 				5B7C8AF91BEA81AC00C5B690 /* CFStringEncodingDatabase.h in Headers */,
 				EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */,
 				5B7C8B001BEA82ED00C5B690 /* CFRuntime.h in Headers */,
-				5BF9B7F31FABBDB900EE1A7C /* CFPropertyList_Private.h in Headers */,
 				5B7C8ABE1BEA807A00C5B690 /* CFByteOrder.h in Headers */,
 				5B7C8AF71BEA81AC00C5B690 /* CFStringEncodingConverterExt.h in Headers */,
 				5B7C8AE31BEA81AC00C5B690 /* CFLogUtilities.h in Headers */,
@@ -2311,7 +2292,6 @@
 				5B7C8A871BEA7FDB00C5B690 /* CFLocale.c in Sources */,
 				5BDF62901C1A550800A89075 /* CFRegularExpression.c in Sources */,
 				5B7C8AB71BEA801700C5B690 /* CFUnicodePrecomposition.c in Sources */,
-				5BF9B7FE1FABD5DA00EE1A7C /* CFBundle_DebugStrings.c in Sources */,
 				5B7C8A721BEA7FCE00C5B690 /* CFBase.c in Sources */,
 				5B7C8A951BEA7FEC00C5B690 /* CFXMLTree.c in Sources */,
 				5B7C8AB81BEA802100C5B690 /* CFURLComponents_URIParser.c in Sources */,
@@ -2319,7 +2299,6 @@
 				5B7C8A791BEA7FCE00C5B690 /* CFUUID.c in Sources */,
 				5B7C8A7F1BEA7FCE00C5B690 /* CFData.c in Sources */,
 				5B7C8A9C1BEA7FF900C5B690 /* CFBundle.c in Sources */,
-				5BF9B8001FABD5DA00EE1A7C /* CFBundle_Main.c in Sources */,
 				5B7C8AB51BEA801700C5B690 /* CFUniChar.c in Sources */,
 				61E011811C1B5998000037DD /* CFMessagePort.c in Sources */,
 				5B7C8AB61BEA801700C5B690 /* CFUnicodeDecomposition.c in Sources */,
@@ -2334,7 +2313,6 @@
 				5B7C8A7D1BEA7FCE00C5B690 /* CFBinaryHeap.c in Sources */,
 				5B7C8A7E1BEA7FCE00C5B690 /* CFBitVector.c in Sources */,
 				559451EC1F706BFA002807FB /* CFXMLPreferencesDomain.c in Sources */,
-				5BF9B8011FABD5DA00EE1A7C /* CFBundle_ResourceFork.c in Sources */,
 				5B7C8A8F1BEA7FEC00C5B690 /* CFBinaryPList.c in Sources */,
 				5B7C8A911BEA7FEC00C5B690 /* CFPropertyList.c in Sources */,
 				5B7C8AB41BEA801700C5B690 /* CFStringEncodingDatabase.c in Sources */,
@@ -2366,7 +2344,6 @@
 				5B7C8AAB1BEA800D00C5B690 /* CFCharacterSet.c in Sources */,
 				5B7C8A7A1BEA7FCE00C5B690 /* CFArray.c in Sources */,
 				5B7C8ABA1BEA802100C5B690 /* CFURL.c in Sources */,
-				5BF9B7FF1FABD5DA00EE1A7C /* CFBundle_Executable.c in Sources */,
 				5B7C8A731BEA7FCE00C5B690 /* CFFileUtilities.c in Sources */,
 				5B7C8A971BEA7FF900C5B690 /* CFBundle_Grok.c in Sources */,
 				5B7C8ABB1BEA802100C5B690 /* CFURLAccess.c in Sources */,
@@ -2377,7 +2354,6 @@
 				5B7C8A7B1BEA7FCE00C5B690 /* CFBag.c in Sources */,
 				5B7C8AA21BEA800400C5B690 /* CFPreferences.c in Sources */,
 				5B7C8A811BEA7FCE00C5B690 /* CFSet.c in Sources */,
-				5BF9B8021FABD5DA00EE1A7C /* CFBundle_Tables.c in Sources */,
 				5B7C8A8A1BEA7FDB00C5B690 /* CFLocaleKeys.c in Sources */,
 				5B7C8A9B1BEA7FF900C5B690 /* CFBundle_Strings.c in Sources */,
 				5B2B59841C24D01100271109 /* CFConcreteStreams.c in Sources */,
@@ -2563,7 +2539,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -2612,7 +2588,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -2686,6 +2662,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_INDEX_STORE_ENABLE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2759,6 +2736,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_INDEX_STORE_ENABLE = NO;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_VERSION = 4.0;
