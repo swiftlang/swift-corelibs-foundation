@@ -58,8 +58,8 @@ internal final class _NSCFSet : NSMutableSet {
             let obj = unsafeBitCast(objects.advanced(by: idx).pointee!, to: AnyObject.self)
             objArray.append(obj)
         }
-        objects.deinitialize(count: 1)
-        objects.deallocate()
+        objects.deinitialize()
+        objects.deallocate(capacity: count)
         
         return NSGeneratorEnumerator(objArray.makeIterator())
         

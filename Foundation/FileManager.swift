@@ -462,7 +462,7 @@ open class FileManager : NSObject {
             ps.advanced(by: 1).initialize(to: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
-            ps.deallocate()
+            ps.deallocate(capacity: 2)
 
             if stream != nil {
                 defer {
@@ -682,7 +682,7 @@ open class FileManager : NSObject {
         }
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
-            buf.deallocate()
+            buf.deallocate(capacity: len)
             fatalError("string could not be converted")
         }
         return UnsafePointer(buf)
@@ -1038,7 +1038,7 @@ extension FileManager {
                 ps.advanced(by: 1).initialize(to: nil)
                 _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                 ps.deinitialize(count: 2)
-                ps.deallocate()
+                ps.deallocate(capacity: 2)
             } else {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }

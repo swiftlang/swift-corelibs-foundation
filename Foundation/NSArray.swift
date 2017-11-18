@@ -148,7 +148,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         buffer.initialize(from: optionalArray, count: cnt)
         self.init(objects: buffer, count: cnt)
         buffer.deinitialize(count: cnt)
-        buffer.deallocate()
+        buffer.deallocate(capacity: cnt)
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -404,7 +404,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             }
         }
         return Data(bytesNoCopy: buffer, count: size, deallocator: .custom({ (_, _) in
-            buffer.deallocate()
+            buffer.deallocate(capacity: size)
         }))
     }
     

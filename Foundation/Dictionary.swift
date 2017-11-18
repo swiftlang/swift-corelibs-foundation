@@ -30,8 +30,8 @@ extension Dictionary : _ObjectTypeBridgeable {
         
         keyBuffer.deinitialize(count: count)
         valueBuffer.deinitialize(count: count)
-        keyBuffer.deallocate()
-        valueBuffer.deallocate()
+        keyBuffer.deallocate(capacity: count)
+        valueBuffer.deallocate(capacity: count)
         
         return dict
 
@@ -75,8 +75,8 @@ extension Dictionary : _ObjectTypeBridgeable {
             }
             keys.deinitialize(count: cnt)
             values.deinitialize(count: cnt)
-            keys.deallocate()
-            values.deallocate()
+            keys.deallocate(capacity: cnt)
+            values.deallocate(capacity: cnt)
         }
         if !failedConversion {
             result = dict

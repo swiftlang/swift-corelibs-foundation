@@ -288,7 +288,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
                 // one in SwiftFoundation let's explicitly deallocate it here.
-                expectedCharPtr!.deallocate()
+                expectedCharPtr!.deallocate(capacity: charArray.count)
                 
                 return s1 == s2
         })

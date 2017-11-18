@@ -820,9 +820,9 @@ private struct JSONReader {
                 
                 let startPointer = buffer.baseAddress!
                 let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
-                defer { intEndPointer.deallocate() }
+                defer { intEndPointer.deallocate(capacity: 1) }
                 let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
-                defer { doubleEndPointer.deallocate() }
+                defer { doubleEndPointer.deallocate(capacity: 1) }
                 let intResult = strtol(startPointer, intEndPointer, 10)
                 let intDistance = startPointer.distance(to: intEndPointer[0]!)
                 let doubleResult = strtod(startPointer, doubleEndPointer)
