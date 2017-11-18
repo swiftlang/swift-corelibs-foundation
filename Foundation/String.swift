@@ -39,7 +39,7 @@ extension String : _ObjectTypeBridgeable {
                 
                 let str = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: buffer, count: length))
                 buffer.deinitialize(count: length)
-                buffer.deallocate(capacity: length)
+                buffer.deallocate()
                 result = str
             }
         } else if type(of: source) == _NSCFConstantString.self {
@@ -67,4 +67,3 @@ extension String : _ObjectTypeBridgeable {
         }
     }
 }
-

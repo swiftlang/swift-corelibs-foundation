@@ -21,7 +21,7 @@ extension Set : _ObjectTypeBridgeable {
         let set = NSSet(objects: buffer, count: count)
         
         buffer.deinitialize(count: count)
-        buffer.deallocate(capacity: count)
+        buffer.deallocate()
         
         return set
     }
@@ -67,7 +67,7 @@ extension Set : _ObjectTypeBridgeable {
                 }
             }
             objs.deinitialize(count: cnt)
-            objs.deallocate(capacity: cnt)
+            objs.deallocate()
         }
         if !failedConversion {
             result = set

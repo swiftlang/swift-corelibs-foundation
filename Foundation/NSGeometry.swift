@@ -70,7 +70,7 @@ extension CGPoint: NSSpecialValueCoding {
     }
 
     func getValue(_ value: UnsafeMutableRawPointer) {
-        value.initializeMemory(as: CGPoint.self, to: self)
+        value.initializeMemory(as: CGPoint.self, repeating: self, count: 1)
     }
 
     func isEqual(_ aValue: Any) -> Bool {
@@ -162,7 +162,7 @@ extension CGSize: NSSpecialValueCoding {
     }
     
     func getValue(_ value: UnsafeMutableRawPointer) {
-        value.initializeMemory(as: CGSize.self, to: self)
+        value.initializeMemory(as: CGSize.self, repeating: self, count: 1)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
@@ -466,7 +466,7 @@ extension CGRect: NSSpecialValueCoding {
     }
     
     func getValue(_ value: UnsafeMutableRawPointer) {
-        value.initializeMemory(as: CGRect.self, to: self)
+        value.initializeMemory(as: CGRect.self, repeating: self, count: 1)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
@@ -565,7 +565,7 @@ extension NSEdgeInsets: NSSpecialValueCoding {
     }
     
     func getValue(_ value: UnsafeMutableRawPointer) {
-        value.initializeMemory(as: NSEdgeInsets.self, to: self)
+        value.initializeMemory(as: NSEdgeInsets.self, repeating: self, count: 1)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
