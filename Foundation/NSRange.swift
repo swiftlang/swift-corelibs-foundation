@@ -400,7 +400,7 @@ extension NSRange: NSSpecialValueCoding {
     }
     
     func getValue(_ value: UnsafeMutableRawPointer) {
-        value.initializeMemory(as: NSRange.self, repeating: self, count: 1)
+        value.initializeMemory(as: NSRange.self, to: self)
     }
     
     func isEqual(_ aValue: Any) -> Bool {
@@ -426,3 +426,4 @@ extension NSValue {
     }
 }
 #endif
+

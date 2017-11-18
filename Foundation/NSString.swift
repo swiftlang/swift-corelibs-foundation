@@ -247,8 +247,8 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         let characters = UnsafeMutablePointer<unichar>.allocate(capacity: length)
         getCharacters(characters, range: NSMakeRange(0, length))
         let result = NSMutableString(characters: characters, length: length)
-        characters.deinitialize(count: 1)
-        characters.deallocate()
+        characters.deinitialize()
+        characters.deallocate(capacity: length)
         return result
     }
     
@@ -364,8 +364,8 @@ extension NSString {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)
             let result = String(describing: buff)
-            buff.deinitialize(count: 1)
-            buff.deallocate()
+            buff.deinitialize()
+            buff.deallocate(capacity: range.length)
             return result
         }
     }

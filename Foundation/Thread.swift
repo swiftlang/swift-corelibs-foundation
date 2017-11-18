@@ -259,7 +259,7 @@ open class Thread : NSObject {
         // Same as swift/stdlib/public/runtime/Errors.cpp backtrace
         let maxSupportedStackDepth = 128;
         let addrs = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: maxSupportedStackDepth)
-        defer { addrs.deallocate() }
+        defer { addrs.deallocate(capacity: maxSupportedStackDepth) }
 #if os(Android)
         let count = 0
 #else

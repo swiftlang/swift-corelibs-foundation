@@ -153,7 +153,7 @@ public final class _DataStorage {
                 }
                 return try apply(UnsafeRawBufferPointer(start: d.bytes.advanced(by: range.lowerBound - _offset), count: Swift.min(range.count, len)))
             } else {
-                var buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: range.count, alignment: MemoryLayout<UInt>.alignment)
+                var buffer = UnsafeMutableRawBufferPointer.allocate(count: range.count)
                 defer { buffer.deallocate() }
                 let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0
@@ -184,7 +184,7 @@ public final class _DataStorage {
                 }
                 return try apply(UnsafeRawBufferPointer(start: d.bytes.advanced(by: range.lowerBound - _offset), count: Swift.min(range.count, len)))
             } else {
-                var buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: range.count, alignment: MemoryLayout<UInt>.alignment)
+                var buffer = UnsafeMutableRawBufferPointer.allocate(count: range.count)
                 defer { buffer.deallocate() }
                 let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0

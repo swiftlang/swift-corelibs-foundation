@@ -233,7 +233,7 @@ open class Process: NSObject {
                 free(UnsafeMutableRawPointer(arg.pointee))
             }
             
-            argv.deallocate()
+            argv.deallocate(capacity: args.count + 1)
         }
         
         let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
@@ -252,7 +252,7 @@ open class Process: NSObject {
                 for pair in envp ..< envp + env.count {
                     free(UnsafeMutableRawPointer(pair.pointee))
                 }
-                envp.deallocate()
+                envp.deallocate(capacity: env.count + 1)
             }
         }
 

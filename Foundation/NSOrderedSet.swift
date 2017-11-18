@@ -302,7 +302,7 @@ extension NSOrderedSet {
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
-        buffer.deallocate()
+        buffer.deallocate(capacity: array.count)
     }
 
     public convenience init(array set: [Any], copyItems flag: Bool) {

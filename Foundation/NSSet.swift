@@ -135,7 +135,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
-        buffer.deallocate()
+        buffer.deallocate(capacity: array.count)
     }
 
     public convenience init(set: Set<AnyHashable>) {
