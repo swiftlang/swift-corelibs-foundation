@@ -256,7 +256,7 @@ class TestHTTPCookieStorage: XCTestCase {
         storage.setCookie(testCookie)
         XCTAssertEqual(storage.cookies!.count, 1)
         var destPath: String
-        let bundlePath = Bundle.main.bundlePath
+        let bundlePath = testBundle().bundlePath
         var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
         if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
             bundleName = String(bundleName[..<range.lowerBound])
