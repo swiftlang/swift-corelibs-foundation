@@ -1415,6 +1415,7 @@ extension TestJSONSerialization {
     }
     
     func test_jsonObjectToOutputStreamInsufficientBuffer() {
+#if !DARWIN_COMPATIBILITY_TESTS  // Hangs
         let dict = ["a":["b":1]]
         let buffer = Array<UInt8>(repeating: 0, count: 10)
         let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: buffer.count)
@@ -1428,6 +1429,7 @@ extension TestJSONSerialization {
         } catch {
             XCTFail("Error occurred while writing to stream")
         }
+#endif
     }
     
     func test_booleanJSONObject() {
@@ -1469,18 +1471,23 @@ extension TestJSONSerialization {
             XCTFail("Failed during serialization")
         }
     } 
-    
+
     func test_serializeSortedKeys() {
-        var dict: [String: Any]
+        let dict1 = ["z": 1, "y": 1, "x": 1, "w": 1, "v": 1, "u": 1, "t": 1, "s": 1, "r": 1, "q": 1, ]
+        let dict2 = ["aaaa": 1, "aaa": 1, "aa": 1, "a": 1]
+        let dict3 = ["c": ["c":1,"b":1,"a":1],"b":["c":1,"b":1,"a":1],"a":["c":1,"b":1,"a":1]]
 
-        dict = ["z": 1, "y": 1, "x": 1, "w": 1, "v": 1, "u": 1, "t": 1, "s": 1, "r": 1, "q": 1, ]
-        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"q\":1,\"r\":1,\"s\":1,\"t\":1,\"u\":1,\"v\":1,\"w\":1,\"x\":1,\"y\":1,\"z\":1}")
-
-        dict = ["aaaa": 1, "aaa": 1, "aa": 1, "a": 1]
-        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":1,\"aa\":1,\"aaa\":1,\"aaaa\":1}")
-
-        dict = ["c": ["c":1,"b":1,"a":1],"b":["c":1,"b":1,"a":1],"a":["c":1,"b":1,"a":1]]
-        XCTAssertEqual(try trySerialize(dict, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
+#if DARWIN_COMPATIBILITY_TESTS
+        if #available(OSX 10.13, *) {
+            XCTAssertEqual(try trySerialize(dict1, options: .sortedKeys), "{\"q\":1,\"r\":1,\"s\":1,\"t\":1,\"u\":1,\"v\":1,\"w\":1,\"x\":1,\"y\":1,\"z\":1}")
+            XCTAssertEqual(try trySerialize(dict2, options: .sortedKeys), "{\"a\":1,\"aa\":1,\"aaa\":1,\"aaaa\":1}")
+            XCTAssertEqual(try trySerialize(dict3, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
+        }
+#else
+        XCTAssertEqual(try trySerialize(dict1, options: .sortedKeys), "{\"q\":1,\"r\":1,\"s\":1,\"t\":1,\"u\":1,\"v\":1,\"w\":1,\"x\":1,\"y\":1,\"z\":1}")
+        XCTAssertEqual(try trySerialize(dict2, options: .sortedKeys), "{\"a\":1,\"aa\":1,\"aaa\":1,\"aaaa\":1}")
+        XCTAssertEqual(try trySerialize(dict3, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
+#endif
     }
 
     func test_serializePrettyPrinted() {

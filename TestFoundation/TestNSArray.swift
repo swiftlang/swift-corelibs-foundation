@@ -559,8 +559,21 @@ class TestNSArray : XCTestCase {
             try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
             let testFile = tempDir + "/readWriteURL.txt"
             let url = URL(fileURLWithPath: testFile)
+            let data2: NSArray
+#if DARWIN_COMPATIBILITY_TESTS
+            if #available(OSX 10.13, *) {
+                try data.write(to: url)
+                data2 = try NSArray(contentsOf: url, error: ())
+            } else {
+                guard data.write(toFile: testFile, atomically: true) else {
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+                }
+                data2 = NSArray(contentsOfFile: testFile)!
+            }
+#else
             try data.write(to: url)
-            let data2 = try NSArray(contentsOf: url, error: ())
+            data2 = try NSArray(contentsOf: url, error: ())
+#endif
             XCTAssertEqual(data, data2)
             removeTestFile(testFile)
         } catch let e {
