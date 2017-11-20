@@ -582,9 +582,14 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 #endif
 
 static pthread_key_t __CFTSDIndexKey;
+static pthread_once_t __CFTSDIndexKey_once = PTHREAD_ONCE_INIT;
+
+CF_PRIVATE void __CFTSDInitializeOnce() {
+    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
+}
 
 CF_PRIVATE void __CFTSDInitialize() {
-    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
+    (void)pthread_once(&__CFTSDIndexKey_once, __CFTSDInitializeOnce);
 }
 
 static void __CFTSDSetSpecific(void *arg) {
