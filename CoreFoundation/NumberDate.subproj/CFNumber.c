@@ -1056,6 +1056,9 @@ CF_PRIVATE void __CFNumberInitialize(void) {
     _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
     __CFBitfieldSetValue(__kCFNumberFloat32One._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat32Type);
     __kCFNumberFloat32One._pad = BITSFORFLOATONE;
+#if __BIG_ENDIAN__
+    __kCFNumberFloat32One._pad = __kCFNumberFloat32One._pad << 32;
+#endif
     
     _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
     __CFBitfieldSetValue(__kCFNumberFloat64Zero._base._cfinfo[CF_INFO_BITS], 4, 0, kCFNumberFloat64Type);
