@@ -129,7 +129,7 @@ if [ ! -f libFoundation.so ]; then
                 # There's no installation script for foundation yet, so the installation needs to be done manually.
                 # Apparently the installation for the main script is in swift repo.
                 rsync -av $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/Foundation.swift* $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7/
-                rsync -av $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.* $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.* $ANDROID_ICU_PATH/armeabi-v7a/libicu{uc,i18n,data}swift.so $ANDROID_NDK_PATH/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/libFoundation.so  $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7
+                rsync -av $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.* $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.* $ANDROID_ICU_PATH/armeabi-v7a/libicu{uc,i18n,data}swift.so $ANDROID_NDK_PATH/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/libFoundation.so  $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android
 
                 # prep install so it can be used to build foundation
                 cp -r $SWIFT_PATH/swift-corelibs-foundation/.build/libxml2/include/libxml $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
