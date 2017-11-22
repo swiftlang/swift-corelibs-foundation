@@ -234,6 +234,146 @@ private let _SwiftFoundationModuleName = "SwiftFoundation"
 private let _SwiftFoundationModuleName = "Foundation"
 #endif
 
+
+internal let _NSKnownClassesByName: [String : AnyClass] = [
+    "NSByteCountFormatter" : ByteCountFormatter.self,
+    "NSCachedURLResponse" : CachedURLResponse.self,
+    "NSDateComponentsFormatter" : DateComponentsFormatter.self,
+    "NSDateFormatter" : DateFormatter.self,
+    "NSDateIntervalFormatter" : DateIntervalFormatter.self,
+    "NSDimension" : Dimension.self,
+    "NSDirectoryEnumerator" : FileManager.DirectoryEnumerator.self,
+    "NSFileHandle" : FileHandle.self,
+    "NSFileManager" : FileManager.self,
+    "NSFormatter" : Formatter.self,
+    "NSHTTPCookie" : HTTPCookie.self,
+    "NSHTTPURLResponse" : HTTPURLResponse.self,
+    "NSISO8601DateFormatter" : ISO8601DateFormatter.self,
+    "NSJSONSerialization" : JSONSerialization.self,
+    "NSLengthFormatter" : LengthFormatter.self,
+    "NSMassFormatter" : MassFormatter.self,
+    "NSMeasurementFormatter" : MeasurementFormatter.self,
+    "NSMessagePort" : MessagePort.self,
+    "NSAffineTransform" : NSAffineTransform.self,
+    "NSArray" : NSArray.self,
+    "NSCalendar" : NSCalendar.self,
+    "NSCharacterSet" : NSCharacterSet.self,
+    "NSCoder" : NSCoder.self,
+    "NSComparisonPredicate" : NSComparisonPredicate.self,
+    "NSCompoundPredicate" : NSCompoundPredicate.self,
+    "NSConditionLock" : NSConditionLock.self,
+    "NSCountedSet" : NSCountedSet.self,
+    "NSData" : NSData.self,
+    "NSDate" : NSDate.self,
+    "NSDateComponents" : NSDateComponents.self,
+    "NSDateInterval" : NSDateInterval.self,
+    "NSDecimalNumber" : NSDecimalNumber.self,
+    "NSDecimalNumberHandler" : NSDecimalNumberHandler.self,
+    "NSDictionary" : NSDictionary.self,
+    "NSEnumerator" : NSEnumerator.self,
+    "NSError" : NSError.self,
+    "NSExpression" : NSExpression.self,
+    "NSIndexPath" : NSIndexPath.self,
+    "NSIndexSet" : NSIndexSet.self,
+    "NSKeyedArchiver" : NSKeyedArchiver.self,
+    "NSKeyedUnarchiver" : NSKeyedUnarchiver.self,
+    "NSMeasurement" : NSMeasurement.self,
+    "NSMutableArray" : NSMutableArray.self,
+    "NSMutableAttributedString" : NSMutableAttributedString.self,
+    "NSMutableCharacterSet" : NSMutableCharacterSet.self,
+    "NSMutableData" : NSMutableData.self,
+    "NSMutableDictionary" : NSMutableDictionary.self,
+    "NSMutableIndexSet" : NSMutableIndexSet.self,
+    "NSMutableOrderedSet" : NSMutableOrderedSet.self,
+    "NSMutableSet" : NSMutableSet.self,
+    "NSMutableString" : NSMutableString.self,
+    "NSMutableURLRequest" : NSMutableURLRequest.self,
+    "NSNull" : NSNull.self,
+    "NSNumber" : NSNumber.self,
+    "NSObject" : NSObject.self,
+    "NSOrderedSet" : NSOrderedSet.self,
+    "NSPersonNameComponents" : NSPersonNameComponents.self,
+    "NSPredicate" : NSPredicate.self,
+    "NSSet" : NSSet.self,
+    "NSString" : NSString.self,
+    "NSTimeZone" : NSTimeZone.self,
+    "NSURL" : NSURL.self,
+    "NSURLQueryItem" : NSURLQueryItem.self,
+    "NSURLRequest" : NSURLRequest.self,
+    "NSUUID" : NSUUID.self,
+    "NSValue" : NSValue.self,
+    "NSNumberFormatter" : NumberFormatter.self,
+    "NSOperation" : Operation.self,
+    "NSOutputStream" : OutputStream.self,
+    "NSPersonNameComponentsFormatter" : PersonNameComponentsFormatter.self,
+    "NSPort" : Port.self,
+    "NSPortMessage" : PortMessage.self,
+    "NSProgress" : Progress.self,
+    "NSPropertyListSerialization" : PropertyListSerialization.self,
+    "NSSocketPort" : SocketPort.self,
+    "NSThread" : Thread.self,
+    "NSTimer" : Timer.self,
+    "NSUnit" : Unit.self,
+    "NSUnitAcceleration" : UnitAcceleration.self,
+    "NSUnitAngle" : UnitAngle.self,
+    "NSUnitArea" : UnitArea.self,
+    "NSUnitConcentrationMass" : UnitConcentrationMass.self,
+    "NSUnitConverter" : UnitConverter.self,
+    "NSUnitConverterLinear" : UnitConverterLinear.self,
+    "NSUnitDispersion" : UnitDispersion.self,
+    "NSUnitDuration" : UnitDuration.self,
+    "NSUnitElectricCharge" : UnitElectricCharge.self,
+    "NSUnitElectricCurrent" : UnitElectricCurrent.self,
+    "NSUnitElectricPotentialDifference" : UnitElectricPotentialDifference.self,
+    "NSUnitElectricResistance" : UnitElectricResistance.self,
+    "NSUnitEnergy" : UnitEnergy.self,
+    "NSUnitFrequency" : UnitFrequency.self,
+    "NSUnitFuelEfficiency" : UnitFuelEfficiency.self,
+    "NSUnitIlluminance" : UnitIlluminance.self,
+    "NSUnitLength" : UnitLength.self,
+    "NSUnitMass" : UnitMass.self,
+    "NSUnitPower" : UnitPower.self,
+    "NSUnitPressure" : UnitPressure.self,
+    "NSUnitSpeed" : UnitSpeed.self,
+    "NSUnitTemperature" : UnitTemperature.self,
+    "NSUnitVolume" : UnitVolume.self,
+    "NSURLAuthenticationChallenge" : URLAuthenticationChallenge.self,
+    "NSURLCache" : URLCache.self,
+    "NSURLCredential" : URLCredential.self,
+    "NSURLProtectionSpace" : URLProtectionSpace.self,
+    "NSURLProtocol" : URLProtocol.self,
+    "NSURLResponse" : URLResponse.self,
+    "NSURLSession" : URLSession.self,
+    "NSURLSessionConfiguration" : URLSessionConfiguration.self,
+    "NSURLSessionDataTask" : URLSessionDataTask.self,
+    "NSURLSessionDownloadTask" : URLSessionDownloadTask.self,
+    "NSURLSessionStreamTask" : URLSessionStreamTask.self,
+    "NSURLSessionTask" : URLSessionTask.self,
+    "NSURLSessionUploadTask" : URLSessionUploadTask.self,
+    "NSXMLDocument" : XMLDocument.self,
+    "NSXMLDTD" : XMLDTD.self,
+    "NSXMLParser" : XMLParser.self,
+]
+
+internal struct _NSClassWrapper : Hashable {
+    var `class`: AnyClass
+    var hashValue: Int {
+        return unsafeBitCast(self.class, to: UnsafeRawPointer.self).hashValue
+    }
+    static func ==(_ lhs: _NSClassWrapper, _ rhs: _NSClassWrapper) -> Bool {
+        return lhs.class === rhs.class
+    }
+}
+
+internal let _NSKnownClassNamesByClass: [_NSClassWrapper : String] = {
+    var classNamesByClass = [_NSClassWrapper : String]()
+    for (name, cls) in _NSKnownClassesByName {
+        classNamesByClass[_NSClassWrapper(class: cls)] = name
+    }
+    return classNamesByClass
+}()
+
+
 /**
     Returns the class name for a class. For compatibility with Foundation on Darwin,
     Foundation classes are returned as unqualified names.
@@ -243,18 +383,21 @@ private let _SwiftFoundationModuleName = "Foundation"
     neither stable nor human-readable.
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
-    let aClassName = String(reflecting: aClass)._bridgeToObjectiveC()
-    let components = aClassName.components(separatedBy: ".")
-    
-    guard components.count == 2 else {
-        fatalError("NSStringFromClass: \(String(reflecting: aClass)) is not a top-level class")
+    guard let name = _NSKnownClassNamesByClass[_NSClassWrapper(class: aClass)] else {
+        let aClassName = String(reflecting: aClass)._bridgeToObjectiveC()
+        let components = aClassName.components(separatedBy: ".")
+        
+        guard components.count == 2 else {
+            fatalError("NSStringFromClass: \(String(reflecting: aClass)) is not a top-level class")
+        }
+        
+        if components[0] == _SwiftFoundationModuleName {
+            return components[1]
+        } else {
+            return String(describing: aClassName)
+        }
     }
-    
-    if components[0] == _SwiftFoundationModuleName {
-        return components[1]
-    } else {
-        return String(describing: aClassName)
-    }
+    return name
 }
 
 /**
@@ -266,22 +409,25 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     neither stable nor human-readable.
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
-    let aClassNameWithPrefix : String
-    let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
-    
-    switch components.count {
-    case 1:
-        guard !aClassName.hasPrefix("_Tt") else {
-            NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
+    guard let cls = _NSKnownClassesByName[aClassName] else {
+        let aClassNameWithPrefix : String
+        let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
+        
+        switch components.count {
+        case 1:
+            guard !aClassName.hasPrefix("_Tt") else {
+                NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
+                return nil
+            }
+            aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        case 2:
+            aClassNameWithPrefix = aClassName
+        default:
+            NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
             return nil
         }
-        aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
-    case 2:
-        aClassNameWithPrefix = aClassName
-    default:
-        NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
-        return nil
+        
+        return _typeByName(aClassNameWithPrefix) as? AnyClass
     }
-    
-    return _typeByName(aClassNameWithPrefix) as? AnyClass
+    return cls
 }

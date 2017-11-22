@@ -34,6 +34,7 @@ XCTMain([
     testCase(TestNSCache.allTests),
     testCase(TestCalendar.allTests),
     testCase(TestCharacterSet.allTests),
+    testCase(TestNSClassFromString.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestDate.allTests),
