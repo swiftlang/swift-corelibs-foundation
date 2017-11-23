@@ -286,7 +286,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 let s1 = String(cString: charPtr)
                 let s2 = String(cString: expectedCharPtr!)
 
-#if !DARWIN_COMPATIBILITY_TESTS
+#if !DEPLOYMENT_RUNTIME_OBJC
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
                 // one in SwiftFoundation let's explicitly deallocate it here.
                 expectedCharPtr!.deallocate()
