@@ -93,6 +93,7 @@ open class Host: NSObject {
             }
             ifa = ifaValue.ifa_next
         }
+        _resolved = true
 #endif
     }
     
@@ -155,6 +156,7 @@ open class Host: NSObject {
                 lookupInfo(&_names, NI_NOFQDN|NI_NAMEREQD)
                 res = info.ai_next
             }
+            _resolved = true
         }
 #endif   
     }

@@ -67,6 +67,7 @@ XCTMain([
     testCase(TestPipe.allTests),
     testCase(TestNSPredicate.allTests),
     testCase(TestProcessInfo.allTests),
+    testCase(TestHost.allTests),
     testCase(TestPropertyListSerialization.allTests),
     testCase(TestNSRange.allTests),
     testCase(TestNSRegularExpression.allTests),
