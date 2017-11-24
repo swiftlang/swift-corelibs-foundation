@@ -112,6 +112,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
         storage.setCookie(simpleCookie)
         XCTAssertEqual(storage.cookies!.count, 0)
+        XCTAssertEqual(storage.description, "<NSHTTPCookieStorage cookies count:0>")
 
         let simpleCookie0 = HTTPCookie(properties: [   //no expiry date
            .name: "TestCookie1",
@@ -122,6 +123,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
         storage.setCookie(simpleCookie0)
         XCTAssertEqual(storage.cookies!.count, 1)
+        XCTAssertEqual(storage.description, "<NSHTTPCookieStorage cookies count:1>")
 
         let simpleCookie1 = HTTPCookie(properties: [
            .name: "TestCookie1",
@@ -142,6 +144,7 @@ class TestHTTPCookieStorage: XCTestCase {
 
         storage.setCookie(simpleCookie2)
         XCTAssertEqual(storage.cookies!.count, 2)
+        XCTAssertEqual(storage.description, "<NSHTTPCookieStorage cookies count:2>")
     }
 
     func deleteCookie(with storageType: _StorageType) {

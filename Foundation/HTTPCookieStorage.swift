@@ -182,6 +182,10 @@ open class HTTPCookieStorage: NSObject {
         }
     }
     
+    open override var description: String {
+        return "<NSHTTPCookieStorage cookies count:\(cookies?.count ?? 0)>"
+    }
+
     private func createCookie(_ properties: [String: Any]) -> HTTPCookie? {
         var cookieProperties: [HTTPCookiePropertyKey: Any] = [:]
         for (key, value) in properties {
