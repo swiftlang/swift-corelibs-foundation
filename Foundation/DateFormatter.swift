@@ -72,8 +72,8 @@ open class DateFormatter : Formatter {
         return df.string(for: date._nsObject)!
     }
 
-    open class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: Locale?) -> String? {
-        guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
+    open class func dateFormat(fromTemplate template: String, options opts: Int, locale: Locale?) -> String? {
+        guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, template._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }
         return res._swiftObject
