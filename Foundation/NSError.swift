@@ -395,8 +395,8 @@ extension CFError : Error {
         return CFErrorGetCode(self)
     }
 
-    public var _userInfo: Any? {
-        return CFErrorCopyUserInfo(self) as Any
+    public var _userInfo: AnyObject? {
+        return CFErrorCopyUserInfo(self) as AnyObject
     }
 }
 
