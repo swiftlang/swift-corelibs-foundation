@@ -583,8 +583,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var at: CFAbsoluteTime = date.timeIntervalSinceReferenceDate
         
         let res: Bool = withUnsafeMutablePointer(to: &at) { t in
+            let copy = vector
             return vector.withUnsafeMutableBufferPointer { (vectorBuffer: inout UnsafeMutableBufferPointer<Int32>) in
-                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(vector.count))
+                return _CFCalendarAddComponentsV(_cfObject, t, CFOptionFlags(opts.rawValue), compDesc, vectorBuffer.baseAddress!, Int32(copy.count))
             }
         }
         
@@ -603,8 +604,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 return intArrayBuffer.baseAddress!.advanced(by: idx)
             }
 
+            let copy = vector
             return vector.withUnsafeMutableBufferPointer { (vecBuffer: inout UnsafeMutableBufferPointer<UnsafeMutablePointer<Int32>>) in
-                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(vector.count))
+                return _CFCalendarGetComponentDifferenceV(_cfObject, startingDate.timeIntervalSinceReferenceDate, resultDate.timeIntervalSinceReferenceDate, CFOptionFlags(opts.rawValue), compDesc, vecBuffer.baseAddress!, Int32(copy.count))
             }
         }
         if res {

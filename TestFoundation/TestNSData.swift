@@ -924,13 +924,14 @@ extension TestNSData {
         XCTAssertEqual(mutatingHello.count, helloLength * 2, "The length should have changed")
         
         // Get the underlying data for hello2
+        let copy = mutatingHello
         mutatingHello.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
             XCTAssertEqual(bytes.pointee, 0x68, "First byte should be 0x68")
             
             // Mutate it
             bytes.pointee = 0x67
             XCTAssertEqual(bytes.pointee, 0x67, "First byte should be 0x67")
-            XCTAssertEqual(mutatingHello[0], 0x67, "First byte accessed via other method should still be 0x67")
+            XCTAssertEqual(copy[0], 0x67, "First byte accessed via other method should still be 0x67")
             
             // Verify that the first data is still correct
             XCTAssertEqual(hello[0], 0x68, "The first byte should still be 0x68")
