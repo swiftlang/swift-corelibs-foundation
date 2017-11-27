@@ -1,7 +1,7 @@
 /*	CFUserNotification.h
-	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -170,7 +170,7 @@ CF_EXPORT
 const CFStringRef kCFUserNotificationTextFieldValuesKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationPopUpSelectionKey	CF_AVAILABLE(10_3, NA);
+const CFStringRef kCFUserNotificationPopUpSelectionKey	API_AVAILABLE(macos(10.3)) API_UNAVAILABLE(ios, watchos, tvos);
 
 #if (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 CF_EXPORT

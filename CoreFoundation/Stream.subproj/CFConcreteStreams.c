@@ -1,7 +1,7 @@
 /*	CFConcreteStreams.c
-	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -49,7 +49,7 @@ typedef struct {
 
 
 CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset, "kCFStreamPropertyFileCurrentOffset");
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 CONST_STRING_DECL(_kCFStreamPropertyFileNativeHandle, "_kCFStreamPropertyFileNativeHandle");
 #endif
 CONST_STRING_DECL(_kCFStreamPropertyHTTPTrailer, "_kCFStreamPropertyHTTPTrailer");
@@ -58,8 +58,25 @@ CONST_STRING_DECL(_kCFStreamPropertyHTTPTrailer, "_kCFStreamPropertyHTTPTrailer"
 extern void _CFFileDescriptorInduceFakeReadCallBack(CFFileDescriptorRef);
 static void fileCallBack(CFFileDescriptorRef f, CFOptionFlags callBackTypes, void *info);
 
+static void *_fs_retain(void *info)
+{
+  struct _CFStream *s = (struct _CFStream*)info;
+  if (s) {
+    CFRetain(s);
+  }
+  return s;
+}
+
+static void _fs_release(void *info)
+{
+  struct _CFStream *s = (struct _CFStream*)info;
+    if (s) {
+        CFRelease(s);
+    }
+}
+
 static void constructCFFD(_CFFileStreamContext *fileStream, Boolean forRead, struct _CFStream *stream) {
-    CFFileDescriptorContext context = {0, stream, NULL, NULL, (void *)CFCopyDescription};
+    CFFileDescriptorContext context = {0, stream, _fs_retain, _fs_release, (void *)CFCopyDescription};
     CFFileDescriptorRef cffd = CFFileDescriptorCreate(CFGetAllocator(stream), fileStream->fd, false, fileCallBack, &context);
     CFFileDescriptorEnableCallBacks(cffd, forRead ? kCFFileDescriptorReadCallBack : kCFFileDescriptorWriteCallBack);
     if (fileStream->rlInfo.rlArray) {
@@ -99,9 +116,9 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     
     do {
 #if DEPLOYMENT_TARGET_WINDOWS
-        fileStream->fd = _wopen(path, flags, 0666);
+	fileStream->fd = _wopen(path, flags, 0666);
 #else
-        fileStream->fd = open((const char *)path, flags, 0666);
+    fileStream->fd = open((const char *)path, flags, 0666);
 #endif
         if (fileStream->fd < 0)
             break;
@@ -312,14 +329,21 @@ static void fileClose(struct _CFStream *stream, void *info) {
 #ifdef REAL_FILE_SCHEDULING
 static void fileCallBack(CFFileDescriptorRef f, CFOptionFlags type, void *info) {
     struct _CFStream *stream = (struct _CFStream *)info;
+
+    if (stream == NULL) {
+      return;
+    }
+
     Boolean isReadStream = (CFGetTypeID(stream) == CFReadStreamGetTypeID());
     _CFFileStreamContext *fileStream = isReadStream ? CFReadStreamGetInfoPointer((CFReadStreamRef)stream) : CFWriteStreamGetInfoPointer((CFWriteStreamRef)stream);
-    if (type == kCFFileDescriptorWriteCallBack) {
+    if (fileStream) {
+      if (type == kCFFileDescriptorWriteCallBack) {
         __CFBitSet(fileStream->flags, SCHEDULE_AFTER_WRITE);
         CFWriteStreamSignalEvent((CFWriteStreamRef)stream, kCFStreamEventCanAcceptBytes, NULL);
-    } else {
+      } else {
         __CFBitSet(fileStream->flags, SCHEDULE_AFTER_READ);
         CFReadStreamSignalEvent((CFReadStreamRef)stream, kCFStreamEventHasBytesAvailable, NULL);
+      }
     }
 }
 #endif
@@ -418,7 +442,7 @@ static CFTypeRef fileCopyProperty(struct _CFStream *stream, CFStringRef property
         if (fileStream->offset != -1) {
             result = CFNumberCreate(CFGetAllocator((CFTypeRef)stream), kCFNumberSInt64Type, &(fileStream->offset));
         }
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     } else if (CFEqual(propertyName, _kCFStreamPropertyFileNativeHandle)) {
 		int fd = fileStream->fd;
 		if (fd != -1) {
@@ -864,11 +888,6 @@ CF_EXPORT CFWriteStreamRef CFWriteStreamCreateWithAllocatedBuffers(CFAllocatorRe
     ctxt.bufferAllocator = bufferAllocator;
     return (CFWriteStreamRef)_CFStreamCreateWithConstantCallbacks(alloc, &ctxt, (struct _CFStreamCallBacks *)(&writeDataCallBacks), FALSE);
 }
-
-CF_SWIFT_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream) { return CFReadStreamCopyError(stream); }
-
-CF_SWIFT_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream) { return CFWriteStreamCopyError(stream); }
-
 
 #undef BUF_SIZE
 

@@ -1,5 +1,5 @@
 /*	CFXMLParser.c
-	Copyright (c) 1999-2016, Apple Inc. All rights reserved.
+	Copyright (c) 1999-2017, Apple Inc. All rights reserved.
 	Responsibility: David Smith
 */
 
@@ -634,7 +634,7 @@ static Boolean parseAttributeListDeclaration(CFXMLParserRef parser) {
             if (capacity == attListData.numberOfAttributes) {
                 capacity = 2*capacity;
                 if (attributes != attributeArray) {
-                    attributes = (CFXMLAttributeDeclarationInfo *)CFAllocatorReallocate(CFGetAllocator(parser), attributes, capacity * sizeof(CFXMLAttributeDeclarationInfo), 0);
+                    attributes = __CFSafelyReallocateWithAllocator(CFGetAllocator(parser), attributes, capacity * sizeof(CFXMLAttributeDeclarationInfo), 0, NULL);
                 } else {
                     attributes = (CFXMLAttributeDeclarationInfo *)CFAllocatorAllocate(CFGetAllocator(parser), capacity * sizeof(CFXMLAttributeDeclarationInfo), 0);
                 }
@@ -1742,7 +1742,7 @@ static Boolean reportNewLeaf(CFXMLParserRef parser) {
 static void pushXMLNode(CFXMLParserRef parser, void *node) {
     parser->top ++;
     if ((unsigned)(parser->top - parser->stack) == parser->capacity) {
-        parser->stack = (void **)CFAllocatorReallocate(CFGetAllocator(parser), parser->stack, 2 * parser->capacity * sizeof(void *), 0);
+        parser->stack = __CFSafelyReallocateWithAllocator(CFGetAllocator(parser), parser->stack, 2 * parser->capacity * sizeof(void *), 0, NULL);
         parser->top = parser->stack + parser->capacity;
         parser->capacity = 2*parser->capacity;
     }

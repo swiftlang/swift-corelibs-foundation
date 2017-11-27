@@ -1,7 +1,7 @@
 /*	CFSortFunctions.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -14,6 +14,8 @@
 #include <dispatch/dispatch.h>
 #if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
+#else
+#define DISPATCH_APPLY_CURRENT_ROOT_QUEUE ((dispatch_queue_t _Nonnull)0)
 #endif
 #endif
 #include "CFLogUtilities.h"
@@ -48,10 +50,8 @@ enum {
 #define __check_int64_div(x, y, err)            (x / y)
 #define __check_uint64_div(x, y, err)           (x / y)
 
-#define __checkint_int64_mul(x, y, err)         __check_int64_mul(x, y, err)
-#define __checkint_int32_mul(x, y, err)         __check_int32_mul(x, y, err)
-#define __checkint_uint64_add(x, y, err)        __check_uint64_add(x, y, err)
-#define __checkint_uint32_add(x, y, err)        __check_uint32_add(x, y, err)
+#define __checkint_int64_mul(x, y, err)         (x * y)
+#define __checkint_uint64_add(x, y, err)        (x + y)
 
 #endif
 
@@ -232,8 +232,7 @@ static void __CFSortIndexesN(VALUE_TYPE listp[], INDEX_TYPE count, int32_t ncore
     }
     VALUE_TYPE **tmps = stack_tmps;
 
-    dispatch_queue_t q = __CFDispatchQueueGetGenericMatchingCurrent();
-    dispatch_apply(num_sect, q, ^(size_t sect) {
+    dispatch_apply(num_sect, DISPATCH_APPLY_CURRENT_ROOT_QUEUE, ^(size_t sect) {
             INDEX_TYPE sect_len = (sect < num_sect - 1) ? sz : last_sect_len;
             __CFSimpleMergeSort(listp + sect * sz, sect_len, tmps[sect], cmp); // naturally stable
         });
@@ -241,7 +240,7 @@ static void __CFSortIndexesN(VALUE_TYPE listp[], INDEX_TYPE count, int32_t ncore
     INDEX_TYPE even_phase_cnt = ((num_sect / 2) * 2);
     INDEX_TYPE odd_phase_cnt = (((num_sect - 1) / 2) * 2);
     for (INDEX_TYPE idx = 0; idx < (num_sect + 1) / 2; idx++) {
-        dispatch_apply(even_phase_cnt, q, ^(size_t sect) { // merge even
+        dispatch_apply(even_phase_cnt, DISPATCH_APPLY_CURRENT_ROOT_QUEUE, ^(size_t sect) { // merge even
                 size_t right = sect & (size_t)0x1;
                 VALUE_TYPE *left_base = listp + sect * sz - (right ? sz : 0);
                 VALUE_TYPE *right_base = listp + sect * sz + (right ? 0 : sz);
@@ -251,7 +250,7 @@ static void __CFSortIndexesN(VALUE_TYPE listp[], INDEX_TYPE count, int32_t ncore
         if (num_sect & 0x1) {
             memmove(tmps[num_sect - 1], listp + (num_sect - 1) * sz, last_sect_len * sizeof(VALUE_TYPE));
         }
-        dispatch_apply(odd_phase_cnt, q, ^(size_t sect) { // merge odd
+        dispatch_apply(odd_phase_cnt, DISPATCH_APPLY_CURRENT_ROOT_QUEUE, ^(size_t sect) { // merge odd
                 size_t right = sect & (size_t)0x1;
                 VALUE_TYPE *left_base = tmps[sect + (right ? 0 : 1)];
                 VALUE_TYPE *right_base = tmps[sect + (right ? 1 : 2)];
@@ -295,11 +294,13 @@ void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFCo
         for (CFIndex idx = 0; idx < count; idx++) indexBuffer[idx] = idx;
     } else {
         /* Specifically hard-coded to 8; the count has to be very large before more chunks and/or cores is worthwhile. */
+        dispatch_queue_t q = dispatch_queue_create(__CF_QUEUE_NAME("NSSortIndexes"), DISPATCH_QUEUE_CONCURRENT);
         CFIndex sz = ((((size_t)count + 15) / 16) * 16) / 8;
-        dispatch_apply(8, __CFDispatchQueueGetGenericMatchingCurrent(), ^(size_t n) {
+        dispatch_apply(8, DISPATCH_APPLY_CURRENT_ROOT_QUEUE, ^(size_t n) {
                 CFIndex idx = n * sz, lim = __CFMin(idx + sz, count);
                 for (; idx < lim; idx++) indexBuffer[idx] = idx;
             });
+        dispatch_release(q);
     }
 #else
     for (CFIndex idx = 0; idx < count; idx++) indexBuffer[idx] = idx;

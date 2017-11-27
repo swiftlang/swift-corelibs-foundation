@@ -1,7 +1,7 @@
 /*	CFError.c
-	Copyright (c) 2006-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2006-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -29,6 +29,7 @@
 /* Pre-defined userInfo keys
 */
 CONST_STRING_DECL(kCFErrorLocalizedDescriptionKey,          "NSLocalizedDescription");
+CONST_STRING_DECL(kCFErrorLocalizedFailureKey,              "NSLocalizedFailure");
 CONST_STRING_DECL(kCFErrorLocalizedFailureReasonKey,        "NSLocalizedFailureReason");
 CONST_STRING_DECL(kCFErrorLocalizedRecoverySuggestionKey,   "NSLocalizedRecoverySuggestion");
 CONST_STRING_DECL(kCFErrorDescriptionKey,                   "NSDescription");
@@ -173,17 +174,10 @@ static CFDictionaryRef _CFErrorCreateEmptyDictionary(CFAllocatorRef allocator) {
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
     if (_CFAllocatorIsSystemDefault(allocator)) {
         static CFDictionaryRef emptyErrorDictionary = NULL;
-        if (emptyErrorDictionary == NULL) {
-            CFDictionaryRef tmp = CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-            __CFLock(&_CFErrorSpinlock);
-            if (emptyErrorDictionary == NULL) {
-                emptyErrorDictionary = tmp;
-                __CFUnlock(&_CFErrorSpinlock);
-            } else {
-                __CFUnlock(&_CFErrorSpinlock);
-                CFRelease(tmp);
-            }
-        }
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            emptyErrorDictionary = CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        });
         return (CFDictionaryRef)CFRetain(emptyErrorDictionary);
     } else {
         return CFDictionaryCreate(allocator, NULL, NULL, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
@@ -198,43 +192,82 @@ static CFDictionaryRef _CFErrorGetUserInfo(CFErrorRef err) {
     return err->userInfo;
 }
 
-/* This function retrieves the value of the specified key from the userInfo, or from the callback. It works with a CF or NSError.
-*/
-static CFStringRef _CFErrorCopyUserInfoKey(CFErrorRef err, CFStringRef key) {
+/* Retrieve the value for the error key from the userInfo dictionary only
+ */
+static CFStringRef _CFErrorCopyUserInfoKeyFromUserInfo(CFErrorRef err, CFStringRef key) {
     CFStringRef result = NULL;
-    // First consult the userInfo dictionary   
     CFDictionaryRef userInfo = _CFErrorGetUserInfo(err);
-    if (userInfo) result = (CFStringRef)CFDictionaryGetValue(userInfo, key);
-    // If that doesn't work, consult the callback
-    if (result) {
-        CFRetain(result);
-    } else {
-#if USES_CALLBACK_BLOCKS
-        CFErrorUserInfoKeyCallBackBlock callBackBlock = CFErrorGetCallBackBlockForDomain(CFErrorGetDomain(err));
-        if (callBackBlock) {
-            result = (CFStringRef)callBackBlock(err, key);
-            if (result) CFRetain(result);
-        }
-#endif
+    if (userInfo) {
+        result = (CFStringRef)CFDictionaryGetValue(userInfo, key);
+        if (result) CFRetain(result);
     }
     return result;
 }
 
-/* The real guts of the localized description creation functionality. See the header file comments for CFErrorCopyDescription() or -localizedDescription for the steps this function goes through to compute the description. This function can take a CF or NSError. It's called by NSError for the localizedDescription computation.
+/* Retrieve the value for the error key from the callback only
+ */
+static CFStringRef _CFErrorCopyUserInfoKeyFromCallBack(CFErrorRef err, CFStringRef key) {
+    CFStringRef result = NULL;
+#if USES_CALLBACK_BLOCKS
+    CFErrorUserInfoKeyCallBackBlock callBackBlock = CFErrorCopyCallBackBlockForDomain(CFErrorGetDomain(err));
+    if (callBackBlock) {
+        result = (CFStringRef)callBackBlock(err, key);
+        if (result) CFRetain(result);
+        CFRelease(callBackBlock);
+    }
+#endif
+    return result;
+}
+
+/* This function retrieves the value of the specified key from the userInfo, or from the callback. It works with a CF or NSError.
+*/
+static CFStringRef _CFErrorCopyUserInfoKey(CFErrorRef err, CFStringRef key) {
+    CFStringRef result = _CFErrorCopyUserInfoKeyFromUserInfo(err, key);
+    if (!result) result = _CFErrorCopyUserInfoKeyFromCallBack(err, key);
+    return result;
+}
+
+
+/* The real guts of the localized description creation functionality. See the header file comments for -localizedDescription for the steps this function goes through to compute the description. This function can take a CF or NSError. It's called by NSError for the localizedDescription computation.
 */
 CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
-    // First look for kCFErrorLocalizedDescriptionKey; if non-NULL, return that as-is.
-    CFStringRef localizedDesc = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedDescriptionKey);
-    if (localizedDesc) return localizedDesc;
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
-    // Cache the CF bundle since we will be using it for localized strings.
-    CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
+    // We first do two passes for kCFErrorLocalizedDescriptionKey and kCFErrorLocalizedFailureKey, first looking in userInfo, then callback.
+    // This two-pass approach allows an entry in the userInfo for either one to override the (presumably more generic) entry from the callback.
+    for (int pass = 0; pass < 2; pass++) {
+        CFStringRef (*keyLookupFunc)(CFErrorRef, CFStringRef) = ((pass == 0) ? _CFErrorCopyUserInfoKeyFromUserInfo : _CFErrorCopyUserInfoKeyFromCallBack);
+        
+        // First look for kCFErrorLocalizedDescriptionKey; if non-NULL, return that as-is
+        CFStringRef localizedDesc = (keyLookupFunc)(err, kCFErrorLocalizedDescriptionKey);
+        if (localizedDesc) return localizedDesc;
     
+        // If a we have kCFErrorLocalizedFailureKey, use it, in conjunction with kCFErrorLocalizedFailureReasonKey if we have that, otherwise by itself
+        CFStringRef failure = (keyLookupFunc)(err, kCFErrorLocalizedFailureKey);
+        if (failure) {
+            CFStringRef reason = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedFailureReasonKey);    // This can come from userInfo or callback
+            if (reason) {
+                CFStringRef const backstopComboString = CFSTR("%@ %@");
+                CFStringRef comboString = backstopComboString;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+                CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
+                if (cfBundle) comboString = CFCopyLocalizedStringFromTableInBundle(CFSTR("%@ %@"), CFSTR("Error"), cfBundle, "Used for presenting the 'what failed' and 'why it failed' sections of an error message, where each one is one or more complete sentences. The first %@ corresponds to the 'what failed' (For instance 'The file could not be saved.') and the second one 'why it failed' (For instance 'The volume is out of space.')");
+#endif
+                CFStringRef result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, comboString, failure, reason);
+                if (comboString && comboString != backstopComboString) CFRelease(comboString);
+                CFRelease(failure);
+                CFRelease(reason);
+                return result;
+            } else {
+                return failure;
+            }
+        }
+    }
+    
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+    // Cache the CF bundle since we will be using it for localized strings. Note that for platforms without bundle support we also go this non-localized route.
+    CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
     if (!cfBundle) {	// This should be rare, but has been observed in the wild, due to running out of file descriptors. Normally we might not go to such extremes, but since we want to be able to present reasonable errors even in the case of errors such as running out of file descriptors, why not. This is CFError after all. !!! Be sure to have the same logic here as below for going through various options for fetching the strings.
 #endif
-    
-	CFStringRef result = NULL, reasonOrDesc;
+    	CFStringRef result = NULL, reasonOrDesc;
 
 	if ((reasonOrDesc = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedFailureReasonKey))) {	    // First look for kCFErrorLocalizedFailureReasonKey
 	    result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("The operation couldn\\U2019t be completed. %@"), reasonOrDesc);
@@ -247,9 +280,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
 	return result;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
     }
-#endif
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+    
     // Then look for kCFErrorLocalizedFailureReasonKey; if there, create a full sentence from that.
     CFStringRef reason = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedFailureReasonKey);
     if (reason) {
@@ -513,6 +544,7 @@ static CFTypeRef _CFErrorMachCallBack(CFErrorRef err, CFStringRef key) CF_RETURN
 
 static const void *blockCopyValueCallBack(CFAllocatorRef allocator, const void *value) {return _Block_copy(value);}
 static void blockReleaseValueCallBack(CFAllocatorRef allocator, const void *value) {_Block_release(value);}
+static void __CFErrorSetCallBackForDomainNoLock(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack);
 
 /* This initialize function is meant to be called lazily, the first time a callback is registered or requested. It creates the table and registers the built-in callbacks. Clearly doing this non-lazily in _CFErrorInitialize() would be simpler, but this is a fine example of something that should not have to happen at launch time.
 */
@@ -526,16 +558,16 @@ static void _CFErrorInitializeCallBackTable(void) {
     __CFLock(&_CFErrorSpinlock);
     if (!_CFErrorCallBackTable) {
         _CFErrorCallBackTable = table;
+        // Register the known providers, going thru a special variant of the function that doesn't lock
+        __CFErrorSetCallBackForDomainNoLock(kCFErrorDomainPOSIX, _CFErrorPOSIXCallBack);
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+        __CFErrorSetCallBackForDomainNoLock(kCFErrorDomainMach, _CFErrorMachCallBack);
+#endif
         __CFUnlock(&_CFErrorSpinlock);
     } else {
         __CFUnlock(&_CFErrorSpinlock);
         CFRelease(table);
-        // Note, even though the table looks like it was initialized, we go on to register the items on this thread as well, since otherwise we might consult the table before the items are actually registered.
     }
-    CFErrorSetCallBackForDomain(kCFErrorDomainPOSIX, _CFErrorPOSIXCallBack);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED    
-    CFErrorSetCallBackForDomain(kCFErrorDomainMach, _CFErrorMachCallBack);
-#endif
 }
 
 void CFErrorSetCallBackBlockForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBackBlock block) {
@@ -557,24 +589,29 @@ CFErrorUserInfoKeyCallBackBlock CFErrorGetCallBackBlockForDomain(CFStringRef dom
     return callBack;
 }
 
-void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
-    // Since we have replaced the callback functionality with a callback block functionality, we now register (legacy) callback functions embedded in a block which autoreleases the result
-    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){
-        CFTypeRef result = callBack(err, key);
+CFErrorUserInfoKeyCallBackBlock CFErrorCopyCallBackBlockForDomain(CFStringRef domainName) {
+    if (!_CFErrorCallBackTable) _CFErrorInitializeCallBackTable();
+    __CFLock(&_CFErrorSpinlock);
+    CFErrorUserInfoKeyCallBackBlock callBack = _CFErrorCallBackTable ? (CFErrorUserInfoKeyCallBackBlock)CFDictionaryGetValue(_CFErrorCallBackTable, domainName) : NULL;
+    if (callBack) CFRetain(callBack);
+    __CFUnlock(&_CFErrorSpinlock);
+    return callBack;
+}
+
+// This is meant to be called only with _CFErrorSpinlock taken and with _CFErrorCallBackTable already created
+static void __CFErrorSetCallBackForDomainNoLock(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
+    // Since we have replaced the callback functionality with a callback block functionality, we register callback function embedded in a block which autoreleases the result
+    if (callBack) {
+        CFErrorUserInfoKeyCallBackBlock block = ^(CFErrorRef err, CFStringRef key){
+            CFTypeRef result = callBack(err, key);
 #if !DEPLOYMENT_RUNTIME_SWIFT
-        if (result) CFAutorelease(result);
+            if (result) CFAutorelease(result);
 #endif
-        return result;
-    };
-    CFErrorSetCallBackBlockForDomain(domainName, block);
+            return result;
+        };
+        CFDictionarySetValue(_CFErrorCallBackTable, domainName, (void *)block);
+    } else {
+        CFDictionaryRemoveValue(_CFErrorCallBackTable, domainName);
+    }
 }
-
-CFErrorUserInfoKeyCallBack CFErrorGetCallBackForDomain(CFStringRef domainName) {
-    // Since there were no callers other than CF, removed as of 10.11/iOS9
-    // Otherwise would have had to have separate tables for callback functions and blocks
-    return NULL;
-}
-
-
-
 

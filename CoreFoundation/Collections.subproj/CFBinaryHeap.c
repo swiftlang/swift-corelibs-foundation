@@ -1,7 +1,7 @@
 /*	CFBinaryHeap.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -73,11 +73,11 @@ enum {      /* bits 1-0 */
 };
 
 CF_INLINE UInt32 __CFBinaryHeapMutableVariety(const void *cf) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)cf)->_cfinfo[CF_INFO_BITS], 3, 2);
+    return __CFRuntimeGetValue(cf, 3, 2);
 }
 
 CF_INLINE void __CFBinaryHeapSetMutableVariety(void *cf, UInt32 v) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)cf)->_cfinfo[CF_INFO_BITS], 3, 2, v);
+    __CFRuntimeSetValue(cf, 3, 2, v);
 }
 
 CF_INLINE UInt32 __CFBinaryHeapMutableVarietyFromFlags(UInt32 flags) {
@@ -325,10 +325,9 @@ static void __CFBinaryHeapGrow(CFBinaryHeapRef heap, CFIndex numNewValues) {
     CFAllocatorRef allocator = CFGetAllocator(heap);
     __CFBinaryHeapSetCapacity(heap, capacity);
     __CFBinaryHeapSetNumBuckets(heap, __CFBinaryHeapNumBucketsForCapacity(capacity));
-    void *buckets = CFAllocatorReallocate(allocator, heap->_buckets, __CFBinaryHeapNumBuckets(heap) * sizeof(struct __CFBinaryHeapBucket), 0);
+    void *buckets = __CFSafelyReallocateWithAllocator(allocator, heap->_buckets, __CFBinaryHeapNumBuckets(heap) * sizeof(struct __CFBinaryHeapBucket), 0, NULL);
     *((void **)&heap->_buckets) = buckets;
     if (__CFOASafe) __CFSetLastAllocationEventName(heap->_buckets, "CFBinaryHeap (store)");
-    if (NULL == heap->_buckets) HALT;
 }
 
 void CFBinaryHeapAddValue(CFBinaryHeapRef heap, const void *value) {
