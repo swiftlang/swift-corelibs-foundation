@@ -332,7 +332,7 @@
 		B9974B981EDF4A22007F15B8 /* libcurlHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */; };
 		B9974B991EDF4A22007F15B8 /* HTTPURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B921EDF4A22007F15B8 /* HTTPURLProtocol.swift */; };
 		B9974B9A1EDF4A22007F15B8 /* HTTPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */; };
-		B9974B9B1EDF4A22007F15B8 /* HTTPBodySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B941EDF4A22007F15B8 /* HTTPBodySource.swift */; };
+		B9974B9B1EDF4A22007F15B8 /* BodySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B941EDF4A22007F15B8 /* BodySource.swift */; };
 		B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B951EDF4A22007F15B8 /* EasyHandle.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
 		BDBB65901E256BFA001A7286 /* TestEnergyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */; };
@@ -803,7 +803,7 @@
 		B9974B911EDF4A22007F15B8 /* libcurlHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = libcurlHelpers.swift; sourceTree = "<group>"; };
 		B9974B921EDF4A22007F15B8 /* HTTPURLProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPURLProtocol.swift; path = http/HTTPURLProtocol.swift; sourceTree = "<group>"; };
 		B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPMessage.swift; path = http/HTTPMessage.swift; sourceTree = "<group>"; };
-		B9974B941EDF4A22007F15B8 /* HTTPBodySource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPBodySource.swift; path = http/HTTPBodySource.swift; sourceTree = "<group>"; };
+		B9974B941EDF4A22007F15B8 /* BodySource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BodySource.swift; sourceTree = "<group>"; };
 		B9974B951EDF4A22007F15B8 /* EasyHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyHandle.swift; sourceTree = "<group>"; };
 		BD8042151E09857800487EB8 /* TestLengthFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestLengthFormatter.swift; sourceTree = "<group>"; };
 		BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEnergyFormatter.swift; sourceTree = "<group>"; };
@@ -998,6 +998,7 @@
 				614732781FC2DEB7005B5E61 /* libcurl */,
 				E4F889331E9CF04D008A70EB /* http */,
 				5B1FD9C81D6D16580080E83C /* Configuration.swift */,
+				B9974B941EDF4A22007F15B8 /* BodySource.swift */,
 				5B1FD9CE1D6D16580080E83C /* URLSession.swift */,
 				5B1FD9CF1D6D16580080E83C /* URLSessionConfiguration.swift */,
 				5B1FD9D01D6D16580080E83C /* URLSessionDelegate.swift */,
@@ -1381,7 +1382,6 @@
 				B9974B921EDF4A22007F15B8 /* HTTPURLProtocol.swift */,
 				B9974B8F1EDF4A22007F15B8 /* TransferState.swift */,
 				B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */,
-				B9974B941EDF4A22007F15B8 /* HTTPBodySource.swift */,
 			);
 			name = http;
 			sourceTree = "<group>";
@@ -2236,7 +2236,7 @@
 				EADE0BB81BD15E0000C49C64 /* Process.swift in Sources */,
 				5BF7AEB31BCD51F9008F214A /* NSObjCRuntime.swift in Sources */,
 				5BD31D3F1D5D19D600563814 /* Dictionary.swift in Sources */,
-				B9974B9B1EDF4A22007F15B8 /* HTTPBodySource.swift in Sources */,
+				B9974B9B1EDF4A22007F15B8 /* BodySource.swift in Sources */,
 				5B94E8821C430DE70055C035 /* NSStringAPI.swift in Sources */,
 				5B0163BB1D024EB7003CCD96 /* DateComponents.swift in Sources */,
 				5BF7AEAB1BCD51F9008F214A /* NSDictionary.swift in Sources */,
