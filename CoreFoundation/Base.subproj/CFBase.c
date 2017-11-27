@@ -1,7 +1,7 @@
 /*	CFBase.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -533,12 +533,7 @@ static CFAllocatorRef __CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorC
 	if (__CFOASafe) __CFSetLastAllocationEventName(memory, "CFAllocator");
     }
     memset(memory, 0, sizeof(CFRuntimeBase));
-#if __LP64__
-    memory->_base._rc = 1;
-#else
-    memory->_base._cfinfo[CF_RC_BITS] = 1;
-#endif
-    memory->_base._cfinfo[CF_INFO_BITS] = 0;
+    __CFRuntimeSetRC(memory, 1);
     _CFAllocatorSetInstanceTypeIDAndIsa(memory);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     memory->size = __CFAllocatorCustomSize;
@@ -756,6 +751,41 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 }
 
 // -------- -------- -------- -------- -------- -------- -------- --------
+
+
+
+static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
+    _Bool recovered = false;
+    if (reallocationFailureHandler) {
+        reallocationFailureHandler(ptr, &recovered);
+    }
+    
+    if (!recovered) {
+            CRSetCrashLogMessage("Failed to grow buffer");
+            HALT;
+    }
+}
+
+
+void *__CFSafelyReallocate(void *destination, size_t newCapacity, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
+    void *const reallocated = realloc(destination, newCapacity);
+    if (__builtin_expect(reallocated == NULL, false)) {
+        __CFReallocationFailed(destination,  CFSTR("realloc"), reallocationFailureHandler);
+    }
+    return reallocated;
+}
+
+
+void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destination, size_t newCapacity, CFOptionFlags options, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
+    void *reallocated = CFAllocatorReallocate(allocator, destination, newCapacity, options);
+    // NOTE: important difference in behavior between realloc vs CFAllocateReallocate NULL+0 -> NULL for allocators!
+    if (__builtin_expect(reallocated == NULL, false) && !(destination == NULL && newCapacity == 0)) {
+        __CFReallocationFailed(destination,  CFSTR("realloc"), reallocationFailureHandler);
+    }
+    return reallocated;
+}
+
+
 
 
 CFRange __CFRangeMake(CFIndex loc, CFIndex len) {

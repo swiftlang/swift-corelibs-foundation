@@ -1,7 +1,7 @@
 /*	CFLocale.h
-	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -65,12 +65,12 @@ CFArrayRef CFLocaleCopyISOCurrencyCodes(void);
 	// represent other financial instruments.
 
 CF_EXPORT
-CFArrayRef CFLocaleCopyCommonISOCurrencyCodes(void) CF_AVAILABLE(10_5, 2_0);
+CFArrayRef CFLocaleCopyCommonISOCurrencyCodes(void) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 	// Returns an array of CFStrings that represents ISO currency codes for
 	// currencies in common use.
 
 CF_EXPORT
-CFArrayRef CFLocaleCopyPreferredLanguages(void) CF_AVAILABLE(10_5, 2_0);
+CFArrayRef CFLocaleCopyPreferredLanguages(void) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 	// Returns the array of canonicalized CFString locale IDs that the user prefers.
 
 CF_EXPORT
@@ -88,11 +88,11 @@ CFLocaleIdentifier CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes
 	// Map a Mac OS LangCode and RegionCode to the canonical locale identifier.
 
 CF_EXPORT
-CFLocaleIdentifier CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(CFAllocatorRef allocator, uint32_t lcid) CF_AVAILABLE(10_6, 4_0);
+CFLocaleIdentifier CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(CFAllocatorRef allocator, uint32_t lcid) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 	// Map a Windows LCID to the canonical locale identifier.
 
 CF_EXPORT
-uint32_t CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(CFLocaleIdentifier localeIdentifier) CF_AVAILABLE(10_6, 4_0);
+uint32_t CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(CFLocaleIdentifier localeIdentifier) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 	// Map a locale identifier to a Windows LCID.
 
 typedef CF_ENUM(CFIndex, CFLocaleLanguageDirection) {
@@ -104,10 +104,10 @@ typedef CF_ENUM(CFIndex, CFLocaleLanguageDirection) {
 };
 
 CF_EXPORT
-CFLocaleLanguageDirection CFLocaleGetLanguageCharacterDirection(CFStringRef isoLangCode) CF_AVAILABLE(10_6, 4_0);
+CFLocaleLanguageDirection CFLocaleGetLanguageCharacterDirection(CFStringRef isoLangCode) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-CFLocaleLanguageDirection CFLocaleGetLanguageLineDirection(CFStringRef isoLangCode) CF_AVAILABLE(10_6, 4_0);
+CFLocaleLanguageDirection CFLocaleGetLanguageLineDirection(CFStringRef isoLangCode) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
 CFDictionaryRef CFLocaleCreateComponentsFromLocaleIdentifier(CFAllocatorRef allocator, CFLocaleIdentifier localeID);
@@ -154,7 +154,7 @@ CFStringRef CFLocaleCopyDisplayNameForPropertyValue(CFLocaleRef displayLocale, C
 	// not all locale property keys have values with display name values.
 
 
-CF_EXPORT const CFNotificationName kCFLocaleCurrentLocaleDidChangeNotification CF_AVAILABLE(10_5, 2_0);
+CF_EXPORT const CFNotificationName kCFLocaleCurrentLocaleDidChangeNotification API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 
 // Locale Keys
@@ -169,16 +169,16 @@ CF_EXPORT const CFLocaleKey kCFLocaleCalendarIdentifier;
 CF_EXPORT const CFLocaleKey kCFLocaleCalendar;
 CF_EXPORT const CFLocaleKey kCFLocaleCollationIdentifier;
 CF_EXPORT const CFLocaleKey kCFLocaleUsesMetricSystem;
-CF_EXPORT const CFLocaleKey kCFLocaleMeasurementSystem; // "Metric" or "U.S."
+CF_EXPORT const CFLocaleKey kCFLocaleMeasurementSystem; // "Metric", "U.S." or "U.K."
 CF_EXPORT const CFLocaleKey kCFLocaleDecimalSeparator;
 CF_EXPORT const CFLocaleKey kCFLocaleGroupingSeparator;
 CF_EXPORT const CFLocaleKey kCFLocaleCurrencySymbol;
 CF_EXPORT const CFLocaleKey kCFLocaleCurrencyCode; // ISO 3-letter currency code
-CF_EXPORT const CFLocaleKey kCFLocaleCollatorIdentifier CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFLocaleKey kCFLocaleQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFLocaleKey kCFLocaleQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationBeginDelimiterKey CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationEndDelimiterKey CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT const CFLocaleKey kCFLocaleCollatorIdentifier API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFLocaleKey kCFLocaleQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFLocaleKey kCFLocaleQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 // Values for kCFLocaleCalendarIdentifier
 typedef CFStringRef CFCalendarIdentifier CF_STRING_ENUM;
@@ -190,12 +190,12 @@ CF_EXPORT const CFCalendarIdentifier kCFHebrewCalendar;
 CF_EXPORT const CFCalendarIdentifier kCFIslamicCalendar;
 CF_EXPORT const CFCalendarIdentifier kCFIslamicCivilCalendar;
 CF_EXPORT const CFCalendarIdentifier kCFJapaneseCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFRepublicOfChinaCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFCalendarIdentifier kCFPersianCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFCalendarIdentifier kCFIndianCalendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFCalendarIdentifier kCFISO8601Calendar CF_AVAILABLE(10_6, 4_0);
-CF_EXPORT const CFCalendarIdentifier kCFIslamicTabularCalendar CF_AVAILABLE(10_10, 8_0);
-CF_EXPORT const CFCalendarIdentifier kCFIslamicUmmAlQuraCalendar CF_AVAILABLE(10_10, 8_0);
+CF_EXPORT const CFCalendarIdentifier kCFRepublicOfChinaCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFCalendarIdentifier kCFPersianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFCalendarIdentifier kCFIndianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFCalendarIdentifier kCFISO8601Calendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFCalendarIdentifier kCFIslamicTabularCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT const CFCalendarIdentifier kCFIslamicUmmAlQuraCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

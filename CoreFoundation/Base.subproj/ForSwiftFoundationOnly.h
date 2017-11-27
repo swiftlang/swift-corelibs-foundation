@@ -323,11 +323,9 @@ CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet,
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 
-CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(CFAllocatorRef alloc, CFDataRef data);
+CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream);
 
-CF_EXPORT _Nullable CFErrorRef _CFReadStreamCopyError(CFReadStreamRef stream);
-
-CF_EXPORT _Nullable CFErrorRef _CFWriteStreamCopyError(CFWriteStreamRef stream);
+CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream);
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8

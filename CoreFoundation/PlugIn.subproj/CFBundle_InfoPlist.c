@@ -1,7 +1,7 @@
 /*      CFBundle_InfoPlist.c
-	Copyright (c) 2012-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -25,6 +25,7 @@
 #include <sys/mman.h>
 #endif
 #endif
+
 
 // The following strings are initialized 'later' (i.e., not at static initialization time) because static init time is too early for CFSTR to work, on platforms without constant CF strings
 #if !__CONSTANT_STRINGS__
@@ -74,10 +75,20 @@ CF_PRIVATE void _CFBundleResourcesInitialize() { }
 #pragma mark Product and Platform Getters - Exported
 
 static CFStringRef _cfBundlePlatform = NULL;
+#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+static CFStringRef _cfBundlePlatformSuffix = NULL;
+CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void);
+#endif
 CF_EXPORT void _CFSetProductName(CFStringRef str) {
     // TODO: This should be removed. The "CLASSIC" check below removes the need to set the product name manually.
     if (str) CFRetain(str);
     _cfBundlePlatform = str;
+    
+#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    // Reset the suffix version too
+    _cfBundlePlatformSuffix = NULL;
+    (void)_CFBundleGetProductNameSuffix();
+#endif
     // Note that the previous value is leaked, which is fine normally
     // because the initial values would tend to be the constant strings
     // below. That is required for thread-safety value due to the Get
@@ -129,6 +140,43 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
     return CFSTR("");
 }
 
+CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void) {
+#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    // Not dispatch once, because this can be reset (by a rare API call). If a race happens, it just leaks one string.
+    if (!_cfBundlePlatformSuffix) {
+        CFStringRef productName = _CFGetProductName();
+        if (CFEqual(productName, CFSTR("ipod"))) {
+            productName = CFSTR("iphone");
+        }
+        _cfBundlePlatformSuffix = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("~%@"), productName);
+    }
+    return _cfBundlePlatformSuffix;
+#else
+    // Pedantically correct - _CFGetProductName returns an empty string on non-embedded platforms.
+    return CFSTR("~");
+#endif
+}
+
+CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
+#if DEPLOYMENT_TARGET_MACOSX
+    return _CFBundleMacOSXPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    return _CFBundleiPhoneOSPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    return _CFBundleWindowsPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_SOLARIS
+    return _CFBundleSolarisPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_HPUX
+    return _CFBundleHPUXPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_LINUX
+    return _CFBundleLinuxPlatformNameSuffix;
+#elif DEPLOYMENT_TARGET_FREEBSD
+    return _CFBundleFreeBSDPlatformNameSuffix;
+#else
+#error Unknown or unspecified DEPLOYMENT_TARGET
+#endif
+}
+
 // All new-style bundles will have these extensions.
 CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 #if DEPLOYMENT_TARGET_MACOSX 
@@ -145,7 +193,7 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 #if TARGET_OS_CYGWIN
     return _CFBundleCygwinPlatformName;
 #else
-    return _CFBundleLinuxPlatformName;
+     return _CFBundleLinuxPlatformName;
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return _CFBundleFreeBSDPlatformName;
@@ -165,7 +213,7 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-    return CFSTR("Linux");
+     return CFSTR("Linux");
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return CFSTR("FreeBSD");
@@ -416,28 +464,178 @@ CF_PRIVATE void _CFBundleInfoPlistProcessInfoDictionary(CFMutableDictionaryRef d
 }
 
 #pragma mark -
-#pragma mark Info Plist Functions
 
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, uint8_t *version) {
-    CFDictionaryRef dict = NULL;
-    unsigned char buff[CFMaxPathSize];
-    uint8_t localVersion = 0;
+#define DEVELOPMENT_STAGE 0x20
+#define ALPHA_STAGE 0x40
+#define BETA_STAGE 0x60
+#define RELEASE_STAGE 0x80
+
+#define MAX_VERS_LEN 10
+
+CF_INLINE Boolean _isDigit(UniChar aChar) {return ((aChar >= (UniChar)'0' && aChar <= (UniChar)'9') ? true : false);}
+
+static UInt32 _CFVersionNumberFromString(CFStringRef versStr) {
+    // Parse version number from string.
+    // String can begin with "." for major version number 0.  String can end at any point, but elements within the string cannot be skipped.
+    UInt32 major1 = 0, major2 = 0, minor1 = 0, minor2 = 0, stage = RELEASE_STAGE, build = 0;
+    UniChar versChars[MAX_VERS_LEN];
+    UniChar *chars = NULL;
+    CFIndex len;
+    UInt32 theVers;
+    Boolean digitsDone = false;
     
-    if (CFURLGetFileSystemRepresentation(url, true, buff, CFMaxPathSize)) {
-        CFURLRef newURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, buff, strlen((char *)buff), true);
-        if (!newURL) newURL = (CFURLRef)CFRetain(url);
-
-        localVersion = _CFBundleGetBundleVersionForURL(newURL);
-        
-        dict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(alloc, newURL, NULL, localVersion);
-        CFRelease(newURL);
+    if (!versStr) return 0;
+    len = CFStringGetLength(versStr);
+    if (len <= 0 || len > MAX_VERS_LEN) return 0;
+    
+    CFStringGetCharacters(versStr, CFRangeMake(0, len), versChars);
+    chars = versChars;
+    
+    // Get major version number.
+    major1 = major2 = 0;
+    if (_isDigit(*chars)) {
+        major2 = *chars - (UniChar)'0';
+        chars++;
+        len--;
+        if (len > 0) {
+            if (_isDigit(*chars)) {
+                major1 = major2;
+                major2 = *chars - (UniChar)'0';
+                chars++;
+                len--;
+                if (len > 0) {
+                    if (*chars == (UniChar)'.') {
+                        chars++;
+                        len--;
+                    } else {
+                        digitsDone = true;
+                    }
+                }
+            } else if (*chars == (UniChar)'.') {
+                chars++;
+                len--;
+            } else {
+                digitsDone = true;
+            }
+        }
+    } else if (*chars == (UniChar)'.') {
+        chars++;
+        len--;
+    } else {
+        digitsDone = true;
     }
-    if (version) *version = localVersion;
-    return dict;
+    
+    // Now major1 and major2 contain first and second digit of the major version number as ints.
+    // Now either len is 0 or chars points at the first char beyond the first decimal point.
+    
+    // Get the first minor version number.
+    if (len > 0 && !digitsDone) {
+        if (_isDigit(*chars)) {
+            minor1 = *chars - (UniChar)'0';
+            chars++;
+            len--;
+            if (len > 0) {
+                if (*chars == (UniChar)'.') {
+                    chars++;
+                    len--;
+                } else {
+                    digitsDone = true;
+                }
+            }
+        } else {
+            digitsDone = true;
+        }
+    }
+    
+    // Now minor1 contains the first minor version number as an int.
+    // Now either len is 0 or chars points at the first char beyond the second decimal point.
+    
+    // Get the second minor version number.
+    if (len > 0 && !digitsDone) {
+        if (_isDigit(*chars)) {
+            minor2 = *chars - (UniChar)'0';
+            chars++;
+            len--;
+        } else {
+            digitsDone = true;
+        }
+    }
+    
+    // Now minor2 contains the second minor version number as an int.
+    // Now either len is 0 or chars points at the build stage letter.
+    
+    // Get the build stage letter.  We must find 'd', 'a', 'b', or 'f' next, if there is anything next.
+    if (len > 0) {
+        if (*chars == (UniChar)'d') {
+            stage = DEVELOPMENT_STAGE;
+        } else if (*chars == (UniChar)'a') {
+            stage = ALPHA_STAGE;
+        } else if (*chars == (UniChar)'b') {
+            stage = BETA_STAGE;
+        } else if (*chars == (UniChar)'f') {
+            stage = RELEASE_STAGE;
+        } else {
+            return 0;
+        }
+        chars++;
+        len--;
+    }
+    
+    // Now stage contains the release stage.
+    // Now either len is 0 or chars points at the build number.
+    
+    // Get the first digit of the build number.
+    if (len > 0) {
+        if (_isDigit(*chars)) {
+            build = *chars - (UniChar)'0';
+            chars++;
+            len--;
+        } else {
+            return 0;
+        }
+    }
+    // Get the second digit of the build number.
+    if (len > 0) {
+        if (_isDigit(*chars)) {
+            build *= 10;
+            build += *chars - (UniChar)'0';
+            chars++;
+            len--;
+        } else {
+            return 0;
+        }
+    }
+    // Get the third digit of the build number.
+    if (len > 0) {
+        if (_isDigit(*chars)) {
+            build *= 10;
+            build += *chars - (UniChar)'0';
+            chars++;
+            len--;
+        } else {
+            return 0;
+        }
+    }
+    
+    // Range check the build number and make sure we exhausted the string.
+    if (build > 0xFF || len > 0) return 0;
+    
+    // Build the number
+    theVers = major1 << 28;
+    theVers += major2 << 24;
+    theVers += minor1 << 20;
+    theVers += minor2 << 16;
+    theVers += stage << 8;
+    theVers += build;
+    
+    return theVers;
 }
 
+#pragma mark -
+#pragma mark Info Plist Functions
+
 // If infoPlistUrl is passed as non-null it will return retained as the out parameter; callers are responsible for releasing.
-CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, uint8_t version) {
+static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAllocatorRef alloc, CFURLRef url, CFURLRef * infoPlistUrl, uint8_t version) {
     // We only return NULL for a bad URL, otherwise we create a dummy dictionary
     if (!url) return NULL;
     
@@ -579,6 +777,24 @@ CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFA
     return result;
 }
 
+CF_PRIVATE CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectory(CFAllocatorRef alloc, CFURLRef url, uint8_t *version) {
+    CFDictionaryRef dict = NULL;
+    unsigned char buff[CFMaxPathSize];
+    uint8_t localVersion = 0;
+    
+    if (CFURLGetFileSystemRepresentation(url, true, buff, CFMaxPathSize)) {
+        CFURLRef newURL = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, buff, strlen((char *)buff), true);
+        if (!newURL) newURL = (CFURLRef)CFRetain(url);
+        
+        localVersion = _CFBundleGetBundleVersionForURL(newURL);
+        
+        dict = _CFBundleCopyInfoDictionaryInDirectoryWithVersion(alloc, newURL, NULL, localVersion);
+        CFRelease(newURL);
+    }
+    if (version) *version = localVersion;
+    return dict;
+}
+
 CF_EXPORT CFDictionaryRef CFBundleCopyInfoDictionaryForURL(CFURLRef url) {
     CFDictionaryRef result = NULL;
     Boolean isDir = false;
@@ -589,7 +805,6 @@ CF_EXPORT CFDictionaryRef CFBundleCopyInfoDictionaryForURL(CFURLRef url) {
             result = _CFBundleCopyInfoDictionaryInExecutable(url);
         }
     }
-    if (result && (0)) CFRetain(result); // conditionally put on a retain for a Copy function
     return result;
 }
 

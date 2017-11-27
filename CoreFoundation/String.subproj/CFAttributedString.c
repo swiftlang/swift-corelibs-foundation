@@ -6,10 +6,10 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-
-
 /*	CFAttributedString.c
-	Copyright (c) 2004-2015, Apple Inc. All rights reserved.
+	Copyright (c) 2004-2017, Apple Inc. All rights reserved.
+        Original Author: Ali Ozer
+	Responsibility: Ali Ozer
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -17,6 +17,7 @@
 #include "CFRunArray.h"
 #include <CoreFoundation/ForFoundationOnly.h>
 #include "CFInternal.h"
+
 
 struct __CFAttributedString {
     CFRuntimeBase base;
@@ -27,20 +28,22 @@ struct __CFAttributedString {
 /* Mutability is determined by a bit in the CF base. Mutable if bit 0 is 0.  So by default freshly created attributed strings are mutable.  Don't change mutability once the object has been created and initialized!
 */
 CF_INLINE Boolean __CFAttributedStringIsMutable(CFAttributedStringRef attrStr) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)attrStr)->_cfinfo[CF_INFO_BITS], 0, 0) ? false : true;
+    // The first bit is 'immutable', so flip the sense
+    return !__CFRuntimeGetFlag(attrStr, 0);
 }
 
 CF_INLINE void __CFAttributedStringSetMutable(CFAttributedStringRef attrStr, Boolean flag) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)attrStr)->_cfinfo[CF_INFO_BITS], 0, 0, (flag ? 0 : 1));
+    // The first bit is 'immutable', so flip the sense
+    __CFRuntimeSetFlag(attrStr, 0, !flag);
 }
 
 
 /* Assertions
 */
 #define __CFAssertIsAttributedString(cf) __CFGenericValidateType(cf, CFAttributedStringGetTypeID())
-#define __CFAssertIndexIsInBounds(cf, idx) CFAssert3((idx) >= 0 && (idx) < CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): index %d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, CFAttributedStringGetLength(cf))
-#define __CFAssertRangeIsInBounds(cf, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, CFAttributedStringGetLength(cf))
-#define __CFAssertRangeIsWithinLength(len, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= len, __kCFLogAssertion, "%s(): range %d,%d out of bounds (length %d)", __PRETTY_FUNCTION__, idx, count, len)
+#define __CFAssertIndexIsInBounds(cf, idx) CFAssert3((idx) >= 0 && (idx) < CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): index %ld out of bounds (length %ld)", __PRETTY_FUNCTION__, idx, CFAttributedStringGetLength(cf))
+#define __CFAssertRangeIsInBounds(cf, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= CFAttributedStringGetLength(cf), __kCFLogAssertion, "%s(): range %ld,%ld out of bounds (length %ld)", __PRETTY_FUNCTION__, idx, count, CFAttributedStringGetLength(cf))
+#define __CFAssertRangeIsWithinLength(len, idx, count) CFAssert4((idx) >= 0 && (idx + count) <= len, __kCFLogAssertion, "%s(): range %ld,%ld out of bounds (length %ld)", __PRETTY_FUNCTION__, idx, count, len)
 #define __CFAssertIsAttributedStringAndMutable(cf) CFAssert1((CFGetTypeID(cf) == CFAttributedStringGetTypeID()) && __CFAttributedStringIsMutable(cf), __kCFLogAssertion, "%s(): argument not a CFMutableAttributedString", __PRETTY_FUNCTION__)
 
 
@@ -491,29 +494,29 @@ void CFAttributedStringSetAttributes(CFMutableAttributedStringRef attrStr, CFRan
         CFIndex numAdditionalItems = CFDictionaryGetCount(replacementAttrs);
         if (numAdditionalItems) {
             // Extract the new keys and values so we don't do it over and over for each range
-            createLocalArray(additionalKeys, numAdditionalItems);
-            createLocalArray(additionalValues, numAdditionalItems);
+	    createLocalArray(additionalKeys, numAdditionalItems);
+	    createLocalArray(additionalValues, numAdditionalItems);
             CFDictionaryGetKeysAndValues(replacementAttrs, additionalKeys, additionalValues);
-            
-            // CFAttributedStringBeginEditing(attrStr);
+
+	    // CFAttributedStringBeginEditing(attrStr);
             while (range.length) {
                 CFRange effectiveRange;
                 CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-                // Intersect effectiveRange and range
-                if (effectiveRange.location < range.location) {
-                    effectiveRange.length -= (range.location - effectiveRange.location);
-                    effectiveRange.location = range.location;
-                }
-                if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-                // We need to make a new copy
-                attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-                __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
-                CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-                CFRelease(attrs);
+			// Intersect effectiveRange and range
+			if (effectiveRange.location < range.location) {
+			    effectiveRange.length -= (range.location - effectiveRange.location);
+			    effectiveRange.location = range.location;	    
+			}
+			if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+                    // We need to make a new copy
+                    attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
+                    __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
+                    CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+                    CFRelease(attrs);
                 range.length -= effectiveRange.length;
                 range.location += effectiveRange.length;
             }
-            // CFAttributedStringEndEditing(attrStr);
+	    // CFAttributedStringEndEditing(attrStr);
             
             freeLocalArray(additionalKeys);
             freeLocalArray(additionalValues);
@@ -531,21 +534,21 @@ void CFAttributedStringSetAttribute(CFMutableAttributedStringRef attrStr, CFRang
         CFRange effectiveRange;
         // effectiveRange.location returned here may be equal to or smaller than range.location
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-        // Intersect effectiveRange and range
-        if (effectiveRange.location < range.location) {
-            effectiveRange.length -= (range.location - effectiveRange.location);
-            effectiveRange.location = range.location;	    
-        }
-        if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-        // First check to see if the same value already exists; this will avoid a copy
-        CFTypeRef existingValue = CFDictionaryGetValue(attrs, attrName);
-        if (!existingValue || !CFEqual(existingValue, value)) {
-            // We need to make a new copy
-            attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-            CFDictionarySetValue(attrs, attrName, value);
-            CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-            CFRelease(attrs);
-        }
+            // Intersect effectiveRange and range
+            if (effectiveRange.location < range.location) {
+                effectiveRange.length -= (range.location - effectiveRange.location);
+                effectiveRange.location = range.location;	    
+	     }
+	     if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+            // First check to see if the same value already exists; this will avoid a copy
+            CFTypeRef existingValue = CFDictionaryGetValue(attrs, attrName);
+            if (!existingValue || !CFEqual(existingValue, value)) {
+                // We need to make a new copy
+                attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
+                CFDictionarySetValue(attrs, attrName, value);
+                CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+                CFRelease(attrs);
+            }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
     }
@@ -561,20 +564,20 @@ void CFAttributedStringRemoveAttribute(CFMutableAttributedStringRef attrStr, CFR
     while (range.length) {
         CFRange effectiveRange;
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-        // Intersect effectiveRange and range
-        if (effectiveRange.location < range.location) {
-            effectiveRange.length -= (range.location - effectiveRange.location);
-            effectiveRange.location = range.location;	    
-        }
-        if (effectiveRange.length > range.length) effectiveRange.length = range.length;
-        // First check to see if the value is not there; this will avoid a copy
-        if (CFDictionaryContainsKey(attrs, attrName)) {
-            // We need to make a new copy
-            attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
-            CFDictionaryRemoveValue(attrs, attrName);
-            CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
-            CFRelease(attrs);
-        }
+            // Intersect effectiveRange and range
+            if (effectiveRange.location < range.location) {
+                effectiveRange.length -= (range.location - effectiveRange.location);
+                effectiveRange.location = range.location;	    
+	     }
+	     if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+            // First check to see if the value is not there; this will avoid a copy
+            if (CFDictionaryContainsKey(attrs, attrName)) {
+		// We need to make a new copy
+		attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
+		CFDictionaryRemoveValue(attrs, attrName);
+		CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
+		CFRelease(attrs);
+	    }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
     }
@@ -616,6 +619,7 @@ void CFAttributedStringEndEditing(CFMutableAttributedStringRef attrStr) {
 
 
 /*** Functions for NSCFAttributedString usage ***/
+
 
 CFIndex _CFAttributedStringGetLength(CFAttributedStringRef attrStr) {
     return CFStringGetLength(attrStr->string);

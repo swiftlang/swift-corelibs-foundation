@@ -1,7 +1,7 @@
 /*	CFMessagePort.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -60,7 +60,7 @@ CF_EXPORT SInt32	CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid,
 
 CF_EXPORT CFRunLoopSourceRef	CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CFMessagePortRef local, CFIndex order);
 
-CF_EXPORT void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) CF_AVAILABLE(10_6, 4_0);
+CF_EXPORT void CFMessagePortSetDispatchQueue(CFMessagePortRef ms, dispatch_queue_t queue) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

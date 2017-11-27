@@ -1,7 +1,7 @@
 /*	CFPreferences.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -113,7 +113,7 @@ which have preferences in the scope of the given user and host, or NULL if no ap
 The returned value must be released by the caller; neither argument
 may be NULL. Does not supported sandboxed applications. */
 CF_EXPORT
-_Nullable CFArrayRef CFPreferencesCopyApplicationList(CFStringRef userName, CFStringRef hostName) CF_DEPRECATED(10_0, 10_9, 2_0, 7_0);
+_Nullable CFArrayRef CFPreferencesCopyApplicationList(CFStringRef userName, CFStringRef hostName) API_DEPRECATED("Unsupported API", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Constructs and returns the list of all keys set in the given
 location, or NULL if no keys are set.  The returned value must be released by the caller;

@@ -1,7 +1,7 @@
 /*	CFStorage.c
-        Copyright (c) 1999-2016, Apple Inc. All rights reserved.
+        Copyright (c) 1999-2017, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -134,7 +134,7 @@ CF_INLINE void __CFStorageAllocLeafNodeMemory(CFAllocatorRef allocator, CFStorag
 	__CFLock(&(storage->cacheReaderMemoryAllocationLock));
 	/* Check again now that we've acquired the lock.  We know that we can do this because two simulaneous readers will always pass the same capacity.  This is the fix for 8203146.  This probably needs a memory barrier. */
 	if ((compact ? (cap != node->info.leaf.capacityInBytes) : (cap > node->info.leaf.capacityInBytes))) {
-	    *((void **)&node->info.leaf.memory) = CFAllocatorReallocate(allocator, node->info.leaf.memory, cap, 0);	// This will free...
+	    *((void **)&node->info.leaf.memory) = __CFSafelyReallocateWithAllocator(allocator, node->info.leaf.memory, cap, 0, NULL);	// This will free...
 	    if (__CFOASafe) __CFSetLastAllocationEventName(node->info.leaf.memory, "CFStorage (node bytes)");
 	    node->info.leaf.capacityInBytes = cap;
 	}

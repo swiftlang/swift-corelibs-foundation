@@ -1,7 +1,7 @@
 /*	CFString.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -157,8 +157,7 @@ struct __CFConstStr {
         uintptr_t _cfisa;
         uint32_t _swift_strong_rc;
         uint32_t _swift_weak_rc;
-        uint8_t _cfinfo[4];
-        uint8_t _pad[4];
+        uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
 #if defined(__LP64__) && defined(__BIG_ENDIAN__)
@@ -176,13 +175,13 @@ struct __CFConstStr {
 
 #if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \
-static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0x00, 0x00, 0x07, 0xc8}, {0x00, 0x00, 0x00, 0x00}}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
-(CFStringRef)&str; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    (CFStringRef)&str; \
 })
 #else
 #define CFSTR(cStr)  ({ \
-static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, {0xc8, 0x07, 0x00, 0x00}, {0x00, 0x00, 0x00, 0x00}}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
-(CFStringRef)&str; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    (CFStringRef)&str; \
 })
 #endif
 
@@ -414,9 +413,9 @@ typedef CF_OPTIONS(CFOptionFlags, CFStringCompareFlags) {
     kCFCompareNonliteral = 16,		/* If specified, loose equivalence is performed (o-umlaut == o, umlaut) */
     kCFCompareLocalized = 32,		/* User's default locale is used for the comparisons */
     kCFCompareNumerically = 64,		/* Numeric comparison is used; that is, Foo2.txt < Foo7.txt < Foo25.txt */
-    kCFCompareDiacriticInsensitive CF_ENUM_AVAILABLE(10_5, 2_0) = 128, /* If specified, ignores diacritics (o-umlaut == o) */
-    kCFCompareWidthInsensitive CF_ENUM_AVAILABLE(10_5, 2_0) = 256, /* If specified, ignores width differences ('a' == UFF41) */
-    kCFCompareForcedOrdering CF_ENUM_AVAILABLE(10_5, 2_0) = 512 /* If specified, comparisons are forced to return either kCFCompareLessThan or kCFCompareGreaterThan if the strings are equivalent but not strictly equal, for stability when sorting (e.g. "aaa" > "AAA" with kCFCompareCaseInsensitive specified) */
+    kCFCompareDiacriticInsensitive API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 128, /* If specified, ignores diacritics (o-umlaut == o) */
+    kCFCompareWidthInsensitive API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 256, /* If specified, ignores width differences ('a' == UFF41) */
+    kCFCompareForcedOrdering API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 512 /* If specified, comparisons are forced to return either kCFCompareLessThan or kCFCompareGreaterThan if the strings are equivalent but not strictly equal, for stability when sorting (e.g. "aaa" > "AAA" with kCFCompareCaseInsensitive specified) */
 };
 
 /* The main comparison routine; compares specified range of the first string to (the full range of) the second string.
@@ -426,7 +425,7 @@ typedef CF_OPTIONS(CFOptionFlags, CFStringCompareFlags) {
    rangeToCompare applies to the first string; that is, only the substring of theString1 specified by rangeToCompare is compared against all of theString2.
 */
 CF_EXPORT
-CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef theString1, CFStringRef theString2, CFRange rangeToCompare, CFStringCompareFlags compareOptions, CFLocaleRef locale) CF_AVAILABLE(10_5, 2_0);
+CFComparisonResult CFStringCompareWithOptionsAndLocale(CFStringRef theString1, CFStringRef theString2, CFRange rangeToCompare, CFStringCompareFlags compareOptions, CFLocaleRef locale) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 /* Comparison convenience. Uses the current user locale (the return value from CFLocaleCopyCurrent()) if kCFCompareLocalized. Refer to CFStringCompareWithOptionsAndLocale() for more info.
 */
@@ -447,7 +446,7 @@ CFComparisonResult CFStringCompare(CFStringRef theString1, CFStringRef theString
    Only the substring of theString specified by rangeToSearch is searched for stringToFind.
 */
 CF_EXPORT
-Boolean CFStringFindWithOptionsAndLocale(CFStringRef theString, CFStringRef stringToFind, CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFLocaleRef locale, CFRange *result) CF_AVAILABLE(10_5, 2_0);
+Boolean CFStringFindWithOptionsAndLocale(CFStringRef theString, CFStringRef stringToFind, CFRange rangeToSearch, CFStringCompareFlags searchOptions, CFLocaleRef locale, CFRange *result) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 /* Find convenience. Uses the current user locale (the return value from CFLocaleCopyCurrent()) if kCFCompareLocalized. Refer to CFStringFindWithOptionsAndLocale() for more info.
 */
@@ -501,7 +500,7 @@ CF_EXPORT CFRange CFStringGetRangeOfComposedCharactersAtIndex(CFStringRef theStr
 	@param theSet The CFCharacterSet against which the membership
 			of characters is checked.  If this parameter is not a valid
 			CFCharacterSet, the behavior is undefined.
-	@param range The range of characters within the string to search. If
+	@param rangeToSearch The range of characters within the string to search. If
 			the range location or end point (defined by the location
 			plus length minus 1) are outside the index space of the
 			string (0 to N-1 inclusive, where N is the length of the
@@ -538,7 +537,7 @@ void CFStringGetLineBounds(CFStringRef theString, CFRange range, CFIndex *lineBe
 /* Same as CFStringGetLineBounds(), however, will only look for paragraphs. Won't stop at Unicode NextLine or LineSeparator characters.
 */
 CF_EXPORT
-void CFStringGetParagraphBounds(CFStringRef string, CFRange range, CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex) CF_AVAILABLE(10_5, 2_0);
+void CFStringGetParagraphBounds(CFStringRef string, CFRange range, CFIndex *parBeginIndex, CFIndex *parEndIndex, CFIndex *contentsEndIndex) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 /*!
 	@function CFStringGetHyphenationLocationBeforeIndex
@@ -566,10 +565,10 @@ void CFStringGetParagraphBounds(CFStringRef string, CFRange range, CFIndex *parB
 			one exists; else kCFNotFound
 */
 CF_EXPORT
-CFIndex CFStringGetHyphenationLocationBeforeIndex(CFStringRef string, CFIndex location, CFRange limitRange, CFOptionFlags options, CFLocaleRef locale, UTF32Char *character) CF_AVAILABLE(10_7, 4_2);
+CFIndex CFStringGetHyphenationLocationBeforeIndex(CFStringRef string, CFIndex location, CFRange limitRange, CFOptionFlags options, CFLocaleRef locale, UTF32Char *character) API_AVAILABLE(macos(10.7), ios(4.2), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-Boolean CFStringIsHyphenationAvailableForLocale(CFLocaleRef locale) CF_AVAILABLE(10_7, 4_3);
+Boolean CFStringIsHyphenationAvailableForLocale(CFLocaleRef locale) API_AVAILABLE(macos(10.7), ios(4.3), watchos(2.0), tvos(9.0));
 
 /*** Exploding and joining strings with a separator string ***/
 
@@ -716,7 +715,7 @@ CF_EXPORT void CFStringNormalize(CFMutableStringRef theString, CFStringNormaliza
 		the effect of kCFCompareNonliteral.
 	@param theString  The string which is to be folded.  If this parameter is not
 		a valid mutable CFString, the behavior is undefined.
-	@param theFlag  The equivalency flags which describes the character folding form.
+	@param theFlags  The equivalency flags which describes the character folding form.
 		Only those flags containing the word "insensitive" are recognized here; other flags are ignored.		
 		Folding with kCFCompareCaseInsensitive removes case distinctions in accordance with the mapping
 		specified by ftp://ftp.unicode.org/Public/UNIDATA/CaseFolding.txt.  Folding with
@@ -729,7 +728,7 @@ CF_EXPORT void CFStringNormalize(CFMutableStringRef theString, CFStringNormaliza
 */
 
 CF_EXPORT
-void CFStringFold(CFMutableStringRef theString, CFStringCompareFlags theFlags, CFLocaleRef theLocale) CF_AVAILABLE(10_5, 2_0);
+void CFStringFold(CFMutableStringRef theString, CFStringCompareFlags theFlags, CFLocaleRef theLocale) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 /* Perform string transliteration.  The transformation represented by transform is applied to the given range of string, modifying it in place. Only the specified range will be modified, but the transform may look at portions of the string outside that range for context. NULL range pointer causes the whole string to be transformed. On return, range is modified to reflect the new range corresponding to the original range. reverse indicates that the inverse transform should be used instead, if it exists. If the transform is successful, true is returned; if unsuccessful, false. Reasons for the transform being unsuccessful include an invalid transform identifier, or attempting to reverse an irreversible transform.
 
@@ -755,7 +754,7 @@ CF_EXPORT const CFStringRef kCFStringTransformLatinCyrillic;
 CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
 CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
 CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
-CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics CF_AVAILABLE(10_5, 2_0);
+CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 
 /*** General encoding related functionality ***/

@@ -1,7 +1,7 @@
 /*	CFNumberFormatter.c
-	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -21,7 +21,7 @@
 static void __CFNumberFormatterCustomize(CFNumberFormatterRef formatter);
 static CFStringRef __CFNumberFormatterCreateCompressedString(CFStringRef inString, Boolean isFormat, CFRange *rangep);
 static UErrorCode __CFNumberFormatterApplyPattern(CFNumberFormatterRef formatter, CFStringRef pattern);
-CONST_STRING_DECL(kCFNumberFormatterFormattingContextKey, "kCFNumberFormatterFormattingContextKey");
+static CONST_STRING_DECL(kCFNumberFormatterFormattingContextKey, "kCFNumberFormatterFormattingContextKey");
 
 #define BUFFER_SIZE 768
 
@@ -314,7 +314,7 @@ static UErrorCode __CFNumberFormatterApplyPattern(CFNumberFormatterRef formatter
     if (kCFNumberFormatterDurationStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
     if (kCFNumberFormatterCurrencyPluralStyle == formatter->_style) return U_UNSUPPORTED_ERROR;
     CFIndex cnt = CFStringGetLength(pattern);
-    STACK_BUFFER_DECL(UChar, ubuffer, cnt);
+    SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
     const UChar *ustr = (const UChar *)CFStringGetCharactersPtr(pattern);
     if (NULL == ustr) {
 	CFStringGetCharacters(pattern, CFRangeMake(0, cnt), (UniChar *)ubuffer);
@@ -322,6 +322,7 @@ static UErrorCode __CFNumberFormatterApplyPattern(CFNumberFormatterRef formatter
     }
     UErrorCode status = U_ZERO_ERROR;
     __cficu_unum_applyPattern(formatter->_nf, false, ustr, cnt, NULL, &status);
+    SAFE_STACK_BUFFER_CLEANUP(ubuffer);
 
     // __cficu_unum_applyPattern() may have magically changed other attributes based on
     // the contents of the format string; we simply expose that ICU behavior, except

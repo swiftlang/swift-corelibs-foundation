@@ -1,7 +1,7 @@
 /*	CFBasicHash.m
-	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -311,12 +311,18 @@ struct __CFBasicHash {
     void *pointers[1];
 };
 
-static void *CFBasicHashCallBackPtrs[(1UL << 10)];
-static int32_t CFBasicHashCallBackPtrsCount = 0;
+#define CFBasicHashSmallSize  (1<<8)
+#define CFBasicHashMaxSize    (1<<10)
+static void **CFBasicHashCallBackPtrs;
+static _Atomic(int32_t) CFBasicHashCallBackPtrsCount = 0;
 
 static int32_t CFBasicHashGetPtrIndex(void *ptr) {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
+        CFBasicHashCallBackPtrs = malloc(sizeof(void *) * CFBasicHashSmallSize);
+        if (CFBasicHashCallBackPtrs == NULL) {
+            HALT;
+        }
         CFBasicHashCallBackPtrs[0] = NULL;
         CFBasicHashCallBackPtrs[1] = (void *)CFCopyDescription;
         CFBasicHashCallBackPtrs[2] = (void *)__CFTypeCollectionRelease;
@@ -327,21 +333,25 @@ static int32_t CFBasicHashGetPtrIndex(void *ptr) {
         CFBasicHashCallBackPtrs[7] = NULL;
         CFBasicHashCallBackPtrsCount = 8;
     });
-
-    // The uniquing here is done locklessly for best performance, and in
-    // a way that will keep multiple threads from stomping each other's
-    // newly registered values, but may result in multiple slots
-    // containing the same pointer value.
-
     int32_t idx;
     for (idx = 0; idx < CFBasicHashCallBackPtrsCount; idx++) {
-        if (CFBasicHashCallBackPtrs[idx] == ptr) return idx;
+        if (CFBasicHashCallBackPtrs[idx] == ptr) {
+            return idx;
+        }
     }
-
-    if (1000 < CFBasicHashCallBackPtrsCount) HALT;
-    idx = OSAtomicIncrement32(&CFBasicHashCallBackPtrsCount); // returns new value
+    
+    if (CFBasicHashCallBackPtrsCount == CFBasicHashSmallSize) {
+        CFBasicHashCallBackPtrs = __CFSafelyReallocate(CFBasicHashCallBackPtrs, sizeof(id) * CFBasicHashMaxSize, NULL);
+    } else if (1000 < CFBasicHashCallBackPtrsCount) HALT;
+    
+    idx = ++CFBasicHashCallBackPtrsCount;
     CFBasicHashCallBackPtrs[idx - 1] = ptr;
     return idx - 1;
+}
+
+// Tell TSAN to ignore this function for sanitization - it races intentionally
+static inline void *CFBasicHashGetPtrAtIndex(int32_t i) __attribute__((no_sanitize("thread"))) {
+    return CFBasicHashCallBackPtrs[i];
 }
 
 CF_PRIVATE Boolean CFBasicHashHasStrongValues(CFConstBasicHashRef ht) {
@@ -369,67 +379,67 @@ CF_INLINE Boolean __CFBasicHashHasHashCache(CFConstBasicHashRef ht) {
 }
 
 CF_INLINE uintptr_t __CFBasicHashImportValue(CFConstBasicHashRef ht, uintptr_t stack_value) {
-    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__vret];
+    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vret);
     if (!func || ht->bits.null_rc) return stack_value;
-    CFAllocatorRef alloc = CFGetAllocator(ht);
+    CFAllocatorRef alloc = __CFGetAllocator(ht);
     return func(alloc, stack_value);
 }
 
 CF_INLINE uintptr_t __CFBasicHashImportKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__kret];
+    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kret);
     if (!func || ht->bits.null_rc) return stack_key;
-    CFAllocatorRef alloc = CFGetAllocator(ht);
+    CFAllocatorRef alloc = __CFGetAllocator(ht);
     return func(alloc, stack_key);
 }
 
 CF_INLINE void __CFBasicHashEjectValue(CFConstBasicHashRef ht, uintptr_t stack_value) {
-    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__vrel];
+    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vrel);
     if (!func || ht->bits.null_rc) return;
-    CFAllocatorRef alloc = CFGetAllocator(ht);
+    CFAllocatorRef alloc = __CFGetAllocator(ht);
     func(alloc, stack_value);
 }
 
 CF_INLINE void __CFBasicHashEjectKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__krel];
+    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__krel);
     if (!func || ht->bits.null_rc) return;
-    CFAllocatorRef alloc = CFGetAllocator(ht);
+    CFAllocatorRef alloc = __CFGetAllocator(ht);
     func(alloc, stack_key);
 }
 
 CF_INLINE CFStringRef __CFBasicHashDescValue(CFConstBasicHashRef ht, uintptr_t stack_value) CF_RETURNS_RETAINED {
-    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__vdes];
+    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vdes);
     if (!func) return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<%p>"), (void *)stack_value);
     return func(stack_value);
 }
 
 CF_INLINE CFStringRef __CFBasicHashDescKey(CFConstBasicHashRef ht, uintptr_t stack_key) CF_RETURNS_RETAINED {
-    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__kdes];
+    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kdes);
     if (!func) return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<%p>"), (void *)stack_key);
     return func(stack_key);
 }
 
 CF_INLINE Boolean __CFBasicHashTestEqualValue(CFConstBasicHashRef ht, uintptr_t stack_value_a, uintptr_t stack_value_b) {
-    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__vequ];
+    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vequ);
     if (!func) return (stack_value_a == stack_value_b);
     return func(stack_value_a, stack_value_b);
 }
 
 CF_INLINE Boolean __CFBasicHashTestEqualKey(CFConstBasicHashRef ht, uintptr_t in_coll_key, uintptr_t stack_key) {
     COCOA_HASHTABLE_TEST_EQUAL(ht, in_coll_key, stack_key);
-    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__kequ];
+    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kequ);
     if (!func) return (in_coll_key == stack_key);
     return func(in_coll_key, stack_key);
 }
 
 CF_INLINE CFHashCode __CFBasicHashHashKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    CFHashCode (*func)(uintptr_t) = (CFHashCode (*)(uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__khas];
+    CFHashCode (*func)(uintptr_t) = (CFHashCode (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__khas);
     CFHashCode hash_code = func ? func(stack_key) : stack_key;
     COCOA_HASHTABLE_HASH_KEY(ht, stack_key, hash_code);
     return hash_code;
 }
 
 CF_INLINE uintptr_t __CFBasicHashGetIndirectKey(CFConstBasicHashRef ht, uintptr_t coll_key) {
-    uintptr_t (*func)(uintptr_t) = (uintptr_t (*)(uintptr_t))CFBasicHashCallBackPtrs[ht->bits.__kget];
+    uintptr_t (*func)(uintptr_t) = (uintptr_t (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kget);
     if (!func) return coll_key;
     return func(coll_key);
 }

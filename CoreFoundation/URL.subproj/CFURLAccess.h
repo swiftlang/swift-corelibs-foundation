@@ -1,7 +1,7 @@
 /*	CFURLAccess.h
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -49,7 +49,7 @@ large files.
 */
 /* Deprecated -- see top of this file for suggested replacement classes */
 CF_EXPORT
-Boolean CFURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef url, CFDataRef *resourceData, CFDictionaryRef *properties, CFArrayRef desiredProperties, SInt32 *errorCode) CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "For resource data, use the CFReadStream API. For file resource properties, use CFURLCopyResourcePropertiesForKeys.");
+Boolean CFURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef url, CFDataRef *resourceData, CFDictionaryRef *properties, CFArrayRef desiredProperties, SInt32 *errorCode) API_DEPRECATED("For resource data, use the CFReadStream API. For file resource properties, use CFURLCopyResourcePropertiesForKeys.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Attempts to write the given data and properties to the given URL.
 If dataToWrite is NULL, only properties are written out (use
@@ -61,21 +61,21 @@ CFURLCreateDataAndPropertiesFromResource(), above.
 */
 /* Deprecated -- see top of this file for suggested replacement classes */
 CF_EXPORT
-Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef dataToWrite, CFDictionaryRef propertiesToWrite, SInt32 *errorCode) CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "For resource data, use the CFWriteStream API. For file resource properties, use CFURLSetResourcePropertiesForKeys.");
+Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef dataToWrite, CFDictionaryRef propertiesToWrite, SInt32 *errorCode) API_DEPRECATED("For resource data, use the CFWriteStream API. For file resource properties, use CFURLSetResourcePropertiesForKeys.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Destroys the resource indicated by url.
 Returns success or failure; errorCode set as above.
 */
 /* Deprecated -- see top of this file for suggested replacement classes */
 CF_EXPORT
-Boolean CFURLDestroyResource(CFURLRef url, SInt32 *errorCode) CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLGetFileSystemRepresentation and removefile(3) instead.");
+Boolean CFURLDestroyResource(CFURLRef url, SInt32 *errorCode) API_DEPRECATED("Use CFURLGetFileSystemRepresentation and removefile(3) instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Convenience method which calls through to CFURLCreateDataAndPropertiesFromResource().
 Returns NULL on error and sets errorCode accordingly.
 */
 /* Deprecated -- see top of this file for suggested replacement classes */
 CF_EXPORT
-CFTypeRef CFURLCreatePropertyFromResource(CFAllocatorRef alloc, CFURLRef url, CFStringRef property, SInt32 *errorCode) CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "For file resource properties, use CFURLCopyResourcePropertyForKey.");
+CFTypeRef CFURLCreatePropertyFromResource(CFAllocatorRef alloc, CFURLRef url, CFStringRef property, SInt32 *errorCode) API_DEPRECATED("For file resource properties, use CFURLCopyResourcePropertyForKey.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 
 /* Common error codes (returned only by the older APIs that predate CFError) */
@@ -89,26 +89,26 @@ typedef CF_ENUM(CFIndex, CFURLError) {
     kCFURLUnknownPropertyKeyError = -16L,
     kCFURLPropertyKeyUnavailableError = -17L,
     kCFURLTimeoutError = -18L
-} CF_ENUM_DEPRECATED(10_0, 10_9, 2_0, 7_0);
+} API_DEPRECATED("Use CFError codes instead", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Older property keys */
 
 CF_EXPORT
-const CFStringRef kCFURLFileExists CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLResourceIsReachable instead.");
+const CFStringRef kCFURLFileExists API_DEPRECATED("Use CFURLResourceIsReachable instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLFileDirectoryContents CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use the CFURLEnumerator API instead.");
+const CFStringRef kCFURLFileDirectoryContents API_DEPRECATED("Use the CFURLEnumerator API instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLFileLength CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLCopyResourcePropertyForKey with kCFURLFileSizeKey instead.");
+const CFStringRef kCFURLFileLength API_DEPRECATED("Use CFURLCopyResourcePropertyForKey with kCFURLFileSizeKey instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT 
-const CFStringRef kCFURLFileLastModificationTime CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLCopyResourcePropertyForKey with kCFURLContentModificationDateKey instead.");
+const CFStringRef kCFURLFileLastModificationTime API_DEPRECATED("Use CFURLCopyResourcePropertyForKey with kCFURLContentModificationDateKey instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLFilePOSIXMode CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLCopyResourcePropertyForKey with kCFURLFileSecurityKey and then the CFFileSecurity API instead.");
+const CFStringRef kCFURLFilePOSIXMode API_DEPRECATED("Use CFURLCopyResourcePropertyForKey with kCFURLFileSecurityKey and then the CFFileSecurity API instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLFileOwnerID CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use CFURLCopyResourcePropertyForKey with kCFURLFileSecurityKey and then the CFFileSecurity API instead.");
+const CFStringRef kCFURLFileOwnerID API_DEPRECATED("Use CFURLCopyResourcePropertyForKey with kCFURLFileSecurityKey and then the CFFileSecurity API instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLHTTPStatusCode CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use NSHTTPURLResponse methods instead.");
+const CFStringRef kCFURLHTTPStatusCode API_DEPRECATED("Use NSHTTPURLResponse methods instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 CF_EXPORT
-const CFStringRef kCFURLHTTPStatusLine CF_DEPRECATED(10_0, 10_9, 2_0, 7_0, "Use NSHTTPURLResponse methods instead.");
+const CFStringRef kCFURLHTTPStatusLine API_DEPRECATED("Use NSHTTPURLResponse methods instead.", macos(10.0,10.9), ios(2.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* The value of kCFURLFileExists is a CFBoolean */
 /* The value of kCFURLFileDirectoryContents is a CFArray containing CFURLs.  An empty array means the directory exists, but is empty */
