@@ -1,7 +1,7 @@
 /*	CFBinaryPList.c
-	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -77,6 +77,10 @@ CF_INLINE uint32_t __check_uint32_mul_unsigned_unsigned(uint32_t x, uint32_t y, 
 #define check_ptr_add(p, a, err)	(const uint8_t *)__check_uint32_add_unsigned_unsigned((uintptr_t)p, (uintptr_t)a, err)
 #define check_size_t_mul(b, a, err)	(size_t)__check_uint32_mul_unsigned_unsigned((size_t)b, (size_t)a, err)
 #endif
+
+CF_INLINE uint64_t _CFBinaryPlistTrailer_objectsRangeEnd(const CFBinaryPlistTrailer *trailer) {
+    return trailer->_offsetTableOffset - 1;
+}
 
 #pragma mark -
 #pragma mark Keyed Archiver UID
@@ -728,6 +732,7 @@ CF_PRIVATE CFDataRef __CFBinaryPlistCreateDataUsingExternalBufferAllocator(CFPro
 #pragma mark Reading
 
 #define FAIL_FALSE	do { return false; } while (0)
+#define FAIL_NULL	do { return NULL; } while (0)
 
 CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFAllocatorRef allocator, CFOptionFlags mutabilityOption, CFMutableDictionaryRef objects, CFMutableSetRef set, CFIndex curDepth, CFSetRef keyPaths, CFPropertyListRef *plist);
 
@@ -892,12 +897,31 @@ CF_INLINE Boolean _getOffsetOfRefAt(const uint8_t *databytes, const uint8_t *byt
     return true;
 }
 
-bool __CFBinaryPlistGetOffsetForValueFromArray2(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFIndex idx, uint64_t *offset, CFMutableDictionaryRef objects) {
-    uint64_t objectsRangeStart = 8, objectsRangeEnd = trailer->_offsetTableOffset - 1;
+CF_INLINE bool __CFBinaryPlist_beginArrayParse(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, const uint8_t **outPtr, uint8_t *outMarker, uint64_t *outObjectsRangeEnd) {
+    uint64_t objectsRangeStart = 8;
+    const uint64_t objectsRangeEnd = _CFBinaryPlistTrailer_objectsRangeEnd(trailer);
     if (startOffset < objectsRangeStart || objectsRangeEnd < startOffset) FAIL_FALSE;
     const uint8_t *ptr = databytes + startOffset;
     uint8_t marker = *ptr;
     if ((marker & 0xf0) != kCFBinaryPlistMarkerArray) FAIL_FALSE;
+    
+    if (outPtr) { *outPtr = ptr; }
+    if (outMarker) { *outMarker = marker; }
+    if (outObjectsRangeEnd) { *outObjectsRangeEnd = objectsRangeEnd; }
+    return true;
+}
+
+bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer) {
+    const bool result = __CFBinaryPlist_beginArrayParse(databytes, datalen, startOffset, trailer, NULL, NULL, NULL);
+    return result;
+}
+
+bool __CFBinaryPlistGetOffsetForValueFromArray2(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, CFIndex idx, uint64_t *offset, CFMutableDictionaryRef objects) {
+    const uint8_t *ptr;
+    uint8_t marker;
+    uint64_t objectsRangeEnd;
+    if (!__CFBinaryPlist_beginArrayParse(databytes, datalen, startOffset, trailer, &ptr, &marker, &objectsRangeEnd)) FAIL_FALSE;
+
     int32_t err = CF_NO_ERROR;
     ptr = check_ptr_add(ptr, 1, &err);
     if (CF_NO_ERROR != err) FAIL_FALSE;
@@ -920,6 +944,135 @@ bool __CFBinaryPlistGetOffsetForValueFromArray2(const uint8_t *databytes, uint64
     return true;
 }
 
+CF_INLINE bool __CFBinaryPList_beginDictionaryParse(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer, uint64_t *outEntryCount, const uint8_t **outPtr, uint8_t *outMarker, const uint8_t **outExtent) {
+    
+    // Require that startOffset is in the range of the object table
+    uint64_t objectsRangeStart = 8;
+    const uint64_t objectsRangeEnd = _CFBinaryPlistTrailer_objectsRangeEnd(trailer);
+    
+    if (startOffset < objectsRangeStart || objectsRangeEnd < startOffset) FAIL_FALSE;
+    
+    // ptr is the start of the dictionary we are reading
+    const uint8_t *ptr = databytes + startOffset;
+    
+    // Check that the data pointer actually points to a dictionary
+    uint8_t marker = *ptr;
+    if ((marker & 0xf0) != kCFBinaryPlistMarkerDict) FAIL_FALSE;
+    
+    // Get the number of objects in this dictionary
+    int32_t err = CF_NO_ERROR;
+    ptr = check_ptr_add(ptr, 1, &err);
+    if (CF_NO_ERROR != err) FAIL_FALSE;
+    uint64_t cnt = (marker & 0x0f);
+    if (0xf == cnt) {
+        uint64_t bigint = 0;
+        if (!_readInt(ptr, databytes + objectsRangeEnd, &bigint, &ptr)) FAIL_FALSE;
+        if (LONG_MAX < bigint) FAIL_FALSE;
+        cnt = bigint;
+    }
+    
+    // Total number of objects (keys + values) is cnt * 2
+    cnt = check_size_t_mul(cnt, 2, &err);
+    if (CF_NO_ERROR != err) FAIL_FALSE;
+    size_t byte_cnt = check_size_t_mul(cnt, trailer->_objectRefSize, &err);
+    if (CF_NO_ERROR != err) FAIL_FALSE;
+    
+    // Find the end of the dictionary
+    const uint8_t *extent = check_ptr_add(ptr, byte_cnt, &err) - 1;
+    if (CF_NO_ERROR != err) FAIL_FALSE;
+    
+    // Check that we didn't overflow the size of the dictionary
+    if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
+    
+    if (outEntryCount) { *outEntryCount = cnt; }
+    if (outPtr) { *outPtr = ptr; }
+    if (outMarker) { *outMarker = marker; }
+    if (outExtent) { *outExtent = extent; }
+    
+    return true;
+}
+
+CF_PRIVATE bool __CFBinaryPlistIsDictionary(const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer) {
+    const bool result = __CFBinaryPList_beginDictionaryParse(databytes, datalen, startOffset, trailer, NULL, NULL, NULL, NULL);
+    return result;
+}
+
+CFSetRef __CFBinaryPlistCopyTopLevelKeys(CFAllocatorRef allocator, const uint8_t *databytes, uint64_t datalen, uint64_t startOffset, const CFBinaryPlistTrailer *trailer) {
+    uint64_t cnt = 0;
+    const uint8_t *ptr = NULL;
+    uint8_t marker = 0;
+    const uint8_t *extent = NULL;
+    if (!__CFBinaryPList_beginDictionaryParse(databytes, datalen, startOffset, trailer, &cnt, &ptr, &marker, &extent)) {
+        FAIL_NULL;
+    }
+    
+
+    // Find the object in the dictionary with this key
+    cnt = cnt / 2;
+    uint64_t off;
+
+   
+    // Perform linear accumulation of the keys
+    size_t buffer_idx = 0;
+    size_t capacity = 16;
+    CFStringRef *buffer = malloc(sizeof(CFStringRef) * capacity);
+    if (buffer == NULL) {
+        FAIL_NULL;
+    }
+    bool bad = false;
+    for (CFIndex idx = 0; !bad && idx < cnt; idx++) {
+        if (!_getOffsetOfRefAt(databytes, ptr, trailer, &off)) {
+            bad = true;
+            break;
+        }
+        marker = *(databytes + off);
+
+        // Unlike in __CFBinaryPlistGetOffsetForValueFromDictionary3, we're accumulating keys, so we go through the CFObjectRef case always.
+        CFPropertyListRef keyInData = NULL;
+        if (!(__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, kCFPropertyListImmutable, NULL, NULL, 0, NULL, &keyInData) &&
+              CFGetTypeID(keyInData) == stringtype)) {
+            bad = true;
+            if (keyInData) {
+                // we're not storing keyInData in the buffer, so we need to free it now; buffered keys are cleaned below
+                CFRelease(keyInData);
+            }
+            break;
+        }
+        
+        buffer[buffer_idx] = keyInData;
+        ++buffer_idx;
+        if (buffer_idx >= capacity) {
+            const size_t newCapacity = capacity * 3 / 2;
+            // NOTE: this code doesn't use __CFSafelyReallocate as it handles its own recovery
+            CFStringRef *reallocated = realloc(buffer, sizeof(CFStringRef) * newCapacity);
+            if (reallocated == NULL) {
+                bad = true;
+                break;
+            } else {
+                buffer = reallocated;
+                capacity = newCapacity;
+            }
+        }
+        ptr += trailer->_objectRefSize;
+    }
+    
+    CFSetRef result = NULL;
+    if (!bad) {
+        result = CFSetCreate(allocator, (const void **)buffer, buffer_idx, &kCFTypeSetCallBacks);
+    }
+    
+    // cleanup any keys stored in the local buffer
+    for (size_t i = 0; i < buffer_idx; ++i) {
+        CFStringRef s = buffer[i];
+        if (s) {
+            CFRelease(s);
+        }
+    }
+    free(buffer);
+    
+    return result;
+}
+
 /* Get the offset for a value in a dictionary in a binary property list.
  @param databytes A pointer to the start of the binary property list data.
  @param datalen The length of the data.
@@ -937,41 +1090,11 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
     // Require a key that is a plist primitive
     if (!key || !_plistIsPrimitive(key)) FAIL_FALSE;
     
-    // Require that startOffset is in the range of the object table
-    uint64_t objectsRangeStart = 8, objectsRangeEnd = trailer->_offsetTableOffset - 1;
-    if (startOffset < objectsRangeStart || objectsRangeEnd < startOffset) FAIL_FALSE;
-    
-    // ptr is the start of the dictionary we are reading
-    const uint8_t *ptr = databytes + startOffset;
-    
-    // Check that the data pointer actually points to a dictionary
-    uint8_t marker = *ptr;
-    if ((marker & 0xf0) != kCFBinaryPlistMarkerDict) FAIL_FALSE;
-    
-    // Get the number of objects in this dictionary
-    int32_t err = CF_NO_ERROR;
-    ptr = check_ptr_add(ptr, 1, &err);
-    if (CF_NO_ERROR != err) FAIL_FALSE;
-    uint64_t cnt = (marker & 0x0f);
-    if (0xf == cnt) {
-	uint64_t bigint = 0;
-	if (!_readInt(ptr, databytes + objectsRangeEnd, &bigint, &ptr)) FAIL_FALSE;
-	if (LONG_MAX < bigint) FAIL_FALSE;
-	cnt = bigint;
-    }
-    
-    // Total number of objects (keys + values) is cnt * 2
-    cnt = check_size_t_mul(cnt, 2, &err);
-    if (CF_NO_ERROR != err) FAIL_FALSE;
-    size_t byte_cnt = check_size_t_mul(cnt, trailer->_objectRefSize, &err);
-    if (CF_NO_ERROR != err) FAIL_FALSE;
-    
-    // Find the end of the dictionary
-    const uint8_t *extent = check_ptr_add(ptr, byte_cnt, &err) - 1;
-    if (CF_NO_ERROR != err) FAIL_FALSE;
-    
-    // Check that we didn't overflow the size of the dictionary
-    if (databytes + objectsRangeEnd < extent) FAIL_FALSE;
+    uint64_t cnt = 0;
+    const uint8_t *ptr = NULL;
+    uint8_t marker = 0;
+    const uint8_t *extent = NULL;
+    if (!__CFBinaryPList_beginDictionaryParse(databytes, datalen, startOffset, trailer, &cnt, &ptr, &marker, &extent)) FAIL_NULL;
     
     // For short keys (15 bytes or less) in ASCII form, we can do a quick comparison check
     // We get the pointer or copy the buffer here, outside of the loop
@@ -996,13 +1119,17 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
 	// Since we will only be comparing ASCII strings, we can attempt to get a pointer using MacRoman encoding
 	// (this is cheaper than a copy)
 	if (!(keyBufferPtr = CFStringGetCStringPtr((CFStringRef)key, kCFStringEncodingMacRoman)) && stringKeyLen < KEY_BUFF_SIZE) {
-	    CFStringGetCString((CFStringRef)key, keyBuffer, KEY_BUFF_SIZE, kCFStringEncodingMacRoman);
-	    // The pointer should now point to our keyBuffer instead of the original string buffer, since we've copied it
-	    keyBufferPtr = keyBuffer;
+	    const Boolean converted = CFStringGetCString((CFStringRef)key, keyBuffer, KEY_BUFF_SIZE, kCFStringEncodingMacRoman);
+            if (converted && strnlen(keyBuffer, KEY_BUFF_SIZE) == stringKeyLen) {
+                // The pointer should now point to our keyBuffer instead of the original string buffer, since we've copied it
+                keyBufferPtr = keyBuffer;
+            }
 	}
     }
     
     // Perform linear search of the keys
+    int32_t err = CF_NO_ERROR;
+    const uint64_t objectsRangeEnd = _CFBinaryPlistTrailer_objectsRangeEnd(trailer);
     for (CFIndex idx = 0; idx < cnt; idx++) {
         if (!_getOffsetOfRefAt(databytes, ptr, trailer, &off)) {
             FAIL_FALSE;
@@ -1087,7 +1214,8 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 
     // databytes is trusted to be at least datalen bytes long
     // *trailer contents are trusted, even for overflows -- was checked when the trailer was parsed
-    uint64_t objectsRangeStart = 8, objectsRangeEnd = trailer->_offsetTableOffset - 1;
+    uint64_t objectsRangeStart = 8;
+    const uint64_t objectsRangeEnd = _CFBinaryPlistTrailer_objectsRangeEnd(trailer);
     if (startOffset < objectsRangeStart || objectsRangeEnd < startOffset) FAIL_FALSE;
 
     uint64_t off;

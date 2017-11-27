@@ -1,7 +1,7 @@
 /*      CFPlugIn_PlugIn.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -48,19 +48,6 @@ static void _registerType(const void *key, const void *val, void *context) {
     if (typeID) CFRelease(typeID);
 }
 
-CF_PRIVATE Boolean _CFBundleNeedsInitPlugIn(CFBundleRef bundle) {
-    Boolean result = false;
-    CFDictionaryRef infoDict = CFBundleGetInfoDictionary(bundle), factoryDict;
-    CFStringRef tempStr;
-    if (infoDict) {
-        factoryDict = (CFDictionaryRef)CFDictionaryGetValue(infoDict, kCFPlugInFactoriesKey);
-        if (factoryDict && CFGetTypeID(factoryDict) == CFDictionaryGetTypeID()) result = true;
-        tempStr = (CFStringRef)CFDictionaryGetValue(infoDict, kCFPlugInDynamicRegistrationKey);
-        if (tempStr && CFGetTypeID(tempStr) == CFStringGetTypeID() && CFStringCompare(tempStr, CFSTR("YES"), kCFCompareCaseInsensitive) == kCFCompareEqualTo) result = true;
-    }
-    return result;
-}
-
 CF_PRIVATE void _CFBundleInitPlugIn(CFBundleRef bundle) {
     CFArrayCallBacks _pluginFactoryArrayCallbacks = {0, NULL, NULL, NULL, NULL};
     Boolean doDynamicReg = false;
@@ -77,12 +64,18 @@ CF_PRIVATE void _CFBundleInitPlugIn(CFBundleRef bundle) {
     tempStr = (CFStringRef)CFDictionaryGetValue(infoDict, kCFPlugInDynamicRegistrationKey);
     if (tempStr && CFGetTypeID(tempStr) == CFStringGetTypeID() && CFStringCompare(tempStr, CFSTR("YES"), kCFCompareCaseInsensitive) == kCFCompareEqualTo) doDynamicReg = true;
     if (!factoryDict && !doDynamicReg) return;  // This is not a plug-in.
+    
+    if (__CFBundleGetPlugInData(bundle)->_registeredFactory) {
+        // We already registered - don't do it again
+        return;
+    }
 
     /* loadOnDemand is true by default if the plugIn does not do dynamic registration.  It is false, by default if it does do dynamic registration.  The dynamic register function can set this. */
     __CFBundleGetPlugInData(bundle)->_isPlugIn = true;
     __CFBundleGetPlugInData(bundle)->_loadOnDemand = true;
     __CFBundleGetPlugInData(bundle)->_isDoingDynamicRegistration = false;
     __CFBundleGetPlugInData(bundle)->_instanceCount = 0;
+    __CFBundleGetPlugInData(bundle)->_registeredFactory = true;
 
     __CFBundleGetPlugInData(bundle)->_factories = CFArrayCreateMutable(CFGetAllocator(bundle), 0, &_pluginFactoryArrayCallbacks);
 

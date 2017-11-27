@@ -1,8 +1,9 @@
 /*	CFXMLParser.h
-	Copyright (c) 1998-2016, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2017, Apple Inc. All rights reserved.
 */
 
 /*  CFXMLParser is deprecated as of Mac OS X 10.8. The suggested replacements are the Foundation classes NSXMLParser and NSXMLDocument, or the libxml2 library. */
+
 
 #if !defined(__COREFOUNDATION_CFXMLPARSER__)
 #define __COREFOUNDATION_CFXMLPARSER__ 1
@@ -17,6 +18,8 @@
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
+
+#define __CFXMLParser_DEPRECATION_MSG "CFXMLParser is deprecated, use NSXMLParser, NSXMLDocument or libxml2 library instead"
 
 typedef struct __CFXMLParser * CFXMLParserRef;
 
@@ -151,7 +154,7 @@ typedef struct {
 } CFXMLParserContext;
 
 CF_EXPORT
-CFTypeID CFXMLParserGetTypeID(void) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFTypeID CFXMLParserGetTypeID(void) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Creates a parser which will parse the given data with the given options.  xmlData may not be NULL. 
    dataSource should be the URL from which the data came, and may be NULL; it is used to resolve any
@@ -161,48 +164,48 @@ CFTypeID CFXMLParserGetTypeID(void) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
    callBacks->endXMLStructure must all be non-NULL.  context determines what if any info pointer is
    passed to the callbacks as the parse progresses; context may be NULL.  */
 CF_EXPORT
-CFXMLParserRef CFXMLParserCreate(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLParserRef CFXMLParserCreate(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Arguments as above, except that the data to be parsed is loaded directly 
    from dataSource.  dataSource may not be NULL.  */
 CF_EXPORT
-CFXMLParserRef CFXMLParserCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLParserRef CFXMLParserCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFXMLParserCallBacks *callBacks, CFXMLParserContext *context) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-void CFXMLParserGetContext(CFXMLParserRef parser, CFXMLParserContext *context) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void CFXMLParserGetContext(CFXMLParserRef parser, CFXMLParserContext *context) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-void CFXMLParserGetCallBacks(CFXMLParserRef parser, CFXMLParserCallBacks *callBacks) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void CFXMLParserGetCallBacks(CFXMLParserRef parser, CFXMLParserCallBacks *callBacks) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-CFURLRef CFXMLParserGetSourceURL(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFURLRef CFXMLParserGetSourceURL(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Returns the character index of the current parse location */
 CF_EXPORT
-CFIndex CFXMLParserGetLocation(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFIndex CFXMLParserGetLocation(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Returns the line number of the current parse location */
 CF_EXPORT
-CFIndex CFXMLParserGetLineNumber(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFIndex CFXMLParserGetLineNumber(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Returns the top-most object returned by the createXMLStructure callback */
 CF_EXPORT
-void *CFXMLParserGetDocument(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void *CFXMLParserGetDocument(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Get the status code or a user-readable description of the last error that occurred in a parse.
    If no error has occurred, a null description string is returned.  See the enum above for
    possible status returns */
 CF_EXPORT
-CFXMLParserStatusCode CFXMLParserGetStatusCode(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLParserStatusCode CFXMLParserGetStatusCode(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 CF_EXPORT
-CFStringRef CFXMLParserCopyErrorDescription(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFStringRef CFXMLParserCopyErrorDescription(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Cause any in-progress parse to abort with the given error code and description.  errorCode
    must be positive, and errorDescription may not be NULL.  Cannot be called asynchronously
    (i.e. must be called from within a parser callback) */
 CF_EXPORT
-void CFXMLParserAbort(CFXMLParserRef parser, CFXMLParserStatusCode errorCode, CFStringRef errorDescription) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+void CFXMLParserAbort(CFXMLParserRef parser, CFXMLParserStatusCode errorCode, CFStringRef errorDescription) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Starts a parse of the data the parser was created with; returns success or failure.
    Upon success, use CFXMLParserGetDocument() to get the product of the parse.  Upon
@@ -210,7 +213,7 @@ void CFXMLParserAbort(CFXMLParserRef parser, CFXMLParserStatusCode errorCode, CF
    information about the error.  It is an error to call CFXMLParserParse() while a
    parse is already underway. */
 CF_EXPORT
-Boolean CFXMLParserParse(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+Boolean CFXMLParserParse(CFXMLParserRef parser) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* These functions provide a higher-level interface.  The XML data is parsed to a
    special CFTree (an CFXMLTree) with known contexts and callbacks.  See CFXMLNode.h
@@ -219,17 +222,17 @@ Boolean CFXMLParserParse(CFXMLParserRef parser) CF_DEPRECATED(10_0, 10_8, 2_0, 6
 /* Parse to an CFXMLTreeRef.  parseOptions are as above. versionOfNodes determines
    what version CFXMLNodes are used to populate the tree.  */
 CF_EXPORT
-CFXMLTreeRef CFXMLTreeCreateFromData(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLTreeRef CFXMLTreeCreateFromData(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* As above, with the additional by-reference pass of a CFDictionaryRef containing
    various error information (see below). The caller is responsible for releasing the
    returned dictionary. If the error dictionary is not desired, pass NULL. */
 CF_EXPORT
-CFXMLTreeRef CFXMLTreeCreateFromDataWithError(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFDictionaryRef *errorDict) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLTreeRef CFXMLTreeCreateFromDataWithError(CFAllocatorRef allocator, CFDataRef xmlData, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes, CFDictionaryRef *errorDict) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Loads the data to be parsed directly from dataSource.  Arguments as above. */
 CF_EXPORT
-CFXMLTreeRef CFXMLTreeCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFXMLTreeRef CFXMLTreeCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef dataSource, CFOptionFlags parseOptions, CFIndex versionOfNodes) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Generate the XMLData (ready to be written to whatever permanent storage is to be
    used) from an CFXMLTree.  Will NOT regenerate entity references (except those
@@ -237,7 +240,7 @@ CFXMLTreeRef CFXMLTreeCreateWithDataFromURL(CFAllocatorRef allocator, CFURLRef d
    clients that wish this should walk the tree and re-insert any entity references
    that should appear in the final output file. */
 CF_EXPORT
-CFDataRef CFXMLTreeCreateXMLData(CFAllocatorRef allocator, CFXMLTreeRef xmlTree) CF_DEPRECATED(10_0, 10_8, 2_0, 6_0);
+CFDataRef CFXMLTreeCreateXMLData(CFAllocatorRef allocator, CFXMLTreeRef xmlTree) API_DEPRECATED(__CFXMLParser_DEPRECATION_MSG, macos(10.0,10.8), ios(2.0,6.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
 /* Escaping and unescaping XML entities in CFStrings. The standard XML entities
    are always replaced.  */
@@ -266,6 +269,6 @@ CF_EXPORT const CFStringRef kCFXMLTreeErrorStatusCode;
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
-
+#undef __CFXMLParser_DEPRECATION_MSG
 #endif /* ! __COREFOUNDATION_CFXMLPARSER__ */
 

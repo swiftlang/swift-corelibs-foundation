@@ -1,7 +1,7 @@
 /*	CFCalendar.h
-	Copyright (c) 2004-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -68,13 +68,13 @@ typedef CF_OPTIONS(CFOptionFlags, CFCalendarUnit) {
 	kCFCalendarUnitHour = (1UL << 5),
 	kCFCalendarUnitMinute = (1UL << 6),
 	kCFCalendarUnitSecond = (1UL << 7),
-	kCFCalendarUnitWeek CF_ENUM_DEPRECATED(10_4, 10_10, 2_0, 8_0) = (1UL << 8),
+	kCFCalendarUnitWeek API_DEPRECATED("Use kCFCalendarUnitWeekOfYear or kCFCalendarUnitWeekOfMonth instead", macos(10.4,10.10), ios(2.0,8.0), watchos(2.0,2.0), tvos(9.0,9.0)) = (1UL << 8),
 	kCFCalendarUnitWeekday = (1UL << 9),
 	kCFCalendarUnitWeekdayOrdinal = (1UL << 10),
-	kCFCalendarUnitQuarter CF_ENUM_AVAILABLE(10_6, 4_0) = (1UL << 11),
-	kCFCalendarUnitWeekOfMonth CF_ENUM_AVAILABLE(10_7, 5_0) = (1UL << 12),
-	kCFCalendarUnitWeekOfYear CF_ENUM_AVAILABLE(10_7, 5_0) = (1UL << 13),
-	kCFCalendarUnitYearForWeekOfYear CF_ENUM_AVAILABLE(10_7, 5_0) = (1UL << 14),
+	kCFCalendarUnitQuarter API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0)) = (1UL << 11),
+	kCFCalendarUnitWeekOfMonth API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0)) = (1UL << 12),
+	kCFCalendarUnitWeekOfYear API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0)) = (1UL << 13),
+	kCFCalendarUnitYearForWeekOfYear API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0)) = (1UL << 14),
 };
 
 CF_EXPORT
@@ -90,7 +90,7 @@ CF_EXPORT
 CFIndex CFCalendarGetOrdinalityOfUnit(CFCalendarRef calendar, CFCalendarUnit smallerUnit, CFCalendarUnit biggerUnit, CFAbsoluteTime at);
 
 CF_EXPORT
-Boolean CFCalendarGetTimeRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit, CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip) CF_AVAILABLE(10_5, 2_0);
+Boolean CFCalendarGetTimeRangeOfUnit(CFCalendarRef calendar, CFCalendarUnit unit, CFAbsoluteTime at, CFAbsoluteTime *startp, CFTimeInterval *tip) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
 Boolean CFCalendarComposeAbsoluteTime(CFCalendarRef calendar, /* out */ CFAbsoluteTime *at, const char *componentDesc, ...);

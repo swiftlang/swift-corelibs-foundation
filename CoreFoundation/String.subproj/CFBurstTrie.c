@@ -1,7 +1,7 @@
 /*	CFBurstTrie.c
-	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -1208,12 +1208,13 @@ static Boolean advanceCursorOnMappedPageForByte(Page *page, CompactMapCursor *cu
         BOOL shouldContinue = TRUE;
 
         if (!(cursor->entryOffsetInPage == 0 && entry->strlen == 0)) {
-            cursor->offsetInEntry++;
-            if (entry->string[cursor->offsetInEntry] == byte)
+            if (entry->string[cursor->offsetInEntry] == byte) {
                 found = TRUE;
-            else if (entry->string[cursor->offsetInEntry] > byte)
+                cursor->offsetInEntry++;
+            } else if (entry->string[cursor->offsetInEntry] > byte) {
                 shouldContinue = FALSE;
-            else {
+                cursor->offsetInEntry++;
+            } else {
                 minPrefixLength = entry->pfxLen + cursor->offsetInEntry;
                 cursor->entryOffsetInPage += getPackedPageEntrySize(entry);
             }
@@ -1246,7 +1247,7 @@ static Boolean advanceCursorOnMappedPageForByte(Page *page, CompactMapCursor *cu
                 else if (entry->string[0] < byte)
                     cursor->entryOffsetInPage += getPackedPageEntrySize(entry);
                 else {
-                    cursor->offsetInEntry = 0;
+                    cursor->offsetInEntry = 1;
                     found = TRUE;
                     break;
                 }
@@ -1302,7 +1303,7 @@ static Boolean advanceCursorMappedPageSortedByKey(Page *page, CompactMapCursor *
     if (cursor->isOnPage) {
         entry = (PageEntry*)&page->data[cursor->entryOffsetInPage];
         prefix = entry->string;
-        prefixLength = cursor->offsetInEntry + 1;
+        prefixLength = cursor->offsetInEntry;
     }
 
     while (cursor->entryOffsetInPage < pageSize) {
@@ -1334,7 +1335,7 @@ static Boolean advanceCursorMappedPageSortedByKey(Page *page, CompactMapCursor *
                         return FALSE;
                     else if (cmpResult2 == 0) {
                         cursor->isOnPage = TRUE;
-                        cursor->offsetInEntry = prefixLength + length - 1;
+                        cursor->offsetInEntry = prefixLength + length;
                         getMapCursorPayloadFromPageEntry(entry, cursor, &cursor->payload);
                         return TRUE;
                     } else
@@ -1498,12 +1499,11 @@ static void traverseFromMapCursorMappedPageWithPrefixCompression(Page *page, Com
     uint32_t minPrefixLength = 0;
     if (cursor->isOnPage) {
         PageEntryPacked *entry = (PageEntryPacked*)&page->data[offset];
-        int32_t remainingLength = entry->strlen - cursor->offsetInEntry - 1;
+        int32_t remainingLength = entry->strlen - cursor->offsetInEntry;
         if (remainingLength >= 0 && remainingLength <= capacity) {
-            memcpy(bytes + length, entry->string + cursor->offsetInEntry + 1, remainingLength);
+            memcpy(bytes + length, entry->string + cursor->offsetInEntry, remainingLength);
             callback(ctx, bytes, length + remainingLength, entry->payload, stop);
-            if (*stop)
-                return;
+            if (*stop) return;
         }
         minPrefixLength = entry->pfxLen + cursor->offsetInEntry;
         offset += getPackedPageEntrySize(entry);
@@ -1523,8 +1523,7 @@ static void traverseFromMapCursorMappedPageWithPrefixCompression(Page *page, Com
             memcpy(bytes + length, entry->string, entry->strlen);
             callback(ctx, bytes, length + entry->strlen, entry->payload, stop);
             length += entry->strlen;
-            if (*stop)
-                return;
+            if (*stop) return;
         }
         previousEntry = entry;
         offset += getPackedPageEntrySize(entry);
@@ -1539,14 +1538,14 @@ static void traverseFromMapCursorMappedPageSortedByKey(Page *page, CompactMapCur
     const UInt8 *prefix = NULL;
     if (cursor->isOnPage) {
         PageEntry *entry = (PageEntry*)&page->data[offset];
-        int32_t remainingLength = entry->strlen - cursor->offsetInEntry - 1;
+        int32_t remainingLength = entry->strlen - cursor->offsetInEntry;
         if (remainingLength >= 0 && remainingLength <= capacity) {
             memcpy(bytes + length, entry->string + cursor->offsetInEntry, remainingLength);
             callback(ctx, bytes, length + remainingLength, entry->payload, stop);
             if (*stop)
                 return;
         }
-        prefixLength = cursor->offsetInEntry + 1;
+        prefixLength = cursor->offsetInEntry;
         prefix = entry->string;
         offset += getPageEntrySize(entry);
     }
@@ -1624,7 +1623,7 @@ static Boolean getMapCursorPayloadFromPackedPageEntry(PageEntryPacked *entry, co
         if (payload)
             *payload = entry->payload;
         return TRUE;
-    } else if (cursor->offsetInEntry != entry->strlen - 1)
+    } else if (cursor->offsetInEntry != entry->strlen)
         return FALSE;
     else {
         if (payload)
@@ -1641,7 +1640,7 @@ static Boolean getMapCursorPayloadFromPageEntry(PageEntry *entry, const CompactM
         if (payload)
             *payload = entry->payload;
         return TRUE;
-    } else if (cursor->offsetInEntry != entry->strlen - 1)
+    } else if (cursor->offsetInEntry != entry->strlen)
         return FALSE;
     else {
         if (payload)
@@ -1847,7 +1846,7 @@ static void serializeCFBurstTrieList(CFBurstTrieRef trie, ListNodeRef listNode, 
     for (listCount = 0; listNode; listCount++) {
         if (listCount >= size) {
             size *= 2;
-            nodes = (ListNodeRef *)realloc(nodes, sizeof(ListNodeRef) * size);
+            nodes = __CFSafelyReallocate(nodes, sizeof(ListNodeRef) * size, NULL);
         }
         nodes[listCount] = listNode;
         listNode = listNode->next;

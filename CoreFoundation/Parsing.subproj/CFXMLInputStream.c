@@ -1,7 +1,7 @@
 /*	CFXMLInputStream.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -205,7 +205,7 @@ static void growCharacterBuffer(_CFXMLInputStream *stream) {
         CFIndex currCharDelta = stream->currentChar ? stream->currentChar - stream->charBuffer : -1;
         CFIndex markDelta = stream->mark ? stream->mark - stream->charBuffer: -1;
         CFIndex parserMarkDelta = stream->parserMark ? stream->parserMark - stream->charBuffer: -1;
-        UniChar *newBuffer = (UniChar *)CFAllocatorReallocate(stream->allocator, stream->charBuffer, stream->bufferCapacity * 2 * sizeof(UniChar), 0);
+        UniChar *newBuffer = __CFSafelyReallocateWithAllocator(stream->allocator, stream->charBuffer, stream->bufferCapacity * 2 * sizeof(UniChar), 0, NULL);
         stream->bufferCapacity *= 2;
         if (newBuffer != stream->charBuffer) {
             stream->charBuffer = newBuffer;

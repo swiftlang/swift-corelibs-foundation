@@ -1,7 +1,7 @@
 /*	CFStringScanner.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -219,7 +219,7 @@ CF_PRIVATE Boolean __CFStringScanDouble(CFStringInlineBuffer *buf, CFTypeRef loc
 		charPtr = (char *)CFAllocatorAllocate(tmpAlloc, capacity * sizeof(char), 0);
 		memmove(charPtr, localCharBuffer, numChars * sizeof(char));
  	    } else {
-		charPtr = (char *)CFAllocatorReallocate(tmpAlloc, charPtr, capacity * sizeof(char), 0);
+		charPtr =  __CFSafelyReallocateWithAllocator(tmpAlloc, charPtr, capacity * sizeof(char), 0, NULL);
 	    }
         }
 	charPtr[numChars++] = (char)ch;

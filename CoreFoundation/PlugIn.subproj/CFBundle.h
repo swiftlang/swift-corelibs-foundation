@@ -1,5 +1,5 @@
 /*	CFBundle.h
-	Copyright (c) 1999-2016, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2017, Apple Inc.  All rights reserved.
 */
 
 #if !defined(__COREFOUNDATION_CFBUNDLE__)
@@ -214,19 +214,17 @@ CF_EXPORT
 CFDictionaryRef CFBundleCopyInfoDictionaryForURL(CFURLRef url);
     /* For a directory URL, this is equivalent to CFBundleCopyInfoDictionaryInDirectory(). */
     /* For a plain file URL representing an unbundled executable, this will attempt to read */
-    /* an info dictionary from the (__TEXT, __info_plist) section, if it is a Mach-o file, */
-    /* or from a 'plst' resource.  */
+    /* an info dictionary from the (__TEXT, __info_plist) section, if it is a Mach-o file. */
 
 CF_EXPORT
 CFArrayRef CFBundleCopyLocalizationsForURL(CFURLRef url);
     /* For a directory URL, this is equivalent to calling CFBundleCopyBundleLocalizations() */
     /* on the corresponding bundle.  For a plain file URL representing an unbundled executable, */
     /* this will attempt to determine its localizations using the CFBundleLocalizations and */
-    /* CFBundleDevelopmentRegion keys in the dictionary returned by CFBundleCopyInfoDictionaryForURL,*/
-    /* or from a 'vers' resource if those are not present.  */
+    /* CFBundleDevelopmentRegion keys in the dictionary returned by CFBundleCopyInfoDictionaryForURL. */
 
 CF_EXPORT
-CFArrayRef CFBundleCopyExecutableArchitecturesForURL(CFURLRef url) CF_AVAILABLE(10_5, 2_0);
+CFArrayRef CFBundleCopyExecutableArchitecturesForURL(CFURLRef url) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
     /* For a directory URL, this is equivalent to calling CFBundleCopyExecutableArchitectures() */
     /* on the corresponding bundle.  For a plain file URL representing an unbundled executable, */
     /* this will return the architectures it provides, if it is a Mach-o file, or NULL otherwise. */
@@ -244,17 +242,17 @@ enum {
     kCFBundleExecutableArchitecturePPC      = 0x00000012,
     kCFBundleExecutableArchitectureX86_64   = 0x01000007,
     kCFBundleExecutableArchitecturePPC64    = 0x01000012
-} CF_ENUM_AVAILABLE(10_5, 2_0);
+} API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-CFArrayRef CFBundleCopyExecutableArchitectures(CFBundleRef bundle) CF_AVAILABLE(10_5, 2_0);
+CFArrayRef CFBundleCopyExecutableArchitectures(CFBundleRef bundle) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
     /* If the bundle's executable exists and is a Mach-o file, this function will return an array */
     /* of CFNumbers whose values are integers representing the architectures the file provides. */
     /* The values currently in use are those listed in the enum above, but others may be added */
     /* in the future.  If the executable is not a Mach-o file, this function returns NULL. */
 
 CF_EXPORT
-Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error) CF_AVAILABLE(10_5, 2_0);
+Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
     /* This function will return true if the bundle is loaded, or if the bundle appears to be */
     /* loadable upon inspection.  This does not mean that the bundle is definitively loadable, */
     /* since it may fail to load due to link errors or other problems not readily detectable. */
@@ -262,7 +260,7 @@ Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error) CF_AV
     /* It is the responsibility of the caller to release the CFError. */
 
 CF_EXPORT
-Boolean CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, CFErrorRef *error) CF_AVAILABLE(10_5, 2_0);
+Boolean CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, CFErrorRef *error) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
     /* If the bundle is already loaded, this function will return true.  Otherwise, it will attempt */
     /* to load the bundle, and it will return true if that attempt succeeds.  If the bundle fails */
     /* to load, this function will return false, and it will return a CFError by reference.  */

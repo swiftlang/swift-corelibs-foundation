@@ -1,7 +1,7 @@
 /*	CFMachPort.c
-	Copyright (c) 1998-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -217,19 +217,19 @@ struct __CFMachPort {
 /* Bit 2 in the base reserved bits is used for has-send-ref state */
 
 CF_INLINE Boolean __CFMachPortHasReceive(CFMachPortRef mp) {
-    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)mp)->_cfinfo[CF_INFO_BITS], 1, 1);
+    return __CFRuntimeGetFlag(mp, 1);
 }
 
 CF_INLINE void __CFMachPortSetHasReceive(CFMachPortRef mp) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)mp)->_cfinfo[CF_INFO_BITS], 1, 1, 1);
+    __CFRuntimeSetFlag(mp, 1, true);
 }
 
 CF_INLINE Boolean __CFMachPortHasSend(CFMachPortRef mp) {
-    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)mp)->_cfinfo[CF_INFO_BITS], 2, 2);
+    return __CFRuntimeGetFlag(mp, 2);
 }
 
 CF_INLINE void __CFMachPortSetHasSend(CFMachPortRef mp) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)mp)->_cfinfo[CF_INFO_BITS], 2, 2, 1);
+    __CFRuntimeSetFlag(mp, 2, true);
 }
 
 CF_INLINE Boolean __CFMachPortIsValid(CFMachPortRef mp) {
@@ -583,8 +583,9 @@ Boolean CFMachPortIsValid(CFMachPortRef mp) {
     __CFGenericValidateType(mp, CFMachPortGetTypeID());
     if (!__CFMachPortIsValid(mp)) return false;
     mach_port_type_t type = 0;
+    MACH_PORT_TYPE_PORT_RIGHTS;
     kern_return_t ret = mach_port_type(mach_task_self(), mp->_port, &type);
-    if (KERN_SUCCESS != ret || (type & ~(MACH_PORT_TYPE_SEND|MACH_PORT_TYPE_SEND_ONCE|MACH_PORT_TYPE_RECEIVE|MACH_PORT_TYPE_DNREQUEST))) {
+    if (KERN_SUCCESS != ret || (0 == (type & MACH_PORT_TYPE_PORT_RIGHTS))) {
 	return false;
     }
     return true;

@@ -1,7 +1,7 @@
 /*	CFBasicHash.h
-	Copyright (c) 2008-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -62,13 +62,13 @@ typedef struct {
 typedef struct __CFBasicHash *CFBasicHashRef;
 typedef const struct __CFBasicHash *CFConstBasicHashRef;
 
-// Bit 6 in the CF_INFO_BITS of the CFRuntimeBase inside the CFBasicHashRef is the "is immutable" bit
 CF_INLINE Boolean CFBasicHashIsMutable(CFConstBasicHashRef ht) {
-    return __CFBitfieldGetValue(((CFRuntimeBase *)ht)->_cfinfo[CF_INFO_BITS], 6, 6) ? false : true;
+    // Bit 6 in the info bits of the CFRuntimeBase inside the CFBasicHashRef is the "is immutable" bit, so flip the return value of the get function
+    return !__CFRuntimeGetFlag(ht, 6);
 }
 
 CF_INLINE void CFBasicHashMakeImmutable(CFBasicHashRef ht) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)ht)->_cfinfo[CF_INFO_BITS], 6, 6, 1);
+    __CFRuntimeSetFlag(ht, 6, true);
 }
 
 

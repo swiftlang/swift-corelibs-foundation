@@ -1,7 +1,7 @@
 /*      CFDateFormatter.c
-	Copyright (c) 2002-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -37,7 +37,7 @@ typedef CF_ENUM(CFIndex, CFDateFormatterAmbiguousYearHandling) {
 
 extern UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz);
 
-PE_CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
+static CONST_STRING_DECL(kCFDateFormatterFormattingContextKey, "kCFDateFormatterFormattingContextKey");
 
 CF_EXPORT const CFStringRef kCFDateFormatterCalendarIdentifierKey;
 
@@ -890,7 +890,7 @@ static CFDateFormatterRef __SetUpCFDateFormatter(CFAllocatorRef allocator, CFLoc
     return (CFDateFormatterRef)memory;
 }
 
-#define FORMAT_STRING_MAX_LENGTH 29     // Length of "yyyy-'W'ww-dd'T'HH:mm:ssXXXXX"
+#define FORMAT_STRING_MAX_LENGTH 33     // Length of "yyyy-'W'ww-dd'T'HH:mm:ss.SSSXXXXX"
 static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions options) {
     CFMutableStringRef resultStr = CFStringCreateMutable(kCFAllocatorSystemDefault, FORMAT_STRING_MAX_LENGTH);
 
@@ -898,8 +898,10 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
     BOOL useDashSeparator = (options & kCFISO8601DateFormatWithDashSeparatorInDate) == kCFISO8601DateFormatWithDashSeparatorInDate;
     BOOL useColonSeparatorInTime = (options & kCFISO8601DateFormatWithColonSeparatorInTime) == kCFISO8601DateFormatWithColonSeparatorInTime;
     BOOL useColonSeparatorInTimeZone = (options & kCFISO8601DateFormatWithColonSeparatorInTimeZone) == kCFISO8601DateFormatWithColonSeparatorInTimeZone;
+    BOOL internetDateTime = (options & kCFISO8601DateFormatWithInternetDateTime) == kCFISO8601DateFormatWithInternetDateTime;
+    BOOL includeFractionalSecs = (options & kCFISO8601DateFormatWithFractionalSeconds) == kCFISO8601DateFormatWithFractionalSeconds;
 
-    if ((options & kCFISO8601DateFormatWithInternetDateTime) == kCFISO8601DateFormatWithInternetDateTime) {
+    if (internetDateTime) {
         // Check for dashes
         if (useDashSeparator == NO) {
             CFStringAppendCString(resultStr, "yyyyMMdd", kCFStringEncodingUTF8);
@@ -919,6 +921,11 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
             CFStringAppendCString(resultStr, "HHmmss", kCFStringEncodingUTF8);
         } else {
             CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
+        }
+
+        // Add support for fracional seconds
+        if (includeFractionalSecs) {
+            CFStringAppendCString(resultStr, ".SSS", kCFStringEncodingUTF8);
         }
 
         // Check for time zone separator
@@ -998,6 +1005,10 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
                         CFStringAppendCString(resultStr, "HHmmss", kCFStringEncodingUTF8);
                     } else {
                         CFStringAppendCString(resultStr, "HH:mm:ss", kCFStringEncodingUTF8);
+                    }
+                    // Add support for fracional seconds
+                    if (includeFractionalSecs) {
+                        CFStringAppendCString(resultStr, ".SSS", kCFStringEncodingUTF8);
                     }
                 }
                 break;
@@ -1806,7 +1817,7 @@ Boolean CFDateFormatterGetAbsoluteTimeFromString(CFDateFormatterRef formatter, C
         }
         success = true;
     }
-    CFRelease(calendar_id);
+    if (calendar_id) CFRelease(calendar_id);
     __cficu_udat_close(df2);
     __cficu_ucal_close(cal2);
     return success;

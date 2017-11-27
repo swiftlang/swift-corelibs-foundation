@@ -1,7 +1,7 @@
 /*	CFSocket.c
-	Copyright (c) 1999-2016, Apple Inc.  and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc.  and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -1210,51 +1210,51 @@ struct __CFSocket {
 /* Of this, bits 0-1 are used for the read callback type. */
 
 CF_INLINE Boolean __CFSocketIsWriteSignalled(CFSocketRef s) {
-    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 6, 6);
+    return __CFRuntimeGetFlag(s, 6);
 }
 
 CF_INLINE void __CFSocketSetWriteSignalled(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 6, 6, 1);
+    __CFRuntimeSetFlag(s, 6, true);
 }
 
 CF_INLINE void __CFSocketUnsetWriteSignalled(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 6, 6, 0);
+    __CFRuntimeSetFlag(s, 6, false);
 }
 
 CF_INLINE Boolean __CFSocketIsReadSignalled(CFSocketRef s) {
-    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 5, 5);
+    return __CFRuntimeGetFlag(s, 5);
 }
 
 CF_INLINE void __CFSocketSetReadSignalled(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 5, 5, 1);
+    __CFRuntimeSetFlag(s, 5, true);
 }
 
 CF_INLINE void __CFSocketUnsetReadSignalled(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 5, 5, 0);
+    __CFRuntimeSetFlag(s, 5, false);
 }
 
 CF_INLINE Boolean __CFSocketIsValid(CFSocketRef s) {
-    return (Boolean)__CFBitfieldGetValue(((const CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 4, 4);
+    return __CFRuntimeGetFlag(s, 4);
 }
 
 CF_INLINE void __CFSocketSetValid(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 4, 4, 1);
+    __CFRuntimeSetFlag(s, 4, true);
 }
 
 CF_INLINE void __CFSocketUnsetValid(CFSocketRef s) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 4, 4, 0);
+    __CFRuntimeSetFlag(s, 4, false);
 }
 
 CF_INLINE uint8_t __CFSocketCallBackTypes(CFSocketRef s) {
-    return (uint8_t)__CFBitfieldGetValue(((const CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 3, 0);
+    return (uint8_t)__CFRuntimeGetValue(s, 3, 0);
 }
 
 CF_INLINE uint8_t __CFSocketReadCallBackType(CFSocketRef s) {
-    return (uint8_t)__CFBitfieldGetValue(((const CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 1, 0);
+    return (uint8_t)__CFRuntimeGetValue(s, 1, 0);
 }
 
 CF_INLINE void __CFSocketSetCallBackTypes(CFSocketRef s, uint8_t types) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)s)->_cfinfo[CF_INFO_BITS], 3, 0, types & 0xF);
+    __CFRuntimeSetValue(s, 3, 0, types & 0xF);
 }
 
 CF_INLINE void __CFSocketLock(CFSocketRef s) {
@@ -2192,8 +2192,8 @@ static void *__CFSocketManager(void * arg)
         maxnrfds = __CFMax(rfds, wfds);
         if (maxnrfds > fdentries * (int)NFDBITS) {
             fdentries = (maxnrfds + NFDBITS - 1) / NFDBITS;
-            writefds = (fd_set *)CFAllocatorReallocate(kCFAllocatorSystemDefault, writefds, fdentries * sizeof(fd_mask), 0);
-            readfds = (fd_set *)CFAllocatorReallocate(kCFAllocatorSystemDefault, readfds, fdentries * sizeof(fd_mask), 0);
+            writefds = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, writefds, fdentries * sizeof(fd_mask), 0, NULL);
+            readfds = __CFSafelyReallocateWithAllocator(kCFAllocatorSystemDefault, readfds, fdentries * sizeof(fd_mask), 0, NULL);
         }
         memset(writefds, 0, fdentries * sizeof(fd_mask)); 
         memset(readfds, 0, fdentries * sizeof(fd_mask));

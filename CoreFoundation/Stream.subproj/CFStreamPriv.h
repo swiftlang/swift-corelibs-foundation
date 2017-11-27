@@ -1,7 +1,7 @@
 /*	CFStreamPriv.h
-	Copyright (c) 2000-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -114,7 +114,7 @@ CF_EXTERN_C_END
  * file.  If the underlying file descriptor is not open, the property
  * value will be NULL (as opposed to containing ((int) -1)).
  */
-CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle CF_AVAILABLE_IOS(5_0);
+CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle API_AVAILABLE(macosx(10.12.4), ios(5.0), watchos(2.0), tvos(9.0));
 
 /*
  * SPI: The _kCFStreamPropertyHTTPTrailer property is a dictionary of HTTP headers & values that the caller

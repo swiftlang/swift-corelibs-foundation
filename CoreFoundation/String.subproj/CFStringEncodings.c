@@ -1,7 +1,7 @@
 /*	CFStringEncodings.c
-	Copyright (c) 1999-2016, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2016 Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -910,7 +910,7 @@ Boolean _CFStringGetFileSystemRepresentation(CFStringRef string, uint8_t *buffer
 void _CFStringGetUserDefaultEncoding(UInt32 *oScriptValue, UInt32 *oRegionValue) {
     char *stringValue;
     char buffer[__kCFMaxDefaultEncodingFileLength];
-    int uid = getuid();
+    int uid = _CFGetEUID();
 
     if ((stringValue = (char *)__CFgetenv(__kCFUserEncodingEnvVariableName)) != NULL) {
         if ((uid == strtol_l(stringValue, &stringValue, 0, NULL)) && (':' == *stringValue)) {
@@ -1012,7 +1012,7 @@ void _CFStringGetInstallationEncodingAndRegion(uint32_t *encoding, uint32_t *reg
     if (stringValue) {
         *encoding = strtol_l(stringValue, &stringValue, 0, NULL);
         // We force using MacRoman for Arabic/Hebrew users <rdar://problem/17633551> When changing language to Arabic and Hebrew, set the default user encoding to MacRoman, not MacArabic/MacHebrew
-        if ((*encoding == kCFStringEncodingMacArabic) || (*encoding == kCFStringEncodingMacHebrew)) *encoding = kCFStringEncodingMacRoman;
+        if ((*encoding == kCFStringEncodingMacArabic) || (*encoding == kCFStringEncodingMacHebrew) || (*encoding == kCFStringEncodingMacDevanagari)) *encoding = kCFStringEncodingMacRoman;
         if (*stringValue == ':') *region = strtol_l(++stringValue, NULL, 0, NULL);
     }
 }
