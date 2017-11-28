@@ -561,6 +561,7 @@ class TestCodable : XCTestCase {
     ]
 
     func test_URLComponents_JSON() {
+#if !DARWIN_COMPATIBILITY_TESTS // crashes on native Darwin
         for (components) in urlComponentsValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: components)
@@ -568,6 +569,7 @@ class TestCodable : XCTestCase {
                 XCTFail("\(error)")
             }
         }
+#endif
     }
 }
 

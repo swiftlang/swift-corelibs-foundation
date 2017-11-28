@@ -39,7 +39,7 @@ extension _HTTPURLProtocol {
         /// Once the headers is complete, this will contain the response
         var response: HTTPURLResponse?
         /// The body data to be sent in the request
-        let requestBodySource: _HTTPBodySource?
+        let requestBodySource: _BodySource?
         /// Body data received
         let bodyDataDrain: _DataDrain
         /// Describes what to do with received body data for this transfer:
@@ -67,7 +67,7 @@ extension _HTTPURLProtocol._HTTPTransferState {
         self.bodyDataDrain = bodyDataDrain
     }
     /// Transfer state that sends body data and can receive body data.
-    init(url: URL, bodyDataDrain: _HTTPURLProtocol._DataDrain, bodySource: _HTTPBodySource) {
+    init(url: URL, bodyDataDrain: _HTTPURLProtocol._DataDrain, bodySource: _BodySource) {
         self.url = url
         self.parsedResponseHeader = _HTTPURLProtocol._ParsedResponseHeader()
         self.response = nil
@@ -131,7 +131,7 @@ extension _HTTPURLProtocol._HTTPTransferState {
     ///
     /// This can be used to either set the initial body source, or to reset it
     /// e.g. when restarting a transfer.
-    func bySetting(bodySource newSource: _HTTPBodySource) -> _HTTPURLProtocol._HTTPTransferState {
+    func bySetting(bodySource newSource: _BodySource) -> _HTTPURLProtocol._HTTPTransferState {
         return _HTTPURLProtocol._HTTPTransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: newSource, bodyDataDrain: bodyDataDrain)
     }
 }

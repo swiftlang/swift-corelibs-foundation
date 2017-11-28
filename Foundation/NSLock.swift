@@ -303,12 +303,12 @@ private func timeSpecFrom(date: Date) -> timespec? {
 
 private func deallocateTimedLockData(cond: _PthreadCondPointer, mutex: _PthreadMutexPointer) {
     pthread_cond_destroy(cond)
-    cond.deinitialize()
-    cond.deallocate(capacity: 1)
+    cond.deinitialize(count: 1)
+    cond.deallocate()
 
     pthread_mutex_destroy(mutex)
-    mutex.deinitialize()
-    mutex.deallocate(capacity: 1)
+    mutex.deinitialize(count: 1)
+    mutex.deallocate()
 }
 
 // Emulate pthread_mutex_timedlock using pthread_cond_timedwait.
