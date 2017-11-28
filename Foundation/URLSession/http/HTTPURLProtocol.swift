@@ -424,10 +424,10 @@ extension _HTTPURLProtocol {
         case .none:
             return _HTTPTransferState(url: url, bodyDataDrain: drain)
         case .data(let data):
-            let source = _HTTPBodyDataSource(data: data)
+            let source = _BodyDataSource(data: data)
             return _HTTPTransferState(url: url, bodyDataDrain: drain, bodySource: source)
         case .file(let fileURL):
-            let source = _HTTPBodyFileSource(fileURL: fileURL, workQueue: workQueue, dataAvailableHandler: { [weak self] in
+            let source = _BodyFileSource(fileURL: fileURL, workQueue: workQueue, dataAvailableHandler: { [weak self] in
                 // Unpause the easy handle
                 self?.easyHandle.unpauseSend()
             })
