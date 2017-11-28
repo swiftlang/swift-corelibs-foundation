@@ -46,8 +46,8 @@ open class NSLock: NSObject, NSLocking {
     
     deinit {
         pthread_mutex_destroy(mutex)
-        mutex.deinitialize()
-        mutex.deallocate(capacity: 1)
+        mutex.deinitialize(count: 1)
+        mutex.deallocate()
 #if os(OSX) || os(iOS)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
@@ -196,8 +196,8 @@ open class NSRecursiveLock: NSObject, NSLocking {
     
     deinit {
         pthread_mutex_destroy(mutex)
-        mutex.deinitialize()
-        mutex.deallocate(capacity: 1)
+        mutex.deinitialize(count: 1)
+        mutex.deallocate()
 #if os(OSX) || os(iOS)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
@@ -251,10 +251,10 @@ open class NSCondition: NSObject, NSLocking {
     deinit {
         pthread_mutex_destroy(mutex)
         pthread_cond_destroy(cond)
-        mutex.deinitialize()
-        cond.deinitialize()
-        mutex.deallocate(capacity: 1)
-        cond.deallocate(capacity: 1)
+        mutex.deinitialize(count: 1)
+        cond.deinitialize(count: 1)
+        mutex.deallocate()
+        cond.deallocate()
     }
     
     open func lock() {
