@@ -20,8 +20,8 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
 
     deinit {
-         buffer.deinitialize()
-         buffer.deallocate(capacity: 16)
+         buffer.deinitialize(count: 1)
+         buffer.deallocate()
     }
     
     public override init() {
@@ -31,8 +31,8 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     public convenience init?(uuidString string: String) {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         defer {
-            buffer.deinitialize()
-            buffer.deallocate(capacity: 16)
+            buffer.deinitialize(count: 1)
+            buffer.deallocate()
         }
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
@@ -51,8 +51,8 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     open var uuidString: String {
         let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
         defer {
-            strPtr.deinitialize()
-            strPtr.deallocate(capacity: 37)
+            strPtr.deinitialize(count: 1)
+            strPtr.deallocate()
         }
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
@@ -83,8 +83,8 @@ open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
         guard data.count == 16 else { return nil }
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         defer {
-            buffer.deinitialize()
-            buffer.deallocate(capacity: 16)
+            buffer.deinitialize(count: 1)
+            buffer.deallocate()
         }
         data.copyBytes(to: buffer, count: 16)
         self.init(uuidBytes: buffer)

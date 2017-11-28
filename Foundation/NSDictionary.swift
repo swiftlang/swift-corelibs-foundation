@@ -154,8 +154,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         
         keyBuffer.deinitialize(count: keys.count)
         valueBuffer.deinitialize(count: objects.count)
-        keyBuffer.deallocate(capacity: keys.count)
-        valueBuffer.deallocate(capacity: objects.count)
+        keyBuffer.deallocate()
+        valueBuffer.deallocate()
     }
     
     public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {

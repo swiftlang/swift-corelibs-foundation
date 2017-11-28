@@ -91,17 +91,17 @@ internal class NSConcreteValue : NSValue {
 
         self._typeInfo = typeInfo!
 
-        self._storage = UnsafeMutableRawPointer.allocate(bytes: self._typeInfo.size, alignedTo: 1)
-        self._storage.copyBytes(from: value, count: self._typeInfo.size)
+        self._storage = UnsafeMutableRawPointer.allocate(byteCount: self._typeInfo.size, alignment: 1)
+        self._storage.copyMemory(from: value, byteCount: self._typeInfo.size)
     }
 
     deinit {
         // Cannot deinitialize raw memory.
-        self._storage.deallocate(bytes: self._size, alignedTo: 1)
+        self._storage.deallocate()
     }
     
     override func getValue(_ value: UnsafeMutableRawPointer) {
-        value.copyBytes(from: self._storage, count: self._size)
+        value.copyMemory(from: self._storage, byteCount: self._size)
     }
     
     override var objCType : UnsafePointer<Int8> {

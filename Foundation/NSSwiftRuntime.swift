@@ -342,7 +342,7 @@ extension Array {
             let buffer = UnsafeMutablePointer<Element>.allocate(capacity: count)
             let res = body(buffer)
             buffer.deinitialize(count: count)
-            buffer.deallocate(capacity: count)
+            buffer.deallocate()
             return res
         } else {
             return withUnsafeMutableBufferPointer() { (bufferPtr: inout UnsafeMutableBufferPointer<Element>) -> R in
