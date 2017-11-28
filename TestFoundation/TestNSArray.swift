@@ -93,12 +93,9 @@ class TestNSArray : XCTestCase {
 
         XCTAssertEqual(array1[0] as! String, "foo")
         XCTAssertEqual(array2[0] as! String, "foo")
-
-        // Disable this test for now as it fails, althought it works against Darwin Foundation.
-        // The test may not acutally be correct anyway.
-        //foo.append("1")
-        //XCTAssertEqual(array1[0] as! String, "foo1")
-        //XCTAssertEqual(array2[0] as! String, "foo")
+        foo.append("1")
+        XCTAssertEqual(array1[0] as! String, "foo1")
+        XCTAssertEqual(array2[0] as! String, "foo")
     }
     
     func test_enumeration() {

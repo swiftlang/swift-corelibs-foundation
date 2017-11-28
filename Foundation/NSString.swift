@@ -231,7 +231,15 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        return self
+        if type(of: self) === NSString.self {
+            return self
+        }
+        let characters = UnsafeMutablePointer<unichar>.allocate(capacity: length)
+        getCharacters(characters, range: NSMakeRange(0, length))
+        let result = NSString(characters: characters, length: length)
+        characters.deinitialize()
+        characters.deallocate(capacity: length)
+        return result
     }
     
     open override func mutableCopy() -> Any {
