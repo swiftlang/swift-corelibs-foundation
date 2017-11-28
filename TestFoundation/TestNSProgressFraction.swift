@@ -15,6 +15,7 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
+#if !DARWIN_COMPATIBILITY_TESTS
 class TestProgressFraction : XCTestCase {
     static var allTests: [(String, (TestProgressFraction) -> () throws -> Void)] {
         return [
@@ -159,4 +160,5 @@ class TestProgressFraction : XCTestCase {
         XCTAssertFalse(r.overflowed)
     }
 }
+#endif
 

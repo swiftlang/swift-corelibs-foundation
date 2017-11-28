@@ -16,7 +16,10 @@
     import SwiftXCTest
 #endif
 
-import CoreFoundation
+#if !(os(OSX) || os(iOS))
+    import CoreFoundation
+#endif
+
 
 class TestThread : XCTestCase {
     static var allTests: [(String, (TestThread) -> () throws -> Void)] {

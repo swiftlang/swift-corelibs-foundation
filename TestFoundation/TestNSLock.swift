@@ -15,8 +15,6 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
-import CoreFoundation
-
 class TestNSLock: XCTestCase {
     static var allTests: [(String, (TestNSLock) -> () throws -> Void)] {
         return [
@@ -32,7 +30,7 @@ class TestNSLock: XCTestCase {
         let condition = NSCondition()
         let lock = NSLock()
 
-        func test(waitTime: CFTimeInterval, shouldLock: Bool) -> Bool {
+        func test(waitTime: TimeInterval, shouldLock: Bool) -> Bool {
             let locked = lock.lock(before: Date.init(timeIntervalSinceNow: waitTime))
             if locked {
                 lock.unlock()
