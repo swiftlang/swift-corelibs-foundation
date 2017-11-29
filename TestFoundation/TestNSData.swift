@@ -930,11 +930,11 @@ extension TestNSData {
             // Mutate it
             bytes.pointee = 0x67
             XCTAssertEqual(bytes.pointee, 0x67, "First byte should be 0x67")
-            XCTAssertEqual(mutatingHello[0], 0x67, "First byte accessed via other method should still be 0x67")
-            
-            // Verify that the first data is still correct
-            XCTAssertEqual(hello[0], 0x68, "The first byte should still be 0x68")
         }
+        XCTAssertEqual(mutatingHello[0], 0x67, "First byte accessed via other method should still be 0x67")
+
+        // Verify that the first data is still correct
+        XCTAssertEqual(hello[0], 0x68, "The first byte should still be 0x68")
     }
     
 
