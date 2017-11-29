@@ -18,7 +18,16 @@
 
 
 internal func testBundle() -> Bundle {
+#if DARWIN_COMPATIBILITY_TESTS
+    for bundle in Bundle.allBundles {
+        if let bundleId = bundle.bundleIdentifier, bundleId == "org.swift.DarwinCompatibilityTests", bundle.resourcePath != nil {
+            return bundle
+        }
+    }
+    fatalError("Cant find test bundle")
+#else
     return Bundle.main
+#endif
 }
 
 class TestBundle : XCTestCase {
@@ -88,14 +97,24 @@ class TestBundle : XCTestCase {
         let bundle = testBundle()
         
         // bundleIdentifier
+#if DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual("org.swift.DarwinCompatibilityTests", bundle.bundleIdentifier)
+#else
         XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
-        
+#endif
+
         // infoDictionary
         let info = bundle.infoDictionary
         XCTAssertNotNil(info)
-        XCTAssert("org.swift.TestFoundation" == info!["CFBundleIdentifier"] as! String)
+
+#if DARWIN_COMPATIBILITY_TESTS
+        XCTAssert("DarwinCompatibilityTests" == info!["CFBundleName"] as! String)
+        XCTAssert("org.swift.DarwinCompatibilityTests" == info!["CFBundleIdentifier"] as! String)
+#else
         XCTAssert("TestFoundation" == info!["CFBundleName"] as! String)
-        
+        XCTAssert("org.swift.TestFoundation" == info!["CFBundleIdentifier"] as! String)
+#endif
+
         // localizedInfoDictionary
         XCTAssertNil(bundle.localizedInfoDictionary) // FIXME: Add a localized Info.plist for testing
     }
@@ -204,6 +223,4 @@ class TestBundle : XCTestCase {
         XCTAssertThrowsError(try bundle!.preflight())
         _cleanupPlayground(playground)
     }
-
-
 }

@@ -16,8 +16,6 @@
     import SwiftXCTest
 #endif
 
-class OptionalParserConformance: XMLParserDelegate {}
-
 enum XMLParserDelegateEvent {
     case startDocument
     case endDocument
@@ -49,7 +47,7 @@ extension XMLParserDelegateEvent: Equatable {
 
 }
 
-class XMLParserDelegateEventStream: XMLParserDelegate {
+class XMLParserDelegateEventStream: NSObject, XMLParserDelegate {
     var events: [XMLParserDelegateEvent] = []
 
     func parserDidStartDocument(_ parser: XMLParser) {

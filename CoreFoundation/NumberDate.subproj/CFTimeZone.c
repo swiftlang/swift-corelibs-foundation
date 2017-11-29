@@ -33,9 +33,12 @@
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <tzfile.h>
+#define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
+#define MACOS_TZDIR2 "/var/db/timezone/zoneinfo/"    // 10.13 onwards
+
 #elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #ifndef TZDIR
-#define TZDIR	"/usr/share/zoneinfo" /* Time zone object file directory */
+#define TZDIR	"/usr/share/zoneinfo/" /* Time zone object file directory */
 #endif /* !defined TZDIR */
 
 #ifndef TZDEFAULT
@@ -56,16 +59,9 @@ struct tzhead {
 
 #include <time.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-#define TZZONELINK	TZDEFAULT
-#define TZZONEINFO	TZDIR "/"
-#elif DEPLOYMENT_TARGET_WINDOWS
 static CFStringRef __tzZoneInfo = NULL;
 static char *__tzDir = NULL;
 static void __InitTZStrings(void);
-#else
-#error Unknown or unspecified DEPLOYMENT_TARGET
-#endif
 
 CONST_STRING_DECL(kCFTimeZoneSystemTimeZoneDidChangeNotification, "kCFTimeZoneSystemTimeZoneDidChangeNotification")
 
@@ -147,13 +143,9 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
-#if DEPLOYMENT_TARGET_WINDOWS
     if (!__tzDir) __InitTZStrings();
     if (!__tzDir) return result;
     int fd = open(__tzDir, O_RDONLY);
-#else
-    int fd = open(TZDIR "/zone.tab", O_RDONLY);
-#endif
 
     for (; 0 <= fd;) {
         uint8_t buffer[4096];
@@ -686,7 +678,7 @@ CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFString
 }
 
 extern CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
-void __InitTZStrings(void) {
+static void __InitTZStrings(void) {
     static CFLock_t __CFTZDirLock = CFLockInit;
     __CFLock(&__CFTZDirLock);
     if (!__tzZoneInfo) {
@@ -704,6 +696,50 @@ void __InitTZStrings(void) {
     }
     __CFUnlock(&__CFTZDirLock);
 }
+
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+static void __InitTZStrings(void) {
+    static dispatch_once_t initOnce = 0;
+
+    dispatch_once(&initOnce, ^{
+        unsigned int major = 0, minor = 0, patch = 0;
+
+        CFDictionaryRef dict = _CFCopySystemVersionDictionary();
+        if (dict) {
+            CFStringRef version = CFDictionaryGetValue(dict, _kCFSystemVersionProductVersionKey);
+            if (version) {
+                const char *cStr = CFStringGetCStringPtr(version, kCFStringEncodingASCII);
+                if (cStr) {
+                    if (sscanf(cStr, "%u.%u.%u", &major, &minor, &patch) != 3) {
+                        major = 0;
+                        minor = 0;
+                        patch = 0;
+                    }
+                }
+            }
+            CFRelease(dict);
+        }
+
+        // Timezone files moved in High Sierra(10.13)
+        if (major == 10 && minor < 13) {
+            // older versions
+            __tzZoneInfo = CFSTR(MACOS_TZDIR1);
+            __tzDir = MACOS_TZDIR1 "zone.tab";
+        } else {
+            __tzZoneInfo = CFSTR(MACOS_TZDIR2);
+            __tzDir = MACOS_TZDIR2 "zone.tab";
+        }
+    });
+}
+
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+static void __InitTZStrings(void) {
+    __tzZoneInfo = CFSTR(TZDIR);
+    __tzDir = TZDIR "zone.tab";
+}
+
+#else
+#error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
 
 static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
@@ -748,11 +784,16 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
-    ret = readlink(TZZONELINK, linkbuf, sizeof(linkbuf));
-    if (0 < ret) {
+
+    if (!__tzZoneInfo) __InitTZStrings();
+    ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
+    if (__tzZoneInfo && (0 < ret)) {
         linkbuf[ret] = '\0';
-        if (strncmp(linkbuf, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
-            name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + sizeof(TZZONEINFO) - 1, strlen(linkbuf) - sizeof(TZZONEINFO) + 1, kCFStringEncodingUTF8, false);
+        const char *tzZoneInfo = CFStringGetCStringPtr(__tzZoneInfo, kCFStringEncodingASCII);
+        size_t zoneInfoDirLen = CFStringGetLength(__tzZoneInfo);
+        if (strncmp(linkbuf, tzZoneInfo, zoneInfoDirLen) == 0) {
+            name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf + zoneInfoDirLen,
+                                           strlen(linkbuf) - zoneInfoDirLen + 1, kCFStringEncodingUTF8, false);
         } else {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf, strlen(linkbuf), kCFStringEncodingUTF8, false);
         }
@@ -1133,12 +1174,12 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             CFIndex length;
             Boolean result = false;
             
-#if DEPLOYMENT_TARGET_WINDOWS
             if (!__tzZoneInfo) __InitTZStrings();
             if (!__tzZoneInfo) return NULL;
+#if DEPLOYMENT_TARGET_WINDOWS
             baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
 #else
-            baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR(TZZONEINFO), kCFURLPOSIXPathStyle, true);
+            baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
 #endif
             if (tryAbbrev) {
                 CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
@@ -1159,15 +1200,9 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
                 CFStringRef mapping = CFDictionaryGetValue(dict, name);
                 if (mapping) {
                     name = mapping;
-#if DEPLOYMENT_TARGET_WINDOWS
                 } else if (CFStringHasPrefix(name, __tzZoneInfo)) {
                     CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
                     CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
-#else
-                } else if (CFStringHasPrefix(name, CFSTR(TZZONEINFO))) {
-                    CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
-                    CFStringDelete(unprefixed, CFRangeMake(0, sizeof(TZZONEINFO)));
-#endif
                     mapping = CFDictionaryGetValue(dict, unprefixed);
                     if (mapping) {
                         name = mapping;
@@ -1340,12 +1375,12 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     void *bytes;
     CFIndex length;
 
-#if DEPLOYMENT_TARGET_WINDOWS
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
+#if DEPLOYMENT_TARGET_WINDOWS
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
 #else
-    baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR(TZZONEINFO), kCFURLPOSIXPathStyle, true);
+    baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
 #endif
     if (tryAbbrev) {
 	CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
@@ -1366,15 +1401,9 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	CFStringRef mapping = CFDictionaryGetValue(dict, name);
 	if (mapping) {
 	    name = mapping;
-#if DEPLOYMENT_TARGET_WINDOWS
 	} else if (CFStringHasPrefix(name, __tzZoneInfo)) {
 	    CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
 	    CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
-#else
-	} else if (CFStringHasPrefix(name, CFSTR(TZZONEINFO))) {
-	    CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
-	    CFStringDelete(unprefixed, CFRangeMake(0, sizeof(TZZONEINFO)));
-#endif
 	    mapping = CFDictionaryGetValue(dict, unprefixed);
 	    if (mapping) {
 		name = mapping;
@@ -1549,6 +1578,4 @@ static CFDictionaryRef __CFTimeZoneCopyCompatibilityDictionary(void) {
     return dict;
 }
 
-#undef TZZONEINFO
-#undef TZZONELINK
 

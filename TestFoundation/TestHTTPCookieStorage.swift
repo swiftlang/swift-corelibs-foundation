@@ -247,7 +247,7 @@ class TestHTTPCookieStorage: XCTestCase {
     }
 
     func test_cookieInXDGSpecPath() {
-#if !os(Android)
+#if !os(Android) && !DARWIN_COMPATIBILITY_TESTS
         //Test without setting the environment variable
         let testCookie = HTTPCookie(properties: [
            .name: "TestCookie0",
