@@ -88,63 +88,90 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var era: Int? {
         get { return _handle.map { _getter($0.era) } }
-        set { _applyMutation { $0.era = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.era = value }
+        }
     }
     
     /// A year or count of years.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var year: Int? {
         get { return _handle.map { _getter($0.year) } }
-        set { _applyMutation { $0.year = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.year = value }
+        }
     }
     
     /// A month or count of months.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var month: Int? {
         get { return _handle.map { _getter($0.month) } }
-        set { _applyMutation { $0.month = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.month = value }
+        }
     }
     
     /// A day or count of days.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var day: Int? {
         get { return _handle.map { _getter($0.day) } }
-        set { _applyMutation { $0.day = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.day = value }
+        }
     }
     
     /// An hour or count of hours.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var hour: Int? {
         get { return _handle.map { _getter($0.hour) } }
-        set { _applyMutation { $0.hour = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.hour = value }
+        }
     }
     
     /// A minute or count of minutes.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var minute: Int? {
         get { return _handle.map { _getter($0.minute) } }
-        set { _applyMutation { $0.minute = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.minute = value }
+        }
     }
     
     /// A second or count of seconds.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var second: Int? {
         get { return _handle.map { _getter($0.second) } }
-        set { _applyMutation { $0.second = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.second = value }
+        }
     }
     
     /// A nanosecond or count of nanoseconds.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var nanosecond: Int? {
         get { return _handle.map { _getter($0.nanosecond) } }
-        set { _applyMutation { $0.nanosecond = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.nanosecond = value }
+        }
     }
     
     /// A weekday or count of weekdays.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var weekday: Int? {
         get { return _handle.map { _getter($0.weekday) } }
-        set { _applyMutation { $0.weekday = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.weekday = value }
+        }
     }
     
     /// A weekday ordinal or count of weekday ordinals.
@@ -152,28 +179,40 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var weekdayOrdinal: Int? {
         get { return _handle.map { _getter($0.weekdayOrdinal) } }
-        set { _applyMutation { $0.weekdayOrdinal = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.weekdayOrdinal = value }
+        }
     }
     
     /// A quarter or count of quarters.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var quarter: Int? {
         get { return _handle.map { _getter($0.quarter) } }
-        set { _applyMutation { $0.quarter = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.quarter = value }
+        }
     }
     
     /// A week of the month or a count of weeks of the month.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var weekOfMonth: Int? {
         get { return _handle.map { _getter($0.weekOfMonth) } }
-        set { _applyMutation { $0.weekOfMonth = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.weekOfMonth = value }
+        }
     }
     
     /// A week of the year or count of the weeks of the year.
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var weekOfYear: Int? {
         get { return _handle.map { _getter($0.weekOfYear) } }
-        set { _applyMutation { $0.weekOfYear = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.weekOfYear = value }
+        }
     }
     
     /// The ISO 8601 week-numbering year of the receiver.
@@ -184,7 +223,10 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     /// - note: This value is interpreted in the context of the calendar in which it is used.
     public var yearForWeekOfYear: Int? {
         get { return _handle.map { _getter($0.yearForWeekOfYear) } }
-        set { _applyMutation { $0.yearForWeekOfYear = _setter(newValue) } }
+        set {
+            let value = _setter(newValue)
+            _applyMutation { $0.yearForWeekOfYear = value }
+        }
     }
     
     /// Set to true if these components represent a leap month.
@@ -217,8 +259,9 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     ///
     /// The calendar and timeZone and isLeapMonth properties cannot be set by this method.
     public mutating func setValue(_ value: Int?, for component: Calendar.Component) {
+        let _value = _setter(value)
         _applyMutation {
-            $0.setValue(_setter(value), forComponent: Calendar._toCalendarUnit([component]))
+            $0.setValue(_value, forComponent: Calendar._toCalendarUnit([component]))
         }
     }
     
