@@ -346,6 +346,11 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     open internal(set) var httpShouldHandleCookies: Bool = true
     
     open internal(set) var httpShouldUsePipelining: Bool = true
+
+    open override var description: String {
+        let url = self.url?.description ?? "(null)"
+        return super.description + " { URL: \(url) }"
+    }
 }
 
 /// An `NSMutableURLRequest` object represents a mutable URL load
