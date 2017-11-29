@@ -144,11 +144,7 @@ open class Thread : NSObject {
     }
 
     internal var _main: () -> Void = {}
-#if os(Android)
-    private var _thread = pthread_t()
-#else
     private var _thread: pthread_t? = nil
-#endif
 
 #if CYGWIN
     internal var _attr : pthread_attr_t? = nil
