@@ -28,6 +28,7 @@ class TestURLRequest : XCTestCase {
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
             ("test_methodNormalization", test_methodNormalization),
+            ("test_description", test_description),
         ]
     }
     
@@ -236,6 +237,16 @@ class TestURLRequest : XCTestCase {
             request.httpMethod = n.key
             XCTAssertEqual(request.httpMethod, n.value)
         }
+    }
+
+    func test_description() {
+        let url = URL(string: "http://swift.org")!
+
+        var request = URLRequest(url: url)
+        XCTAssertEqual(request.description, "http://swift.org")
+
+        request.url = nil
+        XCTAssertEqual(request.description, "url: nil")
     }
 }
 
