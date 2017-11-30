@@ -868,10 +868,12 @@ Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbso
     ch = *desc;
     while (ch) {
         UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-        int value = *vector;
-        if (UCAL_YEAR == field && doWOY) field = UCAL_YEAR_WOY;
-        if (UCAL_MONTH == field) value--;
-        ucal_set(calendar->_cal, field, value);
+        if (field != (UCalendarDateFields)-1) {
+            int value = *vector;
+            if (UCAL_YEAR == field && doWOY) field = UCAL_YEAR_WOY;
+            if (UCAL_MONTH == field) value--;
+            ucal_set(calendar->_cal, field, value);
+        }
         vector++;
         desc++;
         ch = *desc;
@@ -894,9 +896,13 @@ Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime
     char ch = *componentDesc;
     while (ch) {
         UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-        int value = ucal_get(calendar->_cal, field, &status);
-        if (UCAL_MONTH == field) value++;
-        *(*vector) = value;
+        if (field == (UCalendarDateFields)-1) {
+            *(*vector) = -1;
+        } else {
+            int value = ucal_get(calendar->_cal, field, &status);
+            if (UCAL_MONTH == field) value++;
+            *(*vector) = value;
+        }
         vector++;
         componentDesc++;
         ch = *componentDesc;
