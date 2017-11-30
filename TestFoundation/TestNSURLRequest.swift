@@ -31,6 +31,7 @@ class TestNSURLRequest : XCTestCase {
             ("test_NSCoding_2", test_NSCoding_2),
             ("test_NSCoding_3", test_NSCoding_3),
             ("test_methodNormalization", test_methodNormalization),
+            ("test_description", test_description),
         ]
     }
     
@@ -281,6 +282,20 @@ class TestNSURLRequest : XCTestCase {
         for n in expectedNormalizations {
             request.httpMethod = n.key
             XCTAssertEqual(request.httpMethod, n.value)
+        }
+    }
+
+    func test_description() {
+        let url = URL(string: "http://swift.org")!
+        let request = NSMutableURLRequest(url: url)
+
+        if request.description.range(of: "http://swift.org") == nil {
+            XCTFail("description should contain URL")
+        }
+
+        request.url = nil
+        if request.description.range(of: "(null)") == nil {
+            XCTFail("description of nil URL should contain (null)")
         }
     }
 }
