@@ -36,6 +36,7 @@ class TestDate : XCTestCase {
             ("test_Compare", test_Compare),
             ("test_IsEqualToDate", test_IsEqualToDate),
             ("test_timeIntervalSinceReferenceDate", test_timeIntervalSinceReferenceDate),
+            ("test_recreateDateComponentsFromDate", test_recreateDateComponentsFromDate),
         ]
     }
     
@@ -122,5 +123,41 @@ class TestDate : XCTestCase {
         let d2 = Date().timeIntervalSinceReferenceDate
         XCTAssertTrue(d1 <= sinceReferenceDate)
         XCTAssertTrue(d2 >= sinceReferenceDate)
+    }
+    
+    func test_recreateDateComponentsFromDate() {
+        let components = DateComponents(calendar: Calendar(identifier: .gregorian),
+                                        timeZone: .current,
+                                        era: 1,
+                                        year: 2017,
+                                        month: 11,
+                                        day: 5,
+                                        hour: 20,
+                                        minute: 38,
+                                        second: 11,
+                                        nanosecond: 40)
+        guard let date = Calendar(identifier: .gregorian).date(from: components) else {
+            XCTFail()
+            return
+        }
+        let recreatedComponents = Calendar(identifier: .gregorian).dateComponents(in: .current, from: date)
+        XCTAssertEqual(recreatedComponents.era, 1)
+        XCTAssertEqual(recreatedComponents.year, 2017)
+        XCTAssertEqual(recreatedComponents.month, 11)
+        XCTAssertEqual(recreatedComponents.hour, 20)
+        XCTAssertEqual(recreatedComponents.minute, 38)
+        
+        // Nanoseconds are currently not supported by UCalendar C API, returns nil
+        // XCTAssertEqual(recreatedComponents.nanosecond, 40)
+        
+        XCTAssertEqual(recreatedComponents.weekday, 1)
+        XCTAssertEqual(recreatedComponents.weekdayOrdinal, 1)
+        
+        // Quarter is currently not supported by UCalendar C API, returns nil
+        // XCTAssertEqual(recreatedComponents.quarter, 3)
+        
+        XCTAssertEqual(recreatedComponents.weekOfMonth, 2)
+        XCTAssertEqual(recreatedComponents.weekOfYear, 45)
+        XCTAssertEqual(recreatedComponents.yearForWeekOfYear, 2017)
     }
 }
