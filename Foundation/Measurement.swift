@@ -69,23 +69,7 @@ extension Measurement where UnitType : Dimension {
     public mutating func convert(to otherUnit: UnitType) {
         self = converted(to: otherUnit)
     }
-    
-}
 
-extension Measurement {
-    /// Add two measurements of the same Unit.
-    /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
-    /// - returns: A measurement of value `lhs.value + rhs.value` and unit `lhs.unit`.
-    public static func +(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
-        if lhs.unit.isEqual(rhs.unit) {
-            return Measurement(value: lhs.value + rhs.value, unit: lhs.unit)
-        } else {
-            fatalError("Attempt to add measurements with non-equal units")
-        }
-    }
-}
-
-extension Measurement where UnitType : Dimension {
     /// Add two measurements of the same Dimension.
     ///
     /// If the `unit` of the `lhs` and `rhs` are `isEqual`, then this returns the result of adding the `value` of each `Measurement`. If they are not equal, then this will convert both to the base unit of the `Dimension` and return the result as a `Measurement` of that base unit.
@@ -99,22 +83,7 @@ extension Measurement where UnitType : Dimension {
             return Measurement(value: lhsValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: lhs.unit).baseUnit())
         }
     }
-}
 
-extension Measurement {
-    /// Subtract two measurements of the same Unit.
-    /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
-    /// - returns: A measurement of value `lhs.value - rhs.value` and unit `lhs.unit`.
-    public static func -(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
-        if lhs.unit.isEqual(rhs.unit) {
-            return Measurement(value: lhs.value - rhs.value, unit: lhs.unit)
-        } else {
-            fatalError("Attempt to subtract measurements with non-equal units")
-        }
-    }
-}
-
-extension Measurement where UnitType : Dimension {
     /// Subtract two measurements of the same Dimension.
     ///
     /// If the `unit` of the `lhs` and `rhs` are `==`, then this returns the result of subtracting the `value` of each `Measurement`. If they are not equal, then this will convert both to the base unit of the `Dimension` and return the result as a `Measurement` of that base unit.
@@ -128,11 +97,96 @@ extension Measurement where UnitType : Dimension {
             return Measurement(value: lhsValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: lhs.unit).baseUnit())
         }
     }
+
+    /// Compare two measurements of the same `Dimension`.
+    ///
+    /// If `lhs.unit == rhs.unit`, returns `lhs.value == rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
+    /// - returns: `true` if the measurements are equal.
+    public static func ==(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+        if lhs.unit == rhs.unit {
+            return lhs.value == rhs.value
+        } else {
+            let rhsInLhs = rhs.converted(to: lhs.unit)
+            return lhs.value == rhsInLhs.value
+        }
+    }
+
+    /// Compare two measurements of the same `Dimension`.
+    ///
+    /// If `lhs.unit == rhs.unit`, returns `lhs.value < rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
+    /// - returns: `true` if `lhs` is less than `rhs`.
+    public static func <(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+        if lhs.unit == rhs.unit {
+            return lhs.value < rhs.value
+        } else {
+            let rhsInLhs = rhs.converted(to: lhs.unit)
+            return lhs.value < rhsInLhs.value
+        }
+    }
+
+    /// Compare two measurements of the same `Dimension`.
+    ///
+    /// If `lhs.unit == rhs.unit`, returns `lhs.value > rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
+    /// - returns: `true` if `lhs` is greater than `rhs`.
+    public static func >(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+        if lhs.unit == rhs.unit {
+            return lhs.value > rhs.value
+        } else {
+            let rhsInLhs = rhs.converted(to: lhs.unit)
+            return lhs.value > rhsInLhs.value
+        }
+    }
+
+    /// Compare two measurements of the same `Dimension`.
+    ///
+    /// If `lhs.unit == rhs.unit`, returns `lhs.value < rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
+    /// - returns: `true` if `lhs` is less than or equal to `rhs`.
+    public static func <=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+        if lhs.unit == rhs.unit {
+            return lhs.value <= rhs.value
+        } else {
+            let rhsInLhs = rhs.converted(to: lhs.unit)
+            return lhs.value <= rhsInLhs.value
+        }
+    }
+
+    /// Compare two measurements of the same `Dimension`.
+    ///
+    /// If `lhs.unit == rhs.unit`, returns `lhs.value >= rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
+    /// - returns: `true` if `lhs` is greater or equal to `rhs`.
+    public static func >=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
+        if lhs.unit == rhs.unit {
+            return lhs.value >= rhs.value
+        } else {
+            let rhsInLhs = rhs.converted(to: lhs.unit)
+            return lhs.value >= rhsInLhs.value
+        }
+    }
 }
 
 extension Measurement {
-    /// Multiply a measurement by a scalar value.
-    /// - returns: A measurement of value `lhs.value * rhs` with the same unit as `lhs`.
+    /// Add two measurements of the same Unit.
+    /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
+    /// - returns: A measurement of value `lhs.value + rhs.value` and unit `lhs.unit`.
+    public static func +(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+        if lhs.unit.isEqual(rhs.unit) {
+            return Measurement(value: lhs.value + rhs.value, unit: lhs.unit)
+        } else {
+            fatalError("Attempt to add measurements with non-equal units")
+        }
+    }
+
+    /// Subtract two measurements of the same Unit.
+    /// - precondition: The `unit` of `lhs` and `rhs` must be `isEqual`.
+    /// - returns: A measurement of value `lhs.value - rhs.value` and unit `lhs.unit`.
+    public static func -(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Measurement<UnitType> {
+        if lhs.unit.isEqual(rhs.unit) {
+            return Measurement(value: lhs.value - rhs.value, unit: lhs.unit)
+        } else {
+            fatalError("Attempt to subtract measurements with non-equal units")
+        }
+    }
+
     public static func *(lhs: Measurement<UnitType>, rhs: Double) -> Measurement<UnitType> {
         return Measurement(value: lhs.value * rhs, unit: lhs.unit)
     }
@@ -160,116 +214,33 @@ extension Measurement {
     public static func ==(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
         return lhs.value == rhs.value && lhs.unit == rhs.unit
     }
-}
 
-extension Measurement where UnitType : Dimension {
-    /// Compare two measurements of the same `Dimension`.
-    ///
-    /// If `lhs.unit == rhs.unit`, returns `lhs.value == rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
-    /// - returns: `true` if the measurements are equal.
-    public static func ==(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
-        if lhs.unit == rhs.unit {
-            return lhs.value == rhs.value
-        } else {
-            let rhsInLhs = rhs.converted(to: lhs.unit)
-            return lhs.value == rhsInLhs.value
-        }
-    }
-}
-
-extension Measurement {
     /// Compare two measurements of the same `Unit`.
     /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
     /// - returns: `lhs.value < rhs.value`
     public static func <(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
         return lhs.value < rhs.value
     }
-}
 
-extension Measurement where UnitType : Dimension {
-    /// Compare two measurements of the same `Dimension`.
-    ///
-    /// If `lhs.unit == rhs.unit`, returns `lhs.value < rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
-    /// - returns: `true` if `lhs` is less than `rhs`.
-    public static func <(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
-        if lhs.unit == rhs.unit {
-            return lhs.value < rhs.value
-        } else {
-            let rhsInLhs = rhs.converted(to: lhs.unit)
-            return lhs.value < rhsInLhs.value
-        }
-    }
-}
-
-extension Measurement {
     /// Compare two measurements of the same `Unit`.
     /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
     /// - returns: `lhs.value > rhs.value`
     public static func >(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
         return lhs.value > rhs.value
     }
-}
 
-extension Measurement where UnitType : Dimension {
-    /// Compare two measurements of the same `Dimension`.
-    ///
-    /// If `lhs.unit == rhs.unit`, returns `lhs.value > rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
-    /// - returns: `true` if `lhs` is greater than `rhs`.
-    public static func >(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
-        if lhs.unit == rhs.unit {
-            return lhs.value > rhs.value
-        } else {
-            let rhsInLhs = rhs.converted(to: lhs.unit)
-            return lhs.value > rhsInLhs.value
-        }
-    }
-}
-
-extension Measurement {
     /// Compare two measurements of the same `Unit`.
     /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
     /// - returns: `lhs.value <= rhs.value`
     public static func <=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
         return lhs.value <= rhs.value
     }
-}
 
-extension Measurement where UnitType : Dimension {
-    /// Compare two measurements of the same `Dimension`.
-    ///
-    /// If `lhs.unit == rhs.unit`, returns `lhs.value < rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
-    /// - returns: `true` if `lhs` is less than or equal to `rhs`.
-    public static func <=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
-        if lhs.unit == rhs.unit {
-            return lhs.value <= rhs.value
-        } else {
-            let rhsInLhs = rhs.converted(to: lhs.unit)
-            return lhs.value <= rhsInLhs.value
-        }
-    }
-}
-
-extension Measurement {
     /// Compare two measurements of the same `Unit`.
     /// - note: This function does not check `==` for the `unit` property of `lhs` and `rhs`.
     /// - returns: `lhs.value >= rhs.value`
     public static func >=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
         return lhs.value >= rhs.value
-    }
-}
-
-extension Measurement where UnitType : Dimension {
-    /// Compare two measurements of the same `Dimension`.
-    ///
-    /// If `lhs.unit == rhs.unit`, returns `lhs.value >= rhs.value`. Otherwise, converts `rhs` to the same unit as `lhs` and then compares the resulting values.
-    /// - returns: `true` if `lhs` is greater or equal to `rhs`.
-    public static func >=(lhs: Measurement<UnitType>, rhs: Measurement<UnitType>) -> Bool {
-        if lhs.unit == rhs.unit {
-            return lhs.value >= rhs.value
-        } else {
-            let rhsInLhs = rhs.converted(to: lhs.unit)
-            return lhs.value >= rhsInLhs.value
-        }
     }
 }
 
