@@ -525,6 +525,7 @@ class TestURL : XCTestCase {
 class TestURLComponents : XCTestCase {
     static var allTests: [(String, (TestURLComponents) -> () throws -> Void)] {
         return [
+            ("test_queryItems", test_queryItems),
             ("test_string", test_string),
             ("test_port", test_portSetter),
             ("test_url", test_url),
@@ -535,6 +536,19 @@ class TestURLComponents : XCTestCase {
         ]
     }
     
+    func test_queryItems() {
+        let urlString = "http://localhost:8080/foo?bar=&bar=baz"
+        let url = URL(string: urlString)!
+
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+
+        var query = [String: String]()
+        components?.queryItems?.forEach {
+            query[$0.name] = $0.value ?? ""
+        }
+        XCTAssertEqual(["bar": "baz"], query)
+    }
+
     func test_string() {
         for obj in getTestData()! {
             let testDict = obj as! [String: Any]

@@ -63,7 +63,7 @@ struct __CFURLComponents {
 static Boolean __CFURLComponentsEqual(CFTypeRef left, CFTypeRef right);
 
 static CFStringRef __CFURLComponentsCopyDescription(CFTypeRef cf) {
-    return CFSTR("A really nice CFURLComponents object");
+    return CFRetain(CFSTR("A really nice CFURLComponents object"));
 }
 
 CF_SWIFT_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
@@ -1054,7 +1054,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                             }
                         }
                         else {
-                            nameString = CFSTR("");
+                            nameString = (CFStringRef)CFRetain(CFSTR(""));
                         }
                         nameRange.location = kCFNotFound;
                         valueRange.location = idx + 1;
@@ -1076,7 +1076,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                             }
                         }
                         else {
-                            valueString = CFSTR("");
+                            valueString = (CFStringRef)CFRetain(CFSTR(""));
                         }
                         CFStringRef name = CFSTR("name");
                         CFTypeRef keys[] = {name, CFSTR("value")};
@@ -1101,7 +1101,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                             }
                         }
                         else {
-                            nameString =  CFSTR("");
+                            nameString =  (CFStringRef)CFRetain(CFSTR(""));
                         }
                         CFStringRef name = CFSTR("name");
                         CFTypeRef keys[] = {name};
@@ -1131,7 +1131,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                     }
                 }
                 else {
-                    valueString = CFSTR("");
+                    valueString = (CFStringRef)CFRetain(CFSTR(""));
                 }
                 CFStringRef name = CFSTR("name");
                 CFTypeRef keys[] = {name, CFSTR("value")};
@@ -1155,7 +1155,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                     }
                 }
                 else {
-                    nameString =  CFSTR("");
+                    nameString =  (CFStringRef)CFRetain(CFSTR(""));
                 }
                 CFStringRef name = CFSTR("name");
                 CFTypeRef keys[] = {name};
