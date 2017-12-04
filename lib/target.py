@@ -331,6 +331,7 @@ class Target:
     dynamic_library_suffix = ".dylib"
     static_library_prefix = "lib"
     static_library_suffix = ".a"
+    fat_binaries = False
 
     def __init__(self, triple):
         if "linux" in triple:
@@ -349,6 +350,7 @@ class Target:
                 self.environ = EnvironmentType.UnknownEnvironment
         elif "darwin" in triple:
             self.sdk = OSType.MacOSX
+            self.fat_binaries = True
         else:
             print("Unknown platform")
 

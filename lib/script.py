@@ -122,10 +122,16 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         swift_flags += Configuration.current.extra_swift_flags
 
         swift_flags += """
-TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + \
-""" -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/""" +Configuration.current.target.swift_arch + """ """
+TARGET_SWIFTEXE_FLAGS = """
+        if Configuration.current.target.fat_binaries:
+            swift_flags += """ -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name
+            swift_flags += """ -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name
+        else:
+            swift_flags += """ -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/""" + Configuration.current.target.swift_arch
+            swift_flags += """ -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/""" + Configuration.current.target.swift_arch
+
         if Configuration.current.build_mode == Configuration.Debug:
-            swift_flags += "-g -Onone -enable-testing "
+            swift_flags += " -g -Onone -enable-testing "
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
         swift_flags += Configuration.current.extra_swift_flags
@@ -136,10 +142,15 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
 EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
 
         ld_flags += """
-TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + \
-""" -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/""" +Configuration.current.target.swift_arch + """ """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} """
+
+        if Configuration.current.target.fat_binaries:
+            ld_flags += """-L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name
+        else:
+            ld_flags += """-L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/""" + Configuration.current.target.swift_arch
+
         if Configuration.current.system_root is not None:
-            ld_flags += "--sysroot=${SYSROOT}"
+            ld_flags += " --sysroot=${SYSROOT}"
 
         if Configuration.current.bootstrap_directory is not None:
             ld_flags += """ -L${TARGET_BOOTSTRAP_DIR}/usr/lib"""
