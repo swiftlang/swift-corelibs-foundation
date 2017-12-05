@@ -77,7 +77,3 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
     open override func encode(with aCoder: NSCoder) { NSUnimplemented() }
     public static var supportsSecureCoding: Bool { return true }
 }
-
-extension MeasurementFormatter {
-    public func string<UnitType>(from measurement: Measurement<UnitType>) -> String { NSUnimplemented() }
-}
