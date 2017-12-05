@@ -1157,8 +1157,12 @@ class TestNSNumber : XCTestCase {
         XCTAssertTrue(NSNumber(value: true) == NSNumber(value: Int8(1)))
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: false))
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Int8(-1)))
-        XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Float(1.01)))
-        XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Double(1234.56)))
+        let f: Float = 1.01
+        let floatNum = NSNumber(value: f)
+        XCTAssertTrue(NSNumber(value: true) != floatNum)
+        let d: Double = 1234.56
+        let doubleNum = NSNumber(value: d)
+        XCTAssertTrue(NSNumber(value: true) != doubleNum)
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: 2))
         XCTAssertTrue(NSNumber(value: true) != NSNumber(value: Int.max))
         XCTAssertTrue(NSNumber(value: false) == NSNumber(value: Bool(false)))
