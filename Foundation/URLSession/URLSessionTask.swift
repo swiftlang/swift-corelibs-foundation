@@ -569,7 +569,17 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
-        NSUnimplemented()
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            let dataDelegate = delegate as? URLSessionDataDelegate
+            session.delegateQueue.addOperation {
+                dataDelegate?.urlSession(session, task: task, didReceive: challenge)
+            }
+        default: return
+        }
+
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
