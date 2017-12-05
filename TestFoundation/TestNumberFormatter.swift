@@ -172,7 +172,8 @@ class TestNumberFormatter: XCTestCase {
         let noPlusString = numberFormatter.string(from: -0.420)
         XCTAssertNotNil(noPlusString)
         if let fmt = noPlusString {
-            XCTAssertFalse(fmt.contains(sign), "Expected format of -0.420 (-4.2E-1) shouldn't have a plus sign which was set as \(sign)")
+            let contains: Bool = fmt.contains(sign)
+            XCTAssertFalse(contains, "Expected format of -0.420 (-4.2E-1) shouldn't have a plus sign which was set as \(sign)")
         }
     }
 
