@@ -19,85 +19,8 @@
 
 import CoreFoundation
 
-
-extension _HTTPURLProtocol {
-    /// An HTTP header being parsed.
-    ///
-    /// It can either be complete (i.e. the final CR LF CR LF has been
-    /// received), or partial.
-    internal enum _ParsedResponseHeader {
-        case partial(_ResponseHeaderLines)
-        case complete(_ResponseHeaderLines)
-        init() {
-            self = .partial(_ResponseHeaderLines())
-        }
-    }
-    /// A type safe wrapper around multiple lines of headers.
-    ///
-    /// This can be converted into an `HTTPURLResponse`.
-    internal struct _ResponseHeaderLines {
-        let lines: [String]
-        init() {
-            self.lines = []
-        }
-        init(headerLines: [String]) {
-            self.lines = headerLines
-        }
-    }
-}
-
-extension _HTTPURLProtocol._ParsedResponseHeader {
-    /// Parse a header line passed by libcurl.
-    ///
-    /// These contain the <CRLF> ending and the final line contains nothing but
-    /// that ending.
-    /// - Returns: Returning nil indicates failure. Otherwise returns a new
-    ///     `ParsedResponseHeader` with the given line added.
-    func byAppending(headerLine data: Data) -> _HTTPURLProtocol._ParsedResponseHeader? {
-        // The buffer must end in CRLF
-        guard
-            2 <= data.count &&
-                data[data.endIndex - 2] == _HTTPCharacters.CR &&
-                data[data.endIndex - 1] == _HTTPCharacters.LF
-            else { return nil }
-        let lineBuffer = data.subdata(in: Range(data.startIndex..<data.endIndex-2))
-        guard let line = String(data: lineBuffer, encoding: String.Encoding.utf8) else { return nil}
-        return byAppending(headerLine: line)
-    }
-    /// Append a status line.
-    ///
-    /// If the line is empty, it marks the end of the header, and the result
-    /// is a complete header. Otherwise it's a partial header.
-    /// - Note: Appending a line to a complete header results in a partial
-    ///     header with just that line.
-    private func byAppending(headerLine line: String) -> _HTTPURLProtocol._ParsedResponseHeader {
-        if line.isEmpty {
-            switch self {
-            case .partial(let header): return .complete(header)
-            case .complete: return .partial(_HTTPURLProtocol._ResponseHeaderLines())
-            }
-        } else {
-            let header = partialResponseHeader
-            return .partial(header.byAppending(headerLine: line))
-        }
-    }
-    private var partialResponseHeader: _HTTPURLProtocol._ResponseHeaderLines {
-        switch self {
-        case .partial(let header): return header
-        case .complete: return _HTTPURLProtocol._ResponseHeaderLines()
-        }
-    }
-}
-private extension _HTTPURLProtocol._ResponseHeaderLines {
-    /// Returns a copy of the lines with the new line appended to it.
-    func byAppending(headerLine line: String) -> _HTTPURLProtocol._ResponseHeaderLines {
-        var l = self.lines
-        l.append(line)
-        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: l)
-    }
-}
 internal extension _HTTPURLProtocol._ResponseHeaderLines {
-    /// Create an `NSHTTPRULResponse` from the lines.
+    /// Create an `HTTPRULResponse` from the lines.
     ///
     /// This will parse the header lines.
     /// - Returns: `nil` if an error occured while parsing the header lines.
@@ -122,7 +45,6 @@ extension HTTPURLResponse {
         self.init(url: URL, statusCode: statusLine.status, httpVersion: statusLine.version.rawValue, headerFields: fields)
     }
 }
-
 
 extension _HTTPURLProtocol {
     /// HTTP Message
@@ -186,19 +108,6 @@ extension _HTTPURLProtocol._HTTPMessage._Version {
 
 
 // Characters that we need for HTTP parsing:
-
-struct _HTTPCharacters {
-    /// *Carriage Return* symbol
-    static let CR: UInt8 = 0x0d
-    /// *Line Feed* symbol
-    static let LF: UInt8 = 0x0a
-    /// *Space* symbol
-    static let Space = UnicodeScalar(0x20)
-    static let HorizontalTab = UnicodeScalar(0x09)
-    static let Colon = UnicodeScalar(0x3a)
-    /// *Separators* according to RFC 2616
-    static let Separators = NSCharacterSet(charactersIn: "()<>@,;:\\\"/[]?={} \t")
-}
 
 private extension _HTTPURLProtocol._HTTPMessage._StartLine {
     init?(line: String) {
@@ -287,7 +196,7 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         guard let (head, tail) = lines.decompose else { return nil }
         let headView = head.unicodeScalars[...]
         guard let nameRange = headView.rangeOfTokenPrefix else { return nil }
-        guard headView.index(after: nameRange.upperBound) <= headView.endIndex && headView[nameRange.upperBound] == _HTTPCharacters.Colon else { return nil }
+        guard headView.index(after: nameRange.upperBound) <= headView.endIndex && headView[nameRange.upperBound] == _Delimiters.Colon else { return nil }
         let name = String(headView[nameRange])
         var value: String?
         let line = headView[headView.index(after: nameRange.upperBound)..<headView.endIndex]
@@ -334,13 +243,13 @@ private extension String.UnicodeScalarView.SubSequence {
     /// The range of space (U+0020) characters.
     var rangeOfSpace: Range<Index>? {
         guard !isEmpty else { return startIndex..<startIndex }
-        guard let idx = index(of: _HTTPCharacters.Space!) else { return nil }
+        guard let idx = index(of: _Delimiters.Space!) else { return nil }
         return idx..<self.index(after: idx)
     }
     // Has a space (SP) or horizontal tab (HT) prefix
     var hasSPHTPrefix: Bool {
         guard !isEmpty else { return false }
-        return self[startIndex] == _HTTPCharacters.Space || self[startIndex] == _HTTPCharacters.HorizontalTab
+        return self[startIndex] == _Delimiters.Space || self[startIndex] == _Delimiters.HorizontalTab
     }
     /// Unicode scalars after removing the leading spaces (SP) and horizontal tabs (HT).
     /// Returns `nil` if the unicode scalars do not start with a SP or HT.
@@ -348,7 +257,7 @@ private extension String.UnicodeScalarView.SubSequence {
         guard !isEmpty else { return nil }
         var idx = startIndex
         while idx < endIndex {
-            if self[idx] == _HTTPCharacters.Space || self[idx] == _HTTPCharacters.HorizontalTab {
+            if self[idx] == _Delimiters.Space || self[idx] == _Delimiters.HorizontalTab {
                 idx = self.index(after: idx)
             } else {
                 guard startIndex < idx else { return nil }
@@ -364,6 +273,6 @@ private extension UnicodeScalar {
     /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-2
     var isValidMessageToken: Bool {
         guard UnicodeScalar(32) <= self && self <= UnicodeScalar(126) else { return false }
-        return !_HTTPCharacters.Separators.characterIsMember(UInt16(self.value))
+        return !_Delimiters.Separators.characterIsMember(UInt16(self.value))
     }
 }
