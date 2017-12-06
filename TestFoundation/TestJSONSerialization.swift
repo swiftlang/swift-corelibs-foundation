@@ -757,15 +757,14 @@ extension TestJSONSerialization {
                 XCTFail("Unable to convert string to data")
                 return
             }
-            let filePath = createTestFile("TestJSON.txt",_contents: data)
-            if filePath != nil {
-                let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+            if let filePath = createTestFile("TestJSON.txt",_contents: data) {
+                let fileStream: InputStream = InputStream(fileAtPath: filePath)!
                 fileStream.open()
                 let resultRead = try JSONSerialization.jsonObject(with: fileStream, options: [])
                 let result = resultRead as? [String: Any]
                 XCTAssertEqual(result?.count, 0)
                 fileStream.close()
-                removeTestFile(filePath!)
+                removeTestFile(filePath)
             }
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -780,14 +779,13 @@ extension TestJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let filePath = createTestFile("TestJSON.txt",_contents: data)
-                if filePath != nil {
-                    let url = URL(fileURLWithPath: filePath!)
+                if let filePath = createTestFile("TestJSON.txt",_contents: data) {
+                    let url = URL(fileURLWithPath: filePath)
                     let inputStream: InputStream = InputStream(url: url)!
                     inputStream.open()
                     let result = try JSONSerialization.jsonObject(with: inputStream, options: []) as? [Any]
                     inputStream.close()
-                    removeTestFile(filePath!)
+                    removeTestFile(filePath)
                     XCTAssertEqual(result?[0] as? Bool, true)
                     XCTAssertEqual(result?[1] as? Bool, false)
                     XCTAssertEqual(result?[2] as? String, "hello")
@@ -1387,14 +1385,13 @@ extension TestJSONSerialization {
     func test_jsonObjectToOutputStreamFile() {
         let dict = ["a":["b":1]]
         do {
-            let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128))
-            if filePath != nil {
-                let outputStream = OutputStream(toFileAtPath: filePath!, append: true)
+            if let filePath = createTestFile("TestFileOut.txt",_contents: Data(capacity: 128)) {
+                let outputStream = OutputStream(toFileAtPath: filePath, append: true)
                 outputStream?.open()
                 let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream!, options: [])
                 outputStream?.close()
                 if(result > -1) {
-                    let fileStream: InputStream = InputStream(fileAtPath: filePath!)!
+                    let fileStream: InputStream = InputStream(fileAtPath: filePath)!
                     var buffer = [UInt8](repeating: 0, count: 20)
                     fileStream.open()
                     if fileStream.hasBytesAvailable {
@@ -1404,7 +1401,7 @@ extension TestJSONSerialization {
                             XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
                         }
                     }
-                    removeTestFile(filePath!)
+                    removeTestFile(filePath)
                 } else {
                     XCTFail("Unable to create temp file")
                 }

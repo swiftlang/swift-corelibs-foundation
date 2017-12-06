@@ -55,9 +55,8 @@ class TestStream : XCTestCase {
         let message: NSString = "Hello, playground"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with url
-        let testFile = createTestFile("testFile_in.txt", _contents: messageData)
-        if testFile != nil {
-            let url = URL(fileURLWithPath: testFile!)
+        if let testFile = createTestFile("testFile_in.txt", _contents: messageData) {
+            let url = URL(fileURLWithPath: testFile)
             let urlStream: InputStream = InputStream(url: url)!
             XCTAssertEqual(Stream.Status.notOpen, urlStream.streamStatus)
             urlStream.open()
@@ -73,7 +72,7 @@ class TestStream : XCTestCase {
                     XCTAssertEqual(message, output!)
                 }
             }
-            removeTestFile(testFile!)
+            removeTestFile(testFile)
         } else {
             XCTFail("Unable to create temp file")
         }
@@ -83,9 +82,8 @@ class TestStream : XCTestCase {
         let message: NSString = "Hello, playground"
         let messageData: Data  = message.data(using: String.Encoding.utf8.rawValue)!
         //Initialiser with file
-        let testFile = createTestFile("testFile_in.txt", _contents: messageData)
-        if testFile != nil {
-            let fileStream: InputStream = InputStream(fileAtPath: testFile!)!
+        if let testFile = createTestFile("testFile_in.txt", _contents: messageData) {
+            let fileStream: InputStream = InputStream(fileAtPath: testFile)!
             XCTAssertEqual(Stream.Status.notOpen, fileStream.streamStatus)
             fileStream.open()
             XCTAssertEqual(Stream.Status.open, fileStream.streamStatus)
@@ -100,7 +98,7 @@ class TestStream : XCTestCase {
                     XCTAssertEqual(message, output!)
                 }
             }
-            removeTestFile(testFile!)
+            removeTestFile(testFile)
         } else {
             XCTFail("Unable to create temp file")
         }
@@ -125,9 +123,8 @@ class TestStream : XCTestCase {
     }
     
     func test_outputStreamCreationToFile() {
-        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
-        if filePath != nil {
-            let outputStream = OutputStream(toFileAtPath: filePath!, append: true)
+        if let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)) {
+            let outputStream = OutputStream(toFileAtPath: filePath, append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -137,7 +134,7 @@ class TestStream : XCTestCase {
             outputStream?.close()
             XCTAssertEqual(myString.count, result)
             XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
-            removeTestFile(filePath!)
+            removeTestFile(filePath)
         } else {
             XCTFail("Unable to create temp file");
         }
@@ -159,9 +156,8 @@ class TestStream : XCTestCase {
     }
     
     func test_outputStreamCreationWithUrl() {
-        let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256))
-        if filePath != nil {
-            let outputStream = OutputStream(url: URL(fileURLWithPath: filePath!), append: true)
+        if let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)) {
+            let outputStream = OutputStream(url: URL(fileURLWithPath: filePath), append: true)
             XCTAssertEqual(Stream.Status.notOpen, outputStream!.streamStatus)
             var myString = "Hello world!"
             let encodedData = [UInt8](myString.utf8)
@@ -171,7 +167,7 @@ class TestStream : XCTestCase {
             outputStream?.close()
             XCTAssertEqual(myString.count, result)
             XCTAssertEqual(Stream.Status.closed, outputStream!.streamStatus)
-            removeTestFile(filePath!)
+            removeTestFile(filePath)
         } else {
             XCTFail("Unable to create temp file");
         }
