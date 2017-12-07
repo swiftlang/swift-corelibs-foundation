@@ -761,12 +761,12 @@ class TestNSData: XCTestCase {
         let baseFullRange = NSRange(location : 0,length : baseData.count)
         let noPrefixRange = NSRange(location : 2,length : baseData.count-2)
         let noSuffixRange = NSRange(location : 0,length : baseData.count-2)
-        let notFoundRange = NSMakeRange(NSNotFound, 0)
+        let notFoundRange = NSRange(location: NSNotFound, length: 0)
         
         
         let prefixData : [UInt8] = [0x00,0x01]
         let prefix = Data(bytes: prefixData, count: prefixData.count)
-        let prefixRange = NSMakeRange(0, prefixData.count)
+        let prefixRange = NSRange(location: 0, length: prefixData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: prefix, options: [], in: baseFullRange),prefixRange))
         XCTAssert(NSEqualRanges(base.range(of: prefix, options: [.anchored], in: baseFullRange),prefixRange))
@@ -781,7 +781,7 @@ class TestNSData: XCTestCase {
         
         let suffixData : [UInt8] = [0x03,0x04]
         let suffix = Data(bytes: suffixData, count: suffixData.count)
-        let suffixRange = NSMakeRange(3, suffixData.count)
+        let suffixRange = NSRange(location: 3, length: suffixData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: suffix, options: [], in: baseFullRange),suffixRange))
         XCTAssert(NSEqualRanges(base.range(of: suffix, options: [.anchored], in: baseFullRange),notFoundRange))
@@ -796,7 +796,7 @@ class TestNSData: XCTestCase {
         
         let sliceData : [UInt8] = [0x02,0x03]
         let slice = Data(bytes: sliceData, count: sliceData.count)
-        let sliceRange = NSMakeRange(2, sliceData.count)
+        let sliceRange = NSRange(location: 2, length: sliceData.count)
         
         XCTAssert(NSEqualRanges(base.range(of: slice, options: [], in: baseFullRange),sliceRange))
         XCTAssert(NSEqualRanges(base.range(of: slice, options: [.anchored], in: baseFullRange),notFoundRange))
@@ -842,7 +842,7 @@ class TestNSData: XCTestCase {
         }
 
         let replacement = makeData([8, 9, 10])
-        mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: replacement.bytes,
+        mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: replacement.bytes,
             length: 3)
         let expected = makeData([0, 8, 9, 10, 0])
         XCTAssertEqual(mData, expected)
@@ -854,7 +854,7 @@ class TestNSData: XCTestCase {
         }
 
         let mData = makeData([1, 2, 3, 4, 5])
-        mData.replaceBytes(in: NSMakeRange(1, 3), withBytes: nil, length: 0)
+        mData.replaceBytes(in: NSRange(location: 1, length: 3), withBytes: nil, length: 0)
         let expected = makeData([1, 5])
         XCTAssertEqual(mData, expected)
     }

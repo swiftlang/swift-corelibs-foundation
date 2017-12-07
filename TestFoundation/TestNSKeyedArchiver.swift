@@ -239,7 +239,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_nsrange() {
-        let range = NSValue(range: NSMakeRange(1234, 5678))
+        let range = NSValue(range: NSRange(location: 1234, length: 5678))
         test_archive(range)
     }
     

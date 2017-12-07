@@ -537,11 +537,11 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
-        return sortedArray(from: NSMakeRange(0, count), options: [], usingComparator: cmptr)
+        return sortedArray(from: NSRange(location: 0, length: count), options: [], usingComparator: cmptr)
     }
 
     open func sortedArray(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
-        return sortedArray(from: NSMakeRange(0, count), options: opts, usingComparator: cmptr)
+        return sortedArray(from: NSRange(location: 0, length: count), options: opts, usingComparator: cmptr)
     }
 
     open func index(of obj: Any, inSortedRange r: NSRange, options opts: NSBinarySearchingOptions = [], usingComparator cmp: (Any, Any) -> ComparisonResult) -> Int {
@@ -884,20 +884,20 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage = otherArray.map { _SwiftValue.store($0) }
         } else {
-            replaceObjects(in: NSMakeRange(0, count), withObjectsFrom: otherArray)
+            replaceObjects(in: NSRange(location: 0, length: count), withObjectsFrom: otherArray)
         }
     }
     
     open func removeObjects(at indexes: IndexSet) {
         for range in indexes.rangeView.reversed() {
-            self.removeObjects(in: NSMakeRange(range.lowerBound, range.upperBound - range.lowerBound))
+            self.removeObjects(in: NSRange(location: range.lowerBound, length: range.upperBound - range.lowerBound))
         }
     }
     
     open func replaceObjects(at indexes: IndexSet, with objects: [Any]) {
         var objectIndex = 0
         for countedRange in indexes.rangeView {
-            let range = NSMakeRange(countedRange.lowerBound, countedRange.upperBound - countedRange.lowerBound)
+            let range = NSRange(location: countedRange.lowerBound, length: countedRange.upperBound - countedRange.lowerBound)
             let subObjects = objects[objectIndex..<objectIndex + range.length]
             self.replaceObjects(in: range, withObjectsFrom: Array(subObjects))
             objectIndex += range.length

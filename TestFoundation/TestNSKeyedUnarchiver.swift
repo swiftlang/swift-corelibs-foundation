@@ -87,7 +87,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_nsrange_value() {
-        let range = NSMakeRange(97345, 98345)
+        let range = NSRange(location: 97345, length: 98345)
         test_unarchive_from_file("NSKeyedUnarchiver-RangeTest", NSValue(range: range))
     }
     

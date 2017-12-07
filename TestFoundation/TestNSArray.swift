@@ -245,7 +245,7 @@ class TestNSArray : XCTestCase {
 //    func test_getObjects() {
 //        let array : NSArray = ["foo", "bar", "baz", "foo1", "bar2", "baz3",].bridge()
 //        var objects = [AnyObject]()
-//        array.getObjects(&objects, range: NSMakeRange(1, 3))
+//        array.getObjects(&objects, range: NSRange(location: 1, length: 3))
 //        XCTAssertEqual(objects.count, 3)
 //        let fetched = [
 //            (objects[0] as! NSString).bridge(),
@@ -443,7 +443,7 @@ class TestNSArray : XCTestCase {
             "bar2",
             "baz2"]
         
-        array1.replaceObjects(in: NSMakeRange(0, 2), withObjectsFrom: array2)
+        array1.replaceObjects(in: NSRange(location: 0, length: 2), withObjectsFrom: array2)
         
         XCTAssertEqual(array1[0] as? String, "foo2", "Expected foo2 but was \(array1[0])")
         XCTAssertEqual(array1[1] as? String, "bar2", "Expected bar2 but was \(array1[1])")
@@ -462,7 +462,7 @@ class TestNSArray : XCTestCase {
             "bar2",
             "baz2"]
         
-        array1.replaceObjects(in: NSMakeRange(1, 1), withObjectsFrom: array2, range: NSMakeRange(1, 2))
+        array1.replaceObjects(in: NSRange(location: 1, length: 1), withObjectsFrom: array2, range: NSRange(location: 1, length: 2))
         
         XCTAssertEqual(array1[0] as? String, "foo1", "Expected foo1 but was \(array1[0])")
         XCTAssertEqual(array1[1] as? String, "bar2", "Expected bar2 but was \(array1[1])")

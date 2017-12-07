@@ -62,7 +62,7 @@ public func NSUnionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
     } else {
         minloc = range2.location
     }
-    return NSMakeRange(minloc, maxend - minloc)
+    return NSRange(location: minloc, length: maxend - minloc)
 }
 
 public func NSIntersectionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange {
@@ -75,11 +75,11 @@ public func NSIntersectionRange(_ range1: NSRange, _ range2: NSRange) -> NSRange
         minend = max2
     }
     if range2.location <= range1.location && range1.location < max2 {
-        return NSMakeRange(range1.location, minend - range1.location)
+        return NSRange(location: range1.location, length: minend - range1.location)
     } else if range1.location <= range2.location && range2.location < max1 {
-        return NSMakeRange(range2.location, minend - range2.location)
+        return NSRange(location: range2.location, length: minend - range2.location)
     }
-    return NSMakeRange(0, 0)
+    return NSRange(location: 0, length: 0)
 }
 
 public func NSStringFromRange(_ range: NSRange) -> String {
@@ -87,7 +87,7 @@ public func NSStringFromRange(_ range: NSRange) -> String {
 }
 
 public func NSRangeFromString(_ aString: String) -> NSRange {
-    let emptyRange = NSMakeRange(0, 0)
+    let emptyRange = NSRange(location: 0, length: 0)
     if aString.isEmpty {
         // fail early if the string is empty
         return emptyRange
@@ -102,7 +102,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
     guard let location = scanner.scanInt() else {
         return emptyRange
     }
-    let partialRange = NSMakeRange(location, 0)
+    let partialRange = NSRange(location: location, length: 0)
     if scanner.isAtEnd {
         // return early if there are no more characters after the first int in the string
         return partialRange
@@ -115,7 +115,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
     guard let length = scanner.scanInt() else {
         return partialRange
     }
-    return NSMakeRange(location, length)
+    return NSRange(location: location, length: length)
 }
     
 #else

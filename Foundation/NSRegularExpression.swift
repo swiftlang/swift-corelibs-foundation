@@ -221,12 +221,12 @@ extension NSRegularExpression {
     }
     
     public func rangeOfFirstMatch(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange) -> NSRange {
-        var firstRange = NSMakeRange(NSNotFound, 0)
+        var firstRange = NSRange(location: NSNotFound, length: 0)
         enumerateMatches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range) { (result: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             if let match = result {
                 firstRange = match.range
             } else {
-                firstRange = NSMakeRange(0, 0)
+                firstRange = NSRange(location: 0, length: 0)
             }
             stop.pointee = true
         }
@@ -250,7 +250,7 @@ extension NSRegularExpression {
     public func stringByReplacingMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange, withTemplate templ: String) -> String {
         var str: String = ""
         let length = string.length
-        var previousRange = NSMakeRange(0, 0)
+        var previousRange = NSRange(location: 0, length: 0)
         let results = matches(in: string, options: options.subtracting(.reportProgress).subtracting(.reportCompletion), range: range)
         let start = string.utf16.startIndex
         
@@ -333,8 +333,8 @@ extension NSRegularExpression {
                         idx += 1
                     }
                     if groupNumber != NSNotFound {
-                        let rangeToReplace = NSMakeRange(range.location, idx - range.location)
-                        var substringRange = NSMakeRange(NSNotFound, 0)
+                        let rangeToReplace = NSRange(location: range.location, length: idx - range.location)
+                        var substringRange = NSRange(location: NSNotFound, length: 0)
                         var substring = ""
                         if groupNumber < numberOfRanges {
                             substringRange = result.range(at: groupNumber)
@@ -357,7 +357,7 @@ extension NSRegularExpression {
                 if NSMaxRange(range) > length {
                     break
                 }
-                range = str.rangeOfCharacter(from: once.characterSet, options: [], range: NSMakeRange(NSMaxRange(range), length - NSMaxRange(range)))
+                range = str.rangeOfCharacter(from: once.characterSet, options: [], range: NSRange(location: NSMaxRange(range), length: length - NSMaxRange(range)))
             }
             return str._swiftObject
         }
