@@ -702,7 +702,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if (stopPointer.pointee) {
                 return
             }
-            block(bytes, NSMakeRange(0, length), stopPointer)
+            block(bytes, NSRange(location: 0, length: length), stopPointer)
         }
     }
 
@@ -1046,7 +1046,7 @@ open class NSMutableData : NSData {
     open func setData(_ data: Data) {
         length = data.count
         data.withUnsafeBytes {
-            replaceBytes(in: NSMakeRange(0, length), withBytes: $0)
+            replaceBytes(in: NSRange(location: 0, length: length), withBytes: $0)
         }
     }
 

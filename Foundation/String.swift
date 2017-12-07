@@ -50,7 +50,7 @@ extension String : _ObjectTypeBridgeable {
             let len = source.length
             var characters = [unichar](repeating: 0, count: len)
             result = characters.withUnsafeMutableBufferPointer() { (buffer: inout UnsafeMutableBufferPointer<unichar>) -> String? in
-                source.getCharacters(buffer.baseAddress!, range: NSMakeRange(0, len))
+                source.getCharacters(buffer.baseAddress!, range: NSRange(location: 0, length: len))
                 return String._fromCodeUnitSequence(UTF16.self, input: buffer)
             }
         }

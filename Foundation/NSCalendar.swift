@@ -386,25 +386,25 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     open func minimumRange(of unit: Unit) -> NSRange {
         let r = CFCalendarGetMinimumRangeOfUnit(self._cfObject, unit._cfValue)
         if (r.location == kCFNotFound) {
-            return NSMakeRange(NSNotFound, NSNotFound)
+            return NSRange(location: NSNotFound, length: NSNotFound)
         }
-        return NSMakeRange(r.location, r.length)
+        return NSRange(location: r.location, length: r.length)
     }
     
     open func maximumRange(of unit: Unit) -> NSRange {
         let r = CFCalendarGetMaximumRangeOfUnit(_cfObject, unit._cfValue)
         if r.location == kCFNotFound {
-            return NSMakeRange(NSNotFound, NSNotFound)
+            return NSRange(location: NSNotFound, length: NSNotFound)
         }
-        return NSMakeRange(r.location, r.length)
+        return NSRange(location: r.location, length: r.length)
     }
     
     open func range(of smaller: Unit, in larger: Unit, for date: Date) -> NSRange {
         let r = CFCalendarGetRangeOfUnit(_cfObject, smaller._cfValue, larger._cfValue, date.timeIntervalSinceReferenceDate)
         if r.location == kCFNotFound {
-            return NSMakeRange(NSNotFound, NSNotFound)
+            return NSRange(location: NSNotFound, length: NSNotFound)
         }
-        return NSMakeRange(r.location, r.length)
+        return NSRange(location: r.location, length: r.length)
     }
     
     open func ordinality(of smaller: Unit, in larger: Unit, for date: Date) -> Int {

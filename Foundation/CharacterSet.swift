@@ -11,11 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 private func _utfRangeToNSRange(_ inRange : Range<UnicodeScalar>) -> NSRange {
-    return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value))
+    return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value))
 }
 
 private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRange {
-    return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
+    return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
 
 internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
@@ -379,7 +379,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
     @discardableResult
     public mutating func insert(_ character: UnicodeScalar) -> (inserted: Bool, memberAfterInsert: UnicodeScalar) {
-        let nsRange = NSMakeRange(Int(character.value), 1)
+        let nsRange = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.addCharacters(in: nsRange)
         }
@@ -392,7 +392,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
     @discardableResult
     public mutating func update(with character: UnicodeScalar) -> UnicodeScalar? {
-        let nsRange = NSMakeRange(Int(character.value), 1)
+        let nsRange = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.addCharacters(in: nsRange)
         }
@@ -408,7 +408,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public mutating func remove(_ character: UnicodeScalar) -> UnicodeScalar? {
         // TODO: Add method to NSCharacterSet to do this in one call
         let result : UnicodeScalar? = contains(character) ? character : nil
-        let r = NSMakeRange(Int(character.value), 1)
+        let r = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.removeCharacters(in: r)
         }

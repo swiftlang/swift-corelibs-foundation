@@ -31,7 +31,7 @@ class TestNSTextCheckingResult: XCTestCase {
            let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
            let searchString = "1x030cy"
            let searchOptions: NSRegularExpression.MatchingOptions = []
-           let searchRange = NSMakeRange(0,7)
+           let searchRange = NSRange(location: 0, length: 7)
            let match: NSTextCheckingResult =  regex.firstMatch(in: searchString, options: searchOptions, range: searchRange)!
            //Positive offset
            var result = match.adjustingRanges(offset: 1)

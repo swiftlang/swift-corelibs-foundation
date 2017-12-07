@@ -827,7 +827,7 @@ extension IndexSet {
 }
 
 private func _toNSRange(_ r: Range<IndexSet.Element>) -> NSRange {
-    return NSMakeRange(r.lowerBound, r.upperBound - r.lowerBound)
+    return NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
 }
 
 #if DEPLOYMENT_RUNTIME_SWIFT

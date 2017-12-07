@@ -224,7 +224,7 @@ class TestCharacterSet : XCTestCase {
     }
     
     func test_Range() {
-//        let cset1 = CharacterSet(range: NSMakeRange(0x20, 40))
+//        let cset1 = CharacterSet(range: NSRange(location: 0x20, length: 40))
         let cset1 = CharacterSet(charactersIn: UnicodeScalar(0x20)!..<UnicodeScalar(0x20 + 40)!)
         for idx: unichar in 0..<0xFFFF {
             if idx < 0xD800 || idx > 0xDFFF {

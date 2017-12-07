@@ -73,7 +73,7 @@ class TestIndexSet : XCTestCase {
         let set3 = NSMutableIndexSet()
         set3.add(2)
         set3.add(5)
-        set3.add(in: NSMakeRange(4, 7))
+        set3.add(in: NSRange(location: 4, length: 7))
         set3.add(8)
         XCTAssertEqual(set3.count, 8)
         XCTAssertEqual(set3.firstIndex, 2)
@@ -121,9 +121,9 @@ class TestIndexSet : XCTestCase {
         disjointSet.add(2)
         disjointSet.add(5)
         disjointSet.add(8)
-        disjointSet.add(in: NSMakeRange(7, 3))
+        disjointSet.add(in: NSRange(location: 7, length: 3))
         disjointSet.add(11)
-        disjointSet.add(in: NSMakeRange(13, 2))
+        disjointSet.add(in: NSRange(location: 13, length: 2))
         result = Array<Int>()
         disjointSet.enumerate(options: []) { (idx, _) in
             result.append(idx)
@@ -141,10 +141,10 @@ class TestIndexSet : XCTestCase {
     }
     
     func test_removal() {
-        let removalSet = NSMutableIndexSet(indexesIn: NSMakeRange(0, 10))
+        let removalSet = NSMutableIndexSet(indexesIn: NSRange(location: 0, length: 10))
         removalSet.remove(0)
-        removalSet.remove(in: NSMakeRange(9, 5))
-        removalSet.remove(in: NSMakeRange(2, 4))
+        removalSet.remove(in: NSRange(location: 9, length: 5))
+        removalSet.remove(in: NSRange(location: 2, length: 4))
         XCTAssertEqual(removalSet.count, 4)
         XCTAssertEqual(removalSet.firstIndex, 1)
         XCTAssertEqual(removalSet.lastIndex, 8)
@@ -180,7 +180,7 @@ class TestIndexSet : XCTestCase {
         }
         
         
-        let testInputA2 = [NSMakeRange(0, 1),NSMakeRange(5, 4),NSMakeRange(42, 1)]
+        let testInputA2 = [NSRange(location: 0, length: 1),NSRange(location: 5, length: 4),NSRange(location: 42, length: 1)]
         i = 0
         
         testSetA.enumerateRanges(options: []) { (range, _) in
@@ -190,10 +190,10 @@ class TestIndexSet : XCTestCase {
             i += 1
         }
         
-        let testSetB = NSMutableIndexSet(indexesIn: NSMakeRange(0,5))
-        testSetB.add(in: NSMakeRange(42, 3))
-        testSetB.add(in: NSMakeRange(2, 2))
-        testSetB.add(in: NSMakeRange(18, 1))
+        let testSetB = NSMutableIndexSet(indexesIn: NSRange(location: 0, length: 5))
+        testSetB.add(in: NSRange(location: 42, length: 3))
+        testSetB.add(in: NSRange(location: 2, length: 2))
+        testSetB.add(in: NSRange(location: 18, length: 1))
         
         let testInputB1 = [0,1,2,3,4,18,42,43,44]
         i = 0
@@ -209,7 +209,7 @@ class TestIndexSet : XCTestCase {
         }
         
         
-        let testInputB2 = [NSMakeRange(0, 5),NSMakeRange(18, 1),NSMakeRange(42, 3)]
+        let testInputB2 = [NSRange(location: 0, length: 5),NSRange(location: 18, length: 1),NSRange(location: 42, length: 3)]
         i = 0
         
         testSetB.enumerateRanges(options: []) { (range, _) in
