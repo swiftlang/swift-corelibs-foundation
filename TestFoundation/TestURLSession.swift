@@ -471,8 +471,12 @@ class TestURLSession : LoopbackServerTest {
     }
 
     func test_concurrentRequests() {
-        // "10 tasks ought to be enough for anybody"
+#if os(Android)
         let tasks = 10
+        XCTFail("640 tasks causes other tests to fail on Android")
+#else
+        let tasks = 640
+#endif
         let syncQ = dispatchQueueMake("test_dataTaskWithURL.syncQ")
         var dataTasks: [DataTask] = []
         let g = dispatchGroupMake()

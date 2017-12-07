@@ -221,15 +221,12 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_mutable_dictionary() {
-        let one: NSNumber = NSNumber(value: Int(1))
-        let two: NSNumber = NSNumber(value: Int(2))
-        let three: NSNumber = NSNumber(value: Int(3))
-        let dict: [String : Any] = [
-            "one": one,
-            "two": two,
-            "three": three,
-        ]
-        let mdictionary = NSMutableDictionary(dictionary: dict)
+        let mdictionary = NSMutableDictionary(dictionary: [
+            "one": NSNumber(value: Int(1)),
+            "two": NSNumber(value: Int(2)),
+            "three": NSNumber(value: Int(3)),
+        ])
+        
         test_archive(mdictionary)
     }
     
