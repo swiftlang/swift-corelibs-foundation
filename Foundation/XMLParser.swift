@@ -563,7 +563,7 @@ open class XMLParser : NSObject {
         } else if let data = _data {
             let buffer = malloc(_chunkSize)!.bindMemory(to: UInt8.self, capacity: _chunkSize)
             defer { free(buffer) }
-            var range = NSMakeRange(0, min(_chunkSize, data.count))
+            var range = NSRange(location: 0, length: min(_chunkSize, data.count))
             while result {
                 let chunk = data.withUnsafeBytes { (buffer: UnsafePointer<UInt8>) -> Data in
                     let ptr = buffer.advanced(by: range.location)
@@ -573,7 +573,7 @@ open class XMLParser : NSObject {
                 if range.location + range.length >= data.count {
                     break
                 }
-                range = NSMakeRange(range.location + range.length, min(_chunkSize, data.count - (range.location + range.length)))
+                range = NSRange(location: range.location + range.length, length: min(_chunkSize, data.count - (range.location + range.length)))
             }
         } else {
             result = false

@@ -66,7 +66,7 @@ class TestNSValue : XCTestCase {
     }
     
     func test_valueWithNSRange() {
-        let range = NSMakeRange(1, 2)
+        let range = NSRange(location: 1, length: 2)
         let value = NSValue(range: range)
         XCTAssertEqual(value.rangeValue.location, range.location)
         XCTAssertEqual(value.rangeValue.length, range.length)
