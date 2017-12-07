@@ -92,7 +92,7 @@ extension URLSession._TaskRegistry {
     }
 
     var isEmpty: Bool {
-        return tasks.count == 0
+        return tasks.isEmpty
     }
 }
 extension URLSession._TaskRegistry {
