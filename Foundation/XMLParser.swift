@@ -282,7 +282,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         let attrLocalName = attributes[idx]!
         let attrLocalNameString = UTF8STRING(attrLocalName)!
         let attrPrefix = attributes[idx + 1]
-        if let attrPrefixString = UTF8STRING(attrPrefix), attrPrefixString.count != 0 {
+        if let attrPrefixString = UTF8STRING(attrPrefix), !attrPrefixString.isEmpty {
             attributeQName = attrPrefixString + ":" + attrLocalNameString
         } else {
             attributeQName = attrLocalNameString

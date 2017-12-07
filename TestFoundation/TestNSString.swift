@@ -604,7 +604,7 @@ class TestNSString : XCTestCase {
             var matches: [String] = []
             let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
             XCTAssert(outName == "", "If no matches found then outName is nil.")
-            XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
+            XCTAssert(matches.isEmpty && count == 0, "If no matches found then return 0 and matches is empty.")
         }
 
         do {
@@ -613,7 +613,7 @@ class TestNSString : XCTestCase {
             var matches: [String] = []
             let count = path.completePath(into: &outName, caseSensitive: false, matchesInto: &matches, filterTypes: nil)
             XCTAssert(outName == "", "If no matches found then outName is nil.")
-            XCTAssert(matches.count == 0 && count == 0, "If no matches found then return 0 and matches is empty.")
+            XCTAssert(matches.isEmpty && count == 0, "If no matches found then return 0 and matches is empty.")
         }
 
         do {
