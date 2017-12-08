@@ -218,14 +218,26 @@ class TestNSArray : XCTestCase {
             var indexesForStaggeredEnumeration = indexesForHalfEnumeration
             indexesForStaggeredEnumeration.formIntersection(evenIndexes)
             
+            let finalCount = indexesForStaggeredEnumeration.count
+            
+            let lockForSeenCount = NSLock()
+            var seenCount = 0
+            
             testExpectingToSee(indexesForStaggeredEnumeration) { (indexesSeen) in
                 array.enumerateObjects(at: evenIndexes, options: options, using: { (value, index, stop) in
                     XCTAssertEqual(value as! NSNumber, array[index] as! NSNumber)
                     
                     if (indexesForStaggeredEnumeration.contains(index)) {
                         indexesSeen[index] = true
-                    } else {
-                        stop.pointee = true
+                        
+                        lockForSeenCount.lock()
+                        seenCount += 1
+                        let currentCount = seenCount
+                        lockForSeenCount.unlock()
+                        
+                        if currentCount == finalCount {
+                            stop.pointee = true
+                        }
                     }
                 })
             }
