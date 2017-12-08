@@ -59,11 +59,19 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_dataTaskWithURLCompletionHandler() {
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
-        let url = URL(string: urlString)!
+        //shared session
+        dataTaskWithURLCompletionHandler(with: URLSession.shared)
+
+        //new session
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        dataTaskWithURLCompletionHandler(with: session)
+    }
+
+    func dataTaskWithURLCompletionHandler(with session: URLSession) {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/USA"
+        let url = URL(string: urlString)!
         let expect = expectation(description: "GET \(urlString): with a completion handler")
         var expectedResult = "unknown"
         let task = session.dataTask(with: url) { data, response, error in
@@ -130,10 +138,18 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_downloadTaskWithRequestAndHandler() {
+        //shared session
+        downloadTaskWithRequestAndHandler(with: URLSession.shared)
+
+        //newly created session
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
-        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        downloadTaskWithRequestAndHandler(with: session)
+    }
+
+    func downloadTaskWithRequestAndHandler(with session: URLSession) {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let expect = expectation(description: "Download GET \(urlString): with a completion handler")
         let req = URLRequest(url: URL(string: urlString)!)
         let task = session.downloadTask(with: req) { (_, _, error) -> Void in
