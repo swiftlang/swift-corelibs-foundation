@@ -217,17 +217,17 @@ There is no _Complete_ status for test coverage because there are always additio
     | Entity Name                       | Status          | Test Coverage | Notes                                                                         |
     |-----------------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
     | `NSRange`                         | Complete        | Incomplete    |                                                                               |
-    | `Decimal`                         | Unimplemented   | None          |                                                                               |
-    | `NSDecimalNumber`                 | Unimplemented   | None          |                                                                               |
-    | `NSDecimalNumberHandler`          | Unimplemented   | None          |                                                                               |
+    | `Decimal`                         | Complete        | Substantial   |                                                                               |
+    | `NSDecimalNumber`                 | Mostly Complete | Substantial   |                                                                               |
+    | `NSDecimalNumberHandler`          | Complete        | None          |                                                                               |
     | `CGPoint`                         | Complete        | Substantial   |                                                                               |
     | `CGSize`                          | Complete        | Substantial   |                                                                               |
     | `CGRect`                          | Complete        | Substantial   |                                                                               |
-    | `NSEdgeInsets`                    | Mostly Complete | None          |                                                                               |
+    | `NSEdgeInsets`                    | Complete        | Substantial   |                                                                               |
     | `NSGeometry`                      | Mostly Complete | Substantial   | `NSIntegralRectWithOptions` `.AlignRectFlipped` support remains unimplemented |
     | `CGFloat`                         | Complete        | Substantial   |                                                                               |
     | `AffineTransform`                 | Complete        | None          |                                                                               |
-    | `NSAffineTransform`               | Complete        | Substnatial   |                                                                               |
+    | `NSAffineTransform`               | Complete        | Substantial   |                                                                               |
     | `NSNumber`                        | Complete        | Incomplete    |                                                                               |
     | `NSConcreteValue`                 | N/A             | N/A           | For internal use only                                                         |
     | `NSSpecialValue`                  | N/A             | N/A           | For internal use only                                                         |
@@ -264,7 +264,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name    | Statues         | Test Coverage | Notes                                                                                                                         |
     |----------------|-----------------|---------------|-------------------------------------------------------------------------------------------------------------------------------|
-    | `UserDefaults` | Incomplete      | None          | `dictionaryRepresentation()`, domain support, and forced objects remain unimplemented. Unit tests are currently commented out |
+    | `UserDefaults` | Incomplete      | Incomplete    | domain support, and forced objects remain unimplemented.                                                                      |
     | `NSLocale`     | Complete        | Incomplete    | Only unit test asserts locale key constant names                                                                              |
     | `Locale`       | Complete        | Incomplete    | Only unit test asserts value copying                                                                                          |
 
