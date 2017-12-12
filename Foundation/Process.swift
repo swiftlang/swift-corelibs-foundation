@@ -308,9 +308,9 @@ open class Process: NSObject {
             
             // If a termination handler has been set, invoke it on a background thread
             
-            if process.terminationHandler != nil {
+            if let terminationHandler = process.terminationHandler {
                 let thread = Thread {
-                    process.terminationHandler!(process)
+                    terminationHandler(process)
                 }
                 thread.start()
             }

@@ -23,16 +23,14 @@ class XDGCheck {
             .path: "/",
             .domain: "example.com",
         ]
-        let simpleCookie = HTTPCookie(properties: properties)
-        guard simpleCookie != nil else {
+        guard let simpleCookie = HTTPCookie(properties: properties) else {
             exit(HelperCheckStatus.cookieStorageNil.rawValue)
         }
-        let rawValue = getenv("XDG_DATA_HOME")
-        guard rawValue != nil else {
+        guard let rawValue = getenv("XDG_DATA_HOME") else {
             exit(HelperCheckStatus.fail.rawValue)
         }
-        let xdg_data_home = String(utf8String: rawValue!)
-        storage.setCookie(simpleCookie!)
+        let xdg_data_home = String(utf8String: rawValue)
+        storage.setCookie(simpleCookie)
         let fm = FileManager.default
         let destPath = xdg_data_home! + "/xdgTestHelper/.cookies.shared"
         var isDir: ObjCBool = false

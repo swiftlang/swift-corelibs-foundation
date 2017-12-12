@@ -291,10 +291,10 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
         // idx+3 = value, i+4 = endvalue
         // By using XML_PARSE_NOENT the attribute value string will already have entities resolved
         var attributeValue = ""
-        if attributes[idx + 3] != nil && attributes[idx + 4] != nil {
-            let numBytesWithoutTerminator = attributes[idx + 4]! - attributes[idx + 3]!
+        if let value = attributes[idx + 3], let endvalue = attributes[idx + 4] {
+            let numBytesWithoutTerminator = endvalue - value
             if numBytesWithoutTerminator > 0 {
-                let buffer = UnsafeBufferPointer(start: attributes[idx + 3]!,
+                let buffer = UnsafeBufferPointer(start: value,
                                                  count: numBytesWithoutTerminator)
                 attributeValue = String._fromCodeUnitSequence(UTF8.self,
                                                               input: buffer)!

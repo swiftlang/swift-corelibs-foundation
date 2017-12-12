@@ -475,8 +475,8 @@ public extension NSString {
                     break loop
                 }
                 
-                if char != nil {
-                    let lhs = caseSensitive ? char : String(char!).lowercased().first!
+                if let char = char {
+                    let lhs = caseSensitive ? char : String(char).lowercased().first!
                     let rhs = caseSensitive ? c : String(c).lowercased().first!
                     if lhs != rhs {
                         break loop
