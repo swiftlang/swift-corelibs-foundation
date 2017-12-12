@@ -438,7 +438,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/URLSession/URLSessionDelegate.swift',
 	'Foundation/URLSession/URLSessionTask.swift',
 	'Foundation/URLSession/TaskRegistry.swift',
-	'Foundation/URLSession/http/TransferState.swift',
+	'Foundation/URLSession/TransferState.swift',
 	'Foundation/URLSession/libcurl/libcurlHelpers.swift',
     'Foundation/URLSession/http/HTTPURLProtocol.swift',
 	'Foundation/UserDefaults.swift',
