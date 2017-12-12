@@ -119,8 +119,8 @@ open class NSCache<KeyType : AnyObject, ObjectType : AnyObject> : NSObject {
             return
         }
         
-        while currentElement.nextByCost != nil && currentElement.nextByCost!.cost < entry.cost {
-            currentElement = currentElement.nextByCost!
+        while let nextByCost = currentElement.nextByCost, nextByCost.cost < entry.cost {
+            currentElement = nextByCost
         }
         
         // Insert entry between currentElement and nextElement

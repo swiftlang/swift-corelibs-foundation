@@ -699,7 +699,7 @@ extension NSString {
             return
         }
         /* Find the starting point first */
-        if startPtr != nil {
+        if let startPtr = startPtr {
             var start: Int = 0
             if range.location == 0 {
                 start = 0
@@ -723,7 +723,7 @@ extension NSString {
                         buf.rewind()
                     }
                 }
-                startPtr!.pointee = start
+                startPtr.pointee = start
             }
         }
 
