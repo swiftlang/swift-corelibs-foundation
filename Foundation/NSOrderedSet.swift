@@ -9,15 +9,19 @@
 
 /****************       Immutable Ordered Set   ****************/
 open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, ExpressibleByArrayLiteral {
-    internal var _storage: Set<NSObject>
-    internal var _orderedStorage: [NSObject]
+    internal var _storage: NSMutableSet
+    internal var _orderedStorage: NSMutableArray
     
     open override func copy() -> Any {
         return copy(with: nil)
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        if type(of: self) == NSOrderedSet.self || type(of: self) == NSMutableOrderedSet.self {
+            // Return self for immutable type
+            return self
+        }
+        return NSOrderedSet(array: allObjects)
     }
 
     open override func mutableCopy() -> Any {
@@ -25,7 +29,17 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        let setType = type(of: self)
+        if setType == NSOrderedSet.self || setType == NSMutableOrderedSet.self {
+            let mutableSelf = NSMutableOrderedSet()
+            mutableSelf._storage = _storage.mutableCopy() as! NSMutableSet
+            mutableSelf._orderedStorage = _orderedStorage.mutableCopy() as! NSMutableArray
+            return mutableSelf
+        } else {
+            let mutableSelf = NSMutableOrderedSet(capacity: count)
+            mutableSelf.addObjects(from: self.allObjects)
+            return mutableSelf
+        }
     }
     
     public static var supportsSecureCoding: Bool {
@@ -46,10 +60,11 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         }
     }
     
-    public required convenience init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
+        
         var idx = 0
         var objects : [AnyObject] = []
         while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
@@ -59,7 +74,13 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             objects.append(object as! NSObject)
             idx += 1
         }
-        self.init(array: objects)
+        
+        _orderedStorage = NSMutableArray(array: objects)
+        _storage = NSMutableSet(array: objects)
+        
+        guard _orderedStorage.count == _storage.count else {
+            return nil
+        }
     }
     
     open var count: Int {
@@ -67,20 +88,26 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open func object(at idx: Int) -> Any {
-        return _SwiftValue.fetch(nonOptional: _orderedStorage[idx])
+        return _orderedStorage.object(at: idx)
     }
 
     open func index(of object: Any) -> Int {
-        return _orderedStorage.index(of: _SwiftValue.store(object)) ?? NSNotFound
+        return _orderedStorage.index(of: object)
     }
 
     public convenience override init() {
-        self.init(objects: [], count: 0)
+        self.init(objects: nil, count: 0)
     }
 
-    public init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
-        _storage = Set<NSObject>()
-        _orderedStorage = [NSObject]()
+    public convenience init(objects: UnsafePointer<AnyObject>, count cnt: Int) {
+        self.init()
+
+        _insertObjects(objects, count: cnt)
+    }
+
+    public init(objects: UnsafePointer<AnyObject>?, count cnt: Int) {
+        _storage = NSMutableSet()
+        _orderedStorage = NSMutableArray()
 
         super.init()
 
@@ -88,11 +115,11 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     required public convenience init(arrayLiteral elements: Any...) {
-      self.init(array: elements)
+        self.init(array: elements)
     }
 
     public convenience init(objects elements: Any...) {
-      self.init(array: elements)
+        self.init(array: elements)
     }
     
     open subscript (idx: Int) -> Any {
@@ -100,16 +127,15 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     fileprivate func _insertObject(_ object: Any) {
-        let value = _SwiftValue.store(object)
-        guard !contains(value) else {
+        guard !contains(object) else {
             return
         }
 
-        _storage.insert(value)
-        _orderedStorage.append(value)
+        _storage.add(object)
+        _orderedStorage.add(object)
     }
 
-    fileprivate func _insertObjects(_ objects: UnsafePointer<AnyObject>!, count cnt: Int) {
+    fileprivate func _insertObjects(_ objects: UnsafePointer<AnyObject>?, count cnt: Int) {
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
         for obj in buffer {
             _insertObject(obj)
@@ -118,7 +144,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     
     internal var allObjects: [Any] {
         if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
-            return _orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }
+            return _orderedStorage.allObjects
         } else {
             return (0..<count).map { idx in
                 return self[idx]
@@ -139,12 +165,6 @@ extension NSOrderedSet : Sequence {
 
 extension NSOrderedSet {
 
-    public func getObjects(_ objects: inout [AnyObject], range: NSRange) {
-        for idx in range.location..<(range.location + range.length) {
-            objects.append(_orderedStorage[idx])
-        }
-    }
-
     open func objects(at indexes: IndexSet) -> [Any] {
         var entries = [Any]()
         for idx in indexes {
@@ -157,19 +177,11 @@ extension NSOrderedSet {
     }
 
     public var firstObject: Any? {
-        if let value = _orderedStorage.first {
-            return _SwiftValue.fetch(nonOptional: value)
-        } else {
-            return nil
-        }
+        return _orderedStorage.firstObject
     }
 
     public var lastObject: Any? {
-        if let value = _orderedStorage.last {
-            return _SwiftValue.fetch(nonOptional: value)
-        } else {
-            return nil
-        }
+        return _orderedStorage.lastObject
     }
 
     open func isEqual(to other: NSOrderedSet) -> Bool {
@@ -190,7 +202,7 @@ extension NSOrderedSet {
     }
     
     open func contains(_ object: Any) -> Bool {
-        return _storage.contains(_SwiftValue.store(object))
+        return _storage.contains(object)
     }
 
     open func intersects(_ other: NSOrderedSet) -> Bool {
@@ -231,19 +243,19 @@ extension NSOrderedSet {
         guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
+        return NSGeneratorEnumerator(_orderedStorage.makeIterator())
     }
 
     public func reverseObjectEnumerator() -> NSEnumerator { 
         guard type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.reversed().makeIterator())
+        return NSGeneratorEnumerator(_orderedStorage.reversed().makeIterator())
     }
     
     /*@NSCopying*/ 
     public var reversed: NSOrderedSet {
-        return NSOrderedSet(array: _orderedStorage.map { _SwiftValue.fetch(nonOptional: $0) }.reversed())
+        return NSOrderedSet(array: _orderedStorage.reversed())
     }
     
     // These two methods return a facade object for the receiving ordered set,
@@ -252,25 +264,61 @@ extension NSOrderedSet {
     // to the original ordered set will "show through" the facade and it will
     // appear to change spontaneously, since a copy of the ordered set is not
     // being made.
-    public var array: [Any] { NSUnimplemented() }
-    public var set: Set<AnyHashable> { NSUnimplemented() }
+    public var array: [Any] {
+        return _orderedStorage._bridgeToSwift()
+    }
+
+    public var set: Set<AnyHashable> {
+        return _storage._bridgeToSwift()
+    }
     
-    open func enumerateObjects(_ block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) { NSUnimplemented() }
-    open func enumerateObjects(options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) { NSUnimplemented() }
-    open func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) { NSUnimplemented() }
+    open func enumerateObjects(_ block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        enumerateObjects(options: [], using: block)
+    }
+
+    open func enumerateObjects(options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        _orderedStorage.enumerateObjects(options: opts, using: block)
+    }
+
+    open func enumerateObjects(at s: IndexSet, options opts: NSEnumerationOptions = [], using block: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
+        _orderedStorage.enumerateObjects(at: s, options: opts, using: block)
+    }
     
-    open func index(ofObjectPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    open func index(_ opts: NSEnumerationOptions = [], ofObjectPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
-    open func index(ofObjectAt s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int { NSUnimplemented() }
+    open func index(ofObjectPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+        return _orderedStorage.indexOfObject(passingTest: predicate)
+    }
+
+    open func index(_ opts: NSEnumerationOptions = [], ofObjectPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+        return _orderedStorage.indexOfObject(options: opts, passingTest: predicate)
+    }
+
+    open func index(ofObjectAt s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> Int {
+        return _orderedStorage.indexOfObject(at: s, options: opts, passingTest: predicate)
+    }
     
-    open func indexes(ofObjectsPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
-    open func indexes(options opts: NSEnumerationOptions = [], ofObjectsPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
-    open func indexes(ofObjectsAt s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet { NSUnimplemented() }
+    open func indexes(ofObjectsPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+        return indexes(options: [], ofObjectsPassingTest: predicate)
+    }
+
+    open func indexes(options opts: NSEnumerationOptions = [], ofObjectsPassingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+        return _orderedStorage.indexesOfObjects(options: opts, passingTest: predicate)
+    }
+
+    open func indexes(ofObjectsAt s: IndexSet, options opts: NSEnumerationOptions = [], passingTest predicate: (Any, Int, UnsafeMutablePointer<ObjCBool>) -> Bool) -> IndexSet {
+        return _orderedStorage.indexesOfObjects(at: s, options: opts, passingTest: predicate)
+    }
     
-    open func index(of object: Any, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions = [], usingComparator cmp: (Any, Any) -> ComparisonResult) -> Int { NSUnimplemented() } // binary search
+    open func index(of object: Any, inSortedRange range: NSRange, options opts: NSBinarySearchingOptions = [], usingComparator cmp: (Any, Any) -> ComparisonResult) -> Int {
+        return _orderedStorage.index(of: object, inSortedRange: range, options: opts, usingComparator: cmp)
+    }
     
-    open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] { NSUnimplemented() }
-    open func sortedArray(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] { NSUnimplemented() }
+    open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+        return sortedArray(options: [], usingComparator: cmptr)
+    }
+
+    open func sortedArray(options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
+        return _orderedStorage.sortedArray(options: opts, usingComparator: cmptr)
+    }
     
     public func description(withLocale locale: Locale?) -> String { NSUnimplemented() }
     public func description(withLocale locale: Locale?, indent level: Int) -> String { NSUnimplemented() }
@@ -291,18 +339,14 @@ extension NSOrderedSet {
     }
 
     public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
-        // TODO: Use the array method here when available.
-        self.init(array: Array(set), range: range, copyItems: flag)
+        self.init(array: set.array, range: range, copyItems: flag)
     }
 
     public convenience init(array: [Any]) {
-        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
-        for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(to: _SwiftValue.store(element))
+        self.init()
+        for object in array {
+            _insertObject(object)
         }
-        self.init(objects: buffer, count: array.count)
-        buffer.deinitialize(count: array.count)
-        buffer.deallocate()
     }
 
     public convenience init(array set: [Any], copyItems flag: Bool) {
@@ -342,35 +386,34 @@ open class NSMutableOrderedSet : NSOrderedSet {
             fatalError("\(self): Index out of bounds")
         }
 
-        let value = _SwiftValue.store(object)
-
-        if contains(value) {
+        if contains(object) {
             return
         }
         
-        _storage.insert(value)
-        _orderedStorage.insert(value, at: idx)
+        _storage.add(object)
+        _orderedStorage.insert(object, at: idx)
     }
 
     open func removeObject(at idx: Int) {
+        guard type(of: self) == NSMutableOrderedSet.self else {
+            NSRequiresConcreteImplementation()
+        }
         _storage.remove(_orderedStorage[idx])
-        _orderedStorage.remove(at: idx)
+        _orderedStorage.removeObject(at: idx)
     }
 
     open func replaceObject(at idx: Int, with obj: Any) {
         guard idx < count && idx >= 0 else {
             fatalError("\(self): Index out of bounds")
         }
-        
-        let value = _SwiftValue.store(obj)
-        let objectToReplace = _SwiftValue.store(object(at: idx))
-        _orderedStorage[idx] = value
-        _storage.remove(objectToReplace)
-        _storage.insert(value)
+
+        _storage.remove(object(at: idx))
+        _storage.add(obj)
+        _orderedStorage[idx] = obj
     }
 
     public init(capacity numItems: Int) {
-        super.init(objects: [], count: 0)
+        super.init(objects: nil, count: 0)
     }
 
     required public convenience init(arrayLiteral elements: Any...) {
@@ -379,17 +422,8 @@ open class NSMutableOrderedSet : NSOrderedSet {
         addObjects(from: elements)
     }
 
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
-
-    fileprivate func _removeObject(_ object: Any) {
-        let value = _SwiftValue.store(object)
-        
-        guard contains(object) else {
-            return
-        }
-
-        _storage.remove(value)
-        _orderedStorage.remove(at: index(of: object))
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
     }
 
     open override subscript(idx: Int) -> Any {
@@ -400,7 +434,6 @@ open class NSMutableOrderedSet : NSOrderedSet {
             replaceObject(at: idx, with: newValue)
         }
     }
-    
 }
 
 extension NSMutableOrderedSet {
@@ -409,7 +442,7 @@ extension NSMutableOrderedSet {
         _insertObject(object)
     }
 
-    open func add(_ objects: UnsafePointer<AnyObject>!, count: Int) {
+    open func add(_ objects: UnsafePointer<AnyObject>?, count: Int) {
         _insertObjects(objects, count: count)
     }
 
@@ -426,8 +459,8 @@ extension NSMutableOrderedSet {
 
         let object1 = self.object(at: idx1)
         let object2 = self.object(at: idx2)
-        _orderedStorage[idx1] = _SwiftValue.store(object2)
-        _orderedStorage[idx2] = _SwiftValue.store(object1)
+        _orderedStorage[idx1] = object2
+        _orderedStorage[idx2] = object1
     }
 
     open func moveObjects(at indexes: IndexSet, to idx: Int) {
@@ -451,16 +484,15 @@ extension NSMutableOrderedSet {
     }
     
     open func setObject(_ obj: Any, at idx: Int) {
-        let object = _SwiftValue.store(obj)
-        _storage.insert(object)
+        _storage.add(obj)
         if idx == _orderedStorage.count {
-            _orderedStorage.append(object)
+            _orderedStorage.add(obj)
         } else {
-            _orderedStorage[idx] = object
+            _orderedStorage[idx] = obj
         }
     }
     
-    open func replaceObjects(in range: NSRange, with objects: UnsafePointer<AnyObject>!, count: Int) {
+    open func replaceObjects(in range: NSRange, with objects: UnsafePointer<AnyObject>?, count: Int) {
         if let range = range.toCountableRange() {
             let buffer = UnsafeBufferPointer(start: objects, count: count)
             for (indexLocation, index) in range.indices.lazy.reversed().enumerated() {
@@ -492,15 +524,21 @@ extension NSMutableOrderedSet {
     }
 
     public func removeAllObjects() {
-        _storage.removeAll()
-        _orderedStorage.removeAll()
+        guard type(of: self) == NSMutableOrderedSet.self else {
+            NSRequiresConcreteImplementation()
+        }
+        _storage.removeAllObjects()
+        _orderedStorage.removeAllObjects()
     }
     
     open func remove(_ val: Any) {
-        let object = _SwiftValue.store(val)
-        
-        _storage.remove(object)
-        _orderedStorage.remove(at: index(of: val))
+        guard type(of: self) == NSMutableOrderedSet.self else {
+            NSRequiresConcreteImplementation()
+        }
+        let index = self.index(of: val)
+        if index != NSNotFound {
+            removeObject(at: index)
+        }
     }
 
     open func removeObjects(in array: [Any]) {
@@ -508,15 +546,11 @@ extension NSMutableOrderedSet {
     }
     
     open func intersect(_ other: NSOrderedSet) {
-        for item in self where !other.contains(item) {
-            remove(item)
-        }
+        intersectSet(other.set)
     }
 
     open func minus(_ other: NSOrderedSet) {
-        for item in other where contains(item) {
-            remove(item)
-        }
+        minusSet(other.set)
     }
 
     open func union(_ other: NSOrderedSet) {
@@ -524,8 +558,19 @@ extension NSMutableOrderedSet {
     }
     
     open func intersectSet(_ other: Set<AnyHashable>) {
-        for case let item as AnyHashable in self where !other.contains(item) {
-            remove(item)
+        var i = 0
+        while i < count {
+            let currentObject = _orderedStorage[i] as! AnyHashable
+            if !other.contains(currentObject) {
+                let nextIndex = i + 1
+                if nextIndex < count {
+                    _orderedStorage[i] = _orderedStorage[nextIndex]
+                } else {
+                    _orderedStorage.removeLastObject()
+                }
+                _storage.remove(currentObject)
+            }
+            i += 1
         }
     }
 
@@ -548,14 +593,7 @@ extension NSMutableOrderedSet {
     }
 
     open func sortRange(_ range: NSRange, options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
-        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
-        guard opts.isEmpty else {
-            NSUnimplemented()
-        }
-
-        let swiftRange = Range(range)!
-        _orderedStorage[swiftRange].sort { lhs, rhs in
-            return cmptr(_SwiftValue.fetch(nonOptional: lhs), _SwiftValue.fetch(nonOptional: rhs)) == .orderedAscending
-        }
+        let sortedSubrange = _orderedStorage.sortedArray(from: range, options: opts, usingComparator: cmptr)
+        _orderedStorage.replaceObjects(in: range, withObjectsFrom: sortedSubrange)
     }
 }
