@@ -212,8 +212,7 @@ fileprivate extension _HTTPURLProtocol {
     func curlHeaders(for httpHeaders: [AnyHashable : Any]?) -> [String] {
         var result: [String] = []
         var names = Set<String>()
-        if httpHeaders != nil {
-            let hh = httpHeaders as! [String:String]
+        if let hh = httpHeaders as? [String : String] {
             hh.forEach {
                 let name = $0.0.lowercased()
                 guard !names.contains(name) else { return }
