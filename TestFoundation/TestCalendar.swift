@@ -164,15 +164,23 @@ class TestCalendar: XCTestCase {
     
     func test_datesNotOnWeekend() {
         let calendar = Calendar(identifier: .gregorian)
+        let mondayInDecember = calendar.date(from: DateComponents(year: 2018, month: 12, day: 10))!
+        XCTAssertFalse(calendar.isDateInWeekend(mondayInDecember))
+        let tuesdayInNovember = calendar.date(from: DateComponents(year: 2017, month: 11, day: 14))!
+        XCTAssertFalse(calendar.isDateInWeekend(tuesdayInNovember))
         let wednesdayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 17))!
-        
         XCTAssertFalse(calendar.isDateInWeekend(wednesdayInFebruary))
+        let thursdayInOctober = calendar.date(from: DateComponents(year: 2015, month: 10, day: 22))!
+        XCTAssertFalse(calendar.isDateInWeekend(thursdayInOctober))
+        let fridayInSeptember = calendar.date(from: DateComponents(year: 2014, month: 9, day: 26))!
+        XCTAssertFalse(calendar.isDateInWeekend(fridayInSeptember))
     }
     
     func test_datesOnWeekend() {
         let calendar = Calendar(identifier: .gregorian)
+        let saturdayInJanuary = calendar.date(from: DateComponents(year:2017, month: 1, day: 7))!
+        XCTAssertTrue(calendar.isDateInWeekend(saturdayInJanuary))
         let sundayInFebruary = calendar.date(from: DateComponents(year: 2016, month: 2, day: 14))!
-        
         XCTAssertTrue(calendar.isDateInWeekend(sundayInFebruary))
     }
     
