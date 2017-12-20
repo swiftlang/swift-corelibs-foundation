@@ -68,6 +68,8 @@ internal extension String {
             } else if char == "." {
                 if lastCompStartPos == prevPos {
                     return nil
+                } else if case let prevPrevPos = index(before: prevPos), prevPos == index(before: endIndex) && prevPrevPos == lastCompStartPos && self[prevPrevPos] == "." {
+                    return nil
                 } else {
                     return curPos
                 }
@@ -262,7 +264,7 @@ public extension NSString {
         if fixedSelf.length <= 1 {
             return fixedSelf
         }
-        if let extensionPos = (fixedSelf._startOfPathExtension) {
+        if let extensionPos = fixedSelf._startOfPathExtension {
             return String(fixedSelf.prefix(upTo: fixedSelf.index(before: extensionPos)))
         } else {
             return fixedSelf
