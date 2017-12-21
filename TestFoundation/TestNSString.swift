@@ -1078,6 +1078,7 @@ class TestNSString : XCTestCase {
             NSString(string: "scratch..tiff") : "scratch.",
             NSString(string: ".tiff") : ".tiff",
             NSString(string: "/") : "/",
+            NSString(string: "..") : "..",
         ]
         for (fileName, expectedResult) in values {
             let result = fileName.deletingPathExtension

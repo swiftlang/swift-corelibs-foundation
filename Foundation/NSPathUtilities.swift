@@ -55,24 +55,30 @@ internal extension String {
 
     internal var _startOfPathExtension : String.Index? {
         precondition(!hasSuffix("/"))
-        
-        var curPos = endIndex
-        let lastCompStartPos = _startOfLastPathComponent
-        
+
+        var currentPosition = endIndex
+        let startOfLastPathComponent = _startOfLastPathComponent
+
         // Find the beginning of the extension
-        while curPos > lastCompStartPos {
-            let prevPos = index(before: curPos)
-            let char = self[prevPos]
-            if char == "/" {
+        while currentPosition > startOfLastPathComponent {
+            let previousPosition = index(before: currentPosition)
+            let character = self[previousPosition]
+            if character == "/" {
                 return nil
-            } else if char == "." {
-                if lastCompStartPos == prevPos {
+            } else if character == "." {
+                if startOfLastPathComponent == previousPosition {
+                    return nil
+                } else if case let previous2Position = index(before: previousPosition),
+                    previousPosition == index(before: endIndex) &&
+                    previous2Position == startOfLastPathComponent &&
+                    self[previous2Position] == "."
+                {
                     return nil
                 } else {
-                    return curPos
+                    return currentPosition
                 }
             }
-            curPos = prevPos
+            currentPosition = previousPosition
         }
         return nil
     }
@@ -262,7 +268,7 @@ public extension NSString {
         if fixedSelf.length <= 1 {
             return fixedSelf
         }
-        if let extensionPos = (fixedSelf._startOfPathExtension) {
+        if let extensionPos = fixedSelf._startOfPathExtension {
             return String(fixedSelf.prefix(upTo: fixedSelf.index(before: extensionPos)))
         } else {
             return fixedSelf
