@@ -431,6 +431,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/URLSession/Configuration.swift',
 	'Foundation/URLSession/libcurl/EasyHandle.swift',
 	'Foundation/URLSession/BodySource.swift',
+	'Foundation/URLSession/Message.swift',
 	'Foundation/URLSession/http/HTTPMessage.swift',
 	'Foundation/URLSession/libcurl/MultiHandle.swift',
 	'Foundation/URLSession/URLSession.swift',
