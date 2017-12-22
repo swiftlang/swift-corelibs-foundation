@@ -268,7 +268,7 @@ open class HTTPCookie : NSObject {
 
         if let portString = properties[.port] as? String, _version == 1 {
             _portList = portString.split(separator: ",")
-                .flatMap { Int(String($0)) }
+                .compactMap { Int(String($0)) }
                 .map { NSNumber(value: $0) }
         } else {
             _portList = nil
