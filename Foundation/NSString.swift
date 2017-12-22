@@ -237,8 +237,8 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         let characters = UnsafeMutablePointer<unichar>.allocate(capacity: length)
         getCharacters(characters, range: NSRange(location: 0, length: length))
         let result = NSString(characters: characters, length: length)
-        characters.deinitialize()
-        characters.deallocate(capacity: length)
+        characters.deinitialize(count: length)
+        characters.deallocate()
         return result
     }
     
