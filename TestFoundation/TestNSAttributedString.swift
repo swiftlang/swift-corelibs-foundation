@@ -251,6 +251,9 @@ class TestNSMutableAttributedString : XCTestCase {
     static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
+            ("test_addAttribute", test_addAttribute),
+            ("test_addAttributes", test_addAttributes),
+            ("test_setAttributes", test_setAttributes),
         ]
     }
     
@@ -258,5 +261,75 @@ class TestNSMutableAttributedString : XCTestCase {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
         let mutableAttrString = NSMutableAttributedString(string: string)
         XCTAssertEqual(mutableAttrString.mutableString, NSMutableString(string: string))
-    }    
+    }
+    
+    func test_addAttribute() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: 20)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let attrValue = mutableAttrString.attribute(attrKey1, at: 10, effectiveRange: nil)
+        guard let validAttribute = attrValue as? NSString else {
+            XCTAssert(false, "attribute not found")
+            return
+        }
+        XCTAssertEqual(validAttribute, "attribute.placeholder.value1")
+    }
+    
+    func test_addAttributes() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: 20)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+
+        let attrs2 = [
+            NSAttributedStringKey("attribute.placeholder.key2") : "attribute.placeholder.value2",
+            NSAttributedStringKey("attribute.placeholder.key3") : "attribute.placeholder.value3",
+        ]
+        let attrRange2 = NSRange(location: 0, length: 20)
+        mutableAttrString.addAttributes(attrs2, range: attrRange2)
+        
+        let result = mutableAttrString.attributes(at: 10, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedResult: [NSAttributedStringKey : String] = [
+            NSAttributedStringKey("attribute.placeholder.key1") : "attribute.placeholder.value1",
+            NSAttributedStringKey("attribute.placeholder.key2") : "attribute.placeholder.value2",
+            NSAttributedStringKey("attribute.placeholder.key3") : "attribute.placeholder.value3",
+        ]
+        XCTAssertEqual(result, expectedResult)
+    }
+    
+    func test_setAttributes() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: 20)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let attrs2 = [
+            NSAttributedStringKey("attribute.placeholder.key2") : "attribute.placeholder.value2",
+            NSAttributedStringKey("attribute.placeholder.key3") : "attribute.placeholder.value3",
+        ]
+        let attrRange2 = NSRange(location: 0, length: 20)
+        mutableAttrString.setAttributes(attrs2, range: attrRange2)
+        
+        let result = mutableAttrString.attributes(at: 10, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedResult: [NSAttributedStringKey : String] = [
+            NSAttributedStringKey("attribute.placeholder.key2") : "attribute.placeholder.value2",
+            NSAttributedStringKey("attribute.placeholder.key3") : "attribute.placeholder.value3",
+        ]
+        XCTAssertEqual(result, expectedResult)
+        
+        mutableAttrString.setAttributes(nil, range: attrRange2)
+        let emptyResult = mutableAttrString.attributes(at: 10, effectiveRange: nil)
+        XCTAssertTrue(emptyResult.isEmpty)
+    }
 }

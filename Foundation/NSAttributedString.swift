@@ -309,7 +309,11 @@ open class NSMutableAttributedString : NSAttributedString {
     open func replaceCharacters(in range: NSRange, with str: String) { NSUnimplemented() }
     
     open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) {
-        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs?._cfObject, true)
+        guard let attrs = attrs else {
+            CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), nil, true)
+            return
+        }
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), true)
     }
     
     open var mutableString: NSMutableString {
@@ -321,7 +325,7 @@ open class NSMutableAttributedString : NSAttributedString {
     }
 
     open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) {
-        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), false)
     }
     
     open func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) {
@@ -350,4 +354,15 @@ open class NSMutableAttributedString : NSAttributedString {
 
 extension NSMutableAttributedString {
     internal var _cfMutableObject: CFMutableAttributedString { return unsafeBitCast(self, to: CFMutableAttributedString.self) }
+}
+
+private extension NSMutableAttributedString {
+    
+    func attributesCFDictionary(from attrs: [NSAttributedStringKey : Any]) -> CFDictionary {
+        var attributesDictionary = [String : Any]()
+        for (key, value) in attrs {
+            attributesDictionary[key.rawValue] = value
+        }
+        return attributesDictionary._cfObject
+    }
 }
