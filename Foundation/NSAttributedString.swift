@@ -307,7 +307,10 @@ extension NSAttributedString {
 open class NSMutableAttributedString : NSAttributedString {
     
     open func replaceCharacters(in range: NSRange, with str: String) { NSUnimplemented() }
-    open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) { NSUnimplemented() }
+    
+    open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) {
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs?._cfObject, true)
+    }
     
     open var mutableString: NSMutableString {
         return _string as! NSMutableString
@@ -317,9 +320,13 @@ open class NSMutableAttributedString : NSAttributedString {
         CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, _SwiftValue.store(value))
     }
 
-    open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) { NSUnimplemented() }
+    open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) {
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
+    }
     
-    open func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) { NSUnimplemented() }
+    open func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) {
+        CFAttributedStringRemoveAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject)
+    }
     
     open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) { NSUnimplemented() }
     open func insert(_ attrString: NSAttributedString, at loc: Int) { NSUnimplemented() }
