@@ -306,7 +306,9 @@ extension NSAttributedString {
 
 open class NSMutableAttributedString : NSAttributedString {
     
-    open func replaceCharacters(in range: NSRange, with str: String) { NSUnimplemented() }
+    open func replaceCharacters(in range: NSRange, with str: String) {
+        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), str._cfObject)
+    }
     
     open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) {
         guard let attrs = attrs else {
@@ -332,14 +334,35 @@ open class NSMutableAttributedString : NSAttributedString {
         CFAttributedStringRemoveAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject)
     }
     
-    open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) { NSUnimplemented() }
-    open func insert(_ attrString: NSAttributedString, at loc: Int) { NSUnimplemented() }
-    open func append(_ attrString: NSAttributedString) { NSUnimplemented() }
-    open func deleteCharacters(in range: NSRange) { NSUnimplemented() }
-    open func setAttributedString(_ attrString: NSAttributedString) { NSUnimplemented() }
+    open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) {
+        CFAttributedStringReplaceAttributedString(_cfMutableObject, CFRange(range), attrString._cfObject)
+    }
     
-    open func beginEditing() { NSUnimplemented() }
-    open func endEditing() { NSUnimplemented() }
+    open func insert(_ attrString: NSAttributedString, at loc: Int) {
+        NSUnimplemented()
+    }
+    
+    open func append(_ attrString: NSAttributedString) {
+        NSUnimplemented()
+    }
+    
+    open func deleteCharacters(in range: NSRange) {
+        // To delete a range of the attributed string, call CFAttributedStringReplaceString() with empty string and specified range
+        let emptyString = ""._cfObject
+        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), emptyString)
+    }
+    
+    open func setAttributedString(_ attrString: NSAttributedString) {
+        NSUnimplemented()
+    }
+    
+    open func beginEditing() {
+        CFAttributedStringBeginEditing(_cfMutableObject)
+    }
+    
+    open func endEditing() {
+        CFAttributedStringEndEditing(_cfMutableObject)
+    }
     
     public override init(string str: String) {
         super.init(string: str)
