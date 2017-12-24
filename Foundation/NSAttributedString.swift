@@ -88,7 +88,10 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
 
     /// Returns an NSAttributedString object consisting of the characters and attributes within a given range in the receiver.
-    open func attributedSubstring(from range: NSRange) -> NSAttributedString { NSUnimplemented() }
+    open func attributedSubstring(from range: NSRange) -> NSAttributedString {
+        let attributedSubstring = CFAttributedStringCreateWithSubstring(kCFAllocatorDefault, _cfObject, CFRange(range))
+        return unsafeBitCast(attributedSubstring, to: NSAttributedString.self)
+    }
 
     /// Returns the attributes for the character at a given index, and by reference the range over which the attributes apply.
     open func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedStringKey : Any] {
@@ -339,11 +342,26 @@ open class NSMutableAttributedString : NSAttributedString {
     }
     
     open func insert(_ attrString: NSAttributedString, at loc: Int) {
-        NSUnimplemented()
+        mutableString.insert(attrString.string, at: loc)
+        
+        let fullStringRange = NSRange(location: 0, length: attrString._string.length)
+        attrString.enumerateAttributes(in: fullStringRange) { attribute, range, _ in
+            var rangeAfterInserting = range
+            rangeAfterInserting.location += loc
+            addAttributes(attribute, range: rangeAfterInserting)
+        }
     }
     
     open func append(_ attrString: NSAttributedString) {
-        NSUnimplemented()
+        let lengthBeforeAppending = string.length
+        mutableString.append(attrString.string)
+        
+        let fullStringRange = NSRange(location: 0, length: attrString._string.length)
+        attrString.enumerateAttributes(in: fullStringRange) { attribute, range, _ in
+            var rangeAfterAppending = range
+            rangeAfterAppending.location += lengthBeforeAppending
+            addAttributes(attribute, range: rangeAfterAppending)
+        }
     }
     
     open func deleteCharacters(in range: NSRange) {
