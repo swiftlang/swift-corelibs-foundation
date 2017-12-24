@@ -23,6 +23,7 @@ class TestNSAttributedString : XCTestCase {
     static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
+            ("test_attributedSubstring", test_attributedSubstring),
             ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
             ("test_longestEffectiveRange", test_longestEffectiveRange),
             ("test_enumerateAttributeWithName", test_enumerateAttributeWithName),
@@ -48,9 +49,29 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertEqual(range.length, string.utf16.count)
     }
     
+    func test_attributedSubstring() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey("attribute.placeholder.key") : "attribute.placeholder.value"]
+
+        let attrString = NSAttributedString(string: string, attributes: attributes)
+        let subStringRange = NSRange(location: 0, length: 26)
+        let substring = attrString.attributedSubstring(from: subStringRange)
+        XCTAssertEqual(substring.string, "Lorem ipsum dolor sit amet")
+        
+        var range = NSRange()
+        let attrs = attrString.attributes(at: 0, effectiveRange: &range)
+        guard let value = attrs[NSAttributedStringKey("attribute.placeholder.key")] as? String else {
+            XCTAssert(false, "attribute value not found")
+            return
+        }
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, attrString.length)
+        XCTAssertEqual(value, "attribute.placeholder.value")
+    }
+    
     func test_initWithStringAndAttributes() {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
-        let attributes: [NSAttributedStringKey : AnyObject] = [NSAttributedStringKey("attribute.placeholder.key") : "attribute.placeholder.value" as NSString]
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey("attribute.placeholder.key") : "attribute.placeholder.value"]
         
         let attrString = NSAttributedString(string: string, attributes: attributes)
         XCTAssertEqual(attrString.string, string)
@@ -85,7 +106,7 @@ class TestNSAttributedString : XCTestCase {
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
         let attrKey = NSAttributedStringKey("attribute.placeholder.key")
-        let attrValue = "attribute.placeholder.value" as NSString
+        let attrValue = "attribute.placeholder.value"
         
         let attrRange1 = NSRange(location: 0, length: 20)
         let attrRange2 = NSRange(location: 18, length: 10)
@@ -254,6 +275,11 @@ class TestNSMutableAttributedString : XCTestCase {
             ("test_addAttribute", test_addAttribute),
             ("test_addAttributes", test_addAttributes),
             ("test_setAttributes", test_setAttributes),
+            ("test_replaceCharactersWithString", test_replaceCharactersWithString),
+            ("test_replaceCharactersWithAttributedString", test_replaceCharactersWithAttributedString),
+            ("test_insert", test_insert),
+            ("test_append", test_append),
+            ("test_deleteCharacters", test_deleteCharacters),
         ]
     }
     
@@ -331,5 +357,140 @@ class TestNSMutableAttributedString : XCTestCase {
         mutableAttrString.setAttributes(nil, range: attrRange2)
         let emptyResult = mutableAttrString.attributes(at: 10, effectiveRange: nil)
         XCTAssertTrue(emptyResult.isEmpty)
+    }
+    
+    func test_replaceCharactersWithString() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: mutableAttrString.length)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let replacement = "Sample replacement "
+        let replacementRange = NSRange(location: 0, length: replacement.utf16.count)
+        
+        mutableAttrString.replaceCharacters(in: replacementRange, with: replacement)
+        
+        let expectedString = string.replacingCharacters(in: replacement.startIndex..<replacement.endIndex, with: replacement)
+        XCTAssertEqual(mutableAttrString.string, expectedString)
+        
+        let attrValue = mutableAttrString.attribute(attrKey1, at: 0, effectiveRange: nil)
+        guard let validAttribute = attrValue as? NSString else {
+            XCTAssert(false, "attribute not found")
+            return
+        }
+        XCTAssertEqual(validAttribute, "attribute.placeholder.value1")
+    }
+
+    func test_replaceCharactersWithAttributedString() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: mutableAttrString.length)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let replacement = "Sample replacement "
+        let replacementAttrKey = NSAttributedStringKey("attribute.replacement.key")
+        let replacementAttributes: [NSAttributedStringKey : Any] = [replacementAttrKey : "attribute.replacement.value"]
+        
+        let replacementAttrString = NSAttributedString(string: replacement, attributes: replacementAttributes)
+        let replacementRange = NSRange(location: 0, length: replacementAttrString.length)
+        
+        mutableAttrString.replaceCharacters(in: replacementRange, with: replacementAttrString)
+        
+        let expectedString = string.replacingCharacters(in: replacement.startIndex..<replacement.endIndex, with: replacement)
+        XCTAssertEqual(mutableAttrString.string, expectedString)
+        
+        // the original attribute should be replaced
+        XCTAssertNil(mutableAttrString.attribute(attrKey1, at: 0, effectiveRange: nil))
+        
+        guard let attrValue = mutableAttrString.attribute(replacementAttrKey, at: 0, effectiveRange: nil) as? NSString else {
+            XCTAssert(false, "attribute not found")
+            return
+        }
+        XCTAssertEqual(attrValue, "attribute.replacement.value")
+    }
+
+    func test_insert() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: mutableAttrString.length)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let insertString = "Sample insertion. "
+        let insertAttrKey = NSAttributedStringKey("attribute.insertion.key")
+        let insertAttributes: [NSAttributedStringKey : Any] = [insertAttrKey : "attribute.insertion.value"]
+        let insertAttrString = NSAttributedString(string: insertString, attributes: insertAttributes)
+        
+        mutableAttrString.insert(insertAttrString, at: 0)
+        
+        let expectedString = insertString + string
+        XCTAssertEqual(mutableAttrString.string, expectedString)
+        
+        let insertedAttributes = mutableAttrString.attributes(at: 0, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedInserted = [insertAttrKey : "attribute.insertion.value"]
+        XCTAssertEqual(insertedAttributes, expectedInserted)
+        
+        let originalAttributes = mutableAttrString.attributes(at: insertAttrString.length, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedOriginal = [attrKey1 : attrValue1]
+        XCTAssertEqual(originalAttributes, expectedOriginal)
+    }
+
+    func test_append() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: mutableAttrString.length)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let appendString = " Sample appending."
+        let appendAttrKey = NSAttributedStringKey("attribute.appending.key")
+        let appendAttributes : [NSAttributedStringKey : Any] = [appendAttrKey : "attribute.appending.value"]
+        let appendAttrString = NSAttributedString(string: appendString, attributes: appendAttributes)
+        
+        mutableAttrString.append(appendAttrString)
+        
+        let expectedString = string + appendString
+        XCTAssertEqual(mutableAttrString.string, expectedString)
+        
+        let originalAttributes = mutableAttrString.attributes(at: 0, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedOriginal = [attrKey1 : attrValue1]
+        XCTAssertEqual(originalAttributes, expectedOriginal)
+        
+        let appendedAttributes = mutableAttrString.attributes(at: string.utf16.count, effectiveRange: nil) as? [NSAttributedStringKey : String]
+        let expectedAppended = [appendAttrKey : "attribute.appending.value"]
+        XCTAssertEqual(appendedAttributes, expectedAppended)
+    }
+
+    func test_deleteCharacters() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        let mutableAttrString = NSMutableAttributedString(string: string)
+        
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: mutableAttrString.length)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+
+        let deleteRange = NSRange(location: 0, length: 10)
+        mutableAttrString.deleteCharacters(in: deleteRange)
+        
+        let expectedString = String(string[string.startIndex.advanced(by: 10)...])
+        XCTAssertEqual(mutableAttrString.string, expectedString)
+        
+        let expectedLongestEffectiveRange = NSRange(location: 0, length: expectedString.utf16.count)
+        var longestEffectiveRange = NSRange()
+        let searchRange = NSRange(location: 0, length: mutableAttrString.length)
+        _ = mutableAttrString.attribute(attrKey1, at: 0, longestEffectiveRange: &longestEffectiveRange, in: searchRange)
+        XCTAssertEqual(longestEffectiveRange.location, expectedLongestEffectiveRange.location)
+        XCTAssertEqual(longestEffectiveRange.length, expectedLongestEffectiveRange.length)
     }
 }

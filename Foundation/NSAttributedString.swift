@@ -342,26 +342,13 @@ open class NSMutableAttributedString : NSAttributedString {
     }
     
     open func insert(_ attrString: NSAttributedString, at loc: Int) {
-        mutableString.insert(attrString.string, at: loc)
-        
-        let fullStringRange = NSRange(location: 0, length: attrString._string.length)
-        attrString.enumerateAttributes(in: fullStringRange) { attribute, range, _ in
-            var rangeAfterInserting = range
-            rangeAfterInserting.location += loc
-            addAttributes(attribute, range: rangeAfterInserting)
-        }
+        let insertRange = NSRange(location: loc, length: 0)
+        replaceCharacters(in: insertRange, with: attrString)
     }
     
     open func append(_ attrString: NSAttributedString) {
-        let lengthBeforeAppending = string.length
-        mutableString.append(attrString.string)
-        
-        let fullStringRange = NSRange(location: 0, length: attrString._string.length)
-        attrString.enumerateAttributes(in: fullStringRange) { attribute, range, _ in
-            var rangeAfterAppending = range
-            rangeAfterAppending.location += lengthBeforeAppending
-            addAttributes(attribute, range: rangeAfterAppending)
-        }
+        let appendRange = NSRange(location: length, length: 0)
+        replaceCharacters(in: appendRange, with: attrString)
     }
     
     open func deleteCharacters(in range: NSRange) {
