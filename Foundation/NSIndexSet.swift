@@ -396,7 +396,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 lock.unlock()
                 if stop.boolValue { return }
                 
-                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: Int64(rangeIdx))
+                let idx = rangeSequence.index(rangeSequence.startIndex, offsetBy: rangeIdx)
                 let curRange = rangeSequence[idx]
                 let intersection = NSIntersectionRange(curRange, range)
                 if passRanges {
