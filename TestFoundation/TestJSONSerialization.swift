@@ -552,7 +552,7 @@ extension TestJSONSerialization {
                 return
             }
             let res = try getjsonObjectResult(data, objectType) as? [Any]
-            let result = res?.flatMap { $0 as? String }
+            let result = res?.compactMap { $0 as? String }
             XCTAssertEqual(result?[0], "\"")
             XCTAssertEqual(result?[1], "\\")
             XCTAssertEqual(result?[2], "/")
