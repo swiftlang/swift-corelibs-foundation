@@ -355,6 +355,8 @@ class TestNSMutableAttributedString : XCTestCase {
     static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
         return [
             ("test_initWithString", test_initWithString),
+            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
+            ("test_initWithAttributedString", test_initWithAttributedString),
             ("test_addAttribute", test_addAttribute),
             ("test_addAttributes", test_addAttributes),
             ("test_setAttributes", test_setAttributes),
@@ -371,6 +373,56 @@ class TestNSMutableAttributedString : XCTestCase {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
         let mutableAttrString = NSMutableAttributedString(string: string)
         XCTAssertEqual(mutableAttrString.mutableString, NSMutableString(string: string))
+    }
+    
+    func test_initWithStringAndAttributes() {
+        let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey("attribute.placeholder.key") : "attribute.placeholder.value"]
+        
+        let mutableAttrString = NSMutableAttributedString(string: string, attributes: attributes)
+        XCTAssertEqual(mutableAttrString.mutableString, NSMutableString(string: string))
+        XCTAssertEqual(mutableAttrString.length, string.utf16.count)
+        
+        var range = NSRange()
+        let attrs = mutableAttrString.attributes(at: 0, effectiveRange: &range)
+        guard let value = attrs[NSAttributedStringKey("attribute.placeholder.key")] as? String else {
+            XCTAssert(false, "attribute value not found")
+            return
+        }
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, mutableAttrString.length)
+        XCTAssertEqual(value, "attribute.placeholder.value")
+        
+        let invalidAttribute = mutableAttrString.attribute(NSAttributedStringKey("invalid"), at: 0, effectiveRange: &range)
+        XCTAssertNil(invalidAttribute)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, string.utf16.count)
+        
+        let attribute = mutableAttrString.attribute(NSAttributedStringKey("attribute.placeholder.key"), at: 0, effectiveRange: &range)
+        XCTAssertEqual(range.location, 0)
+        XCTAssertEqual(range.length, mutableAttrString.length)
+        guard let validAttribute = attribute as? NSString else {
+            XCTAssert(false, "attribute not found")
+            return
+        }
+        XCTAssertEqual(validAttribute, "attribute.placeholder.value")
+    }
+    
+    func test_initWithAttributedString() {
+        let string1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
+        let attrValue1 = "attribute.placeholder.value1"
+        let attrRange1 = NSRange(location: 0, length: string1.utf8.count)
+        
+        let mutableAttrString = NSMutableAttributedString(string: string1)
+        mutableAttrString.addAttribute(attrKey1, value: attrValue1, range: attrRange1)
+        
+        let initializedMutableAttrString = NSMutableAttributedString(attributedString: mutableAttrString)
+        XCTAssertTrue(initializedMutableAttrString.isEqual(to: mutableAttrString))
+        
+        // changing the mutable attr string should not affect the initialized attr string
+        mutableAttrString.append(mutableAttrString)
+        XCTAssertEqual(initializedMutableAttrString.mutableString, NSMutableString(string: string1))
     }
     
     func test_addAttribute() {

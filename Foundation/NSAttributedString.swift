@@ -388,9 +388,19 @@ open class NSMutableAttributedString : NSAttributedString {
         return NSAttributedString(attributedString: self)
     }
     
-    public override init(string str: String) {
-        super.init(string: str)
-        _string = NSMutableString(string: str)
+    public override init(string: String) {
+        super.init(string: string)
+        _string = NSMutableString(string: string)
+    }
+    
+    public override init(string: String, attributes attrs: [NSAttributedStringKey : Any]? = nil) {
+        super.init(string: string, attributes: attrs)
+        _string = NSMutableString(string: string)
+    }
+    
+    public override init(attributedString: NSAttributedString) {
+        super.init(attributedString: attributedString)
+        _string = NSMutableString(string: attributedString.string)
     }
     
     public required init?(coder aDecoder: NSCoder) {
