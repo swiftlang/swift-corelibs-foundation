@@ -1043,7 +1043,7 @@ fileprivate struct _JSONKeyedDecodingContainer<K : CodingKey> : KeyedDecodingCon
     // MARK: - KeyedDecodingContainerProtocol Methods
 
     public var allKeys: [Key] {
-        return self.container.keys.compactMap { Key(stringValue: $0) }
+        return self.container.keys.flatMap { Key(stringValue: $0) }
     }
 
     public func contains(_ key: Key) -> Bool {

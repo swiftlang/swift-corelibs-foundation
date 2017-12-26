@@ -356,7 +356,7 @@ class TestXMLDocument : XCTestCase {
         otherDoc.rootElement()?.namespaces = [XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode, XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode]
         XCTAssert(otherDoc.rootElement()?.namespaces?.count == 2)
         let namespaces: [XMLNode]? = otherDoc.rootElement()?.namespaces
-        let names: [String]? = namespaces?.compactMap { $0.name }
+        let names: [String]? = namespaces?.flatMap { $0.name }
         XCTAssertNotNil(names)
         XCTAssert(names![0] == "R" && names![1] == "F")
         otherDoc.rootElement()?.namespaces = nil
