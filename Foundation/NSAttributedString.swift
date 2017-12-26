@@ -115,7 +115,15 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
     open func isEqual(to other: NSAttributedString) -> Bool {
-        return CFEqual(_cfObject, other._cfObject)
+        guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFAttributedStringGetTypeID()) else {
+            fatalError("Could not obtain CFRuntimeClass of CFAttributedString")
+        }
+        
+        guard let equalFunction = runtimeClass.pointee.equal else {
+            fatalError("Could not obtain equal function from CFRuntimeClass of CFAttributedString")
+        }
+        
+        return equalFunction(_cfObject, other._cfObject) == true
     }
 
     /// Returns an NSAttributedString object initialized with the characters of a given string and no attribute information.
