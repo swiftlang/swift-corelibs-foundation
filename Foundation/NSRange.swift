@@ -342,8 +342,8 @@ extension NSRange {
     
 extension CFRange {
     internal init(_ range: NSRange) {
-        location = range.location == NSNotFound ? kCFNotFound : range.location
-        length = range.length
+        let _location = range.location == NSNotFound ? kCFNotFound : range.location
+        self.init(location: _location, length: range.length)
     }
 }
     
