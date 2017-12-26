@@ -69,7 +69,7 @@ open class XMLElement: XMLNode {
         @abstract Returns all of the child elements that match this name.
     */
     open func elements(forName name: String) -> [XMLElement] {
-        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).flatMap({ $0 as? XMLElement })
+        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.name == name }).compactMap({ $0 as? XMLElement })
     }
 
     /*!
@@ -77,7 +77,7 @@ open class XMLElement: XMLNode {
         @abstract Returns all of the child elements that match this localname URI pair.
     */
     open func elements(forLocalName localName: String, uri URI: String?) -> [XMLElement] {
-        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.localName == localName && $0.uri == uri }).flatMap({ $0 as? XMLElement })
+        return self.filter({ _CFXMLNodeGetType($0._xmlNode) == _kCFXMLTypeElement }).filter({ $0.localName == localName && $0.uri == uri }).compactMap({ $0 as? XMLElement })
     }
 
     /*!
@@ -189,7 +189,7 @@ open class XMLElement: XMLNode {
         @abstract Adds a namespace. Namespaces with duplicate names are not added.
     */
     open func addNamespace(_ aNamespace: XMLNode) {
-        if ((namespaces ?? []).flatMap({ $0.name }).contains(aNamespace.name ?? "")) {
+        if ((namespaces ?? []).compactMap({ $0.name }).contains(aNamespace.name ?? "")) {
             return
         }
         _CFXMLAddNamespace(_xmlNode, aNamespace._xmlNode)
