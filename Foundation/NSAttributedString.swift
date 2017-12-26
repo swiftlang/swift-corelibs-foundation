@@ -48,7 +48,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self
     }
 
     open override func mutableCopy() -> Any {
@@ -56,7 +56,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        let mutableAttrString = NSMutableAttributedString(string: "")
+        mutableAttrString.setAttributedString(self)
+        return mutableAttrString
     }
 
     /// The character contents of the receiver as an NSString object.
@@ -112,7 +114,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
 
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
-    open func isEqual(to other: NSAttributedString) -> Bool { NSUnimplemented() }
+    open func isEqual(to other: NSAttributedString) -> Bool {
+        return CFEqual(_cfObject, other._cfObject)
+    }
 
     /// Returns an NSAttributedString object initialized with the characters of a given string and no attribute information.
     public init(string: String) {
@@ -134,7 +138,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Returns an NSAttributedString object initialized with the characters and attributes of another given attributed string.
     public init(attributedString: NSAttributedString) {
-        NSUnimplemented()
+        let mutableCopy = attributedString.mutableCopy() as! NSMutableAttributedString
+        _string = mutableCopy._string
+        _attributeArray = mutableCopy._attributeArray
     }
 
     /// Executes the block for each attribute in the range.
@@ -358,7 +364,8 @@ open class NSMutableAttributedString : NSAttributedString {
     }
     
     open func setAttributedString(_ attrString: NSAttributedString) {
-        NSUnimplemented()
+        let fullStringRange = NSRange(location: 0, length: length)
+        replaceCharacters(in: fullStringRange, with: attrString)
     }
     
     open func beginEditing() {
@@ -367,6 +374,10 @@ open class NSMutableAttributedString : NSAttributedString {
     
     open func endEditing() {
         CFAttributedStringEndEditing(_cfMutableObject)
+    }
+    
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        return NSAttributedString(attributedString: self)
     }
     
     public override init(string str: String) {
