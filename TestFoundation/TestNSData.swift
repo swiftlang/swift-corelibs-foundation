@@ -206,7 +206,6 @@ class TestNSData: XCTestCase {
             ("test_dataHash", test_dataHash),
             ("test_genericBuffers", test_genericBuffers),
             ("test_writeFailure", test_writeFailure),
-            ("testBasicConstruction", testBasicConstruction),
             ("testBridgingDefault", testBridgingDefault),
             ("testBridgingMutable", testBridgingMutable),
             ("testCopyBytes_oversized", testCopyBytes_oversized),
@@ -248,8 +247,14 @@ class TestNSData: XCTestCase {
             ("test_initializeWithBase64EncodedStringGetsDecodedData", test_initializeWithBase64EncodedStringGetsDecodedData),
             ("test_base64DecodeWithPadding1", test_base64DecodeWithPadding1),
             ("test_base64DecodeWithPadding2", test_base64DecodeWithPadding2),
-            ("test_rangeOfData",test_rangeOfData),
-            ("test_initMutableDataWithLength", test_initMutableDataWithLength),
+            ("test_rangeOfData", test_rangeOfData),
+            ("test_initNSMutableData()", test_initNSMutableData),
+            ("test_initNSMutableDataWithLength", test_initNSMutableDataWithLength),
+            ("test_initNSMutableDataWithCapacity", test_initNSMutableDataWithCapacity),
+            ("test_initNSMutableDataFromData", test_initNSMutableDataFromData),
+            ("test_initNSMutableDataFromBytes", test_initNSMutableDataFromBytes),
+            ("test_initNSMutableDataContentsOf", test_initNSMutableDataContentsOf),
+            ("test_initNSMutableDataBase64", test_initNSMutableDataBase64),
             ("test_replaceBytes", test_replaceBytes),
             ("test_replaceBytesWithNil", test_replaceBytesWithNil),
             ("test_initDataWithCapacity", test_initDataWithCapacity),
@@ -811,10 +816,114 @@ class TestNSData: XCTestCase {
         
     }
 
-    func test_initMutableDataWithLength() {
+    // Check all of the NSMutableData constructors are available.
+    func test_initNSMutableData() {
+        let mData = NSMutableData()
+        XCTAssertNotNil(mData)
+        XCTAssertEqual(mData.length, 0)
+    }
+
+    func test_initNSMutableDataWithLength() {
         let mData = NSMutableData(length: 30)
         XCTAssertNotNil(mData)
         XCTAssertEqual(mData!.length, 30)
+    }
+
+    func test_initNSMutableDataWithCapacity() {
+        let mData = NSMutableData(capacity: 30)
+        XCTAssertNotNil(mData)
+        XCTAssertEqual(mData!.length, 0)
+    }
+
+    func test_initNSMutableDataFromData() {
+        let data = Data(bytes: [1, 2, 3])
+        let mData = NSMutableData(data: data)
+        XCTAssertEqual(mData.length, 3)
+        XCTAssertEqual(NSData(data: data), mData)
+    }
+
+    func test_initNSMutableDataFromBytes() {
+        let data = Data([1, 2, 3, 4, 5, 6])
+        var testBytes: [UInt8] = [1, 2, 3, 4, 5, 6]
+
+        let md1 = NSMutableData(bytes: &testBytes, length: testBytes.count)
+        XCTAssertEqual(md1, NSData(data: data))
+
+        let md2 = NSMutableData(bytes: nil, length: 0)
+        XCTAssertEqual(md2.length, 0)
+
+        let testBuffer = malloc(testBytes.count)!
+        let md3 = NSMutableData(bytesNoCopy: testBuffer, length: testBytes.count)
+        md3.replaceBytes(in: NSRange(location: 0, length: testBytes.count), withBytes: &testBytes)
+        XCTAssertEqual(md3, NSData(data: data))
+
+        let md4 = NSMutableData(bytesNoCopy: &testBytes, length: testBytes.count, deallocator: nil)
+        XCTAssertEqual(md4.length, testBytes.count)
+
+        let md5 = NSMutableData(bytesNoCopy: &testBytes, length: testBytes.count, freeWhenDone: false)
+        XCTAssertEqual(md5, NSData(data: data))
+    }
+
+    func test_initNSMutableDataContentsOf() {
+        let testDir = testBundle().resourcePath
+        let filename = testDir!.appending("/NSStringTestData.txt")
+        let url = URL(fileURLWithPath: filename)
+
+        func testText(_ mData: NSMutableData?) {
+            guard let mData = mData else {
+                XCTFail("Contents of file are Nil")
+                return
+            }
+            if let txt = String(data: Data(referencing: mData), encoding: .ascii) {
+                XCTAssertEqual(txt, "swift-corelibs-foundation")
+            } else {
+                XCTFail("Cant convert to string")
+            }
+        }
+
+        let contents1 = NSMutableData(contentsOfFile: filename)
+        XCTAssertNotNil(contents1)
+        testText(contents1)
+
+        let contents2 = try? NSMutableData(contentsOfFile: filename, options: [])
+        XCTAssertNotNil(contents2)
+        testText(contents2)
+
+        let contents3 = NSMutableData(contentsOf: url)
+        XCTAssertNotNil(contents3)
+        testText(contents3)
+
+        let contents4 = try? NSMutableData(contentsOf: url, options: [])
+        XCTAssertNotNil(contents4)
+        testText(contents4)
+
+        // Test failure to read
+        let badFilename = "does not exist"
+        let badUrl = URL(fileURLWithPath: badFilename)
+
+        XCTAssertNil(NSMutableData(contentsOfFile: badFilename))
+        XCTAssertNil(try? NSMutableData(contentsOfFile: badFilename, options: []))
+        XCTAssertNil(NSMutableData(contentsOf: badUrl))
+        XCTAssertNil(try? NSMutableData(contentsOf: badUrl, options:  []))
+    }
+
+    func test_initNSMutableDataBase64() {
+        let srcData = Data([1, 2, 3, 4, 5, 6, 7, 8, 9, 0])
+        let base64Data = srcData.base64EncodedData()
+        let base64String = srcData.base64EncodedString()
+        XCTAssertEqual(base64String, "AQIDBAUGBwgJAA==")
+
+        let mData1 = NSMutableData(base64Encoded: base64Data)
+        XCTAssertNotNil(mData1)
+        XCTAssertEqual(mData1!, NSData(data: srcData))
+
+        let mData2 = NSMutableData(base64Encoded: base64String)
+        XCTAssertNotNil(mData2)
+        XCTAssertEqual(mData2!, NSData(data: srcData))
+
+        // Test bad input
+        XCTAssertNil(NSMutableData(base64Encoded: Data([1,2,3]), options: []))
+        XCTAssertNil(NSMutableData(base64Encoded: "x", options: []))
     }
 
     func test_replaceBytes() {
