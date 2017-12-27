@@ -97,7 +97,9 @@ CF_EXTERN_C_BEGIN
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #if TARGET_OS_CYGWIN
 #else
+#if !defined(__linux__)
 #include <xlocale.h>
+#endif
 #endif
 #include <unistd.h>
 #include <sys/time.h>
