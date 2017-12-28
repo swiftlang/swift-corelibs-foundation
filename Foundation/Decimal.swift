@@ -117,7 +117,7 @@ extension Decimal {
         _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
     )
     public static let leastNormalMagnitude = Decimal(
-        _exponent: -127,
+        _exponent: -128,
         _length: 1,
         _isNegative: 0,
         _isCompact: 1,
@@ -125,7 +125,7 @@ extension Decimal {
         _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
     )
     public static let leastNonzeroMagnitude = Decimal(
-        _exponent: -127,
+        _exponent: -128,
         _length: 1,
         _isNegative: 0,
         _isCompact: 1,
