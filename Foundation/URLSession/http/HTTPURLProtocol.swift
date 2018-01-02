@@ -10,7 +10,7 @@
 import CoreFoundation
 import Dispatch
 
-internal class _HTTPURLProtocol: URLProtocol {
+internal class _HTTPURLProtocol: _NativeProtocol {
 
     fileprivate var easyHandle: _EasyHandle!
     fileprivate lazy var tempFileURL: URL = {
