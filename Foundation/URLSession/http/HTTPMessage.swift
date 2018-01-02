@@ -194,7 +194,7 @@ private extension _HTTPURLProtocol._HTTPMessage._Header {
         guard let (head, tail) = lines.decompose else { return nil }
         let headView = head.unicodeScalars[...]
         guard let nameRange = headView.rangeOfTokenPrefix else { return nil }
-        guard headView.index(after: nameRange.upperBound) <= headView.endIndex && headView[nameRange.upperBound] == _HTTPCharacters.Colon else { return nil }
+        guard headView.index(after: nameRange.upperBound) <= headView.endIndex && headView[nameRange.upperBound] == _Delimiters.Colon else { return nil }
         let name = String(headView[nameRange])
         var value: String?
         let line = headView[headView.index(after: nameRange.upperBound)..<headView.endIndex]
@@ -241,13 +241,13 @@ private extension String.UnicodeScalarView.SubSequence {
     /// The range of space (U+0020) characters.
     var rangeOfSpace: Range<Index>? {
         guard !isEmpty else { return startIndex..<startIndex }
-        guard let idx = index(of: _HTTPCharacters.Space!) else { return nil }
+        guard let idx = index(of: _Delimiters.Space!) else { return nil }
         return idx..<self.index(after: idx)
     }
     // Has a space (SP) or horizontal tab (HT) prefix
     var hasSPHTPrefix: Bool {
         guard !isEmpty else { return false }
-        return self[startIndex] == _HTTPCharacters.Space || self[startIndex] == _HTTPCharacters.HorizontalTab
+        return self[startIndex] == _Delimiters.Space || self[startIndex] == _Delimiters.HorizontalTab
     }
     /// Unicode scalars after removing the leading spaces (SP) and horizontal tabs (HT).
     /// Returns `nil` if the unicode scalars do not start with a SP or HT.
@@ -255,7 +255,7 @@ private extension String.UnicodeScalarView.SubSequence {
         guard !isEmpty else { return nil }
         var idx = startIndex
         while idx < endIndex {
-            if self[idx] == _HTTPCharacters.Space || self[idx] == _HTTPCharacters.HorizontalTab {
+            if self[idx] == _Delimiters.Space || self[idx] == _Delimiters.HorizontalTab {
                 idx = self.index(after: idx)
             } else {
                 guard startIndex < idx else { return nil }
@@ -271,6 +271,6 @@ private extension UnicodeScalar {
     /// - SeeAlso: https://tools.ietf.org/html/rfc2616#section-2
     var isValidMessageToken: Bool {
         guard UnicodeScalar(32) <= self && self <= UnicodeScalar(126) else { return false }
-        return !_HTTPCharacters.Separators.characterIsMember(UInt16(self.value))
+        return !_Delimiters.Separators.characterIsMember(UInt16(self.value))
     }
 }
