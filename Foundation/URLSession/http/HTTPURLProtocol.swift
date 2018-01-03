@@ -416,21 +416,21 @@ internal extension _HTTPURLProtocol {
 extension _HTTPURLProtocol {
 
     /// Creates a new transfer state with the given behaviour:
-    func createTransferState(url: URL, workQueue: DispatchQueue) -> _HTTPTransferState {
+    func createTransferState(url: URL, workQueue: DispatchQueue) -> _TransferState {
         let drain = createTransferBodyDataDrain()
         guard let t = task else { fatalError("Cannot create transfer state") }
         switch t.body {
         case .none:
-            return _HTTPTransferState(url: url, bodyDataDrain: drain)
+            return _TransferState(url: url, bodyDataDrain: drain)
         case .data(let data):
             let source = _BodyDataSource(data: data)
-            return _HTTPTransferState(url: url, bodyDataDrain: drain, bodySource: source)
+            return _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
         case .file(let fileURL):
             let source = _BodyFileSource(fileURL: fileURL, workQueue: workQueue, dataAvailableHandler: { [weak self] in
                 // Unpause the easy handle
                 self?.easyHandle.unpauseSend()
             })
-            return _HTTPTransferState(url: url, bodyDataDrain: drain, bodySource: source)
+            return _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
         case .stream:
             NSUnimplemented()
         }
@@ -585,9 +585,9 @@ extension _HTTPURLProtocol {
         case initial
         /// The easy handle has been fully configured. But it is not added to
         /// the multi handle.
-        case transferReady(_HTTPTransferState)
+        case transferReady(_TransferState)
         /// The easy handle is currently added to the multi handle
-        case transferInProgress(_HTTPTransferState)
+        case transferInProgress(_TransferState)
         /// The transfer completed.
         ///
         /// The easy handle has been removed from the multi handle. This does
@@ -610,7 +610,7 @@ extension _HTTPURLProtocol {
         /// we received a complete header), we need to wait for the delegate to
         /// let us know what action to take. In this state the easy handle is
         /// paused in order to suspend delegate callbacks.
-        case waitingForResponseCompletionHandler(_HTTPTransferState)
+        case waitingForResponseCompletionHandler(_TransferState)
         /// The task is completed
         ///
         /// Contrast this with `.transferCompleted`.
@@ -779,7 +779,7 @@ internal extension _HTTPURLProtocol {
     func didReceiveResponse() {
         guard let _ = task as? URLSessionDataTask else { return }
         guard case .transferInProgress(let ts) = self.internalState else { fatalError("Transfer not in progress.") }
-        guard let response = ts.response else { fatalError("Header complete, but not URL response.") }
+        guard let response = ts.response as? HTTPURLResponse else { fatalError("Header complete, but not URL response.") }
         guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
@@ -857,9 +857,12 @@ internal extension _HTTPURLProtocol {
     }
 
     /// What action to take
-    func completionAction(forCompletedRequest request: URLRequest, response: HTTPURLResponse) -> _CompletionAction {
+    func completionAction(forCompletedRequest request: URLRequest, response: URLResponse) -> _CompletionAction {
+        guard let httpURLResponse = response as? HTTPURLResponse else {
+            fatalError("Reponse was not HTTPURLResponse")
+        }
         // Redirect:
-        if let request = redirectRequest(for: response, fromRequest: request) {
+        if let request = redirectRequest(for: httpURLResponse, fromRequest: request) {
             return .redirectWithRequest(request)
         }
         return .completeTask
