@@ -21,7 +21,7 @@ import CoreFoundation
 
 
 
-extension _HTTPURLProtocol {
+extension _NativeProtocol {
     /// State related to an ongoing transfer.
     ///
     /// This contains headers received so far, body data received so far, etc.
@@ -31,13 +31,13 @@ extension _HTTPURLProtocol {
     ///
     /// - TODO: Might move the `EasyHandle` into this `struct` ?
     /// - SeeAlso: `URLSessionTask.EasyHandle`
-    internal struct _HTTPTransferState {
+    internal struct _TransferState {
         /// The URL that's being requested
         let url: URL
         /// Raw headers received.
         let parsedResponseHeader: _ParsedResponseHeader
         /// Once the headers is complete, this will contain the response
-        var response: HTTPURLResponse?
+        var response: URLResponse?
         /// The body data to be sent in the request
         let requestBodySource: _BodySource?
         /// Body data received
@@ -46,7 +46,7 @@ extension _HTTPURLProtocol {
     }
 }
 
-extension _HTTPURLProtocol {
+extension _NativeProtocol {
     enum _DataDrain {
         /// Concatenate in-memory
         case inMemory(NSMutableData?)
@@ -57,37 +57,33 @@ extension _HTTPURLProtocol {
     }
 }
 
-extension _HTTPURLProtocol._HTTPTransferState {
+extension _NativeProtocol._TransferState {
     /// Transfer state that can receive body data, but will not send body data.
-    init(url: URL, bodyDataDrain: _HTTPURLProtocol._DataDrain) {
+    init(url: URL, bodyDataDrain: _NativeProtocol._DataDrain) {
         self.url = url
-        self.parsedResponseHeader = _HTTPURLProtocol._ParsedResponseHeader()
+        self.parsedResponseHeader = _NativeProtocol._ParsedResponseHeader()
         self.response = nil
         self.requestBodySource = nil
         self.bodyDataDrain = bodyDataDrain
     }
     /// Transfer state that sends body data and can receive body data.
-    init(url: URL, bodyDataDrain: _HTTPURLProtocol._DataDrain, bodySource: _BodySource) {
+    init(url: URL, bodyDataDrain: _NativeProtocol._DataDrain, bodySource: _BodySource) {
         self.url = url
-        self.parsedResponseHeader = _HTTPURLProtocol._ParsedResponseHeader()
+        self.parsedResponseHeader = _NativeProtocol._ParsedResponseHeader()
         self.response = nil
         self.requestBodySource = bodySource
         self.bodyDataDrain = bodyDataDrain
     }
 }
-
-extension _HTTPURLProtocol._HTTPTransferState {
-    enum _Error: Error {
-        case parseSingleLineError
-        case parseCompleteHeaderError
-    }
+// specific to HTTP protocol
+extension _HTTPURLProtocol._TransferState {
     /// Appends a header line
     ///
     /// Will set the complete response once the header is complete, i.e. the
     /// return value's `isHeaderComplete` will then by `true`.
     ///
     /// - Throws: When a parsing error occurs
-    func byAppending(headerLine data: Data) throws -> _HTTPURLProtocol._HTTPTransferState {
+    func byAppending(headerLine data: Data) throws -> _NativeProtocol._TransferState {
         guard let h = parsedResponseHeader.byAppending(headerLine: data) else {
             throw _Error.parseSingleLineError
         }
@@ -97,11 +93,20 @@ extension _HTTPURLProtocol._HTTPTransferState {
             guard response != nil else {
                 throw _Error.parseCompleteHeaderError
             }
-            return _HTTPURLProtocol._HTTPTransferState(url: url, parsedResponseHeader: _HTTPURLProtocol._ParsedResponseHeader(), response: response, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
+            return _NativeProtocol._TransferState(url: url, parsedResponseHeader: _NativeProtocol._ParsedResponseHeader(), response: response, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
         } else {
-            return _HTTPURLProtocol._HTTPTransferState(url: url, parsedResponseHeader: h, response: nil, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
+            return _NativeProtocol._TransferState(url: url, parsedResponseHeader: h, response: nil, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
         }
     }
+}
+
+extension _NativeProtocol._TransferState {
+
+    enum _Error: Error {
+        case parseSingleLineError
+        case parseCompleteHeaderError
+    }
+
     var isHeaderComplete: Bool {
         return response != nil
     }
@@ -110,13 +115,13 @@ extension _HTTPURLProtocol._HTTPTransferState {
     /// - Important: This will mutate the existing `NSMutableData` that the
     ///     struct may already have in place -- copying the data is too
     ///     expensive. This behaviour
-    func byAppending(bodyData buffer: Data) -> _HTTPURLProtocol._HTTPTransferState {
+    func byAppending(bodyData buffer: Data) -> _NativeProtocol._TransferState {
         switch bodyDataDrain {
         case .inMemory(let bodyData):
             let data: NSMutableData = bodyData ?? NSMutableData()
             data.append(buffer)
-            let drain = _HTTPURLProtocol._DataDrain.inMemory(data)
-            return _HTTPURLProtocol._HTTPTransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: requestBodySource, bodyDataDrain: drain)
+            let drain = _NativeProtocol._DataDrain.inMemory(data)
+            return _NativeProtocol._TransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: requestBodySource, bodyDataDrain: drain)
         case .toFile(_, let fileHandle):
              //TODO: Create / open the file for writing
              // Append to the file
@@ -131,7 +136,7 @@ extension _HTTPURLProtocol._HTTPTransferState {
     ///
     /// This can be used to either set the initial body source, or to reset it
     /// e.g. when restarting a transfer.
-    func bySetting(bodySource newSource: _BodySource) -> _HTTPURLProtocol._HTTPTransferState {
-        return _HTTPURLProtocol._HTTPTransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: newSource, bodyDataDrain: bodyDataDrain)
+    func bySetting(bodySource newSource: _BodySource) -> _NativeProtocol._TransferState {
+        return _NativeProtocol._TransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: newSource, bodyDataDrain: bodyDataDrain)
     }
 }
