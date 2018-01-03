@@ -56,9 +56,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
-        let mutableAttrString = NSMutableAttributedString(string: "")
-        mutableAttrString.setAttributedString(self)
-        return mutableAttrString
+        return NSMutableAttributedString(attributedString: self)
     }
 
     /// The character contents of the receiver as an NSString object.
@@ -146,9 +144,13 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Returns an NSAttributedString object initialized with the characters and attributes of another given attributed string.
     public init(attributedString: NSAttributedString) {
-        let mutableCopy = attributedString.mutableCopy() as! NSMutableAttributedString
-        _string = mutableCopy._string
-        _attributeArray = mutableCopy._attributeArray
+        // create an empty mutable attr string then immediately replace all of its contents
+        let mutableAttributedString = NSMutableAttributedString(string: "")
+        mutableAttributedString.setAttributedString(attributedString)
+        
+        // use the resulting _string and _attributeArray to initialize a new instance
+        _string = mutableAttributedString._string
+        _attributeArray = mutableAttributedString._attributeArray
     }
 
     /// Executes the block for each attribute in the range.
