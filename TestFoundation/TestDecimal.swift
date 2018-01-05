@@ -38,6 +38,8 @@ class TestDecimal: XCTestCase {
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
+            ("test_LeastMagnitude", test_LeastMagnitude),
+            ("test_GreatestMagnitude", test_GreatestMagnitude),
         ]
     }
 
@@ -660,4 +662,20 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(1, negativeSix.raising(toPower: 0))
     }
 
+    func test_LeastMagnitude() {
+        var result = Decimal()
+
+        var leastNormal = Decimal.leastNormalMagnitude
+        XCTAssertEqual(.underflow, NSDecimalMultiplyByPowerOf10(&result, &leastNormal, -1, .plain))
+
+        var leastNonzero = Decimal.leastNonzeroMagnitude
+        XCTAssertEqual(.underflow, NSDecimalMultiplyByPowerOf10(&result, &leastNonzero, -1, .plain))
+    }
+
+    func test_GreatestMagnitude() {
+        var result = Decimal()
+
+        var greatest = Decimal.greatestFiniteMagnitude
+        XCTAssertEqual(.overflow, NSDecimalMultiplyByPowerOf10(&result, &greatest, 1, .plain))
+    }
 }
