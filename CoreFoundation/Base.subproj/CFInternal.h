@@ -398,9 +398,9 @@ CF_EXPORT void * __CFConstantStringClassReferencePtr;
 #if DEPLOYMENT_RUNTIME_SWIFT
 
 #if TARGET_OS_MAC
-#define __CFConstantStringClassReference _T015SwiftFoundation19_NSCFConstantStringCN
+#define __CFConstantStringClassReference $S15SwiftFoundation19_NSCFConstantStringCN
 #else
-#define __CFConstantStringClassReference _T010Foundation19_NSCFConstantStringCN
+#define __CFConstantStringClassReference $S10Foundation19_NSCFConstantStringCN
 #endif
 
 CF_EXPORT void *__CFConstantStringClassReference[];
