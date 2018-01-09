@@ -105,7 +105,15 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @discussion This class represents a protection space requiring authentication.
 */
 open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
-    
+
+    private let _host: String
+    private let _isProxy: Bool
+    private let _proxyType: String?
+    private let _port: Int
+    private let _protocol: String?
+    private let _realm: String?
+    private let _authenticationMethod: String
+
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -135,7 +143,15 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         valid values include nil (default method), @"digest" and @"form".
         @result The initialized object.
     */
-    public init(host: String, port: Int, protocol: String?, realm: String?, authenticationMethod: String?) { NSUnimplemented() }
+    public init(host: String, port: Int, protocol: String?, realm: String?, authenticationMethod: String?) {
+        _host = host
+        _port = port
+        _protocol = `protocol`
+        _realm = realm
+        _authenticationMethod = authenticationMethod ?? NSURLAuthenticationMethodDefault
+        _proxyType = nil
+        _isProxy = false
+    }
     
     /*!
         @method initWithProxyHost:port:type:realm:authenticationMethod:
@@ -151,8 +167,16 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         valid values include nil (default method) and @"digest"
         @result The initialized object.
     */
-    public init(proxyHost host: String, port: Int, type: String?, realm: String?, authenticationMethod: String?) { NSUnimplemented() }
-    
+    public init(proxyHost host: String, port: Int, type: String?, realm: String?, authenticationMethod: String?) {
+        _host = host
+        _port = port
+        _proxyType = type
+        _realm = realm
+        _authenticationMethod = authenticationMethod ?? NSURLAuthenticationMethodDefault
+        _isProxy = true
+        _protocol = nil
+    }
+
     /*!
         @method realm
         @abstract Get the authentication realm for which the protection space that
@@ -161,7 +185,9 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         authentication, and may be nil otherwise.
         @result The realm string
     */
-    open var realm: String? { NSUnimplemented() }
+    open var realm: String? {
+        return _realm
+    }
     
     /*!
         @method receivesCredentialSecurely
@@ -171,46 +197,76 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     open var receivesCredentialSecurely: Bool { NSUnimplemented() }
     
     /*!
-        @method isProxy
-        @abstract Determine if this authenticating protection space is a proxy server
-        @result YES if a proxy, NO otherwise
-    */
-    
-    /*!
         @method host
         @abstract Get the proxy host if this is a proxy authentication, or the host from the URL.
         @result The host for this protection space.
     */
-    open var host: String { NSUnimplemented() }
+    open var host: String {
+        return _host
+    }
     
     /*!
         @method port
         @abstract Get the proxy port if this is a proxy authentication, or the port from the URL.
         @result The port for this protection space, or 0 if not set.
     */
-    open var port: Int { NSUnimplemented() }
+    open var port: Int {
+        return _port
+    }
     
     /*!
         @method proxyType
         @abstract Get the type of this protection space, if a proxy
         @result The type string, or nil if not a proxy.
      */
-    open var proxyType: String? { NSUnimplemented() }
+    open var proxyType: String? {
+        return _proxyType
+    }
     
     /*!
         @method protocol
         @abstract Get the protocol of this protection space, if not a proxy
         @result The type string, or nil if a proxy.
     */
-    open var `protocol`: String? { NSUnimplemented() }
+    open var `protocol`: String? {
+        return _protocol
+    }
     
     /*!
         @method authenticationMethod
         @abstract Get the authentication method to be used for this protection space
         @result The authentication method
     */
-    open var authenticationMethod: String { NSUnimplemented() }
-    open override func isProxy() -> Bool { NSUnimplemented() }
+    open var authenticationMethod: String {
+        return _authenticationMethod
+    }
+
+    /*!
+        @method isProxy
+        @abstract Determine if this authenticating protection space is a proxy server
+        @result YES if a proxy, NO otherwise
+    */
+    open override func isProxy() -> Bool {
+        return _isProxy
+    }
+}
+
+extension URLProtectionSpace {
+    //an internal helper to create a URLProtectionSpace from a HTTPURLResponse 
+    static func create(using response: HTTPURLResponse) -> URLProtectionSpace {
+        let host = response.url?.host ?? ""
+        let port = response.url?.port ?? 80        //HTTP
+        let _protocol = response.url?.scheme
+        guard let wwwAuthHeader = response.allHeaderFields["Www-Authenticate"] as? String else {
+            fatalError("Authentication failed but no Www-Authenticate header in response")
+        }
+
+        //The format of the authentication header is `<auth-scheme> realm="<realm value>"`
+        //Example: `Basic realm="Fake Realm"`
+        let authMethod = wwwAuthHeader.components(separatedBy: " ")[0]
+        let realm = String(String(wwwAuthHeader.components(separatedBy: "realm=")[1].dropFirst()).dropLast())
+        return URLProtectionSpace(host: host, port: port, protocol: _protocol, realm: realm, authenticationMethod: authMethod)
+    }
 }
 
 extension URLProtectionSpace {
