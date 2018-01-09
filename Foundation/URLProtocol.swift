@@ -386,6 +386,8 @@ open class URLProtocol : NSObject {
     }
 
     internal class func getProtocols() -> [AnyClass]? {
+        _classesLock.lock()
+        defer { _classesLock.unlock() }
         return _registeredProtocolClasses
     }
     /*! 
