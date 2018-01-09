@@ -47,6 +47,13 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
     to indicate when it's done.
 */
 open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
+
+    private let _protectionSpace: URLProtectionSpace
+    private let _proposedCredential: URLCredential?
+    private let _previousFailureCount: Int
+    private let _failureResponse: URLResponse?
+    private let _error: Error?
+    private let _sender: URLAuthenticationChallengeSender
     
     static public var supportsSecureCoding: Bool {
         return true
@@ -72,7 +79,12 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      @result An authentication challenge initialized with the specified parameters
      */
     public init(protectionSpace space: URLProtectionSpace, proposedCredential credential: URLCredential?, previousFailureCount: Int, failureResponse response: URLResponse?, error: Error?, sender: URLAuthenticationChallengeSender) {
-        NSUnimplemented()
+        self._protectionSpace = space
+        self._proposedCredential = credential
+        self._previousFailureCount = previousFailureCount
+        self._failureResponse = response
+        self._error = error
+        self._sender = sender
     }
     
     
@@ -85,7 +97,12 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      one type of authentication challenge to look like another type.
      */
     public init(authenticationChallenge challenge: URLAuthenticationChallenge, sender: URLAuthenticationChallengeSender) {
-        NSUnimplemented()
+        self._protectionSpace = challenge.protectionSpace
+        self._proposedCredential = challenge.proposedCredential
+        self._previousFailureCount = challenge.previousFailureCount
+        self._failureResponse = challenge.failureResponse
+        self._error = challenge.error
+        self._sender = sender
     }
     
     
@@ -96,7 +113,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     /*@NSCopying*/ open var protectionSpace: URLProtectionSpace {
         get {
-            NSUnimplemented()
+            return _protectionSpace
         }
     }
     
@@ -115,7 +132,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     /*@NSCopying*/ open var proposedCredential: URLCredential? {
         get {
-            NSUnimplemented()
+            return _proposedCredential
         }
     }
     
@@ -127,7 +144,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     open var previousFailureCount: Int {
         get {
-            NSUnimplemented()
+            return _previousFailureCount
         }
     }
     
@@ -143,7 +160,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     /*@NSCopying*/ open var failureResponse: URLResponse? {
         get {
-            NSUnimplemented()
+            return _failureResponse
         }
     }
     
@@ -158,7 +175,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     /*@NSCopying*/ open var error: Error? {
         get {
-            NSUnimplemented()
+            return _error
         }
     }
     
@@ -171,7 +188,7 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
      */
     open var sender: URLAuthenticationChallengeSender? {
         get {
-            NSUnimplemented()
+            return _sender
         }
     }
 }
