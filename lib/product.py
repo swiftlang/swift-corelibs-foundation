@@ -110,14 +110,15 @@ default """ + self.product_name + """
 
 
 class DynamicLibrary(Library):
-    def __init__(self, name):
+    def __init__(self, name, uses_swift_runtime_object = True):
         Library.__init__(self, name)
         self.name = name
+        self.uses_swift_runtime_object = uses_swift_runtime_object
 
     def generate(self, objects = []):
         self.rule = "Link"
         self.product_name = Configuration.current.target.dynamic_library_prefix + self.name + Configuration.current.target.dynamic_library_suffix
-        if Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD:
+        if (Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD) and self.uses_swift_runtime_object:
             self.runtime_object = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swiftrt.o'
             return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"], objects)
         else:
