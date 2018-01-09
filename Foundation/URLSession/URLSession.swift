@@ -201,8 +201,19 @@ open class URLSession : NSObject {
      * The shared session uses the currently set global URLCache,
      * HTTPCookieStorage and URLCredential.Storage objects.
      */
-    open class var shared: URLSession { NSUnimplemented() }
-    
+    open class var shared: URLSession {
+        return _shared
+    }
+
+    fileprivate static let _shared: URLSession = {
+        var configuration = URLSessionConfiguration.default
+        configuration.httpCookieStorage = HTTPCookieStorage.shared
+        //TODO: Set urlCache to URLCache.shared. Needs implementation of URLCache.
+        //TODO: Set urlCredentialStorage to `URLCredentialStorage.shared`. Needs implementation of URLCredentialStorage.
+        configuration.protocolClasses = URLProtocol.getProtocols()
+        return URLSession(configuration: configuration, delegate: nil, delegateQueue: nil)
+    }()
+
     /*
      * Customization of URLSession occurs during creation of a new session.
      * If you only need to use the convenience routines with custom
