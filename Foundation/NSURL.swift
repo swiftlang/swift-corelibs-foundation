@@ -29,39 +29,40 @@ private func _standardizedPath(_ path: String) -> String {
 }
 
 internal func _pathComponents(_ path: String?) -> [String]? {
-    if let p = path {
-        var result = [String]()
-        if p.length == 0 {
-            return result
-        } else {
-            let characterView = p
-            var curPos = characterView.startIndex
-            let endPos = characterView.endIndex
-            if characterView[curPos] == "/" {
-                result.append("/")
-            }
-            
-            while curPos < endPos {
-                while curPos < endPos && characterView[curPos] == "/" {
-                    curPos = characterView.index(after: curPos)
-                }
-                if curPos == endPos {
-                    break
-                }
-                var curEnd = curPos
-                while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd = characterView.index(after: curEnd)
-                }
-                result.append(String(characterView[curPos ..< curEnd]))
-                curPos = curEnd
-            }
-        }
-        if p.length > 1 && p.hasSuffix("/") {
+    guard let p = path else {
+        return nil
+    }
+
+    var result = [String]()
+    if p.length == 0 {
+        return result
+    } else {
+        let characterView = p
+        var curPos = characterView.startIndex
+        let endPos = characterView.endIndex
+        if characterView[curPos] == "/" {
             result.append("/")
         }
-        return result
+
+        while curPos < endPos {
+            while curPos < endPos && characterView[curPos] == "/" {
+                curPos = characterView.index(after: curPos)
+            }
+            if curPos == endPos {
+                break
+            }
+            var curEnd = curPos
+            while curEnd < endPos && characterView[curEnd] != "/" {
+                curEnd = characterView.index(after: curEnd)
+            }
+            result.append(String(characterView[curPos ..< curEnd]))
+            curPos = curEnd
+        }
     }
-    return nil
+    if p.length > 1 && p.hasSuffix("/") {
+        result.append("/")
+    }
+    return result
 }
 
 public struct URLResourceKey : RawRepresentable, Equatable, Hashable {
@@ -708,41 +709,42 @@ extension NSURL {
     }
     
     internal func _pathByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String? {
-        if let p = path {
-            if p == "/" {
-                return p
-            }
-            
-            var result = p
-            if compress {
-                result.withMutableCharacters { characterView in
-                    let startPos = characterView.startIndex
-                    var endPos = characterView.endIndex
-                    var curPos = startPos
-                    
-                    while curPos < endPos {
-                        if characterView[curPos] == "/" {
-                            var afterLastSlashPos = curPos
-                            while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                                afterLastSlashPos = characterView.index(after: afterLastSlashPos)
-                            }
-                            if afterLastSlashPos != characterView.index(after: curPos) {
-                                characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
-                                endPos = characterView.endIndex
-                            }
-                            curPos = afterLastSlashPos
-                        } else {
-                            curPos = characterView.index(after: curPos)
+        guard let p = path else {
+            return nil
+        }
+
+        if p == "/" {
+            return p
+        }
+
+        var result = p
+        if compress {
+            result.withMutableCharacters { characterView in
+                let startPos = characterView.startIndex
+                var endPos = characterView.endIndex
+                var curPos = startPos
+
+                while curPos < endPos {
+                    if characterView[curPos] == "/" {
+                        var afterLastSlashPos = curPos
+                        while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
+                            afterLastSlashPos = characterView.index(after: afterLastSlashPos)
                         }
+                        if afterLastSlashPos != characterView.index(after: curPos) {
+                            characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                            endPos = characterView.endIndex
+                        }
+                        curPos = afterLastSlashPos
+                    } else {
+                        curPos = characterView.index(after: curPos)
                     }
                 }
             }
-            if stripTrailing && result.hasSuffix("/") {
-                result.remove(at: result.index(before: result.endIndex))
-            }
-            return result
         }
-        return nil
+        if stripTrailing && result.hasSuffix("/") {
+            result.remove(at: result.index(before: result.endIndex))
+        }
+        return result
     }
 
     open var pathComponents: [String]? {
@@ -1243,37 +1245,37 @@ open class NSURLComponents: NSObject, NSCopying {
     open var queryItems: [URLQueryItem]? {
         get {
             // This CFURL implementation returns a CFArray of CFDictionary; each CFDictionary has an entry for name and optionally an entry for value
-            if let queryArray = _CFURLComponentsCopyQueryItems(_components) {
-                let count = CFArrayGetCount(queryArray)
-                
-                return (0..<count).map { idx in
-                    let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                    let swiftEntry = oneEntry._swiftObject 
-                    let entryName = swiftEntry["name"] as! String
-                    let entryValue = swiftEntry["value"] as? String
-                    return URLQueryItem(name: entryName, value: entryValue)
-                }
-            } else {
+            guard let queryArray = _CFURLComponentsCopyQueryItems(_components) else {
                 return nil
+            }
+
+            let count = CFArrayGetCount(queryArray)
+            return (0..<count).map { idx in
+                let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
+                let swiftEntry = oneEntry._swiftObject
+                let entryName = swiftEntry["name"] as! String
+                let entryValue = swiftEntry["value"] as? String
+                return URLQueryItem(name: entryName, value: entryValue)
             }
         }
         set(new) {
-            if let new = new {
-                // The CFURL implementation requires two CFArrays, one for names and one for values
-                var names = [CFTypeRef]()
-                var values = [CFTypeRef]()
-                for entry in new {
-                    names.append(entry.name._cfObject)
-                    if let v = entry.value {
-                        values.append(v._cfObject)
-                    } else {
-                        values.append(kCFNull)
-                    }
-                }
-                _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
-            } else {
+            guard let new = new else {
                 self.percentEncodedQuery = nil
+                return
             }
+
+            // The CFURL implementation requires two CFArrays, one for names and one for values
+            var names = [CFTypeRef]()
+            var values = [CFTypeRef]()
+            for entry in new {
+                names.append(entry.name._cfObject)
+                if let v = entry.value {
+                    values.append(v._cfObject)
+                } else {
+                    values.append(kCFNull)
+                }
+            }
+            _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
         }
     }
 }
