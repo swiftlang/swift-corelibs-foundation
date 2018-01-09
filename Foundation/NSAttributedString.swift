@@ -48,7 +48,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self
     }
 
     open override func mutableCopy() -> Any {
@@ -56,7 +56,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return NSMutableAttributedString(attributedString: self)
     }
 
     /// The character contents of the receiver as an NSString object.
@@ -88,7 +88,10 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
 
     /// Returns an NSAttributedString object consisting of the characters and attributes within a given range in the receiver.
-    open func attributedSubstring(from range: NSRange) -> NSAttributedString { NSUnimplemented() }
+    open func attributedSubstring(from range: NSRange) -> NSAttributedString {
+        let attributedSubstring = CFAttributedStringCreateWithSubstring(kCFAllocatorDefault, _cfObject, CFRange(range))
+        return unsafeBitCast(attributedSubstring, to: NSAttributedString.self)
+    }
 
     /// Returns the attributes for the character at a given index, and by reference the range over which the attributes apply.
     open func attributes(at location: Int, longestEffectiveRange range: NSRangePointer?, in rangeLimit: NSRange) -> [NSAttributedStringKey : Any] {
@@ -109,7 +112,17 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     }
 
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
-    open func isEqual(to other: NSAttributedString) -> Bool { NSUnimplemented() }
+    open func isEqual(to other: NSAttributedString) -> Bool {
+        guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFAttributedStringGetTypeID()) else {
+            fatalError("Could not obtain CFRuntimeClass of CFAttributedString")
+        }
+        
+        guard let equalFunction = runtimeClass.pointee.equal else {
+            fatalError("Could not obtain equal function from CFRuntimeClass of CFAttributedString")
+        }
+        
+        return equalFunction(_cfObject, other._cfObject) == true
+    }
 
     /// Returns an NSAttributedString object initialized with the characters of a given string and no attribute information.
     public init(string: String) {
@@ -131,7 +144,13 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
 
     /// Returns an NSAttributedString object initialized with the characters and attributes of another given attributed string.
     public init(attributedString: NSAttributedString) {
-        NSUnimplemented()
+        // create an empty mutable attr string then immediately replace all of its contents
+        let mutableAttributedString = NSMutableAttributedString(string: "")
+        mutableAttributedString.setAttributedString(attributedString)
+        
+        // use the resulting _string and _attributeArray to initialize a new instance
+        _string = mutableAttributedString._string
+        _attributeArray = mutableAttributedString._attributeArray
     }
 
     /// Executes the block for each attribute in the range.
@@ -306,8 +325,17 @@ extension NSAttributedString {
 
 open class NSMutableAttributedString : NSAttributedString {
     
-    open func replaceCharacters(in range: NSRange, with str: String) { NSUnimplemented() }
-    open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) { NSUnimplemented() }
+    open func replaceCharacters(in range: NSRange, with str: String) {
+        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), str._cfObject)
+    }
+    
+    open func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) {
+        guard let attrs = attrs else {
+            CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), nil, true)
+            return
+        }
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), true)
+    }
     
     open var mutableString: NSMutableString {
         return _string as! NSMutableString
@@ -317,22 +345,64 @@ open class NSMutableAttributedString : NSAttributedString {
         CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, _SwiftValue.store(value))
     }
 
-    open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) { NSUnimplemented() }
+    open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) {
+        CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attributesCFDictionary(from: attrs), false)
+    }
     
-    open func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) { NSUnimplemented() }
+    open func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) {
+        CFAttributedStringRemoveAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject)
+    }
     
-    open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) { NSUnimplemented() }
-    open func insert(_ attrString: NSAttributedString, at loc: Int) { NSUnimplemented() }
-    open func append(_ attrString: NSAttributedString) { NSUnimplemented() }
-    open func deleteCharacters(in range: NSRange) { NSUnimplemented() }
-    open func setAttributedString(_ attrString: NSAttributedString) { NSUnimplemented() }
+    open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) {
+        CFAttributedStringReplaceAttributedString(_cfMutableObject, CFRange(range), attrString._cfObject)
+    }
     
-    open func beginEditing() { NSUnimplemented() }
-    open func endEditing() { NSUnimplemented() }
+    open func insert(_ attrString: NSAttributedString, at loc: Int) {
+        let insertRange = NSRange(location: loc, length: 0)
+        replaceCharacters(in: insertRange, with: attrString)
+    }
     
-    public override init(string str: String) {
-        super.init(string: str)
-        _string = NSMutableString(string: str)
+    open func append(_ attrString: NSAttributedString) {
+        let appendRange = NSRange(location: length, length: 0)
+        replaceCharacters(in: appendRange, with: attrString)
+    }
+    
+    open func deleteCharacters(in range: NSRange) {
+        // To delete a range of the attributed string, call CFAttributedStringReplaceString() with empty string and specified range
+        let emptyString = ""._cfObject
+        CFAttributedStringReplaceString(_cfMutableObject, CFRange(range), emptyString)
+    }
+    
+    open func setAttributedString(_ attrString: NSAttributedString) {
+        let fullStringRange = NSRange(location: 0, length: length)
+        replaceCharacters(in: fullStringRange, with: attrString)
+    }
+    
+    open func beginEditing() {
+        CFAttributedStringBeginEditing(_cfMutableObject)
+    }
+    
+    open func endEditing() {
+        CFAttributedStringEndEditing(_cfMutableObject)
+    }
+    
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        return NSAttributedString(attributedString: self)
+    }
+    
+    public override init(string: String) {
+        super.init(string: string)
+        _string = NSMutableString(string: string)
+    }
+    
+    public override init(string: String, attributes attrs: [NSAttributedStringKey : Any]? = nil) {
+        super.init(string: string, attributes: attrs)
+        _string = NSMutableString(string: string)
+    }
+    
+    public override init(attributedString: NSAttributedString) {
+        super.init(attributedString: attributedString)
+        _string = NSMutableString(string: attributedString.string)
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -343,4 +413,15 @@ open class NSMutableAttributedString : NSAttributedString {
 
 extension NSMutableAttributedString {
     internal var _cfMutableObject: CFMutableAttributedString { return unsafeBitCast(self, to: CFMutableAttributedString.self) }
+}
+
+private extension NSMutableAttributedString {
+    
+    func attributesCFDictionary(from attrs: [NSAttributedStringKey : Any]) -> CFDictionary {
+        var attributesDictionary = [String : Any]()
+        for (key, value) in attrs {
+            attributesDictionary[key.rawValue] = value
+        }
+        return attributesDictionary._cfObject
+    }
 }
