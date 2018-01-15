@@ -180,7 +180,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
+        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
@@ -966,7 +966,7 @@ open class NSMutableData : NSData {
     }
 
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
-    public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+    fileprivate override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
 
@@ -989,6 +989,47 @@ open class NSMutableData : NSData {
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int) {
+        super.init(bytesNoCopy: bytes, length: length)
+    }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+        super.init(bytesNoCopy: bytes, length: length, deallocator: deallocator)
+    }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, freeWhenDone: Bool) {
+        super.init(bytesNoCopy: bytes, length: length, freeWhenDone: freeWhenDone)
+    }
+
+    public override init(data: Data) {
+        super.init(data: data)
+    }
+
+    public override init?(contentsOfFile path: String) {
+        super.init(contentsOfFile: path)
+    }
+
+    public override init(contentsOfFile path: String, options: NSData.ReadingOptions = []) throws {
+        try super.init(contentsOfFile: path, options: options)
+    }
+
+    public override init?(contentsOf url: URL) {
+        super.init(contentsOf: url)
+    }
+
+    public override init(contentsOf url: URL, options: NSData.ReadingOptions = []) throws {
+        try super.init(contentsOf: url, options: options)
+    }
+
+    public override init?(base64Encoded base64Data: Data, options: NSData.Base64DecodingOptions = []) {
+        super.init(base64Encoded: base64Data, options: options)
+    }
+
+    public override init?(base64Encoded base64Data: String, options: NSData.Base64DecodingOptions = []) {
+        super.init(base64Encoded: base64Data, options: options)
+    }
+
 
     // MARK: - Funnel Methods
     /// A pointer to the data contained by the mutable data object.
