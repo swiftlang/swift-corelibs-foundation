@@ -189,7 +189,7 @@ rule CompileSwift
     depfile = $out.d
 
 rule MergeSwiftModule
-    command = mkdir -p `dirname $out`; ${SWIFT} -frontend -emit-module $partials ${TARGET_SWIFTCFLAGS} $flags -module-cache-path ${MODULE_CACHE_PATH} -module-link-name $module_name -o $out
+    command = mkdir -p `dirname $out`; ${SWIFT} -frontend -sil-merge-partial-modules -emit-module $partials ${TARGET_SWIFTCFLAGS} $flags -module-cache-path ${MODULE_CACHE_PATH} -module-link-name $module_name -o $out
     description = Merge $out
 """
 
