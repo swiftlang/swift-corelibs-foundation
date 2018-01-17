@@ -16,9 +16,7 @@
     import SwiftXCTest
 #endif
 
-#if !DEPLOYMENT_RUNTIME_OBJC
-    import CoreFoundation.Private
-#endif
+import CoreFoundation
 
 internal func testBundle() -> Bundle {
 #if DARWIN_COMPATIBILITY_TESTS
