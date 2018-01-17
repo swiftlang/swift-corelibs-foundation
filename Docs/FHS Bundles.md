@@ -23,7 +23,7 @@ The base name of this bundle is the name of this directory, removing the extensi
 
 ### Bundle Paths
 
-The bundle's `.resources` directory contains resources much like an iOS-style flat bundle. Unlike on iOS, however, executables are not contained directly inside this directory. Instead, given that the bundle exists in `share/MyFramework.resources`, then an installed bundle will source from the following additional paths within the prefix the bundle is installed in (the parent directory of the `share` directory):
+The bundle's `.resources` directory contains resources much like an [iOS-style flat bundle](https://developer.apple.com/library/content/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1). Unlike on iOS, however, executables are not contained directly inside this directory. Instead, given that the bundle exists in `share/MyFramework.resources`, then an installed bundle will source from the following additional paths within the prefix the bundle is installed in (the parent directory of the `share` directory):
 
  - The main executable will be searched in the `bin`, `sbin`, or `lib…` directories.
 	 - Executable bundles will search `bin`, then `sbin`, for an executable with the same base name as the resources folder, plus any platform prefix or suffix for executables. e.g.: `bin/MyApp`.
@@ -78,19 +78,19 @@ We will also support freestanding bundles on platforms that also support install
 
 The bundle path for an installed bundle is the same as its resources path. That's the path that needs to be passed into `CFBundleCreate()` and equivalents for the bundle to be successfully created; passing associated paths, including the path to the executable, will return `NULL`. [⊗](#nullForInnerPaths)
 
-The `.resources` directory functions exactly like an iOS bundle, returning the same paths. By way of example, for a freestanding bundle created with `CFBundleCreate(NULL, …(…"./MyFramework.resources"))`:
+The `.resources` directory functions exactly like an iOS bundle, returning the same paths. By way of example, for a freestanding bundle created with `CFBundleCreate(NULL, …(…"/opt/myapp/MyFramework.resources"))`:
 
 Function | Path returned
 ---|---
-`CFBundleCopyBundleURL` | `…/MyFramework.resources`
-`CFBundleCopyExecutableURL` | `…/libMyFramework.so`
-`CFBundleCopyResourcesDirectoryURL` | `…/MyFramework.resources`
-`CFBundleCopySharedSupportURL` |`…/MyFramework.resources/SharedSupport`
-`CFBundleCopyPrivateFrameworksURL` | `…/MyFramework.resources/Frameworks`
-`CFBundleCopySharedFrameworksURL` | `…/MyFramework.resources/SharedFrameworks`
-`CFBundleCopyBuiltInPlugInsURL` | `…/MyFramework.resources/PlugIns`
-`CFBundleCopyAuxiliaryExecutableURL(…, CFSTR("myexec"))` | `…/MyFramework.resources/myexec`
-`CFBundleCopyResourceURL(…, CFSTR("Welcome"), CFSTR("txt") …)` | `…/MyFramework.resources/en.lproj/Welcome.txt`
+`CFBundleCopyBundleURL` | `/opt/myapp/MyFramework.resources`
+`CFBundleCopyExecutableURL` | `/opt/myapp/libMyFramework.so`
+`CFBundleCopyResourcesDirectoryURL` | `/opt/myapp/MyFramework.resources`
+`CFBundleCopySharedSupportURL` |`/opt/myapp/MyFramework.resources/SharedSupport`
+`CFBundleCopyPrivateFrameworksURL` | `/opt/myapp/MyFramework.resources/Frameworks`
+`CFBundleCopySharedFrameworksURL` | `/opt/myapp/MyFramework.resources/SharedFrameworks`
+`CFBundleCopyBuiltInPlugInsURL` | `/opt/myapp/MyFramework.resources/PlugIns`
+`CFBundleCopyAuxiliaryExecutableURL(…, CFSTR("myexec"))` | `/opt/myapp/MyFramework.resources/myexec`
+`CFBundleCopyResourceURL(…, CFSTR("Welcome"), CFSTR("txt") …)` | `/opt/myapp/MyFramework.resources/en.lproj/Welcome.txt`
 
 ### Embedded Frameworks
 
