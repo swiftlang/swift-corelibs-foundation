@@ -281,7 +281,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                 CFURLRef absURL = CFURLCopyAbsoluteURL(executableURL);
 #if DEPLOYMENT_TARGET_WINDOWS
                 executablePath = CFURLCopyFileSystemPath(absURL, kCFURLWindowsPathStyle);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#else
                 executablePath = CFURLCopyFileSystemPath(absURL, kCFURLPOSIXPathStyle);
 #endif
                 CFRelease(absURL);
