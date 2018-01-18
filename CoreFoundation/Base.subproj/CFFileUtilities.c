@@ -1179,7 +1179,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
 }
 
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if !DEPLOYMENT_RUNTIME_OBJC
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8
@@ -1356,5 +1356,5 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
     return CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
 }
 
-#endif
+#endif // !DEPLOYMENT_RUNTIME_OBJC
 

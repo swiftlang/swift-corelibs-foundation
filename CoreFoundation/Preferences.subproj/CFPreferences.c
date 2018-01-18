@@ -26,6 +26,8 @@
 #include <CoreFoundation/CFUUID.h>
 #endif
 
+#include <assert.h>
+
 #if DEBUG_PREFERENCES_MEMORY
 #include "../Tests/CFCountingAllocator.c"
 #endif
@@ -182,37 +184,29 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
 	return url;
  
 #else
-    CFURLRef  home = NULL;
-    CFURLRef  url;
-    int levels = 0;
-    //    if (hostName != kCFPreferencesCurrentHost && hostName != kCFPreferencesAnyHost) return NULL; // Arbitrary host access not permitted
+    CFURLRef location = NULL;
+    
+    CFKnownLocationUser user;
+    
     if (userName == kCFPreferencesAnyUser) {
-        if (!home) home = CFURLCreateWithFileSystemPath(alloc, CFSTR("/Library/Preferences/"), kCFURLPOSIXPathStyle, true);
-        levels = 1;
-        if (hostName == kCFPreferencesCurrentHost) url = home;
-        else {
-            url = CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Network/"), kCFURLPOSIXPathStyle, true, home);
-            levels ++;
-            CFRelease(home);
-        }
+        user = _kCFKnownLocationUserAny;
+    } else if (userName == kCFPreferencesCurrentUser) {
+        user = _kCFKnownLocationUserCurrent;
     } else {
-        home = CFCopyHomeDirectoryURLForUser((userName == kCFPreferencesCurrentUser) ? NULL : userName);
-        if (home) {
-            url = (safeLevel > 0) ? CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Library/Safe Preferences/"), kCFURLPOSIXPathStyle, true, home) :
-            CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Library/Preferences/"), kCFURLPOSIXPathStyle, true, home);
-            levels = 2;
-            CFRelease(home);
-            if (hostName != kCFPreferencesAnyHost) {
-                home = url;
-                url = CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("ByHost/"), kCFURLPOSIXPathStyle, true, home);
-                levels ++;
-                CFRelease(home);
-            }
-        } else {
-            url = NULL;
-        }
+        user = userName;
     }
-    return url;
+    
+    CFURLRef base = _CFKnownLocationCreatePreferencesURLForUser(user);
+    
+    if (hostName == kCFPreferencesCurrentHost) {
+        location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("ByHost"), kCFURLPOSIXPathStyle, true, base);
+    } else {
+        assert(hostName == kCFPreferencesAnyHost);
+        location = CFRetain(base);
+    }
+    
+    CFRelease(base);
+    return location;
 #endif
 }
 
