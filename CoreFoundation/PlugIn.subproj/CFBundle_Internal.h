@@ -30,21 +30,20 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
-// For development use only:
-#define _CFBUNDLE_ALLOW_FHS_BUNDLES_ON_ALL_TARGETS 0
+// FHS bundles are supported on the Swift and C runtimes, except on Windows.
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
 
-#define CFBUNDLE_ALLOW_FHS_BUNDLES (_CFBUNDLE_ALLOW_FHS_BUNDLES_ON_ALL_TARGETS || !(DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS))
-
-#if CFBUNDLE_ALLOW_FHS_BUNDLES
-
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD || _CFBUNDLE_ALLOW_FHS_BUNDLES_ON_ALL_TARGETS
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
     #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
+    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
 #else // a non-covered DEPLOYMENT_TARGET…
     #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
 #endif // DEPLOYMENT_TARGET_…
 
-#endif // CFBUNDLE_ALLOW_FHS_BUNDLES
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
 
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
@@ -78,7 +77,7 @@ struct __CFBundle {
     
     CFURLRef _url;
     
-#if CFBUNDLE_ALLOW_FHS_BUNDLES
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
     Boolean _isFHSInstalledBundle;
 #endif
     

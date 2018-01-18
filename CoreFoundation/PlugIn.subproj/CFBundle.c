@@ -137,22 +137,24 @@ static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 
 #pragma mark -
 
-#if CFBUNDLE_ALLOW_FHS_BUNDLES
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+
+// Functions and constants for FHS bundles:
 #define _CFBundleFHSDirectory_share CFSTR("share")
 
-CF_INLINE Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
+static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
     // Paths of this form are FHS installed bundles:
     // <anywhere>/share/<name>.resources
     
     CFStringRef extension = CFURLCopyPathExtension(bundleURL);
-    CFURLRef parentURL = CFURLCreateCopyDeletingLastPathComponent(NULL, bundleURL);
+    CFURLRef parentURL = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, bundleURL);
     CFStringRef containingDirectoryName = parentURL ? CFURLCopyLastPathComponent(parentURL) : NULL;
     
     Boolean isFHSBundle =
-    extension &&
-    containingDirectoryName &&
-    CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension) &&
-    CFEqual(containingDirectoryName, _CFBundleFHSDirectory_share);
+        extension &&
+        containingDirectoryName &&
+        CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension) &&
+        CFEqual(containingDirectoryName, _CFBundleFHSDirectory_share);
     
     if (extension) CFRelease(extension);
     if (parentURL) CFRelease(parentURL);
@@ -160,10 +162,10 @@ CF_INLINE Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
     
     return isFHSBundle;
 }
-#endif // CFBUNDLE_ALLOW_FHS_BUNDLES
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
 
 Boolean _CFBundleSupportsFHSBundles() {
-#if CFBUNDLE_ALLOW_FHS_BUNDLES
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
     return true;
 #else
     return false;
@@ -712,7 +714,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 
     bundle->_url = newURL;
     
-#if CFBUNDLE_ALLOW_FHS_BUNDLES
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
     bundle->_isFHSInstalledBundle = _CFBundleURLIsForFHSInstalledBundle(newURL);
 #endif
 

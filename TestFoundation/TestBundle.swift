@@ -137,7 +137,13 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: tempDir + "/lib", withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
-                guard FileManager.default.createFile(atPath: tempDir + "/lib/lib" + bundleName + ".so", contents: nil) else { return false }
+                #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+                let pathExtension = "dylib"
+                #else
+                let pathExtension = "so"
+                #endif
+                
+                guard FileManager.default.createFile(atPath: tempDir + "/lib/lib" + bundleName + ".\(pathExtension)", contents: nil) else { return false }
                 
                 let executables = tempDir + "/libexec/" + bundleName + ".executables"
                 try FileManager.default.createDirectory(atPath: executables, withIntermediateDirectories: true, attributes: nil)
