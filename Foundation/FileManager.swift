@@ -460,7 +460,8 @@ open class FileManager : NSObject {
             ps.advanced(by: 1).initialize(to: nil)
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
-            ps.deallocate(capacity: 2)
+            ps.deallocate()
+            fsRep.deallocate()
 
             if stream != nil {
                 defer {
@@ -1036,7 +1037,8 @@ extension FileManager {
                 ps.advanced(by: 1).initialize(to: nil)
                 _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                 ps.deinitialize(count: 2)
-                ps.deallocate(capacity: 2)
+                ps.deallocate()
+                fsRep.deallocate()
             } else {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }
