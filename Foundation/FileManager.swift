@@ -461,6 +461,7 @@ open class FileManager : NSObject {
             let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
             ps.deinitialize(count: 2)
             ps.deallocate()
+            fsRep.deallocate()
 
             if stream != nil {
                 defer {
@@ -1037,6 +1038,7 @@ extension FileManager {
                 _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
                 ps.deinitialize(count: 2)
                 ps.deallocate()
+                fsRep.deallocate()
             } else {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }
