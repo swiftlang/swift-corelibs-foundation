@@ -118,6 +118,7 @@ CONST_STRING_DECL(_kCFBundleCFMLoadAsBundleKey, "CFBundleCFMLoadAsBundle")
 // Keys used by NSBundle for loaded Info plists.
 CONST_STRING_DECL(_kCFBundlePrincipalClassKey, "NSPrincipalClass")
 
+
 static CFTypeID __kCFBundleTypeID = _kCFRuntimeNotATypeID;
 
 static pthread_mutex_t CFBundleGlobalDataLock = PTHREAD_MUTEX_INITIALIZER;
@@ -135,6 +136,41 @@ static void _CFBundleEnsureBundleExistsForImagePath(CFStringRef imagePath, Boole
 static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 
 #pragma mark -
+
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+
+// Functions and constants for FHS bundles:
+#define _CFBundleFHSDirectory_share CFSTR("share")
+
+static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
+    // Paths of this form are FHS installed bundles:
+    // <anywhere>/share/<name>.resources
+    
+    CFStringRef extension = CFURLCopyPathExtension(bundleURL);
+    CFURLRef parentURL = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, bundleURL);
+    CFStringRef containingDirectoryName = parentURL ? CFURLCopyLastPathComponent(parentURL) : NULL;
+    
+    Boolean isFHSBundle =
+        extension &&
+        containingDirectoryName &&
+        CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension) &&
+        CFEqual(containingDirectoryName, _CFBundleFHSDirectory_share);
+    
+    if (extension) CFRelease(extension);
+    if (parentURL) CFRelease(parentURL);
+    if (containingDirectoryName) CFRelease(containingDirectoryName);
+    
+    return isFHSBundle;
+}
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+
+Boolean _CFBundleSupportsFHSBundles() {
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+    return true;
+#else
+    return false;
+#endif
+}
 
 CF_PRIVATE os_log_t _CFBundleResourceLogger(void) {
     static os_log_t _log;
@@ -677,6 +713,10 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     }
 
     bundle->_url = newURL;
+    
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+    bundle->_isFHSInstalledBundle = _CFBundleURLIsForFHSInstalledBundle(newURL);
+#endif
 
     bundle->_version = localVersion;
     bundle->_infoDict = NULL;

@@ -30,6 +30,21 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
+// FHS bundles are supported on the Swift and C runtimes, except on Windows.
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
+    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
+    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+#else // a non-covered DEPLOYMENT_TARGET…
+    #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
+#endif // DEPLOYMENT_TARGET_…
+
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
 #define CFBundleExecutableArchitectureMismatchError 3585
@@ -61,6 +76,10 @@ struct __CFBundle {
     CFRuntimeBase _base;
     
     CFURLRef _url;
+    
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+    Boolean _isFHSInstalledBundle;
+#endif
     
     CFDictionaryRef _infoDict;
     CFDictionaryRef _localInfoDict;
@@ -348,7 +367,7 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void);
 
 #define _CFBundleLocalizedResourceForkFileName CFSTR("Localized")
 
-#define _CFBundleWindowsResourceDirectoryExtension CFSTR("resources")
+#define _CFBundleSiblingResourceDirectoryExtension CFSTR("resources")
 
 #define _CFBundleMacOSXInfoPlistPlatformName_OLD CFSTR("macos")
 #define _CFBundleWindowsInfoPlistPlatformName_OLD CFSTR("win32")

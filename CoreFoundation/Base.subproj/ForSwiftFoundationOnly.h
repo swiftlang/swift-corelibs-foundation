@@ -327,6 +327,8 @@ CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream);
 
 CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream);
 
+CF_SWIFT_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
+
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8
 
