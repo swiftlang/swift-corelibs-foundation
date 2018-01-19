@@ -59,7 +59,9 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         assert(user == _kCFKnownLocationUserCurrent);
         
         if (user == _kCFKnownLocationUserCurrent) {
-            location = _CFXDGCreateConfigHomePath();
+            CFStringRef path = _CFXDGCreateConfigHomePath();
+            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path, kCFURLPOSIXPathStyle, true);
+            CFRelease(path);
         }
     }
     
