@@ -13,6 +13,8 @@
 #include "CFPriv.h"
 #include "CFInternal.h"
 
+#include <assert.h>
+
 CONST_STRING_DECL(_kCFKnownLocationUserAny, " == _kCFKnownLocationUserAny");
 CONST_STRING_DECL(_kCFKnownLocationUserCurrent, " == _kCFKnownLocationUserCurrent");
 

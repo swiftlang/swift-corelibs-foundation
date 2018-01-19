@@ -14,15 +14,12 @@
 #include <CoreFoundation/CFURL.h>
 
 CF_ASSUME_NONNULL_BEGIN
-CF_EXTERN_C_BEGIN
 
 typedef CFStringRef CFKnownLocationUser CF_TYPED_EXTENSIBLE_ENUM;
 
-CF_EXPORT
-const CFKnownLocationUser _kCFKnownLocationUserAny;
+extern const CFKnownLocationUser _kCFKnownLocationUserAny;
 
-CF_EXPORT
-const CFKnownLocationUser _kCFKnownLocationUserCurrent;
+extern const CFKnownLocationUser _kCFKnownLocationUserCurrent;
 
 /* A note on support:
  
@@ -37,10 +34,8 @@ const CFKnownLocationUser _kCFKnownLocationUserCurrent;
  See CFKnownLocations.c for a summary of what paths are returned.
  */
 
-CF_EXPORT
-CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user);
+extern CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user);
 
-CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END
 
 #endif /* __COREFOUNDATION_CFKNOWNLOCATIONS__ */

@@ -322,6 +322,7 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFAttributedString.c',
 	'CoreFoundation/String.subproj/CFRunArray.c',
 	'CoreFoundation/URL.subproj/CFURLSessionInterface.c',
+	'CoreFoundation/Base.subproj/CFKnownLocations.c',
 ])
 
 # This code is already in libdispatch so is only needed if libdispatch is
