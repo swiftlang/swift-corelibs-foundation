@@ -198,6 +198,7 @@ private = [
 	'Locale.subproj/CFDateFormatter_Private.h',
 	'Locale.subproj/CFLocale_Private.h',
 	'Parsing.subproj/CFPropertyList_Private.h',
+	'Base.subproj/CFKnownLocations.h',
 ],
 project = [
 ])
