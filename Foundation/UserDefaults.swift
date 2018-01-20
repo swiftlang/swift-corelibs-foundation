@@ -326,8 +326,17 @@ open class UserDefaults: NSObject {
         return CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
     }
     
-    open func objectIsForced(forKey key: String) -> Bool { NSUnimplemented() }
-    open func objectIsForced(forKey key: String, inDomain domain: String) -> Bool { NSUnimplemented() }
+    open func objectIsForced(forKey key: String) -> Bool {
+        // If you're using this version of Foundation, there is nothing in particular that can force a key.
+        // So:
+        return false
+    }
+    
+    open func objectIsForced(forKey key: String, inDomain domain: String) -> Bool {
+        // If you're using this version of Foundation, there is nothing in particular that can force a key.
+        // So:
+        return false
+    }
 }
 
 extension UserDefaults {
