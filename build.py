@@ -444,6 +444,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/URLSession/libcurl/libcurlHelpers.swift',
     'Foundation/URLSession/http/HTTPURLProtocol.swift',
 	'Foundation/UserDefaults.swift',
+	'Foundation/UserDefaults_Arguments.swift',
 	'Foundation/NSUUID.swift',
 	'Foundation/NSValue.swift',
 	'Foundation/XMLDocument.swift',
