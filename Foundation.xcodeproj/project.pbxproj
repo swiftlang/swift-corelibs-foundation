@@ -12,6 +12,7 @@
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
+		153E95162012A29900F250BE /* UserDefaults_Arguments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153E95152012A29900F250BE /* UserDefaults_Arguments.swift */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
@@ -502,6 +503,7 @@
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
+		153E95152012A29900F250BE /* UserDefaults_Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults_Arguments.swift; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
@@ -1793,6 +1795,7 @@
 			isa = PBXGroup;
 			children = (
 				EADE0B871BD15DFF00C49C64 /* UserDefaults.swift */,
+				153E95152012A29900F250BE /* UserDefaults_Arguments.swift */,
 				5BDC3F3B1BCC5DCB00ED97BB /* NSLocale.swift */,
 				5BD70FB11D3D4CDC003B9BF8 /* Locale.swift */,
 			);
@@ -2191,6 +2194,7 @@
 				61E0117E1C1B55B9000037DD /* Timer.swift in Sources */,
 				EADE0BCD1BD15E0000C49C64 /* XMLParser.swift in Sources */,
 				5BDC3FD01BCF17E600ED97BB /* NSCFSet.swift in Sources */,
+				153E95162012A29900F250BE /* UserDefaults_Arguments.swift in Sources */,
 				5B1FD9DE1D6D16580080E83C /* TaskRegistry.swift in Sources */,
 				EADE0B931BD15DFF00C49C64 /* NSComparisonPredicate.swift in Sources */,
 				5B1FD9DC1D6D16580080E83C /* URLSessionDelegate.swift in Sources */,
