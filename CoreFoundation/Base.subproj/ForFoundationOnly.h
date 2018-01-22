@@ -30,14 +30,6 @@
 #include <math.h>
 #include <limits.h>
 
-#ifndef CF_SWIFT_EXPORT
-#if DEPLOYMENT_RUNTIME_SWIFT
-#define CF_SWIFT_EXPORT extern
-#else
-#define CF_SWIFT_EXPORT static __attribute__((used))
-#endif
-#endif
-
 #define _CF_EXPORT_SCOPE_BEGIN \
 CF_EXTERN_C_BEGIN \
 CF_ASSUME_NONNULL_BEGIN \
@@ -556,19 +548,19 @@ CF_INLINE CFHashCode _CFHashDouble(const double d) {
 }
 
 
-CF_SWIFT_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value);
-CF_SWIFT_EXPORT void _CFNumberInitInt8(CFNumberRef result, int8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt8(CFNumberRef result, uint8_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt16(CFNumberRef result, int16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt16(CFNumberRef result, uint16_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt32(CFNumberRef result, int32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt32(CFNumberRef result, uint32_t value);
-CF_SWIFT_EXPORT void _CFNumberInitInt(CFNumberRef result, long value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt(CFNumberRef result, unsigned long value);
-CF_SWIFT_EXPORT void _CFNumberInitInt64(CFNumberRef result, int64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitUInt64(CFNumberRef result, uint64_t value);
-CF_SWIFT_EXPORT void _CFNumberInitFloat(CFNumberRef result, float value);
-CF_SWIFT_EXPORT void _CFNumberInitDouble(CFNumberRef result, double value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitBool(CFNumberRef result, Boolean value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitInt8(CFNumberRef result, int8_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitUInt8(CFNumberRef result, uint8_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitInt16(CFNumberRef result, int16_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitUInt16(CFNumberRef result, uint16_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitInt32(CFNumberRef result, int32_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitUInt32(CFNumberRef result, uint32_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitInt(CFNumberRef result, long value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitUInt(CFNumberRef result, unsigned long value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitInt64(CFNumberRef result, int64_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitUInt64(CFNumberRef result, uint64_t value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitFloat(CFNumberRef result, float value);
+CF_CROSS_PLATFORM_EXPORT void _CFNumberInitDouble(CFNumberRef result, double value);
 
 /* These four functions are used by NSError in formatting error descriptions. They take NS or CFError as arguments and return a retained CFString or NULL.
 */ 
@@ -581,9 +573,9 @@ CF_EXPORT void *__CFURLReservedPtr(CFURLRef  url);
 CF_EXPORT void __CFURLSetReservedPtr(CFURLRef  url, void *_Nullable ptr);
 CF_EXPORT CFStringEncoding _CFURLGetEncoding(CFURLRef url);
 
-CF_SWIFT_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, Boolean isDirectory, _Nullable CFURLRef baseURL);
-CF_SWIFT_EXPORT Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
-CF_SWIFT_EXPORT Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
+CF_CROSS_PLATFORM_EXPORT void _CFURLInitWithFileSystemPathRelativeToBase(CFURLRef url, CFStringRef fileSystemPath, CFURLPathStyle pathStyle, Boolean isDirectory, _Nullable CFURLRef baseURL);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitWithURLString(CFURLRef url, CFStringRef string, Boolean checkForLegalCharacters, _Nullable CFURLRef baseURL);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFURLInitAbsoluteURLWithBytes(CFURLRef url, const UInt8 *relativeURLBytes, CFIndex length, CFStringEncoding encoding, _Nullable CFURLRef baseURL);
 
 CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef mode);
 CF_EXPORT CFTypeRef _CFRunLoopGet2(CFRunLoopRef rl);
@@ -615,7 +607,7 @@ enum {
 // This is for NSNumberFormatter use only!
 CF_EXPORT void *_CFNumberFormatterGetFormatter(CFNumberFormatterRef formatter);
 
-CF_SWIFT_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags variety, CFIndex capacity, const uint8_t *_Nullable bytes, CFIndex length, Boolean noCopy);
+CF_CROSS_PLATFORM_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags variety, CFIndex capacity, const uint8_t *_Nullable bytes, CFIndex length, Boolean noCopy);
 CF_EXPORT CFRange _CFDataFindBytes(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions);
 
 
@@ -660,7 +652,7 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void);
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
 
-CF_SWIFT_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
 CF_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
 CF_EXPORT Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 CF_EXPORT Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
@@ -676,14 +668,14 @@ typedef struct {
 
 CF_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
 
-CF_SWIFT_EXPORT Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
 
-CF_SWIFT_EXPORT Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, _Nullable CFDataRef data);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, _Nullable CFDataRef data);
 
-CF_SWIFT_EXPORT Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, CFRange theRange);
-CF_SWIFT_EXPORT Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset, CFStringRef theString);
-CF_SWIFT_EXPORT Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset);
-CF_SWIFT_EXPORT Boolean _CFCharacterSetInitWithBitmapRepresentation(CFMutableCharacterSetRef cset, CFDataRef theData);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInRange(CFMutableCharacterSetRef cset, CFRange theRange);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset, CFStringRef theString);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithBitmapRepresentation(CFMutableCharacterSetRef cset, CFDataRef theData);
 CF_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
 
 CF_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
