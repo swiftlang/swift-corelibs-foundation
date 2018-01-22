@@ -193,10 +193,10 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
     } else if (userName == kCFPreferencesCurrentUser) {
         user = _kCFKnownLocationUserCurrent;
     } else {
-        user = userName;
+        user = _kCFKnownLocationUserByName;
     }
     
-    CFURLRef base = _CFKnownLocationCreatePreferencesURLForUser(user);
+    CFURLRef base = _CFKnownLocationCreatePreferencesURLForUser(user, userName);
     
     if (hostName == kCFPreferencesCurrentHost) {
         location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("ByHost"), kCFURLPOSIXPathStyle, true, base);

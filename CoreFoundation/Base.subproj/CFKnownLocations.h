@@ -15,11 +15,11 @@
 
 CF_ASSUME_NONNULL_BEGIN
 
-typedef CFStringRef CFKnownLocationUser CF_TYPED_EXTENSIBLE_ENUM;
-
-extern const CFKnownLocationUser _kCFKnownLocationUserAny;
-
-extern const CFKnownLocationUser _kCFKnownLocationUserCurrent;
+typedef CF_ENUM(CFIndex, CFKnownLocationUser) {
+    _kCFKnownLocationUserAny,
+    _kCFKnownLocationUserCurrent,
+    _kCFKnownLocationUserByName,
+};
 
 /* A note on support:
  
@@ -28,13 +28,14 @@ extern const CFKnownLocationUser _kCFKnownLocationUserCurrent;
  - For platforms that use the XDG spec to identify a configuration path in a user's home, we cannot determine that path for any user other than the one we're currently running as.
  
  So:
-  - We're keeping that behavior when building Core Foundation for Darwin/ObjC for compatibility, hence the _EXTENSIBLE above; but
+  - We're keeping that behavior when building Core Foundation for Darwin/ObjC for compatibility, hence the _EXTENSIBLE above; on those platforms, the …ByName enum will continue working to get locations for arbitrary usernames. But:
   - For Swift and any new platform, we are enforcing the documented constraint. Using a user value other than …Any or …Current above will assert (or return NULL if asserts are off).
  
  See CFKnownLocations.c for a summary of what paths are returned.
  */
 
-extern CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user);
+// The username parameter is ignored for any user constant other than …ByName. …ByName with a NULL username is the same as …Current.
+extern CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username);
 
 CF_ASSUME_NONNULL_END
 

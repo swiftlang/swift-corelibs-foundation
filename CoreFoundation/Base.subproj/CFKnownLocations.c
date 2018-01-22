@@ -15,10 +15,7 @@
 
 #include <assert.h>
 
-CONST_STRING_DECL(_kCFKnownLocationUserAny, " == _kCFKnownLocationUserAny");
-CONST_STRING_DECL(_kCFKnownLocationUserCurrent, " == _kCFKnownLocationUserCurrent");
-
-CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user) {
+CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username) {
     CFURLRef location = NULL;
     
 #if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
@@ -31,18 +28,23 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
  - Current: $HOME/Library/Preferences
  */
     
-    if (user == _kCFKnownLocationUserAny) {
-        location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/Library/Preferences"), kCFURLPOSIXPathStyle, true);
-    } else {
-        if (user == _kCFKnownLocationUserCurrent) {
-            user = NULL;
+    switch (user) {
+        case _kCFKnownLocationUserAny:
+            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/Library/Preferences"), kCFURLPOSIXPathStyle, true);
+            break;
+            
+        case _kCFKnownLocationUserCurrent:
+            username = NULL;
+            // passthrough to:
+        case _kCFKnownLocationUserByName: {
+            CFURLRef home = CFCopyHomeDirectoryURLForUser(username);
+            location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Library/Preferences"), kCFURLPOSIXPathStyle, true, home);
+            CFRelease(home);
+            
+            break;
         }
-        
-        CFURLRef home = CFCopyHomeDirectoryURLForUser(user);
-        location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Library/Preferences"), kCFURLPOSIXPathStyle, true, home);
-        CFRelease(home);
+            
     }
-    
 #elif !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
     
 /*
@@ -53,15 +55,20 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
  - Current: $XDG_CONFIG_PATH (usually: $HOME/.config/).
  */
     
-    if (user == _kCFKnownLocationUserAny) {
-        location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/usr/local/etc"), kCFURLPOSIXPathStyle, true);
-    } else {
-        assert(user == _kCFKnownLocationUserCurrent);
-        
-        if (user == _kCFKnownLocationUserCurrent) {
+    switch (user) {
+        case _kCFKnownLocationUserAny:
+            location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/usr/local/etc"), kCFURLPOSIXPathStyle, true);
+            break;
+            
+        case _kCFKnownLocationUserByName:
+            assert(username == NULL);
+            // passthrough to:
+        case _kCFKnownLocationUserCurrent: {
             CFStringRef path = _CFXDGCreateConfigHomePath();
             location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path, kCFURLPOSIXPathStyle, true);
             CFRelease(path);
+            
+            break;
         }
     }
     
