@@ -1319,7 +1319,7 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
     return thread;
 }
 
-CF_SWIFT_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
@@ -1330,7 +1330,7 @@ CF_SWIFT_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name
 #endif
 }
 
-CF_SWIFT_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length) {
+CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getname_np(pthread_self(), buf, length);
 #elif DEPLOYMENT_TARGET_ANDROID

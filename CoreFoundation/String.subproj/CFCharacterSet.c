@@ -1708,11 +1708,11 @@ CFMutableCharacterSetRef CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, C
     return __CFCharacterSetCreateCopy(alloc, theSet, true, true);
 }
 
-CF_SWIFT_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
+CF_CROSS_PLATFORM_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
     return __CFCharacterSetCreateCopy(alloc, theSet, false, false);
 }
 
-CF_SWIFT_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
+CF_CROSS_PLATFORM_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
     return __CFCharacterSetCreateCopy(alloc, theSet, true, false);
 }
 
@@ -1758,7 +1758,7 @@ Boolean CFCharacterSetIsCharacterMember(CFCharacterSetRef theSet, UniChar theCha
     return result;
 }
 
-CF_SWIFT_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar) {
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar) {
     CFIndex length;
     UInt32 plane = (theChar >> 16);
     Boolean isAnnexInverted = false;

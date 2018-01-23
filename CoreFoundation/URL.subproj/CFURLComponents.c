@@ -66,7 +66,7 @@ static CFStringRef __CFURLComponentsCopyDescription(CFTypeRef cf) {
     return CFRetain(CFSTR("A really nice CFURLComponents object"));
 }
 
-CF_SWIFT_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
+CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
     __CFGenericValidateType(instance, _CFURLComponentsGetTypeID());
     
     if (instance->_urlString) CFRelease(instance->_urlString);
