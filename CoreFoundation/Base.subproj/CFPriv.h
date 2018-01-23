@@ -26,7 +26,13 @@
 #include <CoreFoundation/CFSet.h>
 #include <math.h>
 
-
+#ifndef CF_CROSS_PLATFORM_EXPORT
+    #if !DEPLOYMENT_RUNTIME_OBJC
+        #define CF_CROSS_PLATFORM_EXPORT extern
+    #else
+        #define CF_CROSS_PLATFORM_EXPORT static __attribute__((used))
+    #endif
+#endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMachPort.h>

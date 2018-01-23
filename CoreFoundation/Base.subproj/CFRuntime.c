@@ -1652,7 +1652,7 @@ static void _CFRelease(CFTypeRef CF_RELEASES_ARGUMENT cf) {
 struct _CFSwiftBridge __CFSwiftBridge = { { NULL } };
 
 // Call out to the CF-level finalizer, because the object is going to go away.
-CF_SWIFT_EXPORT void _CFDeinit(CFTypeRef cf) {
+CF_CROSS_PLATFORM_EXPORT void _CFDeinit(CFTypeRef cf) {
     __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     CFTypeID typeID = __CFTypeIDFromInfo(info);
     CFRuntimeClass *cfClass = __CFRuntimeClassTable[typeID];
