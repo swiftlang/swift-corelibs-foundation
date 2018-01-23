@@ -32,18 +32,17 @@ internal extension UserDefaults {
                     var parsed = false
                     if let prefix = value.first, propertyListPrefixes.contains(prefix) {
                         if let data = value.data(using: .utf8),
-                            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil),
-                            let plistNS = plistValueAsNSObject(plist) {
+                            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) {
                             
                             // If we can parse that argument as a plist, use the parsed value.
                             parsed = true
-                            result[key] = plistNS
+                            result[key] = plist
                             
                         }
                     }
                     
-                    if !parsed, let valueNS = plistValueAsNSObject(value) {
-                        result[key] = valueNS
+                    if !parsed {
+                        result[key] = value
                     }
                 }
                 

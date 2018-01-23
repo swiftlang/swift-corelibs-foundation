@@ -29,6 +29,22 @@ internal func plistValueAsNSObject(_ value: Any) -> NSObject? {
         nsValue = NSNumber(value: val)
     } else if let val = value as? Data {
         nsValue = val._nsObject
+    } else if let val = value as? Date {
+        nsValue = val._nsObject
+    } else if let val = value as? [Any] {
+        var nsValues: [NSObject] = []
+        for innerValue in val {
+            guard let nsInnerValue = plistValueAsNSObject(innerValue) else { return nil }
+            nsValues.append(nsInnerValue)
+        }
+        return NSArray(array: nsValues)
+    } else if let val = value as? [String: Any] {
+        var nsValues: [String: NSObject] = [:]
+        for (key, innerValue) in val {
+            guard let nsInnerValue = plistValueAsNSObject(innerValue) else { return nil }
+            nsValues[key] = nsInnerValue
+        }
+        return NSDictionary(dictionary: nsValues)
     } else if let val = value as? NSObject {
         nsValue = val
     } else {
@@ -36,6 +52,48 @@ internal func plistValueAsNSObject(_ value: Any) -> NSObject? {
     }
     
     return nsValue
+}
+
+internal func plistNSObjectAsValue(_ nsValue: NSObject) -> Any {
+    let value: Any
+    
+    // Converts a value to the internal representation. Internalized values are
+    // stored as NSObject derived objects in the registration dictionary.
+    if let val = nsValue as? NSString {
+        value = val._swiftObject
+    } else if let val = nsValue as? NSNumber {
+        value = val._swiftValueOfOptimalType
+    } else if let val = nsValue as? NSData {
+        value = val._swiftObject
+    } else if let val = nsValue as? NSArray {
+        value = val._swiftObject.map { plistNSObjectAsValue($0 as! NSObject) }
+    } else if let val = nsValue as? NSDictionary {
+        var values: [String: Any] = [:]
+        for (currentKey, currentInnerValue) in val {
+            let key: String
+            
+            if let swiftKey = currentKey as? String {
+                key = swiftKey
+            } else if let nsKey = currentKey as? NSString {
+                key = nsKey._swiftObject
+            } else {
+                continue
+            }
+            
+            if let nsInnerValue = currentInnerValue as? NSObject {
+                values[key] = plistNSObjectAsValue(nsInnerValue)
+            } else {
+                values[key] = currentInnerValue
+            }
+        }
+        value = values
+    } else if let val = nsValue as? NSDate {
+        value = val._swiftObject
+    } else {
+        value = nsValue
+    }
+    
+    return value
 }
 
 private extension Dictionary {
@@ -62,6 +120,14 @@ private extension Dictionary where Value == NSObject {
         } else {
             return false
         }
+    }
+    
+    func convertingValuesFromPlistNSObject() -> [Key: Any] {
+        var result: [Key: Any] = [:]
+        for (key, value) in self {
+            result[key] = plistNSObjectAsValue(value)
+        }
+        return result
     }
 }
 
@@ -354,7 +420,7 @@ open class UserDefaults: NSObject {
         return allDefaults
     }
     
-    private static let _parsedArgumentsDomain: [String: Any] = UserDefaults._parseArguments(ProcessInfo.processInfo.arguments)
+    private static let _parsedArgumentsDomain: [String: NSObject] = UserDefaults._parseArguments(ProcessInfo.processInfo.arguments).convertingValuesToNSObjects() ?? [:]
     
     private var _volatileDomains: [String: [String: NSObject]] = [:]
     private let _volatileDomainsLock = NSLock()
@@ -372,7 +438,7 @@ open class UserDefaults: NSObject {
         let domain = _volatileDomains[domainName]
         _volatileDomainsLock.unlock()
         
-        return domain ?? [:]
+        return domain?.convertingValuesFromPlistNSObject() ?? [:]
     }
     
     open func setVolatileDomain(_ domain: [String : Any], forName domainName: String) {
