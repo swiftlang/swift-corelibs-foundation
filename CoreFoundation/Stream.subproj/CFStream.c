@@ -1670,6 +1670,7 @@ static void* _legacyStreamRunLoop_workThread(void* arg)
 {
 #if DEPLOYMENT_TARGET_LINUX
     pthread_setname_np(pthread_self(), "com.apple.CFStream.LegacyThread");
+#elif DEPLOYMENT_TARGET_FREEBSD // no support
 #else
     pthread_setname_np("com.apple.CFStream.LegacyThread");
 #endif

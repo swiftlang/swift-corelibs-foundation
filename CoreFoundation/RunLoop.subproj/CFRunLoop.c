@@ -94,11 +94,25 @@ extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 #define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF(x)
+
+#elif DEPLOYMENT_TARGET_FREEBSD
+
+#include <dlfcn.h>
+#include <poll.h>
+
+dispatch_runloop_handle_t _dispatch_get_main_queue_handle_4CF(void);
+extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
+
+#define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
+#define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF(x)
+
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
 CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
+#elif DEPLOYMENT_TARGET_FREEBSD
+#define pthread_main_thread_np() pthread_main_np()
 #endif
 
 #include <Block.h>
@@ -135,7 +149,7 @@ static pthread_t kNilPthreadT = { nil, nil };
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 
 static pthread_t kNilPthreadT = (pthread_t)0;
 #define pthreadPointer(a) ((void*)a)
@@ -494,6 +508,54 @@ CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
     close(portSet);
 }
+#elif DEPLOYMENT_TARGET_FREEBSD
+// kqueue descriptor
+typedef int __CFPort;
+#define CFPORT_NULL -1
+#define MACH_PORT_NULL CFPORT_NULL
+
+// kqueue file descriptor
+typedef int __CFPortSet;
+#define CFPORTSET_NULL -1
+
+static __CFPort __CFPortAllocate(void) {
+//    return kqueue();
+    return 0;
+}
+
+CF_INLINE void __CFPortFree(__CFPort port) {
+    close(port);
+}
+
+CF_INLINE __CFPortSet __CFPortSetAllocate(void) {
+//    return epoll_create1(EPOLL_CLOEXEC);
+    return 0;
+}
+
+CF_INLINE kern_return_t __CFPortSetInsert(__CFPort port, __CFPortSet portSet) {
+//    if (CFPORT_NULL == port) {
+//        return -1;
+//    }
+//    struct epoll_event event;
+//    memset(&event, 0, sizeof(event));
+//    event.data.fd = port;
+//    event.events = EPOLLIN|EPOLLET;
+//
+//    return epoll_ctl(portSet, EPOLL_CTL_ADD, port, &event);
+    return 0;
+}
+
+CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
+//    if (CFPORT_NULL == port) {
+//        return -1;
+//    }
+//    return epoll_ctl(portSet, EPOLL_CTL_DEL, port, NULL);
+    return 0;
+}
+
+CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
+    close(portSet);
+}
 #endif
 
 #if !defined(__MACTYPES__) && !defined(_OS_OSTYPES_H)
@@ -554,6 +616,39 @@ static kern_return_t mk_timer_arm(int timer, int64_t expire_time) {
     ts.it_interval.tv_nsec = 0;
     
     return timerfd_settime(timer, TFD_TIMER_ABSTIME, &ts, NULL);
+}
+
+static kern_return_t mk_timer_cancel(int timer, const void *unused) {
+    return mk_timer_arm(timer, 0);
+}
+
+CF_INLINE int64_t __CFUInt64ToAbsoluteTime(int64_t x) {
+    return x;
+}
+
+#elif DEPLOYMENT_TARGET_FREEBSD
+
+#include <time.h>
+static timer_t mk_timer_create(void) {
+    timer_t timer;
+    timer_create(CLOCK_MONOTONIC, NULL, &timer);
+    return timer;
+}
+
+static kern_return_t mk_timer_destroy(timer_t timer) {
+    return timer_delete(timer);
+}
+
+static kern_return_t mk_timer_arm(timer_t timer, int64_t expire_time) {
+    struct itimerspec ts;
+    ts.it_value.tv_sec = expire_time / 1000000000UL;
+    ts.it_value.tv_nsec = expire_time % 1000000000UL;
+
+    // Non-repeating timer
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+
+    return timer_settime(timer, TIMER_ABSTIME, &ts, NULL);
 }
 
 static kern_return_t mk_timer_cancel(int timer, const void *unused) {
@@ -2619,7 +2714,65 @@ static Boolean __CFRunLoopWaitForMultipleObjects(__CFPortSet portSet, HANDLE *on
     
     return result;
 }
+#elif DEPLOYMENT_TARGET_FREEBSD
 
+#define TIMEOUT_INFINITY UINT64_MAX
+
+// pass in either a portSet or onePort. portSet is an epollfd, onePort is either a timerfd or an eventfd.
+// TODO: Better error handling. What should happen if we get an error on a file descriptor?
+static Boolean __CFRunLoopServiceFileDescriptors(__CFPortSet portSet, __CFPort onePort, uint64_t timeout, int *livePort) {
+//    struct pollfd fdInfo = {
+//        .fd = (onePort == CFPORT_NULL) ? portSet : onePort,
+//        .events = POLLIN
+//    };
+//
+//    ssize_t result = __CFPollFileDescriptors(&fdInfo, 1, timeout);
+//    if (result == 0)
+//        return false;
+//
+//    CFAssert2(result != -1, __kCFLogAssertion, "%s(): error %d from ppoll", __PRETTY_FUNCTION__, errno);
+//
+//    int awokenFd;
+//
+//    if (onePort != CFPORT_NULL) {
+//        CFAssert1(0 == (fdInfo.revents & (POLLERR|POLLHUP)), __kCFLogAssertion, "%s(): ppoll reported error for fd", __PRETTY_FUNCTION__);
+//        awokenFd = onePort;
+//
+//    } else {
+//        struct epoll_event event;
+//        do {
+//            result = epoll_wait(portSet, &event, 1 /*numEvents*/, 0 /*timeout*/);
+//        } while (result == -1 && errno == EINTR);
+//        CFAssert2(result >= 0, __kCFLogAssertion, "%s(): error %d from epoll_wait", __PRETTY_FUNCTION__, errno);
+//
+//        if (result == 0) {
+//            return false;
+//        }
+//
+//        awokenFd = event.data.fd;
+//    }
+//
+//    // Now we acknowledge the wakeup. awokenFd is an eventfd (or possibly a
+//    // timerfd ?). In either case, we read an 8-byte integer, as per eventfd(2)
+//    // and timerfd_create(2).
+//    uint64_t value;
+//    do {
+//        result = read(awokenFd, &value, sizeof(value));
+//    } while (result == -1 && errno == EINTR);
+//
+//    if (result == -1 && errno == EAGAIN) {
+//        // Another thread stole the wakeup for this fd. (FIXME Can this actually
+//        // happen?)
+//        return false;
+//    }
+//
+//    CFAssert2(result == sizeof(value), __kCFLogAssertion, "%s(): error %d from read(2) while acknowledging wakeup", __PRETTY_FUNCTION__, errno);
+//
+//    if (livePort)
+//        *livePort = awokenFd;
+
+    return true;
+}
 #endif
 
 struct __timeout_context {
@@ -2720,7 +2873,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
         HANDLE livePort = NULL;
         Boolean windowsMessageReceived = false;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
         int livePort = -1;
 #endif
 	__CFPortSet waitSet = rlm->_portSet;
@@ -2919,7 +3072,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             __CFRunLoopModeUnlock(rlm);
             __CFRunLoopUnlock(rl);
             _CFSetTSD(__CFTSDKeyIsInGCDMainQ, (void *)6, NULL);
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
             void *msg = 0;
 #endif
             cf_trace(KDEBUG_EVENT_CFRL_IS_CALLING_DISPATCH | DBG_FUNC_START, rl, rlm, msg, livePort);
@@ -3666,7 +3819,7 @@ static CFStringRef __CFRunLoopSourceCopyDescription(CFTypeRef cf) {	/* DOES CALL
 	void *addr = rls->_context.version0.version == 0 ? (void *)rls->_context.version0.perform : (rls->_context.version0.version == 1 ? (void *)rls->_context.version1.perform : NULL);
 #if DEPLOYMENT_TARGET_WINDOWS
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %p}"), rls->_context.version0.version, rls->_context.version0.info, addr);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_FREEBSD || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
 	Dl_info info;
 	const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %s (%p)}"), rls->_context.version0.version, rls->_context.version0.info, name, addr);
@@ -3867,7 +4020,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
     }
 #if DEPLOYMENT_TARGET_WINDOWS
     result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopObserver %p [%p]>{valid = %s, activities = 0x%x, repeats = %s, order = %d, callout = %p, context = %@}"), cf, CFGetAllocator(rlo), __CFIsValid(rlo) ? "Yes" : "No", rlo->_activities, __CFRunLoopObserverRepeats(rlo) ? "Yes" : "No", rlo->_order, rlo->_callout, contextDesc);    
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_FREEBSD || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
     void *addr = rlo->_callout;
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";

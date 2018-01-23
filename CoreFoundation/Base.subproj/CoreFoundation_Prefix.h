@@ -12,7 +12,7 @@
 
 #define _DARWIN_UNLIMITED_SELECT 1
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS)
+#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_FREEBSD)
 #if DEPLOYMENT_RUNTIME_SWIFT
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 #define __HAS_DISPATCH__ 1
@@ -191,7 +191,7 @@ strlcat(char * dst, const char * src, size_t maxlen) {
 }
 #endif
 
-#if !TARGET_OS_CYGWIN
+#if !TARGET_OS_CYGWIN && !TARGET_OS_BSD
 #define issetugid() 0
 #endif
     
@@ -231,9 +231,8 @@ CF_INLINE uint64_t mach_absolute_time() {
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
 }
 
-#endif
-    
-#if DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_FREEBSD
+
 #define HAVE_STRUCT_TIMESPEC 1
 
 #define CF_PRIVATE __attribute__((visibility("hidden")))
@@ -256,6 +255,19 @@ int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
 bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
 
 void OSMemoryBarrier();
+
+#include <stdlib.h>
+#include <malloc_np.h>
+CF_INLINE size_t malloc_size(void *memblock) {
+	return malloc_usable_size(memblock);
+}
+
+#include <time.h>
+CF_INLINE uint64_t mach_absolute_time() {
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
+}
 
 #endif
 

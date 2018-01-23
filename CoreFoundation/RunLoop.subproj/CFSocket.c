@@ -942,6 +942,12 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/un.h>
 #include <libc.h>
 #include <dlfcn.h>
+#elif DEPLOYMENT_TARGET_FREEBSD
+#include <sys/sysctl.h>
+#include <sys/un.h>
+#include <dlfcn.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #endif
 #if TARGET_OS_CYGWIN
 #include <sys/socket.h>
@@ -2151,9 +2157,9 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
-#if (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN) || DEPLOYMENT_TARGET_FREEBSD
+#if (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
-#elif TARGET_OS_CYGWIN
+#elif TARGET_OS_CYGWIN || TARGET_OS_FREEBSD // not supported
 #else
     pthread_setname_np("com.apple.CFSocket.private");
 #endif

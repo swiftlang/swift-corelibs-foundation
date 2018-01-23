@@ -72,6 +72,10 @@
 #include <Block.h>
 #endif
 
+#if defined(__FreeBSD__)
+#include <libutil.h>
+#endif
+
   #if ((TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) && !DEPLOYMENT_RUNTIME_SWIFT
     #include <libkern/OSTypes.h>
   #endif

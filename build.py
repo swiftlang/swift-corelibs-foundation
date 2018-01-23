@@ -19,8 +19,10 @@ if Configuration.current.target.sdk == OSType.Linux:
 	foundation.LDFLAGS = '${SWIFT_USE_LINKER} -Wl,@./CoreFoundation/linux.ld -lswiftGlibc -Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
-	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
-	foundation.LDFLAGS = ''
+	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -D_GNU_SOURCE -I/usr/include -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
+	foundation.LDFLAGS = '-fuse-ld=gold -lswiftGlibc -lthr -lrt -lexecinfo '
+	swift_cflags += ['-DDEPLOYMENT_TARGET_FREEBSD -I/usr/include -I/usr/local/include']
+	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.MacOSX:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
@@ -109,7 +111,9 @@ if triple == "armv7-none-linux-androideabi":
 else:
 	foundation.LDFLAGS += '-lpthread '
 
-foundation.LDFLAGS += '-ldl -lm -lswiftCore '
+foundation.LDFLAGS += '-lm -lswiftCore '
+if Configuration.current.target.sdk != OSType.FreeBSD:
+	foundation.LDFLAGS += '-ldl '
 
 # Configure use of Dispatch in CoreFoundation and Foundation if libdispatch is being built
 if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
@@ -326,7 +330,7 @@ sources = CompileSources([
 # This code is already in libdispatch so is only needed if libdispatch is
 # NOT being used
 if "LIBDISPATCH_SOURCE_DIR" not in Configuration.current.variables:
-    sources += (['closure/data.c', 'closure/runtime.c'])
+    sources._sources += ['closure/data.c', 'closure/runtime.c']
 
 sources.add_dependency(headers)
 foundation.add_phase(sources)
@@ -521,7 +525,8 @@ foundation_tests = SwiftExecutable('TestFoundation', [
         'Foundation/ProgressFraction.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
-Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
+if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
+	Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
 
 foundation_tests.add_dependency(foundation_tests_resources)
 xdgTestHelper = SwiftExecutable('xdgTestHelper',

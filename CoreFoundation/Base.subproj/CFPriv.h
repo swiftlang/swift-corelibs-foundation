@@ -28,7 +28,7 @@
 
 
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_FREEBSD)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMachPort.h>
 #include <CoreFoundation/CFMessagePort.h>
 #endif
@@ -51,11 +51,11 @@ CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
 
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_FREEBSD))
 CF_EXPORT void _CFRunLoopSetCurrent(CFRunLoopRef rl);
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_FREEBSD)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 CF_EXPORT CFRunLoopRef CFRunLoopGetMain(void);
 CF_EXPORT SInt32 CFRunLoopRunSpecific(CFRunLoopRef rl, CFStringRef modeName, CFTimeInterval seconds, Boolean returnAfterSourceHandled);
 
@@ -548,7 +548,7 @@ CF_EXPORT CFMessagePortRef	CFMessagePortCreateUber(CFAllocatorRef allocator, CFS
 CF_EXPORT void CFMessagePortSetCloneCallout(CFMessagePortRef ms, CFMessagePortCallBack cloneCallout);
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_FREEBSD)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMessagePort.h>
 
 CF_EXPORT CFMessagePortRef CFMessagePortCreatePerProcessLocal(CFAllocatorRef allocator, CFStringRef name, CFMessagePortCallBack callout, CFMessagePortContext *context, Boolean *shouldFreeInfo);
@@ -563,7 +563,7 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 
 #if TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE
 #include <pthread.h>
-#elif !TARGET_OS_LINUX
+#elif !(TARGET_OS_LINUX || TARGET_OS_FREEBSD)
 // Avoid including the pthread header
 #ifndef HAVE_STRUCT_TIMESPEC
 #define HAVE_STRUCT_TIMESPEC 1
@@ -574,6 +574,12 @@ struct timespec { long tv_sec; long tv_nsec; };
 CF_INLINE CFAbsoluteTime _CFAbsoluteTimeFromFileTimeSpec(struct timespec ts) {
     return (CFAbsoluteTime)((CFTimeInterval)ts.tv_sec - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * (CFTimeInterval)ts.tv_nsec);
 }
+
+// For whatever reason, including <time.h> is not defining time_t on FreeBSD
+#if TARGET_OS_FREEBSD && !defined(_TIME_T_DECLARED)
+typedef	__time_t	time_t;
+#define _TIME_T_DECLARED
+#endif
 
 CF_INLINE struct timespec _CFFileTimeSpecFromAbsoluteTime(CFAbsoluteTime at) {
    struct timespec ts;

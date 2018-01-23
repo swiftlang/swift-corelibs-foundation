@@ -596,7 +596,11 @@ static _Bool __os_warn_unused(_Bool x) { return x; }
 
 #if !__HAS_DISPATCH__
 
+#if defined(__FreeBSD__)
+typedef long dispatch_once_t;
+#else
 typedef volatile long dispatch_once_t;
+#endif
 CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 #define dispatch_once _CF_dispatch_once
 
@@ -936,7 +940,7 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW

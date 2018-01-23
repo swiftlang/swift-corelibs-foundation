@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux) || CYGWIN
+#elseif os(Linux) || os(FreeBSD) || CYGWIN
 import Glibc
 #endif
 import CoreFoundation
@@ -146,7 +146,7 @@ open class Thread : NSObject {
     internal var _main: () -> Void = {}
     private var _thread: pthread_t? = nil
 
-#if CYGWIN
+#if CYGWIN || os(FreeBSD)
     internal var _attr : pthread_attr_t? = nil
 #else
     internal var _attr = pthread_attr_t()
@@ -181,7 +181,7 @@ open class Thread : NSObject {
             _status = .finished
             return
         }
-#if CYGWIN
+#if CYGWIN || os(FreeBSD)
         if let attr = self._attr {
             _thread = self.withRetainedReference {
               return _CFThreadCreate(attr, NSThreadStart, $0)
@@ -259,7 +259,7 @@ open class Thread : NSObject {
 #if os(Android)
         let count = 0
 #else
-        let count = backtrace(addrs, Int32(maxSupportedStackDepth))
+        let count = backtrace(addrs, Int(maxSupportedStackDepth))
 #endif
         let addressCount = max(0, min(Int(count), maxSupportedStackDepth))
         return body(addrs, addressCount)
@@ -279,7 +279,7 @@ open class Thread : NSObject {
 #else
         return backtraceAddresses({ (addrs, count) in
             var symbols: [String] = []
-            if let bs = backtrace_symbols(addrs, Int32(count)) {
+            if let bs = backtrace_symbols(addrs, Int(count)) {
                 symbols = UnsafeBufferPointer(start: bs, count: count).map {
                     guard let symbol = $0 else {
                         return "<null>"

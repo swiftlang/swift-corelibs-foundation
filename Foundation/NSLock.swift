@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux) || CYGWIN
+#elseif os(Linux) || os(FreeBSD) || CYGWIN
 import Glibc
 #endif
 
@@ -21,7 +21,7 @@ public protocol NSLocking {
     func unlock()
 }
 
-#if CYGWIN
+#if CYGWIN || os(FreeBSD)
 private typealias _PthreadMutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _PthreadCondPointer = UnsafeMutablePointer<pthread_cond_t?>
 #else
@@ -183,13 +183,18 @@ open class NSRecursiveLock: NSObject, NSLocking {
 
     public override init() {
         super.init()
-#if CYGWIN
+#if CYGWIN || os(FreeBSD)
         var attrib : pthread_mutexattr_t? = nil
 #else
         var attrib = pthread_mutexattr_t()
 #endif
         withUnsafeMutablePointer(to: &attrib) { attrs in
+#if os(FreeBSD)
+            // on FreeBSD, this is declared as enum
+            pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE.rawValue))
+#else
             pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
+#endif
             pthread_mutex_init(mutex, attrs)
         }
     }

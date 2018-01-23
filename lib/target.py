@@ -202,7 +202,7 @@ class ArchType:
             return ArchType.thumbeb
         if string == "x86":
             return ArchType.x86
-        if string == "x86_64":
+        if string == "x86_64" or string == "amd64":
             return ArchType.x86_64
         if string == "xcore":
             return ArchType.xcore
@@ -370,7 +370,7 @@ class Target:
             triple += "-apple-darwin"
         elif platform.system() == "FreeBSD":
             # Make this work on 10 as well.
-            triple += "-freebsd11.0"
+            triple += "-freebsd"
         elif platform.system() == "CYGWIN_NT-10.0":
             triple += "-windows-cygnus"
         else:
@@ -394,7 +394,7 @@ class Target:
             else:
                 triple += "-unknown-linux"
         elif self.sdk == OSType.FreeBSD:
-            triple += "-unknown-freebsd"
+            triple += "-v11.1-freebsd11.1"
         elif self.sdk == OSType.Win32 and self.environ == EnvironmentType.Cygnus:
             triple += "-unknown-windows-cygnus"
         else:

@@ -1494,6 +1494,11 @@ CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) {
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
+#if DEPLOYMENT_TARGET_FREEBSD
+CFDictionaryRef __CFGetEnvironment() {
+    return NULL;
+}
+#else
 CFDictionaryRef __CFGetEnvironment() {
     static dispatch_once_t once = 0L;
     static CFMutableDictionaryRef envDict = NULL;
@@ -1501,7 +1506,7 @@ CFDictionaryRef __CFGetEnvironment() {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_CYGWIN || DEPLOYMENT_TARGET_FREEBSD
         extern char **environ;
         char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
@@ -1546,6 +1551,7 @@ CFDictionaryRef __CFGetEnvironment() {
     });
     return envDict;
 }
+#endif
 
 int32_t __CFGetPid() {
     return getpid();

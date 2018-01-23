@@ -54,7 +54,7 @@ static void __CFMilliSleep(uint32_t msecs) {
     SleepEx(msecs, false);
 #elif defined(__svr4__) || defined(__hpux__)
     sleep((msecs + 900) / 1000);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     struct timespec input;
     input.tv_sec = msecs / 1000;
     input.tv_nsec = (msecs - input.tv_sec * 1000) * 1000000;
