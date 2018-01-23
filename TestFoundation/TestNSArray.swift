@@ -51,6 +51,7 @@ class TestNSArray : XCTestCase {
             ("test_insertObjectAtIndex", test_insertObjectAtIndex),
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
+            ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
         ]
     }
     
@@ -744,6 +745,24 @@ class TestNSArray : XCTestCase {
         let a3 = NSMutableArray(arrayLiteral: "one", "two", "three", "four")
         a3.replaceObjects(at: [3, 2, 1, 0], with: ["a", "b", "c", "d"])
         XCTAssertEqual(a3, ["a", "b", "c", "d"])
+    }
+
+    func test_pathsMatchingExtensions() {
+        let paths = NSArray(arrayLiteral: "file1.txt", "/tmp/file2.txt", "file3.jpg", "file3.png", "/file4.png", "txt", ".txt")
+        let match1 = paths.pathsMatchingExtensions(["txt"])
+        XCTAssertEqual(match1, ["file1.txt", "/tmp/file2.txt"])
+
+        let match2 = paths.pathsMatchingExtensions([])
+        XCTAssertEqual(match2, [])
+
+        let match3 = paths.pathsMatchingExtensions([".txt", "png"])
+        XCTAssertEqual(match3, ["file3.png", "/file4.png"])
+
+        let match4 = paths.pathsMatchingExtensions(["", ".tx", "tx"])
+        XCTAssertEqual(match4, [])
+
+        let match5 = paths.pathsMatchingExtensions(["..txt"])
+        XCTAssertEqual(match5, [])
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
