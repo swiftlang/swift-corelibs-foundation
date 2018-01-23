@@ -301,7 +301,7 @@ class TestUserDefaults : XCTestCase {
 			dateKey: Date(),
 			stringKey: "The String",
 			arrayKey: [1, 2, 3],
-			dictionaryKey: ["Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP"],
+			dictionaryKey: ["Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date()],
 			dataKey: "The Data".data(using: .utf8)!,
 			boolKey: true
 		]
@@ -318,7 +318,7 @@ class TestUserDefaults : XCTestCase {
 		XCTAssertEqual(defaultsIn[dateKey] as! Date, defaultsOut[dateKey] as! Date)
 		XCTAssertEqual(defaultsIn[stringKey] as! String, defaultsOut[stringKey] as! String)
 		XCTAssertEqual(defaultsIn[arrayKey] as! [Int], defaultsOut[arrayKey] as! [Int])
-		XCTAssertEqual(defaultsIn[dictionaryKey] as! [String: String], defaultsOut[dictionaryKey] as! [String: String])
+		XCTAssertEqual(defaultsIn[dictionaryKey] as! [String: AnyHashable], defaultsOut[dictionaryKey] as! [String: AnyHashable])
 		XCTAssertEqual(defaultsIn[dataKey] as! Data, defaultsOut[dataKey] as! Data)
 		XCTAssertEqual(defaultsIn[boolKey] as! Bool, defaultsOut[boolKey] as! Bool)
 	}
