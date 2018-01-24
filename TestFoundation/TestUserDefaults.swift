@@ -293,7 +293,7 @@ class TestUserDefaults : XCTestCase {
 	
 	func test_persistentDomain() {
 		let int = (key: "An Integer", value: 1234)
-		let double = (key: "A Double", value: 5678.0)
+		let double = (key: "A Double", value: 5678.1234)
 		let string = (key: "A String", value: "Some string")
 		let array = (key: "An Array", value: [ 1, 2, 3, 4, "Surprise" ] as [AnyHashable])
 		let dictionary = (key: "A Dictionary", value: [ "Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date() ] as [String: AnyHashable])
@@ -303,30 +303,37 @@ class TestUserDefaults : XCTestCase {
 		let defaults1 = UserDefaults(suiteName: nil)!
 		
 		defaults1.removePersistentDomain(forName: domainName)
-		XCTAssertNil(defaults1.persistentDomain(forName: domainName))
+		if let domain = defaults1.persistentDomain(forName: domainName) {
+			XCTAssertEqual(domain.count, 0)
+		} // else it's nil, which is also OK.
 		
-		defaults1.setPersistentDomain([int.key: int.value,
-									  double.key: double.value,
-									  string.key: string.value,
-									  array.key: array.value,
-									  dictionary.key: dictionary.value],
-									 forName: domainName)
+		let defaultsIn: [String : Any] =
+			[ int.key: int.value,
+			  double.key: double.value,
+			  string.key: string.value,
+			  array.key: array.value,
+			  dictionary.key: dictionary.value ]
+		
+		defaults1.setPersistentDomain(defaultsIn, forName: domainName)
 		
 		let defaults2 = UserDefaults(suiteName: nil)!
 		let returned = defaults2.persistentDomain(forName: domainName)
 		XCTAssertNotNil(returned)
 		
 		if let returned = returned {
-			XCTAssertEqual(returned[int.key] as! Int, int.value)
-			XCTAssertEqual(returned[double.key] as! Double, double.value)
-			XCTAssertEqual(returned[string.key] as! String, string.value)
-			XCTAssertEqual(returned[array.key] as! [AnyHashable], array.value)
-			XCTAssertEqual(returned[dictionary.key] as! [String: AnyHashable], dictionary.value)
+			XCTAssertEqual(returned.count, defaultsIn.count)
+			XCTAssertEqual(returned[int.key] as? Int, int.value)
+			XCTAssertEqual(returned[double.key] as? Double, double.value)
+			XCTAssertEqual(returned[string.key] as? String, string.value)
+			XCTAssertEqual(returned[array.key] as? [AnyHashable], array.value)
+			XCTAssertEqual(returned[dictionary.key] as? [String: AnyHashable], dictionary.value)
 		}
 		
-		defaults2.removeSuite(named: domainName)
+		defaults2.removePersistentDomain(forName: domainName)
 		
 		let defaults3 = UserDefaults(suiteName: nil)!
-		XCTAssertNil(defaults3.persistentDomain(forName: domainName))
+		if let domain = defaults3.persistentDomain(forName: domainName) {
+			XCTAssertEqual(domain.count, 0)
+		} // else it's nil, which is also OK.
 	}
 }
