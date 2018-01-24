@@ -653,7 +653,26 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     open func pathsMatchingExtensions(_ filterTypes: [String]) -> [String] {
-        NSUnimplemented()
+        guard filterTypes.count > 0 else {
+            return []
+        }
+
+        let extensions: [String] = filterTypes.map {
+            var ext = "."
+            ext.append($0)
+            return ext
+        }
+
+        return self.filter {
+            // The force unwrap will abort if the element is not a String but this behaviour matches Dawrin, which throws an exception.
+            let filename = $0 as! String
+            for ext in extensions {
+                if filename.hasSuffix(ext) && filename.count > ext.count {
+                    return true
+                }
+            }
+            return false
+        } as! [String]
     }
 
     override open var _cfTypeID: CFTypeID {
