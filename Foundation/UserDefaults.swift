@@ -404,12 +404,18 @@ open class UserDefaults: NSObject {
         CFPreferencesRemoveSuitePreferencesFromApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
     
-    open func dictionaryRepresentation() -> [String : Any] {
+    open func dictionaryRepresentation() -> [String: Any] {
+        return _dictionaryRepresentation(searchingOutsideOfSuite: true)
+    }
+    
+    private func _dictionaryRepresentation(searchingOutsideOfSuite: Bool) -> [String: Any] {
+        let registeredDefaultsIfAllowed = searchingOutsideOfSuite ? registeredDefaults : [:]
+        
         guard let aPref = CFPreferencesCopyMultiple(nil, kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost),
             let bPref = (aPref._swiftObject) as? [NSString: Any] else {
-                return registeredDefaults
+                return registeredDefaultsIfAllowed
         }
-        var allDefaults = registeredDefaults
+        var allDefaults = registeredDefaultsIfAllowed
         
         for (key, value) in bPref {
             if let value = plistValueAsNSObject(value) {
@@ -457,9 +463,33 @@ open class UserDefaults: NSObject {
         _volatileDomainsLock.unlock()
     }
     
-    open func persistentDomain(forName domainName: String) -> [String : Any]? { NSUnimplemented() }
-    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) { NSUnimplemented() }
-    open func removePersistentDomain(forName domainName: String) { NSUnimplemented() }
+    open func persistentDomain(forName domainName: String) -> [String : Any]? {
+        return UserDefaults(suiteName: domainName)?._dictionaryRepresentation(searchingOutsideOfSuite: false)
+    }
+    
+    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) {
+        if let defaults = UserDefaults(suiteName: domainName) {
+            for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
+                defaults.removeObject(forKey: key)
+            }
+            
+            for (key, value) in domain {
+                defaults.set(value, forKey: key)
+            }
+        }
+        
+        NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+    }
+    
+    open func removePersistentDomain(forName domainName: String) {
+        if let defaults = UserDefaults(suiteName: domainName) {
+            for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
+                defaults.removeObject(forKey: key)
+            }
+            
+            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+        }
+    }
     
     open func synchronize() -> Bool {
         return CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
