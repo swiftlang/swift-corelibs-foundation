@@ -8,10 +8,10 @@
 //
 
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-	@testable import Foundation
+	import Foundation
 	import XCTest
 #else
-	@testable import SwiftFoundation
+	import SwiftFoundation
 	import SwiftXCTest
 #endif
 
@@ -38,7 +38,6 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
 			("test_setValue_IntFromString", test_setValue_IntFromString ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
-			("test_parseArguments", test_parseArguments),
 			("test_volatileDomains", test_volatileDomains),
 		]
 	}
@@ -255,38 +254,6 @@ class TestUserDefaults : XCTestCase {
 		defaults.set("12.34", forKey: "key1")
 		
 		XCTAssertEqual(defaults.double(forKey: "key1"), 12.34)
-	}
-	
-	func test_parseArguments() {
-		var shouldBeEmpty: [String: Any]
-			
-		shouldBeEmpty = UserDefaults._parseArguments([])
-		XCTAssert(shouldBeEmpty.isEmpty)
-
-		shouldBeEmpty = UserDefaults._parseArguments([ "There are", "no arguments", "here that", "should be", "parsed into", "stuff", "-wowThisIsTheLastAndShouldNotProduceAKey"])
-		XCTAssert(shouldBeEmpty.isEmpty)
-		
-		XCTAssertEqual(UserDefaults._parseArguments([ "-SomeDefault", "SomeValue"]) as! [String: String], ["SomeDefault": "SomeValue"])
-
-		XCTAssertEqual(UserDefaults._parseArguments([ "-SomeDefault", "SomeValue", "-Whoa", "1234", "This isn't parsed", "-WhoaAgain", "2345", "-wowThisIsTheLastAndShouldNotProduceAKey"]) as! [String: String], [
-			"SomeDefault": "SomeValue",
-			"Whoa": "1234",
-			"WhoaAgain": "2345",
-		])
-		
-		XCTAssertEqual(UserDefaults._parseArguments([ "-SomeDefault", "(\"SomeValue\")"]) as! [String: [String]], ["SomeDefault": [ "SomeValue" ]])
-		XCTAssertEqual(UserDefaults._parseArguments([ "-SomeDefault", "{\"SomeKey\" = \"SomeValue\";}"]) as! [String: [String: String]], ["SomeDefault": [ "SomeKey": "SomeValue" ]])
-		XCTAssertEqual(UserDefaults._parseArguments([ "-SomeDefault", "\"SomeValue\"" ]) as! [String: String], ["SomeDefault": "SomeValue"])
-		
-		let result = UserDefaults._parseArguments([ "-SomeDefault1", "(\"SomeValue1\", \"SomeValue2\")",
-													"-SomeDefault2", "{\"SomeKey\" = \"SomeValue\";}",
-													"This isn't parsed",
-													"-SomeDefault3", "\"SomeValue\"",
-													"-wowThisIsTheLastAndShouldNotProduceAKey" ])
-		XCTAssertEqual(result.count, 3)
-		XCTAssertEqual(result["SomeDefault1"] as! [String], [ "SomeValue1", "SomeValue2" ])
-		XCTAssertEqual(result["SomeDefault2"] as! [String: String], [ "SomeKey": "SomeValue" ])
-		XCTAssertEqual(result["SomeDefault3"] as! String, "SomeValue")
 	}
 	
 	func test_volatileDomains() {
