@@ -33,6 +33,7 @@ class TestFileManager : XCTestCase {
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
+            ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
         ]
     }
     
@@ -108,6 +109,20 @@ class TestFileManager : XCTestCase {
             try fm.removeItem(atPath: path)
         } catch {
             XCTFail("Failed to clean up file")
+        }
+    }
+
+    func test_creatingDirectoryWithShortIntermediatePath() {
+        let fileManager = FileManager.default
+        fileManager.changeCurrentDirectoryPath(NSTemporaryDirectory())
+
+        let relativePath = NSUUID().uuidString
+
+        do {
+            try fileManager.createDirectory(atPath: relativePath, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.removeItem(atPath: relativePath)
+        } catch {
+            XCTFail("Failed to create and clean up directory")
         }
     }
 

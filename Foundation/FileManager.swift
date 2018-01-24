@@ -150,7 +150,7 @@ open class FileManager : NSObject {
             var isDir: ObjCBool = false
             if !fileExists(atPath: path, isDirectory: &isDir) {
                 let parent = path._nsObject.deletingLastPathComponent
-                if !fileExists(atPath: parent, isDirectory: &isDir) {
+                if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
                     try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
                 }
                 if mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
