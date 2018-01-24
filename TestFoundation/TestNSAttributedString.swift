@@ -587,7 +587,7 @@ class TestNSMutableAttributedString : XCTestCase {
         let deleteRange = NSRange(location: 0, length: 10)
         mutableAttrString.deleteCharacters(in: deleteRange)
         
-        let expectedString = String(string[string.startIndex.advanced(by: 10)...])
+        let expectedString = String(string[string.index(string.startIndex, offsetBy: 10)...])
         XCTAssertEqual(mutableAttrString.string, expectedString)
         
         let expectedLongestEffectiveRange = NSRange(expectedString.startIndex..., in: expectedString)
