@@ -299,6 +299,21 @@ class TestUserDefaults : XCTestCase {
 		let dictionary = (key: "A Dictionary", value: [ "Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date() ] as [String: AnyHashable])
 		
 		let domainName = "org.swift.Foundation.TestPersistentDomainName"
+
+		let done = expectation(description: "All notifications have fired.")
+		
+		var countOfFiredNotifications = 0
+		let expectedNotificationCount = 3
+		
+		let observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { (_) in
+			countOfFiredNotifications += 1
+			
+			if countOfFiredNotifications == expectedNotificationCount {
+				done.fulfill()
+			} else if countOfFiredNotifications > expectedNotificationCount {
+				XCTFail("Too many UserDefaults.didChangeNotification notifications posted.")
+			}
+		}
 		
 		let defaults1 = UserDefaults(suiteName: nil)!
 		
@@ -335,5 +350,9 @@ class TestUserDefaults : XCTestCase {
 		if let domain = defaults3.persistentDomain(forName: domainName) {
 			XCTAssertEqual(domain.count, 0)
 		} // else it's nil, which is also OK.
+		
+		waitForExpectations(timeout: 10)
+		
+		NotificationCenter.default.removeObserver(observer)
 	}
 }

@@ -359,39 +359,29 @@ open class UserDefaults: NSObject {
     
     open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) {
         if let defaults = UserDefaults(suiteName: domainName) {
-            var removedAny = false
             for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
                 defaults.removeObject(forKey: key)
-                removedAny = true
             }
             
-            var addedAny = false
             for (key, value) in domain {
                 defaults.set(value, forKey: key)
-                addedAny = true
             }
             
             _ = defaults.synchronize()
             
-            if removedAny || addedAny {
-                NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
-            }
+            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
         }
     }
     
     open func removePersistentDomain(forName domainName: String) {
         if let defaults = UserDefaults(suiteName: domainName) {
-            var removedAny = false
             for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
                 defaults.removeObject(forKey: key)
-                removedAny = true
             }
             
             _ = defaults.synchronize()
             
-            if removedAny {
-                NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
-            }
+            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
         }
     }
     
