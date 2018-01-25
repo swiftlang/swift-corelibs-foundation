@@ -38,6 +38,7 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
 			("test_setValue_IntFromString", test_setValue_IntFromString ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
+			("test_volatileDomains", test_volatileDomains),
 		]
 	}
 
@@ -253,5 +254,39 @@ class TestUserDefaults : XCTestCase {
 		defaults.set("12.34", forKey: "key1")
 		
 		XCTAssertEqual(defaults.double(forKey: "key1"), 12.34)
+	}
+	
+	func test_volatileDomains() {
+		let dateKey = "A Date",
+		stringKey = "A String",
+		arrayKey = "An Array",
+		dictionaryKey = "A Dictionary",
+		dataKey = "Some Data",
+		boolKey = "A Bool"
+		
+		let defaultsIn: [String: Any] = [
+			dateKey: Date(),
+			stringKey: "The String",
+			arrayKey: [1, 2, 3],
+			dictionaryKey: ["Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date()],
+			dataKey: "The Data".data(using: .utf8)!,
+			boolKey: true
+		]
+		
+		let domainName = "TestDomain"
+		
+		let defaults = UserDefaults(suiteName: nil)!
+		XCTAssertFalse(defaults.volatileDomainNames.contains(domainName))
+		
+		defaults.setVolatileDomain(defaultsIn, forName: domainName)
+		let defaultsOut = defaults.volatileDomain(forName: domainName)
+		
+		XCTAssertEqual(defaultsIn.count, defaultsOut.count)
+		XCTAssertEqual(defaultsIn[dateKey] as! Date, defaultsOut[dateKey] as! Date)
+		XCTAssertEqual(defaultsIn[stringKey] as! String, defaultsOut[stringKey] as! String)
+		XCTAssertEqual(defaultsIn[arrayKey] as! [Int], defaultsOut[arrayKey] as! [Int])
+		XCTAssertEqual(defaultsIn[dictionaryKey] as! [String: AnyHashable], defaultsOut[dictionaryKey] as! [String: AnyHashable])
+		XCTAssertEqual(defaultsIn[dataKey] as! Data, defaultsOut[dataKey] as! Data)
+		XCTAssertEqual(defaultsIn[boolKey] as! Bool, defaultsOut[boolKey] as! Bool)
 	}
 }

@@ -622,6 +622,34 @@ open class NSNumber : NSValue {
             fatalError("unsupported CFNumberType: '\(numberType)'")
         }
     }
+    
+    internal var _swiftValueOfOptimalType: Any {
+        if self === kCFBooleanTrue {
+            return true
+        } else if self === kCFBooleanFalse {
+            return false
+        }
+        
+        let numberType = _CFNumberGetType2(_cfObject)
+        switch numberType {
+        case kCFNumberSInt8Type:
+            return Int(int8Value)
+        case kCFNumberSInt16Type:
+            return Int(int16Value)
+        case kCFNumberSInt32Type:
+            return Int(int32Value)
+        case kCFNumberSInt64Type:
+            return int64Value < Int.max ? Int(int64Value) : int64Value
+        case kCFNumberFloat32Type:
+            return floatValue
+        case kCFNumberFloat64Type:
+            return doubleValue
+        case kCFNumberSInt128Type:
+            return int128Value
+        default:
+            fatalError("unsupported CFNumberType: '\(numberType)'")
+        }
+    }
 
     deinit {
         _CFDeinit(self)
