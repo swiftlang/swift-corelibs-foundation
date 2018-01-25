@@ -12,9 +12,19 @@ import CoreFoundation
 private var registeredDefaults = [String: Any]()
 private var sharedDefaults = UserDefaults()
 
+fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
+    // This line will produce a 'Conditional cast always succeeds' warning if compoiled on Darwin, since Darwin has bridging casts of any value to an object,
+    // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
+    if let object = value as? AnyObject {
+        return _SwiftValue.fetch(nonOptional: object)
+    } else {
+        return value
+    }
+}
+
 open class UserDefaults: NSObject {
     static private func _isValueAllowed(_ nonbridgedValue: Any) -> Bool {
-        let value = _SwiftValue.fetch(nonOptional: nonbridgedValue as AnyObject)
+        let value = bridgeFromNSCFTypeIfNeeded(nonbridgedValue)
         
         if let value = value as? [Any] {
             for innerValue in value {
@@ -268,15 +278,7 @@ open class UserDefaults: NSObject {
     }
     
     open func register(defaults registrationDictionary: [String : Any]) {
-        registeredDefaults.merge(registrationDictionary.mapValues { value in
-            // This line will produce a 'Conditional cast always succeeds' warning on Darwin, since Darwin has bridging casts of any value to an object,
-            // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
-            if let object = value as? AnyObject {
-                return _SwiftValue.fetch(nonOptional: object)
-            } else {
-                return value
-            }
-        }, uniquingKeysWith: { $1 })
+        registeredDefaults.merge(registrationDictionary.mapValues(bridgeFromNSCFTypeIfNeeded), uniquingKeysWith: { $1 })
     }
 
     open func addSuite(named suiteName: String) {
