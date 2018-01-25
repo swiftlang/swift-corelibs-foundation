@@ -40,13 +40,13 @@ open class UserDefaults: NSObject {
             return true
         }
         
-        let isOfCommonTypes =  value is String || value is Data || value is Date || value is Int || value is Bool || value is CGFloat
-        if isOfCommonTypes {
+        // NSNumber doesn't quite bridge -- treat it specially.
+        if value is NSNumber {
             return true
         }
         
-        // NSNumber doesn't quite bridge -- treat it specially.
-        if value is NSNumber {
+        let isOfCommonTypes =  value is String || value is Data || value is Date || value is Int || value is Bool || value is CGFloat
+        if isOfCommonTypes {
             return true
         }
         
