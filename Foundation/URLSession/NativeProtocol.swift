@@ -329,7 +329,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
 
         self.internalState = .transferReady(createTransferState(url: url, workQueue: t.workQueue))
-        configureEasyHandle(for: request)
+        configureEasyHandle(for: task?.authRequest ?? request)
         if (t.suspendCount) < 1 {
             resume()
         }

@@ -117,7 +117,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+        if let hh = request.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
@@ -426,5 +426,27 @@ fileprivate extension HTTPURLResponse {
             return location
         }
         return nil
+    }
+}
+
+extension _HTTPURLProtocol : URLAuthenticationChallengeSender {
+    func cancel(_ challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func performDefaultHandling(for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func rejectProtectionSpaceAndContinue(with challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
     }
 }

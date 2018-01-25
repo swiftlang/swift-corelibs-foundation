@@ -106,6 +106,12 @@ open class URLSessionTask : NSObject, NSCopying {
     
     /// May be nil if this is a stream task
     /*@NSCopying*/ open let originalRequest: URLRequest?
+
+    /// If there's an authentication failure, we'd need to create a new request with the credentials supplied by the user
+    var authRequest: URLRequest? = nil
+
+    /// Authentication failure count
+    fileprivate var previousFailureCount = 0
     
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open internal(set) var currentRequest: URLRequest? {
@@ -531,6 +537,16 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
+        if let response = task.response as? HTTPURLResponse, response.statusCode == 401 {
+            //TODO: Fetch and set proposed credentials if they exist
+            let urlProtectionSpace = URLProtectionSpace.create(using: response)
+            let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: urlProtectionSpace, proposedCredential: nil,
+                                                                     previousFailureCount: task.previousFailureCount, failureResponse: response,
+                                                                     error: nil, sender: `protocol` as! _HTTPURLProtocol)
+            task.previousFailureCount += 1
+            urlProtocol(`protocol`, didReceive: authenticationChallenge)
+            return
+        }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             if let downloadDelegate = delegate as? URLSessionDownloadDelegate, let downloadTask = task as? URLSessionDownloadTask {
@@ -569,7 +585,24 @@ extension _ProtocolClient : URLProtocolClient {
     }
 
     func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
-        NSUnimplemented()
+        guard let task = `protocol`.task else { fatalError() }
+        guard let session = task.session as? URLSession else { fatalError() }
+        switch session.behaviour(for: task) {
+        case .taskDelegate(let delegate):
+            session.delegateQueue.addOperation {
+                let authScheme = challenge.protectionSpace.authenticationMethod
+                delegate.urlSession(session, task: task, didReceive: challenge) { disposition, credential in
+                    task.suspend()
+                    guard let handler = URLSessionTask.authHandler(for: authScheme) else {
+                        fatalError("\(authScheme) is not supported")
+                    }
+                    handler(task, disposition, credential)
+                    task._protocol = _HTTPURLProtocol(task: task, cachedResponse: nil, client: nil)
+                    task.resume()
+                }
+            }
+        default: return
+        }
     }
 
     func urlProtocol(_ protocol: URLProtocol, didLoad data: Data) {
@@ -637,5 +670,31 @@ extension URLProtocol {
     enum _PropertyKey: String {
         case responseData
         case temporaryFileURL
+    }
+}
+
+extension URLSessionTask {
+    typealias _AuthHandler = ((URLSessionTask, URLSession.AuthChallengeDisposition, URLCredential?) -> ())
+
+    static func authHandler(for authScheme: String) -> _AuthHandler? {
+        let handlers: [String : _AuthHandler] = [
+            "Basic" : basicAuth,
+            "Digest": digestAuth
+        ]
+        return handlers[authScheme]
+    }
+
+    //Authentication handlers
+    static func basicAuth(_ task: URLSessionTask, _ disposition: URLSession.AuthChallengeDisposition, _ credential: URLCredential?) {
+        //TODO: Handle disposition. For now, we default to .useCredential
+        let user = credential?.user ?? ""
+        let password = credential?.password ?? ""
+        let encodedString = "\(user):\(password)".data(using: .utf8)?.base64EncodedString()
+        task.authRequest = task.originalRequest
+        task.authRequest?.setValue("Basic \(encodedString!)", forHTTPHeaderField: "Authorization")
+    }
+
+    static func digestAuth(_ task: URLSessionTask, _ disposition: URLSession.AuthChallengeDisposition, _ credential: URLCredential?) {
+        NSUnimplemented()
     }
 }
