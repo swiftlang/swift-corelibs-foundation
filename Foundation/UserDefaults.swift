@@ -289,20 +289,20 @@ open class UserDefaults: NSObject {
     }
     
     open func dictionaryRepresentation() -> [String: Any] {
-        return _dictionaryRepresentation(searchingOutsideOfSuite: true)
+        return _dictionaryRepresentation(includingVolatileDomains: true)
     }
     
-    private func _dictionaryRepresentation(searchingOutsideOfSuite: Bool) -> [String: Any] {
-        let registeredDefaultsIfAllowed = searchingOutsideOfSuite ? registeredDefaults : [:]
+    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: Any] {
+        let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults : [:]
         
         guard let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
             return registeredDefaultsIfAllowed
         }
         
-        let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: AnyObject] ?? [:]
+        let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
         
         if registeredDefaultsIfAllowed.count == 0 {
-            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: AnyObject]
+            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
         } else {
             var allDefaults = registeredDefaultsIfAllowed
             
@@ -354,12 +354,12 @@ open class UserDefaults: NSObject {
     }
     
     open func persistentDomain(forName domainName: String) -> [String : Any]? {
-        return UserDefaults(suiteName: domainName)?._dictionaryRepresentation(searchingOutsideOfSuite: false)
+        return UserDefaults(suiteName: domainName)?._dictionaryRepresentation(includingVolatileDomains: false)
     }
     
     open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) {
         if let defaults = UserDefaults(suiteName: domainName) {
-            for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
+            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
                 defaults.removeObject(forKey: key)
             }
             
@@ -375,7 +375,7 @@ open class UserDefaults: NSObject {
     
     open func removePersistentDomain(forName domainName: String) {
         if let defaults = UserDefaults(suiteName: domainName) {
-            for key in defaults._dictionaryRepresentation(searchingOutsideOfSuite: false).keys {
+            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
                 defaults.removeObject(forKey: key)
             }
             
