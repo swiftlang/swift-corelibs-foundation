@@ -224,6 +224,7 @@ private = [
 	'CoreFoundation/Locale.subproj/CFDateFormatter_Private.h',
 	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
 	'CoreFoundation/Parsing.subproj/CFPropertyList_Private.h',
+	'CoreFoundation/Base.subproj/CFKnownLocations.h',
 ],
 project = [
 ])
@@ -321,6 +322,7 @@ sources = CompileSources([
 	'CoreFoundation/String.subproj/CFAttributedString.c',
 	'CoreFoundation/String.subproj/CFRunArray.c',
 	'CoreFoundation/URL.subproj/CFURLSessionInterface.c',
+	'CoreFoundation/Base.subproj/CFKnownLocations.c',
 ])
 
 # This code is already in libdispatch so is only needed if libdispatch is

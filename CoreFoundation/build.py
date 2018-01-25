@@ -198,6 +198,7 @@ private = [
 	'Locale.subproj/CFDateFormatter_Private.h',
 	'Locale.subproj/CFLocale_Private.h',
 	'Parsing.subproj/CFPropertyList_Private.h',
+	'Base.subproj/CFKnownLocations.h',
 ],
 project = [
 ])
@@ -292,6 +293,7 @@ sources_list = [
 	'String.subproj/CFRegularExpression.c',
 	'String.subproj/CFAttributedString.c',
 	'String.subproj/CFRunArray.c',
+	'Base.subproj/CFKnownLocations.h',
 ]
 
 sources = CompileSources(sources_list)

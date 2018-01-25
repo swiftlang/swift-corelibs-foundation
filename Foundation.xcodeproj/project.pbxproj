@@ -10,6 +10,8 @@
 		0383A1751D2E558A0052E5D1 /* TestStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0383A1741D2E558A0052E5D1 /* TestStream.swift */; };
 		03B6F5841F15F339004F25AF /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestURLProtocol.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
+		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
@@ -498,6 +500,8 @@
 		0383A1741D2E558A0052E5D1 /* TestStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestStream.swift; sourceTree = "<group>"; };
 		03B6F5831F15F339004F25AF /* TestURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLProtocol.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
+		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
+		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
@@ -1091,6 +1095,8 @@
 				5B5D895F1BBDABF400234F36 /* CFUtilities.h */,
 				5B5D89541BBDAA0100234F36 /* CFUUID.c */,
 				5B5D89531BBDAA0100234F36 /* CFUUID.h */,
+				153E950F20111DC500F250BE /* CFKnownLocations.h */,
+				153E951020111DC500F250BE /* CFKnownLocations.c */,
 				5B5D88B51BBC978900234F36 /* CoreFoundation_Prefix.h */,
 				5B5D895B1BBDAB7E00234F36 /* CoreFoundation.h */,
 				5B5D88C61BBC983600234F36 /* ForFoundationOnly.h */,
@@ -1912,6 +1918,7 @@
 				5B7C8AD61BEA80FC00C5B690 /* CFPlugIn.h in Headers */,
 				5B7C8AD81BEA80FC00C5B690 /* CFPreferences.h in Headers */,
 				5B7C8AF11BEA81AC00C5B690 /* CFStreamAbstract.h in Headers */,
+				153E951120111DC500F250BE /* CFKnownLocations.h in Headers */,
 				5B7C8AFE1BEA81AC00C5B690 /* CFURLComponents.h in Headers */,
 				5B7C8ABC1BEA805C00C5B690 /* CFAvailability.h in Headers */,
 				5B6E11A91DA45EB5009B48A3 /* CFDateFormatter_Private.h in Headers */,
@@ -2363,6 +2370,7 @@
 				5B7C8A961BEA7FF900C5B690 /* CFBundle_Binary.c in Sources */,
 				5B7C8AAC1BEA800D00C5B690 /* CFString.c in Sources */,
 				5B7C8A821BEA7FCE00C5B690 /* CFStorage.c in Sources */,
+				153E951220111DC500F250BE /* CFKnownLocations.c in Sources */,
 				5B7C8AAF1BEA800D00C5B690 /* CFStringUtilities.c in Sources */,
 				5B7C8A891BEA7FDB00C5B690 /* CFNumberFormatter.c in Sources */,
 				5B7C8A8C1BEA7FE200C5B690 /* CFDate.c in Sources */,
@@ -2660,7 +2668,11 @@
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
@@ -2732,7 +2744,11 @@
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
 				OTHER_CFLAGS = (
 					"-DCF_BUILDING_CF",
 					"-DDEPLOYMENT_TARGET_MACOSX",
@@ -2880,7 +2896,11 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
@@ -2906,7 +2926,11 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = TestFoundation/Resources/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
@@ -2930,7 +2954,12 @@
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TestFoundation/xdgTestHelper/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../.. @loader_path/../../.. @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../..",
+					"@loader_path/../../..",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.xdgTestHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2952,7 +2981,12 @@
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = TestFoundation/xdgTestHelper/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../.. @loader_path/../../.. @executable_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../..",
+					"@loader_path/../../..",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.xdgTestHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3044,4 +3078,3 @@
 	};
 	rootObject = 5B5D88541BBC938800234F36 /* Project object */;
 }
-
