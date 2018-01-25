@@ -268,7 +268,15 @@ open class UserDefaults: NSObject {
     }
     
     open func register(defaults registrationDictionary: [String : Any]) {
-        registeredDefaults.merge(registrationDictionary.mapValues { _SwiftValue.fetch(nonOptional: $0 as AnyObject) }, uniquingKeysWith: { $1 })
+        registeredDefaults.merge(registrationDictionary.mapValues { value in
+            // This line will produce a 'Conditional cast always succeeds' warning on Darwin, since Darwin has bridging casts of any value to an object,
+            // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
+            if let object = value as? AnyObject {
+                return _SwiftValue.fetch(nonOptional: object)
+            } else {
+                return value
+            }
+        }, uniquingKeysWith: { $1 })
     }
 
     open func addSuite(named suiteName: String) {
