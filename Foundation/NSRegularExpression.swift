@@ -258,8 +258,8 @@ extension NSRegularExpression {
             let currentRange = result.range
             let replacement = replacementString(for: result, in: string, offset: 0, template: templ)
             if currentRange.location > NSMaxRange(previousRange) {
-                let min = start.advanced(by: NSMaxRange(previousRange))
-                let max = start.advanced(by: currentRange.location)
+                let min = string.utf16.index(start, offsetBy: NSMaxRange(previousRange))
+                let max = string.utf16.index(start, offsetBy: currentRange.location)
                 str += String(string.utf16[min..<max])!
             }
             str += replacement
@@ -267,8 +267,8 @@ extension NSRegularExpression {
         }
         
         if length > NSMaxRange(previousRange) {
-            let min = start.advanced(by: NSMaxRange(previousRange))
-            let max = start.advanced(by: length)
+            let min = string.utf16.index(start, offsetBy: NSMaxRange(previousRange))
+            let max = string.utf16.index(start, offsetBy: length)
             str += String(string.utf16[min..<max])!
         }
         
@@ -344,8 +344,8 @@ extension NSRegularExpression {
                         }
                         if substringRange.location != NSNotFound && substringRange.length > 0 {
                             let start = string.utf16.startIndex
-                            let min = start.advanced(by: substringRange.location)
-                            let max = start.advanced(by: substringRange.location + substringRange.length)
+                            let min = string.utf16.index(start, offsetBy: substringRange.location)
+                            let max = string.utf16.index(start, offsetBy: substringRange.location + substringRange.length)
                             substring = String(string.utf16[min..<max])!
                         }
                         str.replaceCharacters(in: rangeToReplace, with: substring)

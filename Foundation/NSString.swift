@@ -193,7 +193,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
             NSRequiresConcreteImplementation()
         }
         let start = _storage.utf16.startIndex
-        return _storage.utf16[start.advanced(by: index)]
+        return _storage.utf16[_storage.utf16.index(start, offsetBy: index)]
     }
     
     public override convenience init() {
@@ -347,7 +347,7 @@ extension NSString {
     
     public func substring(from: Int) -> String {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            return String(_storage.utf16.suffix(from: _storage.utf16.startIndex.advanced(by: from)))!
+            return String(_storage.utf16.suffix(from: _storage.utf16.index(_storage.utf16.startIndex, offsetBy: from)))!
         } else {
             return substring(with: NSRange(location: from, length: length - from))
         }
@@ -355,8 +355,7 @@ extension NSString {
     
     public func substring(to: Int) -> String {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            return String(_storage.utf16.prefix(upTo: _storage.utf16.startIndex
-            .advanced(by: to)))!
+            return String(_storage.utf16.prefix(upTo: _storage.utf16.index(_storage.utf16.startIndex, offsetBy: to)))!
         } else {
             return substring(with: NSRange(location: 0, length: to))
         }
@@ -365,8 +364,8 @@ extension NSString {
     public func substring(with range: NSRange) -> String {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             let start = _storage.utf16.startIndex
-            let min = start.advanced(by: range.location)
-            let max = start.advanced(by: range.location + range.length)
+            let min = _storage.utf16.index(start, offsetBy: range.location)
+            let max = _storage.utf16.index(start, offsetBy: range.location + range.length)
             return String(decoding: _storage.utf16[min..<max], as: UTF16.self)
         } else {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
