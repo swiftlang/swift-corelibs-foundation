@@ -463,7 +463,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         } else {
             let extent = 0..<0
             let rangeIndex = 0
-            return Index(value: value, extent: Range(extent), rangeIndex: rangeIndex, rangeCount: rangeCount)
+            return Index(value: value, extent: extent, rangeIndex: rangeIndex, rangeCount: rangeCount)
         }
     }
     
@@ -481,11 +481,11 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         
         var result = IndexSet()
         for r in self.rangeView {
-            result.insert(integersIn: Range(r))
+            result.insert(integersIn: r)
         }
         
         for r in other.rangeView {
-            result.insert(integersIn: Range(r))
+            result.insert(integersIn: r)
         }
         return result
     }
@@ -641,7 +641,9 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     ///
     /// - parameter range: A range of integers. For each integer in the range that intersects the integers in the IndexSet, then the `includeInteger` predicate will be invoked.
     /// - parameter includeInteger: The predicate which decides if an integer will be included in the result or not.
-    public func filteredIndexSet(in range : ClosedRange<Element>, includeInteger: (Element) throws -> Bool) rethrows -> IndexSet { return try self.filteredIndexSet(in: Range(range), includeInteger: includeInteger) }
+    public func filteredIndexSet(in range : ClosedRange<Element>, includeInteger: (Element) throws -> Bool) rethrows -> IndexSet { 
+      return try self.filteredIndexSet(in: Range(range), includeInteger: includeInteger) 
+    }
     
     /// Returns an IndexSet filtered according to the result of `includeInteger`.
     ///
@@ -651,7 +653,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     }
     
     /// For a positive delta, shifts the indexes in [index, INT_MAX] to the right, thereby inserting an "empty space" [index, delta], for a negative delta, shifts the indexes in [index, INT_MAX] to the left, thereby deleting the indexes in the range [index - delta, delta].
-    public mutating func shift(startingAt integer: Element, by delta: IndexSet.IndexDistance) {
+    public mutating func shift(startingAt integer: Element, by delta: Int) {
         _applyMutation { $0.shiftIndexesStarting(at: integer, by: delta) }
     }
     
@@ -929,4 +931,3 @@ extension IndexSet : Codable {
         }
     }
 }
-
