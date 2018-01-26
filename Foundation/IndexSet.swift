@@ -359,9 +359,9 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         return _handle.map { $0.contains(in: _toNSRange(range)) }
     }
     
-    /// Returns `true` if `self` intersects any of the integers in `range`.
-    public func intersects<R: RangeExpression>(integersIn range: R) -> Bool where R.Bound == Element { 
-      return self.intersects(integersIn: range.relative(to: 0..<Int.max))
+    /// Returns `true` if `self` contains all of the integers in `range`.
+    public func contains<R: RangeExpression>(integersIn range: R) -> Bool where R.Bound == Element { 
+      return self.contains(integersIn: range.relative(to: 0..<Int.max))
     }
     
     /// Returns `true` if `self` contains all of the integers in `indexSet`.
