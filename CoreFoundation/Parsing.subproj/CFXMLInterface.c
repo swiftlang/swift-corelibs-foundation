@@ -885,8 +885,7 @@ CFArrayRef _CFXMLNodesForXPath(_CFXMLNodePtr node, const unsigned char* xpath) {
     xmlXPathObjectPtr evalResult = xmlXPathNodeEval(node, xpath, context);
 
     xmlNodeSetPtr nodes = evalResult->nodesetval;
-    
-    int count = nodes->nodeNr;
+    int count = nodes ? nodes->nodeNr : 0;
 
     CFMutableArrayRef results = CFArrayCreateMutable(NULL, count, NULL);
     for (int i = 0; i < count; i++) {

@@ -158,7 +158,10 @@ class TestXMLDocument : XCTestCase {
         XCTAssertEqual(nodes[0], bar1)
         XCTAssertEqual(nodes[1], bar2)
         XCTAssertEqual(nodes[2], bar3)
-        
+
+        let emptyResults = try! doc.nodes(forXPath: "/items/item/name[@type='alternate']/@value")
+        XCTAssertEqual(emptyResults.count, 0)
+
         let xmlString = """
         <?xml version="1.0" encoding="utf-8" standalone="yes"?>
             <D:propfind xmlns:D="DAV:">
