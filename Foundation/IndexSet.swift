@@ -597,6 +597,11 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     }
     
     /// Remove a range of integers from the `IndexSet`.
+    public mutating func remove(integersIn range: Range<Element>) {
+        _applyMutation { $0.remove(in: _toNSRange(range)) }
+    }
+    
+    /// Remove a range of integers from the `IndexSet`.
     public mutating func remove(integersIn range: ClosedRange<Element>) { 
       self.remove(integersIn: Range(range))
     }
