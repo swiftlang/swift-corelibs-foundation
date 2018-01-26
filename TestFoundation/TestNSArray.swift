@@ -47,6 +47,8 @@ class TestNSArray : XCTestCase {
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_initMutableWithContentsOfFile", test_initMutableWithContentsOfFile),
+            ("test_initMutableWithContentsOfURL", test_initMutableWithContentsOfURL),
             ("test_readWriteURL", test_readWriteURL),
             ("test_insertObjectAtIndex", test_insertObjectAtIndex),
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
@@ -647,7 +649,46 @@ class TestNSArray : XCTestCase {
             XCTFail("Temporary file creation failed")
         }
     }
-    
+
+    func test_initMutableWithContentsOfFile() {
+        if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
+            let a1: NSArray = ["foo", "bar"]
+            let isWritten = a1.write(toFile: testFilePath, atomically: true)
+            if isWritten {
+                let array = NSMutableArray.init(contentsOfFile: testFilePath)
+                XCTAssert(array == a1)
+                XCTAssertEqual(array?.count, 2)
+                array?.removeAllObjects()
+                XCTAssertEqual(array?.count, 0)
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+
+    func test_initMutableWithContentsOfURL() {
+        if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
+            let a1: NSArray = ["foo", "bar"]
+            let isWritten = a1.write(toFile: testFilePath, atomically: true)
+            if isWritten {
+                let url = URL(fileURLWithPath: testFilePath, isDirectory: false)
+                let array = NSMutableArray.init(contentsOf: url)
+                XCTAssert(array == a1)
+                XCTAssertEqual(array?.count, 2)
+                array?.removeAllObjects()
+                XCTAssertEqual(array?.count, 0)
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+
     func test_writeToFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {

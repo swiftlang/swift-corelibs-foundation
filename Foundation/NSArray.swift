@@ -934,9 +934,6 @@ open class NSMutableArray : NSArray {
     open func sort(options opts: NSSortOptions = [], usingComparator cmptr: Comparator) {
         self.setArray(self.sortedArray(options: opts, usingComparator: cmptr))
     }
-    
-    public convenience init?(contentsOfFile path: String) { NSUnimplemented() }
-    public convenience init?(contentsOfURL url: URL) { NSUnimplemented() }
 }
 
 extension NSArray : Sequence {
