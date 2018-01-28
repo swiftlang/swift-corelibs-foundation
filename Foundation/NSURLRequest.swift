@@ -143,6 +143,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
         self.httpMethod = source.httpMethod
+        self._body = source._body
     }
     
     open override func mutableCopy() -> Any {
