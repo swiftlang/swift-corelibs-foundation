@@ -562,7 +562,29 @@ extension FileManager {
 }
 
 public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchPathDirectory, _ domainMask: FileManager.SearchPathDomainMask, _ expandTilde: Bool) -> [String] {
-    NSUnimplemented()
+    let knownDomains: [FileManager.SearchPathDomainMask] = [
+        .userDomainMask,
+        .networkDomainMask,
+        .localDomainMask,
+        .systemDomainMask,
+    ]
+    
+    var result: [URL] = []
+    
+    for domain in knownDomains {
+        if domainMask.contains(domain) {
+            result.append(contentsOf: FileManager.default.urls(for: directory, in: domain))
+        }
+    }
+    
+    return result.map { (url) in
+        var path = url.absoluteURL.path
+        if expandTilde {
+            path = NSString(string: path).expandingTildeInPath
+        }
+        
+        return path
+    }
 }
 
 public func NSHomeDirectory() -> String {
