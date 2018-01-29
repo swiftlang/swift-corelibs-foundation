@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0383A1751D2E558A0052E5D1 /* TestStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0383A1741D2E558A0052E5D1 /* TestStream.swift */; };
 		03B6F5841F15F339004F25AF /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestURLProtocol.swift */; };
+		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
@@ -515,6 +516,7 @@
 /* Begin PBXFileReference section */
 		0383A1741D2E558A0052E5D1 /* TestStream.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestStream.swift; sourceTree = "<group>"; };
 		03B6F5831F15F339004F25AF /* TestURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLProtocol.swift; sourceTree = "<group>"; };
+		1513A8422044893F00539722 /* FileManager_XDG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager_XDG.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
@@ -1822,6 +1824,7 @@
 			children = (
 				EADE0B5D1BD15DFF00C49C64 /* FileHandle.swift */,
 				EADE0B5E1BD15DFF00C49C64 /* FileManager.swift */,
+				1513A8422044893F00539722 /* FileManager_XDG.swift */,
 				EADE0B7A1BD15DFF00C49C64 /* Process.swift */,
 				5BDC3F2F1BCC5DCB00ED97BB /* Bundle.swift */,
 				5BDC3F411BCC5DCB00ED97BB /* ProcessInfo.swift */,
@@ -2344,6 +2347,7 @@
 				5BECBA3A1D1CAE9A00B39B1F /* NSMeasurement.swift in Sources */,
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
 				61D2F9AF1FECFB3E0033306A /* NativeProtocol.swift in Sources */,
+				1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */,
 				B9974B991EDF4A22007F15B8 /* HTTPURLProtocol.swift in Sources */,
 				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* URLCache.swift in Sources */,
@@ -2708,6 +2712,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 150;
 				DYLIB_CURRENT_VERSION = 1303;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = (
@@ -2780,6 +2785,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 150;
 				DYLIB_CURRENT_VERSION = 1303;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_VERSION = A;
 				GCC_PREFIX_HEADER = CoreFoundation/Base.subproj/CoreFoundation_Prefix.h;
 				HEADER_SEARCH_PATHS = (

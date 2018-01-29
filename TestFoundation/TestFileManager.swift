@@ -30,6 +30,8 @@ class TestFileManager : XCTestCase {
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
             ("test_contentsEqual", test_contentsEqual)
+            ("test_XDGStopgapsCoverAllConstants", test_XDGStopgapsCoverAllConstants),
+            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
         ]
     }
     
@@ -946,5 +948,16 @@ class TestFileManager : XCTestCase {
         try? data.write(to: dataFile1)
         XCTAssertFalse(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+    }
+    
+    func test_XDGStopgapsCoverAllConstants() {
+        let stopgaps = _XDGUserDirectory.stopgapDefaultDirectoryURLs
+        for directory in _XDGUserDirectory.allDirectories {
+            XCTAssertNotNil(stopgaps[directory])
+        }
+    }
+    
+    func test_parseXDGConfiguration() {
+        
     }
 }
