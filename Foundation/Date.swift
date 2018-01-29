@@ -254,19 +254,6 @@ extension Date : _ObjectTypeBridgeable {
     }
 }
 
-extension Date : CustomPlaygroundQuickLookable {
-    var summary: String {
-        let df = DateFormatter()
-        df.dateStyle = .medium
-        df.timeStyle = .short
-        return df.string(from: self)
-    }
-    
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .text(summary)
-    }
-}
-
 extension Date : Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

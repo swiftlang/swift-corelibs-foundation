@@ -989,12 +989,6 @@ extension URL : CustomStringConvertible, CustomDebugStringConvertible {
     }
 }
 
-extension URL : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .url(absoluteString)
-    }
-}
-
 extension URL : Codable {
     private enum CodingKeys : Int, CodingKey {
         case base
