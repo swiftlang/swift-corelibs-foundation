@@ -3069,7 +3069,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            os_log_error(_CFOSLog(), "Attempting to wake up main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
+            os_log_error(_CFOSLog(), "Attempting to wake up main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3138,7 +3138,7 @@ void CFRunLoopPerformBlock(CFRunLoopRef rl, CFTypeRef mode, void (^block)(void))
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            os_log_error(_CFOSLog(), "Attempting to perform block on main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
+            os_log_error(_CFOSLog(), "Attempting to perform block on main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3225,7 +3225,7 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            CFLog(kCFLogLevelError, CFSTR("Attempting to add source to main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
+            CFLog(kCFLogLevelError, CFSTR("Attempting to add source to main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3422,7 +3422,7 @@ void CFRunLoopAddObserver(CFRunLoopRef rl, CFRunLoopObserverRef rlo, CFStringRef
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            CFLog(kCFLogLevelError, CFSTR("Attempting to add observer to main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
+            CFLog(kCFLogLevelError, CFSTR("Attempting to add observer to main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3532,7 +3532,7 @@ void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeN
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            CFLog(kCFLogLevelError, CFSTR("Attempting to add timer to main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
+            CFLog(kCFLogLevelError, CFSTR("Attempting to add timer to main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
