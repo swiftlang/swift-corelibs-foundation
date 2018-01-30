@@ -41,6 +41,7 @@ class TestAffineTransform : XCTestCase {
             ("test_hashing_identity", test_hashing_identity),
             ("test_hashing_values", test_hashing_values),
             ("test_rotation_compose", test_rotation_compose),
+            ("test_translation_and_rotation", test_translation_and_rotation),
             ("test_Equal", test_Equal),
             ("test_NSCoding", test_NSCoding),
         ]
@@ -358,7 +359,14 @@ class TestAffineTransform : XCTestCase {
         XCTAssertEqual(0.0, Double(result.x), accuracy: accuracyThreshold)
         XCTAssertEqual(1.0, Double(result.y), accuracy: accuracyThreshold)
     }
-    
+
+    func test_translation_and_rotation() {
+        let point = NSPoint(x: CGFloat(10), y: CGFloat(10))
+        var translateThenRotate = AffineTransform(translationByX: 20, byY: -30)
+        translateThenRotate.rotate(byRadians: .pi / 2)
+        checkPointTransformation(NSAffineTransform(transform: translateThenRotate), point: point, expectedPoint: NSPoint(x: CGFloat(10), y: CGFloat(-20)))
+    }
+
     func test_Equal() {
         let transform = NSAffineTransform()
         let transform1 = NSAffineTransform()
