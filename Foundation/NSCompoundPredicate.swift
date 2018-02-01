@@ -10,49 +10,49 @@
 
 // Compound predicates are predicates which act on the results of evaluating other operators. We provide the basic boolean operators: AND, OR, and NOT.
 
-extension CompoundPredicate {
+extension NSCompoundPredicate {
     public enum LogicalType : UInt {
-        
         case not
         case and
         case or
     }
 }
 
-public class CompoundPredicate : Predicate {
-    
-    public init(type: LogicalType, subpredicates: [Predicate]) {
-        if type == .not && subpredicates.count == 0 {
+open class NSCompoundPredicate : NSPredicate {
+    public init(type: LogicalType, subpredicates: [NSPredicate]) {
+        if type == .not && subpredicates.isEmpty {
             preconditionFailure("Unsupported predicate count of \(subpredicates.count) for \(type)")
         }
+
         self.compoundPredicateType = type
         self.subpredicates = subpredicates
         super.init(value: false)
     }
+
     public required init?(coder: NSCoder) { NSUnimplemented() }
     
-    public let compoundPredicateType: LogicalType
-    public let subpredicates: [Predicate]
+    open var compoundPredicateType: LogicalType
+    open var subpredicates: [NSPredicate]
 
     /*** Convenience Methods ***/
-    public convenience init(andPredicateWithSubpredicates subpredicates: [Predicate]) {
+    public convenience init(andPredicateWithSubpredicates subpredicates: [NSPredicate]) {
         self.init(type: .and, subpredicates: subpredicates)
     }
-    public convenience init(orPredicateWithSubpredicates subpredicates: [Predicate]) {
+    public convenience init(orPredicateWithSubpredicates subpredicates: [NSPredicate]) {
         self.init(type: .or, subpredicates: subpredicates)
     }
-    public convenience init(notPredicateWithSubpredicate predicate: Predicate) {
+    public convenience init(notPredicateWithSubpredicate predicate: NSPredicate) {
         self.init(type: .not, subpredicates: [predicate])
     }
 
-    override public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    override open func evaluate(with object: Any?, substitutionVariables bindings: [String : Any]?) -> Bool {
         switch compoundPredicateType {
         case .and:
-            return subpredicates.reduce(true, combine: {
+            return subpredicates.reduce(true, {
                 $0 && $1.evaluate(with: object, substitutionVariables: bindings)
             })
         case .or:
-            return subpredicates.reduce(false, combine: {
+            return subpredicates.reduce(false, {
                 $0 || $1.evaluate(with: object, substitutionVariables: bindings)
             })
         case .not:

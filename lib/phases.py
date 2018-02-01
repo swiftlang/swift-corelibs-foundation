@@ -114,7 +114,12 @@ class CompileCxx(CompileSource):
         generated = """
 build """ + self.output.relative() + """: CompileCxx """ + self.path.relative() + self.generate_dependencies() + """
     flags = """
-        generated += "-I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative()
+        generated += " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PUBLIC_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PRIVATE_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PROJECT_HEADERS_FOLDER_PATH
         cflags = TargetConditional.value(self.product.CFLAGS)
         if cflags is not None:
             generated += " " + cflags
@@ -139,6 +144,12 @@ class Assemble(CompileSource):
         generated = """
 build """ + self.output.relative() + """: Assemble """ + self.path.relative() + self.generate_dependencies() + """
     flags = """
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative()
+        generated += " -I" + Configuration.current.build_directory.relative()
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PUBLIC_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PRIVATE_HEADERS_FOLDER_PATH
+        generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.PROJECT_HEADERS_FOLDER_PATH
         asflags = TargetConditional.value(self.product.ASFLAGS)
         if asflags is not None:
             generated += " " + asflags
@@ -161,6 +172,8 @@ build """ + self.output.relative() + """: CompileSwift """ + self.path.relative(
         generated += " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH
         generated += " -I" + Configuration.current.build_directory.relative()
         swiftflags = TargetConditional.value(self.product.SWIFTCFLAGS)
+        # Force building in Swift 4 compatibility mode.
+        swiftflags += " -swift-version 4"
         if swiftflags is not None:
             generated += " " + swiftflags
         return generated
@@ -406,6 +419,7 @@ class SwiftExecutable(BuildPhase):
     def __init__(self, executableName, sources):
         BuildAction.__init__(self, output=executableName)
         self.executableName = executableName
+        self.name = executableName
         self.sources = sources
     
     def generate(self):
@@ -417,10 +431,10 @@ class SwiftExecutable(BuildPhase):
             if resource is None:
                 continue
             swiftSources += " " + resource.relative()
-
+        # Note: Fix -swift-version 4 for now.
         return """
 build """ + appName + """: SwiftExecutable """ + swiftSources + self.generate_dependencies(libDependencyName) + """
-    flags = -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
+    flags = -swift-version 4 -I""" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + self.product.ROOT_HEADERS_FOLDER_PATH + " -I" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " -L" + Configuration.current.build_directory.path_by_appending(self.product.name).relative() + " " + TargetConditional.value(self.product.SWIFTCFLAGS) + """
 build """ + self.executableName + """: phony | """ + appName + """
 """
 

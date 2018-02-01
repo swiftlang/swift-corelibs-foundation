@@ -11,7 +11,7 @@ import CoreFoundation
 
 internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
-    private var _addr : UnsafeMutablePointer<UInt8> // free if decoding
+    private var _addr : UnsafeMutableRawPointer // free if decoding
     private var _count : Int
     private var _size : Int
     private var _type : _NSSimpleObjCType
@@ -24,14 +24,15 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         return _NSGetSizeAndAlignment(type, &size, &align) ? size : nil
     }
 
-    init?(objCType type: _NSSimpleObjCType, count: Int, at addr: UnsafePointer<Void>) {
-        self._addr = UnsafeMutablePointer<UInt8>(addr)
-        self._count = count
-        
+    // TODO: Why isn't `addr` passed as a mutable pointer?
+    init?(objCType type: _NSSimpleObjCType, count: Int, at addr: UnsafeRawPointer) {
+        self._addr = UnsafeMutableRawPointer(mutating: addr)
+        self._count = count        
+
         guard let size = _NSKeyedCoderOldStyleArray.sizeForObjCType(type) else {
             return nil
         }
-        
+
         self._size = size
         self._type = type
         self._decoded = false
@@ -39,8 +40,8 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
 
     deinit {
         if self._decoded {
-            self._addr.deinitialize(count: self._count * self._size)
-            self._addr.deallocateCapacity(self._count * self._size)
+            // Cannot deinitialize memory without knowing the element type.
+            self._addr.deallocate()
         }
     }
     
@@ -60,14 +61,14 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
             return nil
         }
         
-        self._addr = UnsafeMutablePointer<UInt8>(allocatingCapacity: self._count * self._size)
+        self._addr = UnsafeMutableRawPointer.allocate(byteCount: self._count * self._size, alignment: 1)
         
         super.init()
         
         for idx in 0..<self._count {
             var type = Int8(self._type)
             
-            withUnsafePointer(&type) { typep in
+            withUnsafePointer(to: &type) { typep in
                 let addr = self._addr.advanced(by: idx * self._size)
                 aDecoder.decodeValue(ofObjCType: typep, at: addr)
             }
@@ -82,27 +83,27 @@ internal final class _NSKeyedCoderOldStyleArray : NSObject, NSCopying, NSSecureC
         for idx in 0..<self._count {
             var type = Int8(self._type)
 
-            withUnsafePointer(&type) { typep in
-                aCoder.encodeValue(ofObjCType: typep, at: &self._addr[idx * self._size])
+            withUnsafePointer(to: &type) { typep in
+                aCoder.encodeValue(ofObjCType: typep, at: self._addr + (idx * self._size))
             }
         }
     }
     
-    static func supportsSecureCoding() -> Bool {
+    static var supportsSecureCoding: Bool {
         return true
     }
     
-    func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutablePointer<Void>) {
+    func fillObjCType(_ type: _NSSimpleObjCType, count: Int, at addr: UnsafeMutableRawPointer) {
         if type == self._type && count <= self._count {
-            UnsafeMutablePointer<UInt8>(addr).moveInitializeFrom(self._addr, count: count * self._size)
+            addr.copyMemory(from: self._addr, byteCount: count * self._size)
         }
     }
     
-    override func copy() -> AnyObject {
+    override func copy() -> Any {
         return copy(with: nil)
     }
     
-    func copy(with zone: NSZone? = nil) -> AnyObject {
+    func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
 }

@@ -1,4 +1,4 @@
- //===----------------------------------------------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift.org open source project
 //
@@ -11,7 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 private func _utfRangeToNSRange(_ inRange : Range<UnicodeScalar>) -> NSRange {
-    return NSMakeRange(Int(inRange.lowerBound.value), Int(inRange.upperBound.value - inRange.lowerBound.value))
+    return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value))
+}
+
+private func _utfRangeToNSRange(_ inRange : ClosedRange<UnicodeScalar>) -> NSRange {
+    return NSRange(location: Int(inRange.lowerBound.value), length: Int(inRange.upperBound.value - inRange.lowerBound.value + 1))
 }
 
 internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundationType {
@@ -53,35 +57,48 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     deinit {
         releaseWrappedObject()
     }
-
-// These for some reason cause a crash in the compiler
-    // Stubs
-    // -----
-
-    // Immutable
-
+    
+    
+    override func copy(with zone: NSZone? = nil) -> Any {
+        return _mapUnmanaged { $0.copy(with: zone) }
+    }
+    
+    override func mutableCopy(with zone: NSZone? = nil) -> Any {
+        return _mapUnmanaged { $0.mutableCopy(with: zone) }
+    }
+    
+    public override var classForCoder: AnyClass {
+        return NSCharacterSet.self
+    }
+    
     override var bitmapRepresentation: Data {
         return _mapUnmanaged { $0.bitmapRepresentation }
     }
-
+    
     override var inverted : CharacterSet {
         return _mapUnmanaged { $0.inverted }
     }
-
-    override func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged {$0.hasMember(inPlane: plane) }
+    
+    override func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
+        return _mapUnmanaged {$0.hasMemberInPlane(thePlane) }
     }
-
+    
     override func characterIsMember(_ member: unichar) -> Bool {
         return _mapUnmanaged { $0.characterIsMember(member) }
     }
-
+    
     override func longCharacterIsMember(_ member: UInt32) -> Bool {
         return _mapUnmanaged { $0.longCharacterIsMember(member) }
     }
-
+    
     override func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
+    }
+
+    override var _cfObject: CFType {
+        // We cannot inherit super's unsafeBitCast(self, to: CFType.self) here, because layout of _SwiftNSCharacterSet
+        // is not compatible with CFCharacterSet. We need to bitcast the underlying NSCharacterSet instead.
+        return _mapUnmanaged { unsafeBitCast($0, to: CFType.self) }
     }
 }
 
@@ -103,7 +120,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     internal init(_bridged characterSet: NSCharacterSet) {
         // We must copy the input because it might be mutable; just like storing a value type in ObjC
-        _wrapped = _SwiftNSCharacterSet(immutableObject: characterSet.copy())
+        _wrapped = _SwiftNSCharacterSet(immutableObject: characterSet.copy() as! NSObject)
     }
     
     /// Initialize an empty instance.
@@ -122,8 +139,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public init(charactersIn range: ClosedRange<UnicodeScalar>) {
-        let halfOpenRange = range.lowerBound..<UnicodeScalar(range.upperBound.value + 1)
-        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(range: _utfRangeToNSRange(halfOpenRange)))
+        _wrapped = _SwiftNSCharacterSet(immutableObject: NSCharacterSet(range: _utfRangeToNSRange(range)))
     }
     
     /// Initialize with the characters in the given string.
@@ -173,77 +189,77 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Returns a character set containing the characters in Unicode General Category Cc and Cf.
     public static var controlCharacters : CharacterSet {
-        return NSCharacterSet.controlCharacters()
+        return NSCharacterSet.controlCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Zs and `CHARACTER TABULATION (U+0009)`.
     public static var whitespaces : CharacterSet {
-        return NSCharacterSet.whitespaces()
+        return NSCharacterSet.whitespaces
     }
     
     /// Returns a character set containing characters in Unicode General Category Z*, `U+000A ~ U+000D`, and `U+0085`.
     public static var whitespacesAndNewlines : CharacterSet {
-        return NSCharacterSet.whitespacesAndNewlines()
+        return NSCharacterSet.whitespacesAndNewlines
     }
     
     /// Returns a character set containing the characters in the category of Decimal Numbers.
     public static var decimalDigits : CharacterSet {
-        return NSCharacterSet.decimalDigits()
+        return NSCharacterSet.decimalDigits
     }
     
     /// Returns a character set containing the characters in Unicode General Category L* & M*.
     public static var letters : CharacterSet {
-        return NSCharacterSet.letters()
+        return NSCharacterSet.letters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Ll.
     public static var lowercaseLetters : CharacterSet {
-        return NSCharacterSet.lowercaseLetters()
+        return NSCharacterSet.lowercaseLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lu and Lt.
     public static var uppercaseLetters : CharacterSet {
-        return NSCharacterSet.uppercaseLetters()
+        return NSCharacterSet.uppercaseLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category M*.
     public static var nonBaseCharacters : CharacterSet {
-        return NSCharacterSet.nonBaseCharacters()
+        return NSCharacterSet.nonBaseCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Categories L*, M*, and N*.
     public static var alphanumerics : CharacterSet {
-        return NSCharacterSet.alphanumerics()
+        return NSCharacterSet.alphanumerics
     }
     
-    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of “standard decomposition” in version 3.2 of the Unicode character encoding standard.
+    /// Returns a character set containing individual Unicode characters that can also be represented as composed character sequences (such as for letters with accents), by the definition of "standard decomposition" in version 3.2 of the Unicode character encoding standard.
     public static var decomposables : CharacterSet {
-        return NSCharacterSet.decomposables()
+        return NSCharacterSet.decomposables
     }
     
     /// Returns a character set containing values in the category of Non-Characters or that have not yet been defined in version 3.2 of the Unicode standard.
     public static var illegalCharacters : CharacterSet {
-        return NSCharacterSet.illegalCharacters()
+        return NSCharacterSet.illegalCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category P*.
-    public static var punctuation : CharacterSet {
-        return NSCharacterSet.punctuation()
+    public static var punctuationCharacters : CharacterSet {
+        return NSCharacterSet.punctuationCharacters
     }
     
     /// Returns a character set containing the characters in Unicode General Category Lt.
     public static var capitalizedLetters : CharacterSet {
-        return NSCharacterSet.capitalizedLetters()
+        return NSCharacterSet.capitalizedLetters
     }
     
     /// Returns a character set containing the characters in Unicode General Category S*.
     public static var symbols : CharacterSet {
-        return NSCharacterSet.symbols()
+        return NSCharacterSet.symbols
     }
     
     /// Returns a character set containing the newline characters (`U+000A ~ U+000D`, `U+0085`, `U+2028`, and `U+2029`).
     public static var newlines : CharacterSet {
-        return NSCharacterSet.newlines()
+        return NSCharacterSet.newlines
     }
     
     // MARK: Static functions, from NSURL
@@ -294,7 +310,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// This method makes it easier to find the plane containing the members of the current character set. The Basic Multilingual Plane (BMP) is plane 0.
     public func hasMember(inPlane plane: UInt8) -> Bool {
-        return _mapUnmanaged { $0.hasMember(inPlane: plane) }
+        return _mapUnmanaged { $0.hasMemberInPlane(plane) }
     }
     
     // MARK: Mutable functions
@@ -313,8 +329,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     ///
     /// It is the caller's responsibility to ensure that the values represent valid `UnicodeScalar` values, if that is what is desired.
     public mutating func insert(charactersIn range: ClosedRange<UnicodeScalar>) {
-        let halfOpenRange = range.lowerBound..<UnicodeScalar(range.upperBound.value + 1)
-        let nsRange = _utfRangeToNSRange(halfOpenRange)
+        let nsRange = _utfRangeToNSRange(range)
         _applyUnmanagedMutation {
             $0.addCharacters(in: nsRange)
         }
@@ -330,8 +345,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     
     /// Remove a closed range of integer values from the `CharacterSet`.
     public mutating func remove(charactersIn range: ClosedRange<UnicodeScalar>) {
-        let halfOpenRange = range.lowerBound..<UnicodeScalar(range.upperBound.value + 1)
-        let nsRange = _utfRangeToNSRange(halfOpenRange)
+        let nsRange = _utfRangeToNSRange(range)
         _applyUnmanagedMutation {
             $0.removeCharacters(in: nsRange)
         }
@@ -365,7 +379,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
     @discardableResult
     public mutating func insert(_ character: UnicodeScalar) -> (inserted: Bool, memberAfterInsert: UnicodeScalar) {
-        let nsRange = NSMakeRange(Int(character.value), 1)
+        let nsRange = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.addCharacters(in: nsRange)
         }
@@ -378,7 +392,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     /// `UnicodeScalar` values are available on `Swift.String.UnicodeScalarView`.
     @discardableResult
     public mutating func update(with character: UnicodeScalar) -> UnicodeScalar? {
-        let nsRange = NSMakeRange(Int(character.value), 1)
+        let nsRange = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.addCharacters(in: nsRange)
         }
@@ -394,7 +408,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public mutating func remove(_ character: UnicodeScalar) -> UnicodeScalar? {
         // TODO: Add method to NSCharacterSet to do this in one call
         let result : UnicodeScalar? = contains(character) ? character : nil
-        let r = NSMakeRange(Int(character.value), 1)
+        let r = NSRange(location: Int(character.value), length: 1)
         _applyUnmanagedMutation {
             $0.removeCharacters(in: r)
         }
@@ -427,19 +441,29 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
         return result
     }
     
-    /// Sets the value to the intersection of the `CharacterSet` with another `CharacterSet`.
+    /// Sets the value to an intersection of the `CharacterSet` with another `CharacterSet`.
     public mutating func formIntersection(_ other: CharacterSet) {
         _applyUnmanagedMutation {
             $0.formIntersection(with: other)
         }
     }
     
-    /// Returns the exclusive or of the `CharacterSet` with another `CharacterSet`.
+    /// Returns a `CharacterSet` created by removing elements in `other` from `self`.
+    public func subtracting(_ other: CharacterSet) -> CharacterSet {
+        return intersection(other.inverted)
+    }
+    
+    /// Sets the value to a `CharacterSet` created by removing elements in `other` from `self`.
+    public mutating func subtract(_ other: CharacterSet) {
+        self = subtracting(other)
+    }
+    
+    /// Returns an exclusive or of the `CharacterSet` with another `CharacterSet`.
     public func symmetricDifference(_ other: CharacterSet) -> CharacterSet {
         return union(other).subtracting(intersection(other))
     }
     
-    /// Sets the value to the exclusive or of the `CharacterSet` with another `CharacterSet`.
+    /// Sets the value to an exclusive or of the `CharacterSet` with another `CharacterSet`.
     public mutating func formSymmetricDifference(_ other: CharacterSet) {
         self = symmetricDifference(other)
     }
@@ -448,16 +472,16 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     public func isSuperset(of other: CharacterSet) -> Bool {
         return _mapUnmanaged { $0.isSuperset(of: other) }
     }
-}
-
-/// Returns true if the two `CharacterSet`s are equal.
-public func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
-    return lhs._wrapped.isEqual(rhs._bridgeToObjectiveC())
+    
+    /// Returns true if the two `CharacterSet`s are equal.
+    public static func ==(lhs : CharacterSet, rhs: CharacterSet) -> Bool {
+        return lhs._mapUnmanaged { $0.isEqual(rhs) }
+    }
 }
 
 
 // MARK: Objective-C Bridging
-extension CharacterSet {
+extension CharacterSet : _ObjectTypeBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }
@@ -468,7 +492,7 @@ extension CharacterSet {
     
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSCharacterSet {
-        return unsafeBitCast(_wrapped, to: NSCharacterSet.self)
+        return _wrapped
     }
     
     public static func _forceBridgeFromObjectiveC(_ input: NSCharacterSet, result: inout CharacterSet?) {
@@ -486,8 +510,19 @@ extension CharacterSet {
     
 }
 
-extension CharacterSet {
-    public func contains(_ member: unichar) -> Bool {
-        return contains(UnicodeScalar(member))
+extension CharacterSet : Codable {
+    private enum CodingKeys : Int, CodingKey {
+        case bitmap
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let bitmap = try container.decode(Data.self, forKey: .bitmap)
+        self.init(bitmapRepresentation: bitmap)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.bitmapRepresentation, forKey: .bitmap)
     }
 }

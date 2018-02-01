@@ -71,17 +71,17 @@ class Product(BuildAction):
         return Path.path(Configuration.current.build_directory.path_by_appending(self.name).absolute() + "/" + self.PROJECT_HEADERS_FOLDER_PATH)
 
 class Library(Product):
-    conformance_begin = ""
-    conformance_end = ""
+    runtime_object = ''
     rule = None
     def __init__(self, name):
         Product.__init__(self, name)
 
-    def generate(self, flags):
-        generated = Product.generate(self)
-        objects = []
-        for phase in self.phases:
-            objects += phase.objects
+    def generate(self, flags, objects = []):
+        generated = ""
+        if len(objects) == 0:
+            generated = Product.generate(self)
+            for phase in self.phases:
+                objects += phase.objects
 
         product_flags = " ".join(flags)
         if self.LDFLAGS is not None:
@@ -90,7 +90,7 @@ class Library(Product):
             product_flags += " -lstdc++"
 
         generated += """
-build """ + self.product.relative() + """: """ + self.rule + """ """ + self.conformance_begin + """ """ + " ".join(objects) + """ """ + self.conformance_end + """ """ + self.generate_dependencies() + """
+build """ + self.product.relative() + """: """ + self.rule + """ """ + self.runtime_object + """ """ + " ".join(objects) + """ """ + self.generate_dependencies() + """
     flags = """ + product_flags
         if self.needs_objc:
             generated += """
@@ -106,22 +106,23 @@ default """ + self.product_name + """
 
 """
 
-        return generated
+        return objects, generated
 
 
 class DynamicLibrary(Library):
-    def __init__(self, name):
+    def __init__(self, name, uses_swift_runtime_object = True):
         Library.__init__(self, name)
-        self.rule = "Link"
-        self.product_name = Configuration.current.target.dynamic_library_prefix + name + Configuration.current.target.dynamic_library_suffix
+        self.name = name
+        self.uses_swift_runtime_object = uses_swift_runtime_object
 
-    def generate(self):
-        if Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD:
-            self.conformance_begin = '${SDKROOT}/lib/swift/linux/${ARCH}/swift_begin.o' 
-            self.conformance_end = '${SDKROOT}/lib/swift/linux/${ARCH}/swift_end.o' 
-            return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"])
+    def generate(self, objects = []):
+        self.rule = "Link"
+        self.product_name = Configuration.current.target.dynamic_library_prefix + self.name + Configuration.current.target.dynamic_library_suffix
+        if (Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD) and self.uses_swift_runtime_object:
+            self.runtime_object = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swiftrt.o'
+            return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"], objects)
         else:
-            return Library.generate(self, ["-shared"])
+            return Library.generate(self, ["-shared"], objects)
 
 
 class Framework(Product):
@@ -172,16 +173,26 @@ build ${TARGET_BOOTSTRAP_DIR}/usr/lib/""" + Configuration.current.target.dynamic
 
         return generated
 
-
 class StaticLibrary(Library):
     def __init__(self, name):
         Library.__init__(self, name)
+        self.name = name
+
+    def generate(self, objects = []):
         self.rule = "Archive"
-        self.product_name = Configuration.current.target.static_library_prefix + name + Configuration.current.target.static_library_suffix
-    
+        self.product_name = Configuration.current.target.static_library_prefix + self.name + Configuration.current.target.static_library_suffix
+        self.runtime_object = ''
+        return Library.generate(self, [], objects)
+
+class StaticAndDynamicLibrary(StaticLibrary, DynamicLibrary):
+    def __init__(self, name):
+        StaticLibrary.__init__(self, name)
+        DynamicLibrary.__init__(self, name)
+
     def generate(self):
-        return Library.generate(self, [])
-        
+        objects, generatedForDynamic = DynamicLibrary.generate(self)
+        _, generatedForStatic = StaticLibrary.generate(self, objects)
+        return generatedForDynamic + generatedForStatic
 
 class Executable(Product):
     def __init__(self, name):
@@ -190,9 +201,8 @@ class Executable(Product):
 
     def generate(self):
         generated = Product.generate(self)
-        
-        return generated
 
+        return generated
 
 class Application(Product):
     executable = None

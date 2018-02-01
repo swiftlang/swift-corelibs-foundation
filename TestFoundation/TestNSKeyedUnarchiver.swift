@@ -34,33 +34,36 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     private func test_unarchive_from_file(_ filename : String, _ expectedObject : NSObject) {
-        guard let testFilePath = testBundle().pathForResource(filename, ofType: "plist") else {
+        guard let testFilePath = testBundle().path(forResource: filename, ofType: "plist") else {
             XCTFail("Could not find \(filename)")
             return
         }
-        let object = NSKeyedUnarchiver.unarchiveObjectWithFile(testFilePath) as? NSObject
-        if expectedObject != object {
-            print("\(expectedObject) != \(object)")
+        let object = NSKeyedUnarchiver.unarchiveObject(withFile: testFilePath) as? NSObject
+        if let obj = object {
+            if expectedObject != obj {
+                print("\(expectedObject) != \(obj)")
+            }
         }
+        
         XCTAssertEqual(expectedObject, object)
     }
 
     func test_unarchive_array() {
-        let array = ["baa", "baa", "black", "sheep"]
-        test_unarchive_from_file("NSKeyedUnarchiver-ArrayTest", array.bridge())
+        let array = NSArray(array: ["baa", "baa", "black", "sheep"])
+        test_unarchive_from_file("NSKeyedUnarchiver-ArrayTest", array)
     }
     
     func test_unarchive_complex() {
-        let uuid = NSUUID(UUIDString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
+        let uuid = NSUUID(uuidString: "71DC068E-3420-45FF-919E-3A267D55EC22")!
         let url = URL(string: "index.xml", relativeTo: URL(string: "https://www.swift.org"))!
-        let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(value: 34545), ["key" : "val"].bridge() ])
-        let dict : Dictionary<String, NSObject> = [
+        let array = NSArray(array: [ NSNull(), NSString(string: "hello"), NSNumber(value: 34545), NSDictionary(dictionary: ["key" : "val"])])
+        let dict : Dictionary<AnyHashable, Any> = [
             "uuid" : uuid,
-            "url" : url.bridge(),
-            "string" : "hello".bridge(),
+            "url" : url,
+            "string" : "hello",
             "array" : array
         ]
-        test_unarchive_from_file("NSKeyedUnarchiver-ComplexTest", dict.bridge())
+        test_unarchive_from_file("NSKeyedUnarchiver-ComplexTest", NSDictionary(dictionary: dict))
     }
     
     func test_unarchive_concrete_value() {
@@ -84,7 +87,7 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_nsrange_value() {
-        let range = NSMakeRange(97345, 98345)
+        let range = NSRange(location: 97345, length: 98345)
         test_unarchive_from_file("NSKeyedUnarchiver-RangeTest", NSValue(range: range))
     }
     
@@ -96,17 +99,17 @@ class TestNSKeyedUnarchiver : XCTestCase {
     }
     
     func test_unarchive_ordered_set() {
-        let set = NSOrderedSet(array: ["valgeir".bridge(), "nico".bridge(), "puzzle".bridge()])
+        let set = NSOrderedSet(array: ["valgeir", "nico", "puzzle"])
         test_unarchive_from_file("NSKeyedUnarchiver-OrderedSetTest", set)
     }
     
     func test_unarchive_url() {
-        let url = URL(string: "foo.xml", relativeTo: URL(string: "https://www.example.com"))
-        test_unarchive_from_file("NSKeyedUnarchiver-URLTest", url!.bridge())
+        let url = NSURL(string: "foo.xml", relativeTo: URL(string: "https://www.example.com"))
+        test_unarchive_from_file("NSKeyedUnarchiver-URLTest", url!)
     }
     
     func test_unarchive_uuid() {
-        let uuid = NSUUID(UUIDString: "0AD863BA-7584-40CF-8896-BD87B3280C34")
+        let uuid = NSUUID(uuidString: "0AD863BA-7584-40CF-8896-BD87B3280C34")
         test_unarchive_from_file("NSKeyedUnarchiver-UUIDTest", uuid!)
     }
 }

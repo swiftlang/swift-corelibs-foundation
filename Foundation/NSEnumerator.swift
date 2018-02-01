@@ -7,9 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-public class NSEnumerator : NSObject {
+open class NSEnumerator : NSObject {
     
-    public func nextObject() -> AnyObject? {
+    open func nextObject() -> Any? {
         NSRequiresConcreteImplementation()
     }
 
@@ -19,7 +19,7 @@ extension NSEnumerator : Sequence {
 
     public struct Iterator : IteratorProtocol {
         let enumerator : NSEnumerator
-        public func next() -> AnyObject? {
+        public func next() -> Any? {
             return enumerator.nextObject()
         }
     }
@@ -32,19 +32,19 @@ extension NSEnumerator : Sequence {
 
 extension NSEnumerator {
 
-    public var allObjects: [AnyObject] {
+    public var allObjects: [Any] {
         return Array(self)
     }
 
 }
 
-internal class NSGeneratorEnumerator<Base : IteratorProtocol where Base.Element : AnyObject> : NSEnumerator {
+internal class NSGeneratorEnumerator<Base : IteratorProtocol> : NSEnumerator where Base.Element : Any {
     var generator : Base
     init(_ generator: Base) {
         self.generator = generator
     }
     
-    override func nextObject() -> AnyObject? {
+    override func nextObject() -> Any? {
         return generator.next()
     }
 }

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFSocket.h
-	Copyright (c) 1999-2015, Apple Inc.  All rights reserved.
+	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFSOCKET__)
@@ -130,7 +125,7 @@ CF_ENUM(CFOptionFlags) {
     kCFSocketAutomaticallyReenableAcceptCallBack = 2,
     kCFSocketAutomaticallyReenableDataCallBack = 3,
     kCFSocketAutomaticallyReenableWriteCallBack = 8,
-    kCFSocketLeaveErrors CF_ENUM_AVAILABLE(10_5, 2_0) = 64,
+    kCFSocketLeaveErrors API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)) = 64,
     kCFSocketCloseOnInvalidate = 128
 };
 

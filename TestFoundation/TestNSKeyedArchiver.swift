@@ -16,10 +16,10 @@
     import SwiftXCTest
 #endif
 
-public class UserClass : NSObject, NSSecureCoding {
+public class NSUserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
-    public class func supportsSecureCoding() -> Bool {
+    public class var supportsSecureCoding: Bool {
         return true
     }
     
@@ -37,16 +37,50 @@ public class UserClass : NSObject, NSSecureCoding {
     
     public override var description: String {
         get {
-            return "UserClass \(ivar)"
+            return "NSUserClass \(ivar)"
         }
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
-        if let custom = object as? UserClass {
+    public override func isEqual(_ object: Any?) -> Bool {
+        if let custom = object as? NSUserClass {
             return self.ivar == custom.ivar
         } else {
             return false
         }
+    }
+}
+
+public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureCoding {
+    var ivar : Int
+    
+    public class var supportsSecureCoding: Bool {
+        return true
+    }
+    
+    public func encode(with aCoder : NSCoder) {
+        aCoder.encode(ivar, forKey:"$ivar") // also test escaping
+    }
+    
+    init(_ value: Int) {
+        self.ivar = value
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
+    }
+    
+    public var description: String {
+        get {
+            return "UserClass \(ivar)"
+        }
+    }
+    
+    public static func ==(lhs: UserClass, rhs: UserClass) -> Bool {
+        return lhs.ivar == rhs.ivar
+    }
+    
+    public var hashValue: Int {
+        return ivar
     }
 }
 
@@ -58,10 +92,11 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_concrete_value", test_archive_concrete_value),
             ("test_archive_dictionary", test_archive_dictionary),
             ("test_archive_generic_objc", test_archive_generic_objc),
-            //("test_archive_locale", test_archive_locale), // not isEqual()
+            ("test_archive_locale", test_archive_locale),
             ("test_archive_string", test_archive_string),
             ("test_archive_mutable_array", test_archive_mutable_array),
             ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
+            ("test_archive_ns_user_class", test_archive_ns_user_class),
             ("test_archive_nspoint", test_archive_nspoint),
             ("test_archive_nsrange", test_archive_nsrange),
             ("test_archive_nsrect", test_archive_nsrect),
@@ -69,23 +104,35 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_set", test_archive_set),
             ("test_archive_url", test_archive_url),
             ("test_archive_user_class", test_archive_user_class),
-            ("test_archive_uuid", test_archive_uuid),
+            ("test_archive_uuid_bvref", test_archive_uuid_byref),
+            ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
+            ("test_archive_unhashable", test_archive_unhashable),
         ]
     }
 
     private func test_archive(_ encode: (NSKeyedArchiver) -> Bool,
                               decode: (NSKeyedUnarchiver) -> Bool) {
+        // Archiving using custom NSMutableData instance
         let data = NSMutableData()
         let archiver = NSKeyedArchiver(forWritingWith: data)
         
         XCTAssertTrue(encode(archiver))
         archiver.finishEncoding()
         
-        let unarchiver = NSKeyedUnarchiver(forReadingWithData: data.bridge())
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: Data._unconditionallyBridgeFromObjectiveC(data))
         XCTAssertTrue(decode(unarchiver))
+        
+        // Archiving using the default initializer
+        let archiver1 = NSKeyedArchiver()
+        
+        XCTAssertTrue(encode(archiver1))
+        let archivedData = archiver1.encodedData
+        
+        let unarchiver1 = NSKeyedUnarchiver(forReadingWith: archivedData)
+        XCTAssertTrue(decode(unarchiver1))
     }
-    
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
+
+    private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {
         test_archive({ archiver -> Bool in
                 archiver.requiresSecureCoding = allowsSecureCoding
                 archiver.outputFormat = outputFormat
@@ -97,12 +144,12 @@ class TestNSKeyedArchiver : XCTestCase {
                 unarchiver.requiresSecureCoding = allowsSecureCoding
                 
                 do {
-                    guard let root = try unarchiver.decodeTopLevelObjectOfClasses(classes,
-                        forKey: NSKeyedArchiveRootObjectKey) as? NSObject else {
+                    guard let rootObj = try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey) else {
                         XCTFail("Unable to decode data")
                         return false
                     }
-                    XCTAssertEqual(object, root, "unarchived object \(root) does not match \(object)")
+                
+                    XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
                 } catch {
                     XCTFail("Error thrown: \(error)")
                 }
@@ -110,19 +157,19 @@ class TestNSKeyedArchiver : XCTestCase {
         })
     }
     
-    private func test_archive(_ object: NSObject, classes: [AnyClass], allowsSecureCoding: Bool = true) {
+    private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.xml)
         test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.binary)
     }
     
-    private func test_archive(_ object: NSObject, allowsSecureCoding: Bool = true) {
-        return test_archive(object, classes: [object.dynamicType], allowsSecureCoding: allowsSecureCoding)
+    private func test_archive(_ object: AnyObject, allowsSecureCoding: Bool = true) {
+        return test_archive(object, classes: [type(of: object)], allowsSecureCoding: allowsSecureCoding)
     }
     
     func test_archive_array() {
-        let array = ["one", "two", "three"]
-        test_archive(array.bridge())
+        let array = NSArray(array: ["one", "two", "three"])
+        test_archive(array)
     }
     
     func test_archive_concrete_value() {
@@ -135,8 +182,8 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_dictionary() {
-        let dictionary = ["one" : 1, "two" : 2, "three" : 3]
-        test_archive(dictionary.bridge())
+        let dictionary = NSDictionary(dictionary: ["one" : 1, "two" : 2, "three" : 3])
+        test_archive(dictionary)
     }
     
     func test_archive_generic_objc() {
@@ -151,7 +198,7 @@ class TestNSKeyedArchiver : XCTestCase {
         decode: {unarchiver -> Bool in
             var expected: Array<Int32> = [0, 0, 0, 0]
             expected.withUnsafeMutableBufferPointer {(p: inout UnsafeMutableBufferPointer<Int32>) in
-                unarchiver.decodeValue(ofObjCType: "[4i]", at: UnsafeMutablePointer<Void>(p.baseAddress!))
+                unarchiver.decodeValue(ofObjCType: "[4i]", at: UnsafeMutableRawPointer(p.baseAddress!))
             }
             XCTAssertEqual(expected, array)
             return true
@@ -159,23 +206,30 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_locale() {
-        let locale = Locale.currentLocale()
-        test_archive(locale)
+        let locale = Locale.current
+        test_archive(locale._bridgeToObjectiveC())
     }
     
     func test_archive_string() {
-        let string = "hello"
-        test_archive(string.bridge())
+        let string = NSString(string: "hello")
+        test_archive(string)
     }
     
     func test_archive_mutable_array() {
-        let array = ["one", "two", "three"]
-        test_archive(array.bridge().mutableCopy() as! NSObject)
+        let array = NSMutableArray(array: ["one", "two", "three"])
+        test_archive(array)
     }
 
     func test_archive_mutable_dictionary() {
-        let mdictionary = NSMutableDictionary(objects: [NSNumber(value: Int(1)), NSNumber(value: Int(2)), NSNumber(value: Int(3))],
-                                              forKeys: ["one".bridge(), "two".bridge(), "three".bridge()])
+        let one: NSNumber = NSNumber(value: Int(1))
+        let two: NSNumber = NSNumber(value: Int(2))
+        let three: NSNumber = NSNumber(value: Int(3))
+        let dict: [String : Any] = [
+            "one": one,
+            "two": two,
+            "three": three,
+        ]
+        let mdictionary = NSMutableDictionary(dictionary: dict)
         test_archive(mdictionary)
     }
     
@@ -185,7 +239,7 @@ class TestNSKeyedArchiver : XCTestCase {
     }
 
     func test_archive_nsrange() {
-        let range = NSValue(range: NSMakeRange(1234, 5678))
+        let range = NSValue(range: NSRange(location: 1234, length: 5678))
         test_archive(range)
     }
     
@@ -211,13 +265,13 @@ class TestNSKeyedArchiver : XCTestCase {
     }
     
     func test_archive_url() {
-        let url = URL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
-        test_archive(url.bridge())
+        let url = NSURL(string: "index.html", relativeTo: URL(string: "http://www.apple.com"))!
+        test_archive(url)
     }
     
     func test_archive_charptr() {
-        let charArray = [UInt8]("Hello world, we are testing!\0".utf8)
-        var charPtr = UnsafeMutablePointer<CChar>(charArray)
+        let charArray = [CChar]("Hello world, we are testing!\0".utf8CString)
+        var charPtr = UnsafeMutablePointer(mutating: charArray)
 
         test_archive({ archiver -> Bool in
                 let value = NSValue(bytes: &charPtr, objCType: "*")
@@ -226,7 +280,7 @@ class TestNSKeyedArchiver : XCTestCase {
                 return true
             },
              decode: {unarchiver -> Bool in
-                guard let value = unarchiver.decodeObjectOfClass(NSValue.self, forKey: "root") else {
+                guard let value = unarchiver.decodeObject(of: NSValue.self, forKey: "root") else {
                     return false
                 }
                 var expectedCharPtr: UnsafeMutablePointer<CChar>? = nil
@@ -234,22 +288,61 @@ class TestNSKeyedArchiver : XCTestCase {
                 
                 let s1 = String(cString: charPtr)
                 let s2 = String(cString: expectedCharPtr!)
-                
+
+#if !DEPLOYMENT_RUNTIME_OBJC
                 // On Darwin decoded strings would belong to the autorelease pool, but as we don't have
                 // one in SwiftFoundation let's explicitly deallocate it here.
-                expectedCharPtr!.deallocateCapacity(charArray.count)
-                
+                expectedCharPtr!.deallocate()
+#endif
                 return s1 == s2
         })
     }
     
     func test_archive_user_class() {
+#if !DARWIN_COMPATIBILITY_TESTS  // Causes SIGABRT
         let userClass = UserClass(1234)
         test_archive(userClass)
+#endif
     }
     
-    func test_archive_uuid() {
+    func test_archive_ns_user_class() {
+        let nsUserClass = NSUserClass(5678)
+        test_archive(nsUserClass)
+    }
+    
+    func test_archive_uuid_byref() {
         let uuid = NSUUID()
         test_archive(uuid)
+    }
+    
+    func test_archive_uuid_byvalue() {
+        let uuid = UUID()
+        return test_archive(uuid, classes: [NSUUID.self])
+    }
+
+    func test_archive_unhashable() {
+        let data = """
+            {
+              "args": {},
+              "headers": {
+                "Accept": "*/*",
+                "Accept-Encoding": "deflate, gzip",
+                "Accept-Language": "en",
+                "Connection": "close",
+                "Host": "httpbin.org",
+                "User-Agent": "TestFoundation (unknown version) curl/7.54.0"
+              },
+              "origin": "0.0.0.0",
+              "url": "https://httpbin.org/get"
+            }
+            """.data(using: .utf8)!
+        do {
+            let json = try JSONSerialization.jsonObject(with: data)
+            _ = NSKeyedArchiver.archivedData(withRootObject: json)
+            XCTAssert(true, "NSKeyedArchiver.archivedData handles unhashable")
+        }
+        catch {
+            XCTFail("test_archive_unhashable, de-serialization error \(error)")
+        }
     }
 }

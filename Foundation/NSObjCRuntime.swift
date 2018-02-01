@@ -84,22 +84,22 @@ extension _NSSimpleObjCType {
 // mapping of ObjC types to sizes and alignments (note that .Int is 32-bit)
 // FIXME use a generic function, unfortuantely this seems to promote the size to 8
 private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
-    .ID         : ( sizeof(AnyObject.self),              alignof(AnyObject.self)          ),
-    .Class      : ( sizeof(AnyClass.self),               alignof(AnyClass.self)           ),
-    .Char       : ( sizeof(CChar.self),                  alignof(CChar.self)              ),
-    .UChar      : ( sizeof(UInt8.self),                  alignof(UInt8.self)              ),
-    .Short      : ( sizeof(Int16.self),                  alignof(Int16.self)              ),
-    .UShort     : ( sizeof(UInt16.self),                 alignof(UInt16.self)             ),
-    .Int        : ( sizeof(Int32.self),                  alignof(Int32.self)              ),
-    .UInt       : ( sizeof(UInt32.self),                 alignof(UInt32.self)             ),
-    .Long       : ( sizeof(Int32.self),                  alignof(Int32.self)              ),
-    .ULong      : ( sizeof(UInt32.self),                 alignof(UInt32.self)             ),
-    .LongLong   : ( sizeof(Int64.self),                  alignof(Int64.self)              ),
-    .ULongLong  : ( sizeof(UInt64.self),                 alignof(UInt64.self)             ),
-    .Float      : ( sizeof(Float.self),                  alignof(Float.self)              ),
-    .Double     : ( sizeof(Double.self),                 alignof(Double.self)             ),
-    .Bool       : ( sizeof(Bool.self),                   alignof(Bool.self)               ),
-    .CharPtr    : ( sizeof(UnsafePointer<CChar>.self),   alignof(UnsafePointer<CChar>.self))
+    .ID         : ( MemoryLayout<AnyObject>.size,              MemoryLayout<AnyObject>.alignment          ),
+    .Class      : ( MemoryLayout<AnyClass>.size,               MemoryLayout<AnyClass>.alignment           ),
+    .Char       : ( MemoryLayout<CChar>.size,                  MemoryLayout<CChar>.alignment              ),
+    .UChar      : ( MemoryLayout<UInt8>.size,                  MemoryLayout<UInt8>.alignment              ),
+    .Short      : ( MemoryLayout<Int16>.size,                  MemoryLayout<Int16>.alignment              ),
+    .UShort     : ( MemoryLayout<UInt16>.size,                 MemoryLayout<UInt16>.alignment             ),
+    .Int        : ( MemoryLayout<Int32>.size,                  MemoryLayout<Int32>.alignment              ),
+    .UInt       : ( MemoryLayout<UInt32>.size,                 MemoryLayout<UInt32>.alignment             ),
+    .Long       : ( MemoryLayout<Int32>.size,                  MemoryLayout<Int32>.alignment              ),
+    .ULong      : ( MemoryLayout<UInt32>.size,                 MemoryLayout<UInt32>.alignment             ),
+    .LongLong   : ( MemoryLayout<Int64>.size,                  MemoryLayout<Int64>.alignment              ),
+    .ULongLong  : ( MemoryLayout<UInt64>.size,                 MemoryLayout<UInt64>.alignment             ),
+    .Float      : ( MemoryLayout<Float>.size,                  MemoryLayout<Float>.alignment              ),
+    .Double     : ( MemoryLayout<Double>.size,                 MemoryLayout<Double>.alignment             ),
+    .Bool       : ( MemoryLayout<Bool>.size,                   MemoryLayout<Bool>.alignment               ),
+    .CharPtr    : ( MemoryLayout<UnsafePointer<CChar>>.size,   MemoryLayout<UnsafePointer<CChar>>.alignment)
 ]
 
 internal func _NSGetSizeAndAlignment(_ type: _NSSimpleObjCType,
@@ -153,7 +153,7 @@ public enum ComparisonResult : Int {
 }
 
 /* Note: QualityOfService enum is available on all platforms, but it may not be implemented on all platforms. */
-public enum NSQualityOfService : Int {
+public enum QualityOfService : Int {
     
     /* UserInteractive QoS is used for work directly involved in providing an interactive UI such as processing events or drawing to the screen. */
     case userInteractive
@@ -171,35 +171,45 @@ public enum NSQualityOfService : Int {
     case `default`
 }
 
-public struct SortOptions: OptionSet {
+public struct NSSortOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = SortOptions(rawValue: UInt(1 << 0))
-    public static let stable = SortOptions(rawValue: UInt(1 << 4))
+    public static let concurrent = NSSortOptions(rawValue: UInt(1 << 0))
+    public static let stable = NSSortOptions(rawValue: UInt(1 << 4))
 }
 
-public struct EnumerationOptions: OptionSet {
+public struct NSEnumerationOptions: OptionSet {
     public let rawValue : UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     
-    public static let concurrent = EnumerationOptions(rawValue: UInt(1 << 0))
-    public static let reverse = EnumerationOptions(rawValue: UInt(1 << 1))
+    public static let concurrent = NSEnumerationOptions(rawValue: UInt(1 << 0))
+    public static let reverse = NSEnumerationOptions(rawValue: UInt(1 << 1))
 }
 
-public typealias Comparator = (AnyObject, AnyObject) -> ComparisonResult
+public typealias Comparator = (Any, Any) -> ComparisonResult
 
 public let NSNotFound: Int = Int.max
 
-@noreturn internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) {
+internal func NSRequiresConcreteImplementation(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
     fatalError("\(fn) must be overriden in subclass implementations", file: file, line: line)
 }
 
-@noreturn internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) {
+internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
+    #if os(Android)
+    NSLog("\(fn) is not yet implemented. \(file):\(line)")
+    #endif
     fatalError("\(fn) is not yet implemented", file: file, line: line)
 }
 
-@noreturn internal func NSInvalidArgument(_ message: String, method: String = #function, file: StaticString = #file, line: UInt = #line) {
+internal func NSUnsupported(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
+    #if os(Android)
+    NSLog("\(fn) is not supported on this platform. \(file):\(line)")
+    #endif
+    fatalError("\(fn) is not supported on this platform", file: file, line: line)
+}
+
+internal func NSInvalidArgument(_ message: String, method: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
     fatalError("\(method): \(message)", file: file, line: line)
 }
 
@@ -218,21 +228,6 @@ internal struct _CFInfo {
     }
 }
 
-internal protocol _CFBridgable {
-    associatedtype CFType
-    var _cfObject: CFType { get }
-}
-
-internal protocol  _SwiftBridgable {
-    associatedtype SwiftType
-    var _swiftObject: SwiftType { get }
-}
-
-internal protocol _NSBridgable {
-    associatedtype NSType
-    var _nsObject: NSType { get }
-}
-
 #if os(OSX) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
@@ -248,7 +243,7 @@ private let _SwiftFoundationModuleName = "Foundation"
     neither stable nor human-readable.
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
-    let aClassName = String(reflecting: aClass).bridge()
+    let aClassName = String(reflecting: aClass)._bridgeToObjectiveC()
     let components = aClassName.components(separatedBy: ".")
     
     guard components.count == 2 else {
@@ -258,7 +253,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     if components[0] == _SwiftFoundationModuleName {
         return components[1]
     } else {
-        return String(aClassName)
+        return String(describing: aClassName)
     }
 }
 
@@ -272,7 +267,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     let aClassNameWithPrefix : String
-    let components = aClassName.bridge().components(separatedBy: ".")
+    let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
     
     switch components.count {
     case 1:
@@ -281,10 +276,8 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
             return nil
         }
         aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
-        break
     case 2:
         aClassNameWithPrefix = aClassName
-        break
     default:
         NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
         return nil

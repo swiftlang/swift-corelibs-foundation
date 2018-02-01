@@ -1,21 +1,17 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
-/*  CFLocale.c
-    Copyright (c) 2002 - 2015 Apple Inc. and the Swift project authors
-    Responsibility: David Smith
+/*      CFLocale.c
+	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+	Responsibility: David Smith
 */
 
 // Note the header file is in the OpenSource set (stripped to almost nothing), but not the .c file
 
 #include <CoreFoundation/CFLocale.h>
+#include <CoreFoundation/CFLocale_Private.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFDictionary.h>
@@ -23,6 +19,7 @@
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
+#include "CFBundle_Internal.h"
 #include "CFLocaleInternal.h"
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <unicode/uloc.h>           // ICU locales
@@ -33,6 +30,11 @@
 #include <unicode/putil.h>          // ICU low-level utilities
 #include <unicode/umsg.h>           // ICU message formatting
 #include <unicode/ucol.h>
+#include <unicode/unumsys.h>        // ICU numbering systems
+#include <unicode/uvernum.h>
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
+#include <unicode/uameasureformat.h>
+#endif
 #endif
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <stdlib.h>
@@ -56,7 +58,10 @@
 #endif
 
 
+CF_PRIVATE CFCalendarRef _CFCalendarCreateCoWWithIdentifier(CFStringRef identifier);
+
 CONST_STRING_DECL(kCFLocaleCurrentLocaleDidChangeNotification, "kCFLocaleCurrentLocaleDidChangeNotification")
+
 
 static const char *kCalendarKeyword = "calendar";
 static const char *kCollationKeyword = "collation";
@@ -68,7 +73,7 @@ PE_CONST_STRING_DECL(__kCFLocaleCollatorID, "locale:collator id")
 
 
 enum {
-    __kCFLocaleKeyTableCount = 21
+    __kCFLocaleKeyTableCount = 22
 };
 
 struct key_table {
@@ -99,6 +104,7 @@ static bool __CFLocaleCopyUsesMetric(CFLocaleRef locale, bool user, CFTypeRef *c
 static bool __CFLocaleCopyCalendar(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyCollationID(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyMeasurementSystem(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
+static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyNumberFormat(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCopyNumberFormat2(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context);
 static bool __CFLocaleCurrencyFullName(const char *locale, const char *value, CFStringRef *out);
@@ -118,6 +124,7 @@ static struct key_table __CFLocaleKeyTable[__kCFLocaleKeyTableCount] = {
     {(CFStringRef)&kCFLocaleCollationIdentifierKey, __CFLocaleCopyCollationID, __CFLocaleSetNOP, __CFLocaleCollationName, NULL},
     {(CFStringRef)&kCFLocaleUsesMetricSystemKey, __CFLocaleCopyUsesMetric, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
     {(CFStringRef)&kCFLocaleMeasurementSystemKey, __CFLocaleCopyMeasurementSystem, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
+    {(CFStringRef)&kCFLocaleTemperatureUnitKey, __CFLocaleCopyTemperatureUnit, __CFLocaleSetNOP, __CFLocaleNoName, NULL},
     {(CFStringRef)&kCFLocaleDecimalSeparatorKey, __CFLocaleCopyNumberFormat, __CFLocaleSetNOP, __CFLocaleNoName, (CFStringRef)&kCFNumberFormatterDecimalSeparatorKey},
     {(CFStringRef)&kCFLocaleGroupingSeparatorKey, __CFLocaleCopyNumberFormat, __CFLocaleSetNOP, __CFLocaleNoName, (CFStringRef)&kCFNumberFormatterGroupingSeparatorKey},
     {(CFStringRef)&kCFLocaleCurrencySymbolKey, __CFLocaleCopyNumberFormat2, __CFLocaleSetNOP, __CFLocaleCurrencyShortName, (CFStringRef)&kCFNumberFormatterCurrencySymbolKey},
@@ -163,11 +170,11 @@ enum {      /* Bits 0-1 */
 };
 
 CF_INLINE CFIndex __CFLocaleGetType(CFLocaleRef locale) {
-    return __CFBitfieldGetValue(((const CFRuntimeBase *)locale)->_cfinfo[CF_INFO_BITS], 1, 0);
+    return __CFRuntimeGetValue(locale, 1, 0);
 }
 
 CF_INLINE void __CFLocaleSetType(CFLocaleRef locale, CFIndex type) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)locale)->_cfinfo[CF_INFO_BITS], 1, 0, (uint8_t)type);
+    __CFRuntimeSetValue(locale, 1, 0, (uint8_t)type);
 }
 
 CF_INLINE void __CFLocaleLockGlobal(void) {
@@ -238,7 +245,7 @@ static const CFRuntimeClass __CFLocaleClass = {
 };
 
 CFTypeID CFLocaleGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFLocaleTypeID = _CFRuntimeRegisterClass(&__CFLocaleClass); // initOnce covered
         for (CFIndex idx = 0; idx < __kCFLocaleKeyTableCount; idx++) {
@@ -276,18 +283,271 @@ CFLocaleRef CFLocaleGetSystem(void) {
 
 extern CFDictionaryRef __CFXPreferencesCopyCurrentApplicationState(void);
 
-static CFLocaleRef __CFLocaleCurrent = NULL;
+static _Atomic(CFLocaleRef) _CFLocaleCurrent_ = NULL;
+
+CF_INLINE CFLocaleRef _cachedCurrentLocale() {
+#if DEPLOYMENT_RUNTIME_SWIFT
+    CFLocaleRef loc = atomic_load_explicit(&_CFLocaleCurrent_, memory_order_relaxed);
+    return loc ? CFRetain(loc) : NULL;
+#else
+    return atomic_load_explicit(&_CFLocaleCurrent_, memory_order_relaxed);
+#endif
+}
+
+static void _setCachedCurrentLocale(CFLocaleRef newLocale) {
+    atomic_store(&_CFLocaleCurrent_, newLocale); //no release, cached locales are immortal
+}
 
 
 #if DEPLOYMENT_TARGET_MACOSX
+// Specify a default locale on Mac for Swift
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define FALLBACK_LOCALE_NAME CFSTR("en_US")
+#else
 #define FALLBACK_LOCALE_NAME CFSTR("")
+#endif /* DEPLOYMENT_RUNTIME_SWIFT */
 #elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 #define FALLBACK_LOCALE_NAME CFSTR("en_US")
 #elif DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #define FALLBACK_LOCALE_NAME CFSTR("en_US")
 #endif
 
-static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, CFDictionaryRef overridePrefs) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+static CFStringRef _CFLocaleCopyLocaleIdentifierByAddingLikelySubtags(CFStringRef localeID)
+{
+    CFStringRef result = NULL;
+    if (localeID) {
+        char bufLocaleID[ULOC_FULLNAME_CAPACITY];
+        const char *cLocaleID = CFStringGetCStringPtr(localeID, kCFStringEncodingUTF8);
+        if (NULL == cLocaleID) {
+            if (CFStringGetCString(localeID, bufLocaleID, ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8)) {
+                cLocaleID = bufLocaleID;
+            }
+        }
+        UErrorCode icuStatus = U_ZERO_ERROR;
+        char maximizedLocaleID[ULOC_FULLNAME_CAPACITY];
+        int32_t bufSize = uloc_addLikelySubtags(cLocaleID, maximizedLocaleID, ULOC_FULLNAME_CAPACITY, &icuStatus);
+        if ((bufSize != -1) && U_SUCCESS(icuStatus)) {
+            result = CFStringCreateWithCString(NULL, maximizedLocaleID, kCFStringEncodingUTF8);
+        }
+    }
+    return result ? : CFRetain(localeID);
+}
+
+// For a given locale (e.g. `en_US`, `zh_CN`, etc.) copies the language identifier with an explicit script code (e.g. `en-Latn`, zh-Hans`, etc.)
+static CFStringRef _CFLocaleCopyLanguageIdentifierWithScriptCodeForLocaleIdentifier(CFStringRef localeID)
+{
+    CFStringRef languageID = NULL;
+    if (localeID) {
+        CFStringRef maximizedLocaleID = _CFLocaleCopyLocaleIdentifierByAddingLikelySubtags(localeID);
+        CFDictionaryRef components = CFLocaleCreateComponentsFromLocaleIdentifier(NULL, maximizedLocaleID);
+        CFRelease(maximizedLocaleID);
+
+        CFStringRef languageCode = CFDictionaryGetValue(components, kCFLocaleLanguageCode);
+        CFStringRef scriptCode = CFDictionaryGetValue(components, kCFLocaleScriptCode);
+        if (languageCode && scriptCode) {
+            languageID = CFStringCreateWithFormat(NULL, NULL, CFSTR("%@-%@"), languageCode, scriptCode);
+        }
+        CFRelease(components);
+    }
+    return languageID;
+}
+
+CFStringRef _CFLocaleCopyNumberingSystemForLocaleIdentifier(CFStringRef localeID)
+{
+    CFStringRef numberingSystemID = NULL;
+    if (localeID) {
+        CFDictionaryRef components = CFLocaleCreateComponentsFromLocaleIdentifier(NULL, localeID);
+        if (components) {
+            // If the locale has an explicitly defined numbering system, that’s our answer!
+            numberingSystemID = CFDictionaryGetValue(components, CFSTR("numbers"));
+            if (numberingSystemID) {
+                CFRetain(numberingSystemID);
+            }
+            // Otherwise, query ICU for what the default numbering system is.
+            else {
+                CFMutableDictionaryRef mutableComponents = CFDictionaryCreateMutableCopy(NULL, 0, components);
+                if (mutableComponents) {
+                    CFDictionarySetValue(mutableComponents, CFSTR("numbers"), CFSTR("default"));
+                    CFStringRef localeIDWithDefaultNumbers = CFLocaleCreateLocaleIdentifierFromComponents(NULL, mutableComponents);
+                    if (localeIDWithDefaultNumbers) {
+                        char bufLocaleIDWithDefaultNumbers[ULOC_FULLNAME_CAPACITY];
+                        const char *cLocaleIDWithDefaultNumbers = CFStringGetCStringPtr(localeIDWithDefaultNumbers, kCFStringEncodingUTF8);
+                        if (!cLocaleIDWithDefaultNumbers) {
+                            if (CFStringGetCString(localeIDWithDefaultNumbers, bufLocaleIDWithDefaultNumbers, ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8)) {
+                                cLocaleIDWithDefaultNumbers = bufLocaleIDWithDefaultNumbers;
+                            }
+                        }
+                        if (cLocaleIDWithDefaultNumbers) {
+                            UErrorCode icuStatus = U_ZERO_ERROR;
+                            UNumberingSystem *numberingSystem = unumsys_open(cLocaleIDWithDefaultNumbers, &icuStatus);
+                            if (numberingSystem) {
+                                const char *cNumberingSystemID = unumsys_getName(numberingSystem);
+                                if (cNumberingSystemID) {
+                                    numberingSystemID = CFStringCreateWithCString(NULL, cNumberingSystemID, kCFStringEncodingUTF8);
+                                }
+                                unumsys_close(numberingSystem);
+                            }
+                        }
+                        CFRelease(localeIDWithDefaultNumbers);
+                    }
+                    CFRelease(mutableComponents);
+                }
+            }
+            CFRelease(components);
+        }
+    }
+    return numberingSystemID;
+}
+
+CFArrayRef _CFLocaleCopyValidNumberingSystemsForLocaleIdentifier(CFStringRef localeID)
+{
+    CFMutableArrayRef numberingSystemIDs = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+    if (localeID) {
+        CFDictionaryRef components = CFLocaleCreateComponentsFromLocaleIdentifier(NULL, localeID);
+        if (components) {
+            // 1. If there is an explicitly defined override numbering system, add it first to the list.
+            CFStringRef overrideNumberingSystemID = CFDictionaryGetValue(components, CFSTR("numbers"));
+            if (overrideNumberingSystemID) {
+                CFArrayAppendValue(numberingSystemIDs, overrideNumberingSystemID);
+            }
+            
+            // 2. Query ICU for additional supported numbering systems
+            CFStringRef queryList[4] = { CFSTR("default"), NULL, NULL, NULL };
+            CFStringRef languageCode = CFDictionaryGetValue(components, kCFLocaleLanguageCode);
+            // For Chinese & Thai, although there is a traditional numbering system, it is not one that users will expect to use as a numbering system in the system. (cf. <rdar://problem/19742123&20068835>)
+            if (!(CFEqual(languageCode, CFSTR("th")) ||
+                  CFEqual(languageCode, CFSTR("zh")) ||
+                  CFEqual(languageCode, CFSTR("wuu")) ||
+                  CFEqual(languageCode, CFSTR("yue")))) {
+                queryList[1] = CFSTR("native");
+                queryList[2] = CFSTR("traditional");
+                queryList[3] = CFSTR("finance");
+            }
+            CFMutableDictionaryRef mutableComponents = CFDictionaryCreateMutableCopy(NULL, 0, components);
+            if (mutableComponents) {
+                for (CFIndex i = 0, count = sizeof(queryList)/sizeof(CFStringRef); i < count; i++) {
+                    CFStringRef query = queryList[i];
+                    if (query) {
+                        CFDictionarySetValue(mutableComponents, CFSTR("numbers"), query);
+                        CFStringRef localeIDWithNumbersQuery = CFLocaleCreateLocaleIdentifierFromComponents(NULL, mutableComponents);
+                        if (localeIDWithNumbersQuery) {
+                            char bufLocaleIDWithNumbersQuery[ULOC_FULLNAME_CAPACITY];
+                            const char *cLocaleIDWithNumbersQuery = CFStringGetCStringPtr(localeIDWithNumbersQuery, kCFStringEncodingUTF8);
+                            if (!cLocaleIDWithNumbersQuery) {
+                                if (CFStringGetCString(localeIDWithNumbersQuery, bufLocaleIDWithNumbersQuery, ULOC_FULLNAME_CAPACITY, kCFStringEncodingUTF8)) {
+                                    cLocaleIDWithNumbersQuery = bufLocaleIDWithNumbersQuery;
+                                }
+                            }
+                            if (cLocaleIDWithNumbersQuery) {
+                                UNumberingSystem *numberingSystem = NULL;
+                                UErrorCode icuStatus = U_ZERO_ERROR;
+                                if ((numberingSystem = unumsys_open(cLocaleIDWithNumbersQuery, &icuStatus)) != NULL) {
+                                    // There are some really funky numbering systems out there, and we do not support ones that are algorithmic (like the traditional ones for Hebrew, etc.) and ones that are not base 10.
+                                    if (!unumsys_isAlgorithmic(numberingSystem) && unumsys_getRadix(numberingSystem) == 10) {
+                                        const char *cNumberingSystemID = unumsys_getName(numberingSystem);
+                                        if (cNumberingSystemID) {
+                                            CFStringRef numberingSystemID = CFStringCreateWithCString(NULL, cNumberingSystemID, kCFStringEncodingUTF8);
+                                            if (numberingSystemID) {
+                                                if (!CFArrayContainsValue(numberingSystemIDs, CFRangeMake(0, CFArrayGetCount(numberingSystemIDs)), numberingSystemID)) {
+                                                    CFArrayAppendValue(numberingSystemIDs, numberingSystemID);
+                                                }
+                                                CFRelease(numberingSystemID);
+                                            }
+                                        }
+                                    }
+                                    unumsys_close(numberingSystem);
+                                }
+                            }
+                            CFRelease(localeIDWithNumbersQuery);
+                        }
+                    }
+                }
+                CFRelease(mutableComponents);
+            }
+            
+            // 3. Add `latn`, which we support that for all languages.
+            if (!CFArrayContainsValue(numberingSystemIDs, CFRangeMake(0, CFArrayGetCount(numberingSystemIDs)), CFSTR("latn"))) {
+                CFArrayAppendValue(numberingSystemIDs, CFSTR("latn"));
+            }
+            
+            CFRelease(components);
+        }
+    }
+    return numberingSystemIDs;
+}
+
+CFStringRef _CFLocaleCreateLocaleIdentiferByReplacingLanguageCodeAndScriptCode(CFStringRef localeIDWithDesiredLangCode, CFStringRef localeIDWithDesiredComponents) {
+    CFStringRef localeID = NULL;
+    if (localeIDWithDesiredLangCode && localeIDWithDesiredComponents) {
+        CFStringRef langIDToUse = _CFLocaleCopyLanguageIdentifierWithScriptCodeForLocaleIdentifier(localeIDWithDesiredLangCode);
+        if (langIDToUse) {
+            CFStringRef maximizedLocaleID = _CFLocaleCopyLocaleIdentifierByAddingLikelySubtags(localeIDWithDesiredComponents);
+            if (maximizedLocaleID) {
+                CFDictionaryRef localeIDComponents = CFLocaleCreateComponentsFromLocaleIdentifier(NULL, maximizedLocaleID);
+                CFRelease(maximizedLocaleID);
+                if (localeIDComponents) {
+                    CFMutableDictionaryRef mutableComps = CFDictionaryCreateMutableCopy(NULL, CFDictionaryGetCount(localeIDComponents), localeIDComponents);
+                    CFRelease(localeIDComponents);
+                    if (mutableComps) {
+                        CFDictionaryRef languageIDComponents = CFLocaleCreateComponentsFromLocaleIdentifier(NULL, langIDToUse);
+                        if (languageIDComponents) {
+                            CFStringRef languageCode = CFDictionaryGetValue(languageIDComponents, kCFLocaleLanguageCode);
+                            CFStringRef scriptCode = CFDictionaryGetValue(languageIDComponents, kCFLocaleScriptCode);
+                            if (languageCode && scriptCode) {
+                                // 1. Language & Script
+                                // Note that both `languageCode` and `scriptCode` should be overridden in `mutableComps`, even for combinations like `en` + `latn`, because the previous language’s script may not be compatible with the new language. This will produce a “maximized” locale identifier, which we will canonicalize (below) to remove superfluous tags.
+                                CFDictionarySetValue(mutableComps, kCFLocaleLanguageCode, languageCode);
+                                CFDictionarySetValue(mutableComps, kCFLocaleScriptCode, scriptCode);
+                                
+                                // 2. Numbering System
+                                CFStringRef numberingSystem = _CFLocaleCopyNumberingSystemForLocaleIdentifier(localeIDWithDesiredComponents);
+                                if (numberingSystem) {
+                                    CFArrayRef validNumberingSystems = _CFLocaleCopyValidNumberingSystemsForLocaleIdentifier(localeIDWithDesiredLangCode);
+                                    if (validNumberingSystems) {
+                                        CFIndex indexOfNumberingSystem = CFArrayGetFirstIndexOfValue(validNumberingSystems, CFRangeMake(0, CFArrayGetCount(validNumberingSystems)), numberingSystem);
+                                        // If the numbering system for `localeIDWithDesiredComponents` is not compatible with the constructed locale’s language, then we should discard it, e.g. `ar_AE@numbers=arab` + `en` should get `en_AE`, not `en_AE@numbers=arab`, since `arab` is not valid for `en`.
+                                        if (indexOfNumberingSystem == kCFNotFound || indexOfNumberingSystem == 0) {
+                                            CFDictionaryRemoveValue(mutableComps, CFSTR("numbers"));
+                                        }
+                                        // If the numbering system for `localeIDWithDesiredComponents` is compatible with the constructed locale’s language and is not already the default numbering system (index 0), then set it on the new locale, e.g. `hi_IN@numbers=latn` + `ar` shoudl get `ar_IN@numbers=latn`, since `latn` is valid for `ar`.
+                                        else if (indexOfNumberingSystem > 0) {
+                                            CFDictionarySetValue(mutableComps, CFSTR("numbers"), numberingSystem);
+                                        }
+                                        CFRelease(validNumberingSystems);
+                                    }
+                                    CFRelease(numberingSystem);
+                                }
+                                
+                                // 3. Construct & Canonicalize
+                                // The locale constructed from the components will be over-specified for many cases, such as `en_Latn_US`. Before returning it, we should canonicalize it, which will remove any script code that is already implicit in the definition of the locale, yielding `en_US` instead.
+                                CFStringRef maximizedLocaleID = CFLocaleCreateLocaleIdentifierFromComponents(NULL, mutableComps);
+                                if (maximizedLocaleID) {
+                                    localeID = CFLocaleCreateCanonicalLocaleIdentifierFromString(NULL, maximizedLocaleID);
+                                    CFRelease(maximizedLocaleID);
+                                }
+                            }
+                            CFRelease(languageIDComponents);
+                        }
+                        CFRelease(mutableComps);
+                    }
+                }
+            }
+            CFRelease(langIDToUse);
+        }
+    }
+    return localeID;
+}
+#endif
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+static CFArrayRef _CFLocaleCopyPreferredLanguagesFromPrefs(CFArrayRef languagesArray);
+#endif
+
+static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, CFDictionaryRef overridePrefs, Boolean disableBundleMatching) {
+    /*
+     NOTE: calling any CFPreferences function, or any function which calls into a CFPreferences function, *except* for __CFXPreferencesCopyCurrentApplicationState, will deadlock. This is because in apps linked against older SDKs, this function is called from inside CFPreferences, with locks held, via CFPrefsCompatibilitySource.
+     */
     
     CFStringRef ident = NULL;
     // We cannot be helpful here, because it causes performance problems,
@@ -306,23 +566,23 @@ static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, 
     }
     if (name) CFRelease(name);
     
+    // If `disableBundleMatching` is true, caching needs to be turned off, only a single value is cached for the most common case of calling `CFLocaleCopyCurrent`.
+    if (disableBundleMatching) {
+        useCache = false;
+    }
+    
     if (useCache) {
-        CFLocaleRef oldLocale = NULL;
-        __CFLocaleLockGlobal();
-        if (__CFLocaleCurrent) {
-            if (ident && !CFEqual(__CFLocaleCurrent->_identifier, ident)) {
-                oldLocale = __CFLocaleCurrent;
-                __CFLocaleCurrent = NULL;
-            } else {
-                CFLocaleRef res = __CFLocaleCurrent;
-                CFRetain(res);
-                __CFLocaleUnlockGlobal();
-                if (ident) CFRelease(ident);
-                return res;
+        CFLocaleRef cached = _cachedCurrentLocale();
+        if (ident) {
+            if (!CFEqual(cached->_identifier, ident)) {
+                _setCachedCurrentLocale(NULL);
+                cached = NULL;
             }
+            CFRelease(ident);
         }
-        __CFLocaleUnlockGlobal();
-        if (oldLocale) CFRelease(oldLocale);
+        if (cached) {
+            return cached;
+        }
     }
     
     CFDictionaryRef prefs = NULL;
@@ -335,6 +595,11 @@ static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, 
 	if (ident) CFRelease(ident);
 	return NULL;
     }
+#if !DEPLOYMENT_RUNTIME_SWIFT
+    if (useCache) {
+        __CFRuntimeSetRC((CFTypeRef)locale, 0); //make immortal
+    }
+#endif
     __CFLocaleSetType(locale, __kCFLocaleUser);
     if (NULL == ident) ident = (CFStringRef)CFRetain(FALLBACK_LOCALE_NAME);
     locale->_identifier = ident;
@@ -344,18 +609,10 @@ static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, 
     locale->_nullLocale = false;
     
     if (useCache) {
-        CFLocaleRef uselessLocale = NULL; //if we use the global cached locale, we don't need 'locale' anymore, but we want to release it outside the lock
-        __CFLocaleLockGlobal();
-        if (NULL == __CFLocaleCurrent) {
-            __CFLocaleCurrent = locale;
-        } else {
-            uselessLocale = locale;
+        if (NULL == _cachedCurrentLocale()) {
+            _setCachedCurrentLocale(locale);
         }
-        locale = (struct __CFLocale *)CFRetain(__CFLocaleCurrent);
-        __CFLocaleUnlockGlobal();
-        if (uselessLocale) {
-            CFRelease(uselessLocale);
-        }
+        locale = (struct __CFLocale *)_cachedCurrentLocale();
     }
     return locale;
 }
@@ -365,7 +622,7 @@ static CFLocaleRef _CFLocaleCopyCurrentGuts(CFStringRef name, Boolean useCache, 
  This returns an instance of CFLocale that's set up exactly like it would be if the user changed the current locale to that identifier, then called CFLocaleCopyCurrent()
  */
 CFLocaleRef _CFLocaleCopyAsIfCurrent(CFStringRef name) {
-    return _CFLocaleCopyCurrentGuts(name, false, NULL);
+    return _CFLocaleCopyCurrentGuts(name, false, NULL, false);
 }
 
 /*
@@ -373,11 +630,15 @@ CFLocaleRef _CFLocaleCopyAsIfCurrent(CFStringRef name) {
  This returns an instance of CFLocale that's set up exactly like it would be if the user changed the current locale to that identifier, set the preferences keys in the overrides dictionary, then called CFLocaleCopyCurrent()
  */
 CFLocaleRef _CFLocaleCopyAsIfCurrentWithOverrides(CFStringRef name, CFDictionaryRef overrides) {
-    return _CFLocaleCopyCurrentGuts(name, false, overrides);
+    return _CFLocaleCopyCurrentGuts(name, false, overrides, false);
+}
+
+CFLocaleRef _CFLocaleCopyPreferred(void) {
+    return _CFLocaleCopyCurrentGuts(NULL, true, NULL, true);
 }
 
 CFLocaleRef CFLocaleCopyCurrent(void) {
-    return _CFLocaleCopyCurrentGuts(NULL, true, NULL);
+    return _CFLocaleCopyCurrentGuts(NULL, true, NULL, false);
 }
 
 CF_PRIVATE CFDictionaryRef __CFLocaleGetPrefs(CFLocaleRef locale) {
@@ -401,11 +662,11 @@ Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier) {
     ((struct __CFLocale *)locale)->_cache = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
     ((struct __CFLocale *)locale)->_prefs = NULL;
     ((struct __CFLocale *)locale)->_lock = CFLockInit;
-
-    return (CFLocaleRef)locale;
+    
+    return true;
 }
 #endif
-    
+
 CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
@@ -438,6 +699,7 @@ CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     uint32_t size = sizeof(struct __CFLocale) - sizeof(CFRuntimeBase);
     locale = (struct __CFLocale *)_CFRuntimeCreateInstance(allocator, CFLocaleGetTypeID(), size, NULL);
     if (NULL == locale) {
+        if (localeIdentifier) { CFRelease(localeIdentifier); }
 	return NULL;
     }
     __CFLocaleSetType(locale, __kCFLocaleOrdinary);
@@ -455,7 +717,7 @@ CFLocaleRef CFLocaleCreate(CFAllocatorRef allocator, CFStringRef identifier) {
     return (CFLocaleRef)locale;
 }
 
-//Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
+//CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
 static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef locale, CFStringRef calendarIdentifier) {
     CF_OBJC_FUNCDISPATCHV(CFLocaleGetTypeID(), CFLocaleRef, (NSLocale *)locale, copy);
     if (allocator == NULL) allocator = __CFGetDefaultAllocator();
@@ -477,6 +739,7 @@ static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef
     uint32_t size = sizeof(struct __CFLocale) - sizeof(CFRuntimeBase);
     loc = (struct __CFLocale *)_CFRuntimeCreateInstance(allocator, CFLocaleGetTypeID(), size, NULL);
     if (NULL == loc) {
+        if (localeIdentifier) { CFRelease(localeIdentifier); }
         return NULL;
     }
     __CFLocaleSetType(loc, __CFLocaleGetType(locale));
@@ -489,7 +752,7 @@ static CFLocaleRef _CFLocaleCreateCopyGuts(CFAllocatorRef allocator, CFLocaleRef
     return (CFLocaleRef)loc;
 }
 
-//Prior to Gala, CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
+//CFLocaleCreateCopy() always just retained. This caused problems because CFLocaleGetValue(locale, kCFLocaleCalendarKey) would create a calendar, then set its locale to self, leading to a retain cycle
 CFLocaleRef CFLocaleCreateCopy(CFAllocatorRef allocator, CFLocaleRef locale) {
     return _CFLocaleCreateCopyGuts(allocator, locale, NULL);
 }
@@ -784,23 +1047,67 @@ CFLocaleLanguageDirection CFLocaleGetLanguageLineDirection(CFStringRef isoLangCo
 #endif
 }
 
-CFArrayRef CFLocaleCopyPreferredLanguages(void) {
+_CFLocaleCalendarDirection _CFLocaleGetCalendarDirection(void) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    _CFLocaleCalendarDirection calendarDirection = _kCFLocaleCalendarDirectionLeftToRight;
+    Boolean keyExistsAndHasValidFormat = false;
+    Boolean calendarIsRightToLeft = CFPreferencesGetAppBooleanValue(CFSTR("NSLocaleCalendarDirectionIsRightToLeft"), kCFPreferencesAnyApplication, &keyExistsAndHasValidFormat);
+    if (keyExistsAndHasValidFormat) {
+        calendarDirection = calendarIsRightToLeft ? _kCFLocaleCalendarDirectionRightToLeft : _kCFLocaleCalendarDirectionLeftToRight;
+    } else {
+        // If there was no default set, return the directionality of the effective language,
+        // except for Hebrew, where the default should be LTR
+        CFBundleRef mainBundle = CFBundleGetMainBundle();
+        CFArrayRef bundleLocalizations = CFBundleCopyBundleLocalizations(mainBundle);
+
+        if (NULL != bundleLocalizations) {
+            CFArrayRef effectiveLocalizations = CFBundleCopyPreferredLocalizationsFromArray(bundleLocalizations);
+            CFStringRef effectiveLocale = CFArrayGetValueAtIndex(effectiveLocalizations, 0);
+            CFDictionaryRef effectiveLocaleComponents = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorDefault, effectiveLocale);
+            CFStringRef effectiveLanguage = CFDictionaryGetValue(effectiveLocaleComponents, kCFLocaleLanguageCodeKey);
+            if (NULL != effectiveLanguage) {
+                CFLocaleLanguageDirection effectiveLanguageDirection = CFLocaleGetLanguageCharacterDirection(effectiveLanguage);
+                calendarDirection = (effectiveLanguageDirection == kCFLocaleLanguageDirectionRightToLeft) ? _kCFLocaleCalendarDirectionRightToLeft : _kCFLocaleCalendarDirectionLeftToRight;
+            }
+            CFRelease(effectiveLocaleComponents);
+            CFRelease(effectiveLocalizations);
+            CFRelease(bundleLocalizations);
+        }
+    }
+    return calendarDirection;
+#else
+    return _kCFLocaleCalendarDirectionLeftToRight;
+#endif
+}
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+static CFArrayRef _CFLocaleCopyPreferredLanguagesFromPrefs(CFArrayRef languagesArray) {
     CFMutableArrayRef newArray = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+    if (languagesArray && (CFArrayGetTypeID() == CFGetTypeID(languagesArray))) {
+        for (CFIndex idx = 0, cnt = CFArrayGetCount(languagesArray); idx < cnt; idx++) {
+            CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(languagesArray, idx);
+            if (str && (CFStringGetTypeID() == CFGetTypeID(str))) {
+                CFStringRef ident = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorSystemDefault, str);
+                if (ident) {
+                    CFArrayAppendValue(newArray, ident);
+                    CFRelease(ident);
+                }
+            }
+        }
+    }
+    return newArray;
+}
+#endif
+
+CFArrayRef CFLocaleCopyPreferredLanguages(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
     CFArrayRef languagesArray = (CFArrayRef)CFPreferencesCopyAppValue(CFSTR("AppleLanguages"), kCFPreferencesCurrentApplication);
-    if (languagesArray && (CFArrayGetTypeID() == CFGetTypeID(languagesArray))) {
-	for (CFIndex idx = 0, cnt = CFArrayGetCount(languagesArray); idx < cnt; idx++) {
-            CFStringRef str = (CFStringRef)CFArrayGetValueAtIndex(languagesArray, idx);
-	    if (str && (CFStringGetTypeID() == CFGetTypeID(str))) {
-                CFStringRef ident = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorSystemDefault, str);
-		CFArrayAppendValue(newArray, ident);
-		CFRelease(ident);
-	    }
-	}
-    }
-    if (languagesArray)	CFRelease(languagesArray);
+    CFArrayRef result = _CFLocaleCopyPreferredLanguagesFromPrefs(languagesArray);
+    if (languagesArray) CFRelease(languagesArray);
+    return result;
+#else
+    return CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
 #endif
-    return newArray;
 }
 
 // -------- -------- -------- -------- -------- --------
@@ -1017,7 +1324,7 @@ static bool __CFLocaleCopyCalendarID(CFLocaleRef locale, bool user, CFTypeRef *c
 static bool __CFLocaleCopyCalendar(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     if (__CFLocaleCopyCalendarID(locale, user, cf, context)) {
-	CFCalendarRef calendar = CFCalendarCreateWithIdentifier(kCFAllocatorSystemDefault, (CFStringRef)*cf);
+        CFCalendarRef calendar = _CFCalendarCreateCoWWithIdentifier((CFStringRef)*cf);
 	CFCalendarSetLocale(calendar, locale);
         CFDictionaryRef prefs = __CFLocaleGetPrefs(locale);
         CFPropertyListRef metapref = prefs ? CFDictionaryGetValue(prefs, CFSTR("AppleFirstWeekday")) : NULL;
@@ -1119,25 +1426,104 @@ static bool __CFLocaleCopyCollatorID(CFLocaleRef locale, bool user, CFTypeRef *c
     *cf = canonLocaleCFStr;
     return canonLocaleCFStr ? true : false;
 }
-    
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+static CONST_STRING_DECL(_metricUnitsKey, "AppleMetricUnits");
+static CONST_STRING_DECL(_measurementUnitsKey, "AppleMeasurementUnits");
+static CONST_STRING_DECL(_measurementUnitsCentimeters, "Centimeters");
+static CONST_STRING_DECL(_measurementUnitsInches, "Inches");
+static CONST_STRING_DECL(_temperatureUnitKey, "AppleTemperatureUnit");
+
+static bool __CFLocaleGetMeasurementSystemForPreferences(CFTypeRef metricPref, CFTypeRef measurementPref, UMeasurementSystem *outMeasurementSystem) {
+    if (metricPref || measurementPref) {
+        if (metricPref == kCFBooleanTrue && measurementPref && CFEqual(measurementPref, _measurementUnitsInches)) {
+#if U_ICU_VERSION_MAJOR_NUM >= 55
+            *outMeasurementSystem = UMS_UK;
+#else
+            return false;
+#endif
+        } else if (metricPref == kCFBooleanFalse) {
+            *outMeasurementSystem = UMS_US;
+        } else {
+            *outMeasurementSystem = UMS_SI;
+        }
+        return true;
+    }
+    return false;
+}
+
+static void __CFLocaleGetPreferencesForMeasurementSystem(UMeasurementSystem measurementSystem, CFTypeRef *outMetricPref, CFTypeRef *outMeasurementPref) {
+    *outMetricPref = measurementSystem != UMS_US? kCFBooleanTrue: kCFBooleanFalse;
+    *outMeasurementPref = measurementSystem == UMS_SI? _measurementUnitsCentimeters: _measurementUnitsInches;
+}
+#endif
+
+#if (U_ICU_VERSION_MAJOR_NUM > 54 || !defined(CF_OPEN_SOURCE)) && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+static bool _CFLocaleGetTemperatureUnitForPreferences(CFTypeRef temperaturePref, bool *outCelsius) {
+    if (temperaturePref) {
+        if (CFEqual(temperaturePref, kCFLocaleTemperatureUnitCelsius)) {
+            *outCelsius = true;
+            return true;
+        } else if (CFEqual(temperaturePref, kCFLocaleTemperatureUnitFahrenheit)) {
+            *outCelsius = false;
+            return true;
+        }
+    }
+    return false;
+}
+#endif
+
+#if (U_ICU_VERSION_MAJOR_NUM > 54) || (!defined(CF_OPEN_SOURCE) && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED))
+static CFStringRef _CFLocaleGetTemperatureUnitName(bool celsius) {
+    return celsius? kCFLocaleTemperatureUnitCelsius: kCFLocaleTemperatureUnitFahrenheit;
+}
+#endif
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+static CFStringRef __CFLocaleGetMeasurementSystemName(UMeasurementSystem measurementSystem) {
+    switch (measurementSystem) {
+        case UMS_US:
+            return kCFLocaleMeasurementSystemUS;
+#if U_ICU_VERSION_MAJOR_NUM >= 55
+        case UMS_UK:
+            return kCFLocaleMeasurementSystemUK;
+#endif
+        default:
+            break;
+    }
+    return kCFLocaleMeasurementSystemMetric;
+}
+
+static  bool __CFLocaleGetMeasurementSystemForName(CFStringRef name, UMeasurementSystem *outMeasurementSystem) {
+    if (name) {
+        if (CFEqual(name, kCFLocaleMeasurementSystemMetric)) {
+            *outMeasurementSystem = UMS_SI;
+            return true;
+        }
+        if (CFEqual(name, kCFLocaleMeasurementSystemUS)) {
+            *outMeasurementSystem = UMS_US;
+            return true;
+        }
+#if U_ICU_VERSION_MAJOR_NUM >= 55
+        if (CFEqual(name, kCFLocaleMeasurementSystemUK)) {
+            *outMeasurementSystem = UMS_UK;
+            return true;
+        }
+#endif
+    }
+    return false;
+}
+#endif
+
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 static void __CFLocaleGetMeasurementSystemGuts(CFLocaleRef locale, bool user, UMeasurementSystem *outMeasurementSystem) {
     UMeasurementSystem output = UMS_SI;    // Default is Metric
     bool done = false;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     if (user) {
-        CFTypeRef metricPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleMetricUnits"));
-        CFTypeRef measurementPref = CFDictionaryGetValue(locale->_prefs, CFSTR("AppleMeasurementUnits"));
-        if (metricPref || measurementPref) {
-            if (metricPref == kCFBooleanTrue && measurementPref && CFEqual(measurementPref, CFSTR("Inches"))) {
-                output = UMS_UK;
-            } else if (metricPref == kCFBooleanFalse) {
-                output = UMS_US;
-            } else {
-                output = UMS_SI;
-            }
-            done = true;
-        }
+        CFTypeRef metricPref = CFDictionaryGetValue(locale->_prefs, _metricUnitsKey);
+        CFTypeRef measurementPref = CFDictionaryGetValue(locale->_prefs, _measurementUnitsKey);
+        done = __CFLocaleGetMeasurementSystemForPreferences(metricPref, measurementPref, &output);
     }
 #endif
     if (!done) {
@@ -1174,28 +1560,59 @@ static bool __CFLocaleCopyMeasurementSystem(CFLocaleRef locale, bool user, CFTyp
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     UMeasurementSystem system = UMS_SI;
     __CFLocaleGetMeasurementSystemGuts(locale, user, &system);
-    switch (system) {
-        case UMS_US:
-            *cf = CFSTR("U.S.");
-            break;
-#if U_ICU_VERSION_MAJOR_NUM >= 55
-        case UMS_UK:
-            if (
-                true
-                ) {
-                *cf = CFSTR("U.K.");
-                break;
-            }
-            //fall through to metric on older OSs
-#endif
-        default:
-            *cf = CFSTR("Metric");
-            break;
-    }
+    *cf = CFRetain(__CFLocaleGetMeasurementSystemName(system));
     return true;
 #else
-    *cf = CFSTR("U.S."); //historical behavior, probably irrelevant in CF Mini
+    *cf = CFRetain(kCFLocaleMeasurementSystemUS); //historical behavior, probably irrelevant in CF Mini
     return true;
+#endif
+}
+
+
+
+static bool __CFLocaleCopyTemperatureUnit(CFLocaleRef locale, bool user, CFTypeRef *cf, CFStringRef context) {
+#if U_ICU_VERSION_MAJOR_NUM > 54
+    bool celsius = true;    // Default is Celsius
+    bool done = false;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    if (user) {
+        CFTypeRef temperatureUnitPref = CFDictionaryGetValue(locale->_prefs, _temperatureUnitKey);
+        done = _CFLocaleGetTemperatureUnitForPreferences(temperatureUnitPref, &celsius);
+    }
+#endif
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+    if (!done) {
+        char localeID[ULOC_FULLNAME_CAPACITY+ULOC_KEYWORD_AND_VALUES_CAPACITY];
+        if (CFStringGetCString(locale->_identifier, localeID, sizeof(localeID)/sizeof(char), kCFStringEncodingASCII)) {
+#if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
+            UErrorCode icuStatus = U_ZERO_ERROR;
+            UAMeasureUnit unit;
+            int32_t unitCount = uameasfmt_getUnitsForUsage(localeID, "temperature", "weather", &unit, 1, &icuStatus);
+            if (U_SUCCESS(icuStatus) && unitCount > 0) {
+                if (unit == UAMEASUNIT_TEMPERATURE_FAHRENHEIT) {
+                    celsius = false;
+                }
+                done = true;
+            }
+#endif
+        }
+    }
+    if (!done) {
+        UMeasurementSystem system = UMS_SI;
+        __CFLocaleGetMeasurementSystemGuts(locale, user, &system);
+        if (system == UMS_US) {
+            celsius = false;
+        }
+        done = true;
+    }
+#endif
+    if (!done) {
+        celsius = true;
+    }
+    *cf = CFRetain(_CFLocaleGetTemperatureUnitName(celsius));
+    return true;
+#else
+    return false;
 #endif
 }
 

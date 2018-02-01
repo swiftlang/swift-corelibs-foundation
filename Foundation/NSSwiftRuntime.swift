@@ -14,11 +14,77 @@ import CoreFoundation
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(OSX) || os(iOS)
 @_exported import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android) || CYGWIN
 @_exported import Glibc
 #endif
 
-public typealias ObjCBool = Bool
+@_exported import Dispatch
+
+#if os(Android) // shim required for bzero
+@_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
+    memset(ptr, 0, size)
+}
+#endif
+
+#if !_runtime(_ObjC)
+/// The Objective-C BOOL type.
+///
+/// On 64-bit iOS, the Objective-C BOOL type is a typedef of C/C++
+/// bool. Elsewhere, it is "signed char". The Clang importer imports it as
+/// ObjCBool.
+@_fixed_layout
+public struct ObjCBool : ExpressibleByBooleanLiteral {
+    #if os(OSX) || (os(iOS) && (arch(i386) || arch(arm)))
+    // On OS X and 32-bit iOS, Objective-C's BOOL type is a "signed char".
+    var _value: Int8
+
+    init(_ value: Int8) {
+        self._value = value
+    }
+
+    public init(_ value: Bool) {
+        self._value = value ? 1 : 0
+    }
+
+    #else
+    // Everywhere else it is C/C++'s "Bool"
+    var _value: Bool
+
+    public init(_ value: Bool) {
+        self._value = value
+    }
+    #endif
+
+    /// The value of `self`, expressed as a `Bool`.
+    public var boolValue: Bool {
+        #if os(OSX) || (os(iOS) && (arch(i386) || arch(arm)))
+        return _value != 0
+        #else
+        return _value
+        #endif
+    }
+
+    /// Create an instance initialized to `value`.
+    @_transparent
+    public init(booleanLiteral value: Bool) {
+        self.init(value)
+    }
+}
+
+extension ObjCBool : CustomReflectable {
+    /// Returns a mirror that reflects `self`.
+    public var customMirror: Mirror {
+        return Mirror(reflecting: boolValue)
+    }
+}
+
+extension ObjCBool : CustomStringConvertible {
+    /// A textual representation of `self`.
+    public var description: String {
+        return self.boolValue.description
+    }
+}
+#endif
 
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
@@ -32,12 +98,9 @@ internal class __NSCFType : NSObject {
         return Int(bitPattern: CFHash(self))
     }
     
-    override func isEqual(_ object: AnyObject?) -> Bool {
-        if let obj = object {
-            return CFEqual(self, obj)
-        } else {
-            return false
-        }
+    override func isEqual(_ value: Any?) -> Bool {
+        guard let other = value as? NSObject else { return false }
+        return CFEqual(self, other)
     }
     
     override var description: String {
@@ -55,6 +118,12 @@ internal func _CFSwiftGetTypeID(_ cf: AnyObject) -> CFTypeID {
 }
 
 
+
+internal func _CFSwiftCopyWithZone(_ cf: CFTypeRef, _ zone: CFTypeRef?) -> Unmanaged<CFTypeRef> {
+    return Unmanaged<CFTypeRef>.passRetained((cf as! NSObject).copy() as! NSObject)
+}
+
+
 internal func _CFSwiftGetHash(_ cf: AnyObject) -> CFHashCode {
     return CFHashCode(bitPattern: (cf as! NSObject).hash)
 }
@@ -66,40 +135,62 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
-    withUnsafeMutablePointer(&arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(unsafeBitCast(ptr, to: UnsafeMutablePointer<Void>.self), sizeof(T.self))
+    withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
+        bzero(UnsafeMutableRawPointer(ptr), MemoryLayout<T>.size)
     }
 }
 
-internal func __CFSwiftGetBaseClass() -> AnyObject.Type {
-    return __NSCFType.self
+@_versioned
+@_cdecl("__CFSwiftGetBaseClass")
+internal func __CFSwiftGetBaseClass() -> UnsafeRawPointer {
+    return unsafeBitCast(__NSCFType.self, to:UnsafeRawPointer.self)
 }
 
+@_versioned
+@_cdecl("__CFInitializeSwift")
 internal func __CFInitializeSwift() {
     
-    _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(Calendar.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(Locale.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(TimeZone.self, to: UnsafePointer<Void>.self))
-    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafePointer<Void>.self))
+    _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFSetGetTypeID(), unsafeBitCast(_NSCFSet.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFBooleanGetTypeID(), unsafeBitCast(__NSCFBoolean.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFNumberGetTypeID(), unsafeBitCast(NSNumber.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFDataGetTypeID(), unsafeBitCast(NSData.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFDateGetTypeID(), unsafeBitCast(NSDate.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFURLGetTypeID(), unsafeBitCast(NSURL.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFCalendarGetTypeID(), unsafeBitCast(NSCalendar.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFLocaleGetTypeID(), unsafeBitCast(NSLocale.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFTimeZoneGetTypeID(), unsafeBitCast(NSTimeZone.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFCharacterSetGetTypeID(), unsafeBitCast(_NSCFCharacterSet.self, to: UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(_CFKeyedArchiverUIDGetTypeID(), unsafeBitCast(_NSKeyedArchiverUID.self, to: UnsafeRawPointer.self))
     
-//    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafePointer<Void>.self))
-//    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, UnsafePointer<Void>.self))
-//    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(NSInputStream.self, UnsafePointer<Void>.self))
-//    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(NSOutputStream.self, UnsafePointer<Void>.self))
-   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafePointer<Void>.self))
+//    _CFRuntimeBridgeTypeToClass(CFErrorGetTypeID(), unsafeBitCast(NSError.self, UnsafeRawPointer.self))
+    _CFRuntimeBridgeTypeToClass(CFAttributedStringGetTypeID(), unsafeBitCast(NSMutableAttributedString.self, to: UnsafeRawPointer.self))
+//    _CFRuntimeBridgeTypeToClass(CFReadStreamGetTypeID(), unsafeBitCast(InputStream.self, UnsafeRawPointer.self))
+//    _CFRuntimeBridgeTypeToClass(CFWriteStreamGetTypeID(), unsafeBitCast(OutputStream.self, UnsafeRawPointer.self))
+   _CFRuntimeBridgeTypeToClass(CFRunLoopTimerGetTypeID(), unsafeBitCast(Timer.self, to: UnsafeRawPointer.self))
     
     __CFSwiftBridge.NSObject.isEqual = _CFSwiftIsEqual
     __CFSwiftBridge.NSObject.hash = _CFSwiftGetHash
     __CFSwiftBridge.NSObject._cfTypeID = _CFSwiftGetTypeID
+    __CFSwiftBridge.NSObject.copyWithZone = _CFSwiftCopyWithZone
     
+    __CFSwiftBridge.NSSet.count = _CFSwiftSetGetCount
+    __CFSwiftBridge.NSSet.countForKey = _CFSwiftSetGetCountOfValue
+    __CFSwiftBridge.NSSet.containsObject = _CFSwiftSetContainsValue
+    __CFSwiftBridge.NSSet.__getValue = _CFSwiftSetGetValue
+    __CFSwiftBridge.NSSet.getValueIfPresent = _CFSwiftSetGetValueIfPresent
+    __CFSwiftBridge.NSSet.getObjects = _CFSwiftSetGetValues
+    __CFSwiftBridge.NSSet.copy = _CFSwiftSetCreateCopy
+    __CFSwiftBridge.NSSet.__apply = _CFSwiftSetApplyFunction
+    __CFSwiftBridge.NSSet.member = _CFSwiftSetMember
+    
+    __CFSwiftBridge.NSMutableSet.addObject = _CFSwiftSetAddValue
+    __CFSwiftBridge.NSMutableSet.replaceObject = _CFSwiftSetReplaceValue
+    __CFSwiftBridge.NSMutableSet.setObject = _CFSwiftSetSetValue
+    __CFSwiftBridge.NSMutableSet.removeObject = _CFSwiftSetRemoveValue
+    __CFSwiftBridge.NSMutableSet.removeAllObjects = _CFSwiftSetRemoveAllValues
     
     __CFSwiftBridge.NSArray.count = _CFSwiftArrayGetCount
     __CFSwiftBridge.NSArray.objectAtIndex = _CFSwiftArrayGetValueAtIndex
@@ -123,6 +214,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSDictionary.countForObject = _CFSwiftDictionaryGetCountOfValue
     __CFSwiftBridge.NSDictionary.getObjects = _CFSwiftDictionaryGetValuesAndKeys
     __CFSwiftBridge.NSDictionary.__apply = _CFSwiftDictionaryApplyFunction
+    __CFSwiftBridge.NSDictionary.copy = _CFSwiftDictionaryCreateCopy
     
     __CFSwiftBridge.NSMutableDictionary.__addObject = _CFSwiftDictionaryAddValue
     __CFSwiftBridge.NSMutableDictionary.replaceObject = _CFSwiftDictionaryReplaceValue
@@ -182,180 +274,75 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSCharacterSet.hasMemberInPlane = _CFSwiftCharacterSetHasMemberInPlane
     __CFSwiftBridge.NSCharacterSet.invertedSet = _CFSwiftCharacterSetInverted
     
-    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
-}
-
-public protocol _ObjectTypeBridgeable {
-    associatedtype _ObjectType : AnyObject
+    __CFSwiftBridge.NSMutableCharacterSet.addCharactersInRange = _CFSwiftMutableSetAddCharactersInRange
+    __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInRange = _CFSwiftMutableSetRemoveCharactersInRange
+    __CFSwiftBridge.NSMutableCharacterSet.addCharactersInString = _CFSwiftMutableSetAddCharactersInString
+    __CFSwiftBridge.NSMutableCharacterSet.removeCharactersInString = _CFSwiftMutableSetRemoveCharactersInString
+    __CFSwiftBridge.NSMutableCharacterSet.formUnionWithCharacterSet = _CFSwiftMutableSetFormUnionWithCharacterSet
+    __CFSwiftBridge.NSMutableCharacterSet.formIntersectionWithCharacterSet = _CFSwiftMutableSetFormIntersectionWithCharacterSet
+    __CFSwiftBridge.NSMutableCharacterSet.invert = _CFSwiftMutableSetInvert
     
-    /// Convert `self` to an Object type
-    func _bridgeToObject() -> _ObjectType
+    __CFSwiftBridge.NSNumber._cfNumberGetType = _CFSwiftNumberGetType
+    __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
+    __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
-    /// Bridge from an object of the bridged class type to a value of 
-    /// the Self type.
-    ///
-    /// This bridging operation is used for forced downcasting (e.g.,
-    /// via as), and may defer complete checking until later. For
-    /// example, when bridging from `NSArray` to `Array<Element>`, we can defer
-    /// the checking for the individual elements of the array.
-    ///
-    /// - parameter result: The location where the result is written. The optional
-    ///   will always contain a value.
-    static func _forceBridgeFromObject(
-        _ source: _ObjectType,
-        result: inout Self?
-    )
-    
-    /// Try to bridge from an object of the bridged class type to a value of 
-    /// the Self type.
-    ///
-    /// This conditional bridging operation is used for conditional
-    /// downcasting (e.g., via as?) and therefore must perform a
-    /// complete conversion to the value type; it cannot defer checking
-    /// to a later time.
-    ///
-    /// - parameter result: The location where the result is written.
-    ///
-    /// - Returns: `true` if bridging succeeded, `false` otherwise. This redundant
-    ///   information is provided for the convenience of the runtime's `dynamic_cast`
-    ///   implementation, so that it need not look into the optional representation
-    ///   to determine success.
-    static func _conditionallyBridgeFromObject(
-        _ source: _ObjectType,
-        result: inout Self?
-    ) -> Bool
-}
-
-protocol _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject
-}
-
-internal func _NSObjectRepresentableBridge(_ value: Any) -> NSObject {
-    if let obj = value as? _NSObjectRepresentable {
-        return obj._nsObjectRepresentation()
-    } else if let str = value as? String {
-        return str._nsObjectRepresentation()
-    } else if let obj = value as? NSObject {
-        return obj
-    } else if let obj = value as? Int {
-        return obj._bridgeToObject()
-    } else if let obj = value as? UInt {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Float {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Double {
-        return obj._bridgeToObject()
-    } else if let obj = value as? Bool {
-        return obj._bridgeToObject()
-    }
-    fatalError("Unable to convert value of type \(value.dynamicType)")
-}
-
-extension Array : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Dictionary : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-
-extension String : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Set : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Int : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension UInt : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Float : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Double : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
-}
-
-extension Bool : _NSObjectRepresentable {
-    func _nsObjectRepresentation() -> NSObject {
-        return _bridgeToObject()
-    }
+//    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {
-    return unsafeBitCast(lhs, to: UnsafePointer<Void>.self) == unsafeBitCast(rhs, to: UnsafePointer<Void>.self)
+    return unsafeBitCast(lhs, to: UnsafeRawPointer.self) == unsafeBitCast(rhs, to: UnsafeRawPointer.self)
 }
 
 /// Swift extensions for common operations in Foundation that use unsafe things...
 
 
 extension NSObject {
-    static func unretainedReference<T, R: NSObject>(_ value: UnsafePointer<T>) -> R {
+    static func unretainedReference<R: NSObject>(_ value: UnsafeRawPointer) -> R {
         return unsafeBitCast(value, to: R.self)
     }
     
-    static func unretainedReference<T, R: NSObject>(_ value: UnsafeMutablePointer<T>) -> R {
-        return unretainedReference(UnsafePointer<T>(value))
+    static func unretainedReference<R: NSObject>(_ value: UnsafeMutableRawPointer) -> R {
+        return unretainedReference(UnsafeRawPointer(value))
     }
     
-    static func releaseReference<T>(_ value: UnsafePointer<T>) {
-        _CFSwiftRelease(UnsafeMutablePointer<Void>(value))
+    static func releaseReference(_ value: UnsafeRawPointer) {
+        _CFSwiftRelease(UnsafeMutableRawPointer(mutating: value))
     }
     
-    static func releaseReference<T>(_ value: UnsafeMutablePointer<T>) {
+    static func releaseReference(_ value: UnsafeMutableRawPointer) {
         _CFSwiftRelease(value)
     }
 
-    func withRetainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
-        return work(UnsafePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
+    func withRetainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
+        let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
+        return work(selfPtr)
     }
     
-    func withRetainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
-        return work(UnsafeMutablePointer<T>(_CFSwiftRetain(unsafeBitCast(self, to: UnsafeMutablePointer<Void>.self))!))
+    func withRetainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
+        let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
+        return work(selfPtr)
     }
     
-    func withUnretainedReference<T, R>(_ work: @noescape (UnsafePointer<T>) -> R) -> R {
-        return work(unsafeBitCast(self, to: UnsafePointer<T>.self))
+    func withUnretainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
+        return work(selfPtr)
     }
     
-    func withUnretainedReference<T, R>(_ work: @noescape (UnsafeMutablePointer<T>) -> R) -> R {
-        return work(unsafeBitCast(self, to: UnsafeMutablePointer<T>.self))
+    func withUnretainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
+        return work(selfPtr)
     }
 }
 
 extension Array {
-    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, body: @noescape (UnsafeMutablePointer<Element>) -> R) -> R {
+    internal mutating func withUnsafeMutablePointerOrAllocation<R>(_ count: Int, fastpath: UnsafeMutablePointer<Element>? = nil, body: (UnsafeMutablePointer<Element>) -> R) -> R {
         if let fastpath = fastpath {
             return body(fastpath)
         } else if self.count > count {
-            let buffer = UnsafeMutablePointer<Element>(allocatingCapacity: count)
+            let buffer = UnsafeMutablePointer<Element>.allocate(capacity: count)
             let res = body(buffer)
             buffer.deinitialize(count: count)
-            buffer.deallocateCapacity(count)
+            buffer.deallocate()
             return res
         } else {
             return withUnsafeMutableBufferPointer() { (bufferPtr: inout UnsafeMutableBufferPointer<Element>) -> R in
@@ -365,10 +352,6 @@ extension Array {
     }
 }
 
-public protocol Bridgeable {
-    associatedtype BridgeType
-    func bridge() -> BridgeType
-}
 
 #if os(OSX) || os(iOS)
     internal typealias _DarwinCompatibleBoolean = DarwinBoolean

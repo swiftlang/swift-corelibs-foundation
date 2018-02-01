@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFBasicHash.h
-	Copyright (c) 2008 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -67,13 +62,13 @@ typedef struct {
 typedef struct __CFBasicHash *CFBasicHashRef;
 typedef const struct __CFBasicHash *CFConstBasicHashRef;
 
-// Bit 6 in the CF_INFO_BITS of the CFRuntimeBase inside the CFBasicHashRef is the "is immutable" bit
 CF_INLINE Boolean CFBasicHashIsMutable(CFConstBasicHashRef ht) {
-    return __CFBitfieldGetValue(((CFRuntimeBase *)ht)->_cfinfo[CF_INFO_BITS], 6, 6) ? false : true;
+    // Bit 6 in the info bits of the CFRuntimeBase inside the CFBasicHashRef is the "is immutable" bit, so flip the return value of the get function
+    return !__CFRuntimeGetFlag(ht, 6);
 }
 
 CF_INLINE void CFBasicHashMakeImmutable(CFBasicHashRef ht) {
-    __CFBitfieldSetValue(((CFRuntimeBase *)ht)->_cfinfo[CF_INFO_BITS], 6, 6, 1);
+    __CFRuntimeSetFlag(ht, 6, true);
 }
 
 
@@ -106,8 +101,8 @@ CFBasicHashBucket CFBasicHashFindBucket(CFConstBasicHashRef ht, uintptr_t stack_
 CFIndex CFBasicHashGetCountOfKey(CFConstBasicHashRef ht, uintptr_t stack_key);
 CFIndex CFBasicHashGetCountOfValue(CFConstBasicHashRef ht, uintptr_t stack_value);
 Boolean CFBasicHashesAreEqual(CFConstBasicHashRef ht1, CFConstBasicHashRef ht2);
-void CFBasicHashApply(CFConstBasicHashRef ht, Boolean (^block)(CFBasicHashBucket));
-void CFBasicHashApplyIndexed(CFConstBasicHashRef ht, CFRange range, Boolean (^block)(CFBasicHashBucket));
+void CFBasicHashApply(CFConstBasicHashRef ht, Boolean (CF_NOESCAPE ^block)(CFBasicHashBucket));
+void CFBasicHashApplyIndexed(CFConstBasicHashRef ht, CFRange range, Boolean (CF_NOESCAPE ^block)(CFBasicHashBucket));
 void CFBasicHashGetElements(CFConstBasicHashRef ht, CFIndex bufferslen, uintptr_t *weak_values, uintptr_t *weak_keys);
 
 Boolean CFBasicHashAddValue(CFBasicHashRef ht, uintptr_t stack_key, uintptr_t stack_value);

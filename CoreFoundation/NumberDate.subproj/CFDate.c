@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFDate.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
@@ -24,6 +19,10 @@
 
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
+#else
+#ifndef NSEC_PER_SEC
+#define NSEC_PER_SEC 1000000000UL
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
@@ -31,6 +30,7 @@
 #endif
 
 #define DEFINE_CFDATE_FUNCTIONS 1
+
 
 /* cjk: The Julian Date for the reference date is 2451910.5,
         I think, in case that's ever useful. */
@@ -42,8 +42,6 @@ const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0L;
 
 CF_PRIVATE double __CFTSRRate = 0.0;
 static double __CF1_TSRRate = 0.0;
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 CF_PRIVATE uint64_t __CFTimeIntervalToTSR(CFTimeInterval ti) {
     if ((ti * __CFTSRRate) > INT64_MAX / 2) return (INT64_MAX / 2);
@@ -66,11 +64,10 @@ CF_PRIVATE CFTimeInterval __CFTimeIntervalUntilTSR(uint64_t tsr) {
 
 // Technically this is 'TSR units' not a strict 'TSR' absolute time
 CF_PRIVATE uint64_t __CFTSRToNanoseconds(uint64_t tsr) {
-    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * 1000000000UL);
+    double tsrInNanoseconds = floor(tsr * __CF1_TSRRate * NSEC_PER_SEC);
     uint64_t ns = (uint64_t)tsrInNanoseconds;
     return ns;
 }
-#endif
 
 #if __HAS_DISPATCH__
 CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
@@ -92,7 +89,6 @@ CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     ret += (1.0E-6 * (CFTimeInterval)tv.tv_usec);
     return ret;
 }
-
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
@@ -149,7 +145,7 @@ static const CFRuntimeClass __CFDateClass = {
 };
 
 CFTypeID CFDateGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
+    static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
         __kCFDateTypeID = _CFRuntimeRegisterClass(&__CFDateClass); 
 
@@ -227,8 +223,12 @@ CF_INLINE double __CFDoubleMod(double d, int32_t modulus) {
     return result;
 }
 
+#define INVALID_MONTH_RESULT (0xffff)
+#define CHECK_BOUNDS(month, array) ((month) >= 0 && (month) < (sizeof(array) / sizeof(*(array))))
+#define ASSERT_VALID_MONTH(month) do { if (!((month) >= 1 && (month) <= 12)) { os_log_error(OS_LOG_DEFAULT, "Month %d is out of bounds", (int)month); /* HALT */ } } while(0)
+
 static const uint8_t daysInMonth[16] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0, 0, 0};
-static const uint16_t daysBeforeMonth[16] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365, 0, 0};
+static const uint16_t daysBeforeMonth[16] = {INVALID_MONTH_RESULT, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365, INVALID_MONTH_RESULT, INVALID_MONTH_RESULT};
 static const uint16_t daysAfterMonth[16] = {365, 334, 306, 275, 245, 214, 184, 153, 122, 92, 61, 31, 0, 0, 0, 0};
 
 CF_INLINE bool isleap(int64_t year) {
@@ -239,17 +239,32 @@ CF_INLINE bool isleap(int64_t year) {
 
 /* year arg is absolute year; Gregorian 2001 == year 0; 2001/1/1 = absolute date 0 */
 CF_INLINE uint8_t __CFDaysInMonth(int8_t month, int64_t year, bool leap) {
-    return daysInMonth[month] + (2 == month && leap);
+    if (CHECK_BOUNDS(month, daysInMonth)) {
+        return daysInMonth[month] + (2 == month && leap);
+    } else {
+        // All internal usages of this are already audited and should provide valid dates. Make sure it stays that way.
+        HALT;
+    }
 }
 
 /* year arg is absolute year; Gregorian 2001 == year 0; 2001/1/1 = absolute date 0 */
 CF_INLINE uint16_t __CFDaysBeforeMonth(int8_t month, int64_t year, bool leap) {
-    return daysBeforeMonth[month] + (2 < month && leap);
+    if (CHECK_BOUNDS(month, daysBeforeMonth)) {
+        return daysBeforeMonth[month] + (2 < month && leap);
+    } else {
+        // We can't HALT here, as there are various ways for out of range month values to enter here.
+        return INVALID_MONTH_RESULT;
+    }
 }
 
 /* year arg is absolute year; Gregorian 2001 == year 0; 2001/1/1 = absolute date 0 */
 CF_INLINE uint16_t __CFDaysAfterMonth(int8_t month, int64_t year, bool leap) {
-    return daysAfterMonth[month] + (month < 2 && leap);
+    if (CHECK_BOUNDS(month, daysAfterMonth)) {
+        return daysAfterMonth[month] + (month < 2 && leap);
+    } else {
+        // All internal usages of this are already audited and should provide valid dates. Make sure it stays that way.
+        HALT;
+    }
 }
 
 /* year arg is absolute year; Gregorian 2001 == year 0; 2001/1/1 = absolute date 0 */
@@ -274,9 +289,16 @@ static void __CFYMDFromAbsolute(int64_t absolute, int64_t *year, int8_t *month, 
     if (month || day) {
 	int8_t m = absolute / 33 + 1; /* search from the approximation */
 	bool leap = isleap(y);
-	while (__CFDaysBeforeMonth(m + 1, y, leap) <= absolute) m++;
-	if (month) *month = m;
-	if (day) *day = absolute - __CFDaysBeforeMonth(m, y, leap) + 1;
+        
+        // Calculations above should guarantee that 0 <= absolute < 336, meaning 1 <= m <= 11 and that __CFDaysBeforeMonth(m + 1, …) will at some point be > absolute.
+        ASSERT_VALID_MONTH(m);
+        ASSERT_VALID_MONTH(m + 1);
+        while (__CFDaysBeforeMonth(m + 1, y, leap) <= absolute) {
+            m++;
+            ASSERT_VALID_MONTH(m + 1);
+        }
+        if (month) *month = m;
+        if (day) *day = absolute - __CFDaysBeforeMonth(m, y, leap) + 1;
     }
 }
 
@@ -295,7 +317,11 @@ static double __CFAbsoluteFromYMD(int64_t year, int8_t month, int8_t day) {
 	    absolute += __CFDaysAfterMonth(0, idx, isleap(idx));
     }
     /* Now add the days into the original year */
-    absolute += __CFDaysBeforeMonth(month, year, isleap(year)) + day - 1;
+    uint16_t const daysBeforeMonth = __CFDaysBeforeMonth(month, year, isleap(year));
+    if (daysBeforeMonth != INVALID_MONTH_RESULT) {
+        absolute += daysBeforeMonth;
+    } // else, the results of this have always been undefined, since it involves reading off the end of the array, so just "add zero".
+    absolute += day - 1;
     return absolute;
 }
 
@@ -306,7 +332,10 @@ Boolean CFGregorianDateIsValid(CFGregorianDate gdate, CFOptionFlags unitFlags) {
     if ((unitFlags & kCFGregorianUnitsHours) && (gdate.hour < 0 || 23 < gdate.hour)) return false;
     if ((unitFlags & kCFGregorianUnitsMinutes) && (gdate.minute < 0 || 59 < gdate.minute)) return false;
     if ((unitFlags & kCFGregorianUnitsSeconds) && (gdate.second < 0.0 || 60.0 <= gdate.second)) return false;
-    if ((unitFlags & kCFGregorianUnitsDays) && (unitFlags & kCFGregorianUnitsMonths) && (unitFlags & kCFGregorianUnitsYears) && (__CFDaysInMonth(gdate.month, gdate.year - 2001, isleap(gdate.year - 2001)) < gdate.day)) return false;
+    if ((unitFlags & kCFGregorianUnitsDays) && (unitFlags & kCFGregorianUnitsMonths) && (unitFlags & kCFGregorianUnitsYears)) {
+        ASSERT_VALID_MONTH(gdate.month); // Checks above should confirm this.
+        return __CFDaysInMonth(gdate.month, gdate.year - 2001, isleap(gdate.year - 2001)) >= gdate.day;
+    }
     return true;
 }
 
@@ -406,6 +435,7 @@ CFAbsoluteTime CFAbsoluteTimeAddGregorianUnits(CFAbsoluteTime at, CFTimeZoneRef 
 	working.months += 12;
 	working.years -= 1;
     }
+    ASSERT_VALID_MONTH(working.months);
     monthdays = __CFDaysInMonth(working.months, working.years - 2001, isleap(working.years - 2001));
     if (monthdays < working.days) {	/* Clamp day to new month */
 	working.days = monthdays;
@@ -418,6 +448,7 @@ CFAbsoluteTime CFAbsoluteTimeAddGregorianUnits(CFAbsoluteTime at, CFTimeZoneRef 
 	    working.years += 1;
 	}
 	working.days -= monthdays;
+        ASSERT_VALID_MONTH(working.months);
 	monthdays = __CFDaysInMonth(working.months, working.years - 2001, isleap(working.years - 2001));
     }
     while (working.days < 1) {
@@ -426,6 +457,7 @@ CFAbsoluteTime CFAbsoluteTimeAddGregorianUnits(CFAbsoluteTime at, CFTimeZoneRef 
 	    working.months += 12;
 	    working.years -= 1;
 	}
+        ASSERT_VALID_MONTH(working.months);
 	monthdays = __CFDaysInMonth(working.months, working.years - 2001, isleap(working.years - 2001));
 	working.days += monthdays;
     }
@@ -503,6 +535,7 @@ SInt32 CFAbsoluteTimeGetDayOfYear(CFAbsoluteTime at, CFTimeZoneRef tz) {
 #endif
     absolute = (int64_t)floor(fixedat / 86400.0);
     __CFYMDFromAbsolute(absolute, &year, &month, &day);
+    ASSERT_VALID_MONTH(month); // __CFYMDFromAbsolute always gives valid months
     return __CFDaysBeforeMonth(month, year, isleap(year)) + day;
 }
 
@@ -537,6 +570,7 @@ SInt32 CFAbsoluteTimeGetWeekOfYear(CFAbsoluteTime at, CFTimeZoneRef tz) {
 	}
     }
     /* Days into year, plus a week-shifting correction, divided by 7. First week is 1. */
+    ASSERT_VALID_MONTH(month); // __CFYMDFromAbsolute always gives valid months
     return (__CFDaysBeforeMonth(month, year, isleap(year)) + day + (dow0101 - 11) % 7 + 2) / 7 + 1;
 }
 

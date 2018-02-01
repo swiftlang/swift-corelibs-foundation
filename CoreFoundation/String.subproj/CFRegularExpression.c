@@ -133,8 +133,9 @@ _CFRegularExpressionRef _CFRegularExpressionCreate(CFAllocatorRef allocator, CFS
     if (regex == NULL || U_FAILURE(errorCode)) {
         // ??? do we need more detailed errors here?
         if (errorPtr) {
-            CFStringRef keys[] = {
-                CFSTR("NSInvalidValue")
+            CFStringRef key = CFSTR("NSInvalidValue");
+            CFTypeRef keys[] = {
+                key
             };
             CFTypeRef values[] = {
                 pattern

@@ -1,19 +1,16 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFPriv.h
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 /*
-        APPLE SPI:  NOT TO BE USED OUTSIDE APPLE!
+        APPLE SPI:  NOT TO BE USED OUTSIDE APPLE!*
+ 
+        *or swift-corelibs-foundation
 */
 
 #if !defined(__COREFOUNDATION_CFPRIV__)
@@ -29,18 +26,23 @@
 #include <CoreFoundation/CFSet.h>
 #include <math.h>
 
-
+#ifndef CF_CROSS_PLATFORM_EXPORT
+    #if !DEPLOYMENT_RUNTIME_OBJC
+        #define CF_CROSS_PLATFORM_EXPORT extern
+    #else
+        #define CF_CROSS_PLATFORM_EXPORT static __attribute__((used))
+    #endif
+#endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMachPort.h>
 #include <CoreFoundation/CFMessagePort.h>
 #endif
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFBundlePriv.h>
-#endif
+#include <CoreFoundation/CFKnownLocations.h>
 
 CF_EXTERN_C_BEGIN
 
@@ -51,6 +53,9 @@ CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
+CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
+CF_EXPORT uid_t _CFGetEUID(void);
+CF_EXPORT uid_t _CFGetEGID(void);
 
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
@@ -598,18 +603,18 @@ CF_INLINE struct timespec _CFFileTimeSpecFromAbsoluteTime(CFAbsoluteTime at) {
 CF_EXPORT bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error);
 
 // Returns a subset of the property list, only including the keyPaths in the CFSet. If the top level object is not a dictionary, you will get back an empty dictionary as the result.
-CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) CF_AVAILABLE(10_8, 6_0);
+CF_EXPORT bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || TARGET_OS_WIN32 || TARGET_OS_LINUX
+// Returns a set of the keys of the top-level dictionary of a plist. Optimized for bplist (though it works with XML too).  Only supports string keys. 
+CF_EXPORT CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFErrorRef *outError) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
 // Returns a subset of a bundle's Info.plist. The keyPaths follow the same rules as above CFPropertyList function. This function takes platform and product keys into account.
 typedef CF_OPTIONS(CFOptionFlags, _CFBundleFilteredPlistOptions) {
     _CFBundleFilteredPlistMemoryMapped = 1
-} CF_ENUM_AVAILABLE(10_8, 6_0);
+} API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
-CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) CF_AVAILABLE(10_8, 6_0);
-CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) CF_AVAILABLE(10_8, 6_0);
-#endif
+CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
+CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRef bundle, CFSetRef keyPaths, CFStringRef localizationName, _CFBundleFilteredPlistOptions options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));
 
 #if TARGET_OS_WIN32
 #include <CoreFoundation/CFNotificationCenter.h>
@@ -642,11 +647,42 @@ CF_EXPORT CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRe
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
 #endif
 
-CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
-CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection CF_AVAILABLE(10_9, 6_0);	// CFBoolean
+CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
 
 
-CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) CF_AVAILABLE(10_11, 9_0);
+CF_EXPORT void _CFGetPathExtensionRangesFromPathComponentUniChars(const UniChar *uchars, CFIndex ucharsLength, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT Boolean _CFExtensionUniCharsIsValidToAppend(const UniChar *uchars, CFIndex ucharsLength) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+
+
+#if !DEPLOYMENT_RUNTIME_OBJC
+
+// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+// Version 0.8
+
+// note: All paths set in these environment variables must be absolute.
+
+/// a single base directory relative to which user-specific data files should be written. This directory is defined by the environment variable $XDG_DATA_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateDataHomePath(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific configuration files should be written. This directory is defined by the environment variable $XDG_CONFIG_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateConfigHomePath(void) CF_RETURNS_RETAINED;
+
+/// a set of preference ordered base directories relative to which data files should be searched. This set of directories is defined by the environment variable $XDG_DATA_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateDataDirectoriesPaths(void) CF_RETURNS_RETAINED;
+
+/// a set of preference ordered base directories relative to which configuration files should be searched. This set of directories is defined by the environment variable $XDG_CONFIG_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific non-essential (cached) data should be written. This directory is defined by the environment variable $XDG_CACHE_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
+CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) CF_RETURNS_RETAINED;
+
+#endif // !DEPLOYMENT_RUNTIME_OBJC
 
 CF_EXTERN_C_END
 

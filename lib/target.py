@@ -85,11 +85,11 @@ class ArchType:
         if value == ArchType.msp430:
             return "msp430"
         if value == ArchType.ppc:
-            return "ppc"
+            return "powerpc"
         if value == ArchType.ppc64:
-            return "ppc64"
+            return "powerpc64"
         if value == ArchType.ppc64le:
-            return "ppc64le"
+            return "powerpc64le"
         if value == ArchType.r600:
             return "r600"
         if value == ArchType.amdgcn:
@@ -176,11 +176,11 @@ class ArchType:
             return ArchType.mips64el
         if string == "msp430":
             return ArchType.msp430
-        if string == "ppc":
+        if string == "ppc" or string == "powerpc":
             return ArchType.ppc
-        if string == "ppc64":
+        if string == "ppc64" or string == "powerpc64":
             return ArchType.ppc64
-        if string == "ppc64le":
+        if string == "ppc64le" or string == "powerpc64le":
             return ArchType.ppc64le
         if string == "r600":
             return ArchType.r600
@@ -325,6 +325,7 @@ class Target:
     triple = None
     sdk = None
     arch = None
+    environ = None
     executable_suffix = ""
     dynamic_library_prefix = "lib"
     dynamic_library_suffix = ".dylib"
@@ -342,6 +343,10 @@ class Target:
             self.sdk = OSType.Win32
             self.dynamic_library_suffix = ".dll"
             self.executable_suffix = ".exe"
+            if "cygnus" in triple:
+                self.environ = EnvironmentType.Cygnus
+            else:
+                self.environ = EnvironmentType.UnknownEnvironment
         elif "darwin" in triple:
             self.sdk = OSType.MacOSX
         else:
@@ -366,6 +371,8 @@ class Target:
         elif platform.system() == "FreeBSD":
             # Make this work on 10 as well.
             triple += "-freebsd11.0"
+        elif platform.system() == "CYGWIN_NT-10.0":
+            triple += "-windows-cygnus"
         else:
             # TODO: This should be a bit more exhaustive
             print("unknown host os")
@@ -380,11 +387,16 @@ class Target:
         elif self.sdk == OSType.Linux:
             # FIXME: It would be nice to detect the host ABI here
             if (self.arch == ArchType.armv6) or (self.arch == ArchType.armv7):
-                triple += "-unknown-linux-gnueabihf"
+                if Configuration.current.target.triple == "armv7-none-linux-androideabi":
+                    triple = Configuration.current.target.triple
+                else:
+                    triple += "-unknown-linux-gnueabihf"
             else:
                 triple += "-unknown-linux"
         elif self.sdk == OSType.FreeBSD:
             triple += "-unknown-freebsd"
+        elif self.sdk == OSType.Win32 and self.environ == EnvironmentType.Cygnus:
+            triple += "-unknown-windows-cygnus"
         else:
             print("unknown sdk for swift")
             return None
@@ -395,10 +407,14 @@ class Target:
     def swift_sdk_name(self):
         if self.sdk == OSType.MacOSX:
             return "macosx"
+        elif self.sdk == OSType.Linux and "android" in self.triple:
+            return "android"
         elif self.sdk == OSType.Linux:
             return "linux"
         elif self.sdk == OSType.FreeBSD:
             return "freebsd"
+        elif self.sdk == OSType.Win32:
+            return "cygwin"
         else:
             print("unknown sdk for swift")
             return None

@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFNumberFormatter.h
-	Copyright (c) 2003 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2003-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #if !defined(__COREFOUNDATION_CFNUMBERFORMATTER__)
@@ -21,6 +16,8 @@
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
+
+typedef CFStringRef CFNumberFormatterKey CF_STRING_ENUM;
 
 typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFNumberFormatter *CFNumberFormatterRef;
 
@@ -36,10 +33,10 @@ typedef CF_ENUM(CFIndex, CFNumberFormatterStyle) {	// number format styles
 	kCFNumberFormatterPercentStyle = 3,
 	kCFNumberFormatterScientificStyle = 4,
 	kCFNumberFormatterSpellOutStyle = 5,
-	kCFNumberFormatterOrdinalStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 6,
-	kCFNumberFormatterCurrencyISOCodeStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 8,
-	kCFNumberFormatterCurrencyPluralStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 9,
-	kCFNumberFormatterCurrencyAccountingStyle CF_ENUM_AVAILABLE(10_11, 9_0) = 10,
+	kCFNumberFormatterOrdinalStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 6,
+	kCFNumberFormatterCurrencyISOCodeStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 8,
+	kCFNumberFormatterCurrencyPluralStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 9,
+	kCFNumberFormatterCurrencyAccountingStyle API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)) = 10,
 };
 
 
@@ -98,51 +95,51 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
 
 
 CF_EXPORT
-void CFNumberFormatterSetProperty(CFNumberFormatterRef formatter, CFStringRef key, CFTypeRef value);
+void CFNumberFormatterSetProperty(CFNumberFormatterRef formatter, CFNumberFormatterKey key, CFTypeRef value);
 
 CF_EXPORT
-CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef formatter, CFStringRef key);
+CFTypeRef CFNumberFormatterCopyProperty(CFNumberFormatterRef formatter, CFNumberFormatterKey key);
 	// Set and get various properties of the number formatter, the set of
 	// which may be expanded in the future.
 
-CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyCode;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterDecimalSeparator;	// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyDecimalSeparator; // CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterAlwaysShowDecimalSeparator; // CFBoolean
-CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSeparator;	// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterUseGroupingSeparator;	// CFBoolean
-CF_EXPORT const CFStringRef kCFNumberFormatterPercentSymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterZeroSymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterNaNSymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterInfinitySymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterMinusSign;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterPlusSign;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterCurrencySymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterExponentSymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterMinIntegerDigits;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterMaxIntegerDigits;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterMinFractionDigits;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterMaxFractionDigits;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterGroupingSize;		// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterSecondaryGroupingSize;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterRoundingMode;		// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterRoundingIncrement;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterFormatWidth;		// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterPaddingPosition;	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterPaddingCharacter;	// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterDefaultFormat;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterMultiplier;		// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterPositivePrefix;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterPositiveSuffix;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterNegativePrefix;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterNegativeSuffix;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterPerMillSymbol;		// CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterInternationalCurrencySymbol; // CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterCurrencyGroupingSeparator CF_AVAILABLE(10_5, 2_0); // CFString
-CF_EXPORT const CFStringRef kCFNumberFormatterIsLenient CF_AVAILABLE(10_5, 2_0);		// CFBoolean
-CF_EXPORT const CFStringRef kCFNumberFormatterUseSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFBoolean
-CF_EXPORT const CFStringRef kCFNumberFormatterMinSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
-CF_EXPORT const CFStringRef kCFNumberFormatterMaxSignificantDigits CF_AVAILABLE(10_5, 2_0);	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencyCode;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterDecimalSeparator;	// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencyDecimalSeparator; // CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterAlwaysShowDecimalSeparator; // CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterGroupingSeparator;	// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterUseGroupingSeparator;	// CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPercentSymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterZeroSymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterNaNSymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterInfinitySymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinusSign;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPlusSign;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencySymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterExponentSymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinIntegerDigits;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMaxIntegerDigits;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinFractionDigits;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMaxFractionDigits;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterGroupingSize;		// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterSecondaryGroupingSize;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterRoundingMode;		// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterRoundingIncrement;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterFormatWidth;		// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPaddingPosition;	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPaddingCharacter;	// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterDefaultFormat;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMultiplier;		// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPositivePrefix;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPositiveSuffix;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterNegativePrefix;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterNegativeSuffix;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterPerMillSymbol;		// CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterInternationalCurrencySymbol; // CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterCurrencyGroupingSeparator API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFString
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterIsLenient API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));		// CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterUseSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMinSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFNumber
+CF_EXPORT const CFNumberFormatterKey kCFNumberFormatterMaxSignificantDigits API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));	// CFNumber
 
 typedef CF_ENUM(CFIndex, CFNumberFormatterRoundingMode) {
     kCFNumberFormatterRoundCeiling = 0,

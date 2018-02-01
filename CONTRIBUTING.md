@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions to Foundation are welcome! This project follows the [contribution guidelines for the Swift project](https://swift.org/contributing/#contributing-code). A few additional details are outlined below.
+Contributions to Foundation are welcome! This project follows the [contribution guidelines for the Swift project](https://swift.org/contributing/#contributing-code). If you are interested in contributing, please consult with our [status page](Docs/Status.md) to see what work remains to be done. A few additional details are outlined below.
 
 ## Licensing
 
@@ -35,6 +35,9 @@ All pull requests which contain code changes should come with a new set of autom
 ##### Documentation
 
 Most of the methods in Foundation are lacking documentation. We appreciate your help in filling out documentation when you implement a method. Use the markdown syntax in the [Swift Naming Guidelines](https://swift.org/documentation/api-design-guidelines.html#write-doc-comment).
+
+##### Implementation Status
+We are currently keeping track of the implementation status and test coverage status of our public classes on our [status page](Docs/Status.md). If you make changes to our public interfaces, please take care to update the corresponding entries in that document.
 
 ## API Changes
 

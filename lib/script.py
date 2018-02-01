@@ -63,6 +63,8 @@ OS                    = """ + Configuration.current.target.swift_sdk_name + """
 ARCH                  = """ + Configuration.current.target.swift_arch + """
 DYLIB_PREFIX          = """ + Configuration.current.target.dynamic_library_prefix + """
 DYLIB_SUFFIX          = """ + Configuration.current.target.dynamic_library_suffix + """
+STATICLIB_PREFIX      = """ + Configuration.current.target.static_library_prefix + """
+STATICLIB_SUFFIX      = """ + Configuration.current.target.static_library_suffix + """
 PREFIX                = """ + Configuration.current.prefix + """
 """
         if Configuration.current.requires_pkg_config:
@@ -187,7 +189,7 @@ rule CompileSwift
     depfile = $out.d
 
 rule MergeSwiftModule
-    command = mkdir -p `dirname $out`; ${SWIFT} -frontend -emit-module $partials ${TARGET_SWIFTCFLAGS} $flags -module-cache-path ${MODULE_CACHE_PATH} -module-link-name $module_name -o $out
+    command = mkdir -p `dirname $out`; ${SWIFT} -frontend -sil-merge-partial-modules -emit-module $partials ${TARGET_SWIFTCFLAGS} $flags -module-cache-path ${MODULE_CACHE_PATH} -module-link-name $module_name -o $out
     description = Merge $out
 """
 
@@ -199,14 +201,14 @@ rule Assemble
 
         link_command = """
 rule Link
-    command = mkdir -p `dirname $out`; ${CLANG} ${TARGET_LDFLAGS} $flags ${VERBOSE_FLAGS} $start $in $end -o $out""" 
+    command = mkdir -p `dirname $out`; ${CLANG} ${TARGET_LDFLAGS} ${VERBOSE_FLAGS} $start $in $end $flags -o $out""" 
         if Configuration.current.verbose:
             link_command += "-Xlinker --verbose"
         link_command += """
     description = Link: $out
 
 rule Archive
-    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $flags $out $in
+    command = mkdir -p `dirname $out`; ${AR} ${AR_FLAGS} $out $in
     description = Archive: $out
 """
         

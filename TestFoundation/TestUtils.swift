@@ -17,7 +17,7 @@
 
 func ensureFiles(_ fileNames: [String]) -> Bool {
     var result = true
-    let fm = FileManager.default()
+    let fm = FileManager.default
     for name in fileNames {
         guard !fm.fileExists(atPath: name) else {
             continue
@@ -33,7 +33,7 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         } else {
         
             var isDir: ObjCBool = false
-            let dir = name.bridge().stringByDeletingLastPathComponent
+            let dir = NSString(string: name).deletingLastPathComponent
             if !fm.fileExists(atPath: dir, isDirectory: &isDir) {
                 do {
                     try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
@@ -41,7 +41,7 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
                     print(err)
                     return false
                 }
-            } else if !isDir {
+            } else if !isDir.boolValue {
                 return false
             }
             

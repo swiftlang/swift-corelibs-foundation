@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFLogUtilities.h
-	Copyright (c) 2004 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 /*
@@ -25,7 +20,9 @@
 CF_EXTERN_C_BEGIN
 
 
-typedef CF_ENUM(int32_t, CFLogLevel) {	// Legal level values for CFLog()
+// Legal level values for CFLog()
+typedef int32_t CFLogLevel;
+enum {
     kCFLogLevelEmergency = 0,
     kCFLogLevelAlert = 1,
     kCFLogLevelCritical = 2,
@@ -36,7 +33,7 @@ typedef CF_ENUM(int32_t, CFLogLevel) {	// Legal level values for CFLog()
     kCFLogLevelDebug = 7,
 };
 
-CF_EXPORT void CFLog(CFLogLevel level, CFStringRef format, ...);
+CF_EXPORT void CFLog(CFLogLevel level, CFStringRef format, ...) CF_NO_TAIL_CALL CF_FORMAT_FUNCTION(2, 3);
 /*	Passing in a level value which is outside the range of 0-7 will cause the the call to do nothing.
 	CFLog() logs the message using the asl.h API, and uses the level parameter as the log level.
 	Note that the asl subsystem ignores some log levels by default.

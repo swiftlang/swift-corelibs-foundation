@@ -29,6 +29,7 @@ class TestNSValue : XCTestCase {
             ( "test_valueWithShortArray", test_valueWithShortArray ),
             ( "test_valueWithULongLongArray", test_valueWithULongLongArray ),
             ( "test_valueWithCharPtr", test_valueWithULongLongArray ),
+            ( "test_isEqual", test_isEqual ),
         ]
     }
     
@@ -65,7 +66,7 @@ class TestNSValue : XCTestCase {
     }
     
     func test_valueWithNSRange() {
-        let range = NSMakeRange(1, 2)
+        let range = NSRange(location: 1, length: 2)
         let value = NSValue(range: range)
         XCTAssertEqual(value.rangeValue.location, range.location)
         XCTAssertEqual(value.rangeValue.length, range.length)
@@ -120,10 +121,17 @@ class TestNSValue : XCTestCase {
 
     func test_valueWithCharPtr() {
         let charArray = [UInt8]("testing123".utf8)
-        var charPtr = UnsafeMutablePointer<UInt8>(charArray)
+        var charPtr = UnsafeMutablePointer(mutating: charArray)
         var expectedPtr: UnsafeMutablePointer<UInt8>? = nil
         
         NSValue(bytes: &charPtr, objCType: "*").getValue(&expectedPtr)
         XCTAssertEqual(charPtr, expectedPtr)
+    }
+
+    func test_isEqual() {
+        let number = NSNumber(value: Int(123))
+        var long: Int32 = 123456
+        let value = NSValue(bytes: &long, objCType: "l")
+        XCTAssertFalse(value.isEqual(number))
     }
 }

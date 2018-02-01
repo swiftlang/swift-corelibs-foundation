@@ -10,8 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-
-public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equatable, Hashable {
+public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
     public typealias ReferenceType = NSURLRequest
     public typealias CachePolicy = NSURLRequest.CachePolicy
     public typealias NetworkServiceType = NSURLRequest.NetworkServiceType
@@ -21,8 +20,8 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
      */
     internal var _handle: _MutableHandle<NSMutableURLRequest>
     
-    internal mutating func _applyMutation<ReturnType>(_ whatToDo : @noescape (NSMutableURLRequest) -> ReturnType) -> ReturnType {
-        if !isUniquelyReferencedNonObjC(&_handle) {
+    internal mutating func _applyMutation<ReturnType>(_ whatToDo : (NSMutableURLRequest) -> ReturnType) -> ReturnType {
+        if !isKnownUniquelyReferenced(&_handle) {
             let ref = _handle._uncopiedReference()
             _handle = _MutableHandle(reference: ref)
         }
@@ -30,14 +29,14 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     }
     
     /// Creates and initializes a URLRequest with the given URL and cache policy.
-    /// - parameter: url The URL for the request.
-    /// - parameter: cachePolicy The cache policy for the request. Defaults to `.useProtocolCachePolicy`
-    /// - parameter: timeoutInterval The timeout interval for the request. See the commentary for the `timeoutInterval` for more information on timeout intervals. Defaults to 60.0
+    /// - parameter url: The URL for the request.
+    /// - parameter cachePolicy: The cache policy for the request. Defaults to `.useProtocolCachePolicy`
+    /// - parameter timeoutInterval: The timeout interval for the request. See the commentary for the `timeoutInterval` for more information on timeout intervals. Defaults to 60.0
     public init(url: URL, cachePolicy: CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60.0) {
         _handle = _MutableHandle(adoptingReference: NSMutableURLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval))
     }
     
-    private init(_bridged request: NSURLRequest) {
+    fileprivate init(_bridged request: NSURLRequest) {
         _handle = _MutableHandle(reference: request.mutableCopy() as! NSMutableURLRequest)
     }
     
@@ -60,10 +59,15 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
             _applyMutation { $0.cachePolicy = newValue }
         }
     }
+
+    //URLRequest.timeoutInterval should be given precedence over the URLSessionConfiguration.timeoutIntervalForRequest regardless of the value set,
+    // if it has been set at least once. Even though the default value is 60 ,if the user sets URLRequest.timeoutInterval
+    // to explicitly 60 then the precedence should be given to URLRequest.timeoutInterval.
+    internal var isTimeoutIntervalSet = false
     
     /// Returns the timeout interval of the receiver.
     /// - discussion: The timeout interval specifies the limit on the idle
-    /// interval alloted to a request in the process of loading. The "idle
+    /// interval allotted to a request in the process of loading. The "idle
     /// interval" is defined as the period of time that has passed since the
     /// last instance of load activity occurred for a request that is in the
     /// process of loading. Hence, when an instance of load activity occurs
@@ -78,6 +82,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
         }
         set {
             _applyMutation { $0.timeoutInterval = newValue }
+            isTimeoutIntervalSet = true
         }
     }
     
@@ -106,7 +111,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     }
     
     /// `true` if the receiver is allowed to use the built in cellular radios to
-    /// satify the request, `false` otherwise.
+    /// satisfy the request, `false` otherwise.
     public var allowsCellularAccess: Bool {
         get {
             return _handle.map { $0.allowsCellularAccess }
@@ -146,7 +151,7 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
     /// The value which corresponds to the given header
     /// field. Note that, in keeping with the HTTP RFC, HTTP header field
     /// names are case-insensitive.
-    /// - parameter: field the header field name to use for the lookup (case-insensitive).
+    /// - parameter field: the header field name to use for the lookup (case-insensitive).
     public func value(forHTTPHeaderField field: String) -> String? {
         return _handle.map { $0.value(forHTTPHeaderField: field) }
     }
@@ -226,42 +231,61 @@ public struct URLRequest : ReferenceConvertible, CustomStringConvertible, Equata
         return _handle.map { $0.hashValue }
     }
     
+    public static func ==(lhs: URLRequest, rhs: URLRequest) -> Bool {
+        return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
+    }
+}
+
+extension URLRequest : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String {
-        return _handle.map { $0.description }
+        if let u = url {
+            return u.description
+        } else {
+            return "url: nil"
+        }
     }
-    
+
     public var debugDescription: String {
-        return _handle.map { $0.debugDescription }
+        return self.description
+    }
+
+    public var customMirror: Mirror {
+        var c: [(label: String?, value: Any)] = []
+        c.append((label: "url", value: url as Any))
+        c.append((label: "cachePolicy", value: cachePolicy.rawValue))
+        c.append((label: "timeoutInterval", value: timeoutInterval))
+        c.append((label: "mainDocumentURL", value: mainDocumentURL as Any))
+        c.append((label: "networkServiceType", value: networkServiceType))
+        c.append((label: "allowsCellularAccess", value: allowsCellularAccess))
+        c.append((label: "httpMethod", value: httpMethod as Any))
+        c.append((label: "allHTTPHeaderFields", value: allHTTPHeaderFields as Any))
+        c.append((label: "httpBody", value: httpBody as Any))
+        c.append((label: "httpBodyStream", value: httpBodyStream as Any))
+        c.append((label: "httpShouldHandleCookies", value: httpShouldHandleCookies))
+        c.append((label: "httpShouldUsePipelining", value: httpShouldUsePipelining))
+        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
     }
 }
 
-public func ==(lhs: URLRequest, rhs: URLRequest) -> Bool {
-    return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
-}
-
-extension URLRequest {
-    public static func _isBridgedToObjectiveC() -> Bool {
-        return true
-    }
-    
+extension URLRequest : _ObjectTypeBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSURLRequest.self
     }
-    
+
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURLRequest {
         return _handle._copiedReference()
     }
-    
+
     public static func _forceBridgeFromObjectiveC(_ input: NSURLRequest, result: inout URLRequest?) {
         result = URLRequest(_bridged: input)
     }
-    
+
     public static func _conditionallyBridgeFromObjectiveC(_ input: NSURLRequest, result: inout URLRequest?) -> Bool {
         result = URLRequest(_bridged: input)
         return true
     }
-    
+
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLRequest?) -> URLRequest {
         var result: URLRequest? = nil
         _forceBridgeFromObjectiveC(source!, result: &result)

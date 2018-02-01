@@ -10,40 +10,93 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-public class Predicate : NSObject, NSSecureCoding, NSCopying {
+open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
 
     private enum PredicateKind {
         case boolean(Bool)
-        case block((AnyObject?, [String : AnyObject]?) -> Bool)
-        // TODO: case for init(format:argumentArray:)
-        // TODO: case for init(fromMetadataQueryString:)
+        case block((Any?, [String : Any]?) -> Bool)
+        case format(String)
+        case metadataQuery(String)
     }
 
     private let kind: PredicateKind
 
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        let encodedBool = aDecoder.decodeBool(forKey: "NS.boolean.value")
+        self.kind = .boolean(encodedBool)
+        
+        super.init()
     }
     
-    public func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        //TODO: store kind key for .boolean, .format, .metadataQuery
+        
+        switch self.kind {
+        case .boolean(let value):
+            aCoder.encode(value, forKey: "NS.boolean.value")
+        case .block:
+            preconditionFailure("NSBlockPredicate cannot be encoded or decoded.")
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
-        NSUnimplemented()
+    open func copy(with zone: NSZone? = nil) -> Any {
+        switch self.kind {
+        case .boolean(let value):
+            return NSPredicate(value: value)
+        case .block(let block):
+            return NSPredicate(block: block)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSPredicate else { return false }
+        
+        if other === self {
+            return true
+        } else {
+            switch (other.kind, self.kind) {
+            case (.boolean(let otherBool), .boolean(let selfBool)):
+                return otherBool == selfBool
+            case (.format, .format):
+                NSUnimplemented()
+            case (.metadataQuery, .metadataQuery):
+                NSUnimplemented()
+            default:
+                // NSBlockPredicate returns false even for copy
+                return false
+            }
+        }
     }
     
     // Parse predicateFormat and return an appropriate predicate
-    public init(format predicateFormat: String, argumentArray arguments: [AnyObject]?) { NSUnimplemented() }
+    public init(format predicateFormat: String, argumentArray arguments: [Any]?) { NSUnimplemented() }
     
+    public init(format predicateFormat: String, arguments argList: CVaListPointer) { NSUnimplemented() }
+
     public init?(fromMetadataQueryString queryString: String) { NSUnimplemented() }
     
     public init(value: Bool) {
@@ -51,20 +104,34 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     } // return predicates that always evaluate to true/false
 
-    public init(block: (AnyObject?, [String : AnyObject]?) -> Bool) {
+    public init(block: @escaping (Any?, [String : Any]?) -> Bool) {
         kind = .block(block)
         super.init()
     }
     
-    public var predicateFormat: String  { NSUnimplemented() } // returns the format string of the predicate
+    open var predicateFormat: String {
+        switch self.kind {
+        case .boolean(let value):
+            return value ? "TRUEPREDICATE" : "FALSEPREDICATE"
+        case .block:
+            // TODO: Bring NSBlockPredicate's predicateFormat to macOS's Foundation version
+            // let address = unsafeBitCast(block, to: Int.self)
+            // return String(format:"BLOCKPREDICATE(%2X)", address)
+            return "BLOCKPREDICATE"
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
+        }
+    }
     
-    public func withSubstitutionVariables(_ variables: [String : AnyObject]) -> Self { NSUnimplemented() } // substitute constant values for variables
+    open func withSubstitutionVariables(_ variables: [String : Any]) -> Self { NSUnimplemented() } // substitute constant values for variables
     
-    public func evaluate(with object: AnyObject?) -> Bool {
+    open func evaluate(with object: Any?) -> Bool {
         return evaluate(with: object, substitutionVariables: nil)
     } // evaluate a predicate against a single object
     
-    public func evaluate(with object: AnyObject?, substitutionVariables bindings: [String : AnyObject]?) -> Bool {
+    open func evaluate(with object: Any?, substitutionVariables bindings: [String : Any]?) -> Bool {
         if bindings != nil {
             NSUnimplemented()
         }
@@ -74,66 +141,75 @@ public class Predicate : NSObject, NSSecureCoding, NSCopying {
             return value
         case let .block(block):
             return block(object, bindings)
+        case .format:
+            NSUnimplemented()
+        case .metadataQuery:
+            NSUnimplemented()
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
-    public func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
+    open func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
+}
+
+extension NSPredicate {
+    public convenience init(format predicateFormat: String, _ args: CVarArg...) { NSUnimplemented() }
 }
 
 extension NSArray {
-    public func filteredArrayUsingPredicate(_ predicate: Predicate) -> [AnyObject] {
-        return bridge().filter({ object in
+    open func filtered(using predicate: NSPredicate) -> [Any] {
+        return allObjects.filter({ object in
             return predicate.evaluate(with: object)
         })
-    } // evaluate a predicate against an array of objects and return a filtered array
+    }
 }
 
 extension NSMutableArray {
-    public func filterUsingPredicate(_ predicate: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
                 indexesToRemove.insert(index)
             }
         }
-        self.removeObjectsAtIndexes(indexesToRemove)
-    } // evaluate a predicate against an array of objects and filter the mutable array directly
+        self.removeObjects(at: indexesToRemove)
+    }
 }
 
 extension NSSet {
-    public func filteredSetUsingPredicate(_ predicate: Predicate) -> Set<NSObject> {
-        return Set(bridge().filter({ object in
+    open func filtered(using predicate: NSPredicate) -> Set<AnyHashable> {
+        let objs = allObjects.filter { (object) -> Bool in
             return predicate.evaluate(with: object)
-        }))
-    } // evaluate a predicate against a set of objects and return a filtered set
+        }
+        return Set(objs.map { $0 as! AnyHashable })
+    }
 }
 
 extension NSMutableSet {
-    public func filterUsingPredicate(_ predicate: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         for object in self {
             if !predicate.evaluate(with: object) {
                 self.remove(object)
             }
         }
-    } // evaluate a predicate against a set of objects and filter the mutable set directly
+    }
 }
 
 extension NSOrderedSet {
-    public func filteredOrderedSetUsingPredicate(_ predicate: Predicate) -> NSOrderedSet {
-        return NSOrderedSet(array: self._orderedStorage.bridge().filter({ object in
+    open func filtered(using predicate: NSPredicate) -> NSOrderedSet {
+        return NSOrderedSet(array: self.allObjects.filter({ object in
             return predicate.evaluate(with: object)
         }))
-    } // evaluate a predicate against an ordered set of objects and return a filtered ordered set
+    }
 }
 
 extension NSMutableOrderedSet {
-    public func filterUsingPredicate(_ predicate: Predicate) {
+    open func filter(using predicate: NSPredicate) {
         var indexesToRemove = IndexSet()
         for (index, object) in self.enumerated() {
             if !predicate.evaluate(with: object) {
                 indexesToRemove.insert(index)
             }
         }
-        self.removeObjectsAtIndexes(indexesToRemove)
-    } // evaluate a predicate against an ordered set of objects and filter the mutable ordered set directly
+        self.removeObjects(at: indexesToRemove)
+    }
 }

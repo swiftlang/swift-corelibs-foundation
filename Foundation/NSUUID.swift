@@ -11,92 +11,128 @@
 import CoreFoundation
 
 #if os(OSX) || os(iOS)
-    import Darwin
-#elseif os(Linux)
+    import Darwin.uuid
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
-public class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
-    internal var buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
+    internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+
+    deinit {
+         buffer.deinitialize(count: 1)
+         buffer.deallocate()
+    }
     
     public override init() {
         _cf_uuid_generate_random(buffer)
     }
     
-    public convenience init?(UUIDString string: String) {
-        let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
+    public convenience init?(uuidString string: String) {
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        defer {
+            buffer.deinitialize(count: 1)
+            buffer.deallocate()
+        }
         if _cf_uuid_parse(string, buffer) != 0 {
             return nil
         }
-        self.init(UUIDBytes: buffer)
+        self.init(uuidBytes: buffer)
     }
     
-    public init(UUIDBytes bytes: UnsafePointer<UInt8>) {
-        memcpy(unsafeBitCast(buffer, to: UnsafeMutablePointer<Void>.self), UnsafePointer<Void>(bytes), 16)
+    public init(uuidBytes bytes: UnsafePointer<UInt8>) {
+        memcpy(UnsafeMutableRawPointer(buffer), UnsafeRawPointer(bytes), 16)
     }
     
-    public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
+    open func getBytes(_ uuid: UnsafeMutablePointer<UInt8>) {
         _cf_uuid_copy(uuid, buffer)
     }
     
-    public var UUIDString: String {
-        let strPtr = UnsafeMutablePointer<Int8>(allocatingCapacity: 37)
+    open var uuidString: String {
+        let strPtr = UnsafeMutablePointer<Int8>.allocate(capacity: 37)
+        defer {
+            strPtr.deinitialize(count: 1)
+            strPtr.deallocate()
+        }
         _cf_uuid_unparse_upper(buffer, strPtr)
         return String(cString: strPtr)
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
     public convenience required init?(coder: NSCoder) {
-        if coder.allowsKeyedCoding {
-            let decodedData : Data? = coder.withDecodedUnsafeBufferPointer(forKey: "NS.uuidbytes") {
-                guard let buffer = $0 else { return nil }
-                return Data(buffer: buffer)
-            }
-
-            guard let data = decodedData else { return nil }
-            guard data.count == 16 else { return nil }
-            let buffer = UnsafeMutablePointer<UInt8>(allocatingCapacity: 16)
-            data.copyBytes(to: buffer, count: 16)
-            self.init(UUIDBytes: buffer)
-        } else {
-            // NSUUIDs cannot be decoded by non-keyed coders
-            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderReadCorruptError.rawValue, userInfo: [
-                                "NSDebugDescription": "NSUUID cannot be decoded by non-keyed coders"
-                                ]))
-            return nil
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let decodedData : Data? = coder.withDecodedUnsafeBufferPointer(forKey: "NS.uuidbytes") {
+            guard let buffer = $0 else { return nil }
+            return Data(buffer: buffer)
+        }
+
+        guard let data = decodedData else { return nil }
+        guard data.count == 16 else { return nil }
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        defer {
+            buffer.deinitialize(count: 1)
+            buffer.deallocate()
+        }
+        data.copyBytes(to: buffer, count: 16)
+        self.init(uuidBytes: buffer)
     }
     
-    public func encode(with aCoder: NSCoder) {
+    open func encode(with aCoder: NSCoder) {
         aCoder.encodeBytes(buffer, length: 16, forKey: "NS.uuidbytes")
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
-        if object === self {
-            return true
-        } else if let other = object as? NSUUID {
-            return _cf_uuid_compare(buffer, other.buffer) == 0
-        } else {
+    open override func isEqual(_ value: Any?) -> Bool {
+        switch value {
+        case let other as UUID:
+            return other.uuid.0 == buffer[0] &&
+                other.uuid.1 == buffer[1] &&
+                other.uuid.2 == buffer[2] &&
+                other.uuid.3 == buffer[3] &&
+                other.uuid.4 == buffer[4] &&
+                other.uuid.5 == buffer[5] &&
+                other.uuid.6 == buffer[6] &&
+                other.uuid.7 == buffer[7] &&
+                other.uuid.8 == buffer[8] &&
+                other.uuid.9 == buffer[9] &&
+                other.uuid.10 == buffer[10] &&
+                other.uuid.11 == buffer[11] &&
+                other.uuid.12 == buffer[12] &&
+                other.uuid.13 == buffer[13] &&
+                other.uuid.14 == buffer[14] &&
+                other.uuid.15 == buffer[15]
+        case let other as NSUUID:
+            return other === self || _cf_uuid_compare(buffer, other.buffer) == 0
+        default:
             return false
         }
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHashBytes(buffer, 16))
     }
     
-    public override var description: String {
-        return UUIDString
+    open override var description: String {
+        return uuidString
+    }
+}
+
+extension NSUUID : _StructTypeBridgeable {
+    public typealias _StructType = UUID
+    
+    public func _bridgeToSwift() -> UUID {
+        return UUID._unconditionallyBridgeFromObjectiveC(self)
     }
 }

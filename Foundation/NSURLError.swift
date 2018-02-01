@@ -27,7 +27,7 @@ public let NSURLErrorFailingURLStringErrorKey: String = "NSErrorFailingURLString
 public let NSURLErrorFailingURLPeerTrustErrorKey: String = "NSURLErrorFailingURLPeerTrustErrorKey"
 
 /// The `NSError` userInfo dictionary key used to store and retrieve the
-/// `NSNumber` corresponding to the reason why a background `NSURLSessionTask`
+/// `NSNumber` corresponding to the reason why a background `URLSessionTask`
 /// was cancelled
 /// 
 /// One of

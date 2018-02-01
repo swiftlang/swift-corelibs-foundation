@@ -11,7 +11,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || CYGWIN
     import Glibc
 #endif
 
@@ -21,17 +21,20 @@ public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }
 
-public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
+open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFDate
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
-        if let date = object as? Date {
-            return isEqual(to: date)
-        } else {
+    open override func isEqual(_ value: Any?) -> Bool {
+        switch value {
+        case let other as Date:
+            return isEqual(to: other)
+        case let other as NSDate:
+            return isEqual(to: Date(timeIntervalSinceReferenceDate: other.timeIntervalSinceReferenceDate))
+        default:
             return false
         }
     }
@@ -47,13 +50,17 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal let _base = _CFInfo(typeID: CFDateGetTypeID())
     internal let _timeIntervalSinceReferenceDate: TimeInterval
     
-    public var timeIntervalSinceReferenceDate: TimeInterval {
+    open var timeIntervalSinceReferenceDate: TimeInterval {
         return _timeIntervalSinceReferenceDate
+    }
+    
+    open class var timeIntervalSinceReferenceDate: TimeInterval {
+        return Date().timeIntervalSinceReferenceDate
     }
 
     public convenience override init() {
         var tv = timeval()
-        let _ = withUnsafeMutablePointer(&tv) { t in
+        let _ = withUnsafeMutablePointer(to: &tv) { t in
             gettimeofday(t, nil)
         }
         var timestamp = TimeInterval(tv.tv_sec) - NSTimeIntervalSince1970
@@ -66,36 +73,30 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        if aDecoder.allowsKeyedCoding {
-            let ti = aDecoder.decodeDouble(forKey: "NS.time")
-            self.init(timeIntervalSinceReferenceDate: ti)
-        } else {
-            var ti: TimeInterval = 0.0
-            withUnsafeMutablePointer(&ti) { (ptr: UnsafeMutablePointer<Double>) -> Void in
-                aDecoder.decodeValue(ofObjCType: "d", at: UnsafeMutablePointer<Void>(ptr))
-            }
-            self.init(timeIntervalSinceReferenceDate: ti)
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
         }
+        let ti = aDecoder.decodeDouble(forKey: "NS.time")
+        self.init(timeIntervalSinceReferenceDate: ti)
     }
-    
-    public override func copy() -> AnyObject {
+
+    open override func copy() -> Any {
         return copy(with: nil)
     }
 
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
+    open func copy(with zone: NSZone? = nil) -> Any {
         return self
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
-    public func encode(with aCoder: NSCoder) {
-	if aCoder.allowsKeyedCoding {
-	    aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
-	} else {
-	    NSUnimplemented()
-	}
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        aCoder.encode(_timeIntervalSinceReferenceDate, forKey: "NS.time")
     }
 
     /**
@@ -111,7 +112,7 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
      `dateWithCalendarFormat:timeZone:`, and
      `descriptionWithCalendarFormat:timeZone:locale:`.
      */
-    public override var description: String {
+    open override var description: String {
         let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, nil, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         let timeZone = CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, timeZone)
@@ -134,38 +135,38 @@ public class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
        offset in hours and minutes from UTC (for example,
        "2001-03-24 10:45:32 +0600")
      */
-    public func descriptionWithLocale(_ locale: AnyObject?) -> String {
+    open func description(with locale: Locale?) -> String {
         guard let aLocale = locale else { return description }
-        let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, (aLocale as! Locale)._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
+        let dateFormatterRef = CFDateFormatterCreate(kCFAllocatorSystemDefault, aLocale._cfObject, kCFDateFormatterFullStyle, kCFDateFormatterFullStyle)
         CFDateFormatterSetProperty(dateFormatterRef, kCFDateFormatterTimeZoneKey, CFTimeZoneCopySystem())
 
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, dateFormatterRef, _cfObject)._swiftObject
     }
     
-    override public var _cfTypeID: CFTypeID {
+    override open var _cfTypeID: CFTypeID {
         return CFDateGetTypeID()
     }
 }
 
 extension NSDate {
     
-    public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
+    open func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
         return self.timeIntervalSinceReferenceDate - anotherDate.timeIntervalSinceReferenceDate
     }
     
-    public var timeIntervalSinceNow: TimeInterval {
+    open var timeIntervalSinceNow: TimeInterval {
         return timeIntervalSince(Date())
     }
     
-    public var timeIntervalSince1970: TimeInterval {
+    open var timeIntervalSince1970: TimeInterval {
         return timeIntervalSinceReferenceDate + NSTimeIntervalSince1970
     }
     
-    public func addingTimeInterval(_ ti: TimeInterval) -> Date {
+    open func addingTimeInterval(_ ti: TimeInterval) -> Date {
         return Date(timeIntervalSinceReferenceDate:_timeIntervalSinceReferenceDate + ti)
     }
     
-    public func earlierDate(_ anotherDate: Date) -> Date {
+    open func earlierDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
         } else {
@@ -173,7 +174,7 @@ extension NSDate {
         }
     }
     
-    public func laterDate(_ anotherDate: Date) -> Date {
+    open func laterDate(_ anotherDate: Date) -> Date {
         if self.timeIntervalSinceReferenceDate < anotherDate.timeIntervalSinceReferenceDate {
             return anotherDate
         } else {
@@ -181,7 +182,7 @@ extension NSDate {
         }
     }
     
-    public func compare(_ other: Date) -> ComparisonResult {
+    open func compare(_ other: Date) -> ComparisonResult {
         let t1 = self.timeIntervalSinceReferenceDate
         let t2 = other.timeIntervalSinceReferenceDate
         if t1 < t2 {
@@ -193,19 +194,19 @@ extension NSDate {
         }
     }
     
-    public func isEqual(to otherDate: Date) -> Bool {
+    open func isEqual(to otherDate: Date) -> Bool {
         return timeIntervalSinceReferenceDate == otherDate.timeIntervalSinceReferenceDate
     }
 }
 
 extension NSDate {
     internal static let _distantFuture = Date(timeIntervalSinceReferenceDate: 63113904000.0)
-    public static func distantFuture() -> Date {
+    open class var distantFuture: Date {
         return _distantFuture
     }
     
     internal static let _distantPast = Date(timeIntervalSinceReferenceDate: -63113904000.0)
-    public static func distantPast() -> Date {
+    open class var distantPast: Date {
         return _distantPast
     }
     
@@ -217,19 +218,19 @@ extension NSDate {
         self.init(timeIntervalSinceReferenceDate: secs - NSTimeIntervalSince1970)
     }
     
-    public convenience init(timeInterval secsToBeAdded: TimeInterval, sinceDate date: Date) {
+    public convenience init(timeInterval secsToBeAdded: TimeInterval, since date: Date) {
         self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate + secsToBeAdded)
     }
 }
 
-extension NSDate: _CFBridgable, _SwiftBridgable {
+extension NSDate: _CFBridgeable, _SwiftBridgeable {
     typealias SwiftType = Date
     var _swiftObject: Date {
         return Date(timeIntervalSinceReferenceDate: timeIntervalSinceReferenceDate)
     }
 }
 
-extension CFDate : _NSBridgable, _SwiftBridgable {
+extension CFDate : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSDate
     typealias SwiftType = Date
     
@@ -237,7 +238,7 @@ extension CFDate : _NSBridgable, _SwiftBridgable {
     internal var _swiftObject: Date { return _nsObject._swiftObject }
 }
 
-extension Date : _NSBridgable, _CFBridgable {
+extension Date : _NSBridgeable, _CFBridgeable {
     typealias NSType = NSDate
     typealias CFType = CFDate
     
@@ -246,16 +247,16 @@ extension Date : _NSBridgable, _CFBridgable {
 }
 
 
-public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
+open class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
     
     /*
      NSDateInterval represents a closed date interval in the form of [startDate, endDate].  It is possible for the start and end dates to be the same with a duration of 0.  NSDateInterval does not support reverse intervals i.e. intervals where the duration is less than 0 and the end date occurs earlier in time than the start date.
      */
     
-    public private(set) var startDate: Date
+    open private(set) var startDate: Date
     
-    public var endDate: Date {
+    open var endDate: Date {
         get {
             if duration == 0 {
                 return startDate
@@ -265,7 +266,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    public private(set) var duration: TimeInterval
+    open private(set) var duration: TimeInterval
     
     
     // This method initializes an NSDateInterval object with start and end dates set to the current date and the duration set to 0.
@@ -275,13 +276,15 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     
     
     public required convenience init?(coder: NSCoder) {
-        precondition(coder.allowsKeyedCoding)
-        guard let start = coder.decodeObjectOfClass(NSDate.self, forKey: "NS.startDate") else {
-            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderValueNotFoundError.rawValue, userInfo: nil))
+        guard coder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        guard let start = coder.decodeObject(of: NSDate.self, forKey: "NS.startDate") else {
+            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderValueNotFound.rawValue, userInfo: nil))
             return nil
         }
-        guard let end = coder.decodeObjectOfClass(NSDate.self, forKey: "NS.startDate") else {
-            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: NSCocoaError.CoderValueNotFoundError.rawValue, userInfo: nil))
+        guard let end = coder.decodeObject(of: NSDate.self, forKey: "NS.startDate") else {
+            coder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderValueNotFound.rawValue, userInfo: nil))
             return nil
         }
         self.init(start: start._swiftObject, end: end._swiftObject)
@@ -300,17 +303,19 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
         self.init(start: startDate, duration: endDate.timeIntervalSince(startDate))
     }
     
-    public func copy(with zone: NSZone?) -> AnyObject {
+    open func copy(with zone: NSZone?) -> Any {
         return NSDateInterval(start: startDate, duration: duration)
     }
     
-    public func encode(with aCoder: NSCoder) {
-        precondition(aCoder.allowsKeyedCoding)
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
         aCoder.encode(startDate._nsObject, forKey: "NS.startDate")
         aCoder.encode(endDate._nsObject, forKey: "NS.endDate")
     }
     
-    public static func supportsSecureCoding() -> Bool {
+    public static var supportsSecureCoding: Bool {
         return true
     }
     
@@ -331,7 +336,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
      
      If both the start dates and the durations are equal, then the intervals are considered equal and NSOrderedSame is returned as the result.
      */
-    public func compare(_ dateInterval: DateInterval) -> ComparisonResult {
+    open func compare(_ dateInterval: DateInterval) -> ComparisonResult {
         let result = startDate.compare(dateInterval.start)
         if result == .orderedSame {
             if self.duration < dateInterval.duration { return .orderedAscending }
@@ -342,11 +347,11 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     }
     
     
-    public func isEqual(to dateInterval: DateInterval) -> Bool {
+    open func isEqual(to dateInterval: DateInterval) -> Bool {
         return startDate == dateInterval.start && duration == dateInterval.duration
     }
     
-    public func intersects(_ dateInterval: DateInterval) -> Bool {
+    open func intersects(_ dateInterval: DateInterval) -> Bool {
         return contains(dateInterval.start) || contains(dateInterval.end) || dateInterval.contains(startDate) || dateInterval.contains(endDate)
     }
     
@@ -354,7 +359,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     /*
      This method returns an NSDateInterval object that represents the interval where the given date interval and the current instance intersect. In the event that there is no intersection, the method returns nil.
      */
-    public func intersection(with dateInterval: DateInterval) -> DateInterval? {
+    open func intersection(with dateInterval: DateInterval) -> DateInterval? {
         if !intersects(dateInterval) {
             return nil
         }
@@ -388,7 +393,7 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
     }
     
     
-    public func contains(_ date: Date) -> Bool {
+    open func contains(_ date: Date) -> Bool {
         let timeIntervalForGivenDate = date.timeIntervalSinceReferenceDate
         let timeIntervalForSelfStart = startDate.timeIntervalSinceReferenceDate
         let timeIntervalforSelfEnd = endDate.timeIntervalSinceReferenceDate
@@ -396,5 +401,21 @@ public class NSDateInterval : NSObject, NSCopying, NSSecureCoding {
             return true
         }
         return false
+    }
+}
+
+extension NSDate : _StructTypeBridgeable {
+    public typealias _StructType = Date
+    
+    public func _bridgeToSwift() -> Date {
+        return Date._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+extension NSDateInterval : _StructTypeBridgeable {
+    public typealias _StructType = DateInterval
+    
+    public func _bridgeToSwift() -> DateInterval {
+        return DateInterval._unconditionallyBridgeFromObjectiveC(self)
     }
 }

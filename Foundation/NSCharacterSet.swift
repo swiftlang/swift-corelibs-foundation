@@ -29,13 +29,13 @@ let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
 #endif
 
 
-public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
+open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
-    private var _buffer: UnsafeMutablePointer<Void>? = nil
+    private var _buffer: UnsafeMutableRawPointer? = nil
     private var _length = CFIndex(0)
-    private var _annex: UnsafeMutablePointer<Void>? = nil
+    private var _annex: UnsafeMutableRawPointer? = nil
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
@@ -45,19 +45,27 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return unsafeBitCast(self, to: CFMutableCharacterSet.self)
     }
     
-    public override var hash: Int {
+    open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
-    public override func isEqual(_ object: AnyObject?) -> Bool {
-        if let cs = object as? NSCharacterSet {
-            return CFEqual(_cfObject, cs._cfObject)
-        } else {
-            return false
+    open override func isEqual(_ value: Any?) -> Bool {
+        guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFCharacterSetGetTypeID()) else {
+            fatalError("Could not obtain CFRuntimeClass of CFCharacterSet")
+        }
+
+        guard let equalFunction = runtimeClass.pointee.equal else {
+            fatalError("Could not obtain equal function from CFRuntimeClass of CFCharacterSet")
+        }
+
+        switch value {
+        case let other as CharacterSet: return equalFunction(self._cfObject, other._cfObject) == true
+        case let other as NSCharacterSet: return equalFunction(self._cfObject, other._cfObject) == true
+        default: return false
         }
     }
     
-    public override var description: String {
+    open override var description: String {
         return CFCopyDescription(_cfObject)._swiftObject
     }
     
@@ -70,63 +78,63 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         _CFDeinit(self)
     }
     
-    public class func controlCharacters() -> CharacterSet {
+    open class var controlCharacters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetControl)._swiftObject
     }
     
-    public class func whitespaces() -> CharacterSet {
+    open class var whitespaces: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetWhitespace)._swiftObject
     }
 
-    public class func whitespacesAndNewlines() -> CharacterSet {
+    open class var whitespacesAndNewlines: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetWhitespaceAndNewline)._swiftObject
     }
     
-    public class func decimalDigits() -> CharacterSet {
+    open class var decimalDigits: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit)._swiftObject
     }
     
-    public class func letters() -> CharacterSet {
+    public class var letters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetLetter)._swiftObject
     }
     
-    public class func lowercaseLetters() -> CharacterSet {
+    open class var lowercaseLetters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetLowercaseLetter)._swiftObject
     }
     
-    public class func uppercaseLetters() -> CharacterSet {
+    open class var uppercaseLetters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetUppercaseLetter)._swiftObject
     }
     
-    public class func nonBaseCharacters() -> CharacterSet {
+    open class var nonBaseCharacters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetNonBase)._swiftObject
     }
     
-    public class func alphanumerics() -> CharacterSet {
+    open class var alphanumerics: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric)._swiftObject
     }
     
-    public class func decomposables() -> CharacterSet {
+    open class var decomposables: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetDecomposable)._swiftObject
     }
     
-    public class func illegalCharacters() -> CharacterSet {
+    open class var illegalCharacters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetIllegal)._swiftObject
     }
     
-    public class func punctuation() -> CharacterSet {
+    open class var punctuationCharacters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetPunctuation)._swiftObject
     }
     
-    public class func capitalizedLetters() -> CharacterSet {
+    open class var capitalizedLetters: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetCapitalizedLetter)._swiftObject
     }
     
-    public class func symbols() -> CharacterSet {
+    open class var symbols: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetSymbol)._swiftObject
     }
     
-    public class func newlines() -> CharacterSet {
+    open class var newlines: CharacterSet {
         return CFCharacterSetGetPredefined(kCFCharacterSetNewline)._swiftObject
     }
 
@@ -156,169 +164,170 @@ public class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     
     public convenience required init(coder aDecoder: NSCoder) {
         self.init(charactersIn: "")
+        NSUnimplemented()
     }
     
-    public func characterIsMember(_ aCharacter: unichar) -> Bool {
+    open func characterIsMember(_ aCharacter: unichar) -> Bool {
         return longCharacterIsMember(UInt32(aCharacter))
     }
     
-    public var bitmapRepresentation: Data {
+    open var bitmapRepresentation: Data {
         return CFCharacterSetCreateBitmapRepresentation(kCFAllocatorSystemDefault, _cfObject)._swiftObject
     }
     
-    public var inverted: CharacterSet {
+    open var inverted: CharacterSet {
         let copy = mutableCopy() as! NSMutableCharacterSet
         copy.invert()
         return copy._swiftObject
     }
     
-    public func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+    open func longCharacterIsMember(_ theLongChar: UInt32) -> Bool {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetIsLongCharacterMember(unsafeBitCast(self, to: CFType.self), theLongChar)
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetIsLongCharacterMember(_cfObject, theLongChar)
         } else {
             NSRequiresConcreteImplementation()
         }
     }
     
-    public func isSuperset(of theOtherSet: CharacterSet) -> Bool {
+    open func isSuperset(of theOtherSet: CharacterSet) -> Bool {
         return CFCharacterSetIsSupersetOfSet(_cfObject, theOtherSet._cfObject)
     }
     
-    public func hasMember(inPlane plane: UInt8) -> Bool {
-        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(plane))
+    open func hasMemberInPlane(_ thePlane: UInt8) -> Bool {
+        return CFCharacterSetHasMemberInPlane(_cfObject, CFIndex(thePlane))
     }
     
-    public override func copy() -> AnyObject {
+    open override func copy() -> Any {
         return copy(with: nil)
     }
     
-    public func copy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+    open func copy(with zone: NSZone? = nil) -> Any {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetCreateCopy(kCFAllocatorSystemDefault, self._cfObject)
         } else {
             NSRequiresConcreteImplementation()
         }
     }
     
-    public override func mutableCopy() -> AnyObject {
+    open override func mutableCopy() -> Any {
         return mutableCopy(with: nil)
     }
     
-    public func mutableCopy(with zone: NSZone? = nil) -> AnyObject {
-        if self.dynamicType == NSCharacterSet.self || self.dynamicType == NSMutableCharacterSet.self {
+    open func mutableCopy(with zone: NSZone? = nil) -> Any {
+        if type(of: self) == NSCharacterSet.self || type(of: self) == NSMutableCharacterSet.self {
             return _CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
-        } else if self.dynamicType == _NSCFCharacterSet.self {
+        } else if type(of: self) == _NSCFCharacterSet.self {
             return CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, _cfObject)._nsObject
         } else {
             NSRequiresConcreteImplementation()
         }
     }
     
-    public func encode(with aCoder: NSCoder) {
-        
+    open func encode(with aCoder: NSCoder) {
+        NSUnimplemented()
     }
 }
 
-public class NSMutableCharacterSet : NSCharacterSet {
+open class NSMutableCharacterSet : NSCharacterSet {
 
     public convenience required init(coder aDecoder: NSCoder) {
         NSUnimplemented()
     }
     
-    public func addCharacters(in aRange: NSRange) {
+    open func addCharacters(in aRange: NSRange) {
         CFCharacterSetAddCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func removeCharacters(in aRange: NSRange) {
+    open func removeCharacters(in aRange: NSRange) {
         CFCharacterSetRemoveCharactersInRange(_cfMutableObject , CFRangeMake(aRange.location, aRange.length))
     }
     
-    public func addCharacters(in aString: String) {
+    open func addCharacters(in aString: String) {
         CFCharacterSetAddCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func removeCharacters(in aString: String) {
+    open func removeCharacters(in aString: String) {
         CFCharacterSetRemoveCharactersInString(_cfMutableObject, aString._cfObject)
     }
     
-    public func formUnion(with otherSet: CharacterSet) {
+    open func formUnion(with otherSet: CharacterSet) {
         CFCharacterSetUnion(_cfMutableObject, otherSet._cfObject)
     }
     
-    public func formIntersection(with otherSet: CharacterSet) {
+    open func formIntersection(with otherSet: CharacterSet) {
         CFCharacterSetIntersect(_cfMutableObject, otherSet._cfObject)
     }
     
-    public func invert() {
+    open func invert() {
         CFCharacterSetInvert(_cfMutableObject)
     }
 
-    public class func controlCharacters() -> NSMutableCharacterSet {
+    open class func control() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetControl)), to: NSMutableCharacterSet.self)
     }
     
-    public class func whitespaces() -> NSMutableCharacterSet {
+    open class func whitespace() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetWhitespace)), to: NSMutableCharacterSet.self)
     }
     
-    public class func whitespacesAndNewlines() -> NSMutableCharacterSet {
+    open class func whitespaceAndNewline() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetWhitespaceAndNewline)), to: NSMutableCharacterSet.self)
     }
     
-    public class func decimalDigits() -> NSMutableCharacterSet {
+    open class func decimalDigit() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetDecimalDigit)), to: NSMutableCharacterSet.self)
     }
     
-    public class func letters() -> NSMutableCharacterSet {
+    public class func letter() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetLetter)), to: NSMutableCharacterSet.self)
     }
     
-    public class func lowercaseLetters() -> NSMutableCharacterSet {
+    open class func lowercaseLetter() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetLowercaseLetter)), to: NSMutableCharacterSet.self)
     }
     
-    public class func uppercaseLetters() -> NSMutableCharacterSet {
+    open class func uppercaseLetter() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetUppercaseLetter)), to: NSMutableCharacterSet.self)
     }
     
-    public class func nonBaseCharacters() -> NSMutableCharacterSet {
+    open class func nonBase() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetNonBase)), to: NSMutableCharacterSet.self)
     }
     
-    public class func alphanumerics() -> NSMutableCharacterSet {
+    open class func alphanumeric() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetAlphaNumeric)), to: NSMutableCharacterSet.self)
     }
     
-    public class func decomposables() -> NSMutableCharacterSet {
+    open class func decomposable() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetDecomposable)), to: NSMutableCharacterSet.self)
     }
     
-    public class func illegalCharacters() -> NSMutableCharacterSet {
+    open class func illegal() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetIllegal)), to: NSMutableCharacterSet.self)
     }
     
-    public class func punctuation() -> NSMutableCharacterSet {
+    open class func punctuation() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetPunctuation)), to: NSMutableCharacterSet.self)
     }
     
-    public class func capitalizedLetters() -> NSMutableCharacterSet {
+    open class func capitalizedLetter() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetCapitalizedLetter)), to: NSMutableCharacterSet.self)
     }
     
-    public class func symbols() -> NSMutableCharacterSet {
+    open class func symbol() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetSymbol)), to: NSMutableCharacterSet.self)
     }
     
-    public class func newlines() -> NSMutableCharacterSet {
+    open class func newline() -> NSMutableCharacterSet {
         return unsafeBitCast(CFCharacterSetCreateMutableCopy(kCFAllocatorSystemDefault, CFCharacterSetGetPredefined(kCFCharacterSetNewline)), to: NSMutableCharacterSet.self)
     }
 }
 
-extension CharacterSet : _CFBridgable, _NSBridgable {
+extension CharacterSet : _CFBridgeable, _NSBridgeable {
     typealias CFType = CFCharacterSet
     typealias NSType = NSCharacterSet
     internal var _cfObject: CFType {
@@ -329,7 +338,7 @@ extension CharacterSet : _CFBridgable, _NSBridgable {
     }
 }
 
-extension CFCharacterSet : _NSBridgable, _SwiftBridgable {
+extension CFCharacterSet : _NSBridgeable, _SwiftBridgeable {
     typealias NSType = NSCharacterSet
     typealias SwiftType = CharacterSet
     internal var _nsObject: NSType {
@@ -340,9 +349,16 @@ extension CFCharacterSet : _NSBridgable, _SwiftBridgable {
     }
 }
 
-extension NSCharacterSet : _SwiftBridgable {
+extension NSCharacterSet : _SwiftBridgeable {
     typealias SwiftType = CharacterSet
     internal var _swiftObject: SwiftType {
         return CharacterSet(_bridged: self)
+    }
+}
+
+extension NSCharacterSet : _StructTypeBridgeable {
+    public typealias _StructType = CharacterSet
+    public func _bridgeToSwift() -> CharacterSet {
+        return CharacterSet._unconditionallyBridgeFromObjectiveC(self)
     }
 }

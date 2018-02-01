@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+#
+# build-android
+#
+# This source file is part of the Swift.org open source project
+#
+# Copyright (c) 2014 - 2017 Apple Inc. and the Swift project authors
+# Licensed under Apache License v2.0 with Runtime Library Exception
+#
+# See https://swift.org/LICENSE.txt for license information
+# See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+
+set -e
+
+SWIFT_PATH="$( cd "$(dirname $0)/.." && pwd )" 
+
+ANDROID_NDK_PATH="${ANDROID_NDK_PATH:?Please set the Android NDK path in the ANDROID_NDK_PATH environment variable}"
+ANDROID_ICU_PATH=${SWIFT_PATH}/libiconv-libicu-android
+
+SWIFT_ANDROID_TOOLCHAIN_PATH="${SWIFT_PATH}/swift-android-toolchain"
+SWIFT_ANDROID_BUILD_PATH="${SWIFT_PATH}/build/Ninja-ReleaseAssert"
+
+cd ${SWIFT_PATH}/swift-corelibs-foundation
+
+mkdir -p .build
+cd .build
+
+ANDROID_STANDALONE_TOOLCHAIN=`realpath ./android-standalone-toolchain`
+ANDROID_STANDALONE_SYSROOT=$ANDROID_STANDALONE_TOOLCHAIN/sysroot
+
+if [ ! -d android-standalone-toolchain ]; then
+    echo Creating Android standalone toolchain ...
+    $ANDROID_NDK_PATH/build/tools/make_standalone_toolchain.py --api 21 --arch arm --stl libc++ --install-dir $ANDROID_STANDALONE_TOOLCHAIN --force -v
+fi
+
+export PATH=$ANDROID_STANDALONE_TOOLCHAIN/bin:$PATH
+export CC=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-clang
+export CXX=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-clang++
+export AR=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-ar
+export AS=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-as
+export LD=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-ld
+export RANLIB=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-ranlib
+export NM=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-nm
+export STRIP=$ANDROID_STANDALONE_TOOLCHAIN/bin/arm-linux-androideabi-strip
+export CHOST=arm-linux-androideabi
+export ARCH_FLAGS="-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+export ARCH_LINK="-march=armv7-a -Wl,--fix-cortex-a8"
+export CPPFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing "
+export CXXFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -frtti -fexceptions -std=c++11 -Wno-error=unused-command-line-argument "
+export CFLAGS=" ${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing "
+export LDFLAGS=" ${ARCH_LINK} "
+
+if [ ! -d curl ]; then
+    git clone https://github.com/curl/curl.git
+fi
+if [ ! -f $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.so ]; then
+    pushd curl
+        autoreconf -i
+        ./configure --host=arm-linux-androideabi --enable-shared --disable-static --disable-dependency-tracking --with-zlib=$ANDROID_STANDALONE_SYSROOT/usr --with-ssl=$ANDROID_STANDALONE_SYSROOT/usr --without-ca-bundle --without-ca-path --enable-ipv6 --enable-http --enable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smtp --disable-gopher --disable-sspi --disable-manual --target=arm-linux-androideabi --build=x86_64-unknown-linux-gnu --prefix=$ANDROID_STANDALONE_SYSROOT/usr
+        make
+        make install
+    popd
+fi
+if [ ! -d libxml2 ]; then
+    git clone git://git.gnome.org/libxml2
+fi
+if [ ! -f $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.so ]; then
+    pushd libxml2
+        autoreconf -i
+        ./configure --with-sysroot=$ANDROID_STANDALONE_SYSROOT --with-zlib=$ANDROID_STANDALONE_SYSROOT/usr --prefix=$ANDROID_STANDALONE_SYSROOT/usr --host=$CHOST --without-lzma --disable-static --enable-shared --without-http --without-html --without-ftp
+        make libxml2.la 
+        make install-libLTLIBRARIES 
+        pushd include
+            make install
+        popd
+    popd
+fi
+if [ ! -f libFoundation.so ]; then
+    pushd $ANDROID_STANDALONE_SYSROOT
+
+        # Move dispatch public and private headers to the directory foundation is expecting to get it
+        mkdir -p $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch
+        cp $SWIFT_PATH/swift-corelibs-libdispatch/dispatch/*.h $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch
+        cp $SWIFT_PATH/swift-corelibs-libdispatch/private/*.h $ANDROID_STANDALONE_SYSROOT/usr/include/dispatch
+	
+        pushd $SWIFT_PATH
+            pushd swift-corelibs-foundation
+                # Libfoundation script is not completely prepared to handle cross compilation yet.
+                ln -sf $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift $ANDROID_STANDALONE_SYSROOT/usr/lib/
+                cp $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift/android/armv7/* $SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/lib/swift/android/
+
+                # Search path for curl seems to be wrong in foundation
+                #cp -r .build/openssl-1.0.2l/ssl $ANDROID_STANDALONE_SYSROOT/usr/include
+                cp -r .build/curl/include/curl $ANDROID_STANDALONE_SYSROOT/usr/include
+                if [ ! -e $ANDROID_STANDALONE_SYSROOT/usr/include/curl/curl ]; then
+                    ln -s $ANDROID_STANDALONE_SYSROOT/usr/include/curl $ANDROID_STANDALONE_SYSROOT/usr/include/curl/curl
+                fi
+                if [ ! -e $ANDROID_STANDALONE_SYSROOT/usr/include/libxml ]; then
+                    ln -s $ANDROID_STANDALONE_SYSROOT/usr/include/libxml2/libxml $ANDROID_STANDALONE_SYSROOT/usr/include/libxml
+                fi
+ 
+                env \
+                    SWIFTC="$SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/bin/swiftc" \
+                    CLANG="$SWIFT_ANDROID_BUILD_PATH/llvm-linux-x86_64/bin/clang" \
+                    SWIFT="$SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64/bin/swift" \
+                    SDKROOT="$SWIFT_ANDROID_BUILD_PATH/swift-linux-x86_64" \
+                    BUILD_DIR="$SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64" \
+                    DSTROOT="/" \
+                    PREFIX="/usr" \
+                    CFLAGS="-DDEPLOYMENT_TARGET_ANDROID -DDEPLOYMENT_ENABLE_LIBDISPATCH --sysroot=$ANDROID_NDK_PATH/platforms/android-21/arch-arm -I$ANDROID_ICU_PATH/armeabi-v7a/include -I${SDKROOT}/lib/swift -I$ANDROID_NDK_PATH/sources/android/support/include -I$ANDROID_STANDALONE_SYSROOT/usr/include -I$SWIFT_PATH/swift-corelibs-foundation/closure" \
+                    SWIFTCFLAGS="-DDEPLOYMENT_TARGET_ANDROID -DDEPLOYMENT_ENABLE_LIBDISPATCH -I$ANDROID_NDK_PATH/platforms/android-21/arch-arm/usr/include" \
+                    LDFLAGS="-fuse-ld=gold --sysroot=$ANDROID_NDK_PATH/platforms/android-21/arch-arm -L$ANDROID_NDK_PATH/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.9.x -L$ANDROID_ICU_PATH/armeabi-v7a -L$ANDROID_STANDALONE_SYSROOT/usr/lib -ldispatch " \
+                    ./configure \
+                        Release \
+                        --target=armv7-none-linux-androideabi \
+                        --sysroot=$ANDROID_STANDALONE_SYSROOT \
+                        -DXCTEST_BUILD_DIR=$SWIFT_ANDROID_BUILD_PATH/xctest-linux-x86_64 \
+                        -DLIBDISPATCH_SOURCE_DIR=$SWIFT_PATH/swift-corelibs-libdispatch \
+                        -DLIBDISPATCH_BUILD_DIR=$SWIFT_PATH/swift-corelibs-libdispatch &&
+
+                cp -r /usr/include/uuid $ANDROID_STANDALONE_SYSROOT/usr/include 
+                sed -i~ "s/-I.\/ -I\/usr\/include\/x86_64-linux-gnu  -I\/usr\/include\/x86_64-linux-gnu    -I\/usr\/include\/libxml2//" build.ninja
+                sed -i~ "s/-licui18n/-licui18nswift/g" build.ninja
+                sed -i~ "s/-licuuc/-licuucswift/g" build.ninja
+                sed -i~ "s/-licudata/-licudataswift/g" build.ninja
+
+                ninja 
+		
+                # There's no installation script for foundation yet, so the installation needs to be done manually.
+                # Apparently the installation for the main script is in swift repo.
+                rsync -av $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/Foundation.swift* $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android/armv7/
+                rsync -av $ANDROID_STANDALONE_SYSROOT/usr/lib/libxml2.* $ANDROID_STANDALONE_SYSROOT/usr/lib/libcurl.* $ANDROID_ICU_PATH/armeabi-v7a/libicu{uc,i18n,data}swift.so $ANDROID_NDK_PATH/sources/cxx-stl/llvm-libc++/libs/armeabi-v7a/libc++_shared.so $SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64/Foundation/libFoundation.so  $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift/android
+
+                # prep install so it can be used to build foundation
+                cp -r $SWIFT_PATH/swift-corelibs-foundation/.build/libxml2/include/libxml $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
+                cp -r $SWIFT_PATH/swift-corelibs-foundation/.build/curl/include/curl $SWIFT_ANDROID_TOOLCHAIN_PATH/usr/lib/swift
+            popd
+        popd
+    popd
+fi
+

@@ -23,15 +23,15 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     /// An object that the poster wishes to send to observers.
     ///
     /// Typically this is the object that posted the notification.
-    public var object: AnyObject?
+    public var object: Any?
     
     /// Storage for values or objects related to this notification.
-    public var userInfo: [String : Any]?
+    public var userInfo: [AnyHashable : Any]?
     
     /// Initialize a new `Notification`.
     ///
     /// The default value for `userInfo` is nil.
-    public init(name: Name, object: AnyObject? = nil, userInfo: [String : Any]? = nil) {
+    public init(name: Name, object: Any? = nil, userInfo: [AnyHashable : Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
@@ -40,9 +40,12 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     public var hashValue: Int {
         return name.rawValue.hash
     }
-    
+
     public var description: String {
-        return "name = \(name.rawValue),  object = \(object), userInfo = \(userInfo)"
+        var description = "name = \(name.rawValue)"
+        if let obj = object { description += ", object = \(obj)" }
+        if let info = userInfo { description += ", userInfo = \(info)" }
+        return description
     }
     
     public var debugDescription: String {
@@ -51,22 +54,67 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     
     // FIXME: Handle directly via API Notes
     public typealias Name = NSNotification.Name
-}
-
-public func ==(lhs: Notification, rhs: Notification) -> Bool {
-    if lhs.name.rawValue != rhs.name.rawValue {
-        return false
-    }
-    if let lhsObj = lhs.object {
-        if let rhsObj = rhs.object {
-            if lhsObj !== rhsObj {
-                return false
-            }
-        } else {
+    
+    public static func ==(lhs: Notification, rhs: Notification) -> Bool {
+        if lhs.name.rawValue != rhs.name.rawValue {
             return false
         }
-    } else if rhs.object != nil {
-        return false
+        if let lhsObj = lhs.object {
+            if let rhsObj = rhs.object {
+                if _SwiftValue.store(lhsObj) !== _SwiftValue.store(rhsObj) {
+                    return false
+                }
+            } else {
+                return false
+            }
+        } else if rhs.object != nil {
+            return false
+        }
+        return true
     }
-    return true
+}
+
+extension Notification : CustomReflectable {
+    public var customMirror: Mirror {
+        var children: [(label: String?, value: Any)] = [(label: "name", self.name.rawValue)]
+
+        if let object = self.object {
+            children.append((label: "object", object))
+        }
+
+        if let info = self.userInfo {
+            children.append((label: "userInfo", info))
+        }
+
+        return Mirror(self, children: children, displayStyle: .class)
+    }
+}
+
+
+extension Notification : _ObjectTypeBridgeable {
+    public static func _getObjectiveCType() -> Any.Type {
+        return NSNotification.self
+    }
+    
+    @_semantics("convertToObjectiveC")
+    public func _bridgeToObjectiveC() -> NSNotification {
+        return NSNotification(name: name, object: object, userInfo: userInfo)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ x: NSNotification, result: inout Notification?) {
+        if !_conditionallyBridgeFromObjectiveC(x, result: &result) {
+            fatalError("Unable to bridge type")
+        }
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSNotification, result: inout Notification?) -> Bool {
+        result = Notification(name: x.name, object: x.object, userInfo: x.userInfo)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNotification?) -> Notification {
+        var result: Notification? = nil
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
 }

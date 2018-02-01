@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFUtilities.c
-	Copyright (c) 1998 - 2015 Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Tony Parker
 */
 
@@ -24,6 +19,9 @@
 #include <CoreFoundation/CFPropertyList.h>
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
+#endif
+#if TARGET_OS_ANDROID
+#include <android/log.h>
 #endif
 #include <math.h>
 #include <string.h>
@@ -47,6 +45,7 @@
 #include <crt_externs.h>
 #include <dlfcn.h>
 #include <vproc.h>
+#import <libproc.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <mach/mach.h>
@@ -55,6 +54,7 @@
 #include <stdio.h>
 #include <sys/errno.h>
 #include <mach/mach_time.h>
+#include <Block.h>
 #endif
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <string.h>
@@ -67,6 +67,15 @@
 #if !defined(CF_HAVE_HW_CONFIG_COMMPAGE) && defined(_COMM_PAGE_LOGICAL_CPUS) && defined(_COMM_PAGE_PHYSICAL_CPUS) && defined(_COMM_PAGE_ACTIVE_CPUS)
 #define CF_HAVE_HW_CONFIG_COMMPAGE 1
 #endif
+
+CF_PRIVATE os_log_t _CFOSLog(void) {
+    static os_log_t logger;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        logger = os_log_create("com.apple.foundation", "general");
+    });
+    return logger;
+}
 
 /* Comparator is passed the address of the values. */
 /* Binary searches a sorted-increasing array of some type.
@@ -95,7 +104,7 @@
    }
    
 */
-CF_EXPORT CFIndex CFBSearch(const void *element, CFIndex elementSize, const void *list, CFIndex count, CFComparatorFunction comparator, void *context) {
+CF_PRIVATE CFIndex CFBSearch(const void *element, CFIndex elementSize, const void *list, CFIndex count, CFComparatorFunction comparator, void *context) {
     const char *ptr = (const char *)list;
     while (0 < count) {
         CFIndex half = count / 2;
@@ -186,6 +195,17 @@ CF_PRIVATE CFDataRef _CFDataCreateFromURL(CFURLRef resourceURL, CFErrorRef *erro
     return result;
 }
 
+static CFStringRef copySystemVersionPath(CFStringRef suffix) {
+#if TARGET_IPHONE_SIMULATOR
+    const char *simulatorRoot = getenv("IPHONE_SIMULATOR_ROOT");
+    if (!simulatorRoot) simulatorRoot = getenv("CFFIXED_USER_HOME");
+    if (!simulatorRoot) simulatorRoot = "/";
+    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
+#else
+    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
+#endif
+}
+
 // Looks for localized version of "nonLocalized" in the SystemVersion bundle
 // If not found, and returnNonLocalizedFlag == true, will return the non localized string (retained of course), otherwise NULL
 // If bundlePtr != NULL, will use *bundlePtr and will return the bundle in there; otherwise bundle is created and released
@@ -194,7 +214,9 @@ static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRe
     CFStringRef localized = NULL;
     CFBundleRef locBundle = bundlePtr ? *bundlePtr : NULL;
     if (!locBundle) {
-        CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("/System/Library/CoreServices/SystemVersion.bundle"), kCFURLPOSIXPathStyle, false);
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.bundle"));
+        CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, path, kCFURLPOSIXPathStyle, false);
+        CFRelease(path);
         if (url) {
             locBundle = CFBundleCreate(kCFAllocatorSystemDefault, url);
             CFRelease(url);
@@ -296,37 +318,37 @@ CFStringRef CFCopySystemVersionString(void) {
     return versionString;
 }
 
-// Obsolete: These two functions cache the dictionaries to avoid calling _CFCopyVersionDictionary() more than once per dict desired
-// In fact, they do not cache any more, because the file can change after
-// apps are running in some situations, and apps need the new info.
-// Proper caching and testing to see if the file has changed, without race
-// conditions, would require semi-convoluted use of fstat().
-
-static CFStringRef copySystemVersionPath(CFStringRef suffix) {
-#if TARGET_IPHONE_SIMULATOR
-    const char *simulatorRoot = getenv("IPHONE_SIMULATOR_ROOT");
-    if (!simulatorRoot) simulatorRoot = getenv("CFFIXED_USER_HOME");
-    if (!simulatorRoot) simulatorRoot = "/";
-    return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%s%@"), simulatorRoot, suffix);
-#else
-    return CFStringCreateCopy(kCFAllocatorSystemDefault, suffix);
-#endif
-}
-
-
 CFDictionaryRef _CFCopySystemVersionDictionary(void) {
-    // TODO: Populate this dictionary differently on non-Darwin platforms
-    CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
-    CFPropertyListRef plist = _CFCopyVersionDictionary(path);
-    CFRelease(path);
-    return (CFDictionaryRef)plist;
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        // TODO: Populate this dictionary differently on non-Darwin platforms
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/SystemVersion.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
 }
 
 CFDictionaryRef _CFCopyServerVersionDictionary(void) {
-    CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/ServerVersion.plist"));
-    CFPropertyListRef plist = _CFCopyVersionDictionary(path);
-    CFRelease(path);
-    return (CFDictionaryRef)plist;
+    static dispatch_once_t onceToken;
+    static CFDictionaryRef result = NULL;
+    dispatch_once(&onceToken, ^{
+        CFStringRef path = copySystemVersionPath(CFSTR("/System/Library/CoreServices/ServerVersion.plist"));
+        CFPropertyListRef plist = _CFCopyVersionDictionary(path);
+        CFRelease(path);
+        result = (CFDictionaryRef)plist;
+    });
+    if (result) {
+        return CFRetain(result);
+    } else {
+        return NULL;
+    }
 }
 
 CONST_STRING_DECL(_kCFSystemVersionProductNameKey, "ProductName")
@@ -349,9 +371,10 @@ CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
 #if DEPLOYMENT_TARGET_MACOSX
 CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
     static void *image = NULL;
-    if (NULL == image) {
-	image = dlopen("/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/CarbonCore", RTLD_LAZY | RTLD_LOCAL);
-    }
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        image = dlopen("/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/CarbonCore.framework/Versions/A/CarbonCore", RTLD_LAZY | RTLD_LOCAL);
+    });
     void *dyfunc = NULL;
     if (image) {
 	dyfunc = dlsym(image, name);
@@ -363,9 +386,10 @@ CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 CF_PRIVATE void *__CFLookupCoreServicesInternalFunction(const char *name) {
     static void *image = NULL;
-    if (NULL == image) {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         image = dlopen("/System/Library/PrivateFrameworks/CoreServicesInternal.framework/CoreServicesInternal", RTLD_LAZY | RTLD_LOCAL);
-    }
+    });
     void *dyfunc = NULL;
     if (image) {
         dyfunc = dlsym(image, name);
@@ -375,13 +399,14 @@ CF_PRIVATE void *__CFLookupCoreServicesInternalFunction(const char *name) {
 
 CF_PRIVATE void *__CFLookupCFNetworkFunction(const char *name) {
     static void *image = NULL;
-    if (NULL == image) {
-	const char *path = __CFgetenvIfNotRestricted("CFNETWORK_LIBRARY_PATH");
-	if (!path) {
-	    path = "/System/Library/Frameworks/CFNetwork.framework/CFNetwork";
-	}
-	image = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
-    }
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        const char *path = __CFgetenvIfNotRestricted("CFNETWORK_LIBRARY_PATH");
+        if (!path) {
+            path = "/System/Library/Frameworks/CFNetwork.framework/CFNetwork";
+        }
+        image = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+    });
     void *dyfunc = NULL;
     if (image) {
 	dyfunc = dlsym(image, name);
@@ -390,7 +415,7 @@ CF_PRIVATE void *__CFLookupCFNetworkFunction(const char *name) {
 }
 #endif
 
-CF_EXPORT CFIndex __CFActiveProcessorCount() {
+CF_PRIVATE CFIndex __CFActiveProcessorCount() {
 #if CF_HAVE_HW_CONFIG_COMMPAGE
     static const uintptr_t p = _COMM_PAGE_ACTIVE_CPUS;
     return (CFIndex)(*(uint8_t*)p);
@@ -424,7 +449,7 @@ CF_EXPORT CFIndex __CFActiveProcessorCount() {
 #endif
 }
 
-CF_EXPORT CFIndex __CFProcessorCount() {
+CF_PRIVATE CFIndex __CFProcessorCount() {
     int32_t pcnt;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     int32_t mib[] = {CTL_HW, HW_NCPU};
@@ -442,7 +467,7 @@ CF_EXPORT CFIndex __CFProcessorCount() {
     return pcnt;
 }
 
-CF_EXPORT uint64_t __CFMemorySize() {
+CF_PRIVATE uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     int32_t mib[] = {CTL_HW, HW_NCPU};
@@ -457,20 +482,98 @@ CF_EXPORT uint64_t __CFMemorySize() {
 #endif
     return memsize;
 }
-
-CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
-#if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
-    uid_t uid;
-    gid_t gid;
-    if (0 == pthread_getugid_np(&uid, &gid)) {
-        if (euid) *euid = uid;
-        if (egid) *egid = gid;
-    } else
-#endif
-    {
-        if (euid) *euid = geteuid();
-        if (egid) *egid = getegid();
+    
+#if TARGET_OS_MAC
+static uid_t _CFGetSVUID(BOOL *successful) {
+    uid_t uid = -1;
+    struct kinfo_proc kinfo;
+    u_int miblen = 4;
+    size_t  len;
+    int mib[miblen];
+    int ret;
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_PROC;
+    mib[2] = KERN_PROC_PID;
+    mib[3] = getpid();
+    len = sizeof(struct kinfo_proc);
+    ret = sysctl(mib, miblen, &kinfo, &len, NULL, 0);
+    if (ret != 0) {
+        uid = -1;
+        *successful = NO;
+    } else {
+        uid = kinfo.kp_eproc.e_pcred.p_svuid;
+        *successful = YES;
     }
+    return uid;
+}
+#endif
+
+CF_INLINE BOOL _CFCanChangeEUIDs(void) {
+#if TARGET_OS_MAC
+    static BOOL canChangeEUIDs;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        uid_t euid = geteuid();
+        uid_t uid = getuid();
+        BOOL gotSVUID = NO;
+        uid_t svuid = _CFGetSVUID(&gotSVUID);
+        canChangeEUIDs = (uid == 0 || uid != euid || svuid != euid || !gotSVUID);
+    });
+    return canChangeEUIDs;
+#else
+    return true;
+#endif
+}
+    
+typedef struct _ugids {
+    uid_t _euid;
+    uid_t _egid;
+} ugids;
+    
+CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
+    ugids(^lookup)() = ^{
+        ugids ids;
+#if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
+        if (0 != pthread_getugid_np(&ids._euid, &ids._egid))
+#endif
+        {
+            ids._euid = geteuid();
+            ids._egid = getegid();
+        }
+        return ids;
+    };
+    
+    ugids ids;
+    
+    if (_CFCanChangeEUIDs()) {
+        ids = lookup();
+    } else {
+        static ugids cachedUGIDs = { -1, -1 };
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            cachedUGIDs = lookup();
+        });
+        ids = cachedUGIDs;
+    }
+    
+    if (euid) *euid = ids._euid;
+    if (egid) *egid = ids._egid;
+}
+    
+CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid) {
+    __CFGetUGIDs(euid, egid);
+}
+    
+CF_EXPORT uid_t _CFGetEUID(void) {
+    uid_t euid;
+    __CFGetUGIDs(&euid, NULL);
+    return euid;
+}
+
+CF_EXPORT uid_t _CFGetEGID(void) {
+    uid_t egid;
+    __CFGetUGIDs(NULL, &egid);
+    return egid;
 }
 
 const char *_CFPrintForDebugger(const void *obj) {
@@ -572,75 +675,201 @@ void CFShow(const void *obj) {
 // message must be a UTF8-encoded, null-terminated, byte buffer with at least length bytes
 typedef void (*CFLogFunc)(int32_t lev, const char *message, size_t length, char withBanner);
 
-static Boolean also_do_stderr() {
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI
-    // just log to stderr, other logging facilities are out
-    return true;
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-    if (!issetugid() && __CFgetenv("CFLOG_FORCE_STDERR")) {
-	return true;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+static Boolean debugger_attached() {
+    BOOL debuggerAttached = NO;
+    struct proc_bsdshortinfo info;
+    const int size = proc_pidinfo(getpid(), PROC_PIDT_SHORTBSDINFO, 0, &info, sizeof(info));
+    if (size == PROC_PIDT_SHORTBSDINFO_SIZE) {
+        debuggerAttached = (info.pbsi_flags & PROC_FLAG_TRACED);
     }
-    struct stat sb;
-    int ret = fstat(STDERR_FILENO, &sb);
-    if (ret < 0) return false;
-    mode_t m = sb.st_mode & S_IFMT;
-    if (S_IFREG == m || S_IFSOCK == m) return true;
-    if (!(S_IFIFO == m || S_IFCHR == m)) return false; // disallow any whacky stuff
-#if 0 // launchd no longer repeats everything it hears
-    // if it could be a pipe back to launchd, fail
-    int64_t val = 0;
-    // assumes val is not written to on error
-    vproc_swap_integer(NULL, VPROC_GSK_IS_MANAGED, NULL, &val);
-    if (val) return false;
+    return debuggerAttached;
+}
 #endif
+
+// We need to support both the 'modern' os_log focused approach to logging and the previous implementation. This enumeration gives us a way to distinguish between the two more verbosely than a boolean.
+typedef enum {
+    _cf_logging_style_os_log,
+    _cf_logging_style_legacy
+} _cf_logging_style;
+
+static bool also_do_stderr(const _cf_logging_style style) {
+    bool result = false;
+#if DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+    // just log to stderr, other logging facilities are out
+    result = true;
+#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+    if (style == _cf_logging_style_os_log) {
+        //
+        // This might seem a bit odd, so an explanation is in order:
+        //
+        // If a debugger is attached we defer to os_log to do all logging for us. This
+        // happens many frames up/sideways from here.
+        //
+        // Otherwise, we check for the force flag as we always have.
+        //
+        // That failing, we'll stat STDERR and see if its sxomething we like.
+        //
+        // NOTE: As nice as it would be to dispatch_once this, all of these things
+        // can and do change at runtime under certain circumstances, so we need to
+        // keep it dynamic.
+        //
+        if (debugger_attached() || __CFgetenv("OS_ACTIVITY_DT_MODE")) {
+            return false;
+        }
+
+        if (!__CFProcessIsRestricted() && __CFgetenv("CFLOG_FORCE_STDERR")) {
+            return true;
+        }
+
+        struct stat sb;
+        int ret = fstat(STDERR_FILENO, &sb);
+        if (ret < 0) {
+            return false;
+        }
+
+        const mode_t m = sb.st_mode & S_IFMT;
+        if (S_IFCHR == m || S_IFREG == m || S_IFIFO == m ||  S_IFSOCK == m) {
+            return true;
+        }
+        // NOTE: we return false now, as the expectation is that os_log path owns all logging
+        result = false;
+    } else if (style == _cf_logging_style_legacy) {
+        // compatibility path
+        if (!issetugid() && __CFgetenv("CFLOG_FORCE_STDERR")) {
+            return true;
+        }
+        struct stat sb;
+        int ret = fstat(STDERR_FILENO, &sb);
+        if (ret < 0) return false;
+        mode_t m = sb.st_mode & S_IFMT;
+        if (S_IFREG == m || S_IFSOCK == m) return true;
+        if (!(S_IFIFO == m || S_IFCHR == m)) return false; // disallow any whacky stuff
+        result = true;
+    }
 #endif
-    return true;
+    return result;
 }
 
 extern char *__CFBundleMainID;
+
+static void _populateBanner(char **banner, char **time, char **thread, int *bannerLen) {
+    double dummy;
+    CFAbsoluteTime at = CFAbsoluteTimeGetCurrent();
+    time_t tv = floor(at + kCFAbsoluteTimeIntervalSince1970);
+    struct tm mine;
+    localtime_r(&tv, &mine);
+    int32_t year = mine.tm_year + 1900;
+    int32_t month = mine.tm_mon + 1;
+    int32_t day = mine.tm_mday;
+    int32_t hour = mine.tm_hour;
+    int32_t minute = mine.tm_min;
+    int32_t second = mine.tm_sec;
+    int32_t ms = (int32_t)floor(1000.0 * modf(at, &dummy));
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    uint64_t tid = 0;
+    if (0 != pthread_threadid_np(NULL, &tid)) tid = pthread_mach_thread_np(pthread_self());
+    asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
+    asprintf(thread, "%x", pthread_mach_thread_np(pthread_self()));
+#elif DEPLOYMENT_TARGET_WINDOWS
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
+    asprintf(thread, "%x", GetCurrentThreadId());
+#else
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
+    asprintf(thread, "%lx", pthread_self());
+#endif
+    asprintf(time, "%04d-%02d-%02d %02d:%02d:%02d.%03d", year, month, day, hour, minute, second, ms);
+}
+
+static void _logToStderr(char *banner, const char *message, size_t length) {
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+    struct iovec v[3];
+    v[0].iov_base = banner;
+    v[0].iov_len = banner ? strlen(banner) : 0;
+    v[1].iov_base = (char *)message;
+    v[1].iov_len = length;
+    v[2].iov_base = "\n";
+    v[2].iov_len = (message[length - 1] != '\n') ? 1 : 0;
+    int nv = (v[0].iov_base ? 1 : 0) + 1 + (v[2].iov_len ? 1 : 0);
+    static CFLock_t lock = CFLockInit;
+    __CFLock(&lock);
+    writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
+    __CFUnlock(&lock);
+#elif DEPLOYMENT_TARGET_WINDOWS
+    size_t bufLen = bannerLen + length + 1;
+    char *buf = (char *)malloc(sizeof(char) * bufLen);
+    if (banner) {
+        // Copy the banner into the debug string
+        memmove_s(buf, bufLen, banner, bannerLen);
+        
+        // Copy the message into the debug string
+        strcpy_s(buf + bannerLen, bufLen - bannerLen, message);
+    } else {
+        strcpy_s(buf, bufLen, message);
+    }
+    buf[bufLen - 1] = '\0';
+    fprintf_s(stderr, "%s\n", buf);
+    // This Win32 API call only prints when a debugger is active
+    // OutputDebugStringA(buf);
+    free(buf);
+#else
+    size_t bannerLen = strlen(banner);
+    size_t bufLen = bannerLen + length + 1;
+    char *buf = (char *)malloc(sizeof(char) * bufLen);
+    if (banner) {
+        // Copy the banner into the debug string
+        memmove(buf, banner, bannerLen);
+        
+        // Copy the message into the debug string
+        strncpy(buf + bannerLen, message, bufLen - bannerLen);
+    } else {
+        strncpy(buf, message, bufLen);
+    }
+    buf[bufLen - 1] = '\0';
+    fprintf(stderr, "%s\n", buf);
+    free(buf);
+#endif
+}
 
 static void __CFLogCString(int32_t lev, const char *message, size_t length, char withBanner) {
     char *banner = NULL;
     char *time = NULL;
     char *thread = NULL;
-    char *uid = NULL;
     int bannerLen;
     bannerLen = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+
     // The banner path may use CF functions, but the rest of this function should not. It may be called at times when CF is not fully setup or torn down.
     if (withBanner) {
-	double dummy;
-	CFAbsoluteTime at = CFAbsoluteTimeGetCurrent();
-        time_t tv = floor(at + kCFAbsoluteTimeIntervalSince1970);
-        struct tm mine;
-        localtime_r(&tv, &mine);
-        int32_t year = mine.tm_year + 1900;
-        int32_t month = mine.tm_mon + 1;
-        int32_t day = mine.tm_mday;
-        int32_t hour = mine.tm_hour;
-        int32_t minute = mine.tm_min;
-        int32_t second = mine.tm_sec;
-	int32_t ms = (int32_t)floor(1000.0 * modf(at, &dummy));
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-        uint64_t tid = 0;
-        if (0 != pthread_threadid_np(NULL, &tid)) tid = pthread_mach_thread_np(pthread_self());
-        asprintf(&banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
-	asprintf(&thread, "%x", pthread_mach_thread_np(pthread_self()));
-#elif DEPLOYMENT_TARGET_WINDOWS
-	bannerLen = asprintf(&banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
-	asprintf(&thread, "%x", GetCurrentThreadId());
-#else
-	bannerLen = asprintf(&banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
-	asprintf(&thread, "%lx", pthread_self());
-#endif
-	asprintf(&time, "%04d-%02d-%02d %02d:%02d:%02d.%03d", year, month, day, hour, minute, second, ms);
-
+        _populateBanner(&banner, &time, &thread, &bannerLen);
     }
+    
+    _logToStderr(banner, message, length);
+
+    if (thread) free(thread);
+    if (time) free(time);
+    if (banner) free(banner);
+}
+
+static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length, char withBanner) {
+    char *banner = NULL;
+    char *time = NULL;
+    char *uid = NULL;
+    char *thread = NULL;
+    int bannerLen;
+    bannerLen = 0;
+    
+    // The banner path may use CF functions, but the rest of this function should not. It may be called at times when CF is not fully setup or torn down.
+    if (withBanner) {
+        _populateBanner(&banner, &time, &thread, &bannerLen);
+    }
+    
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     asprintf(&uid, "%d", euid);
-    aslclient asl = asl_open(NULL, __CFBundleMainID[0] ? __CFBundleMainID : "com.apple.console", ASL_OPT_NO_DELAY);
+    aslclient asl = asl_open(NULL, (__CFBundleMainID && __CFBundleMainID[0]) ? __CFBundleMainID : "com.apple.console", ASL_OPT_NO_DELAY);
     aslmsg msg = asl_new(ASL_TYPE_MSG);
     asl_set(msg, "CFLog Local Time", time); // not to be documented, not public API
     asl_set(msg, "CFLog Thread", thread);   // not to be documented, not public API
@@ -651,56 +880,11 @@ static void __CFLogCString(int32_t lev, const char *message, size_t length, char
     asl_send(asl, msg);
     asl_free(msg);
     asl_close(asl);
-#endif
+#pragma GCC diagnostic pop
 #endif // DEPLOYMENT_TARGET
-
-    if (also_do_stderr()) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-	struct iovec v[3];
-	v[0].iov_base = banner;
-	v[0].iov_len = banner ? strlen(banner) : 0;
-	v[1].iov_base = (char *)message;
-	v[1].iov_len = length;
-	v[2].iov_base = "\n";
-	v[2].iov_len = (message[length - 1] != '\n') ? 1 : 0;
-	int nv = (v[0].iov_base ? 1 : 0) + 1 + (v[2].iov_len ? 1 : 0);
-	static CFLock_t lock = CFLockInit;
-	__CFLock(&lock);
-	writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
-	__CFUnlock(&lock);
-#elif DEPLOYMENT_TARGET_WINDOWS
-        size_t bufLen = bannerLen + length + 1;
-        char *buf = (char *)malloc(sizeof(char) * bufLen);
-        if (banner) {
-            // Copy the banner into the debug string
-            memmove_s(buf, bufLen, banner, bannerLen);
-            
-            // Copy the message into the debug string
-            strcpy_s(buf + bannerLen, bufLen - bannerLen, message);
-        } else {
-            strcpy_s(buf, bufLen, message);
-        }
-        buf[bufLen - 1] = '\0';
-	fprintf_s(stderr, "%s\n", buf);
-	// This Win32 API call only prints when a debugger is active
-	// OutputDebugStringA(buf);
-        free(buf);
-#else
-        size_t bufLen = bannerLen + length + 1;
-        char *buf = (char *)malloc(sizeof(char) * bufLen);
-        if (banner) {
-            // Copy the banner into the debug string
-            memmove(buf, banner, bannerLen);
-            
-            // Copy the message into the debug string
-            strncpy(buf + bannerLen, message, bufLen - bannerLen);
-        } else {
-            strncpy(buf, message, bufLen);
-        }
-        buf[bufLen - 1] = '\0';
-        fprintf(stderr, "%s\n", buf);
-        free(buf);
-#endif
+    
+    if (also_do_stderr(_cf_logging_style_legacy)) {
+        _logToStderr(banner, message, length);
     }
     
     if (thread) free(thread);
@@ -710,7 +894,7 @@ static void __CFLogCString(int32_t lev, const char *message, size_t length, char
 }
 
 
-CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
+static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, _cf_logging_style loggingStyle) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     uintptr_t val = (uintptr_t)_CFGetTSD(__CFTSDKeyIsInCFLog);
     if (3 < val) return; // allow up to 4 nested invocations
@@ -724,7 +908,15 @@ CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, c
 	size_t len = strlen(buf);
 	// silently ignore 0-length or really large messages, and levels outside the valid range
 	if (converted && !(len <= 0 || (1 << 24) < len) && !(lev < ASL_LEVEL_EMERG || ASL_LEVEL_DEBUG < lev)) {
-	    (logit ? logit : __CFLogCString)(lev, buf, len, 1);
+            if (logit) {
+                logit(lev, buf, len, 1);
+            }
+            else if (loggingStyle == _cf_logging_style_os_log) {
+                __CFLogCString(lev, buf, len, 1);
+            }
+            else if (loggingStyle == _cf_logging_style_legacy) {
+                __CFLogCStringLegacy(lev, buf, len, 1);
+            }
 	}
     }
     if (buf) free(buf);
@@ -733,9 +925,14 @@ CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, c
     _CFSetTSD(__CFTSDKeyIsInCFLog, (void *)val, NULL);
 #endif
 }
-
+    
+CF_EXPORT void _CFLogvEx2(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
+    _CFLogvEx2Predicate(logit, copyDescFunc, contextDescFunc, formatOptions, lev, format, args, _cf_logging_style_legacy);
+}
+    
 CF_EXPORT void _CFLogvEx3(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, void *addr) {
-    _CFLogvEx2(logit, copyDescFunc, contextDescFunc, formatOptions, lev, format, args);
+    _CFLogvEx2Predicate(logit, copyDescFunc, contextDescFunc, formatOptions, lev, format, args, _cf_logging_style_legacy);
+    
 }
 
 CF_EXPORT void _CFLogvEx(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args) {
@@ -749,24 +946,69 @@ CF_PRIVATE void _CFLogSimple(int32_t lev, char *format, ...) {
     char formattedMessage[1024];
     int length = vsnprintf(formattedMessage, 1024, format, args);
     if (length > 0) {
-        __CFLogCString(lev, formattedMessage, length, 0);
+        __CFLogCStringLegacy(lev, formattedMessage, length, 0);
     }
     va_end(args);
 }
 
-void CFLog(CFLogLevel lev, CFStringRef format, ...) {
+void CFLog(int32_t lev, CFStringRef format, ...) {
     va_list args;
     va_start(args, format); 
     _CFLogvEx3(NULL, NULL, NULL, NULL, lev, format, args, __builtin_return_address(0));
     va_end(args);
 }
-
+    
 #if DEPLOYMENT_RUNTIME_SWIFT
 // Temporary as Swift cannot import varag C functions
 void CFLog1(CFLogLevel lev, CFStringRef message) {
+#if TARGET_OS_ANDROID
+    android_LogPriority priority = ANDROID_LOG_UNKNOWN;
+    switch (lev) {
+        case kCFLogLevelEmergency: priority = ANDROID_LOG_FATAL; break;
+        case kCFLogLevelAlert:     priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelCritical:  priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelError:     priority = ANDROID_LOG_ERROR; break;
+        case kCFLogLevelWarning:   priority = ANDROID_LOG_WARN;  break;
+        case kCFLogLevelNotice:    priority = ANDROID_LOG_WARN;  break;
+        case kCFLogLevelInfo:      priority = ANDROID_LOG_INFO;  break;
+        case kCFLogLevelDebug:     priority = ANDROID_LOG_DEBUG; break;
+    }
+    
+    if (message == NULL) message = CFSTR("NULL");
+    
+    char stack_buffer[1024] = { 0 };
+    char *buffer = &stack_buffer[0];
+    CFStringEncoding encoding = kCFStringEncodingUTF8;
+    CFIndex maxLength = CFStringGetMaximumSizeForEncoding(CFStringGetLength(message), encoding) + 1;
+    const char *tag = "Swift"; // process name not available from NDK
+    
+    if (maxLength > sizeof(stack_buffer) / sizeof(stack_buffer[0])) {
+        buffer = calloc(sizeof(char), maxLength);
+        if (!buffer) {
+            maxLength = sizeof(stack_buffer) / sizeof(stack_buffer[0]);
+            buffer = &stack_buffer[0];
+            buffer[maxLength-1] = '\000';
+        }
+    }
+    
+    if (maxLength == 1) {
+        // was crashing with zero length strings
+        // https://bugs.swift.org/browse/SR-2666
+        strcpy(buffer, " "); // log empty string
+    }
+    else
+        CFStringGetCString(message, buffer, maxLength, encoding);
+    
+    __android_log_print(priority, tag, "%s", buffer);
+    
+    if (buffer != &stack_buffer[0]) free(buffer);
+#else
     CFLog(lev, CFSTR("%@"), message);
+#endif
 }
 #endif
+
+
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 
@@ -827,184 +1069,52 @@ kern_return_t _CFDiscorporateMemoryMaterialize(CFDiscorporateMemory *hm) {
 
 #if SUDDEN_TERMINATION_ENABLE_VPROC
 
-static OSSpinLock __CFProcessKillingLock = OS_SPINLOCK_INIT;
+static os_unfair_lock __CFProcessKillingLock = OS_UNFAIR_LOCK_INIT;
 static CFIndex __CFProcessKillingDisablingCount = 1;
 static Boolean __CFProcessKillingWasTurnedOn = false;
 
 void _CFSuddenTerminationDisable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount++;
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationEnable(void) {
     // In our model the first call of _CFSuddenTerminationEnable() that does not balance a previous call of _CFSuddenTerminationDisable() actually enables sudden termination so we have to keep a count that's almost redundant with vproc's.
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount--;
     if (__CFProcessKillingDisablingCount==0 && !__CFProcessKillingWasTurnedOn) {
 	__CFProcessKillingWasTurnedOn = true;
     } else {
-	// Mail seems to have sudden termination disabling/enabling imbalance bugs that make _vproc_transaction_end() kill the app but we don't want that to prevent our submission of the fix 6382488.
-	if (__CFProcessKillingDisablingCount>=0) {
-	} else {
-	    CFLog(kCFLogLevelError, CFSTR("-[NSProcessInfo enableSuddenTermination] has been invoked more times than necessary to balance invocations of -[NSProcessInfo disableSuddenTermination]. Ignoring."));
-	}
     }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
     // This is for when the caller wants to try to exit quickly if possible but not automatically exit the process when it next becomes clean, because quitting might still be cancelled by the user.
-    OSSpinLockLock(&__CFProcessKillingLock);
-    // Check _vproc_transaction_count() because other code in the process might go straight to the vproc APIs but also check __CFProcessKillingWasTurnedOn because  _vproc_transaction_count() can return 0 when transactions didn't even get enabled.
-    if (__CFProcessKillingWasTurnedOn) {
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
     // The user has had their final opportunity to cancel quitting. Exit as soon as the process is clean. Same carefulness as in _CFSuddenTerminationExitIfTerminationEnabled().
-    OSSpinLockLock(&__CFProcessKillingLock);
+    os_unfair_lock_lock(&__CFProcessKillingLock);
     if (__CFProcessKillingWasTurnedOn) {
     }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
+    os_unfair_lock_unlock(&__CFProcessKillingLock);
 }
 
 size_t _CFSuddenTerminationDisablingCount(void) {
-    // Until sudden termination has been really enabled vproc's notion of the count is off by one but we can't just return __CFProcessKillingDisablingCount() because that doesn't take into account stuff that calls the vproc_transaction functions behind our back.
     return (__CFProcessKillingWasTurnedOn ? 0 : 1);
 }
 
 #else
 
-#warning Building with vproc sudden termination API disabled.
-
-static OSSpinLockUnlock __CFProcessKillingLock = OS_SPINLOCK_INIT;
-static size_t __CFProcessKillingDisablingCount = 1;
-static Boolean __CFProcessExitNextTimeKillingIsEnabled = false;
-static int32_t __CFProcessExitStatus = 0;
-static int __CFProcessIsKillableNotifyToken;
-static Boolean __CFProcessIsKillableNotifyTokenIsFigured = false;
-
-CF_PRIVATE void _CFSetSuddenTerminationEnabled(Boolean isEnabled) {
-    if (!__CFProcessIsKillableNotifyTokenIsFigured) {
-        char *notificationName = NULL;
-        asprintf(&notificationName, "com.apple.isKillable.%i", getpid());
-        uint32_t notifyResult = notify_register_check(notificationName, &__CFProcessIsKillableNotifyToken);
-        if (notifyResult != NOTIFY_STATUS_OK) {
-            CFLog(kCFLogLevelError, CFSTR("%s: notify_register_check() returned %i."), __PRETTY_FUNCTION__, notifyResult);
-        }
-        free(notificationName);
-        __CFProcessIsKillableNotifyTokenIsFigured = true;
-    }
-    uint32_t notifyResult = notify_set_state(__CFProcessIsKillableNotifyToken, isEnabled);
-    if (notifyResult != NOTIFY_STATUS_OK) {
-        CFLog(kCFLogLevelError, CFSTR("%s: notify_set_state() returned %i"), __PRETTY_FUNCTION__, notifyResult);
-    }
-}
-
-void _CFSuddenTerminationDisable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _CFSetSuddenTerminationEnabled(false);
-    }
-    __CFProcessKillingDisablingCount++;
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationEnable(void) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    __CFProcessKillingDisablingCount--;
-    if (__CFProcessKillingDisablingCount == 0) {
-        if (__CFProcessExitNextTimeKillingIsEnabled) {
-            _exit(__CFProcessExitStatus);
-        } else {
-            _CFSetSuddenTerminationEnabled(true);
-        }
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _exit(exitStatus);
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
-    OSSpinLockLock(&__CFProcessKillingLock);
-    if (__CFProcessKillingDisablingCount == 0) {
-        _exit(exitStatus);
-    } else {
-        __CFProcessExitNextTimeKillingIsEnabled = YES;
-        __CFProcessExitStatus = exitStatus;
-    }
-    OSSpinLockUnlock(&__CFProcessKillingLock);
-}
-
-size_t _CFSuddenTerminationDisablingCount(void) {
-    return __CFProcessKillingDisablingCount;
-}
+//The non-vproc implementation is present in the commit history, but long ago began failing to compile and nobody noticed. If you need to resurrect it, start there.
+#error Building with vproc sudden termination API disabled.
 
 #endif
 
-#endif
-
-#if 0
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-
-typedef void (^ThrottleTypeA)(void);		// allows calls per nanoseconds
-typedef void (^ThrottleTypeB)(uint64_t amt);	// allows amount per nanoseconds
-
-CF_PRIVATE ThrottleTypeA __CFCreateThrottleTypeA(uint16_t calls, uint64_t nanoseconds) {
-   struct mach_timebase_info info;
-   mach_timebase_info(&info);
-   uint64_t period = nanoseconds / info.numer * info.denom;
-
-   if (0 == calls || 0 == period) return NULL;
-
-   __block OSSpinLock b_lock = OS_SPINLOCK_INIT;
-   __block uint64_t b_values[calls];
-   __block uint64_t *b_oldest = b_values;
-   memset(b_values, 0, sizeof(b_values));
-
-   return Block_copy(^{
-               uint64_t curr_time = mach_absolute_time();
-               OSSpinLockLock(&b_lock);
-               uint64_t next_time = *b_oldest + period;
-               *b_oldest = (curr_time < next_time) ? next_time : curr_time;
-               b_oldest++;
-               if (b_values + calls <= b_oldest) b_oldest = b_values;
-               OSSpinLockUnlock(&b_lock);
-               if (curr_time < next_time) {
-                   mach_wait_until(next_time);
-               }
-           });
-}
-
-CF_PRIVATE ThrottleTypeB __CFCreateThrottleTypeB(uint64_t amount, uint64_t nanoseconds) {
-   struct mach_timebase_info info;
-   mach_timebase_info(&info);
-   uint64_t period = nanoseconds / info.numer * info.denom;
-
-   if (0 == amount || 0 == period) return NULL;
-
-   __block OSSpinLock b_lock = OS_SPINLOCK_INIT;
-   __block uint64_t b_sum = 0ULL;
-   __block uint16_t b_num_values = 8;
-   __block uint64_t *b_values = calloc(b_num_values, 2 * sizeof(uint64_t));
-   __block uint64_t *b_oldest = b_values;
-
-   return Block_copy(^(uint64_t amt){
-               OSSpinLockLock(&b_lock);
-// unimplemented
-               OSSpinLockUnlock(&b_lock);
-           });
-}
-
-#endif
 #endif
 
 #pragma mark File Reading
@@ -1163,26 +1273,72 @@ CF_INLINE UniChar __CFStringGetCharacterFromInlineBufferQuickReverse(CFStringInl
     return buf->buffer[idx - buf->bufferedRangeStart];
 }
 
-/*  _CFGetExtensionInfoFromPathComponent finds the range of the primary path extension (if any) for the given path component. If requested, _CFGetExtensionInfoFromPathComponent also finds the secondary path extension (if any) for the given path component.
+/* UniCharInitInlineBuffer initializes an in-line buffer to use an array of UniChar with CFStringGetCharacterFromInlineBuffer (and related SPI that use CFStringInlineBuffer).
  */
-CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) {
+CF_INLINE void UniCharInitInlineBuffer(const UniChar *uchars, CFIndex ucharsLength, CFStringInlineBuffer *buf) {
+    buf->theString = NULL;
+    buf->rangeToBuffer = CFRangeMake(0, ucharsLength);
+    buf->directUniCharBuffer = uchars;
+    buf->directCStringBuffer = NULL;
+    buf->bufferedRangeStart = buf->bufferedRangeEnd = 0;
+}
+
+// __IsInvalidExtensionCharacter returns true if C is a space, a path separator, or a unicode directional control character
+CF_INLINE Boolean __IsInvalidExtensionCharacter(UniChar c)
+{
     // Unicode directional control characters
     enum {
-        UNICHAR_LEFT_TO_RIGHT_EMBEDDING = 0x202a,
-        UNICHAR_RIGHT_TO_LEFT_EMBEDDING = 0x202b,
-        UNICHAR_POP_DIRECTIONAL_FORMATTING = 0x202c,
-        UNICHAR_LEFT_TO_RIGHT_OVERRIDE = 0x202d,
-        UNICHAR_RIGHT_TO_LEFT_OVERRIDE = 0x202e,
+        UNICHAR_ARABIC_LETTER_MARK          = 0x061c,
+        UNICHAR_LEFT_TO_RIGHT_MARK          = 0x200e,
+        UNICHAR_RIGHT_TO_LEFT_MARK          = 0x200f,
+        UNICHAR_LEFT_TO_RIGHT_EMBEDDING     = 0x202a,
+        UNICHAR_RIGHT_TO_LEFT_EMBEDDING     = 0x202b,
+        UNICHAR_POP_DIRECTIONAL_FORMATTING  = 0x202c,
+        UNICHAR_LEFT_TO_RIGHT_OVERRIDE      = 0x202d,
+        UNICHAR_RIGHT_TO_LEFT_OVERRIDE      = 0x202e,
+        UNICHAR_LEFT_TO_RIGHT_ISOLATE       = 0x2066,
+        UNICHAR_RIGHT_TO_LEFT_ISOLATE       = 0x2067,
+        UNICHAR_FIRST_STRONG_ISOLATE        = 0x2068,
+        UNICHAR_POP_DIRECTIONAL_ISOLATE     = 0x2069,
     };
     
+    Boolean result;
+    switch ( c ) {
+        case (UniChar)' ':
+        case (UniChar)'/':
+        case UNICHAR_ARABIC_LETTER_MARK:
+        case UNICHAR_LEFT_TO_RIGHT_MARK:
+        case UNICHAR_RIGHT_TO_LEFT_MARK:
+        case UNICHAR_LEFT_TO_RIGHT_EMBEDDING:
+        case UNICHAR_RIGHT_TO_LEFT_EMBEDDING:
+        case UNICHAR_POP_DIRECTIONAL_FORMATTING:
+        case UNICHAR_LEFT_TO_RIGHT_OVERRIDE:
+        case UNICHAR_RIGHT_TO_LEFT_OVERRIDE:
+        case UNICHAR_LEFT_TO_RIGHT_ISOLATE:
+        case UNICHAR_RIGHT_TO_LEFT_ISOLATE:
+        case UNICHAR_FIRST_STRONG_ISOLATE:
+        case UNICHAR_POP_DIRECTIONAL_ISOLATE:
+            result = true;
+            break;
+            
+        default:
+            result = false;
+            break;
+    }
+    return ( result );
+}
+
+/*  __GetPathExtensionRangesFromPathComponentBuffer finds the range of the primary path extension (if any) for the given path component. If requested, __GetPathExtensionRangesFromPathComponentBuffer also finds the secondary path extension (if any) for the given path component.
+ */
+CF_INLINE void __GetPathExtensionRangesFromPathComponentBuffer(CFStringInlineBuffer *buffer, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) {
     CFRange primaryExtRange = CFRangeMake(kCFNotFound, 0);
     CFRange secondaryExtRange = CFRangeMake(kCFNotFound, 0);
     
-    if ( inName && (outPrimaryExtRange || outSecondaryExtRange) ) {
+    if ( buffer && (outPrimaryExtRange || outSecondaryExtRange) ) {
         //
-        // Look backwards for dots. The dot may not be the first or last character,
+        // Look backwards for a period. The period may not be the first or last character of the path component,
         // but otherwise the extension may be of any length and contain any characters
-        // except period, space, or any unicode directional control character.
+        // except space, a path separator, or any unicode directional control character.
         //
         // The secondary extension is the "apparent" extension the user would see if
         // the primary extension is hidden. Since this is a security concern, the
@@ -1190,12 +1346,10 @@ CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CF
         // are ignored, since the user might think "foo.txt .app" is a text file if
         // ".app" is hidden.
         
-        CFIndex nameLen = CFStringGetLength( inName );
-        CFStringInlineBuffer buffer;
-        CFStringInitInlineBuffer( inName, &buffer, CFRangeMake( 0, nameLen ) );
+        CFIndex nameLen = buffer->rangeToBuffer.length;
         
         for ( CFIndex i = nameLen - 1; i > 0; i-- ) {
-            UniChar c = __CFStringGetCharacterFromInlineBufferQuickReverse( &buffer, i );
+            UniChar c = __CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i);
             if ( (UniChar)'.' == c ) {
                 // Found a dot
                 CFIndex e2i = 0;
@@ -1214,11 +1368,11 @@ CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CF
                 CFIndex e2len = 0;
                 
                 // Skip trailing space (one-liner):
-                for ( --i; i > 0 && __CFStringGetCharacterFromInlineBufferQuickReverse(&buffer, i) == (UniChar)' '; i-- );
+                for ( --i; (i > 0) && (__CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i) == (UniChar)' '); i-- );
                 
                 // Scan apparent extension text
                 for ( ; i > 0; i-- ) {
-                    c = CFStringGetCharacterFromInlineBuffer(&buffer, i);
+                    c = __CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i);
                     if ( ((UniChar)'.' == c) || ((UniChar)' ' == c) ) {
                         break;
                     }
@@ -1228,15 +1382,15 @@ CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CF
                 e2i = i + 1;
                 
                 // Skip leading space (one-liner):
-                for ( ; i > 0 && __CFStringGetCharacterFromInlineBufferQuickReverse( &buffer, i ) == ( UniChar )' '; i-- );
+                for ( ; (i > 0) && (__CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i) == (UniChar)' '); i-- );
                 
-                if ( i > 0 && __CFStringGetCharacterFromInlineBufferQuickReverse( &buffer, i ) == ( UniChar )'.' && e2len > 0 ) {
+                if ( (i > 0) && (__CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i) == (UniChar)'.') && (e2len > 0) ) {
                     secondaryExtRange = CFRangeMake( e2i, e2len );
                 }
                 
                 break;
             }
-            else if ( ((UniChar)' ' == c) || ((UniChar)'/' == c) || ((c >= UNICHAR_LEFT_TO_RIGHT_EMBEDDING) && (c <= UNICHAR_RIGHT_TO_LEFT_OVERRIDE)) ) {
+            else if ( __IsInvalidExtensionCharacter(c) ) {
                 // Found a space, a path separator, or a unicode directional control character -- terminate the loop
                 break;
             }
@@ -1252,6 +1406,92 @@ CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CF
     }
 }
 
+/*  __ExtensionIsValidToAppend determines if the characters in extension are valid to be appended as an extension.
+ */
+CF_INLINE Boolean __ExtensionIsValidToAppend(CFStringInlineBuffer *buffer) {
+    Boolean result;
+    
+    if ( buffer && buffer->rangeToBuffer.length ) {
+        //
+        // Look backwards for a period. If a period is found, it must not be the
+        // last character and any characters after the period must be valid in an
+        // extension, and all characters before the period are considered valid
+        // except for the path separator character '/' (this allow strings like
+        // "tar.gz" to be appended as an extension). The path separator
+        // character '/' isn't allowed anywhere in the extension. If there's no
+        // period, the entire string must be characters valid in an extension.
+        // The extension may be of any length.
+        
+        CFIndex nameLen = buffer->rangeToBuffer.length;
+        if ( nameLen ) {
+            result = true;  // assume the best
+            
+            for ( CFIndex i = nameLen - 1; i >= 0; i-- ) {
+                UniChar c = __CFStringGetCharacterFromInlineBufferQuickReverse(buffer, i);
+                if ( (UniChar)'.' == c ) {
+                    // Found a period. If it's  the last character, then return false; otherwise true
+                    result = i < nameLen - 1;
+                    if ( result ) {
+                        // check the rest of the string before the period for '/'
+                        for ( CFIndex j = i - 1; j >= 0; j-- ) {
+                            c = __CFStringGetCharacterFromInlineBufferQuickReverse(buffer, j);
+                            if ( c == (UniChar)'/'){
+                                result = false;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+                else if ( __IsInvalidExtensionCharacter(c) ) {
+                    // Found an invalid extension character. Return false.
+                    result = false;
+                    break;
+                }
+            }
+        }
+        else {
+            // NOTE: The implementation before we switched to _CFGetPathExtensionRangesFromPathComponent
+            // allowed an empty string to be appended as an extension. That is not a valid extension.
+            result = false;
+        }
+    }
+    else {
+        // no buffer or no extension
+        result = false;
+    }
+    return ( result );
+}
+
+/*  _CFGetExtensionInfoFromPathComponent/_CFGetPathExtensionRangesFromPathComponentUniChars finds the range of the primary path extension (if any) for the given path component. If requested, _CFGetExtensionInfoFromPathComponent/_CFGetPathExtensionRangesFromPathComponentUniChars also finds the secondary path extension (if any) for the given path component.
+ */
+CF_EXPORT void _CFGetPathExtensionRangesFromPathComponentUniChars(const UniChar *uchars, CFIndex ucharsLength, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) {
+    CFStringInlineBuffer buffer;
+    UniCharInitInlineBuffer(uchars, ucharsLength, &buffer);
+    __GetPathExtensionRangesFromPathComponentBuffer(&buffer, outPrimaryExtRange, outSecondaryExtRange);
+}
+
+CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) {
+    CFStringInlineBuffer buffer;
+    CFStringInitInlineBuffer(inName, &buffer, CFRangeMake(0, CFStringGetLength(inName)));
+    __GetPathExtensionRangesFromPathComponentBuffer(&buffer, outPrimaryExtRange, outSecondaryExtRange);
+}
+
+/*  _CFPathExtensionIsValid/_CFExtensionUniCharsIsValidToAppend determines if the characters in extension are valid to be appended as an extension.
+ */
+CF_EXPORT Boolean _CFExtensionUniCharsIsValidToAppend(const UniChar *uchars, CFIndex ucharsLength) {
+    CFStringInlineBuffer buffer;
+    UniCharInitInlineBuffer(uchars, ucharsLength, &buffer);
+    return ( __ExtensionIsValidToAppend(&buffer) );
+}
+
+CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) {
+    CFStringInlineBuffer buffer;
+    CFStringInitInlineBuffer(extension, &buffer, CFRangeMake(0, CFStringGetLength(extension)));
+    return ( __ExtensionIsValidToAppend(&buffer) );
+}
+
+
 #if DEPLOYMENT_RUNTIME_SWIFT
 
 CFDictionaryRef __CFGetEnvironment() {
@@ -1259,13 +1499,13 @@ CFDictionaryRef __CFGetEnvironment() {
     static CFMutableDictionaryRef envDict = NULL;
     dispatch_once(&once, ^{
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
-        extern char ***_NSGetEnviron();
+        extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
         extern char **environ;
         char **envp = environ;
 #elif DEPLOYMENT_TARGET_LINUX
-#ifndef environ
+#if !defined(environ) && !TARGET_OS_ANDROID
 #define environ __environ
 #endif
         char **envp = environ;
