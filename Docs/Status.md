@@ -67,7 +67,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLRequest`                 | Complete        | None          |                                                                                                                    |
     | `HTTPCookie`                 | Complete        | Incomplete    |                                                                                                                    |
     | `HTTPCookiePropertyKey`      | Complete        | N/A           |                                                                                                                    |
-    | `HTTPCookieStorage`          | Mostly Complete | Substantial   |                                                                                                                    |
+    | `HTTPCookieStorage`          | Complete        | Substantial   |                                                                                                                    |
     | `Host`                       | Complete        | None          |                                                                                                                    |
     | `Configuration`              | N/A             | N/A           | For internal use only                                                                                              |
     | `EasyHandle`                 | N/A             | N/A           | For internal use only                                                                                              |
