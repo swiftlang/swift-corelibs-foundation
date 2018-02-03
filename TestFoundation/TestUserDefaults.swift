@@ -38,6 +38,8 @@ class TestUserDefaults : XCTestCase {
 			("test_setValue_BoolFromString", test_setValue_BoolFromString ),
 			("test_setValue_IntFromString", test_setValue_IntFromString ),
 			("test_setValue_DoubleFromString", test_setValue_DoubleFromString ),
+			("test_volatileDomains", test_volatileDomains),
+			("test_persistentDomain", test_persistentDomain ),
 		]
 	}
 
@@ -253,5 +255,104 @@ class TestUserDefaults : XCTestCase {
 		defaults.set("12.34", forKey: "key1")
 		
 		XCTAssertEqual(defaults.double(forKey: "key1"), 12.34)
+	}
+	
+	func test_volatileDomains() {
+		let dateKey = "A Date",
+		stringKey = "A String",
+		arrayKey = "An Array",
+		dictionaryKey = "A Dictionary",
+		dataKey = "Some Data",
+		boolKey = "A Bool"
+		
+		let defaultsIn: [String: Any] = [
+			dateKey: Date(),
+			stringKey: "The String",
+			arrayKey: [1, 2, 3],
+			dictionaryKey: ["Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date()],
+			dataKey: "The Data".data(using: .utf8)!,
+			boolKey: true
+		]
+		
+		let domainName = "TestDomain"
+		
+		let defaults = UserDefaults(suiteName: nil)!
+		XCTAssertFalse(defaults.volatileDomainNames.contains(domainName))
+		
+		defaults.setVolatileDomain(defaultsIn, forName: domainName)
+		let defaultsOut = defaults.volatileDomain(forName: domainName)
+		
+		XCTAssertEqual(defaultsIn.count, defaultsOut.count)
+		XCTAssertEqual(defaultsIn[dateKey] as! Date, defaultsOut[dateKey] as! Date)
+		XCTAssertEqual(defaultsIn[stringKey] as! String, defaultsOut[stringKey] as! String)
+		XCTAssertEqual(defaultsIn[arrayKey] as! [Int], defaultsOut[arrayKey] as! [Int])
+		XCTAssertEqual(defaultsIn[dictionaryKey] as! [String: AnyHashable], defaultsOut[dictionaryKey] as! [String: AnyHashable])
+		XCTAssertEqual(defaultsIn[dataKey] as! Data, defaultsOut[dataKey] as! Data)
+		XCTAssertEqual(defaultsIn[boolKey] as! Bool, defaultsOut[boolKey] as! Bool)
+	}
+	
+	func test_persistentDomain() {
+		let int = (key: "An Integer", value: 1234)
+		let double = (key: "A Double", value: 5678.1234)
+		let string = (key: "A String", value: "Some string")
+		let array = (key: "An Array", value: [ 1, 2, 3, 4, "Surprise" ] as [AnyHashable])
+		let dictionary = (key: "A Dictionary", value: [ "Swift": "Imperative", "Haskell": "Functional", "LISP": "LISP", "Today": Date() ] as [String: AnyHashable])
+		
+		let domainName = "org.swift.Foundation.TestPersistentDomainName"
+
+		let done = expectation(description: "All notifications have fired.")
+		
+		var countOfFiredNotifications = 0
+		let expectedNotificationCount = 3
+		
+		let observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { (_) in
+			countOfFiredNotifications += 1
+			
+			if countOfFiredNotifications == expectedNotificationCount {
+				done.fulfill()
+			} else if countOfFiredNotifications > expectedNotificationCount {
+				XCTFail("Too many UserDefaults.didChangeNotification notifications posted.")
+			}
+		}
+		
+		let defaults1 = UserDefaults(suiteName: nil)!
+		
+		defaults1.removePersistentDomain(forName: domainName)
+		if let domain = defaults1.persistentDomain(forName: domainName) {
+			XCTAssertEqual(domain.count, 0)
+		} // else it's nil, which is also OK.
+		
+		let defaultsIn: [String : Any] =
+			[ int.key: int.value,
+			  double.key: double.value,
+			  string.key: string.value,
+			  array.key: array.value,
+			  dictionary.key: dictionary.value ]
+		
+		defaults1.setPersistentDomain(defaultsIn, forName: domainName)
+		
+		let defaults2 = UserDefaults(suiteName: nil)!
+		let returned = defaults2.persistentDomain(forName: domainName)
+		XCTAssertNotNil(returned)
+		
+		if let returned = returned {
+			XCTAssertEqual(returned.count, defaultsIn.count)
+			XCTAssertEqual(returned[int.key] as? Int, int.value)
+			XCTAssertEqual(returned[double.key] as? Double, double.value)
+			XCTAssertEqual(returned[string.key] as? String, string.value)
+			XCTAssertEqual(returned[array.key] as? [AnyHashable], array.value)
+			XCTAssertEqual(returned[dictionary.key] as? [String: AnyHashable], dictionary.value)
+		}
+		
+		defaults2.removePersistentDomain(forName: domainName)
+		
+		let defaults3 = UserDefaults(suiteName: nil)!
+		if let domain = defaults3.persistentDomain(forName: domainName) {
+			XCTAssertEqual(domain.count, 0)
+		} // else it's nil, which is also OK.
+		
+		waitForExpectations(timeout: 10)
+		
+		NotificationCenter.default.removeObserver(observer)
 	}
 }

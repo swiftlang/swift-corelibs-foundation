@@ -12,17 +12,85 @@ import CoreFoundation
 private var registeredDefaults = [String: Any]()
 private var sharedDefaults = UserDefaults()
 
+fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
+    // This line will produce a 'Conditional cast always succeeds' warning if compoiled on Darwin, since Darwin has bridging casts of any value to an object,
+    // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
+    if let object = value as? AnyObject {
+        return _SwiftValue.fetch(nonOptional: object)
+    } else {
+        return value
+    }
+}
+
 open class UserDefaults: NSObject {
+    static private func _isValueAllowed(_ nonbridgedValue: Any) -> Bool {
+        let value = bridgeFromNSCFTypeIfNeeded(nonbridgedValue)
+        
+        if let value = value as? [Any] {
+            for innerValue in value {
+                if !_isValueAllowed(innerValue) {
+                    return false
+                }
+            }
+            
+            return true
+        }
+        
+        if let value = value as? [AnyHashable: Any] {
+            for (key, innerValue) in value {
+                if !(key is String) {
+                    return false
+                }
+                
+                if !_isValueAllowed(innerValue) {
+                    return false
+                }
+            }
+            
+            return true
+        }
+        
+        // NSNumber doesn't quite bridge -- treat it specially.
+        if value is NSNumber {
+            return true
+        }
+        
+        let isOfCommonTypes =  value is String || value is Data || value is Date || value is Int || value is Bool || value is CGFloat
+        if isOfCommonTypes {
+            return true
+        }
+        
+        let isOfUncommonNumericTypes = value is Double || value is Float || value is Float || value is Int8 || value is UInt8 || value is Int16 || value is UInt16 || value is Int32 || value is UInt32 || value is Int64 || value is UInt64
+        return isOfUncommonNumericTypes
+    }
+    
+    static private func _unboxingNSNumbers(_ value: Any?) -> Any? {
+        if value == nil {
+            return nil
+        }
+        
+        if let number = value as? NSNumber {
+            return number._swiftValueOfOptimalType
+        }
+        
+        if let value = value as? [Any] {
+            return value.map(_unboxingNSNumbers)
+        }
+        
+        if let value = value as? [AnyHashable: Any] {
+            return value.mapValues(_unboxingNSNumbers)
+        }
+        
+        return value
+    }
+    
     private let suite: String?
     
     open class var standard: UserDefaults {
         return sharedDefaults
     }
     
-    open class func resetStandardUserDefaults() {
-        //sharedDefaults.synchronize()
-        //sharedDefaults = UserDefaults()
-    }
+    open class func resetStandardUserDefaults() {}
     
     public convenience override init() {
         self.init(suiteName: nil)!
@@ -31,39 +99,29 @@ open class UserDefaults: NSObject {
     /// nil suite means use the default search list that +standardUserDefaults uses
     public init?(suiteName suitename: String?) {
         suite = suitename
+        super.init()
+        
+        setVolatileDomain(UserDefaults._parsedArgumentsDomain, forName: UserDefaults.argumentDomain)
     }
     
     open func object(forKey defaultName: String) -> Any? {
+        let argumentDomain = volatileDomain(forName: UserDefaults.argumentDomain)
+        if let object = argumentDomain[defaultName] {
+            return object
+        }
+        
         func getFromRegistered() -> Any? {
-            return registeredDefaults[defaultName]
+            return UserDefaults._unboxingNSNumbers(registeredDefaults[defaultName])
         }
         
         guard let anObj = CFPreferencesCopyAppValue(defaultName._cfObject, suite?._cfObject ?? kCFPreferencesCurrentApplication) else {
             return getFromRegistered()
         }
         
-        //Force the returned value to an NSObject
-        switch CFGetTypeID(anObj) {
-        case CFStringGetTypeID():
-            return unsafeBitCast(anObj, to: NSString.self)
-            
-        case CFNumberGetTypeID():
-            return unsafeBitCast(anObj, to: NSNumber.self)
-            
-        case CFURLGetTypeID():
-            return unsafeBitCast(anObj, to: NSURL.self)
-            
-        case CFArrayGetTypeID():
-            return unsafeBitCast(anObj, to: NSArray.self)
-            
-        case CFDictionaryGetTypeID():
-            return unsafeBitCast(anObj, to: NSDictionary.self)
-            
-        case CFDataGetTypeID():
-            return unsafeBitCast(anObj, to: NSData.self)
-            
-        default:
-            return getFromRegistered()
+        if let fetched = _SwiftValue.fetch(anObj) {
+            return UserDefaults._unboxingNSNumbers(fetched)
+        } else {
+            return nil
         }
     }
 
@@ -73,147 +131,103 @@ open class UserDefaults: NSObject {
             return
         }
         
-        let cfType: CFTypeRef
-		
-		// Convert the input value to the internal representation. All values are
-        // represented as CFTypeRef objects internally because we store the defaults
-        // in a CFPreferences type.
-        if let bType = value as? NSNumber {
-            cfType = bType._cfObject
-        } else if let bType = value as? NSString {
-            cfType = bType._cfObject
-        } else if let bType = value as? NSArray {
-            cfType = bType._cfObject
-        } else if let bType = value as? NSDictionary {
-            cfType = bType._cfObject
-        } else if let bType = value as? NSData {
-            cfType = bType._cfObject
-        } else if let bType = value as? NSURL {
-            set(URL(reference: bType), forKey: defaultName)
+        if let url = value as? URL {
+            set(url.absoluteURL.path, forKey: defaultName)
             return
-        } else if let bType = value as? String {
-            cfType = bType._cfObject
-        } else if let bType = value as? URL {
-			set(bType, forKey: defaultName)
-			return
-        } else if let bType = value as? Int {
-            var cfValue = Int64(bType)
-            cfType = CFNumberCreate(nil, kCFNumberSInt64Type, &cfValue)
-        } else if let bType = value as? Double {
-            var cfValue = bType
-            cfType = CFNumberCreate(nil, kCFNumberDoubleType, &cfValue)
-        } else if let bType = value as? Data {
-            cfType = bType._cfObject
-        } else {
-            fatalError("The type of 'value' passed to UserDefaults.set(forKey:) is not supported.")
         }
         
-        CFPreferencesSetAppValue(defaultName._cfObject, cfType, suite?._cfObject ?? kCFPreferencesCurrentApplication)
+        if let url = value as? NSURL, let path = url.absoluteURL?.path {
+            set(path, forKey: defaultName)
+            return
+        }
+        
+        guard UserDefaults._isValueAllowed(value) else {
+            fatalError("This value is not supported by set(_:forKey:)")
+        }
+        
+        CFPreferencesSetAppValue(defaultName._cfObject, _SwiftValue.store(value), suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
     open func removeObject(forKey defaultName: String) {
         CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
+    
     open func string(forKey defaultName: String) -> String? {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSString else {
-            return nil
-        }
-        return bVal._swiftObject
+        return object(forKey: defaultName) as? String
     }
+    
     open func array(forKey defaultName: String) -> [Any]? {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSArray else {
-            return nil
-        }
-        return bVal._swiftObject
+        return object(forKey: defaultName) as? [Any]
     }
+    
     open func dictionary(forKey defaultName: String) -> [String : Any]? {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSDictionary else {
-            return nil
-        }
-        //This got out of hand fast...
-        let cVal = bVal._swiftObject
-        enum convErr: Swift.Error {
-            case convErr
-        }
-        do {
-            let dVal = try cVal.map({ (key, val) -> (String, Any) in
-                if let strKey = key as? NSString {
-                    return (strKey._swiftObject, val)
-                } else {
-                    throw convErr.convErr
-                }
-            })
-            var eVal = [String : Any]()
-            
-            for (key, value) in dVal {
-                eVal[key] = value
-            }
-            
-            return eVal
-        } catch _ { }
-        return nil
+        return object(forKey: defaultName) as? [String: Any]
     }
+    
     open func data(forKey defaultName: String) -> Data? {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSData else {
-            return nil
-        }
-        return Data(referencing: bVal)
+        return object(forKey: defaultName) as? Data
     }
+    
     open func stringArray(forKey defaultName: String) -> [String]? {
-        guard let aVal = object(forKey: defaultName),
-              let bVal = aVal as? NSArray else {
-            return nil
-        }
-        return _SwiftValue.fetch(nonOptional: bVal) as? [String]
+        return object(forKey: defaultName) as? [String]
     }
+    
     open func integer(forKey defaultName: String) -> Int {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        if let bVal = aVal as? NSNumber {
-            return bVal.intValue
+        if let bVal = aVal as? Int {
+            return bVal
         }
-        if let bVal = aVal as? NSString {
-            return bVal.integerValue
+        if let bVal = aVal as? String {
+            return NSString(string: bVal).integerValue
         }
         return 0
     }
+    
     open func float(forKey defaultName: String) -> Float {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        if let bVal = aVal as? NSNumber {
-            return bVal.floatValue
+        if let bVal = aVal as? Float {
+            return bVal
         }
-        if let bVal = aVal as? NSString {
-            return bVal.floatValue
+        if let bVal = aVal as? String {
+            return NSString(string: bVal).floatValue
         }
         return 0
     }
+    
     open func double(forKey defaultName: String) -> Double {
         guard let aVal = object(forKey: defaultName) else {
             return 0
         }
-        if let bVal = aVal as? NSNumber {
-            return bVal.doubleValue
+        if let bVal = aVal as? Double {
+            return bVal
         }
-        if let bVal = aVal as? NSString {
-            return bVal.doubleValue
+        if let bVal = aVal as? String {
+            return NSString(string: bVal).doubleValue
         }
         return 0
     }
+    
     open func bool(forKey defaultName: String) -> Bool {
         guard let aVal = object(forKey: defaultName) else {
             return false
         }
-        if let bVal = aVal as? NSNumber {
-            return bVal.boolValue
+        if let bVal = aVal as? Bool {
+            return bVal
         }
-        if let bVal = aVal as? NSString {
-            return bVal.boolValue
+        if let bVal = aVal as? Int {
+            return bVal != 0
+        }
+        if let bVal = aVal as? Float {
+            return bVal != 0
+        }
+        if let bVal = aVal as? Double {
+            return bVal != 0
+        }
+        if let bVal = aVal as? String {
+            return NSString(string: bVal).boolValue
         }
         return false
     }
@@ -222,11 +236,10 @@ open class UserDefaults: NSObject {
             return nil
         }
         
-        if let bVal = aVal as? NSURL {
-            return URL(reference: bVal)
-        } else if let bVal = aVal as? NSString {
-            let cVal = bVal.expandingTildeInPath
-            
+        if let bVal = aVal as? URL {
+            return bVal
+        } else if let bVal = aVal as? String {
+            let cVal = NSString(string: bVal).expandingTildeInPath
             return URL(fileURLWithPath: cVal)
         } else if let bVal = aVal as? Data {
             return NSKeyedUnarchiver.unarchiveObject(with: bVal) as? URL
@@ -265,31 +278,7 @@ open class UserDefaults: NSObject {
     }
     
     open func register(defaults registrationDictionary: [String : Any]) {
-        for (key, value) in registrationDictionary {
-            let nsValue: NSObject
-
-            // Converts a value to the internal representation. Internalized values are
-            // stored as NSObject derived objects in the registration dictionary.
-            if let val = value as? String {
-                nsValue = val._nsObject
-            } else if let val = value as? URL {
-                nsValue = val.path._nsObject
-            } else if let val = value as? Int {
-                nsValue = NSNumber(value: val)
-            } else if let val = value as? Double {
-                nsValue = NSNumber(value: val)
-            } else if let val = value as? Bool {
-                nsValue = NSNumber(value: val)
-            } else if let val = value as? Data {
-                nsValue = val._nsObject
-            } else if let val = value as? NSObject {
-                nsValue = val
-            } else {
-                fatalError("The type of 'value' passed to UserDefaults.register(defaults:) is not supported.")
-            }
-
-            registeredDefaults[key] = nsValue
-        }
+        registeredDefaults.merge(registrationDictionary.mapValues(bridgeFromNSCFTypeIfNeeded), uniquingKeysWith: { $1 })
     }
 
     open func addSuite(named suiteName: String) {
@@ -299,31 +288,105 @@ open class UserDefaults: NSObject {
         CFPreferencesRemoveSuitePreferencesFromApp(kCFPreferencesCurrentApplication, suiteName._cfObject)
     }
     
-    open func dictionaryRepresentation() -> [String : Any] {
-        guard let aPref = CFPreferencesCopyMultiple(nil, kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost),
-            let bPref = (aPref._swiftObject) as? [NSString: Any] else {
-                return registeredDefaults
-        }
-        var allDefaults = registeredDefaults
-        
-        for (key, value) in bPref {
-            allDefaults[key._swiftObject] = value
-        }
-        
-        return allDefaults
+    open func dictionaryRepresentation() -> [String: Any] {
+        return _dictionaryRepresentation(includingVolatileDomains: true)
     }
     
-    open var volatileDomainNames: [String] { NSUnimplemented() }
-    open func volatileDomain(forName domainName: String) -> [String : Any] { NSUnimplemented() }
-    open func setVolatileDomain(_ domain: [String : Any], forName domainName: String) { NSUnimplemented() }
-    open func removeVolatileDomain(forName domainName: String) { NSUnimplemented() }
+    private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: Any] {
+        let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults : [:]
+        
+        guard let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
+            return registeredDefaultsIfAllowed
+        }
+        
+        let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
+        
+        if registeredDefaultsIfAllowed.count == 0 {
+            return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
+        } else {
+            var allDefaults = registeredDefaultsIfAllowed
+            
+            for (key, value) in defaultsFromDiskWithNumbersBoxed {
+                allDefaults[key] = value
+            }
+            
+            return UserDefaults._unboxingNSNumbers(allDefaults) as! [String: Any]
+        }
+    }
     
-    open func persistentDomain(forName domainName: String) -> [String : Any]? { NSUnimplemented() }
-    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) { NSUnimplemented() }
-    open func removePersistentDomain(forName domainName: String) { NSUnimplemented() }
+    private static let _parsedArgumentsDomain: [String: Any] = UserDefaults._parseArguments(ProcessInfo.processInfo.arguments)
+    
+    private var _volatileDomains: [String: [String: Any]] = [:]
+    private let _volatileDomainsLock = NSLock()
+    
+    open var volatileDomainNames: [String] {
+        _volatileDomainsLock.lock()
+        let names = Array(_volatileDomains.keys)
+        _volatileDomainsLock.unlock()
+        
+        return names
+    }
+    
+    open func volatileDomain(forName domainName: String) -> [String : Any] {
+        _volatileDomainsLock.lock()
+        let domain = _volatileDomains[domainName]
+        _volatileDomainsLock.unlock()
+        
+        return domain ?? [:]
+    }
+    
+    open func setVolatileDomain(_ domain: [String : Any], forName domainName: String) {
+        if !UserDefaults._isValueAllowed(domain) {
+            fatalError("The content of 'domain' passed to UserDefaults.setVolatileDomain(_:forName:) is not supported.")
+        }
+        
+        _volatileDomainsLock.lock()
+        var storedDomain: [String: Any] = _volatileDomains[domainName] ?? [:]
+        storedDomain.merge(domain, uniquingKeysWith: { $1 })
+        _volatileDomains[domainName] = storedDomain
+        _volatileDomainsLock.unlock()
+    }
+    
+    open func removeVolatileDomain(forName domainName: String) {
+        _volatileDomainsLock.lock()
+        _volatileDomains.removeValue(forKey: domainName)
+        _volatileDomainsLock.unlock()
+    }
+    
+    open func persistentDomain(forName domainName: String) -> [String : Any]? {
+        return UserDefaults(suiteName: domainName)?._dictionaryRepresentation(includingVolatileDomains: false)
+    }
+    
+    open func setPersistentDomain(_ domain: [String : Any], forName domainName: String) {
+        if let defaults = UserDefaults(suiteName: domainName) {
+            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
+                defaults.removeObject(forKey: key)
+            }
+            
+            for (key, value) in domain {
+                defaults.set(value, forKey: key)
+            }
+            
+            _ = defaults.synchronize()
+            
+            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+        }
+    }
+    
+    open func removePersistentDomain(forName domainName: String) {
+        if let defaults = UserDefaults(suiteName: domainName) {
+            for key in defaults._dictionaryRepresentation(includingVolatileDomains: false).keys {
+                defaults.removeObject(forKey: key)
+            }
+            
+            _ = defaults.synchronize()
+            
+            NotificationCenter.default.post(name: UserDefaults.didChangeNotification, object: self)
+        }
+    }
     
     open func synchronize() -> Bool {
-        return CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+        return CFPreferencesAppSynchronize(suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
     
     open func objectIsForced(forKey key: String) -> Bool {
@@ -345,3 +408,54 @@ extension UserDefaults {
     public static let argumentDomain: String = "NSArgumentDomain"
     public static let registrationDomain: String = "NSRegistrationDomain"
 }
+
+// MARK: -
+// MARK: Parsing arguments.
+
+fileprivate let propertyListPrefixes: Set<Character> = [ "{", "[", "(", "<", "\"" ]
+
+private extension UserDefaults {
+    static func _parseArguments(_ arguments: [String]) -> [String: Any] {
+        var result: [String: Any] = [:]
+        
+        let count = arguments.count
+        
+        var index = 0
+        while index < count - 1 { // We're looking for pairs, so stop at the second-to-last argument.
+            let current = arguments[index]
+            let next = arguments[index + 1]
+            if current.hasPrefix("-") && !next.hasPrefix("-") {
+                // Match what Darwin does, which is to check whether the first argument is one of the characters that make up a NeXTStep-style or XML property list: open brace, open parens, open bracket, open angle bracket, or double quote. If it is, attempt parsing it as a plist; otherwise, just use the argument value as a String.
+                
+                let keySubstring = current[current.index(after: current.startIndex)...]
+                if !keySubstring.isEmpty {
+                    let key = String(keySubstring)
+                    let value = next.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                    
+                    var parsed = false
+                    if let prefix = value.first, propertyListPrefixes.contains(prefix) {
+                        if let data = value.data(using: .utf8),
+                            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) {
+                            
+                            // If we can parse that argument as a plist, use the parsed value.
+                            parsed = true
+                            result[key] = plist
+                            
+                        }
+                    }
+                    
+                    if !parsed {
+                        result[key] = value
+                    }
+                }
+                
+                index += 1 // Skip both the key and the value on this loop.
+            }
+            
+            index += 1
+        }
+        
+        return result
+    }
+}
+
