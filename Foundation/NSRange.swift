@@ -126,7 +126,7 @@ extension NSRange : Hashable {
     public var hashValue: Int {
         #if arch(i386) || arch(arm)
             return Int(bitPattern: (UInt(bitPattern: location) | (UInt(bitPattern: length) << 16)))
-        #elseif arch(x86_64) || arch(arm64) || arch(s390x)
+        #elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64le)
             return Int(bitPattern: (UInt(bitPattern: location) | (UInt(bitPattern: length) << 32)))
         #endif
     }
