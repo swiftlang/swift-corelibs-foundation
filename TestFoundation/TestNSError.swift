@@ -30,6 +30,7 @@ class TestNSError : XCTestCase {
             ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
             ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
             ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
+            ("test_errorConvenience", test_errorConvenience)
         ]
     }
     
@@ -87,5 +88,21 @@ class TestNSError : XCTestCase {
         }
 
         XCTAssertEqual(SwiftError.fortyTwo.errorCode, 42)
+    }
+
+    func test_errorConvenience() {
+        let error = CocoaError.error(.fileReadNoSuchFile, url: URL(fileURLWithPath: #file))
+
+        if let nsError = error as? NSError {
+            XCTAssertEqual(nsError._domain, NSCocoaErrorDomain)
+            XCTAssertEqual(nsError._code, CocoaError.fileReadNoSuchFile.rawValue)
+            if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
+                XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
+            } else {
+                XCTFail()
+            }
+        } else {
+            XCTFail()
+        }
     }
 }
