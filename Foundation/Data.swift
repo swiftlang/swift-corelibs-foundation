@@ -1005,7 +1005,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public typealias Base64DecodingOptions = NSData.Base64DecodingOptions
     
     public typealias Index = Int
-    public typealias Indices = Range<Int>
+    // FIXME: switch back to Range once swift 5.0 branch has PR #13342
+    public typealias Indices = CountableRange<Int>
     
     @_versioned internal var _backing : _DataStorage
     @_versioned internal var _sliceRange: Range<Index>
@@ -1746,7 +1747,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         return i + 1
     }
     
-    public var indices: Range<Int> {
+    public var indices: CountableRange<Int> {
         @inline(__always)
         get {
             return startIndex..<endIndex
