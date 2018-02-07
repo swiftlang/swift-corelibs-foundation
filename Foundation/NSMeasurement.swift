@@ -27,9 +27,25 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open func converting(to unit: Unit) -> Measurement<Unit> { NSUnimplemented() }
     
-    open func adding(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func adding(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
+      if self.unit.isEqual(rhs.unit) {
+            return NSMeasurement(doubleValue: self.doubleValue + rhs.doubleValue, unit: self.unit)
+        } else {
+            let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
+            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.doubleValue)
+            return NSMeasurement(doubleValue: selfValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
+        }
+    }
     
-    open func subtracting(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func subtracting(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
+      if self.unit.isEqual(rhs.unit) {
+            return NSMeasurement(doubleValue: self.doubleValue - rhs.doubleValue, unit: self.unit)
+        } else {
+            let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
+            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.value)
+            return NSMeasurement(doubleValue: selfValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
+        }
+    }
     
     open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
     
