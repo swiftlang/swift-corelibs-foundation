@@ -23,9 +23,31 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         self.unit = unit
     }
     
-    open func canBeConverted(to unit: Unit) -> Bool { NSUnimplemented() }
+    open func canBeConverted(to otherUnit: Unit) -> Bool { 
+      return otherUnit.isKind(of: type(of: unit))
+    }
     
-    open func converting(to unit: Unit) -> Measurement<Unit> { NSUnimplemented() }
+    open func converting(to otherUnit: Unit) -> Measurement<Unit> { 
+      if canBeConverted(to: otherUnit) {
+        if unit.isEqual(otherUnit) {
+          return Measurement(doubleValue: doubleValue, unit: otherUnit)
+        } else {
+          guard let sdim = unit as? Dimension,
+                let udim = otherUnit as? Dimension else {
+            fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+          }
+          let valueInTermsOfBase = unit.converter.baseUnitValue(fromValue: value)
+            if otherUnit.isEqual(type(of: unit).baseUnit()) {
+                return Measurement(value: valueInTermsOfBase, unit: otherUnit)
+            } else {
+                let otherValueFromTermsOfBase = otherUnit.converter.value(fromBaseUnitValue: valueInTermsOfBase)
+                return Measurement(value: otherValueFromTermsOfBase, unit: otherUnit)
+            }
+        }
+      } else {
+        fatalError("Cannot convert measurements of differing unit types! self: \(type(of: unit)) unit: \(type(of: otherUnit))")
+      }
+    }
     
     open func adding(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
       if self.unit.isEqual(rhs.unit) {
