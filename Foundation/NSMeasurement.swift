@@ -98,4 +98,3 @@ extension NSMeasurement : _StructTypeBridgeable {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
     }
 }
-
