@@ -69,7 +69,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any { return self }
     
     open class var supportsSecureCoding: Bool { return true }
     
