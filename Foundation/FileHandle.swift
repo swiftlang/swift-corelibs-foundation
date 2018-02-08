@@ -8,6 +8,7 @@
 //
 
 import CoreFoundation
+import Dispatch
 
 #if os(OSX) || os(iOS)
 import Darwin
@@ -345,7 +346,19 @@ extension FileHandle {
     }
 
     open func waitForDataInBackgroundAndNotify() {
-        NSUnimplemented()
+        let global = DispatchQueue.global(qos: .background)
+        let channel = DispatchIO(type: .stream, fileDescriptor: fileDescriptor, queue: global) { _ in }
+
+        // The desire is to trigger the handler blocka as soon as there is any data in the channel.
+        channel.setLimit(lowWater: 1)
+
+        channel.read(offset: 0, length: Int.max, queue: global) { (_, _, error) in
+            var notification = Notification(name: .NSFileHandleDataAvailable, object: nil, userInfo: nil)
+            if error != 0 {
+                notification.userInfo = ["NSFileHandleError": NSNumber(value: error)]
+            }
+            NotificationCenter.default.post(notification)
+        }
     }
     
     open var readabilityHandler: ((FileHandle) -> Void)? {

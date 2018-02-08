@@ -21,6 +21,7 @@ class TestFileHandle : XCTestCase {
             ("test_constants", test_constants),
             ("test_pipe", test_pipe),
             ("test_nullDevice", test_nullDevice),
+            ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
         ]
     }
 
@@ -63,5 +64,22 @@ class TestFileHandle : XCTestCase {
         fh.write(Data(bytes: [1,2]))
         fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
+    }
+
+    func test_waitForDataInBackgroundAndNotify() {
+        let expect = expectation(description: "Receiving asynchronous data from pipe")
+        let pipe = Pipe()
+        pipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
+
+        NotificationCenter.default.addObserver(forName: .NSFileHandleDataAvailable, object: nil, queue: nil) { (notification) in
+            XCTAssertEqual(notification.name, .NSFileHandleDataAvailable)
+            XCTAssertNil(notification.userInfo)
+            expect.fulfill()
+        }
+
+        let data = Data(bytes: [0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21])
+        pipe.fileHandleForWriting.write(data)
+
+        waitForExpectations(timeout: 2)
     }
 }
