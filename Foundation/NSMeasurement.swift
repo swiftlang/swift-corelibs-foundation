@@ -23,34 +23,34 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         self.unit = unit
     }
     
-    open func canBeConverted(to otherUnit: Unit) -> Bool { 
-      return otherUnit.isKind(of: type(of: unit))
+    open func canBeConverted(to otherUnit: Unit) -> Bool {
+        return otherUnit.isKind(of: type(of: unit))
     }
     
-    open func converting(to otherUnit: Unit) -> Measurement<Unit> { 
-      if canBeConverted(to: otherUnit) {
-        if unit.isEqual(otherUnit) {
-          return Measurement(value: doubleValue, unit: otherUnit)
-        } else {
-          guard let sdim = unit as? Dimension,
-                let udim = otherUnit as? Dimension else {
-            fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
-          }
-          let valueInTermsOfBase = unit.converter.baseUnitValue(fromValue: value)
-            if otherUnit.isEqual(type(of: unit).baseUnit()) {
-                return Measurement(value: valueInTermsOfBase, unit: otherUnit)
+    open func converting(to otherUnit: Unit) -> Measurement<Unit> {
+        if canBeConverted(to: otherUnit) {
+            if unit.isEqual(otherUnit) {
+                return Measurement(value: doubleValue, unit: otherUnit)
             } else {
-                let otherValueFromTermsOfBase = otherUnit.converter.value(fromBaseUnitValue: valueInTermsOfBase)
-                return Measurement(value: otherValueFromTermsOfBase, unit: otherUnit)
+                guard let sdim = unit as? Dimension,
+                    let udim = otherUnit as? Dimension else {
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+                }
+                let valueInTermsOfBase = unit.converter.baseUnitValue(fromValue: value)
+                if otherUnit.isEqual(type(of: unit).baseUnit()) {
+                    return Measurement(value: valueInTermsOfBase, unit: otherUnit)
+                } else {
+                    let otherValueFromTermsOfBase = otherUnit.converter.value(fromBaseUnitValue: valueInTermsOfBase)
+                    return Measurement(value: otherValueFromTermsOfBase, unit: otherUnit)
+                }
             }
+        } else {
+            fatalError("Cannot convert measurements of differing unit types! self: \(type(of: unit)) unit: \(type(of: otherUnit))")
         }
-      } else {
-        fatalError("Cannot convert measurements of differing unit types! self: \(type(of: unit)) unit: \(type(of: otherUnit))")
-      }
     }
     
     open func adding(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
-      if self.unit.isEqual(rhs.unit) {
+        if self.unit.isEqual(rhs.unit) {
             return Measurement(value: self.doubleValue + rhs.doubleValue, unit: self.unit)
         } else {
             let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
@@ -60,7 +60,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func subtracting(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
-      if self.unit.isEqual(rhs.unit) {
+        if self.unit.isEqual(rhs.unit) {
             return Measurement(value: self.doubleValue - rhs.doubleValue, unit: self.unit)
         } else {
             let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
@@ -73,19 +73,19 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open class var supportsSecureCoding: Bool { return true }
     
-    open func encode(with aCoder: NSCoder) { 
-      guard aCoder.allowsKeyedCoding else {
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         aCoder.encode(self.doubleValue, forKey:"NS.dblval")
         aCoder.encode(self.unit, forKey:"NS.unit")
     }
     
-    public required init?(coder aDecoder: NSCoder) { 
-      guard aDecoder.allowsKeyedCoding else {
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        let doubleValue = aDecoder.decodeDouble(forKey: "NS.dblval")
+        let doubleValue = aDecoder.decodeDouble(forKey: "NS.value")
         let unit = aDecoder.decodeObject(forKey: "NS.unit")
         self.init(coefficient: coefficient, constant: constant)
     }
@@ -98,3 +98,4 @@ extension NSMeasurement : _StructTypeBridgeable {
         return _StructType._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
