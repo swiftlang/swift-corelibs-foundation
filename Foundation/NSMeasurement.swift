@@ -77,7 +77,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encode(self.doubleValue, forKey:"NS.dblval")
+        aCoder.encode(self.doubleValue, forKey:"NS.value")
         aCoder.encode(self.unit, forKey:"NS.unit")
     }
     
