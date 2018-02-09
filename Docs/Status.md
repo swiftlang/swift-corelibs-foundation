@@ -232,7 +232,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSConcreteValue`                 | N/A             | N/A           | For internal use only                                                         |
     | `NSSpecialValue`                  | N/A             | N/A           | For internal use only                                                         |
     | `NSValue`                         | Complete        | Substantial   |                                                                               |
-    | `NSMeasurement`                   | Complete        | None          |                                                                               |
+    | `NSMeasurement`                   | Complete        | Incomplete    |                                                                               |
     | `Measurement`                     | Complete        | None          |                                                                               |
     | `UnitConverter`                   | Complete        | Incomplete    |                                                                               |
     | `UnitConverterLinear`             | Complete        | Incomplete    |                                                                               |

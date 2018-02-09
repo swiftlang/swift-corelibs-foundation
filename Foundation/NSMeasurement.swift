@@ -32,16 +32,16 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
             if unit.isEqual(otherUnit) {
                 return Measurement(value: doubleValue, unit: otherUnit)
             } else {
-                guard let sdim = unit as? Dimension,
-                    let udim = otherUnit as? Dimension else {
+                guard let dimension = unit as? Dimension,
+                    let otherDimension = otherUnit as? Dimension else {
                         fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
                 }
-                let valueInTermsOfBase = unit.converter.baseUnitValue(fromValue: value)
-                if otherUnit.isEqual(type(of: unit).baseUnit()) {
-                    return Measurement(value: valueInTermsOfBase, unit: otherUnit)
+                let valueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: doubleValue)
+                if otherDimension.isEqual(type(of: dimension).baseUnit()) {
+                    return Measurement(value: valueInTermsOfBase, unit: otherDimension)
                 } else {
-                    let otherValueFromTermsOfBase = otherUnit.converter.value(fromBaseUnitValue: valueInTermsOfBase)
-                    return Measurement(value: otherValueFromTermsOfBase, unit: otherUnit)
+                    let otherValueFromTermsOfBase = otherDimension.converter.value(fromBaseUnitValue: valueInTermsOfBase)
+                    return Measurement(value: otherValueFromTermsOfBase, unit: otherDimension)
                 }
             }
         } else {
@@ -51,17 +51,17 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open func adding(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
         if self.unit.isEqual(rhs.unit) {
-            return Measurement(value: self.doubleValue + rhs.doubleValue, unit: self.unit)
+            return Measurement(value: self.doubleValue + rhs.value, unit: self.unit)
         } else {
             let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
-            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.doubleValue)
+            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.value)
             return Measurement(value: selfValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
         }
     }
     
     open func subtracting(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
         if self.unit.isEqual(rhs.unit) {
-            return Measurement(value: self.doubleValue - rhs.doubleValue, unit: self.unit)
+            return Measurement(value: self.doubleValue - rhs.value, unit: self.unit)
         } else {
             let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
             let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.value)
@@ -87,7 +87,8 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         }
         let doubleValue = aDecoder.decodeDouble(forKey: "NS.value")
         let unit = aDecoder.decodeObject(forKey: "NS.unit")
-        self.init(coefficient: coefficient, constant: constant)
+        self.doubleValue = doubleValue
+        self.unit = unit
     }
 }
 
