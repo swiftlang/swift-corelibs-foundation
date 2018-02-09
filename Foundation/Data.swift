@@ -54,9 +54,6 @@ internal func __NSDataIsCompact(_ data: NSData) -> Bool {
     }
 }
 
-@_silgen_name("__NSDataWriteToURL")
-internal func __NSDataWriteToURL(_ data: NSData, _ url: NSURL, _ options: UInt, _ error: NSErrorPointer) -> Bool
-    
 #endif
 
 public final class _DataStorage {
@@ -1417,9 +1414,9 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 #else
             if _shouldUseNonAtomicWriteReimplementation(options: options) {
                 var error: NSError? = nil
-                guard __NSDataWriteToURL($0, url as NSURL, options.rawValue, &error) else { throw error! }
+                guard __NSDataWriteToURL($0, url, options, &error) else { throw error! }
             } else {
-                try $0.write(to: url, options: WritingOptions(rawValue: options.rawValue))
+                try $0.write(to: url, options: options)
             }
 #endif
         }
