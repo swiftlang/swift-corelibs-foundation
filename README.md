@@ -49,11 +49,11 @@ For information on how to build Foundation, please see [Getting Started](Docs/Ge
 
 ## FAQ
 
-##### Why include Foundation on Linux?
+#### Why include Foundation on Linux?
 
 We believe that the Swift standard library should remain small and laser-focused on providing support for language primitives. The Foundation framework has the flexibility to include higher-level concepts and to build on top of the standard library, much in the same way that it builds upon the C standard library and Objective-C runtime on Darwin platforms.
 
-##### Why include NSString, NSDictionary, NSArray, and NSSet? Aren't those already provided by the standard library?
+#### Why include NSString, NSDictionary, NSArray, and NSSet? Aren't those already provided by the standard library?
 
 There are several reasons why these types are useful in Swift as distinct types from the ones in the standard library:
 
@@ -62,7 +62,7 @@ There are several reasons why these types are useful in Swift as distinct types 
 * They exist in archives, and we wish to maintain as much forward and backward compatibility with persistence formats as is possible.
 * They are the backing for almost all Swift Array, Dictionary, and Set objects that you receive from frameworks implemented in Objective-C on Darwin platforms. This may be considered an implementation detail, but it leaks into client code in many ways. We want to provide them here so that your code will remain portable.
 
-##### How do we decide if something belongs in the standard library or Foundation?
+#### How do we decide if something belongs in the standard library or Foundation?
 
 In general, the dividing line should be drawn in overlapping area of what people consider the language and what people consider to be a library feature.
 
@@ -70,10 +70,10 @@ For example, Optional is a type provided by the standard library. However, the c
 
 On the other hand, the compiler has no built-in support for types like `URL`. `URL` also ties into more complex functionality like basic networking support. Therefore this type is more appropriate for Foundation.
 
-##### Why not make the existing Objective-C implementation of Foundation open source?
+#### Why not make the existing Objective-C implementation of Foundation open source?
 
 Foundation on Darwin is written primarily in Objective-C, and the Objective-C runtime is not part of the Swift open source project. CoreFoundation, however, is a portable C library and does not require the Objective-C runtime. It contains much of the behavior that is exposed via the Foundation API. Therefore, it is used on all platforms including Linux.
 
-##### How do I contribute?
+#### How do I contribute?
 
 We welcome contributions to Foundation! Please see the [known issues](Docs/Issues.md) page if you are looking for an area where we need help. We are also standing by on the [mailing lists](https://swift.org/community/#communication) to answer questions about what is most important to do and what we will accept into the project.
