@@ -188,8 +188,8 @@ open class NotificationCenter: NSObject {
         })
     }
 
-    @available(*, unavailable, renamed: "addObserver(forName:object:queue:using:)")
-    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void) -> NSObjectProtocol {
+    @available(*,obsoleted:4.0,renamed:"addObserver(forName:object:queue:using:)")
+    open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, usingBlock block: @escaping (Notification) -> Void, _: Void = ()) -> NSObjectProtocol {
         return addObserver(forName: name, object: obj, queue: queue, using: block)
     }
 
