@@ -64,7 +64,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         } else {
             guard let dimension = unit as? Dimension,
                     let otherDimension = rhs.unit as? Dimension else {
-                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: dimension)) rhs: \(type(of: otherDimension))")
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: rhs.unit))")
                 }
             let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
             let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
@@ -78,7 +78,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         } else {
             guard let dimension = unit as? Dimension,
                     let otherDimension = rhs.unit as? Dimension else {
-                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: dimension)) rhs: \(type(of: otherDimension))")
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: rhs.unit))")
                 }
             let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
             let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
