@@ -64,12 +64,12 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
             return Measurement(value: self.doubleValue + rhs.value, unit: self.unit)
         } else {
             guard let dimension = unit as? Dimension,
-                    let otherDimension = rhs as? Dimension else {
-                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+                    let otherDimension = rhs.unit as? Dimension else {
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: dimension)) rhs: \(type(of: otherDimension))")
                 }
             let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
             let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
-            return Measurement(value: selfValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
+            return Measurement(value: selfValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: dimension).baseUnit())
         }
     }
     
@@ -78,12 +78,12 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
             return Measurement(value: self.doubleValue - rhs.value, unit: self.unit)
         } else {
             guard let dimension = unit as? Dimension,
-                    let otherDimension = rhs as? Dimension else {
-                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+                    let otherDimension = rhs.unit as? Dimension else {
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: dimension)) rhs: \(type(of: otherDimension))")
                 }
             let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
             let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
-            return Measurement(value: selfValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
+            return Measurement(value: selfValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: dimension).baseUnit())
         }
     }
     
