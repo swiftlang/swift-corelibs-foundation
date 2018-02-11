@@ -24,7 +24,15 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func canBeConverted(to otherUnit: Unit) -> Bool {
-        return otherUnit.isKind(of: type(of: unit))
+        // this really should be something like 
+        // `(otherUnit is type(of: unit))` but 
+        // that requires `is` to take a 
+        // dynamic metatype argument on the rhs.
+        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
+            return otherUnit.isKind(of: type(of: unit))
+        #else
+            return true // see above
+        #endif
     }
     
     open func converting(to otherUnit: Unit) -> Measurement<Unit> {
@@ -53,8 +61,12 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         if self.unit.isEqual(rhs.unit) {
             return Measurement(value: self.doubleValue + rhs.value, unit: self.unit)
         } else {
-            let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
-            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.value)
+            guard let dimension = unit as? Dimension,
+                    let otherDimension = otherUnit as? Dimension else {
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+                }
+            let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
+            let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
             return Measurement(value: selfValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
         }
     }
@@ -63,8 +75,12 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         if self.unit.isEqual(rhs.unit) {
             return Measurement(value: self.doubleValue - rhs.value, unit: self.unit)
         } else {
-            let selfValueInTermsOfBase = self.unit.converter.baseUnitValue(fromValue: self.doubleValue)
-            let rhsValueInTermsOfBase = rhs.unit.converter.baseUnitValue(fromValue: rhs.value)
+            guard let dimension = unit as? Dimension,
+                    let otherDimension = otherUnit as? Dimension else {
+                        fatalError("Cannot convert differing units that are non-dimensional! lhs: \(type(of: unit)) rhs: \(type(of: otherUnit))")
+                }
+            let selfValueInTermsOfBase = dimension.converter.baseUnitValue(fromValue: self.doubleValue)
+            let rhsValueInTermsOfBase = otherDimension.converter.baseUnitValue(fromValue: rhs.value)
             return Measurement(value: selfValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: self.unit).baseUnit())
         }
     }
@@ -86,7 +102,10 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         let doubleValue = aDecoder.decodeDouble(forKey: "NS.value")
-        let unit = aDecoder.decodeObject(forKey: "NS.unit")
+        let possibleUnit = aDecoder.decodeObject(forKey: "NS.unit")
+        guard let unit = possibleUnit as? Unit else {
+            return nil // or should we `fatalError()`?
+        }
         self.doubleValue = doubleValue
         self.unit = unit
     }
