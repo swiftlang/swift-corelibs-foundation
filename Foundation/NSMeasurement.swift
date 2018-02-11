@@ -28,8 +28,7 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
             return otherUnit.isKind(of: type(of: unit))
         #else
             // just check conversion
-            if let dimension = unit as? Dimension,
-               let otherDimension = otherUnit as? Dimension {
+            if unit is Dimension && otherUnit is Dimension {
                 return true
             } else {
                 return unit.isEqual(otherUnit)
