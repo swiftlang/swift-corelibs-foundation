@@ -24,14 +24,17 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func canBeConverted(to otherUnit: Unit) -> Bool {
-        // this really should be something like 
-        // `(otherUnit is type(of: unit))` but 
-        // that requires `is` to take a 
-        // dynamic metatype argument on the rhs.
         #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
             return otherUnit.isKind(of: type(of: unit))
         #else
-            return true // see above
+            // just check conversion
+            if let dimension = unit as? Dimension,
+               let otherDimension = otherUnit as? Dimension {
+                return true
+            } else {
+                return unit.isEqual(otherUnit)
+            }
+            re
         #endif
     }
     

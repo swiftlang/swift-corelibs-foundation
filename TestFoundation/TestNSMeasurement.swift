@@ -80,51 +80,19 @@ class TestNSMeasurement : XCTestCase {
         
         XCTAssertTrue(m1.canBeConverted(to: u2))
         XCTAssertTrue(m1.canBeConverted(to: u3))
-        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
-            XCTAssertFalse(m1.canBeConverted(to: u4))
-        #else
-            // We can't implement `canBeConverted` properly
-            // without objc, specifically `.isKind(of:)`
-            // so at least verify we *didn't* fix it
-            XCTAssertTrue(m1.canBeConverted(to: u4))
-        #endif
-        
+        XCTAssertFalse(m1.canBeConverted(to: u4))
         
         XCTAssertTrue(m2.canBeConverted(to: u1))
         XCTAssertTrue(m2.canBeConverted(to: u3))
-        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
-            XCTAssertFalse(m2.canBeConverted(to: u4))
-        #else
-            // We can't implement `canBeConverted` properly
-            // without objc, specifically `.isKind(of:)`
-            // so at least verify we *didn't* fix it
-            XCTAssertTrue(m2.canBeConverted(to: u4))
-        #endif
-        
+        XCTAssertFalse(m2.canBeConverted(to: u4))
         
         XCTAssertTrue(m3.canBeConverted(to: u1))
         XCTAssertTrue(m3.canBeConverted(to: u2))
-        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
-            XCTAssertFalse(m3.canBeConverted(to: u4))
-        #else
-            // We can't implement `canBeConverted` properly
-            // without objc, specifically `.isKind(of:)`
-            // so at least verify we *didn't* fix it
-            XCTAssertTrue(m3.canBeConverted(to: u4))
-        #endif
+        XCTAssertFalse(m3.canBeConverted(to: u4))
         
-        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
-            XCTAssertFalse(m4.canBeConverted(to: u1))
-            XCTAssertFalse(m4.canBeConverted(to: u2))
-            XCTAssertFalse(m4.canBeConverted(to: u3))
-        #else
-            // We can't implement `canBeConverted` properly
-            // without objc, specifically `.isKind(of:)`
-            // so at least verify we *didn't* fix it
-            XCTAssertTrue(m4.canBeConverted(to: u1))
-            XCTAssertTrue(m4.canBeConverted(to: u2))
-            XCTAssertTrue(m4.canBeConverted(to: u3))
-        #endif
+        XCTAssertFalse(m4.canBeConverted(to: u1))
+        XCTAssertFalse(m4.canBeConverted(to: u2))
+        XCTAssertFalse(m4.canBeConverted(to: u3))
         
         XCTAssertEqual(m1.converting(to: u1), m1)
         XCTAssertEqual(m2.converting(to: u2), m2)
@@ -175,20 +143,10 @@ class TestNSMeasurement : XCTestCase {
         XCTAssertTrue(m1.canBeConverted(to: u2))
         XCTAssertTrue(m2.canBeConverted(to: u1))
         
-        #if DEPLOYMENT_RUNTIME_OBJC //|| os(Linux)
-            XCTAssertFalse(m1.canBeConverted(to: u3))
-            XCTAssertFalse(m2.canBeConverted(to: u3))
-            XCTAssertFalse(m3.canBeConverted(to: u1))
-            XCTAssertFalse(m3.canBeConverted(to: u2))
-        #else
-            // We can't implement `canBeConverted` properly
-            // without objc, specifically `.isKind(of:)`
-            // so at least verify we *didn't* fix it
-            XCTAssertTrue(m1.canBeConverted(to: u3))
-            XCTAssertTrue(m2.canBeConverted(to: u3))
-            XCTAssertTrue(m3.canBeConverted(to: u1))
-            XCTAssertTrue(m3.canBeConverted(to: u2))
-        #endif
+        XCTAssertFalse(m1.canBeConverted(to: u3))
+        XCTAssertFalse(m2.canBeConverted(to: u3))
+        XCTAssertFalse(m3.canBeConverted(to: u1))
+        XCTAssertFalse(m3.canBeConverted(to: u2))
         
         XCTAssertEqual(m1.converting(to: u1), m1)
         XCTAssertEqual(m2.converting(to: u2), m2)
