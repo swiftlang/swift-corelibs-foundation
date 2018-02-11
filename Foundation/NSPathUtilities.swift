@@ -588,6 +588,10 @@ public func NSUserName() -> String {
     return userName._swiftObject
 }
 
+public func NSFullUserName() -> String {
+    NSUnimplemented()
+}
+
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
     let template = "." + filePath + ".tmp.XXXXXX"
     let maxLength = Int(PATH_MAX) + 1
