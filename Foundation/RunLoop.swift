@@ -43,6 +43,17 @@ public struct RunLoopMode : RawRepresentable, Equatable, Hashable {
 extension RunLoopMode {
     public static let defaultRunLoopMode = RunLoopMode("kCFRunLoopDefaultMode")
     public static let commonModes = RunLoopMode("kCFRunLoopCommonModes")
+    
+    // Use this instead of .rawValue._cfObject; this will allow CFRunLoop to use pointer equality internally.
+    fileprivate var _cfStringUniquingKnown: CFString {
+        if self == .defaultRunLoopMode {
+            return kCFRunLoopDefaultMode
+        } else if self == .commonModes {
+            return kCFRunLoopCommonModes
+        } else {
+            return rawValue._cfObject
+        }
+    }
 }
 
 internal func _NSRunLoopNew(_ cf: CFRunLoop) -> Unmanaged<AnyObject> {
@@ -81,7 +92,7 @@ open class RunLoop: NSObject {
     }
 
     open func add(_ timer: Timer, forMode mode: RunLoopMode) {
-        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode.rawValue._cfObject)
+        CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfStringUniquingKnown)
     }
 
     open func add(_ aPort: Port, forMode mode: RunLoopMode) {
@@ -135,7 +146,7 @@ extension RunLoop {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }
-        let modeArg = mode.rawValue._cfObject
+        let modeArg = mode._cfStringUniquingKnown
         if _CFRunLoopFinished(_cfRunLoop, modeArg) {
             return false
         }
@@ -147,7 +158,7 @@ extension RunLoop {
     }
 
     public func perform(inModes modes: [RunLoopMode], block: @escaping () -> Void) {
-        CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0.rawValue._nsObject })._cfObject, block)
+        CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0._cfStringUniquingKnown })._cfObject, block)
     }
     
     public func perform(_ block: @escaping () -> Void) {
