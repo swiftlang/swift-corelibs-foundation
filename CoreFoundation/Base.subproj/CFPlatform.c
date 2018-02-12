@@ -284,8 +284,10 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
 #else
 #error Dont know how to compute user name on this platform
 #endif
-    if (!result)
+    if (!result) {
         result = (CFStringRef)CFRetain(CFSTR(""));
+    }
+    
     return result;
 }
 
@@ -301,8 +303,9 @@ CF_EXPORT CFStringRef CFCopyFullUserName(void) {
 #else
 #error Don't know how to compute full user name on this platform
 #endif
-    if (!result)
+    if (!result) {
         result = (CFStringRef)CFRetain(CFSTR(""));
+    }
     
     return result;
 }
