@@ -746,7 +746,7 @@ extension FileManager {
 
 extension FileManager {
     open var homeDirectoryForCurrentUser: URL {
-        return homeDirectory(forUser: CFCopyUserName().takeRetainedValue()._swiftObject)!
+        return homeDirectory(forUser: NSUserName())!
     }
     
     open var temporaryDirectory: URL {

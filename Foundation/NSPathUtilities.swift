@@ -589,7 +589,8 @@ public func NSUserName() -> String {
 }
 
 public func NSFullUserName() -> String {
-    NSUnimplemented()
+    let userName = CFCopyFullUserName().takeRetainedValue()
+    return userName._swiftObject
 }
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {

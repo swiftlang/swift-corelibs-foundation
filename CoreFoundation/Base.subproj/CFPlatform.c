@@ -289,6 +289,24 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
     return result;
 }
 
+CF_EXPORT CFStringRef CFCopyFullUserName(void) {
+    CFStringRef result = NULL;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+    uid_t euid;
+    __CFGetUGIDs(&euid, NULL);
+    struct passwd *upwd = getpwuid(euid ? euid : getuid());
+    if (upwd && upwd->pw_gecos) {
+        result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
+    }
+#else
+#error Don't know how to compute full user name on this platform
+#endif
+    if (!result)
+        result = (CFStringRef)CFRetain(CFSTR(""));
+    
+    return result;
+}
+
 CFURLRef CFCopyHomeDirectoryURL(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     return _CFCopyHomeDirURLForUser(NULL, true);
