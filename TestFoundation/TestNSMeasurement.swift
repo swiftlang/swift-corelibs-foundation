@@ -30,11 +30,11 @@ class TestNSMeasurement : XCTestCase {
         func testAddSub<U : Unit>(for unit: U) {
             for i in -2...10 {
                 for j in 0...5 {
-                    let mi = NSMeasurement(doubleValue: i, unit: unit)
-                    let mj = Measurement(value: i, unit: unit)
+                    let mi = NSMeasurement(doubleValue: Double(i), unit: unit)
+                    let mj = Measurement(value: Double(i), unit: unit)
                     
-                    XCTAssertEqual(Measurement(value: i + j, unit: unit), mi.adding(mj), "\(NSMeasurement(doubleValue: i + j, unit: unit)) == \(mi)+\(mj)")
-                    XCTAssertEqual(Measurement(value: i - j, unit: u1), mi.subtracting(mj), "\(NSMeasurement(doubleValue: i - j, unit: unit)) == \(mi)-\(mj)")
+                    XCTAssertEqual(Measurement(value: Double(i + j), unit: unit), mi.adding(mj), "\(NSMeasurement(doubleValue: Double(i + j), unit: unit)) == \(mi)+\(mj)")
+                    XCTAssertEqual(Measurement(value: Double(i - j), unit: unit), mi.subtracting(mj), "\(NSMeasurement(doubleValue: Double(i - j), unit: unit)) == \(mi)-\(mj)")
                 }
             }
         }
@@ -71,7 +71,7 @@ class TestNSMeasurement : XCTestCase {
         let m1 = NSMeasurement(doubleValue: 1, unit: u1)
         let m2 = NSMeasurement(doubleValue: 1, unit: u2)
         let m3 = NSMeasurement(doubleValue: 1, unit: u3)
-        let m3 = NSMeasurement(doubleValue: 1, unit: u4)
+        let m4 = NSMeasurement(doubleValue: 1, unit: u4)
         
         XCTAssertTrue(m1.canBeConverted(to: u1))
         XCTAssertTrue(m2.canBeConverted(to: u2))
@@ -94,10 +94,10 @@ class TestNSMeasurement : XCTestCase {
         XCTAssertFalse(m4.canBeConverted(to: u2))
         XCTAssertFalse(m4.canBeConverted(to: u3))
         
-        XCTAssertEqual(m1.converting(to: u1), m1)
-        XCTAssertEqual(m2.converting(to: u2), m2)
-        XCTAssertEqual(m3.converting(to: u3), m3)
-        XCTAssertEqual(m4.converting(to: u4), m4)
+        XCTAssertEqual(m1.converting(to: u1), m1._bridgeToSwift())
+        XCTAssertEqual(m2.converting(to: u2), m2._bridgeToSwift())
+        XCTAssertEqual(m3.converting(to: u3), m3._bridgeToSwift())
+        XCTAssertEqual(m4.converting(to: u4), m4._bridgeToSwift())
         
 //        XCTAssertEqual(m1.converting(to: u2), /*TODO*/)
 //        XCTAssertEqual(m1.converting(to: u3), /*TODO*/)
@@ -113,18 +113,36 @@ class TestNSMeasurement : XCTestCase {
     }
     
     class Unit1: Unit {
-        init() {
-            super.init("a")
+        convenience init() {
+            self.init(symbol: "a")
+        }
+        required init(symbol: String) {
+            super.init(symbol)
+        }
+        required public init?(coder aDecoder: Foundation.NSCoder)
+            return nil
         }
     }
 //    class Unit2: Unit1 {
-//        init() {
+//        convenience init() {
 //            super.init()
+//        }
+//        required init(symbol: String) {
+//            super.init(symbol)
+//        }
+//        required public init?(coder aDecoder: Foundation.NSCoder)
+//            return nil
 //        }
 //    }
     class Unit3: Unit {
         init() {
-            super.init("ab")
+            self.init(symbol: "ab")
+        }
+        required init(symbol: String) {
+            super.init(symbol)
+        }
+        required public init?(coder aDecoder: Foundation.NSCoder)
+            return nil
         }
     }
     
@@ -148,8 +166,8 @@ class TestNSMeasurement : XCTestCase {
         XCTAssertFalse(m3.canBeConverted(to: u1))
         XCTAssertFalse(m3.canBeConverted(to: u2))
         
-        XCTAssertEqual(m1.converting(to: u1), m1)
-        XCTAssertEqual(m2.converting(to: u2), m2)
+        XCTAssertEqual(m1.converting(to: u1), m1._bridgeToSwift())
+        XCTAssertEqual(m2.converting(to: u2), m2._bridgeToSwift())
         
         // What function should this be calling?
 //        AssertCrash() {
