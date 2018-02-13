@@ -140,4 +140,12 @@ open class ProcessInfo: NSObject {
     open var systemUptime: TimeInterval {
         return CFGetSystemUptime()
     }
+    
+    open var userName: String {
+        return NSUserName()
+    }
+    
+    open var fullUserName: String {
+        return NSFullUserName()
+    }
 }

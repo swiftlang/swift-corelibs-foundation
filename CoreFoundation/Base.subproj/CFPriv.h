@@ -160,6 +160,9 @@ CF_EXPORT
 CFStringRef CFCopyUserName(void);
 
 CF_EXPORT
+CFStringRef CFCopyFullUserName(void);
+
+CF_EXPORT
 CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName);	/* Pass NULL for the current user's home directory */
 
 

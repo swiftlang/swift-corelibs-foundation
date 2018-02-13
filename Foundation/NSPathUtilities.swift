@@ -588,6 +588,11 @@ public func NSUserName() -> String {
     return userName._swiftObject
 }
 
+public func NSFullUserName() -> String {
+    let userName = CFCopyFullUserName().takeRetainedValue()
+    return userName._swiftObject
+}
+
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
     let template = "." + filePath + ".tmp.XXXXXX"
     let maxLength = Int(PATH_MAX) + 1
