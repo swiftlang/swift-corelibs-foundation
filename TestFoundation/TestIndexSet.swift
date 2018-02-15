@@ -57,6 +57,13 @@ class TestIndexSet : XCTestCase {
             ("test_AnyHashableContainingIndexSet", test_AnyHashableContainingIndexSet),
             ("test_AnyHashableCreatedFromNSIndexSet", test_AnyHashableCreatedFromNSIndexSet),
             ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
+            ("testInsertNonOverlapping", testInsertNonOverlapping),
+            ("testInsertOverlapping", testInsertOverlapping),
+            ("testInsertOverlappingExtend", testInsertOverlappingExtend),
+            ("testInsertOverlappingMultiple", testInsertOverlappingMultiple),
+            ("testRemoveNonOverlapping", testRemoveNonOverlapping),
+            ("testRemoveOverlapping", testRemoveOverlapping),
+            ("testRemoveSplitting", testRemoveSplitting),
         ]
     }
     
@@ -1082,4 +1089,120 @@ class TestIndexSet : XCTestCase {
     func test_unconditionallyBridgeFromObjectiveC() {
         XCTAssertEqual(IndexSet(), IndexSet._unconditionallyBridgeFromObjectiveC(nil))
     }
+
+    func testInsertNonOverlapping() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+
+        tested.insert(200)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<201)
+        expected.insert(integersIn: 1000..<2000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testInsertOverlapping() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+        tested.insert(integersIn: 10000..<20000)
+
+        tested.insert(integersIn: 150..<1500)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<2000)
+        expected.insert(integersIn: 10000..<20000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testInsertOverlappingExtend() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+
+        tested.insert(integersIn: 50..<500)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 50..<500)
+        expected.insert(integersIn: 1000..<2000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testInsertOverlappingMultiple() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+        tested.insert(integersIn: 10000..<20000)
+
+        tested.insert(integersIn: 150..<3000)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<3000)
+        expected.insert(integersIn: 10000..<20000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testRemoveNonOverlapping() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+
+        tested.remove(199)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<199)
+        expected.insert(integersIn: 1000..<2000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testRemoveOverlapping() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+
+        tested.remove(integersIn: 150..<1500)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<150)
+        expected.insert(integersIn: 1500..<2000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
+    func testRemoveSplitting() {
+        var tested = IndexSet()
+        tested.insert(integersIn: 1..<2)
+        tested.insert(integersIn: 100..<200)
+        tested.insert(integersIn: 1000..<2000)
+
+        tested.remove(integersIn: 150..<160)
+
+        var expected = IndexSet()
+        expected.insert(integersIn: 1..<2)
+        expected.insert(integersIn: 100..<150)
+        expected.insert(integersIn: 160..<200)
+        expected.insert(integersIn: 1000..<2000)
+
+        XCTAssertEqual(tested, expected)
+    }
+
 }
