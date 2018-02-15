@@ -589,7 +589,7 @@ open class NSMutableIndexSet : NSIndexSet {
             let nextRange = _ranges[rangeIndex + 1]
             let currentEnd = currentRange.location + currentRange.length
             let nextEnd = nextRange.location + nextRange.length
-            if nextEnd >= nextRange.location {
+            if currentEnd >= nextRange.location {
                 // overlaps
                 if currentEnd < nextEnd {
                     // next range extends beyond current range
