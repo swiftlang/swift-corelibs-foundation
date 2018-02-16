@@ -207,13 +207,15 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
                 // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
                 
-                CFURLRef prefix = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
-                
+                CFURLRef sharePath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
+                CFURLRef prefixPath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, sharePath);
+                CFRelease(sharePath);
+
                 CFStringRef directories[] = { _CFBundleFHSDirectoriesInExecutableSearchOrder };
                 size_t directoriesCount = sizeof(directories) / sizeof(directories[0]);
                 
                 for (size_t i = 0; i < directoriesCount; i++) {
-                    CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefix, directories[i], true);
+                    CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefixPath, directories[i], true);
                     executableURL = _CFBundleCopyExecutableURLRaw(where, executableName);
                     CFRelease(where);
                     
@@ -223,7 +225,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     }
                 }
                 
-                CFRelease(prefix);
+                CFRelease(prefixPath);
             }
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
             
