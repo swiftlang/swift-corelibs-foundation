@@ -32,6 +32,7 @@ class TestNSDictionary : XCTestCase {
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_settingWithStringKey", test_settingWithStringKey),
         ]
     }
         
@@ -220,6 +221,12 @@ class TestNSDictionary : XCTestCase {
         } else {
             XCTFail("Temporary file creation failed")
         }
+    }
+
+    func test_settingWithStringKey() {
+        let dict = NSMutableDictionary()
+        // has crashed in the past
+        dict["stringKey"] = "value"
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
