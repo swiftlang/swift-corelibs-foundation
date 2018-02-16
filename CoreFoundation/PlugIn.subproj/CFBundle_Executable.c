@@ -292,11 +292,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             if (lookupMainExe && !ignoreCache && bundle && executableURL) {
                 // We found it.  Cache the path.
                 CFURLRef absURL = CFURLCopyAbsoluteURL(executableURL);
-#if DEPLOYMENT_TARGET_WINDOWS
-                executablePath = CFURLCopyFileSystemPath(absURL, kCFURLWindowsPathStyle);
-#else
-                executablePath = CFURLCopyFileSystemPath(absURL, kCFURLPOSIXPathStyle);
-#endif
+                executablePath = CFURLCopyFileSystemPath(absURL, PLATFORM_PATH_STYLE);
                 CFRelease(absURL);
                 __CFLock(&bundle->_lock);
                 bundle->_executablePath = (CFStringRef)CFRetain(executablePath);
