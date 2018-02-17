@@ -24,6 +24,7 @@ class TestProcessInfo : XCTestCase {
             ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),
             ("test_globallyUniqueString", test_globallyUniqueString ),
+            ("test_environment", test_environment),
         ]
     }
     
@@ -66,5 +67,41 @@ class TestProcessInfo : XCTestCase {
         XCTAssertEqual(parts[3].utf16.count, 4)
         XCTAssertEqual(parts[4].utf16.count, 12)
     }
-    
+
+    func test_environment() {
+        let preset = ProcessInfo.processInfo.environment["test"]
+        setenv("test", "worked", 1)
+        let postset = ProcessInfo.processInfo.environment["test"]
+        XCTAssertNil(preset)
+        XCTAssertEqual(postset, "worked")
+
+        // Bad values that wont be stored
+        XCTAssertEqual(setenv("", "", 1), -1)
+        XCTAssertEqual(setenv("bad1=", "", 1), -1)
+        XCTAssertEqual(setenv("bad2=", "1", 1) ,-1)
+        XCTAssertEqual(setenv("bad3=", "=2", 1), -1)
+
+        // Good values that will be, check splitting on '='
+        XCTAssertEqual(setenv("var1", "",1 ), 0)
+        XCTAssertEqual(setenv("var2", "=", 1), 0)
+        XCTAssertEqual(setenv("var3", "=x", 1), 0)
+        XCTAssertEqual(setenv("var4", "x=", 1), 0)
+        XCTAssertEqual(setenv("var5", "=x=", 1), 0)
+
+        let env = ProcessInfo.processInfo.environment
+
+        XCTAssertNil(env[""])
+        XCTAssertNil(env["bad1"])
+        XCTAssertNil(env["bad1="])
+        XCTAssertNil(env["bad2"])
+        XCTAssertNil(env["bad2="])
+        XCTAssertNil(env["bad3"])
+        XCTAssertNil(env["bad3="])
+
+        XCTAssertEqual(env["var1"], "")
+        XCTAssertEqual(env["var2"], "=")
+        XCTAssertEqual(env["var3"], "=x")
+        XCTAssertEqual(env["var4"], "x=")
+        XCTAssertEqual(env["var5"], "=x=")
+    }
 }
