@@ -305,7 +305,7 @@ private struct JSONWriter {
         let formatter: CFNumberFormatter
         formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
         CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, NSNumber(value: 15))
-        CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject)
+        CFNumberFormatterSetFormat(formatter, "0.0##############"._cfObject)
         return formatter
     }()
 
@@ -840,11 +840,6 @@ private struct JSONReader {
                 }
                 guard doubleDistance > 0 else {
                     return nil
-                }
-
-                if doubleResult == doubleResult.rounded() {
-                    return (shouldUseReferenceType ? NSNumber(value: Int(doubleResult)) : Int(doubleResult),
-                            doubleDistance)
                 }
 
                 return (shouldUseReferenceType ? NSNumber(value: doubleResult) : doubleResult,
