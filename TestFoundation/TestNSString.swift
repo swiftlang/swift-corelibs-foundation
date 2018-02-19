@@ -1222,7 +1222,7 @@ struct ComparisonTest {
     let behavior: TestBehavior
 
     var xfail: Bool {
-      if case let Behavior.xfail(_) = behavior {
+      if case .xfail = behavior {
         return true
       } else {
         return false
@@ -1405,7 +1405,7 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
 extension TestNSString {
     func test_PrefixSuffix() {
         for test in comparisonTests {
-            if case let ComparisonTest.Behavior.skip(_) = test.behavior {
+            if case .skip = test.behavior {
               continue
             }
           
