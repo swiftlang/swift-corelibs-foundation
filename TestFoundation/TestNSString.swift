@@ -1213,7 +1213,7 @@ class TestNSString : XCTestCase {
 struct ComparisonTest {
     enum TestBehavior {
       case run
-      case xfail(String)
+      case expectedFailure(String)
       case skip(String)
     }
     let lhs: String
@@ -1221,8 +1221,8 @@ struct ComparisonTest {
     let loc: UInt
     let behavior: TestBehavior
 
-    var xfail: Bool {
-      if case .xfail = behavior {
+    var expectedFailure: Bool {
+      if case .expectedFailure = behavior {
         return true
       } else {
         return false
@@ -1231,11 +1231,11 @@ struct ComparisonTest {
 
     init(
         _ lhs: String, _ rhs: String,
-          xfail reason: String = "", line: UInt = #line
+          expectedFailure reason: String = "", line: UInt = #line
     ) {
         self.lhs = lhs
         self.rhs = rhs
-        self.behavior = xfail.isEmpty ? .run : .xfail(reason)
+        self.behavior = expectedFailure.isEmpty ? .run : .expectedFailure(reason)
         self.loc = line
     }
     
@@ -1260,12 +1260,12 @@ let comparisonTests = [
     ComparisonTest("\u{0}", "",
         skip: "rdar://problem/37686816"),
     ComparisonTest("\u{0}", "\u{0}",
-        xfail: "https://bugs.swift.org/browse/SR-332"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
     ComparisonTest("\r\n", "\n",
-        xfail: "blocked on rdar://problem/19036555"),
+        expectedFailure: "blocked on rdar://problem/19036555"),
     ComparisonTest("\u{0}", "\u{0}\u{0}",
-        xfail: "rdar://problem/19034601"),
+        expectedFailure: "rdar://problem/19034601"),
 
     // Whitespace
     // U+000A LINE FEED (LF)
@@ -1329,7 +1329,7 @@ let comparisonTests = [
     // U+1F1E7 REGIONAL INDICATOR SYMBOL LETTER B
     // \u{1F1E7}\u{1F1E7} Flag of Barbados
     ComparisonTest("\u{1F1E7}", "\u{1F1E7}\u{1F1E7}",
-        xfail: "https://bugs.swift.org/browse/SR-367"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-367"),
 
     // Test that Unicode collation is performed in deterministic mode.
     //
@@ -1345,7 +1345,7 @@ let comparisonTests = [
     // U+0301 and U+0954 don't decompose in the canonical decomposition mapping.
     // U+0341 has a canonical decomposition mapping of U+0301.
     ComparisonTest("\u{0301}", "\u{0341}",
-        xfail: "https://bugs.swift.org/browse/SR-243"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-243"),
     ComparisonTest("\u{0301}", "\u{0954}"),
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
@@ -1424,9 +1424,9 @@ extension TestNSString {
             let fail = (failures > 0)
             if fail {
                 // print("Prefix/Suffix case \(test.loc): \(failures) failures")
-                // print("Failures were\(test.xfail ? "" : " not") expected")
+                // print("Failures were\(test.expectedFailure ? "" : " not") expected")
             }
-            XCTAssert(test.xfail == fail, "Unexpected \(test.xfail ?"success":"failure"): \(test.loc)")
+            XCTAssert(test.expectedFailure == fail, "Unexpected \(test.expectedFailure ?"success":"failure"): \(test.loc)")
         }
     }
 }
