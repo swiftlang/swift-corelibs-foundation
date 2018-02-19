@@ -45,7 +45,7 @@ open class ProcessInfo: NSObject {
         let equalSign = Int32(UInt8(ascii: "="))
         var env: [String : String] = [:]
         var idx = 0
-        let envp = environ
+        let envp = _CFEnviron()
 
         while let entry = envp.advanced(by: idx).pointee {
             if let value = strchr(entry, equalSign) {
