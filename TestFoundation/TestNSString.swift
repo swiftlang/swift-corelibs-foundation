@@ -1211,22 +1211,41 @@ class TestNSString : XCTestCase {
 }
 
 struct ComparisonTest {
+    enum TestBehavior {
+      case run
+      case xfail(String)
+      case skip(String)
+    }
     let lhs: String
     let rhs: String
     let loc: UInt
-    let reason: String
+    let behavior: TestBehavior
 
     var xfail: Bool {
-      return !reason.isEmpty
+      if case let Behavior.xfail(_) = behavior {
+        return true
+      } else {
+        return false
+      }
     }
 
     init(
         _ lhs: String, _ rhs: String,
-          reason: String = "", line: UInt = #line
+          xfail reason: String = "", line: UInt = #line
     ) {
         self.lhs = lhs
         self.rhs = rhs
-        self.reason = reason
+        self.behavior = xfail.isEmpty ? .run : .xfail(reason)
+        self.loc = line
+    }
+    
+    init(
+        _ lhs: String, _ rhs: String,
+          skip reason: String = "", line: UInt = #line
+    ) {
+        self.lhs = lhs
+        self.rhs = rhs
+        self.behavior = skip.isEmpty ? .run : .skip(reason)
         self.loc = line
     }
 }
@@ -1238,14 +1257,15 @@ let comparisonTests = [
     // ASCII cases
     ComparisonTest("t", "tt"),
     ComparisonTest("t", "Tt"),
-    ComparisonTest("\u{0}", ""),
+    ComparisonTest("\u{0}", "",
+        skip: "rdar://problem/37686816"),
     ComparisonTest("\u{0}", "\u{0}",
-        reason: "https://bugs.swift.org/browse/SR-332"),
+        xfail: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
     ComparisonTest("\r\n", "\n",
-        reason: "blocked on rdar://problem/19036555"),
+        xfail: "blocked on rdar://problem/19036555"),
     ComparisonTest("\u{0}", "\u{0}\u{0}",
-        reason: "rdar://problem/19034601"),
+        xfail: "rdar://problem/19034601"),
 
     // Whitespace
     // U+000A LINE FEED (LF)
@@ -1309,7 +1329,7 @@ let comparisonTests = [
     // U+1F1E7 REGIONAL INDICATOR SYMBOL LETTER B
     // \u{1F1E7}\u{1F1E7} Flag of Barbados
     ComparisonTest("\u{1F1E7}", "\u{1F1E7}\u{1F1E7}",
-        reason: "https://bugs.swift.org/browse/SR-367"),
+        xfail: "https://bugs.swift.org/browse/SR-367"),
 
     // Test that Unicode collation is performed in deterministic mode.
     //
@@ -1325,7 +1345,7 @@ let comparisonTests = [
     // U+0301 and U+0954 don't decompose in the canonical decomposition mapping.
     // U+0341 has a canonical decomposition mapping of U+0301.
     ComparisonTest("\u{0301}", "\u{0341}",
-        reason: "https://bugs.swift.org/browse/SR-243"),
+        xfail: "https://bugs.swift.org/browse/SR-243"),
     ComparisonTest("\u{0301}", "\u{0954}"),
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
@@ -1385,6 +1405,10 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
 extension TestNSString {
     func test_PrefixSuffix() {
         for test in comparisonTests {
+            if case let ComparisonTest.Behavior.skip(_) = test.behavior {
+              continue
+            }
+          
             var failures = 0
             failures += checkHasPrefixHasSuffix(test.lhs, test.rhs, [test.loc, #line])
             failures += checkHasPrefixHasSuffix(test.rhs, test.lhs, [test.loc, #line])
