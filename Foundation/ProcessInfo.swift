@@ -42,23 +42,17 @@ open class ProcessInfo: NSObject {
     }
     
     open var environment: [String : String] {
-        let equalSign = Int32(UInt8(ascii: "="))
+        let equalSign = Character("=")
+        let strEncoding = String.defaultCStringEncoding
+        let envp = _CFEnviron()
         var env: [String : String] = [:]
         var idx = 0
-        let envp = _CFEnviron()
 
         while let entry = envp.advanced(by: idx).pointee {
-            if let value = strchr(entry, equalSign) {
-                let keyLen = entry.distance(to: value)
-                guard keyLen > 0 else {
-                    continue
-                }
-                if let key = NSString(bytes: entry, length: keyLen, encoding: String.Encoding.utf8.rawValue) {
-                    env[key._swiftObject] = String(cString: value.advanced(by: 1))
-                }
-            } else {
-                let key = String(cString: entry)
-                env[key] = ""
+            if let entry = String(cString: entry, encoding: strEncoding), let i = entry.index(of: equalSign) {
+                let key = String(entry.prefix(upTo: i))
+                let value = String(entry.suffix(from: i).dropFirst())
+                env[key] = value
             }
             idx += 1
         }
