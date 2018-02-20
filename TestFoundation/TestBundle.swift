@@ -220,7 +220,7 @@ class BundlePlayground {
         self.playgroundPath = nil
         
         do {
-            //try FileManager.default.removeItem(atPath: path)
+            try FileManager.default.removeItem(atPath: path)
         } catch _ {
             // ¯\_(ツ)_/¯ We did what we could.
         }
