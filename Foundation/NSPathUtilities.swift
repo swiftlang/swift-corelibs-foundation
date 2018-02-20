@@ -103,25 +103,23 @@ internal extension String {
     internal func _stringByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String {
         var result = self
         if compress {
-            result.withMutableCharacters { characterView in
-                let startPos = characterView.startIndex
-                var endPos = characterView.endIndex
-                var curPos = startPos
-                
-                while curPos < endPos {
-                    if characterView[curPos] == "/" {
-                        var afterLastSlashPos = curPos
-                        while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                            afterLastSlashPos = characterView.index(after: afterLastSlashPos)
-                        }
-                        if afterLastSlashPos != characterView.index(after: curPos) {
-                            characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
-                            endPos = characterView.endIndex
-                        }
-                        curPos = afterLastSlashPos
-                    } else {
-                        curPos = characterView.index(after: curPos)
+            let startPos = result.startIndex
+            var endPos = result.endIndex
+            var curPos = startPos
+
+            while curPos < endPos {
+                if result[curPos] == "/" {
+                    var afterLastSlashPos = curPos
+                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
+                        afterLastSlashPos = result.index(after: afterLastSlashPos)
                     }
+                    if afterLastSlashPos != result.index(after: curPos) {
+                        result.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                        endPos = result.endIndex
+                    }
+                    curPos = afterLastSlashPos
+                } else {
+                    curPos = result.index(after: curPos)
                 }
             }
         }
@@ -214,25 +212,23 @@ public extension NSString {
         
         var result = _swiftObject
         if compress {
-            result.withMutableCharacters { characterView in
-                let startPos = characterView.startIndex
-                var endPos = characterView.endIndex
-                var curPos = startPos
-                
-                while curPos < endPos {
-                    if characterView[curPos] == "/" {
-                        var afterLastSlashPos = curPos
-                        while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                            afterLastSlashPos = characterView.index(after: afterLastSlashPos)
-                        }
-                        if afterLastSlashPos != characterView.index(after: curPos) {
-                            characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
-                            endPos = characterView.endIndex
-                        }
-                        curPos = afterLastSlashPos
-                    } else {
-                        curPos = characterView.index(after: curPos)
+            let startPos = result.startIndex
+            var endPos = result.endIndex
+            var curPos = startPos
+
+            while curPos < endPos {
+                if result[curPos] == "/" {
+                    var afterLastSlashPos = curPos
+                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
+                        afterLastSlashPos = result.index(after: afterLastSlashPos)
                     }
+                    if afterLastSlashPos != result.index(after: curPos) {
+                        result.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                        endPos = result.endIndex
+                    }
+                    curPos = afterLastSlashPos
+                } else {
+                    curPos = result.index(after: curPos)
                 }
             }
         }
