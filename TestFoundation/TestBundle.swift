@@ -413,6 +413,8 @@ class TestBundle : XCTestCase {
         
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
+            
+            // Must throw as the main executable is a dummy empty file.
             XCTAssertThrowsError(try bundle.preflight())
         }
     }
