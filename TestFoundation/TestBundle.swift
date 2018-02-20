@@ -243,7 +243,8 @@ class TestBundle : XCTestCase {
             ("test_bundleLoad", test_bundleLoad),
             ("test_bundleLoadWithError", test_bundleLoadWithError),
             ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
-            ("test_bundleFindExecutables", test_bundleFindExecutables),
+            ("test_bundlePreflight", test_bundlePreflight),
+            ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
         ]
     }
@@ -378,13 +379,13 @@ class TestBundle : XCTestCase {
         }
     }
     
-    func test_bundleLoad(){
+    func test_bundleLoad() {
         let bundle = testBundle()
         let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
     }
     
-    func test_bundleLoadWithError(){
+    func test_bundleLoadWithError() {
         let bundleValid = testBundle()
         
         // Test valid load using loadAndReturnError
@@ -402,13 +403,22 @@ class TestBundle : XCTestCase {
         }
     }
     
-    func test_bundleWithInvalidPath(){
+    func test_bundleWithInvalidPath() {
         let bundleInvalid = Bundle(path: NSTemporaryDirectory() + "test.playground")
         XCTAssertNil(bundleInvalid)
     }
     
-    func test_bundleFindExecutables(){
+    func test_bundlePreflight() {
         XCTAssertNoThrow(try testBundle().preflight())
+        
+        try! _withEachPlaygroundLayout { (playground) in
+            let bundle = Bundle(path: playground.bundlePath)!
+            XCTAssertThrowsError(try bundle.preflight())
+        }
+    }
+    
+    func test_bundleFindExecutable() {
+        XCTAssertNotNil(testBundle().executableURL)
         
         _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
