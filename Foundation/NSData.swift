@@ -373,10 +373,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.data") {
-            guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
+            guard let data = aDecoder._decodePropertyListForKey("NS.data") as? Data else {
                 return nil
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
         } else {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }

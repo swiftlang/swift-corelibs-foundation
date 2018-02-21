@@ -518,6 +518,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_nskeyedarchiving", test_nskeyedarchiving),
         ]
     }
     
@@ -4139,6 +4140,19 @@ extension TestNSData {
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
 #endif
+    }
+
+    func test_nskeyedarchiving() {
+        let bytes: [UInt8] = [0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf]
+        let data = NSData(bytes: bytes, length: bytes.count)
+
+        let archiver = NSKeyedArchiver()
+        data.encode(with: archiver)
+        let encodedData = archiver.encodedData
+
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData)
+        let decodedData = NSData(coder: unarchiver)
+        XCTAssertEqual(data, decodedData)
     }
 }
 
