@@ -115,8 +115,8 @@ open class Bundle: NSObject {
         return CFBundleCopyExecutableURL(_bundle)?._swiftObject
     }
     
-    open func url(forAuxiliaryExecutable executableName: String) -> NSURL? {
-        return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._nsObject
+    open func url(forAuxiliaryExecutable executableName: String) -> URL? {
+        return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._swiftObject
     }
     
     open var privateFrameworksURL: URL? {
