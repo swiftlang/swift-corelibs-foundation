@@ -1235,7 +1235,7 @@ struct ComparisonTest {
     ) {
         self.lhs = lhs
         self.rhs = rhs
-        self.behavior = expectedFailure.isEmpty ? .run : .expectedFailure(reason)
+        self.behavior = reason.isEmpty ? .run : .expectedFailure(reason)
         self.loc = line
     }
     
@@ -1245,12 +1245,12 @@ struct ComparisonTest {
     ) {
         self.lhs = lhs
         self.rhs = rhs
-        self.behavior = skip.isEmpty ? .run : .skip(reason)
+        self.behavior = reason.isEmpty ? .run : .skip(reason)
         self.loc = line
     }
 }
 
-let comparisonTests = [
+let comparisonTests: [ComparisonTest] = [
     ComparisonTest("", ""),
     ComparisonTest("", "a"),
 
