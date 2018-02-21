@@ -21,6 +21,7 @@ class TestRunLoop : XCTestCase {
         return [
             ("test_constants", test_constants),
             ("test_runLoopInit", test_runLoopInit),
+            ("test_commonModes", test_commonModes),
             // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
 //            ("test_runLoopRunMode", test_runLoopRunMode),
 //            ("test_runLoopLimitDate", test_runLoopLimitDate),
@@ -89,5 +90,17 @@ class TestRunLoop : XCTestCase {
         }
         
         XCTAssertLessThan(abs(timerTickInterval - expectedTimeInterval), 0.01)
+    }
+    
+    func test_commonModes() {
+        let runLoop = RunLoop.current
+        let done = expectation(description: "The timer has fired")
+        let timer = Timer(timeInterval: 1, repeats: false) { (_) in
+            done.fulfill()
+        }
+        
+        runLoop.add(timer, forMode: .commonModes)
+        
+        waitForExpectations(timeout: 10)
     }
 }
