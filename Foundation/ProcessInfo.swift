@@ -41,13 +41,22 @@ open class ProcessInfo: NSObject {
         
     }
     
-    
-    internal static var _environment: [String : String] = {
-        return Dictionary<String, String>._unconditionallyBridgeFromObjectiveC(__CFGetEnvironment()._nsObject)
-    }()
-    
     open var environment: [String : String] {
-        return ProcessInfo._environment
+        let equalSign = Character("=")
+        let strEncoding = String.defaultCStringEncoding
+        let envp = _CFEnviron()
+        var env: [String : String] = [:]
+        var idx = 0
+
+        while let entry = envp.advanced(by: idx).pointee {
+            if let entry = String(cString: entry, encoding: strEncoding), let i = entry.index(of: equalSign) {
+                let key = String(entry.prefix(upTo: i))
+                let value = String(entry.suffix(from: i).dropFirst())
+                env[key] = value
+            }
+            idx += 1
+        }
+        return env
     }
     
     open var arguments: [String] {
