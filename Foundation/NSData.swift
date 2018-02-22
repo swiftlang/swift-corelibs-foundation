@@ -69,11 +69,10 @@ private final class _NSDataDeallocator {
 
 private let __kCFMutable: CFOptionFlags = 0x01
 private let __kCFGrowable: CFOptionFlags = 0x02
-private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
-private let __kCFBytesInline: CFOptionFlags = 0x04
-private let __kCFUseAllocator: CFOptionFlags = 0x08
-private let __kCFDontDeallocate: CFOptionFlags = 0x10
-private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
+
+private let __kCFBytesInline: CFOptionFlags = 2
+private let __kCFUseAllocator: CFOptionFlags = 3
+private let __kCFDontDeallocate: CFOptionFlags = 4
 
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
