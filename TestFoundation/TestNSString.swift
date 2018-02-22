@@ -1230,23 +1230,23 @@ struct ComparisonTest {
     }
 
     init(
-        _ lhs: String, _ rhs: String,
-          expectedFailure reason: String = "", line: UInt = #line
-    ) {
-        self.lhs = lhs
-        self.rhs = rhs
-        self.behavior = reason.isEmpty ? .run : .expectedFailure(reason)
-        self.loc = line
-    }
+      _ lhs: String, _ rhs: String,
+      expectedFailure xfailReason: String = "",
+      skip skipReason: String = "",
+      line: UInt = #line
+      ) {
+      self.lhs = lhs
+      self.rhs = rhs
+      self.loc = line
     
-    init(
-        _ lhs: String, _ rhs: String,
-          skip reason: String = "", line: UInt = #line
-    ) {
-        self.lhs = lhs
-        self.rhs = rhs
-        self.behavior = reason.isEmpty ? .run : .skip(reason)
-        self.loc = line
+      switch (xfailReason.isEmpty, skipReason.isEmpty) {
+      case (false, true):
+        behavior = .expectedFailure(xfailReason)
+      case (_, false):
+        behavior = .skip(skipReason)
+      default:
+        behavior = .run
+      }
     }
 }
 
