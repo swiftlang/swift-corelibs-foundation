@@ -48,6 +48,8 @@ extension JSONSerialization {
 
 open class JSONSerialization : NSObject {
     
+    public typealias CustomValueParser = (_ buffer: UnsafeBufferPointer<UInt8>, _ encoding: String.Encoding) throws -> (Any, Int)?
+    
     /* Determines whether the given object can be converted to JSON.
        Other rules may apply. Calling this method or attempting a conversion are the definitive ways
        to tell if a given object can be converted to JSON data.
@@ -168,9 +170,13 @@ open class JSONSerialization : NSObject {
     
     /* Create a Foundation object from JSON data. Set the NSJSONReadingAllowFragments option if the parser should allow top-level objects that are not an NSArray or NSDictionary. Setting the NSJSONReadingMutableContainers option will make the parser generate mutable NSArrays and NSDictionaries. Setting the NSJSONReadingMutableLeaves option will make the parser generate mutable NSString objects. If an error occurs during the parse, then the error parameter will be set and the result will be nil.
        The data must be in one of the 5 supported encodings listed in the JSON specification: UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE. The data may or may not have a BOM. The most efficient encoding to use for parsing is UTF-8, so if you have a choice in encoding the data passed to this method, use UTF-8.
-     */
+     */     
     open class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
-        return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
+        return try jsonObject(with:data, options:opt, customValueParser:nil)     
+    }
+    
+    open class func jsonObject(with data: Data, options opt: ReadingOptions = [], customValueParser cvp: CustomValueParser?) throws -> Any {
+       return try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
             let encoding: String.Encoding
             let buffer: UnsafeBufferPointer<UInt8>
             if let detected = parseBOM(bytes, length: data.count) {
@@ -183,7 +189,7 @@ open class JSONSerialization : NSObject {
             }
             
             let source = JSONReader.UnicodeSource(buffer: buffer, encoding: encoding)
-            let reader = JSONReader(source: source)
+            let reader = JSONReader(source: source, cvp:cvp)
             if let (object, _) = try reader.parseObject(0, options: opt) {
                 return object
             }
@@ -660,6 +666,7 @@ private struct JSONReader {
     }
 
     let source: UnicodeSource
+    let cvp : JSONSerialization.CustomValueParser?
 
     func consumeWhitespace(_ input: Index) -> Index? {
         var index = input
@@ -896,6 +903,9 @@ private struct JSONReader {
         }
         else if let (number, parser) = try parseNumber(input, options: opt) {
             return (number, parser)
+        }
+        else if let parseCustomValue = cvp, let(value, rIndex) = try parseCustomValue(UnsafeBufferPointer(rebasing:source.buffer[input...]), source.encoding) {
+            return (value, input + rIndex)
         }
         return nil
     }
