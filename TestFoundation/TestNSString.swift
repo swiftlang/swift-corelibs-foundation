@@ -1211,41 +1211,61 @@ class TestNSString : XCTestCase {
 }
 
 struct ComparisonTest {
+    enum TestBehavior {
+      case run
+      case expectedFailure(String)
+      case skip(String)
+    }
     let lhs: String
     let rhs: String
     let loc: UInt
-    let reason: String
+    let behavior: TestBehavior
 
-    var xfail: Bool {
-      return !reason.isEmpty
+    var expectedFailure: Bool {
+      if case .expectedFailure = behavior {
+        return true
+      } else {
+        return false
+      }
     }
 
     init(
-        _ lhs: String, _ rhs: String,
-          reason: String = "", line: UInt = #line
-    ) {
-        self.lhs = lhs
-        self.rhs = rhs
-        self.reason = reason
-        self.loc = line
+      _ lhs: String, _ rhs: String,
+      expectedFailure xfailReason: String = "",
+      skip skipReason: String = "",
+      line: UInt = #line
+      ) {
+      self.lhs = lhs
+      self.rhs = rhs
+      self.loc = line
+    
+      switch (xfailReason.isEmpty, skipReason.isEmpty) {
+      case (false, true):
+        behavior = .expectedFailure(xfailReason)
+      case (_, false):
+        behavior = .skip(skipReason)
+      default:
+        behavior = .run
+      }
     }
 }
 
-let comparisonTests = [
+let comparisonTests: [ComparisonTest] = [
     ComparisonTest("", ""),
     ComparisonTest("", "a"),
 
     // ASCII cases
     ComparisonTest("t", "tt"),
     ComparisonTest("t", "Tt"),
-    ComparisonTest("\u{0}", ""),
+    ComparisonTest("\u{0}", "",
+        skip: "rdar://problem/37686816"),
     ComparisonTest("\u{0}", "\u{0}",
-        reason: "https://bugs.swift.org/browse/SR-332"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-332"),
     ComparisonTest("\r\n", "t"),
     ComparisonTest("\r\n", "\n",
-        reason: "blocked on rdar://problem/19036555"),
+        expectedFailure: "blocked on rdar://problem/19036555"),
     ComparisonTest("\u{0}", "\u{0}\u{0}",
-        reason: "rdar://problem/19034601"),
+        expectedFailure: "rdar://problem/19034601"),
 
     // Whitespace
     // U+000A LINE FEED (LF)
@@ -1309,7 +1329,7 @@ let comparisonTests = [
     // U+1F1E7 REGIONAL INDICATOR SYMBOL LETTER B
     // \u{1F1E7}\u{1F1E7} Flag of Barbados
     ComparisonTest("\u{1F1E7}", "\u{1F1E7}\u{1F1E7}",
-        reason: "https://bugs.swift.org/browse/SR-367"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-367"),
 
     // Test that Unicode collation is performed in deterministic mode.
     //
@@ -1325,7 +1345,7 @@ let comparisonTests = [
     // U+0301 and U+0954 don't decompose in the canonical decomposition mapping.
     // U+0341 has a canonical decomposition mapping of U+0301.
     ComparisonTest("\u{0301}", "\u{0341}",
-        reason: "https://bugs.swift.org/browse/SR-243"),
+        expectedFailure: "https://bugs.swift.org/browse/SR-243"),
     ComparisonTest("\u{0301}", "\u{0954}"),
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
@@ -1385,6 +1405,10 @@ func checkHasPrefixHasSuffix(_ lhs: String, _ rhs: String, _ stack: [UInt]) -> I
 extension TestNSString {
     func test_PrefixSuffix() {
         for test in comparisonTests {
+            if case .skip = test.behavior {
+              continue
+            }
+          
             var failures = 0
             failures += checkHasPrefixHasSuffix(test.lhs, test.rhs, [test.loc, #line])
             failures += checkHasPrefixHasSuffix(test.rhs, test.lhs, [test.loc, #line])
@@ -1400,9 +1424,9 @@ extension TestNSString {
             let fail = (failures > 0)
             if fail {
                 // print("Prefix/Suffix case \(test.loc): \(failures) failures")
-                // print("Failures were\(test.xfail ? "" : " not") expected")
+                // print("Failures were\(test.expectedFailure ? "" : " not") expected")
             }
-            XCTAssert(test.xfail == fail, "Unexpected \(test.xfail ?"success":"failure"): \(test.loc)")
+            XCTAssert(test.expectedFailure == fail, "Unexpected \(test.expectedFailure ?"success":"failure"): \(test.loc)")
         }
     }
 }
