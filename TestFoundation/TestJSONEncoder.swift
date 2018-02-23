@@ -334,6 +334,65 @@ class TestJSONEncoder : XCTestCase {
             _ = try JSONDecoder().decode([Bool].self, from: "[1]".data(using: .utf8)!)
             XCTFail("Coercing non-boolean numbers into Bools was expected to fail")
         } catch { }
+
+
+        // Check that a Bool false or true isnt converted to 0 or 1
+        struct Foo: Decodable {
+            var intValue: Int?
+            var int8Value: Int8?
+            var int16Value: Int16?
+            var int32Value: Int32?
+            var int64Value: Int64?
+            var uintValue: UInt?
+            var uint8Value: UInt8?
+            var uint16Value: UInt16?
+            var uint32Value: UInt32?
+            var uint64Value: UInt64?
+            var floatValue: Float?
+            var doubleValue: Double?
+            var decimalValue: Decimal?
+            let boolValue: Bool
+        }
+
+        func testValue(_ valueName: String) {
+            do {
+                let jsonData = "{ \"\(valueName)\": false }".data(using: .utf8)!
+                _ = try JSONDecoder().decode(Foo.self, from: jsonData)
+                XCTFail("Decoded 'false' as non Bool for \(valueName)")
+            } catch {}
+            do {
+                let jsonData = "{ \"\(valueName)\": true }".data(using: .utf8)!
+                _ = try JSONDecoder().decode(Foo.self, from: jsonData)
+                XCTFail("Decoded 'true' as non Bool for \(valueName)")
+            } catch {}
+        }
+
+        testValue("intValue")
+        testValue("int8Value")
+        testValue("int16Value")
+        testValue("int32Value")
+        testValue("int64Value")
+        testValue("uintValue")
+        testValue("uint8Value")
+        testValue("uint16Value")
+        testValue("uint32Value")
+        testValue("uint64Value")
+        testValue("floatValue")
+        testValue("doubleValue")
+        testValue("decimalValue")
+        let falseJsonData = "{ \"boolValue\": false }".data(using: .utf8)!
+        if let falseFoo = try? JSONDecoder().decode(Foo.self, from: falseJsonData) {
+            XCTAssertFalse(falseFoo.boolValue)
+        } else {
+            XCTFail("Could not decode 'false' as a Bool")
+        }
+
+        let trueJsonData = "{ \"boolValue\": true }".data(using: .utf8)!
+        if let trueFoo = try? JSONDecoder().decode(Foo.self, from: trueJsonData) {
+            XCTAssertTrue(trueFoo.boolValue)
+        } else {
+            XCTFail("Could not decode 'true' as a Bool")
+        }
     }
 
     func test_codingOfInt8() {
