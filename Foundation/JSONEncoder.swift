@@ -900,6 +900,12 @@ open class JSONDecoder {
         let decoder = _JSONDecoder(referencing: topLevel, options: self.options)
         return try T(from: decoder)
     }
+    
+    open func decode<T : Decodable>(_ type: T.Type, from data: Data, customValueParser cvp : JSONSerialization.CustomValueParser?) throws -> T {
+        let topLevel = try JSONSerialization.jsonObject(with: data, options: [.useReferenceNumericTypes], customValueParser: cvp)
+        let decoder = _JSONDecoder(referencing: topLevel, options: self.options)
+        return try T(from: decoder)
+    }
 }
 
 // MARK: - _JSONDecoder
