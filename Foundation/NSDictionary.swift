@@ -586,7 +586,7 @@ open class NSMutableDictionary : NSDictionary {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
-        _storage[(aKey as! NSObject)] = _SwiftValue.store(anObject)
+        _storage[_SwiftValue.store(aKey)] = _SwiftValue.store(anObject)
     }
     
     public convenience required init() {
