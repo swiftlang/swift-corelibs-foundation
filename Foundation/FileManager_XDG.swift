@@ -25,15 +25,23 @@ enum _XDGUserDirectory: String {
         .music,
         .pictures,
         .videos,
-        ]
+    ]
     
     var url: URL {
-        if let url = _XDGUserDirectory.configuredDirectoryURLs[self] {
+        return url(userConfiguration: _XDGUserDirectory.configuredDirectoryURLs,
+                   osDefaultConfiguration: _XDGUserDirectory.osDefaultDirectoryURLs,
+                   stopgaps: _XDGUserDirectory.stopgapDefaultDirectoryURLs)
+    }
+    
+    func url(userConfiguration: [_XDGUserDirectory: URL],
+             osDefaultConfiguration: [_XDGUserDirectory: URL],
+             stopgaps: [_XDGUserDirectory: URL]) -> URL {
+        if let url = userConfiguration[self] {
             return url
-        } else if let url = _XDGUserDirectory.osDefaultDirectoryURLs[self] {
+        } else if let url = osDefaultConfiguration[self] {
             return url
         } else {
-            return _XDGUserDirectory.stopgapDefaultDirectoryURLs[self]!
+            return stopgaps[self]!
         }
     }
     
@@ -52,38 +60,45 @@ enum _XDGUserDirectory: String {
     
     static func userDirectories(fromConfigurationFileAt url: URL) -> [_XDGUserDirectory: URL]? {
         if let configuration = try? String(contentsOf: url, encoding: .utf8) {
-            var entries: [_XDGUserDirectory: URL] = [:]
-            
-            // Parse it:
-            let lines = configuration.split(separator: "\n")
-            for line in lines {
-                if let range = line.range(of: "=") {
-                    var variable = String(line[line.startIndex ..< range.lowerBound].trimmingCharacters(in: .whitespaces))
-                    
-                    let prefix = "XDG_"
-                    let suffix = "_DIR"
-                    if variable.hasPrefix(prefix) && variable.hasSuffix(suffix) {
-                        let endOfPrefix = variable.index(variable.startIndex, offsetBy: prefix.length)
-                        let startOfSuffix = variable.index(variable.endIndex, offsetBy: -suffix.length)
-                        
-                        variable = String(variable[endOfPrefix ..< startOfSuffix])
-                    }
-                    
-                    guard let directory = _XDGUserDirectory(rawValue: variable) else {
-                        continue
-                    }
-                    
-                    let path = String(line[range.upperBound ..< line.endIndex]).trimmingCharacters(in: .whitespaces)
-                    if path.isEmpty {
-                        entries[directory] = URL(fileURLWithPath: path, isDirectory: true)
-                    }
-                }
-            }
-            
-            return entries
+            return userDirectories(fromConfiguration: configuration)
         } else {
             return nil
         }
+    }
+    
+    static func userDirectories(fromConfiguration configuration: String) -> [_XDGUserDirectory: URL] {
+        var entries: [_XDGUserDirectory: URL] = [:]
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        
+        // Parse it:
+        let lines = configuration.split(separator: "\n")
+        for line in lines {
+            if let range = line.range(of: "=") {
+                var variable = String(line[line.startIndex ..< range.lowerBound].trimmingCharacters(in: .whitespaces))
+                
+                let prefix = "XDG_"
+                let suffix = "_DIR"
+                if variable.hasPrefix(prefix) && variable.hasSuffix(suffix) {
+                    let endOfPrefix = variable.index(variable.startIndex, offsetBy: prefix.length)
+                    let startOfSuffix = variable.index(variable.endIndex, offsetBy: -suffix.length)
+                    
+                    variable = String(variable[endOfPrefix ..< startOfSuffix])
+                }
+                
+                guard let directory = _XDGUserDirectory(rawValue: variable) else {
+                    continue
+                }
+                
+                let path = String(line[range.upperBound ..< line.endIndex]).trimmingCharacters(in: .whitespaces)
+                if !path.isEmpty {
+                    entries[directory] = URL(fileURLWithPath: path, isDirectory: true, relativeTo: home)
+                }
+            } else {
+                return [:] // Incorrect syntax.
+            }
+        }
+        
+        return entries
     }
     
     static let configuredDirectoryURLs: [_XDGUserDirectory: URL] = {

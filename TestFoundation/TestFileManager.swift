@@ -32,6 +32,7 @@ class TestFileManager : XCTestCase {
             ("test_contentsEqual", test_contentsEqual)
             ("test_XDGStopgapsCoverAllConstants", test_XDGStopgapsCoverAllConstants),
             ("test_parseXDGConfiguration", test_parseXDGConfiguration),
+            ("test_xdgURLSelection", test_xdgURLSelection),
         ]
     }
     
@@ -958,6 +959,111 @@ class TestFileManager : XCTestCase {
     }
     
     func test_parseXDGConfiguration() {
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
         
+        let assertConfigurationProduces = { (configuration: String, paths: [_XDGUserDirectory: String]) in
+            XCTAssertEqual(_XDGUserDirectory.userDirectories(fromConfiguration: configuration).mapValues({ $0.absoluteURL.path }),
+                           paths.mapValues({ URL(fileURLWithPath: $0, isDirectory: true, relativeTo: home).absoluteURL.path }))
+        }
+        
+        assertConfigurationProduces("", [:])
+        
+        // Test partial configuration and paths relative to home.
+        assertConfigurationProduces(
+"""
+DESKTOP=/xdg_test/Desktop
+MUSIC=/xdg_test/Music
+PICTURES=Pictures
+""", [ .desktop: "/xdg_test/Desktop",
+       .music: "/xdg_test/Music",
+       .pictures: "Pictures" ])
+
+        // Test full configuration with XDG_…_DIR syntax, duplicate keys and varying indentation
+        // 'XDG_MUSIC_DIR' is duplicated, below.
+        assertConfigurationProduces(
+"""
+	XDG_MUSIC_DIR=ShouldNotBeUsedUseTheOneBelowInstead
+
+	XDG_DESKTOP_DIR=Desktop
+		XDG_DOWNLOAD_DIR=Download
+	XDG_PUBLICSHARE_DIR=Public
+XDG_DOCUMENTS_DIR=Documents
+	XDG_MUSIC_DIR=Music
+XDG_PICTURES_DIR=Pictures
+	XDG_VIDEOS_DIR=Videos
+""", [ .desktop: "Desktop",
+       .download: "Download",
+       .publicShare: "Public",
+       .documents: "Documents",
+       .music: "Music",
+       .pictures: "Pictures",
+       .videos: "Videos" ])
+        
+        // Same, without XDG…DIR.
+        assertConfigurationProduces(
+"""
+    MUSIC=ShouldNotBeUsedUseTheOneBelowInstead
+
+    DESKTOP=Desktop
+        DOWNLOAD=Download
+    PUBLICSHARE=Public
+DOCUMENTS=Documents
+    MUSIC=Music
+PICTURES=Pictures
+    VIDEOS=Videos
+""", [ .desktop: "Desktop",
+       .download: "Download",
+       .publicShare: "Public",
+       .documents: "Documents",
+       .music: "Music",
+       .pictures: "Pictures",
+       .videos: "Videos" ])
+    
+        assertConfigurationProduces(
+"""
+    DESKTOP=/home/Desktop
+This configuration file has an invalid syntax.
+""", [:])
     }
+    
+    func test_xdgURLSelection() {
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        
+        let configuration = _XDGUserDirectory.userDirectories(fromConfiguration:
+"""
+DESKTOP=UserDesktop
+"""
+        )
+        
+        let osDefaults = _XDGUserDirectory.userDirectories(fromConfiguration:
+"""
+DESKTOP=SystemDesktop
+PUBLICSHARE=SystemPublicShare
+"""
+        )
+        
+        let stopgaps = _XDGUserDirectory.userDirectories(fromConfiguration:
+"""
+DESKTOP=StopgapDesktop
+DOWNLOAD=StopgapDownload
+PUBLICSHARE=StopgapPublicShare
+DOCUMENTS=StopgapDocuments
+MUSIC=StopgapMusic
+PICTURES=StopgapPictures
+VIDEOS=StopgapVideos
+"""
+        )
+        
+        let assertSameAbsolutePath = { (lhs: URL, rhs: URL) in
+            XCTAssertEqual(lhs.absoluteURL.path, rhs.absoluteURL.path)
+        }
+        
+        assertSameAbsolutePath(_XDGUserDirectory.desktop.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("UserDesktop"))
+        
+        assertSameAbsolutePath(_XDGUserDirectory.publicShare.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("SystemPublicShare"))
+        
+        assertSameAbsolutePath(_XDGUserDirectory.music.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("StopgapMusic"))
+    }
+    
+    
 }
