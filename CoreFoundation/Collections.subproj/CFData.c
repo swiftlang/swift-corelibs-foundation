@@ -330,10 +330,11 @@ CFTypeID CFDataGetTypeID(void) {
 void _CFDataInit(CFMutableDataRef memory, CFOptionFlags variety, CFIndex capacity, const uint8_t *bytes, CFIndex length, Boolean noCopy) {
     Boolean isMutable = ((variety & __kCFMutableMask) != 0);
     Boolean isGrowable = ((variety & __kCFGrowableMask) != 0);
+    Boolean isDontDeallocate = ((variety & __kCFDontDeallocate) != 0);
     
     __CFDataSetNumBytesUsed(memory, 0);
     __CFDataSetLength(memory, 0);
-    __CFDataSetDontDeallocate(memory, true);
+    __CFDataSetDontDeallocate(memory, isDontDeallocate);
     
     if (isMutable && isGrowable) {
         __CFDataSetCapacity(memory, __CFDataRoundUpCapacity(1));
