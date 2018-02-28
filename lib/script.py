@@ -135,7 +135,7 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
 EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
 
         ld_flags += """
-TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L ${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/${ARCH} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.system_root is not None:
             ld_flags += "--sysroot=${SYSROOT}"
 
