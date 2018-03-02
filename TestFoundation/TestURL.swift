@@ -519,6 +519,12 @@ class TestURL : XCTestCase {
    func test_description() {
         let url = URL(string: "http://amazon.in")!
         XCTAssertEqual(url.description, "http://amazon.in")
+        var urlComponents = URLComponents()
+        urlComponents.port = 8080
+        urlComponents.host = "amazon.in"
+        urlComponents.password = "abcd"
+        let relativeURL = urlComponents.url(relativeTo: url)
+        XCTAssertEqual(relativeURL?.description, "//:abcd@amazon.in:8080 -- http://amazon.in")
     }
 }
     
