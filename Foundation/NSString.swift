@@ -1479,36 +1479,6 @@ extension String : _NSBridgeable, _CFBridgeable {
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
 
-#if !(os(OSX) || os(iOS))
-extension String {
-    public func hasPrefix(_ prefix: String) -> Bool {
-        if prefix.isEmpty {
-            return true
-        }
-
-        let cfstring = self._cfObject
-        let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(
-            kCFCompareAnchored | kCFCompareNonliteral)
-        return CFStringFindWithOptions(cfstring, prefix._cfObject,
-                                   range, opts, nil)
-    }
-    
-    public func hasSuffix(_ suffix: String) -> Bool {
-        if suffix.isEmpty {
-            return true
-        }
-
-        let cfstring = self._cfObject
-        let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(
-            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
-        return CFStringFindWithOptions(cfstring, suffix._cfObject,
-                                   range, opts, nil)
-    }
-}
-#endif
-
 extension NSString : _StructTypeBridgeable {
     public typealias _StructType = String
     
