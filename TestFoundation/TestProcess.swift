@@ -45,7 +45,7 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "exit 0"]
         
         process.launch()
@@ -58,7 +58,7 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "exit 1"]
 
         process.launch()
@@ -71,7 +71,7 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "exit 100"]
         
         process.launch()
@@ -84,7 +84,7 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "sleep 2"]
         
         process.launch()
@@ -97,7 +97,7 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "sleep 2; exit 1"]
         
         process.launch()
@@ -109,7 +109,7 @@ class TestProcess : XCTestCase {
     func test_terminationReason_uncaughtSignal() {
         let process = Process()
 
-        process.launchPath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: "/bin/bash")
         process.arguments = ["-c", "kill -TERM $$"]
 
         process.launch()
@@ -121,7 +121,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdin() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
+        process.executableURL = URL(fileURLWithPath: "/bin/cat")
 
         let outputPipe = Pipe()
         process.standardOutput = outputPipe
@@ -150,7 +150,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdout() {
         let process = Process()
 
-        process.launchPath = "/usr/bin/which"
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
         process.arguments = ["which"]
 
         let pipe = Pipe()
@@ -171,7 +171,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stderr() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
+        process.executableURL = URL(fileURLWithPath: "/bin/cat")
         process.arguments = ["invalid_file_name"]
 
         let errorPipe = Pipe()
@@ -193,7 +193,7 @@ class TestProcess : XCTestCase {
     func test_pipe_stdout_and_stderr_same_pipe() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
+        process.executableURL = URL(fileURLWithPath: "/bin/cat")
         process.arguments = ["invalid_file_name"]
 
         let pipe = Pipe()
@@ -223,7 +223,7 @@ class TestProcess : XCTestCase {
     func test_file_stdout() {
         let process = Process()
 
-        process.launchPath = "/usr/bin/which"
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
         process.arguments = ["which"]
 
         mkstemp(template: "TestProcess.XXXXXX") { handle in
@@ -314,7 +314,8 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     let process = Process()
 
     var arguments = arguments
-    process.launchPath = arguments.removeFirst()
+
+    process.executableURL = URL(fileURLWithPath: arguments.removeFirst())
     process.arguments = arguments
     // Darwin Foundation doesnt allow .environment to be set to nil although the documentation
     // says it is an optional. https://developer.apple.com/documentation/foundation/process/1409412-environment
@@ -323,7 +324,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     }
 
     if let directoryPath = currentDirectoryPath {
-        process.currentDirectoryPath = directoryPath
+        process.currentDirectoryURL = URL(fileURLWithPath: directoryPath)
     }
 
     let stdoutPipe = Pipe()

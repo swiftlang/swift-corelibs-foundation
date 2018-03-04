@@ -164,12 +164,39 @@ open class Process: NSObject {
     
     }
     
-    // these methods can only be set before a launch
-    open var launchPath: String?
-    open var arguments: [String]?
-    open var environment: [String : String]? // if not set, use current
+    @available(*, deprecated)
+    open var launchPath: String? {
+        set {
+            guard let newValue = newValue else {
+                self.executableURL = nil
+                return
+            }
+            
+            self.executableURL = URL(fileURLWithPath: newValue)
+        }
+        
+        get {
+            return self.executableURL?.path
+        }
+    }
     
-    open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
+    @available(*, deprecated)
+    open var currentDirectoryPath: String {
+        set {
+            self.currentDirectoryURL = URL(fileURLWithPath: newValue)
+        }
+        
+        get {
+            return self.currentDirectoryURL.path
+        }
+    }
+
+    // these methods can only be set before a launch
+    open var arguments: [String]?
+    open var executableURL: URL?
+    open var currentDirectoryURL: URL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+
+    open var environment: [String : String]? // if not set, use current
     
     // standard I/O channels; could be either a FileHandle or a Pipe
     open var standardInput: Any? {
@@ -209,7 +236,7 @@ open class Process: NSObject {
         
         // Ensure that the launch path is set
         
-        guard let launchPath = self.launchPath else {
+        guard let launchPath = self.executableURL?.path else {
             fatalError()
         }
         
@@ -389,7 +416,7 @@ open class Process: NSObject {
 
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
-        if !fileManager.changeCurrentDirectoryPath(currentDirectoryPath) {
+        if !fileManager.changeCurrentDirectoryPath(currentDirectoryURL.path) {
             // Foundation throws an NSException when changing the working directory fails,
             // and unfortunately launch() is not marked `throws`, so we get away with a
             // fatalError.
@@ -485,7 +512,7 @@ extension Process {
     // convenience; create and launch
     open class func launchedProcess(launchPath path: String, arguments: [String]) -> Process {
         let process = Process()
-        process.launchPath = path
+        process.executableURL = URL(fileURLWithPath: path)
         process.arguments = arguments
         process.launch()
     
