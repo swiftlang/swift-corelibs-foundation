@@ -45,7 +45,11 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        let executablePath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: executablePath)
+        
+        XCTAssertEqual(executablePath, process.launchPath)
+        
         process.arguments = ["-c", "exit 0"]
         
         process.launch()
@@ -53,7 +57,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
-    
+
     func test_exit1() {
         
         let process = Process()
@@ -277,7 +281,7 @@ class TestProcess : XCTestCase {
     func test_current_working_directory() {
         do {
             let previousWorkingDirectory = FileManager.default.currentDirectoryPath
-
+            
             // Darwin Foundation requires the full path to the executable (.launchPath)
             let (output, _) = try runTask(["/bin/bash", "-c", "pwd"], currentDirectoryPath: "/bin")
             XCTAssertEqual(output.trimmingCharacters(in: .newlines), "/bin")
