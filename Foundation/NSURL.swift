@@ -255,7 +255,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override var description: String {
-        return self.absoluteString
+        if self.relativeString != self.absoluteString {
+            return "\(self.relativeString) -- \(self.baseURL!)"
+        } else {
+            return self.absoluteString
+        }
     }
 
     deinit {
