@@ -483,8 +483,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         let lock = NSLock()
         
         getObjects(&objects, andKeys: &keys, count: count)
-        let iteration: (Int) -> Void = withoutActuallyEscaping(block) { (closure: @escaping (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) -> (Int) -> Void in
-            return { (idx) in
+        withoutActuallyEscaping(block) { (closure: @escaping (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) -> (Int) -> Void in
+            let iteration: (Int) -> Void = { (idx) in
                 lock.lock()
                 var stop = sharedStop
                 lock.unlock()
@@ -499,13 +499,13 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                     return
                 }
             }
-        }
-        
-        if opts.contains(.concurrent) {
-            DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
-        } else {
-            for idx in 0..<count {
-                iteration(idx)
+
+            if opts.contains(.concurrent) {
+                DispatchQueue.concurrentPerform(iterations: count, execute: iteration)
+            } else {
+                for idx in 0..<count {
+                    iteration(idx)
+                }
             }
         }
     }
