@@ -389,7 +389,7 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let lock = NSLock()
         let ranges = _ranges[startRangeIndex...endRangeIndex]
         let rangeSequence = (reverse ? AnyCollection(ranges.reversed()) : AnyCollection(ranges))
-        withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> (Int) -> Void in
+        withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> () in
             let iteration = { (rangeIdx) in
                 lock.lock()
                 var stop = ObjCBool(sharedStop)

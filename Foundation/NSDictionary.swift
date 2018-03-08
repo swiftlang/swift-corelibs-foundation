@@ -483,7 +483,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         let lock = NSLock()
         
         getObjects(&objects, andKeys: &keys, count: count)
-        withoutActuallyEscaping(block) { (closure: @escaping (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) -> (Int) -> Void in
+        withoutActuallyEscaping(block) { (closure: @escaping (Any, Any, UnsafeMutablePointer<ObjCBool>) -> Void) -> () in
             let iteration: (Int) -> Void = { (idx) in
                 lock.lock()
                 var stop = sharedStop
