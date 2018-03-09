@@ -107,6 +107,8 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_uuid_bvref", test_archive_uuid_byref),
             ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
             ("test_archive_unhashable", test_archive_unhashable),
+            ("test_archiveRootObject_String", test_archiveRootObject_String),
+            ("test_archiveRootObject_URLRequest()", test_archiveRootObject_URLRequest),
         ]
     }
 
@@ -345,4 +347,29 @@ class TestNSKeyedArchiver : XCTestCase {
             XCTFail("test_archive_unhashable, de-serialization error \(error)")
         }
     }
+
+    func test_archiveRootObject_String() {
+        let filePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        let result = NSKeyedArchiver.archiveRootObject("Hello", toFile: filePath)
+        XCTAssertTrue(result)
+        do {
+            try FileManager.default.removeItem(atPath: filePath)
+        } catch {
+            XCTFail("Failed to clean up file")
+        }
+    }
+
+    func test_archiveRootObject_URLRequest() {
+        let filePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        let url = URL(string: "http://swift.org")!
+        let request = URLRequest(url: url)._bridgeToObjectiveC()
+        let result = NSKeyedArchiver.archiveRootObject(request, toFile: filePath)
+        XCTAssertTrue(result)
+        do {
+            try FileManager.default.removeItem(atPath: filePath)
+        } catch {
+            XCTFail("Failed to clean up file")
+        }
+    }
+
 }
