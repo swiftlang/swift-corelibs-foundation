@@ -103,9 +103,22 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_groupingSeparator() {
+        let decFormatter1 = NumberFormatter()
+        XCTAssertEqual(decFormatter1.groupingSize, 0)
+        decFormatter1.numberStyle = .decimal
+        XCTAssertEqual(decFormatter1.groupingSize, 3)
+
+        let decFormatter2 = NumberFormatter()
+        XCTAssertEqual(decFormatter2.groupingSize, 0)
+        decFormatter2.groupingSize = 1
+        decFormatter2.numberStyle = .decimal
+        XCTAssertEqual(decFormatter2.groupingSize, 1)
+
         let numberFormatter = NumberFormatter()
         numberFormatter.usesGroupingSeparator = true
         numberFormatter.groupingSeparator = "_"
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        numberFormatter.groupingSize = 3
         let formattedString = numberFormatter.string(from: 42_000)
         XCTAssertEqual(formattedString, "42_000")
     }
@@ -198,14 +211,24 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_minimumIntegerDigits() {
+        let numberFormatter1 = NumberFormatter()
+        XCTAssertEqual(numberFormatter1.minimumIntegerDigits, 0)
+        numberFormatter1.minimumIntegerDigits = 3
+        numberFormatter1.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter1.minimumIntegerDigits, 3)
+
         let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
         numberFormatter.minimumIntegerDigits = 3
         var formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "000")
 
         numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 3)
         formattedString = numberFormatter.string(from: 0.1)
-        XCTAssertEqual(formattedString, "0.1")        
+        XCTAssertEqual(formattedString, "000.1")
     }
     
     func test_maximumIntegerDigits() {
@@ -233,6 +256,7 @@ class TestNumberFormatter: XCTestCase {
     
     func test_groupingSize() {
         let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
         numberFormatter.groupingSize = 4
         numberFormatter.groupingSeparator = "_"
         numberFormatter.usesGroupingSeparator = true
@@ -242,6 +266,7 @@ class TestNumberFormatter: XCTestCase {
     
     func test_secondaryGroupingSize() {
         let numberFormatter = NumberFormatter()
+        numberFormatter.groupingSize = 3
         numberFormatter.secondaryGroupingSize = 2
         numberFormatter.groupingSeparator = "_"
         numberFormatter.usesGroupingSeparator = true
@@ -471,7 +496,7 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.perMillSymbol, "‰")
         XCTAssertEqual(numberFormatter.exponentSymbol, "E")
         XCTAssertEqual(numberFormatter.groupingSeparator, ",")
-        XCTAssertEqual(numberFormatter.paddingCharacter, "*")
+        XCTAssertEqual(numberFormatter.paddingCharacter, " ")
     }
 }
 
