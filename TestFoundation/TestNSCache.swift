@@ -20,7 +20,7 @@ class TestNSCache : XCTestCase {
     static var allTests: [(String, (TestNSCache) -> () throws -> Void)] {
         return [
             ("test_setWithUnmutableKeys", test_setWithUnmutableKeys),
-            ("test_setWithMutableKeys", test_setWithMutableKeys),
+            // FIXME: https://bugs.swift.org/browse/SR-7161 ("test_setWithMutableKeys", test_setWithMutableKeys),
             ("test_costLimit", test_costLimit),
             ("test_countLimit", test_countLimit),
             ("test_hashableKey", test_hashableKey),
