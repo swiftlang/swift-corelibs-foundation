@@ -25,7 +25,8 @@ class TestNSDictionary : XCTestCase {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_ArrayConstruction", test_ArrayConstruction),
-            ("test_description", test_description),
+            // XFAIL test https://bugs.swift.org/browse/SR-7166
+            //("test_description", test_description),
             ("test_enumeration", test_enumeration),
             ("test_equality", test_equality),
             ("test_copying", test_copying),
