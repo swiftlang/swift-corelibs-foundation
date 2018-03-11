@@ -96,13 +96,12 @@ class TestLengthFormatter: XCTestCase {
     
     func test_stringFromValue() {
         formatter.unitStyle = Formatter.UnitStyle.long
-        //Commented out due to [SR-3391] which causes NumberFormatter to strip leading integer 0
-        //XCTAssertEqual(formatter.string(fromValue: 0.002, unit: LengthFormatter.Unit.millimeter),"0.002 millimeters")
+        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: LengthFormatter.Unit.millimeter),"0.002 millimeters")
         XCTAssertEqual(formatter.string(fromValue:0, unit:LengthFormatter.Unit.centimeter), "0 centimeters")
         
         formatter.unitStyle = Formatter.UnitStyle.short
         XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit:LengthFormatter.Unit.foot), "0′")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: LengthFormatter.Unit.inch), "2.4\"")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: LengthFormatter.Unit.inch), "2.4″")
         XCTAssertEqual(formatter.string(fromValue: 123456, unit: LengthFormatter.Unit.yard), "123,456yd")
         
         formatter.unitStyle = Formatter.UnitStyle.medium
