@@ -25,8 +25,7 @@ class TestNSDictionary : XCTestCase {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_ArrayConstruction", test_ArrayConstruction),
-            // XFAIL test https://bugs.swift.org/browse/SR-7166
-            //("test_description", test_description),
+            ("test_description", test_description),
             ("test_enumeration", test_enumeration),
             ("test_equality", test_equality),
             ("test_copying", test_copying),
@@ -47,7 +46,8 @@ class TestNSDictionary : XCTestCase {
 
     func test_description() {
         let d1: NSDictionary = [ "foo": "bar", "baz": "qux"]
-        XCTAssertEqual(d1.description, "{\n    baz = qux;\n    foo = bar;\n}")
+        XCTAssertTrue(d1.description == "{\n    baz = qux;\n    foo = bar;\n}" ||
+                      d1.description == "{\n    foo = bar;\n    baz = qux;\n}")
         let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]]
         XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
     }
