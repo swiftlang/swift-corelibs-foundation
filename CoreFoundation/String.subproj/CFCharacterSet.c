@@ -1401,6 +1401,7 @@ Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset,
     
     length = CFStringGetLength(theString);
     if (length < __kCFStringCharSetMax) {
+        bool csetIsReady = true;
         if (!__CFCSetGenericInit(cset, __kCFCharSetClassString, false)) return false;
         __CFCSetPutStringBuffer(cset, (UniChar *)CFAllocatorAllocate(kCFAllocatorSystemDefault, __kCFStringCharSetMax * sizeof(UniChar), 0));
         __CFCSetPutStringLength(cset, length);
@@ -1417,15 +1418,14 @@ Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset,
             if ((*characters < 0xDC00UL) && (*(charactersLimit - 1) > 0xDBFFUL)) { // might have surrogate chars
                 while (characters < charactersLimit) {
                     if (CFStringIsSurrogateHighCharacter(*characters) || CFStringIsSurrogateLowCharacter(*characters)) {
-                        CFRelease(cset);
-                        cset = NULL;
+                        csetIsReady = false;
                         break;
                     }
                     ++characters;
                 }
             }
         }
-        if (NULL != cset) return cset;
+        if (csetIsReady) return true;
     }
     
     if (!_CFCharacterSetInitMutable(cset)) return false;
