@@ -369,8 +369,11 @@ class TestCharacterSet : XCTestCase {
 
     func test_SR5971() {
         let problematicString = "\u{10000}"
-        let charset = CharacterSet(charactersIn:problematicString) // this should not crash
-        XCTAssertTrue(charset.contains("\u{10000}"))
+        let charset1 = CharacterSet(charactersIn:problematicString) // this should not crash
+        XCTAssertTrue(charset1.contains("\u{10000}"))
+        // Case from SR-3215
+        let charset2 = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&+")
+        XCTAssertTrue(charset2.contains("+"))
     }
     
 }
