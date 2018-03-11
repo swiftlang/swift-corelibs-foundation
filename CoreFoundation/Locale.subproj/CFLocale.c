@@ -1100,7 +1100,7 @@ static CFArrayRef _CFLocaleCopyPreferredLanguagesFromPrefs(CFArrayRef languagesA
 #endif
 
 CFArrayRef CFLocaleCopyPreferredLanguages(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     CFArrayRef languagesArray = (CFArrayRef)CFPreferencesCopyAppValue(CFSTR("AppleLanguages"), kCFPreferencesCurrentApplication);
     CFArrayRef result = _CFLocaleCopyPreferredLanguagesFromPrefs(languagesArray);
     if (languagesArray) CFRelease(languagesArray);

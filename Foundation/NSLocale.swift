@@ -84,11 +84,11 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
 }
 
 extension NSLocale {
-    open class var current: Locale {
+    open static var current: Locale {
         return CFLocaleCopyCurrent()._swiftObject
     }
     
-    open class var system: Locale {
+    open static var system: Locale {
         return CFLocaleGetSystem()._swiftObject
     }
 }
@@ -98,7 +98,7 @@ extension NSLocale {
         return object(forKey: .identifier) as! String
     }
     
-    open class var availableLocaleIdentifiers: [String] {
+    open static var availableLocaleIdentifiers: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyAvailableLocaleIdentifiers()._nsObject {
             identifiers.append(obj as! String)
@@ -106,47 +106,47 @@ extension NSLocale {
         return identifiers
     }
     
-    open class var isoLanguageCodes: [String] {
+    open static var isoLanguageCodes: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyISOLanguageCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }
     
-    open class var isoCountryCodes: [String] {
+    open static var isoCountryCodes: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyISOCountryCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }
     
-    open class var isoCurrencyCodes: [String] {
+    open static var isoCurrencyCodes: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }
     
-    open class var commonISOCurrencyCodes: [String] {
+    open static var commonISOCurrencyCodes: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyCommonISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }
     
-    open class var preferredLanguages: [String] {
+    open static var preferredLanguages: [String] {
         var identifiers = Array<String>()
         for obj in CFLocaleCopyPreferredLanguages()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
+            identifiers.append(obj as! String)
         }
         return identifiers
     }
     
-    open class func components(fromLocaleIdentifier string: String) -> [String : String] {
+    open static func components(fromLocaleIdentifier string: String) -> [String : String] {
         var comps = Dictionary<String, String>()
         let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
         values.enumerateKeysAndObjects(options: []) { (k, v, stop) in
@@ -157,27 +157,27 @@ extension NSLocale {
         return comps
     }
     
-    open class func localeIdentifier(fromComponents dict: [String : String]) -> String {
+    open static func localeIdentifier(fromComponents dict: [String : String]) -> String {
         return CFLocaleCreateLocaleIdentifierFromComponents(kCFAllocatorSystemDefault, dict._cfObject)._swiftObject
     }
     
-    open class func canonicalLocaleIdentifier(from string: String) -> String {
+    open static func canonicalLocaleIdentifier(from string: String) -> String {
         return CFLocaleCreateCanonicalLocaleIdentifierFromString(kCFAllocatorSystemDefault, string._cfObject)._swiftObject
     }
     
-    open class func canonicalLanguageIdentifier(from string: String) -> String {
+    open static func canonicalLanguageIdentifier(from string: String) -> String {
         return CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorSystemDefault, string._cfObject)._swiftObject
     }
     
-    open class func localeIdentifier(fromWindowsLocaleCode lcid: UInt32) -> String? {
+    open static func localeIdentifier(fromWindowsLocaleCode lcid: UInt32) -> String? {
         return CFLocaleCreateLocaleIdentifierFromWindowsLocaleCode(kCFAllocatorSystemDefault, lcid)._swiftObject
     }
     
-    open class func windowsLocaleCode(fromLocaleIdentifier localeIdentifier: String) -> UInt32 {
+    open static func windowsLocaleCode(fromLocaleIdentifier localeIdentifier: String) -> UInt32 {
         return CFLocaleGetWindowsLocaleCodeFromLocaleIdentifier(localeIdentifier._cfObject)
     }
     
-    open class func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
+    open static func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageCharacterDirection(isoLangCode._cfObject)
 #if os(OSX) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
@@ -186,7 +186,7 @@ extension NSLocale {
 #endif
     }
     
-    open class func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
+    open static func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageLineDirection(isoLangCode._cfObject)
 #if os(OSX) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
