@@ -389,8 +389,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let lock = NSLock()
         let ranges = _ranges[startRangeIndex...endRangeIndex]
         let rangeSequence = (reverse ? AnyCollection(ranges.reversed()) : AnyCollection(ranges))
-        let iteration = withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> (Int) -> Void in
-            return { (rangeIdx) in
+        withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> () in
+            let iteration : (Int) -> Void = { (rangeIdx) in
                 lock.lock()
                 var stop = ObjCBool(sharedStop)
                 lock.unlock()
@@ -431,13 +431,12 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     }
                 }
             }
-        }
-        
-        if opts.contains(.concurrent) {
-            DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
-        } else {
-            for idx in 0..<Int(rangeSequence.count) {
-                iteration(idx)
+            if opts.contains(.concurrent) {
+                DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
+            } else {
+                for idx in 0..<Int(rangeSequence.count) {
+                    iteration(idx)
+                }
             }
         }
         
