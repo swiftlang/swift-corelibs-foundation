@@ -19,14 +19,14 @@ class TestNSLocale : XCTestCase {
     static var allTests: [(String, (TestNSLocale) -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
-            ("test_Identifier", test_Identifier),
+            ("test_identifier", test_identifier),
             ("test_copy", test_copy),
-            ("test_availableIdentifiers", test_availableIdentifiers),
+            ("test_staticProperties", test_staticProperties),
             ("test_localeProperties", test_localeProperties),
         ]
     }
 
-    func test_Identifier() {
+    func test_identifier() {
         // Current locale identifier should not be empty
         // Or things like NumberFormatter spellOut style won't work
         XCTAssertFalse(Locale.current.identifier.isEmpty)
@@ -110,8 +110,13 @@ class TestNSLocale : XCTestCase {
         XCTAssertTrue(locale == localeCopy)
     }
 
-     func test_availableIdentifiers() {
+    func test_staticProperties() {
         XCTAssertNoThrow(Locale.availableIdentifiers)
+        XCTAssertNoThrow(Locale.preferredLanguages)
+        XCTAssertNoThrow(Locale.commonISOCurrencyCodes)
+        XCTAssertNoThrow(Locale.isoCurrencyCodes)
+        XCTAssertNoThrow(Locale.isoRegionCodes)
+        XCTAssertNoThrow(Locale.isoLanguageCodes)
     }
  
     func test_localeProperties(){
