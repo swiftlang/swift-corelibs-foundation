@@ -45,11 +45,15 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "exit 0"]
+        let executablePath = "/bin/bash"
+        process.executableURL = URL(fileURLWithPath: executablePath)
         
+        XCTAssertEqual(executablePath, process.launchPath)
+        
+        process.arguments = ["-c", "exit 0"]
         process.launch()
         process.waitUntilExit()
+        
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
