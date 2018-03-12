@@ -114,6 +114,7 @@ open class Process: NSObject {
             static var done = false
             static let lock = NSLock()
         }
+        
         Once.lock.synchronized {
             if !Once.done {
                 let thread = Thread {
@@ -164,26 +165,52 @@ open class Process: NSObject {
     
     }
     
-    // these methods can only be set before a launch
+    // These methods can only be set before a launch.
+    
     open var launchPath: String?
     open var arguments: [String]?
     open var environment: [String : String]? // if not set, use current
     
     open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
     
-    // standard I/O channels; could be either a FileHandle or a Pipe
+    open var executableURL: URL? {
+        get {
+            guard let launchPath = self.launchPath else {
+                return nil
+            }
+            
+            return URL(fileURLWithPath: launchPath)
+        }
+        set {
+            self.launchPath = newValue?.path
+        }
+    }
+    
+    open var currentDirectoryURL: URL {
+        get {
+            return URL(fileURLWithPath: self.currentDirectoryPath)
+        }
+        set {
+            self.currentDirectoryPath = newValue.path
+        }
+    }
+    
+    // Standard I/O channels; could be either a FileHandle or a Pipe
+    
     open var standardInput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either Pipe or FileHandle")
         }
     }
+    
     open var standardOutput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardOutput must be either Pipe or FileHandle")
         }
     }
+    
     open var standardError: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
@@ -198,7 +225,8 @@ open class Process: NSObject {
     
     private var processLaunchedCondition = NSCondition()
     
-    // actions
+    // Actions
+    
     open func launch() {
         
         self.processLaunchedCondition.lock()
