@@ -1156,7 +1156,7 @@ extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, Cust
             (label: "kind", value: _kindDescription),
             (label: "locale", value: locale as Any),
             (label: "timeZone", value: timeZone),
-            (label: "firstWeekDay", value: firstWeekday),
+            (label: "firstWeekday", value: firstWeekday),
             (label: "minimumDaysInFirstWeek", value: minimumDaysInFirstWeek)
         ]
         return Mirror(self, children: children, displayStyle: Mirror.DisplayStyle.struct)
