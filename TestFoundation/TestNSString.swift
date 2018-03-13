@@ -1328,8 +1328,7 @@ let comparisonTests: [ComparisonTest] = [
 
     // U+1F1E7 REGIONAL INDICATOR SYMBOL LETTER B
     // \u{1F1E7}\u{1F1E7} Flag of Barbados
-    ComparisonTest("\u{1F1E7}", "\u{1F1E7}\u{1F1E7}",
-        expectedFailure: "https://bugs.swift.org/browse/SR-367"),
+    ComparisonTest("\u{1F1E7}", "\u{1F1E7}\u{1F1E7}"),
 
     // Test that Unicode collation is performed in deterministic mode.
     //
@@ -1344,8 +1343,7 @@ let comparisonTests: [ComparisonTest] = [
     //
     // U+0301 and U+0954 don't decompose in the canonical decomposition mapping.
     // U+0341 has a canonical decomposition mapping of U+0301.
-    ComparisonTest("\u{0301}", "\u{0341}",
-        expectedFailure: "https://bugs.swift.org/browse/SR-243"),
+    ComparisonTest("\u{0301}", "\u{0341}"),
     ComparisonTest("\u{0301}", "\u{0954}"),
     ComparisonTest("\u{0341}", "\u{0954}"),
 ]
