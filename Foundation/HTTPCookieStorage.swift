@@ -48,13 +48,13 @@ open class HTTPCookieStorage: NSObject {
     private var _allCookies: [String: HTTPCookie]
     private var allCookies: [String: HTTPCookie] {
         get {
-            if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+            if #available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
                 dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
             }
             return self._allCookies
         }
         set {
-            if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+            if #available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
                 dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
             }
             self._allCookies = newValue
@@ -200,7 +200,7 @@ open class HTTPCookieStorage: NSObject {
     }
 
     private func updatePersistentStore() {
-        if #available(OSX 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
+        if #available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
             dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
         }
 

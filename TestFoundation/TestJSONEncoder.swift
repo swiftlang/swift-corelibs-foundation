@@ -108,7 +108,7 @@ class TestJSONEncoder : XCTestCase {
         let expectedJSON = "{\"email\":\"appleseed@apple.com\",\"name\":\"Johnny Appleseed\"}".data(using: .utf8)!
         let person = Person.testValue
 #if os(OSX) || DARWIN_COMPATIBILITY_TESTS
-        if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+        if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
             _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
         }
 #else
@@ -120,7 +120,7 @@ class TestJSONEncoder : XCTestCase {
         let expectedJSON = "{\n  \"email\" : \"appleseed@apple.com\",\n  \"name\" : \"Johnny Appleseed\"\n}".data(using: .utf8)!
         let person = Person.testValue
 #if os(OSX) || DARWIN_COMPATIBILITY_TESTS
-        if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+        if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
             _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
         }
 #else
