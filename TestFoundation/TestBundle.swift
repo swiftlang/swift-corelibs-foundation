@@ -31,6 +31,11 @@ internal func testBundle() -> Bundle {
     #endif
 }
 
+internal func testBundleName() -> String {
+    // Either 'TestFoundation' or 'DarwinCompatibilityTests'
+    return testBundle().infoDictionary!["CFBundleName"] as! String
+}
+
 class BundlePlayground {
     enum Layout {
         case flat

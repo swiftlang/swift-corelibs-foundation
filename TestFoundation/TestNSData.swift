@@ -4110,7 +4110,6 @@ extension TestNSData {
     }
 
     func test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
-#if !DARWIN_COMPATIBILITY_TESTS // Crashes on native Darwin
         var base = Data(referencing: NSData(bytes: "hello world", length: 11))
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<6]
@@ -4118,7 +4117,6 @@ extension TestNSData {
             ptr.advanced(by: 1).pointee = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
-#endif
     }
 
     func test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
@@ -4130,7 +4128,6 @@ extension TestNSData {
     }
 
     func test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
-#if !DARWIN_COMPATIBILITY_TESTS // Crashes on native Darwin
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<6]
@@ -4138,7 +4135,6 @@ extension TestNSData {
             ptr.advanced(by: 1).pointee = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
-#endif
     }
 }
 
