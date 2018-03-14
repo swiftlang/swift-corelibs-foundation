@@ -171,7 +171,35 @@ open class FileManager : NSObject {
             }
         }
     }
-    
+
+    private func _contentsOfDir(atPath path: String, _ closure: (String, Int32) throws -> () ) throws {
+        let fsRep = fileSystemRepresentation(withPath: path)
+        defer { fsRep.deallocate() }
+
+        guard let dir = opendir(fsRep) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
+        }
+        defer { closedir(dir) }
+
+        var entry = dirent()
+        var result: UnsafeMutablePointer<dirent>? = nil
+
+        while readdir_r(dir, &entry, &result) == 0 {
+            guard result != nil else {
+                return
+            }
+            let length = Int(_direntNameLength(&entry))
+            let entryName = withUnsafePointer(to: &entry.d_name) { (ptr) -> String in
+                let namePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
+                return string(withFileSystemRepresentation: namePtr, length: length)
+            }
+            if entryName != "." && entryName != ".." {
+                let entryType = Int32(entry.d_type)
+                try closure(entryName, entryType)
+            }
+        }
+    }
+
     /**
      Performs a shallow search of the specified directory and returns the paths of any contained items.
      
@@ -186,28 +214,11 @@ open class FileManager : NSObject {
      - Returns: An array of String each of which identifies a file, directory, or symbolic link contained in `path`. The order of the files returned is undefined.
      */
     open func contentsOfDirectory(atPath path: String) throws -> [String] {
-        var contents : [String] = [String]()
-        
-        let dir = opendir(path)
-        
-        if dir == nil {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
-        }
-        
-        defer {
-            closedir(dir!)
-        }
+        var contents: [String] = []
 
-        while let entry = readdir(dir!) {
-            let entryName = withUnsafePointer(to: &entry.pointee.d_name) {
-                String(cString: UnsafeRawPointer($0).assumingMemoryBound(to: CChar.self))
-            }
-            // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
-            if entryName != "." && entryName != ".." {
-                contents.append(entryName)
-            }
-        }
-        
+        try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
+            contents.append(entryName)
+        })
         return contents
     }
     
@@ -225,48 +236,16 @@ open class FileManager : NSObject {
     - Returns: An array of NSString objects, each of which contains the path of an item in the directory specified by path. If path is a symbolic link, this method traverses the link. This method returns nil if it cannot retrieve the device of the linked-to file.
     */
     open func subpathsOfDirectory(atPath path: String) throws -> [String] {
-        var contents : [String] = [String]()
-        
-        let dir = opendir(path)
-        
-        if dir == nil {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
-        }
-        
-        defer {
-            closedir(dir!)
-        }
-        
-        var entry = readdir(dir!)
-        
-        while entry != nil {
-            let entryName = withUnsafePointer(to: &entry!.pointee.d_name) {
-                String(cString: UnsafeRawPointer($0).assumingMemoryBound(to: CChar.self))
-            }
-            // TODO: `entryName` should be limited in length to `entry.memory.d_namlen`.
-            if entryName != "." && entryName != ".." {
-                contents.append(entryName)
-                    
-                let entryType = withUnsafePointer(to: &entry!.pointee.d_type) { (ptr) -> Int32 in
-                    return Int32(ptr.pointee)
-                }
-                #if os(OSX) || os(iOS)
-                    let tempEntryType = entryType
-                #elseif os(Linux) || os(Android) || CYGWIN
-                    let tempEntryType = Int32(entryType)
-                #endif
+        var contents: [String] = []
 
-                if tempEntryType == Int32(DT_DIR) {
-                    let subPath: String = path + "/" + entryName
-
-                    let entries =  try subpathsOfDirectory(atPath: subPath)
-                    contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
-                }
+        try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
+            contents.append(entryName)
+            if entryType == Int32(DT_DIR) {
+                let subPath: String = path + "/" + entryName
+                let entries = try subpathsOfDirectory(atPath: subPath)
+                contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
             }
-            
-            entry = readdir(dir!)
-        }
-        
+        })
         return contents
     }
     
