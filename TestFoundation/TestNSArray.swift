@@ -722,7 +722,7 @@ class TestNSArray : XCTestCase {
             let url = URL(fileURLWithPath: testFile)
             let data2: NSArray
 #if DARWIN_COMPATIBILITY_TESTS
-            if #available(OSX 10.13, *) {
+            if #available(macOS 10.13, *) {
                 try data.write(to: url)
                 data2 = try NSArray(contentsOf: url, error: ())
             } else {
