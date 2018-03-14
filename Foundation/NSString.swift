@@ -273,7 +273,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
-        _storage = String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length))
+        _storage = String.init(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
     }
     
     public required convenience init(unicodeScalarLiteral value: StaticString) {
@@ -1166,16 +1166,8 @@ extension NSString {
     }
     
     public convenience init?(utf8String nullTerminatedCString: UnsafePointer<Int8>) {
-        let count = Int(strlen(nullTerminatedCString))
-        if let str = nullTerminatedCString.withMemoryRebound(to: UInt8.self, capacity: count, {
-            let buffer = UnsafeBufferPointer<UInt8>(start: $0, count: count)
-            return String._fromCodeUnitSequence(UTF8.self, input: buffer)
-            }) as String?
-        {
-            self.init(str)
-        } else {
-            return nil
-        }
+        guard let str = String(validatingUTF8: nullTerminatedCString) else { return nil }
+        self.init(str)
     }
     
     public convenience init(format: String, arguments argList: CVaListPointer) {
@@ -1357,12 +1349,7 @@ open class NSMutableString : NSString {
     }
     
     public required init(stringLiteral value: StaticString) {
-        if value.hasPointerRepresentation {
-            super.init(String._fromWellFormedCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: value.utf8Start, count: Int(value.utf8CodeUnitCount))))
-        } else {
-            var uintValue = value.unicodeScalar.value
-            super.init(String._fromWellFormedCodeUnitSequence(UTF32.self, input: UnsafeBufferPointer(start: &uintValue, count: 1)))
-        }
+        super.init(value.description)
     }
 
     public required init(string aString: String) {
@@ -1370,10 +1357,11 @@ open class NSMutableString : NSString {
     }
     
     internal func appendCharacters(_ characters: UnsafePointer<unichar>, length: Int) {
+        let str = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
         if type(of: self) == NSMutableString.self {
-            _storage.append(String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
+            _storage.append(str)
         } else {
-            replaceCharacters(in: NSRange(location: self.length, length: 0), with: String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
+            replaceCharacters(in: NSRange(location: self.length, length: 0), with: str)
         }
     }
     

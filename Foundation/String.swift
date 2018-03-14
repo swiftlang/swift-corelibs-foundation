@@ -36,21 +36,21 @@ extension String : _ObjectTypeBridgeable {
                 let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
                 CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
                 
-                let str = String._fromCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: buffer, count: length))
+                let str = String(decoding: UnsafeBufferPointer(start: buffer, count: length), as: UTF16.self)
                 buffer.deinitialize(count: length)
                 buffer.deallocate()
                 result = str
             }
         } else if type(of: source) == _NSCFConstantString.self {
             let conststr = unsafeDowncast(source, to: _NSCFConstantString.self)
-            let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)))
+            let str = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
             result = str
         } else {
             let len = source.length
             var characters = [unichar](repeating: 0, count: len)
             result = characters.withUnsafeMutableBufferPointer() { (buffer: inout UnsafeMutableBufferPointer<unichar>) -> String? in
                 source.getCharacters(buffer.baseAddress!, range: NSRange(location: 0, length: len))
-                return String._fromCodeUnitSequence(UTF16.self, input: buffer)
+                return String(decoding: buffer, as: UTF16.self)
             }
         }
         return result != nil
