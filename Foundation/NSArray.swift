@@ -664,7 +664,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         }
 
         return self.filter {
-            // The force unwrap will abort if the element is not a String but this behaviour matches Dawrin, which throws an exception.
+            // The force unwrap will abort if the element is not a String but this behaviour matches Darwin, which throws an exception.
             let filename = $0 as! String
             for ext in extensions {
                 if filename.hasSuffix(ext) && filename.count > ext.count {
