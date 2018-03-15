@@ -76,10 +76,11 @@ class TestNSOrderedSet : XCTestCase {
     }
 
     func test_Uniqueness() {
-        let set = NSOrderedSet(array: ["foo", "bar", "bar"])
-        XCTAssertEqual(set.count, 2)
+        let set = NSOrderedSet(array: ["foo", "bar", "bar", "baz", "foo"])
+        XCTAssertEqual(set.count, 3)
         XCTAssertEqual(set.object(at: 0) as? String, "foo")
         XCTAssertEqual(set.object(at: 1) as? String, "bar")
+        XCTAssertEqual(set.object(at: 2) as? String, "baz")
     }
 
     func test_reversedEnumeration() {
