@@ -10,7 +10,7 @@
 
 #if os(OSX) || os(iOS)
 import Darwin
-#elseif os(Linux) || CYGWIN
+#elseif os(Linux) || os(FreeBSD) || CYGWIN
 import Glibc
 #endif
 
@@ -86,9 +86,16 @@ open class Host: NSObject {
                 let family = ifa_addr.pointee.sa_family
                 if family == sa_family_t(AF_INET) || family == sa_family_t(AF_INET6) {
                     let sa_len: socklen_t = socklen_t((family == sa_family_t(AF_INET6)) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
+
+#if os(FreeBSD)
+                    if getnameinfo(ifa_addr, sa_len, address, Int(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
+                        _addresses.append(String(cString: address))
+                    }
+#else
                     if getnameinfo(ifa_addr, sa_len, address, socklen_t(NI_MAXHOST), nil, 0, NI_NUMERICHOST) == 0 {
                         _addresses.append(String(cString: address))
                     }
+#endif
                 }
             }
             ifa = ifaValue.ifa_next
@@ -117,7 +124,7 @@ open class Host: NSObject {
             }
             var hints = addrinfo()
             hints.ai_family = PF_UNSPEC
-#if os(OSX) || os(iOS) || os(Android)
+#if os(OSX) || os(iOS) || os(Android) || os(FreeBSD)
             hints.ai_socktype = SOCK_STREAM
 #else
             hints.ai_socktype = Int32(SOCK_STREAM.rawValue)
@@ -147,9 +154,15 @@ open class Host: NSObject {
                 }
                 let sa_len: socklen_t = socklen_t((family == AF_INET6) ? MemoryLayout<sockaddr_in6>.size : MemoryLayout<sockaddr_in>.size)
                 let lookupInfo = { (content: inout [String], flags: Int32) in
+#if os(FreeBSD)
+                    if getnameinfo(info.ai_addr, sa_len, host, Int(NI_MAXHOST), nil, 0, flags) == 0 {
+                        content.append(String(cString: host))
+                    }
+#else
                     if getnameinfo(info.ai_addr, sa_len, host, socklen_t(NI_MAXHOST), nil, 0, flags) == 0 {
                         content.append(String(cString: host))
                     }
+#endif
                 }
                 lookupInfo(&_addresses, NI_NUMERICHOST)
                 lookupInfo(&_names, NI_NAMEREQD)

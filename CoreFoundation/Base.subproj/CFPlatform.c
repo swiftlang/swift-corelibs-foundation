@@ -155,7 +155,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <unistd.h>
 #if __has_include(<syscall.h>)
 #include <syscall.h>
@@ -163,8 +163,18 @@ const char *_CFProcessPath(void) {
 #include <sys/syscall.h>
 #endif
 
+#if DEPLOYMENT_TARGET_FREEBSD
+#include <pthread_np.h>             // for _CFIsMainThread
+#endif
+
 Boolean _CFIsMainThread(void) {
+#if DEPLOYMENT_TARGET_LINUX
     return syscall(SYS_gettid) == getpid();
+#elif DEPLOYMENT_TARGET_FREEBSD
+	return pthread_main_np() != 0;
+#else
+#error "_CFIsMainThread not supported for this platform"
+#endif
 }
 
 const char *_CFProcessPath(void) {
@@ -624,7 +634,7 @@ static void __CFTSDSetSpecific(void *arg) {
 static void *__CFTSDGetSpecific() {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getspecific(__CFTSDIndexKey);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
     return TlsGetValue(__CFTSDIndexKey);
@@ -1348,6 +1358,11 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Non
     return EINVAL;
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_setname_np(thread, name);
+#elif DEPLOYMENT_TARGET_FREEBSD
+	pthread_set_name_np(thread, name);
+	return 0;
+#else
+	return -1;
 #endif
 }
 
@@ -1357,6 +1372,10 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length) {
 #elif DEPLOYMENT_TARGET_ANDROID
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
+#elif DEPLOYMENT_TARGET_FREEBSD
+	// Weirdly enough, FreeBSD has a pthread_set_name_np function
+	// but does not provide a get_name equivalent.
+	return -1;;
 #endif
     return -1;
 }
@@ -1366,6 +1385,8 @@ CF_EXPORT char **_CFEnviron(void) {
     return *_NSGetEnviron();
 #elif DEPLOYMENT_TARGET_WINDOWS
     return _environ;
+#elif DEPLOYMENT_TARGET_FREEBSD
+	return NULL;
 #else
     return environ;
 #endif

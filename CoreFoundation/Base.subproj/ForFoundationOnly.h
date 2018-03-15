@@ -13,6 +13,13 @@
 #if !defined(__COREFOUNDATION_FORFOUNDATIONONLY__)
 #define __COREFOUNDATION_FORFOUNDATIONONLY__ 1
 
+/// FreeBSD requires this declaration on the top. Some other include below this
+/// is including another header that declares mode_t and causes problems with
+/// module importing with the compiler.
+#if DEPLOYMENT_TARGET_FREEBSD
+#include <libutil.h>
+#endif
+
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFArray.h>

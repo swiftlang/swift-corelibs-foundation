@@ -14,7 +14,7 @@ import CoreFoundation
 // This mimics the behavior of the swift sdk overlay on Darwin
 #if os(OSX) || os(iOS)
 @_exported import Darwin
-#elseif os(Linux) || os(Android) || CYGWIN
+#elseif os(Linux) || os(FreeBSD) || os(Android) || CYGWIN
 @_exported import Glibc
 #endif
 

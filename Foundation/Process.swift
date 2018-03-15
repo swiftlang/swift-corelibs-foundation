@@ -12,7 +12,7 @@ import CoreFoundation
 
 #if os(OSX) || os(iOS)
     import Darwin
-#elseif os(Linux) || CYGWIN
+#elseif os(Linux) || os(FreeBSD) || CYGWIN
     import Glibc
 #endif
 
@@ -257,7 +257,7 @@ open class Process: NSObject {
         }
 
         var taskSocketPair : [Int32] = [0, 0]
-#if os(OSX) || os(iOS)
+#if os(OSX) || os(iOS) || os(FreeBSD)
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
 #else
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
@@ -336,7 +336,7 @@ open class Process: NSObject {
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
         // file_actions
-        #if os(OSX) || os(iOS) || CYGWIN
+        #if os(OSX) || os(iOS) || CYGWIN || os(FreeBSD)
             var fileActions: posix_spawn_file_actions_t? = nil
         #else
             var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
