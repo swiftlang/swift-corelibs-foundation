@@ -173,7 +173,7 @@ open class LengthFormatter : Formatter {
                                                    .centimeter:UnitLength.centimeters.symbol,
                                                    .meter:UnitLength.meters.symbol,
                                                    .kilometer:UnitLength.kilometers.symbol,
-                                                   .inch:"\"",
+                                                   .inch:"″",
                                                    .foot:"′",
                                                    .yard:UnitLength.yards.symbol,
                                                    .mile:UnitLength.miles.symbol]
