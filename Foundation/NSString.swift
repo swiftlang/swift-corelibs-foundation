@@ -273,7 +273,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
-        _storage = String.init(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
+        _storage = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
     }
     
     public required convenience init(unicodeScalarLiteral value: StaticString) {
