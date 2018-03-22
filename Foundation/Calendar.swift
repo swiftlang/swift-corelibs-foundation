@@ -30,7 +30,7 @@ internal func __NSCalendarInit(_ identifier: String) -> NSCalendar? {
 public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxing {
     public typealias ReferenceType = NSCalendar
     
-    internal var _autoupdating: Bool
+    private var _autoupdating: Bool
     internal var _handle: _MutableHandle<NSCalendar>
     
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
