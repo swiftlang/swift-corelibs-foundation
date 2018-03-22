@@ -301,7 +301,7 @@ open class UserDefaults: NSObject {
         
         let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
         
-        if registeredDefaultsIfAllowed.count == 0 {
+        if registeredDefaultsIfAllowed.isEmpty {
             return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
         } else {
             var allDefaults = registeredDefaultsIfAllowed
