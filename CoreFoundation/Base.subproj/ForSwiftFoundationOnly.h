@@ -27,6 +27,7 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
+#include <dirent.h>
 
 #if __has_include(<execinfo.h>)
 #include <execinfo.h>
@@ -399,6 +400,13 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
     return true;
 }
 
+static inline int _direntNameLength(struct dirent *entry) {
+#ifdef _D_EXACT_NAMLEN  // defined on Linux
+    return _D_EXACT_NAMLEN(entry);
+#else
+    return entry->d_namlen;
+#endif
+}
 
 _CF_EXPORT_SCOPE_END
 
