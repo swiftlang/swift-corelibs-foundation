@@ -35,7 +35,8 @@ class TestURLSession : LoopbackServerTest {
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
-            ("test_httpRedirection", test_httpRedirection),
+            ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
+            //("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath), /* temporarily disabled. Needs HTTPServer rework */
             //("test_httpRedirectionTimeout", test_httpRedirectionTimeout), /* temporarily disabled (https://bugs.swift.org/browse/SR-5751) */
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
@@ -325,8 +326,16 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 30)
     }
     
-    func test_httpRedirection() {
+    func test_httpRedirectionWithCompleteRelativePath() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+    }
+
+    func test_httpRedirectionWithInCompleteRelativePath() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedKingdom"
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
         d.run(with: url)

@@ -337,6 +337,8 @@ public class TestURLSessionServer {
                                      "Italy": "Rome",
                                      "USA": "Washington, D.C.",
                                      "UnitedStates": "USA",
+                                     "UnitedKingdom": "UK",
+                                     "UK": "London",
                                      "country.txt": "A country is a region that is identified as a distinct national entity in political geography"]
     let httpServer: _HTTPServer
     let startDelay: TimeInterval?
@@ -432,6 +434,13 @@ public class TestURLSessionServer {
             return _HTTPResponse(response: .OK, body: dtd)
         }
 
+        if uri == "/UnitedKingdom" {
+            let value = capitals[String(uri.dropFirst())]!
+            let text = request.getCommaSeparatedHeaders()
+            //Response header with only path to the location to redirect.
+            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: \(value)", body: text)
+            return httpResponse
+        }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 

@@ -402,7 +402,13 @@ internal extension _HTTPURLProtocol {
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
-        components.path = targetURL.relativeString
+        //The path must either begin with "/" or be an empty string.
+        if targetURL.relativeString.first != "/" {
+            components.path = "/" + targetURL.relativeString
+        } else {
+            components.path = targetURL.relativeString
+        }
+
         guard let urlString = components.string else { fatalError("Invalid URL") }
         request.url = URL(string: urlString)
         let timeSpent = easyHandle.getTimeoutIntervalSpent()
