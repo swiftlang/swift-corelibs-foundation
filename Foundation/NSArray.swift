@@ -653,7 +653,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     open func pathsMatchingExtensions(_ filterTypes: [String]) -> [String] {
-        guard filterTypes.count > 0 else {
+        guard !filterTypes.isEmpty else {
             return []
         }
 
