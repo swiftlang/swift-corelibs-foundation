@@ -155,6 +155,7 @@ class TestFileManager : XCTestCase {
         XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
         XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
         XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
+        result.deallocate()
     }
     
     func test_fileAttributes() {
