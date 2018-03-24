@@ -539,7 +539,7 @@ foundation.add_phase(plutil)
 
 script.add_product(foundation)
 
-LIBS_DIRS = ""
+LIBS_DIRS = Configuration.current.build_directory.absolute()+"/Foundation/:"
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
     LIBS_DIRS += "${XCTEST_BUILD_DIR}:"
 if "LIBDISPATCH_BUILD_DIR" in Configuration.current.variables:
@@ -566,7 +566,7 @@ build install: phony | ${BUILD_DIR}/.install
 """
 extra_script += """
 rule RunTestFoundation
-    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${BUILD_DIR}/Foundation/:${LIBS_DIRS} ${BUILD_DIR}/../lldb-${OS}-${ARCH}/bin/lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
+    command = echo "**** RUNNING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${LIBS_DIRS} ${BUILD_DIR}/TestFoundation/TestFoundation\\n**** DEBUGGING TESTS ****\\nexecute:\\nLD_LIBRARY_PATH=${LIBS_DIRS} ${BUILD_DIR}/../lldb-${OS}-${ARCH}/bin/lldb ${BUILD_DIR}/TestFoundation/TestFoundation\\n"
     description = Building Tests
 
 build ${BUILD_DIR}/.test: RunTestFoundation | TestFoundation
