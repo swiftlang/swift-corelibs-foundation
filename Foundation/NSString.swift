@@ -12,9 +12,7 @@ import CoreFoundation
 
 public typealias unichar = UInt16
 
-extension unichar : ExpressibleByUnicodeScalarLiteral {
-    public typealias UnicodeScalarLiteralType = UnicodeScalar
-    
+extension unichar {
     public init(unicodeScalarLiteral scalar: UnicodeScalar) {
         self.init(scalar.value)
     }
