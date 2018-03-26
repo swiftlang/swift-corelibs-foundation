@@ -990,6 +990,7 @@ extension URL : CustomStringConvertible, CustomDebugStringConvertible {
 }
 
 extension URL : CustomPlaygroundQuickLookable {
+    @available(*, deprecated, message: "URL.customPlaygroundQuickLook will be removed in a future Swift version")
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return .url(absoluteString)
     }
