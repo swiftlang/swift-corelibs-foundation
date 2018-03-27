@@ -41,8 +41,12 @@ class TestProcessInfo : XCTestCase {
         // Assert that the original process name is "TestFoundation". This test
         // will fail if the test target ever gets renamed, so maybe it should
         // just test that the initial name is not empty or something?
-        let processInfo = ProcessInfo.processInfo
+#if DARWIN_COMPATIBILITY_TESTS
+        let targetName = "xctest"
+#else
         let targetName = "TestFoundation"
+#endif
+        let processInfo = ProcessInfo.processInfo
         let originalProcessName = processInfo.processName
         XCTAssertEqual(originalProcessName, targetName, "\"\(originalProcessName)\" not equal to \"TestFoundation\"")
         
