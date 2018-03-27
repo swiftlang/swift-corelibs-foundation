@@ -38,22 +38,6 @@ internal func __NSDataIsCompact(_ data: NSData) -> Bool {
 import _SwiftFoundationOverlayShims
 import _SwiftCoreFoundationOverlayShims
     
-internal func __NSDataIsCompact(_ data: NSData) -> Bool {
-    if #available(macOS 10.10, iOS 9.0, tvOS 9.0, watchOS 2.0, *) {
-        return data._isCompact()
-    } else {
-        var compact = true
-        let len = data.length
-        data.enumerateBytes { (_, byteRange, stop) in
-            if byteRange.length != len {
-                compact = false
-            }
-            stop.pointee = true
-        }
-        return compact
-    }
-}
-
 #endif
 
 public final class _DataStorage {
@@ -143,7 +127,7 @@ public final class _DataStorage {
         case .mutable:
             return try apply(UnsafeRawBufferPointer(start: _bytes?.advanced(by: range.lowerBound - _offset), count: Swift.min(range.count, _length)))
         case .customReference(let d):
-            if __NSDataIsCompact(d) {
+            if d._isCompact() {
                 let len = d.length
                 guard len > 0 else {
                     return try apply(UnsafeRawBufferPointer(start: nil, count: 0))
@@ -155,26 +139,28 @@ public final class _DataStorage {
                 let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0
                 d.enumerateBytes { (ptr, byteRange, stop) in
-                    if NSIntersectionRange(sliceRange, byteRange).length > 0 {
-                        let lower = Swift.max(byteRange.location, sliceRange.location)
-                        let upper = Swift.min(byteRange.location + byteRange.length, sliceRange.location + sliceRange.length)
-                        let offset = lower - byteRange.location
-                        let effectiveRange = NSRange(location: lower, length: upper - lower)
-                        if effectiveRange == sliceRange {
-                            memcpy(buffer.baseAddress!, ptr, effectiveRange.length)
+                    if byteRange.upperBound - _offset < range.lowerBound {
+                        // before the range that we are looking for...
+                    } else if byteRange.lowerBound - _offset > range.upperBound {
+                        stop.pointee = true // we are past the range in question so we need to stop
+                    } else {
+                        // the byteRange somehow intersects the range in question that we are looking for...
+                        let lower = Swift.max(byteRange.lowerBound - _offset, range.lowerBound)
+                        let upper = Swift.min(byteRange.upperBound - _offset, range.upperBound)
+
+                        let len = upper - lower
+                        memcpy(buffer.baseAddress!.advanced(by: enumerated), ptr.advanced(by: lower - (byteRange.lowerBound - _offset)), len)
+                        enumerated += len
+
+                        if upper == range.upperBound {
                             stop.pointee = true
-                        } else {
-                            memcpy(buffer.baseAddress!.advanced(by: enumerated), ptr, effectiveRange.length)
                         }
-                        enumerated += byteRange.length
-                    } else if sliceRange.location + sliceRange.length < byteRange.location {
-                        stop.pointee = true
                     }
                 }
                 return try apply(UnsafeRawBufferPointer(buffer))
             }
         case .customMutableReference(let d):
-            if __NSDataIsCompact(d) {
+            if d._isCompact() {
                 let len = d.length
                 guard len > 0 else {
                     return try apply(UnsafeRawBufferPointer(start: nil, count: 0))
@@ -186,19 +172,22 @@ public final class _DataStorage {
                 let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0
                 d.enumerateBytes { (ptr, byteRange, stop) in
-                    if NSIntersectionRange(sliceRange, byteRange).length > 0 {
-                        let lower = Swift.max(byteRange.location, sliceRange.location)
-                        let upper = Swift.min(byteRange.location + byteRange.length, sliceRange.location + sliceRange.length)
-                        let effectiveRange = NSRange(location: lower, length: upper - lower)
-                        if effectiveRange == sliceRange {
-                            memcpy(buffer.baseAddress!, ptr, effectiveRange.length)
+                    if byteRange.upperBound - _offset < range.lowerBound {
+                        // before the range that we are looking for...
+                    } else if byteRange.lowerBound - _offset > range.upperBound {
+                        stop.pointee = true // we are past the range in question so we need to stop
+                    } else {
+                        // the byteRange somehow intersects the range in question that we are looking for...
+                        let lower = Swift.max(byteRange.lowerBound - _offset, range.lowerBound)
+                        let upper = Swift.min(byteRange.upperBound - _offset, range.upperBound)
+
+                        let len = upper - lower
+                        memcpy(buffer.baseAddress!.advanced(by: enumerated), ptr.advanced(by: lower - (byteRange.lowerBound - _offset)), len)
+                        enumerated += len
+
+                        if upper == range.upperBound {
                             stop.pointee = true
-                        } else {
-                            memcpy(buffer.baseAddress!.advanced(by: enumerated), ptr, effectiveRange.length)
                         }
-                        enumerated += byteRange.length
-                    } else if sliceRange.location + sliceRange.length < byteRange.location {
-                        stop.pointee = true
                     }
                 }
                 return try apply(UnsafeRawBufferPointer(buffer))
@@ -518,7 +507,7 @@ public final class _DataStorage {
         case .mutable:
             return _bytes!.advanced(by: index - _offset).assumingMemoryBound(to: UInt8.self).pointee
         case .customReference(let d):
-            if __NSDataIsCompact(d) {
+            if d._isCompact() {
                 return d.bytes.advanced(by: index - _offset).assumingMemoryBound(to: UInt8.self).pointee
             } else {
                 var byte: UInt8 = 0
@@ -532,7 +521,7 @@ public final class _DataStorage {
                 return byte
             }
         case .customMutableReference(let d):
-            if __NSDataIsCompact(d) {
+            if d._isCompact() {
                 return d.bytes.advanced(by: index - _offset).assumingMemoryBound(to: UInt8.self).pointee
             } else {
                 var byte: UInt8 = 0
@@ -1002,8 +991,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public typealias Base64DecodingOptions = NSData.Base64DecodingOptions
     
     public typealias Index = Int
-    // FIXME: switch back to Range once swift 5.0 branch has PR #13342
-    public typealias Indices = CountableRange<Int>
+    public typealias Indices = Range<Int>
     
     @_versioned internal var _backing : _DataStorage
     @_versioned internal var _sliceRange: Range<Index>
@@ -1435,9 +1423,9 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         let nsRange : NSRange
         if let r = range {
             _validateRange(r)
-            nsRange = NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
+            nsRange = NSRange(location: r.lowerBound - startIndex, length: r.upperBound - r.lowerBound)
         } else {
-            nsRange = NSRange(location: 0, length: _backing.length)
+            nsRange = NSRange(location: 0, length: count)
         }
         let result = _backing.withInteriorPointerReference(_sliceRange) {
             $0.range(of: dataToFind, options: options, in: nsRange)
@@ -1445,7 +1433,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         if result.location == NSNotFound {
             return nil
         }
-        return result.location..<(result.location + result.length)
+        return (result.location + startIndex)..<((result.location + startIndex) + result.length)
     }
     
     /// Enumerate the contents of the data.
@@ -1744,7 +1732,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         return i + 1
     }
     
-    public var indices: CountableRange<Int> {
+    public var indices: Range<Int> {
         @inline(__always)
         get {
             return startIndex..<endIndex
@@ -1772,14 +1760,23 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
     
     public struct Iterator : IteratorProtocol {
-        private let _data: Data
+        // Both _data and _endIdx should be 'let' rather than 'var'.
+        // They are 'var' so that the stored properties can be read
+        // independently of the other contents of the struct. This prevents
+        // an exclusivity violation when reading '_endIdx' and '_data'
+        // while simultaneously mutating '_buffer' with the call to
+        // withUnsafeMutablePointer(). Once we support accessing struct
+        // let properties independently we should make these variables
+        // 'let' again.
+
+        private var _data: Data
         private var _buffer: (
         UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
         UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
         UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
         UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
         private var _idx: Data.Index
-        private let _endIdx: Data.Index
+        private var _endIdx: Data.Index
         
         fileprivate init(_ data: Data) {
             _data = data
