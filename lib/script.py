@@ -142,6 +142,9 @@ TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L ${SDKROOT}/lib/sw
         if Configuration.current.bootstrap_directory is not None:
             ld_flags += """ -L${TARGET_BOOTSTRAP_DIR}/usr/lib"""
 
+        if Configuration.current.build_mode == Configuration.Debug:
+            ld_flags += """  -rpath ${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+
         if Configuration.current.linker is not None:
             ld_flags += " -fuse-ld=" + Configuration.current.linker
 
