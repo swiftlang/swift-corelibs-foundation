@@ -218,7 +218,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = resData else {
                 throw resError!
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
         }
     }
 
