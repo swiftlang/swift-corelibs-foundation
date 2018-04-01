@@ -207,7 +207,7 @@ class _HTTPServer {
             deadlineTime = .now()
         }
 
-        DispatchQueue.main.asyncAfter(deadline: deadlineTime) {
+        DispatchQueue.global().asyncAfter(deadline: deadlineTime) {
             do {
                 try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)
                 semaphore.signal()
