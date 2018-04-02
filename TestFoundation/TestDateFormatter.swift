@@ -196,7 +196,7 @@ class TestDateFormatter: XCTestCase {
     // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
     func test_dateStyleFull() {
 
-#if os(OSX) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
+#if os(macOS) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
         let timestamps: [TimeInterval:String] = [
             // Negative time offsets are still buggy on macOS
             -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT", 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM Greenwich Mean Time",
@@ -248,7 +248,7 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
 
-#if os(OSX) // timestyle zzzz is currently broken on Linux
+#if os(macOS) // timestyle zzzz is currently broken on Linux
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
         for (timestamp, stringResult) in timestamps {
             

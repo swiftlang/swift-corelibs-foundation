@@ -39,7 +39,7 @@ class TestNSURLRequest : XCTestCase {
     
     func test_construction() {
         let request = NSURLRequest(url: url)
-        // Match OS X Foundation responses
+        // Match macOS Foundation responses
         XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
         XCTAssertEqual(request.httpMethod, "GET")

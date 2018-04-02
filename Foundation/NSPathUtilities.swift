@@ -9,14 +9,14 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
 public func NSTemporaryDirectory() -> String {
-    #if os(OSX) || os(iOS)
+    #if os(macOS) || os(iOS)
     var buf = [Int8](repeating: 0, count: 100)
     let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
     if r != 0 && r < buf.count {

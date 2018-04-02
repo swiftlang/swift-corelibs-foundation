@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
@@ -507,7 +507,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                #if os(OSX) || os(iOS)
+                #if os(macOS) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #elseif os(Linux) || os(Android) || CYGWIN
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)

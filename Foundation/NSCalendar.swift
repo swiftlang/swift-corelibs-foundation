@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFCalendarUnitEra = CFCalendarUnit.era.rawValue
 internal let kCFCalendarUnitYear = CFCalendarUnit.year.rawValue
 internal let kCFCalendarUnitMonth = CFCalendarUnit.month.rawValue
@@ -89,7 +89,7 @@ extension NSCalendar {
         public static let timeZone = Unit(rawValue: UInt(1 << 21))
 
         internal var _cfValue: CFCalendarUnit {
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
             return CFCalendarUnit(rawValue: self.rawValue)
 #else
             return CFCalendarUnit(self.rawValue)

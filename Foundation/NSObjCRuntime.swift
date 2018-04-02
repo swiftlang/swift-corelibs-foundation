@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFCompareLessThan = CFComparisonResult.compareLessThan
 internal let kCFCompareEqualTo = CFComparisonResult.compareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.compareGreaterThan
@@ -228,7 +228,7 @@ internal struct _CFInfo {
     }
 }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
 private let _SwiftFoundationModuleName = "Foundation"

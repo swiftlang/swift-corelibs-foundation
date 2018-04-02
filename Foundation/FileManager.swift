@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc
@@ -127,7 +127,7 @@ open class FileManager : NSObject {
                 guard let number = attributes[attribute] as? NSNumber else {
                     fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
                 }
-                #if os(OSX) || os(iOS)
+                #if os(macOS) || os(iOS)
                     let modeT = number.uint16Value
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
@@ -261,7 +261,7 @@ open class FileManager : NSObject {
         var result = [FileAttributeKey : Any]()
         result[.size] = NSNumber(value: UInt64(s.st_size))
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
 #elseif os(Android)
         let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
@@ -301,7 +301,7 @@ open class FileManager : NSObject {
             result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         if (s.st_flags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE)) != 0 {
             result[.immutable] = NSNumber(value: true)
         }
@@ -324,7 +324,7 @@ open class FileManager : NSObject {
         NSUnimplemented()
 #else
         // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
-        #if os(OSX) || os(iOS)
+        #if os(macOS) || os(iOS)
             var s = statfs()
             guard statfs(path, &s) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -338,7 +338,7 @@ open class FileManager : NSObject {
         
         
         var result = [FileAttributeKey : Any]()
-        #if os(OSX) || os(iOS)
+        #if os(macOS) || os(iOS)
             let blockSize = UInt64(s.f_bsize)
             result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
         #else

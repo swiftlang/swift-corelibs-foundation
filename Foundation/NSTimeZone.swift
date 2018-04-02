@@ -256,7 +256,7 @@ extension NSTimeZone {
     }
 
     open func localizedName(_ style: NameStyle, locale: Locale?) -> String? {
-        #if os(OSX) || os(iOS)
+        #if os(macOS) || os(iOS)
             let cfStyle = CFTimeZoneNameStyle(rawValue: style.rawValue)!
         #else
             let cfStyle = CFTimeZoneNameStyle(style.rawValue)

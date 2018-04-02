@@ -261,8 +261,8 @@ open class UserDefaults: NSObject {
     }
     open func set(_ url: URL?, forKey defaultName: String) {
         if let url = url {
-            //FIXME: CFURLIsFileReferenceURL is limited to OS X/iOS
-            #if os(OSX) || os(iOS)
+            //FIXME: CFURLIsFileReferenceURL is limited to macOS/iOS
+            #if os(macOS) || os(iOS)
                 //FIXME: no SwiftFoundation version of CFURLIsFileReferenceURL at time of writing!
                 if CFURLIsFileReferenceURL(url._cfObject) {
                     let data = NSKeyedArchiver.archivedData(withRootObject: url._nsObject)
@@ -458,4 +458,3 @@ private extension UserDefaults {
         return result
     }
 }
-

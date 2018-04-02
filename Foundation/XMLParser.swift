@@ -13,7 +13,7 @@
 // long in on 64 bit).  I've filed a bug at bugs.swift.org:
 // https://bugs.swift.org/browse/SR-314
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc

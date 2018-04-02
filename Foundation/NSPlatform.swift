@@ -7,13 +7,13 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux)
 import Glibc
 #endif
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())
@@ -34,7 +34,7 @@ public func NSRoundDownToMultipleOfPageSize(_ size: Int) -> Int {
 
 
 func NSCopyMemoryPages(_ source: UnsafeRawPointer, _ dest: UnsafeMutableRawPointer, _ bytes: Int) {
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     if vm_copy(mach_task_self_, vm_address_t(bitPattern: source), vm_size_t(bytes), vm_address_t(bitPattern: dest)) != KERN_SUCCESS {
         memmove(dest, source, bytes)
     }
