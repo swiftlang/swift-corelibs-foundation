@@ -76,7 +76,7 @@ class TestURL : XCTestCase {
         XCTAssertNotNil(homeURL, "fileURLWithPath:isDirectory: failed")
         XCTAssertEqual(homeDirectory, homeURL.path)
 
-        #if os(OSX)
+        #if os(macOS)
         let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
         let relativePath = "Documents"
         #elseif os(Android)
@@ -411,8 +411,8 @@ class TestURL : XCTestCase {
             XCTAssertEqual(result, expected)
         }
 
-        // tmp is symlinked on OS X only
-        #if os(OSX)
+        // tmp is symlinked on macOS only
+        #if os(macOS)
         do {
             let url = URL(fileURLWithPath: "/tmp/..")
             let result = url.resolvingSymlinksInPath().absoluteString

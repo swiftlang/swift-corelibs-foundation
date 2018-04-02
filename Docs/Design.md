@@ -3,7 +3,7 @@
 
 ## Portability
 
-This version of Foundation is designed to support the same API as the Foundation that ships with Apple operating systems. A key difference is that the distribution of Swift open source does not include the Objective-C runtime. This means that the source code of Foundation from OS X and iOS could not be simply reused on other platforms. However, we believe that the vast majority of the core API concepts presented in Foundation are themselves portable and are useful on all platforms.
+This version of Foundation is designed to support the same API as the Foundation that ships with Apple operating systems. A key difference is that the distribution of Swift open source does not include the Objective-C runtime. This means that the source code of Foundation from macOS and iOS could not be simply reused on other platforms. However, we believe that the vast majority of the core API concepts presented in Foundation are themselves portable and are useful on all platforms.
 
 It is not a goal of this project to create new API that extends beyond the API provided on Apple operating systems, as that would hamper the goal of portability.
 
@@ -85,7 +85,7 @@ When different logic is required for the Swift runtime in CF, use the following 
 
 In Swift, the OS-check macro is also available:
 ```swift
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux)
 import Glibc
@@ -113,7 +113,7 @@ One of the main challenges of developing and maintaining a widely used library i
 
 ## Keeping Organized
 
-Parts of the CoreFoundation and Foundation libraries are as old as OS X (or older). In order to support long-term maintainability, it is important to keep our source code organized.
+Parts of the CoreFoundation and Foundation libraries are as old as macOS (or older). In order to support long-term maintainability, it is important to keep our source code organized.
 
 * If it helps keep an effective separation of concerns, feel free to split up functionality of one class over several files.
 * If appropriate, use `// MARK - Topic` to split up sections of a file.

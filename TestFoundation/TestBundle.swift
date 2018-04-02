@@ -263,7 +263,7 @@ class TestBundle : XCTestCase {
         let path = bundle.bundlePath
         
         // etc
-        #if os(OSX)
+        #if os(macOS)
         XCTAssertEqual("\(path)/Contents/Resources", bundle.resourcePath)
         #if DARWIN_COMPATIBILITY_TESTS
         XCTAssertEqual("\(path)/Contents/MacOS/DarwinCompatibilityTests", bundle.executablePath)

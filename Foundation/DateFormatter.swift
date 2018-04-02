@@ -14,7 +14,7 @@ open class DateFormatter : Formatter {
     private var __cfObject: CFType?
     private var _cfObject: CFType {
         guard let obj = __cfObject else {
-            #if os(OSX) || os(iOS)
+            #if os(macOS) || os(iOS)
                 let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
                 let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
             #else

@@ -52,7 +52,7 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     private var __cfObject: CFType?
     private var _cfObject: CFType {
         guard let obj = __cfObject else {
-            #if os(OSX) || os(iOS)
+            #if os(macOS) || os(iOS)
                 let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
             #else
                 let format = CFISO8601DateFormatOptions(self.formatOptions.rawValue)
@@ -100,7 +100,7 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     
     open class func string(from date: Date, timeZone: TimeZone, formatOptions: ISO8601DateFormatter.Options = []) -> String {
         
-        #if os(OSX) || os(iOS)
+        #if os(macOS) || os(iOS)
             let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
         #else
             let format = CFISO8601DateFormatOptions(formatOptions.rawValue)

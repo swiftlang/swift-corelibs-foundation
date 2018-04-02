@@ -16,7 +16,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     private var _identifier: UnsafeMutableRawPointer? = nil
     private var _cache: UnsafeMutableRawPointer? = nil
     private var _prefs: UnsafeMutableRawPointer? = nil
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     private var _lock = pthread_mutex_t()
 #elseif os(Linux) || os(Android) || CYGWIN
     private var _lock = Int32(0)
@@ -179,7 +179,7 @@ extension NSLocale {
     
     open class func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageCharacterDirection(isoLangCode._cfObject)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
 #else
         return NSLocale.LanguageDirection(rawValue: UInt(dir))!
@@ -188,7 +188,7 @@ extension NSLocale {
     
     open class func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageLineDirection(isoLangCode._cfObject)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
 #else
         return NSLocale.LanguageDirection(rawValue: UInt(dir))!

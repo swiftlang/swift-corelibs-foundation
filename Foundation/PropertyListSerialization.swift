@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 let kCFPropertyListOpenStepFormat = CFPropertyListFormat.openStepFormat
 let kCFPropertyListXMLFormat_v1_0 = CFPropertyListFormat.xmlFormat_v1_0
 let kCFPropertyListBinaryFormat_v1_0 = CFPropertyListFormat.binaryFormat_v1_0
@@ -39,7 +39,7 @@ extension PropertyListSerialization {
 open class PropertyListSerialization : NSObject {
 
     open class func propertyList(_ plist: Any, isValidFor format: PropertyListFormat) -> Bool {
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         let fmt = CFPropertyListFormat(rawValue: CFIndex(format.rawValue))!
 #else
         let fmt = CFPropertyListFormat(format.rawValue)
@@ -51,7 +51,7 @@ open class PropertyListSerialization : NSObject {
     open class func data(fromPropertyList plist: Any, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
         var error: Unmanaged<CFError>? = nil
         let result = withUnsafeMutablePointer(to: &error) { (outErr: UnsafeMutablePointer<Unmanaged<CFError>?>) -> CFData? in
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
             let fmt = CFPropertyListFormat(rawValue: CFIndex(format.rawValue))!
 #else
             let fmt = CFPropertyListFormat(format.rawValue)
@@ -76,7 +76,7 @@ open class PropertyListSerialization : NSObject {
                 return unsafeBitCast(CFPropertyListCreateWithData(kCFAllocatorSystemDefault, data._cfObject, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
             }
         }
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         format?.pointee = PropertyListFormat(rawValue: UInt(fmt.rawValue))!
 #else
         format?.pointee = PropertyListFormat(rawValue: UInt(fmt))!
@@ -96,7 +96,7 @@ open class PropertyListSerialization : NSObject {
                 return unsafeBitCast(CFPropertyListCreateWithStream(kCFAllocatorSystemDefault, stream, 0, CFOptionFlags(CFIndex(opt.rawValue)), outFmt, outErr), to: NSObject.self)
             }
         }
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         format?.pointee = PropertyListFormat(rawValue: UInt(fmt.rawValue))!
 #else
         format?.pointee = PropertyListFormat(rawValue: UInt(fmt))!

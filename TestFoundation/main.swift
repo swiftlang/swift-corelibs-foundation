@@ -15,7 +15,7 @@ import SwiftFoundation
 import SwiftXCTest
 #endif
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux)
     import Glibc

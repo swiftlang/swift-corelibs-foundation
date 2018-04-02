@@ -18,7 +18,7 @@ import SwiftXCTest
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
 internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
 internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.isoLatin1.rawValue
@@ -490,7 +490,7 @@ class TestNSString : XCTestCase {
     
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
     func test_swiftStringUTF16() {
-        #if os(OSX) || os(iOS)
+        #if os(macOS) || os(iOS)
         let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
         #endif
 
@@ -667,7 +667,7 @@ class TestNSString : XCTestCase {
         }
         
         // Next check has no sense on Linux due to case sensitive file system.
-        #if os(OSX)
+        #if os(macOS)
         guard ensureFiles([NSTemporaryDirectory() + "ABC/temp.txt"]) else {
             XCTAssert(false, "Could not create temp files for testing.")
             return
@@ -835,7 +835,7 @@ class TestNSString : XCTestCase {
             let path: NSString = "/tmp/.."
             let result = path.resolvingSymlinksInPath
             
-            #if os(OSX)
+            #if os(macOS)
             let expected = "/private"
             #else
             let expected = "/"
@@ -972,8 +972,8 @@ class TestNSString : XCTestCase {
             XCTAssertEqual(NSString(string: result), path, "standardizingPath doesn't resolve relative paths")
         }
         
-        // tmp is symlinked on OS X only
-        #if os(OSX)
+        // tmp is symlinked on macOS only
+        #if os(macOS)
         do {
             let path: NSString = "/tmp/.."
             let result = path.standardizingPath

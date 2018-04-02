@@ -1,10 +1,10 @@
 # Getting Started
 
-## On OS X
+## On macOS
 
-Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
+Although macOS is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
 
-In order to build on OS X, you will need:
+In order to build on macOS, you will need:
 
 * The latest version of Xcode
 * The latest version of the macOS SDK (at this time: 10.13.2)
@@ -81,4 +81,3 @@ When new source files or flags are added to the `build.py` script, the project w
 % ninja reconfigure
 % ninja
 ```
-

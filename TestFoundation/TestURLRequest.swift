@@ -36,7 +36,7 @@ class TestURLRequest : XCTestCase {
     
     func test_construction() {
         let request = URLRequest(url: url)
-        // Match OS X Foundation responses
+        // Match macOS Foundation responses
         XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
         XCTAssertEqual(request.httpMethod, "GET")
@@ -249,4 +249,3 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(request.description, "url: nil")
     }
 }
-

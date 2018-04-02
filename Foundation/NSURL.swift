@@ -10,13 +10,13 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif

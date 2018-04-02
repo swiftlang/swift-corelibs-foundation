@@ -310,7 +310,7 @@ class TestHTTPCookieStorage: XCTestCase {
         let pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
         let task = Process()
 
-        #if os(OSX)
+        #if os(macOS)
         let exeName = "/xdgTestHelper.app/Contents/MacOS/xdgTestHelper"
         #else
         let exeName = "/xdgTestHelper/xdgTestHelper"

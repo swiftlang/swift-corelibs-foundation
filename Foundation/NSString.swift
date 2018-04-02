@@ -30,7 +30,7 @@ func NSLocalizedString(_ key: String,
     return bundle.localizedString(forKey: key, value: value, table: tableName)
 }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFStringEncodingMacRoman =  CFStringBuiltInEncodings.macRoman.rawValue
 internal let kCFStringEncodingWindowsLatin1 =  CFStringBuiltInEncodings.windowsLatin1.rawValue
 internal let kCFStringEncodingISOLatin1 =  CFStringBuiltInEncodings.isoLatin1.rawValue
@@ -102,7 +102,7 @@ extension NSString {
         public static let regularExpression = CompareOptions(rawValue: 1024)
         
         internal func _cfValue(_ fixLiteral: Bool = false) -> CFStringCompareFlags {
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
             return contains(.literal) || !fixLiteral ? CFStringCompareFlags(rawValue: rawValue) : CFStringCompareFlags(rawValue: rawValue).union(.compareNonliteral)
 #else
             return contains(.literal) || !fixLiteral ? CFStringCompareFlags(rawValue) : CFStringCompareFlags(rawValue) | UInt(kCFCompareNonliteral)
