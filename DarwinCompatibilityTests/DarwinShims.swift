@@ -50,7 +50,7 @@ extension Thread {
 extension Scanner {
     public func scanString(_ searchString: String) -> String? {
         var result: NSString? = nil
-        if scanString(string, into: &result), let str = result {
+        if scanString(searchString, into: &result), let str = result {
             return str as String
         }
         return nil

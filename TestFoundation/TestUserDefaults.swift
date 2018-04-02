@@ -180,14 +180,12 @@ class TestUserDefaults : XCTestCase {
 	}
 	
 	func test_setValue_String() {
-#if !DARWIN_COMPATIBILITY_TESTS  // Works if run on its own, hangs if all tests in class are run
 		let defaults = UserDefaults.standard
 		
 		// Register a String value. UserDefaults.string(forKey:) is supposed to return the String
 		defaults.set("hello", forKey: "key1")
 		
 		XCTAssertEqual(defaults.string(forKey: "key1"), "hello")
-#endif
 	}
 
 	func test_setValue_NSURL() {
@@ -200,14 +198,12 @@ class TestUserDefaults : XCTestCase {
 	}
 
 	func test_setValue_URL() {
-#if !DARWIN_COMPATIBILITY_TESTS  // Works if run on its own, hangs if all tests in class are run
 		let defaults = UserDefaults.standard
 		
 		// Set a URL value. UserDefaults.url(forKey:) is supposed to return the URL
 		defaults.set(URL(fileURLWithPath: "/hello/world"), forKey: "key1")
 		
 		XCTAssertEqual(defaults.url(forKey: "key1"), URL(fileURLWithPath: "/hello/world"))
-#endif
 	}
 
 	func test_setValue_NSData() {

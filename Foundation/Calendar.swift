@@ -30,7 +30,7 @@ internal func __NSCalendarInit(_ identifier: String) -> NSCalendar? {
 public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxing {
     public typealias ReferenceType = NSCalendar
     
-    internal var _autoupdating: Bool
+    private var _autoupdating: Bool
     internal var _handle: _MutableHandle<NSCalendar>
     
     /// Calendar supports many different kinds of calendars. Each is identified by an identifier here.
@@ -1051,7 +1051,7 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     }
     
     internal static func _toNSCalendarIdentifier(_ identifier: Identifier) -> NSCalendar.Identifier {
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             let identifierMap: [Identifier : NSCalendar.Identifier] =
                 [.gregorian: .gregorian,
                  .buddhist: .buddhist,
@@ -1091,7 +1091,7 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     }
     
     internal static func _fromNSCalendarIdentifier(_ identifier: NSCalendar.Identifier) -> Identifier {
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             let identifierMap: [NSCalendar.Identifier : Identifier] =
                 [.gregorian: .gregorian,
                  .buddhist: .buddhist,
@@ -1156,7 +1156,7 @@ extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, Cust
             (label: "kind", value: _kindDescription),
             (label: "locale", value: locale as Any),
             (label: "timeZone", value: timeZone),
-            (label: "firstWeekDay", value: firstWeekday),
+            (label: "firstWeekday", value: firstWeekday),
             (label: "minimumDaysInFirstWeek", value: minimumDaysInFirstWeek)
         ]
         return Mirror(self, children: children, displayStyle: Mirror.DisplayStyle.struct)

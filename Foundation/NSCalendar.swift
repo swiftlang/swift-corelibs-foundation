@@ -298,7 +298,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _symbol(_ key: CFString) -> String {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._bridgeToObjectiveC()._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, self._cfObject)
-        return (CFDateFormatterCopyProperty(dateFormatter, key) as! CFString)._swiftObject
+        return (CFDateFormatterCopyProperty(dateFormatter, key) as! NSString)._swiftObject
     }
     
     open var eraSymbols: [String] {

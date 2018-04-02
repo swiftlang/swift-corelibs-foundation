@@ -155,6 +155,10 @@ class TestFileManager : XCTestCase {
         XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
         XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
         XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
+
+#if !DARWIN_COMPATIBILITY_TESTS // auto-released by Darwin's Foundation
+        result.deallocate()
+#endif
     }
     
     func test_fileAttributes() {
@@ -329,7 +333,7 @@ class TestFileManager : XCTestCase {
         } catch _ {
             XCTFail()
         }
-        
+
         if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
             var foundItems = [String:Int]()
             while let item = e.nextObject() as? URL {
@@ -442,8 +446,8 @@ class TestFileManager : XCTestCase {
         }
         
         do {
-            let _ = try fm.contentsOfDirectory(atPath: "")
-            
+            // Check a bad path fails
+            let _ = try fm.contentsOfDirectory(atPath: "/...")
             XCTFail()
         }
         catch _ {
@@ -492,8 +496,8 @@ class TestFileManager : XCTestCase {
         }
         
         do {
-            let _ = try fm.subpathsOfDirectory(atPath: "")
-            
+            // Check a bad path fails
+            let _ = try fm.subpathsOfDirectory(atPath: "/...")
             XCTFail()
         }
         catch _ {

@@ -283,7 +283,7 @@ fileprivate struct _JSONEncodingStorage {
     }
 
     fileprivate mutating func popContainer() -> NSObject {
-        precondition(self.containers.count > 0, "Empty container stack.")
+        precondition(!self.containers.isEmpty, "Empty container stack.")
         return self.containers.popLast()!
     }
 }
@@ -650,7 +650,7 @@ extension _JSONEncoder {
             return NSNumber(value: 1000.0 * date.timeIntervalSince1970)
 
         case .iso8601:
-            if #available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
                 return NSString(string: _iso8601Formatter.string(from: date))
             } else {
                 fatalError("ISO8601DateFormatter is unavailable on this platform.")
@@ -1001,7 +1001,7 @@ fileprivate struct _JSONDecodingStorage {
     }
 
     fileprivate var topContainer: Any {
-        precondition(self.containers.count > 0, "Empty container stack.")
+        precondition(!self.containers.isEmpty, "Empty container stack.")
         return self.containers.last!
     }
 
@@ -1010,7 +1010,7 @@ fileprivate struct _JSONDecodingStorage {
     }
 
     fileprivate mutating func popContainer() {
-        precondition(self.containers.count > 0, "Empty container stack.")
+        precondition(!self.containers.isEmpty, "Empty container stack.")
         self.containers.removeLast()
     }
 }
@@ -2023,7 +2023,7 @@ extension _JSONDecoder {
             return Date(timeIntervalSince1970: double / 1000.0)
 
         case .iso8601:
-            if #available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
                 let string = try self.unbox(value, as: String.self)!
                 guard let date = _iso8601Formatter.date(from: string) else {
                     throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Expected date string to be ISO8601-formatted."))

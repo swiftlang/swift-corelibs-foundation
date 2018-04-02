@@ -28,9 +28,9 @@ class TestCalendar: XCTestCase {
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),
             ("test_datesOnWeekend", test_datesOnWeekend),
-            ("test_customMirror", test_customMirror)
-            // Disabled because this fails on linux https://bugs.swift.org/browse/SR-320
-            // ("test_currentCalendarRRstability", test_currentCalendarRRstability),
+            ("test_customMirror", test_customMirror),
+            ("test_ampmSymbols", test_ampmSymbols),
+            ("test_currentCalendarRRstability", test_currentCalendarRRstability),
         ]
     }
     
@@ -125,7 +125,13 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(components.isLeapMonth, true)
     }
 
-    func test_currentRRstability() {
+    func test_ampmSymbols() {
+        let calendar = Calendar(identifier: .gregorian)
+        XCTAssertEqual(calendar.amSymbol, "AM")
+        XCTAssertEqual(calendar.pmSymbol, "PM")
+    }
+
+    func test_currentCalendarRRstability() {
         var AMSymbols = [String]()
         for _ in 1...10 {
             let cal = Calendar.current
@@ -191,7 +197,7 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(calendar.identifier, calendarMirror.descendant("identifier") as? Calendar.Identifier)
         XCTAssertEqual(calendar.locale, calendarMirror.descendant("locale") as? Locale)
         XCTAssertEqual(calendar.timeZone, calendarMirror.descendant("timeZone") as? TimeZone)
-        XCTAssertEqual(calendar.firstWeekday, calendarMirror.descendant("firstWeekDay") as? Int)
+        XCTAssertEqual(calendar.firstWeekday, calendarMirror.descendant("firstWeekday") as? Int)
         XCTAssertEqual(calendar.minimumDaysInFirstWeek, calendarMirror.descendant("minimumDaysInFirstWeek") as? Int)
     }
 }

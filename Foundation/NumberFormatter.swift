@@ -195,7 +195,12 @@ open class NumberFormatter : Formatter {
             case .decimal:
                 _usesGroupingSeparator = true
                 _maximumFractionDigits = 3
-                _minimumIntegerDigits = 1
+                if _minimumIntegerDigits == 0 {
+                    _minimumIntegerDigits = 1
+                }
+                if _groupingSize == 0 {
+                    _groupingSize = 3
+                }
                 
             default:
                 _usesSignificantDigits = true
@@ -586,7 +591,7 @@ open class NumberFormatter : Formatter {
     
     //
     
-    internal var _groupingSize: Int = 3
+    internal var _groupingSize: Int = 0
     open var groupingSize: Int {
         get {
             return _groupingSize

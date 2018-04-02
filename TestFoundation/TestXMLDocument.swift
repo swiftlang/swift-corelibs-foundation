@@ -8,7 +8,6 @@
 //
 
 
-
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
@@ -21,57 +20,30 @@
 class TestXMLDocument : XCTestCase {
 
     static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
-        #if os(OSX) || os(iOS)
-            return [
-                ("test_basicCreation", test_basicCreation),
-                ("test_nextPreviousNode", test_nextPreviousNode),
-                ("test_xpath", test_xpath),
-                ("test_elementCreation", test_elementCreation),
-                ("test_elementChildren", test_elementChildren),
-                ("test_stringValue", test_stringValue),
-                ("test_objectValue", test_objectValue),
-                ("test_attributes", test_attributes),
-                ("test_comments", test_comments),
-                ("test_processingInstruction", test_processingInstruction),
-                ("test_parseXMLString", test_parseXMLString),
-                ("test_prefixes", test_prefixes),
-                //                ("test_validation_success", test_validation_success),
-                //                ("test_validation_failure", test_validation_failure),
-                ("test_dtd", test_dtd),
-                ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
-                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
-                ("test_createElement", test_createElement),
-                ("test_addNamespace", test_addNamespace),
-                ("test_removeNamespace", test_removeNamespace),
-            ]
-        #else // On Linux, currently the tests that rely on NSError are segfaulting in swift_dynamicCast
-            return [
-                ("test_basicCreation", test_basicCreation),
-                ("test_nextPreviousNode", test_nextPreviousNode),
-                ("test_xpath", test_xpath),
-                ("test_elementCreation", test_elementCreation),
-                ("test_elementChildren", test_elementChildren),
-                ("test_stringValue", test_stringValue),
-                ("test_objectValue", test_objectValue),
-                ("test_attributes", test_attributes),
-                ("test_comments", test_comments),
-                ("test_processingInstruction", test_processingInstruction),
-                ("test_parseXMLString", test_parseXMLString),
-                ("test_prefixes", test_prefixes),
-                //                ("test_validation_success", test_validation_success),
-                //                ("test_validation_failure", test_validation_failure),
-                ("test_dtd", test_dtd),
-                //                ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
-                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
-                ("test_createElement", test_createElement),
-                ("test_addNamespace", test_addNamespace),
-                ("test_removeNamespace", test_removeNamespace),
-            ]
-        #endif
+        return [
+            ("test_basicCreation", test_basicCreation),
+            ("test_nextPreviousNode", test_nextPreviousNode),
+            ("test_xpath", test_xpath),
+            ("test_elementCreation", test_elementCreation),
+            ("test_elementChildren", test_elementChildren),
+            ("test_stringValue", test_stringValue),
+            ("test_objectValue", test_objectValue),
+            ("test_attributes", test_attributes),
+            ("test_comments", test_comments),
+            ("test_processingInstruction", test_processingInstruction),
+            ("test_parseXMLString", test_parseXMLString),
+            ("test_prefixes", test_prefixes),
+            // XFAIL: <rdar://31567922> ("test_validation_success", test_validation_success),
+            // XFAIL: <rdar://31567922> ("test_validation_failure", test_validation_failure),
+            ("test_dtd", test_dtd),
+            ("test_documentWithDTD", test_documentWithDTD),
+            ("test_dtd_attributes", test_dtd_attributes),
+            ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
+            ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
+            ("test_createElement", test_createElement),
+            ("test_addNamespace", test_addNamespace),
+            ("test_removeNamespace", test_removeNamespace),
+        ]
     }
 
     func test_basicCreation() {

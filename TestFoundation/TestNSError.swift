@@ -50,7 +50,8 @@ class TestNSError : XCTestCase {
     }
 
     func test_CustomNSError_domain() {
-        XCTAssertEqual(SwiftCustomNSError.errorDomain, "TestFoundation.SwiftCustomNSError")
+        let name = testBundleName()
+        XCTAssertEqual(SwiftCustomNSError.errorDomain, "\(name).SwiftCustomNSError")
     }
 
     func test_CustomNSError_userInfo() {

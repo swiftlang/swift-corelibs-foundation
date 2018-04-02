@@ -273,7 +273,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     public init(characters: UnsafePointer<unichar>, length: Int) {
-        _storage = String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length))
+        _storage = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
     }
     
     public required convenience init(unicodeScalarLiteral value: StaticString) {
@@ -297,7 +297,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     
     internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            if _storage._core.isASCII {
+            if _storage._guts._isContiguousASCII {
                 return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
             }
         }
@@ -306,7 +306,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     
     internal var _fastContents: UnsafePointer<UniChar>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            if !_storage._core.isASCII {
+            if _storage._guts._isContiguousUTF16 {
                 return UnsafePointer<UniChar>(_storage._core.startUTF16)
             }
         }
@@ -315,7 +315,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     
     internal var _encodingCantBeStoredInEightBitCFString: Bool {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            return !_storage._core.isASCII
+            return !_storage._guts._isContiguousASCII
         }
         return false
     }
@@ -858,7 +858,7 @@ extension NSString {
     public func getCString(_ buffer: UnsafeMutablePointer<Int8>, maxLength maxBufferCount: Int, encoding: UInt) -> Bool {
         var used = 0
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
-            if _storage._core.isASCII {
+            if _storage._guts._isContiguousASCII {
                 used = min(self.length, maxBufferCount - 1)
                 _storage._core.startASCII.withMemoryRebound(to: Int8.self,
                                                             capacity: used) {
@@ -1166,16 +1166,8 @@ extension NSString {
     }
     
     public convenience init?(utf8String nullTerminatedCString: UnsafePointer<Int8>) {
-        let count = Int(strlen(nullTerminatedCString))
-        if let str = nullTerminatedCString.withMemoryRebound(to: UInt8.self, capacity: count, {
-            let buffer = UnsafeBufferPointer<UInt8>(start: $0, count: count)
-            return String._fromCodeUnitSequence(UTF8.self, input: buffer)
-            }) as String?
-        {
-            self.init(str)
-        } else {
-            return nil
-        }
+        guard let str = String(validatingUTF8: nullTerminatedCString) else { return nil }
+        self.init(str)
     }
     
     public convenience init(format: String, arguments argList: CVaListPointer) {
@@ -1357,12 +1349,7 @@ open class NSMutableString : NSString {
     }
     
     public required init(stringLiteral value: StaticString) {
-        if value.hasPointerRepresentation {
-            super.init(String._fromWellFormedCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: value.utf8Start, count: Int(value.utf8CodeUnitCount))))
-        } else {
-            var uintValue = value.unicodeScalar.value
-            super.init(String._fromWellFormedCodeUnitSequence(UTF32.self, input: UnsafeBufferPointer(start: &uintValue, count: 1)))
-        }
+        super.init(value.description)
     }
 
     public required init(string aString: String) {
@@ -1370,10 +1357,11 @@ open class NSMutableString : NSString {
     }
     
     internal func appendCharacters(_ characters: UnsafePointer<unichar>, length: Int) {
+        let str = String(decoding: UnsafeBufferPointer(start: characters, count: length), as: UTF16.self)
         if type(of: self) == NSMutableString.self {
-            _storage.append(String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
+            _storage.append(str)
         } else {
-            replaceCharacters(in: NSRange(location: self.length, length: 0), with: String._fromWellFormedCodeUnitSequence(UTF16.self, input: UnsafeBufferPointer(start: characters, count: length)))
+            replaceCharacters(in: NSRange(location: self.length, length: 0), with: str)
         }
     }
     
@@ -1478,36 +1466,6 @@ extension String : _NSBridgeable, _CFBridgeable {
     internal var _nsObject: NSType { return _bridgeToObjectiveC() }
     internal var _cfObject: CFType { return _nsObject._cfObject }
 }
-
-#if !(os(OSX) || os(iOS))
-extension String {
-    public func hasPrefix(_ prefix: String) -> Bool {
-        if prefix.isEmpty {
-            return true
-        }
-
-        let cfstring = self._cfObject
-        let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(
-            kCFCompareAnchored | kCFCompareNonliteral)
-        return CFStringFindWithOptions(cfstring, prefix._cfObject,
-                                   range, opts, nil)
-    }
-    
-    public func hasSuffix(_ suffix: String) -> Bool {
-        if suffix.isEmpty {
-            return true
-        }
-
-        let cfstring = self._cfObject
-        let range = CFRangeMake(0, CFStringGetLength(cfstring))
-        let opts = CFStringCompareFlags(
-            kCFCompareAnchored | kCFCompareBackwards | kCFCompareNonliteral)
-        return CFStringFindWithOptions(cfstring, suffix._cfObject,
-                                   range, opts, nil)
-    }
-}
-#endif
 
 extension NSString : _StructTypeBridgeable {
     public typealias _StructType = String

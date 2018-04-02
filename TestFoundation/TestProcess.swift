@@ -45,11 +45,19 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        let executablePath = "/bin/bash"
+        if #available(OSX 10.13, *) {
+            process.executableURL = URL(fileURLWithPath: executablePath)
+        } else {
+            // Fallback on earlier versions
+            process.launchPath = executablePath
+        }
+        XCTAssertEqual(executablePath, process.launchPath)
+
         process.arguments = ["-c", "exit 0"]
-        
         process.launch()
         process.waitUntilExit()
+        
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }

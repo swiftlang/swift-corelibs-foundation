@@ -39,7 +39,7 @@ import _SwiftFoundationOverlayShims
 import _SwiftCoreFoundationOverlayShims
     
 internal func __NSDataIsCompact(_ data: NSData) -> Bool {
-    if #available(OSX 10.10, iOS 9.0, tvOS 9.0, watchOS 2.0, *) {
+    if #available(macOS 10.10, iOS 9.0, tvOS 9.0, watchOS 2.0, *) {
         return data._isCompact()
     } else {
         var compact = true
@@ -1553,7 +1553,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     /// - parameter buffer: The replacement bytes.
     @inline(__always)
     public mutating func replaceSubrange<SourceType>(_ subrange: Range<Index>, with buffer: UnsafeBufferPointer<SourceType>) {
-        guard buffer.count > 0  else { return }
+        guard !buffer.isEmpty else { return }
         replaceSubrange(subrange, with: buffer.baseAddress!, count: buffer.count * MemoryLayout<SourceType>.stride)
     }
     
@@ -1635,7 +1635,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         var hashValue = 0
         let hashRange: Range<Int> = _sliceRange.lowerBound..<Swift.min(_sliceRange.lowerBound + 80, _sliceRange.upperBound)
         _withStackOrHeapBuffer(hashRange.count + 1) { buffer in
-            if hashRange.count > 0 {
+            if !hashRange.isEmpty {
                 _backing.withUnsafeBytes(in: hashRange) {
                     memcpy(buffer.pointee.memory, $0.baseAddress!, hashRange.count)
                 }
