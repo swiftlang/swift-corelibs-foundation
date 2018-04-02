@@ -17,7 +17,7 @@
 #endif
 
 
-class TestXMLDocument : XCTestCase {
+class TestXMLDocument : LoopbackServerTest {
 
     static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
         return [
@@ -33,8 +33,8 @@ class TestXMLDocument : XCTestCase {
             ("test_processingInstruction", test_processingInstruction),
             ("test_parseXMLString", test_parseXMLString),
             ("test_prefixes", test_prefixes),
-            // XFAIL: <rdar://31567922> ("test_validation_success", test_validation_success),
-            // XFAIL: <rdar://31567922> ("test_validation_failure", test_validation_failure),
+            ("test_validation_success", test_validation_success),
+            ("test_validation_failure", test_validation_failure),
             ("test_dtd", test_dtd),
             ("test_documentWithDTD", test_documentWithDTD),
             ("test_dtd_attributes", test_dtd_attributes),
@@ -353,8 +353,6 @@ class TestXMLDocument : XCTestCase {
         XCTAssert(doc.rootElement()?.namespaces?.first?.name == "R")
     }
 
-    /*
-     * <rdar://31567922> Re-enable these tests in a way that does not depend on the internet.
     func test_validation_success() throws {
         let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
         do {
@@ -364,7 +362,8 @@ class TestXMLDocument : XCTestCase {
             XCTFail("\(error)")
         }
 
-        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
+        let dtdUrl = "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd"
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"\(dtdUrl)\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
         let plistDoc = try XMLDocument(xmlString: plistDocString, options: [])
         do {
             try plistDoc.validate()
@@ -388,7 +387,8 @@ class TestXMLDocument : XCTestCase {
             XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element img was declared EMPTY this one has content"))
         }
 
-        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
+        let dtdUrl = "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd"
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"\(dtdUrl)\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
         let plistDoc = try XMLDocument(xmlString: plistDocString, options: [])
         do {
             try plistDoc.validate()
@@ -396,7 +396,7 @@ class TestXMLDocument : XCTestCase {
         } catch let error as NSError {
             XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element true was declared EMPTY this one has content"))
         }
-    }*/
+    }
 
     func test_dtd() throws {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
