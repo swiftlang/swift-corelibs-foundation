@@ -47,7 +47,7 @@ open class FileManager : NSObject {
                 urls.append(URL(fileURLWithPath: mountPoint[1], isDirectory: true))
             }
         }
-#elseif os(macOS)
+#elseif canImport(Darwin)
 
         func mountPoints(_ statBufs: UnsafePointer<statfs>, _ fsCount: Int) -> [URL] {
             var urls: [URL] = []
@@ -88,6 +88,8 @@ open class FileManager : NSObject {
             }
             urls = mountPoints(statBuf, Int(fsCount))
         }
+#else
+#error("Requires a platform-specific implementation")
 #endif
         return urls
     }
