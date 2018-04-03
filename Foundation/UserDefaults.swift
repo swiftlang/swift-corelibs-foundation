@@ -385,6 +385,7 @@ open class UserDefaults: NSObject {
         }
     }
     
+    @discardableResult
     open func synchronize() -> Bool {
         return CFPreferencesAppSynchronize(suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
