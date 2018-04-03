@@ -337,7 +337,7 @@ open class FileManager : NSObject {
             return [ URL(fileURLWithPath: "/home", isDirectory: true) ]
             
         case .moviesDirectory:
-            return []
+            return [ _XDGUserDirectory.videos.url ]
             
         case .musicDirectory:
             guard domain == .user else { return [] }
