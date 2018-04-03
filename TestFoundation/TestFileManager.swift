@@ -34,6 +34,7 @@ class TestFileManager : XCTestCase {
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
+            ("test_mountedVolumeURLs", test_mountedVolumeURLs)
         ]
     }
     
@@ -600,5 +601,23 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail("Unable to write a file to the temporary directory: \(tmpDir), err: \(error)")
         }
+    }
+
+    func test_mountedVolumeURLs() {
+        guard let volumes = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys:[], options: []) else {
+            XCTFail("mountedVolumeURLs returned nil")
+            return
+        }
+        XCTAssertNotEqual(0, volumes.count)
+        XCTAssertTrue(volumes.contains(URL(fileURLWithPath: "/")))
+#if os(macOS)
+        // On macOS, .skipHiddenVolumes should hide 'nobrowse' volumes of which there should be at least one
+        guard let visibleVolumes = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: [], options: [.skipHiddenVolumes]) else {
+            XCTFail("mountedVolumeURLs returned nil")
+            return
+        }
+        XCTAssertTrue(visibleVolumes.count > 0)
+        XCTAssertTrue(visibleVolumes.count < volumes.count)
+#endif
     }
 }
