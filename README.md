@@ -33,7 +33,7 @@ Here is a simple `main.swift` file which uses Foundation. This guide assumes you
 import Foundation
 
 // Make an URLComponents instance
-let swifty = NSURLComponents(string: "https://swift.org")!
+let swifty = URLComponents(string: "https://swift.org")!
 
 // Print something useful about the URL
 print("\(swifty.host!)")
