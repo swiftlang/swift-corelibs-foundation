@@ -16,7 +16,7 @@ There are several outstanding performance improvements which can be made to `Dat
 
 `Data` should be as fast as possible. Currently, most of the backing of `Data` is implemented in Foundation, while being quite fast for reallocations and other operations, this means that calls are made between Swift and Objective-C even for simple things like count for every access.
 
-This Swift–Objective-C boundary means that no inlining can be performed across it; even when we have full control over the backing implementation and the caller, what would normally be just a single offset load instructions ends up becoming many just for the benefit of an objc_msgSend (not to mention ARC operations). Even though the calls are heavily optimized, they will never be as fast as a single instruction.
+This Swift–Objective-C boundary means that no inlining can be performed across it; even when we have full control over the backing implementation and the caller, what would normally be just a single offset load instructions ends up becoming many just for the benefit of an `objc_msgSend` (not to mention ARC operations). Even though the calls are heavily optimized, they will never be as fast as a single instruction.
 
 ## Proposed solution
 
@@ -26,9 +26,9 @@ In order to make `Data` as fast as possible the implementation needs to be inlin
 
 Instead of using `_MutablePairBoxing` (which uses closures to map invocations to references or apply mutations with copy on write semantics) the new backing implementation can easily be applied with copy on write semantics without any `Unmanaged` "dancing". That "dancing" complicates code and it can be made considerably simpler. Furthermore, avoiding this "dance" can reduce the calls to retain and release down to zero in the application of mutations in unique referenced cases as well as mapping non mutating invocations to backing storage.
 
-Subclassing the reference type `NSData` is still something that Foundation should support for the wrapping of the reference type in a structure. This effectively means there are five types of backing for `Data`: Swift-implemented, immutable NSData, mutable NSMutableData, custom subclasses of NSData, and custom subclasses of NSMutableData. These specific cases are delineated to offer the most efficient inline cases possible.
+Subclassing the reference type `NSData` is still something that Foundation should support for the wrapping of the reference type in a structure. This effectively means there are five types of backing for `Data`: Swift-implemented, immutable `NSData`, mutable `NSMutableData`, custom subclasses of `NSData`, and custom subclasses of `NSMutableData`. These specific cases are delineated to offer the most efficient inline cases possible.
 
-Since Foundation can enforce a no dynamic dispatch needed contract with itself in the cases of the standard class cluster members of NSData and NSMutableData Foundation can assure these cases are acceptable to not need dynamic dispatch for every time `bytes` or `length` are accessed and the values can be cached until the data is mutated or disposed of. In the cases where a subclass is used of course all bets are off and every point requires dynamically calling out.
+Since Foundation can enforce a no dynamic dispatch needed contract with itself in the cases of the standard class cluster members of `NSData` and `NSMutableData Foundation can assure these cases are acceptable to not need dynamic dispatch for every time `bytes` or `length` are accessed and the values can be cached until the data is mutated or disposed of. In the cases where a subclass is used of course all bets are off and every point requires dynamically calling out.
 
 In short this will mean that fetching the `count` of a `Data` can be optimized to a single branch and load from an offset and this same optimization can be applied to many other methods on `Data`.
 
@@ -221,7 +221,7 @@ data.count = N
 
 ### Bridging to reference types
 
-This should be a O(1) operation. In bridging to a reference case the previous implementation was a bit faster. The only real extra overhead here is an allocation of the NSData object since the Swift backed `Data` has no existing reference type to pass along. There are a few extra optimizations that can be done in this path to reduce it by the approximately 150 nanosecond difference. In practice the cases where `Data` is being bridged back out to Objective-C are usually cases like writing to a file or socket which dwarf that 150 nanosecond differential.
+This should be a O(1) operation. In bridging to a reference case the previous implementation was a bit faster. The only real extra overhead here is an allocation of the `NSData` object since the Swift backed `Data` has no existing reference type to pass along. There are a few extra optimizations that can be done in this path to reduce it by the approximately 150 nanosecond difference. In practice the cases where `Data` is being bridged back out to Objective-C are usually cases like writing to a file or socket which dwarf that 150 nanosecond differential.
 
 ```swift 
 // setup
