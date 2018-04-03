@@ -21,7 +21,7 @@ class TestNSLocale : XCTestCase {
             ("test_constants", test_constants),
             ("test_Identifier", test_Identifier),
             ("test_copy", test_copy),
-            ("test_availableIdentifiers", test_availableIdentifiers),
+            ("test_staticProperties", test_staticProperties),
             ("test_localeProperties", test_localeProperties),
         ]
     }
@@ -110,10 +110,29 @@ class TestNSLocale : XCTestCase {
         XCTAssertTrue(locale == localeCopy)
     }
 
-     func test_availableIdentifiers() {
-        XCTAssertNoThrow(Locale.availableIdentifiers)
+    func test_staticProperties() {
+        let euroCurrencyCode = "EUR"
+        let spainRegionCode = "ES"
+        let galicianLanguageCode = "gl"
+        let galicianLocaleIdentifier = Locale.identifier(fromComponents: [NSLocale.Key.languageCode.rawValue: galicianLanguageCode,
+                                                                          NSLocale.Key.countryCode.rawValue: spainRegionCode])
+
+        XCTAssertTrue(galicianLocaleIdentifier == "\(galicianLanguageCode)_\(spainRegionCode)")
+        
+        let components = Locale.components(fromIdentifier: galicianLocaleIdentifier)
+
+        XCTAssertTrue(components[NSLocale.Key.languageCode.rawValue] == galicianLanguageCode)
+        XCTAssertTrue(components[NSLocale.Key.countryCode.rawValue] == spainRegionCode)
+
+        XCTAssertTrue(Locale.availableIdentifiers.contains(galicianLocaleIdentifier))
+        XCTAssertTrue(Locale.commonISOCurrencyCodes.contains(euroCurrencyCode))
+        XCTAssertTrue(Locale.isoCurrencyCodes.contains(euroCurrencyCode))
+        XCTAssertTrue(Locale.isoRegionCodes.contains(spainRegionCode))
+        XCTAssertTrue(Locale.isoLanguageCodes.contains(galicianLanguageCode))
+        
+        XCTAssertTrue(Locale.preferredLanguages.count == UserDefaults.standard.array(forKey: "AppleLanguages")?.count ?? 0)
     }
- 
+    
     func test_localeProperties(){
 #if os(Android)
         XCTFail("Locale lookup unavailable on Android")

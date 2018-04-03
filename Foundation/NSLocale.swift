@@ -99,62 +99,31 @@ extension NSLocale {
     }
     
     open class var availableLocaleIdentifiers: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyAvailableLocaleIdentifiers()._nsObject {
-            identifiers.append(obj as! String)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyAvailableLocaleIdentifiers()) as? [String] ?? []
     }
     
     open class var isoLanguageCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOLanguageCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyISOLanguageCodes()) as? [String] ?? []
     }
     
     open class var isoCountryCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOCountryCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyISOCountryCodes()) as? [String] ?? []
     }
     
     open class var isoCurrencyCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyISOCurrencyCodes()) as? [String] ?? []
     }
     
     open class var commonISOCurrencyCodes: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyCommonISOCurrencyCodes()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyCommonISOCurrencyCodes()) as? [String] ?? []
     }
     
     open class var preferredLanguages: [String] {
-        var identifiers = Array<String>()
-        for obj in CFLocaleCopyPreferredLanguages()._nsObject {
-            identifiers.append((obj as! NSString)._swiftObject)
-        }
-        return identifiers
+        return _SwiftValue.fetch(CFLocaleCopyPreferredLanguages()) as? [String] ?? []
     }
     
     open class func components(fromLocaleIdentifier string: String) -> [String : String] {
-        var comps = Dictionary<String, String>()
-        let values = CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)._nsObject
-        values.enumerateKeysAndObjects(options: []) { (k, v, stop) in
-            let key = (k as! NSString)._swiftObject
-            let value = (v as! NSString)._swiftObject
-            comps[key] = value
-        }
-        return comps
+        return _SwiftValue.fetch(CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)) as? [String : String] ?? [:] 
     }
     
     open class func localeIdentifier(fromComponents dict: [String : String]) -> String {

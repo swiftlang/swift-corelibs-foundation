@@ -1080,7 +1080,7 @@ _CFLocaleCalendarDirection _CFLocaleGetCalendarDirection(void) {
 #endif
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 static CFArrayRef _CFLocaleCopyPreferredLanguagesFromPrefs(CFArrayRef languagesArray) {
     CFMutableArrayRef newArray = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
     if (languagesArray && (CFArrayGetTypeID() == CFGetTypeID(languagesArray))) {
@@ -1100,7 +1100,7 @@ static CFArrayRef _CFLocaleCopyPreferredLanguagesFromPrefs(CFArrayRef languagesA
 #endif
 
 CFArrayRef CFLocaleCopyPreferredLanguages(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     CFArrayRef languagesArray = (CFArrayRef)CFPreferencesCopyAppValue(CFSTR("AppleLanguages"), kCFPreferencesCurrentApplication);
     CFArrayRef result = _CFLocaleCopyPreferredLanguagesFromPrefs(languagesArray);
     if (languagesArray) CFRelease(languagesArray);
