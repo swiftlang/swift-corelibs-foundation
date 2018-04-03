@@ -1005,8 +1005,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     // FIXME: switch back to Range once swift 5.0 branch has PR #13342
     public typealias Indices = CountableRange<Int>
     
-    @usableFromInline internal var _backing : _DataStorage
-    @usableFromInline internal var _sliceRange: Range<Index>
+    @_versioned internal var _backing : _DataStorage
+    @_versioned internal var _sliceRange: Range<Index>
     
     
     // A standard or custom deallocator for `Data`.
@@ -1257,18 +1257,18 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
     }
 
-    @usableFromInline
+    @_versioned
     internal init(backing: _DataStorage, range: Range<Index>) {
         _backing = backing
         _sliceRange = range
     }
     
-    @usableFromInline
+    @_versioned
     internal func _validateIndex(_ index: Int, message: String? = nil) {
         precondition(_sliceRange.contains(index), message ?? "Index \(index) is out of bounds of range \(_sliceRange)")
     }
     
-    @usableFromInline
+    @_versioned
     internal func _validateRange<R: RangeExpression>(_ range: R) where R.Bound == Int {
         let lower = R.Bound(_sliceRange.lowerBound)
         let upper = R.Bound(_sliceRange.upperBound)

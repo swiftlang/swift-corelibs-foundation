@@ -150,7 +150,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     public typealias ReferenceType = NSIndexSet
     public typealias Element = Int
     
-    @usableFromInline
+    @_versioned
     internal var _handle: _MutablePairHandle<NSIndexSet, NSMutableIndexSet>
     
     /// Initialize an `IndexSet` with a range of integers.
@@ -846,7 +846,7 @@ internal enum _MutablePair<ImmutableType, MutableType> {
 /// a.k.a. Box
 internal final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject>
   where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying {
-    @usableFromInline
+    @_versioned
     internal var _pointer: _MutablePair<ImmutableType, MutableType>
     
     /// Initialize with an immutable reference instance.
