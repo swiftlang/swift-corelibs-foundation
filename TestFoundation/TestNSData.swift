@@ -15,7 +15,7 @@
     import SwiftXCTest
 #endif
 
-class TestNSData: XCTestCase {
+class TestNSData: LoopbackServerTest {
     
     class AllOnesImmutableData : NSData {
         private var _length : Int
@@ -201,6 +201,7 @@ class TestNSData: XCTestCase {
             ("test_openingNonExistentFile", test_openingNonExistentFile),
             ("test_contentsOfFile", test_contentsOfFile),
             ("test_contentsOfZeroFile", test_contentsOfZeroFile),
+            ("test_contentsOfURL", test_contentsOfURL),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
             ("test_dataHash", test_dataHash),
@@ -1471,6 +1472,16 @@ extension TestNSData {
             XCTFail("Cannot read /proc/self/maps: \(String(describing: error))")
         }
 #endif
+    }
+
+    func test_contentsOfURL() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let url = URL(string: urlString)!
+        let contents = NSData(contentsOf: url)
+        XCTAssertNotNil(contents)
+        if let contents = contents {
+            XCTAssertTrue(contents.length > 0)
+        }
     }
 
     func test_basicReadWrite() {
