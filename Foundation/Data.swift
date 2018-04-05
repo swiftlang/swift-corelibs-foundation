@@ -1893,13 +1893,7 @@ extension Data {
 
 /// Provides bridging functionality for struct Data to class NSData and vice-versa.
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias DataBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias DataBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension Data : DataBridgeType {
+extension Data : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSData {
         return _backing.bridgedReference(_sliceRange)

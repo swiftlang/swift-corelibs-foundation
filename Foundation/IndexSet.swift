@@ -790,13 +790,7 @@ private func _toNSRange(_ r: Range<IndexSet.Element>) -> NSRange {
     return NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias IndexSetBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias IndexSetBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension IndexSet : IndexSetBridgeType {
+extension IndexSet : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexSet.self
     }

@@ -483,12 +483,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 _cacheObject(object!, forReference: objectRef as! _NSKeyedArchiverUID)
             }
         } else {
-            // reference to a non-container object
-            if let bridgedObject = dereferencedObject as? _ObjectBridgeable {
-                object = bridgedObject._bridgeToAnyObject()
-            } else {
-                object = dereferencedObject
-            }
+            object = dereferencedObject as AnyObject
         }
 
         return _replacementObject(object)

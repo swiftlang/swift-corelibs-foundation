@@ -395,13 +395,12 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 if otherValue != value {
                     return false
                 }
-            } else if let otherBridgeable = otherDictionary[key as! AnyHashable] as? _ObjectBridgeable,
-                      let bridgeable = object(forKey: key)! as? _ObjectBridgeable {
-                if !(otherBridgeable._bridgeToAnyObject() as! NSObject).isEqual(bridgeable._bridgeToAnyObject()) {
+            } else {
+              let otherBridgeable = otherDictionary[key as! AnyHashable]
+              let bridgeable = object(forKey: key)!
+                if !((otherBridgeable as AnyObject) as! NSObject).isEqual(bridgeable as AnyObject) {
                     return false
                 }
-            } else {
-                return false
             }
         }
         
