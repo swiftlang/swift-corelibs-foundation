@@ -320,7 +320,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
             switch body {
             case .data(let data):
                 return data
-            case .stream(_):
+            case .stream:
                 return nil
             }
         }
@@ -330,7 +330,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     open var httpBodyStream: InputStream? {
         if let body = _body {
             switch body {
-            case .data(_):
+            case .data:
                 return nil
             case .stream(let stream):
                 return stream
@@ -482,7 +482,7 @@ open class NSMutableURLRequest : NSURLRequest {
                 switch body {
                 case .data(let data):
                     return data
-                case .stream(_):
+                case .stream:
                     return nil
                 }
             }
@@ -501,7 +501,7 @@ open class NSMutableURLRequest : NSURLRequest {
         get {
             if let body = _body {
                 switch body {
-                case .data(_):
+                case .data:
                     return nil
                 case .stream(let stream):
                     return stream
