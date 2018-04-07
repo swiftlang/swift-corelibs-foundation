@@ -336,7 +336,7 @@ internal extension _HTTPURLProtocol {
         switch session.behaviour(for: self.task!) {
         case .noDelegate:
             break
-        case .taskDelegate(_):
+        case .taskDelegate:
             //TODO: There's a problem with libcurl / with how we're using it.
             // We're currently unable to pause the transfer / the easy handle:
             // https://curl.haxx.se/mail/lib-2016-03/0222.html

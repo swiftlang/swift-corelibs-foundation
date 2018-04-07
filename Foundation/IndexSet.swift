@@ -662,9 +662,9 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         // This check is done twice because: <rdar://problem/24939065> Value kept live for too long causing uniqueness check to fail
         var unique = true
         switch _handle._pointer {
-        case .Default(_):
+        case .Default:
             break
-        case .Mutable(_):
+        case .Mutable:
             unique = isKnownUniquelyReferenced(&_handle)
         }
         

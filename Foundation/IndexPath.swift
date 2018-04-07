@@ -69,7 +69,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
             switch self {
             case .empty:
                 return .empty
-            case .single(_):
+            case .single:
                 return .empty
             case .pair(let first, _):
                 return .single(first)
@@ -237,7 +237,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
                 case .empty:
                     fatalError("index \(index) out of bounds of count 0")
                     break
-                case .single(_):
+                case .single:
                     precondition(index == 0, "index \(index) out of bounds of count 1")
                     self = .single(newValue)
                     break

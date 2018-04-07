@@ -180,9 +180,9 @@ extension _MutablePairBoxing {
         
         // This check is done twice becaue: <rdar://problem/24939065> Value kept live for too long causing uniqueness check to fail
         switch (wrapper) {
-        case .Immutable(_):
+        case .Immutable:
             break
-        case .Mutable(_):
+        case .Mutable:
             unique = isKnownUniquelyReferenced(&_wrapped)
         }
         
