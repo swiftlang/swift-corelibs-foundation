@@ -34,7 +34,8 @@ class TestFileManager : XCTestCase {
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
-            ("test_mountedVolumeURLs", test_mountedVolumeURLs)
+            ("test_mountedVolumeURLs", test_mountedVolumeURLs),
+            ("test_contentsEqual", test_contentsEqual)
         ]
     }
     
@@ -619,5 +620,84 @@ class TestFileManager : XCTestCase {
         XCTAssertTrue(visibleVolumes.count > 0)
         XCTAssertTrue(visibleVolumes.count < volumes.count)
 #endif
+    }
+
+    func test_contentsEqual() {
+        let fm = FileManager.default
+        let tmpParentDirURL = URL(fileURLWithPath: NSTemporaryDirectory() + "test_contentsEqualdir", isDirectory: true)
+        let testDir1 = tmpParentDirURL.appendingPathComponent("testDir1")
+        let testDir2 = tmpParentDirURL.appendingPathComponent("testDir2")
+        let testDir3 = testDir1.appendingPathComponent("subDir")
+
+        defer { try? fm.removeItem(atPath: tmpParentDirURL.path) }
+
+        func testFileURL(_ name: String, _ ext: String) -> URL? {
+            guard let url = testBundle().url(forResource: name, withExtension: ext) else {
+                XCTFail("Cant open \(name).\(ext)")
+                return nil
+            }
+            return url
+        }
+
+        guard let testFile1URL = testFileURL("NSStringTestData", "txt") else { return }
+        guard let testFile2URL = testFileURL("NSURLTestData", "plist")  else { return }
+        guard let testFile3URL = testFileURL("NSString-UTF32-BE-data", "txt") else { return }
+        guard let testFile4URL = testFileURL("NSString-UTF32-LE-data", "txt") else { return }
+        let symlink = testDir1.appendingPathComponent("testlink").path
+
+        // Setup test directories
+        do {
+            // Clean out and leftover test data
+            try? fm.removeItem(atPath: tmpParentDirURL.path)
+
+            // testDir1
+            try fm.createDirectory(atPath: testDir1.path, withIntermediateDirectories: true)
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("null1").path, withDestinationPath: "/dev/null")
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("zero1").path, withDestinationPath: "/dev/zero")
+            try "foo".write(toFile: testDir1.appendingPathComponent("foo.txt").path, atomically: false, encoding: .ascii)
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("foo1").path, withDestinationPath: "foo.txt")
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
+            let unreadable = testDir1.appendingPathComponent("unreadable_file").path
+            try "unreadable".write(toFile: unreadable, atomically: false, encoding: .ascii)
+            try fm.setAttributes([.posixPermissions: NSNumber(value: 0)], ofItemAtPath: unreadable)
+            try Data().write(to: testDir1.appendingPathComponent("empty_file"))
+            try fm.createSymbolicLink(atPath: symlink, withDestinationPath: testFile1URL.path)
+
+            // testDir2
+            try fm.createDirectory(atPath: testDir2.path, withIntermediateDirectories: true)
+            try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
+            try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
+
+            // testDir3
+            try fm.createDirectory(atPath: testDir3.path, withIntermediateDirectories: true)
+            try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
+            try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
+        } catch {
+            XCTFail(String(describing: error))
+        }
+
+        XCTAssertTrue(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/null"))
+        XCTAssertTrue(fm.contentsEqual(atPath: "/dev/urandom", andPath: "/dev/urandom"))
+        XCTAssertFalse(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/zero"))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("null1").path, andPath: "/dev/null"))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("zero").path, andPath: "/dev/zero"))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo1").path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo2").path))
+        XCTAssertTrue(fm.contentsEqual(atPath: testDir1.appendingPathComponent("bar2").path, andPath: testDir2.appendingPathComponent("bar2").path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo1").path, andPath: testDir2.appendingPathComponent("foo2").path))
+        XCTAssertFalse(fm.contentsEqual(atPath: "/non_existant_file", andPath: "/non_existant_file"))
+
+        let emptyFile = testDir1.appendingPathComponent("empty_file")
+        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "/dev/null"))
+        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("null1").path))
+        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+
+        XCTAssertTrue(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile1URL.path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile2URL.path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testFile3URL.path, andPath: testFile4URL.path))
+        XCTAssertFalse(fm.contentsEqual(atPath: symlink, andPath: testFile1URL.path))
+        XCTAssertTrue(fm.contentsEqual(atPath: testDir1.path, andPath: testDir1.path))
+        XCTAssertTrue(fm.contentsEqual(atPath: testDir2.path, andPath: testDir3.path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
     }
 }
