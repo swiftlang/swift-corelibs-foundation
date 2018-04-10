@@ -638,8 +638,7 @@ open class FileManager : NSObject {
         NSUnimplemented()
     }
 
-    private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
-        let bufSize = min(size, 1024 * 1024)
+    private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
         let fd1 = open(file1Rep, O_RDONLY)
         guard fd1 >= 0 else {
             return false
@@ -652,8 +651,8 @@ open class FileManager : NSObject {
         }
         defer { close(fd2) }
 
-        let buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(bufSize))
-        let buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(bufSize))
+        let buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
         defer {
             buffer1.deallocate()
             buffer2.deallocate()
@@ -661,7 +660,7 @@ open class FileManager : NSObject {
 
         var bytesLeft = size
         while bytesLeft > 0 {
-            let bytesToRead = Int(min(bufSize, bytesLeft))
+            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
             guard read(fd1, buffer1, bytesToRead) == bytesToRead else {
                 return false
             }
@@ -784,7 +783,7 @@ open class FileManager : NSObject {
             guard file1.st_size == file2.st_size else {
                 return false
             }
-            return _compareFiles(withFileSystemRepresentation: path1, andFileSystemRepresentation: path2, size: Int64(file1.st_size))
+            return _compareFiles(withFileSystemRepresentation: path1, andFileSystemRepresentation: path2, size: Int64(file1.st_size), bufSize: Int(file1.st_blksize))
         }
         else if file1Type == S_IFLNK {
             return _compareSymlinks(withFileSystemRepresentation: fsRep1, andFileSystemRepresentation: fsRep2, size: Int64(file1.st_size))
