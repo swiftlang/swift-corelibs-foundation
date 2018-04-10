@@ -677,7 +677,7 @@ open class FileManager : NSObject {
     }
 
     private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
-        let bufSize = Int(size) + 1
+        let bufSize = Int(size)
         let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
         let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
 
@@ -712,6 +712,9 @@ open class FileManager : NSObject {
 
         while let item = enumerator2.nextObject() as? String {
             if path1entries.remove(item) == nil {
+                return false
+            }
+            if contentsEqual(atPath: NSString(string: path1).appendingPathComponent(item), andPath: NSString(string: path2).appendingPathComponent(item)) == false {
                 return false
             }
         }
@@ -763,10 +766,10 @@ open class FileManager : NSObject {
             return false
         }
 
-        if file1Type == S_IFCHR {
+        if file1Type == S_IFCHR || file1Type == S_IFBLK {
             // For character devices, just check the major/minor pair is the same.
-            return _char_dev_major(file1.st_rdev) == _char_dev_major(file2.st_rdev)
-                && _char_dev_minor(file1.st_rdev) == _char_dev_minor(file2.st_rdev)
+            return _dev_major(file1.st_rdev) == _dev_major(file2.st_rdev)
+                && _dev_minor(file1.st_rdev) == _dev_minor(file2.st_rdev)
         }
 
         // If both paths point to the same device/inode or they are both zero length
