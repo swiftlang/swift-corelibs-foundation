@@ -71,14 +71,6 @@ class TestNSData: LoopbackServerTest {
                 memset(buffer, 1, length)
             }
         }
-        
-        override func copy(with zone: NSZone? = nil) -> Any {
-            return self
-        }
-        
-        override func mutableCopy(with zone: NSZone? = nil) -> Any {
-            return AllOnesData(length: _length)
-        }
     }
     
     
@@ -519,6 +511,27 @@ class TestNSData: LoopbackServerTest {
             ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+	    ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
+	    ("testBridgingCustom", testBridgingCustom),
+            ("testCustomData", testCustomData),
+            ("test_doubleDeallocation", test_doubleDeallocation),
+            ("test_rangeZoo", test_rangeZoo),
+            ("test_sliceIndexing", test_sliceIndexing),
+            ("test_sliceEquality", test_sliceEquality),
+            ("test_sliceEquality2", test_sliceEquality2),
+            ("test_splittingHttp", test_splittingHttp),
+            ("test_map", test_map),
+            ("test_dropFirst", test_dropFirst),
+            ("test_dropFirst2", test_dropFirst2),
+            ("test_copyBytes1", test_copyBytes1),
+            ("test_copyBytes2", test_copyBytes2),
+            ("test_sliceOfSliceViaRangeExpression", test_sliceOfSliceViaRangeExpression),
+            ("test_appendingSlices", test_appendingSlices),
+            ("test_sequenceInitializers", test_sequenceInitializers),
+            ("test_reversedDataInit", test_reversedDataInit),
+            ("test_replaceSubrangeReferencingMutable", test_replaceSubrangeReferencingMutable),
+            ("test_replaceSubrangeReferencingImmutable", test_replaceSubrangeReferencingImmutable),
+            ("test_rangeOfSlice", test_rangeOfSlice),
         ]
     }
     
@@ -4146,6 +4159,305 @@ extension TestNSData {
             ptr.advanced(by: 1).pointee = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
+    }
+
+    func testCustomData() {
+        let length = 5
+        let allOnesData = Data(referencing: AllOnesData(length: length))
+        XCTAssertEqual(1, allOnesData[0], "First byte of all 1s data should be 1")
+
+        // Double the length
+        var allOnesCopyToMutate = allOnesData
+        allOnesCopyToMutate.count = allOnesData.count * 2
+
+        XCTAssertEqual(allOnesData.count, length, "The length of the initial data should not have changed")
+        XCTAssertEqual(allOnesCopyToMutate.count, length * 2, "The length should have changed")
+
+        // Force the second data to create its storage
+        allOnesCopyToMutate.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
+            XCTAssertEqual(bytes.pointee, 1, "First byte should be 1")
+
+            // Mutate the second data
+            bytes.pointee = 0
+            XCTAssertEqual(bytes.pointee, 0, "First byte should be 0")
+            XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
+
+            // Verify that the first data is still 1
+            XCTAssertEqual(allOnesData[0], 1, "The first byte should still be 1")
+        }
+ 
+    }
+ 
+    func testBridgingCustom() {
+        // Let's use an AllOnesData with some Objective-C code
+        let allOnes = AllOnesData(length: 64)
+
+        // Type-erased
+        let data = Data(referencing: allOnes)
+
+        // Create a home for our test data
+        let dirPath = FileManager.default.temporaryDirectory.appendingPathComponent("TestFoundation_Playground_" + UUID().uuidString)
+        try! FileManager.default.createDirectory(atPath: dirPath.path, withIntermediateDirectories: true, attributes: nil)
+        let filePath = dirPath.appendingPathComponent("temp_file")
+        guard FileManager.default.createFile(atPath: filePath.path, contents: nil, attributes: nil) else { XCTAssertTrue(false, "Unable to create temporary file"); return}
+        guard let fh = FileHandle(forWritingAtPath: filePath.path) else { XCTAssertTrue(false, "Unable to open temporary file"); return }
+        defer { try! FileManager.default.removeItem(atPath: dirPath.path) }
+        
+        // Now use this data with some Objective-C code that takes NSData arguments
+        fh.write(data)
+        
+        // Get the data back
+        do {
+            let url = URL(fileURLWithPath: filePath.path)
+            let readData = try Data.init(contentsOf: url)
+            XCTAssertEqual(data.count, readData.count, "The length of the data is not the same")
+        } catch {
+            XCTAssertTrue(false, "Unable to read back data")
+            return
+        }
+    }
+
+    func test_discontiguousEnumerateBytes() {
+        let dataToEncode = "Hello World".data(using: .utf8)!
+
+        let subdata1 = dataToEncode.withUnsafeBytes { bytes in
+            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+        }
+        let subdata2 = dataToEncode.withUnsafeBytes { bytes in
+            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+        }
+        var data = subdata1
+        data.append(subdata2)
+
+        var numChunks = 0
+        var offsets = [Int]()
+        data.enumerateBytes() { buffer, offset, stop in
+            numChunks += 1
+            offsets.append(offset)
+        }
+
+        XCTAssertEqual(2, numChunks, "composing two dispatch_data should enumerate as structural data as 2 chunks")
+        XCTAssertEqual(0, offsets[0], "composing two dispatch_data should enumerate as structural data with the first offset as the location of the region")
+        XCTAssertEqual(dataToEncode.count, offsets[1], "composing two dispatch_data should enumerate as structural data with the first offset as the location of the region")
+    }
+
+    func test_doubleDeallocation() {
+        let data = "12345679".data(using: .utf8)!
+        let len = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Int in
+            let slice = Data(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), count: 1, deallocator: .none)
+            return slice.count
+        }
+        XCTAssertEqual(len, 1)
+    }
+
+    func test_rangeZoo() {
+        let r1: Range = 0..<1
+        let r2: Range = 0..<1
+        let r3 = ClosedRange(0..<1)
+        let r4 = ClosedRange(0..<1)
+
+        let data = Data(bytes: [8, 1, 2, 3, 4])
+        let slice1: Data = data[r1]
+        let slice2: Data = data[r2]
+        let slice3: Data = data[r3]
+        let slice4: Data = data[r4]
+        XCTAssertEqual(slice1[0], 8)
+        XCTAssertEqual(slice2[0], 8)
+        XCTAssertEqual(slice3[0], 8)
+        XCTAssertEqual(slice4[0], 8)
+    }
+
+    func test_sliceIndexing() {
+        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice = d[5..<10]
+        XCTAssertEqual(slice[5], d[5])
+    }
+
+    func test_sliceEquality() {
+        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice = d[5..<7]
+        let expected = Data(bytes: [5, 6])
+        XCTAssertEqual(expected, slice)
+    }
+
+    func test_sliceEquality2() {
+        let d = Data(bytes: [5, 6, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice1 = d[0..<2]
+        let slice2 = d[5..<7]
+        XCTAssertEqual(slice1, slice2)
+    }
+
+    func test_splittingHttp() {
+        func split(_ data: Data, on delimiter: String) -> [Data] {
+            let dataDelimiter = delimiter.data(using: .utf8)!
+            var found = [Data]()
+            let start = data.startIndex
+            let end = data.endIndex.advanced(by: -dataDelimiter.count)
+            guard end >= start else { return [data] }
+            var index = start
+            var previousIndex = index
+            while index < end {
+                let slice = data[index..<index.advanced(by: dataDelimiter.count)]
+
+                if slice == dataDelimiter {
+                    found.append(data[previousIndex..<index])
+                    previousIndex = index + dataDelimiter.count
+                }
+
+                index = index.advanced(by: 1)
+            }
+            if index < data.endIndex { found.append(data[index..<index]) }
+            return found
+        }
+        let data = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n".data(using: .ascii)!
+        let fields = split(data, on: "\r\n")
+        let splitFields = fields.map { String(data:$0, encoding: .utf8)! }
+        XCTAssertEqual([
+            "GET /index.html HTTP/1.1",
+            "Host: www.example.com",
+            ""
+            ], splitFields)
+    }
+
+    func test_map() {
+        let d1 = Data(bytes: [81, 0, 0, 0, 14])
+        let d2 = d1[1...4]
+        XCTAssertEqual(4, d2.count)
+        let expected: [UInt8] = [0, 0, 0, 14]
+        let actual = d2.map { $0 }
+        XCTAssertEqual(expected, actual)
+    }
+
+    func test_dropFirst() {
+        var data = Data([0, 1, 2, 3, 4, 5])
+        let sliced = data.dropFirst()
+        XCTAssertEqual(data.count - 1, sliced.count)
+        XCTAssertEqual(UInt8(1), sliced[1])
+        XCTAssertEqual(UInt8(2), sliced[2])
+        XCTAssertEqual(UInt8(3), sliced[3])
+        XCTAssertEqual(UInt8(4), sliced[4])
+        XCTAssertEqual(UInt8(5), sliced[5])
+    }
+
+    func test_dropFirst2() {
+        var data = Data([0, 1, 2, 3, 4, 5])
+        let sliced = data.dropFirst(2)
+        XCTAssertEqual(data.count - 2, sliced.count)
+        XCTAssertEqual(UInt8(2), sliced[2])
+        XCTAssertEqual(UInt8(3), sliced[3])
+        XCTAssertEqual(UInt8(4), sliced[4])
+        XCTAssertEqual(UInt8(5), sliced[5])
+    }
+
+    func test_copyBytes1() {
+        var array: [UInt8] = [0, 1, 2, 3]
+        var data = Data(bytes: array)
+
+        array.withUnsafeMutableBufferPointer {
+            data[1..<3].copyBytes(to: $0.baseAddress!, from: 1..<3)
+        }
+        XCTAssertEqual([UInt8(1), UInt8(2), UInt8(2), UInt8(3)], array)
+    }
+
+    func test_copyBytes2() {
+        let array: [UInt8] = [0, 1, 2, 3]
+        var data = Data(bytes: array)
+
+        let expectedSlice = array[1..<3]
+
+        let start = data.index(after: data.startIndex)
+        let end = data.index(before: data.endIndex)
+        let slice = data[start..<end]
+        XCTAssertEqual(expectedSlice[expectedSlice.startIndex], slice[slice.startIndex])
+    }
+
+    func test_sliceOfSliceViaRangeExpression() {
+        let data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+        let slice = data[2..<7]
+
+        let sliceOfSlice1 = slice[..<(slice.startIndex + 2)] // this triggers the range expression
+        let sliceOfSlice2 = slice[(slice.startIndex + 2)...] // also triggers range expression
+        XCTAssertEqual(Data(bytes: [2, 3]), sliceOfSlice1)
+        XCTAssertEqual(Data(bytes: [4, 5, 6]), sliceOfSlice2)
+    }
+
+    func test_appendingSlices() {
+        let d1 = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let slice = d1[1..<2]
+        var d2 = Data()
+        d2.append(slice)
+        XCTAssertEqual(Data(bytes: [1]), slice)
+    }
+
+    func test_sequenceInitializers() {
+        let seq = repeatElement(UInt8(0x02), count: 3) // ensure we fall into the sequence case
+
+        let dataFromSeq = Data(seq)
+        XCTAssertEqual(3, dataFromSeq.count)
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[0])
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[1])
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[2])
+
+        let array: [UInt8] = [0, 1, 2, 3, 4, 5, 6]
+
+        let dataFromArray = Data(array)
+        XCTAssertEqual(array.count, dataFromArray.count)
+        XCTAssertEqual(array[0], dataFromArray[0])
+        XCTAssertEqual(array[1], dataFromArray[1])
+        XCTAssertEqual(array[2], dataFromArray[2])
+        XCTAssertEqual(array[3], dataFromArray[3])
+
+        let slice = array[1..<4]
+
+        let dataFromSlice = Data(slice)
+        XCTAssertEqual(slice.count, dataFromSlice.count)
+        XCTAssertEqual(slice.first, dataFromSlice.first)
+        XCTAssertEqual(slice.last, dataFromSlice.last)
+
+        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+        let dataFromData = Data(data)
+        XCTAssertEqual(data, dataFromData)
+
+        let sliceOfData = data[1..<3]
+
+        let dataFromSliceOfData = Data(sliceOfData)
+        XCTAssertEqual(sliceOfData, dataFromSliceOfData)
+    }
+
+    func test_reversedDataInit() {
+        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let reversedData = Data(data.reversed())
+        let expected = Data(bytes: [9, 8, 7, 6, 5, 4, 3, 2, 1])
+        XCTAssertEqual(expected, reversedData)
+    }
+
+    func test_replaceSubrangeReferencingMutable() {
+        let mdataObj = NSMutableData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
+        var data = Data(referencing: mdataObj)
+        let expected = data.count
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+    }
+
+    func test_replaceSubrangeReferencingImmutable() {
+        let dataObj = NSData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
+        var data = Data(referencing: dataObj)
+        let expected = data.count
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+    }
+
+    func test_rangeOfSlice() {
+        let data = "FooBar".data(using: .ascii)!
+        let slice = data[3...] // Bar
+        let range = slice.range(of: "a".data(using: .ascii)!)
+        XCTAssertEqual(range, Range<Data.Index>(4..<5))
     }
 }
 
