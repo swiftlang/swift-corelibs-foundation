@@ -580,24 +580,25 @@ class TestURLComponents : XCTestCase {
         let baseURL = URL(string: "https://www.example.com")
 
         /* test NSURLComponents without authority */
-        var compWithAuthority = URLComponents(string: "https://www.swift.org")
-        compWithAuthority!.path = "/path/to/file with space.html"
-        compWithAuthority!.query = "id=23&search=Foo Bar"
+        guard var compWithAuthority = URLComponents(string: "https://www.swift.org") else {
+            XCTFail("Failed to create URLComponents using 'https://www.swift.org'")
+            return
+        }
+        compWithAuthority.path = "/path/to/file with space.html"
+        compWithAuthority.query = "id=23&search=Foo Bar"
         var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string as Optional)")
+        XCTAssertEqual(compWithAuthority.string, expectedString, "expected \(expectedString) but received \(compWithAuthority.string as Optional)")
 
-        var aURL = compWithAuthority!.url(relativeTo: baseURL)
-        XCTAssertNotNil(aURL)
-        XCTAssertNil(aURL!.baseURL)
-        XCTAssertEqual(aURL!.absoluteString, expectedString, "expected \(expectedString) but received \(aURL!.absoluteString)")
+        guard let urlA = compWithAuthority.url(relativeTo: baseURL) else {
+            XCTFail("URLComponents with authority failed to create relative URL to '\(baseURL)'")
+            return
+        }
+        XCTAssertNil(urlA.baseURL)
+        XCTAssertEqual(urlA.absoluteString, expectedString, "expected \(expectedString) but received \(urlA.absoluteString)")
 
-        compWithAuthority!.path = "path/to/file with space.html" //must start with /
-        XCTAssertNil(compWithAuthority!.string) // must be nil
-
-        aURL = compWithAuthority!.url(relativeTo: baseURL)
-        XCTAssertNil(aURL) //must be nil
-
-
+        compWithAuthority.path = "path/to/file with space.html" //must start with /
+        XCTAssertNil(compWithAuthority.string) // must be nil
+        XCTAssertNil(compWithAuthority.url(relativeTo: baseURL)) //must be nil
 
         /* test NSURLComponents without authority */
         var compWithoutAuthority = URLComponents()
@@ -606,16 +607,16 @@ class TestURLComponents : XCTestCase {
         expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
         XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string as Optional)")
 
-        aURL = compWithoutAuthority.url(relativeTo: baseURL)
-        XCTAssertNotNil(aURL)
+        guard let urlB = compWithoutAuthority.url(relativeTo: baseURL) else {
+            XCTFail("URLComponents without authority failed to create relative URL to '\(baseURL)'")
+            return
+        }
         expectedString = "https://www.example.com/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(aURL!.absoluteString, expectedString, "expected \(expectedString) but received \(aURL!.absoluteString)")
+        XCTAssertEqual(urlB.absoluteString, expectedString, "expected \(expectedString) but received \(urlB.absoluteString)")
 
         compWithoutAuthority.path = "//path/to/file with space.html" //shouldn't start with //
         XCTAssertNil(compWithoutAuthority.string) // must be nil
-
-        aURL = compWithoutAuthority.url(relativeTo: baseURL)
-        XCTAssertNil(aURL) //must be nil
+        XCTAssertNil(compWithoutAuthority.url(relativeTo: baseURL)) //must be nil
     }
 
     func test_copy() {
