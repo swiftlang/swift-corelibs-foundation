@@ -47,6 +47,7 @@ class Configuration:
     extra_ld_flags = None
     build_mode = None
     config_path = None # dont save this; else it would be recursive
+    libdir = None
     variables = {}
     def __init__(self):
         pass
@@ -90,6 +91,7 @@ class Configuration:
             'extra_ld_flags' : self.extra_ld_flags,
             'build_mode' : self.build_mode,
             'variables' : self.variables,
+            'libdir' : self.libdir,
         }
         with open(path, 'w+') as outfile:
             json.dump(info, outfile)

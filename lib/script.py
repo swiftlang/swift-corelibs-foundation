@@ -8,6 +8,7 @@
 #
 
 from .config import Configuration
+
 import os
 
 class Script:
@@ -66,6 +67,7 @@ DYLIB_SUFFIX          = """ + Configuration.current.target.dynamic_library_suffi
 STATICLIB_PREFIX      = """ + Configuration.current.target.static_library_prefix + """
 STATICLIB_SUFFIX      = """ + Configuration.current.target.static_library_suffix + """
 PREFIX                = """ + Configuration.current.prefix + """
+LIBDIR                = """ + Configuration.current.libdir + """
 """
         if Configuration.current.requires_pkg_config:
             base_flags += """
@@ -103,8 +105,8 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
             c_flags += """  -I${TARGET_BOOTSTRAP_DIR}/usr/include -I${TARGET_BOOTSTRAP_DIR}/usr/local/include """
         
         c_flags += Configuration.current.extra_c_flags
-
-        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/lib/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks -resource-dir ${SDKROOT}/lib/swift "
+        
+        swift_flags = "\nTARGET_SWIFTCFLAGS    = -I${SDKROOT}/${LIBDIR}/swift/" + Configuration.current.target.swift_sdk_name + " -Xcc -fblocks -resource-dir ${SDKROOT}/${LIBDIR}/swift "
         if swift_triple is not None:
             swift_flags += "-target ${SWIFT_TARGET} "
         if Configuration.current.system_root is not None:
@@ -122,7 +124,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         swift_flags += Configuration.current.extra_swift_flags
         
         swift_flags += """
-TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/${LIBDIR}/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/${LIBDIR}/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.build_mode == Configuration.Debug:
             swift_flags += "-g -Onone -enable-testing "
         elif Configuration.current.build_mode == Configuration.Release:
@@ -135,7 +137,7 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
 EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
 
         ld_flags += """
-TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L ${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/${ARCH} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L ${SDKROOT}/${LIBDIR}/swift/""" + Configuration.current.target.swift_sdk_name + """/${ARCH} -L${SDKROOT}/${LIBDIR}/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.system_root is not None:
             ld_flags += "--sysroot=${SYSROOT}"
 
