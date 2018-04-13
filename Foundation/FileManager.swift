@@ -442,16 +442,34 @@ open class FileManager : NSObject {
             else {
                 return
         }
+
+        func copyNonDirectory(srcPath: String, dstPath: String, fileType: FileAttributeType) throws {
+            if fileType == .typeSymbolicLink {
+                let destination = try destinationOfSymbolicLink(atPath: srcPath)
+                try createSymbolicLink(atPath: dstPath, withDestinationPath: destination)
+            } else if fileType == .typeRegular {
+                if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(string: dstPath)])
+                }
+            }
+        }
+
         if fileType == .typeDirectory {
             try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
             let subpaths = try subpathsOfDirectory(atPath: srcPath)
             for subpath in subpaths {
-                try copyItem(atPath: srcPath + "/" + subpath, toPath: dstPath + "/" + subpath)
+                let src = srcPath + "/" + subpath
+                let dst = dstPath + "/" + subpath
+                if let attrs = try? attributesOfItem(atPath: src), let fileType = attrs[.type] as? FileAttributeType {
+                    if fileType == .typeDirectory {
+                        try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
+                    } else {
+                        try copyNonDirectory(srcPath: src, dstPath: dst, fileType: fileType)
+                    }
+                }
             }
         } else {
-            if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(string: dstPath)])
-            }
+            try copyNonDirectory(srcPath: srcPath, dstPath: dstPath, fileType: fileType)
         }
     }
     
