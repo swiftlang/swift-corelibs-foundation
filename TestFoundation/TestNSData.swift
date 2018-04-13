@@ -4180,12 +4180,12 @@ extension TestNSData {
             // Mutate the second data
             bytes.pointee = 0
             XCTAssertEqual(bytes.pointee, 0, "First byte should be 0")
-            XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
 
-            // Verify that the first data is still 1
-            XCTAssertEqual(allOnesData[0], 1, "The first byte should still be 1")
         }
- 
+        XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
+
+        // Verify that the first data is still 1
+        XCTAssertEqual(allOnesData[0], 1, "The first byte should still be 1")
     }
  
     func testBridgingCustom() {
