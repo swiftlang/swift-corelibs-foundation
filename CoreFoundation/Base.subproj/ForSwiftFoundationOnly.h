@@ -403,6 +403,8 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
+#elif DEPLOYMENT_TARGET_ANDROID
+    return strlen(entry->d_name);
 #else
     return entry->d_namlen;
 #endif

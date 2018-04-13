@@ -813,6 +813,15 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
+#if DEPLOYMENT_TARGET_ANDROID
+    // Timezone database by name not available on Android.
+    // Approximate with gmtoff - could be general default.
+    struct tm info;
+    time_t now = time(NULL);
+    if (NULL != localtime_r(&now, &info)) {
+        return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, info.tm_gmtoff);
+    }
+#endif
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }
 

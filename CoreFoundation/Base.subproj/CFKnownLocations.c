@@ -45,7 +45,7 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         }
             
     }
-#elif !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#elif !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
     
 /*
  Building for an OS that uses the FHS, BSD's hier(7), and/or the XDG specification for paths:
