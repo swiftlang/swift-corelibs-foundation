@@ -79,12 +79,20 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
         CFStringRef str = NULL;
         CFURLRef executableURL = NULL, bundleURL = NULL;
         _initedMainBundle = true;
+#if DEPLOYMENT_TARGET_ANDROID
+        const char *bundlePath = getenv("CFFIXED_USER_HOME") ?: getenv("TMPDIR") ?: "/data/local/tmp";
+        CFStringRef bundleRef = CFStringCreateWithFileSystemRepresentation(kCFAllocatorNull, bundlePath);
+        bundleURL = CFRetain(CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, bundleRef,
+                                                           PLATFORM_PATH_STYLE, false));
+        CFRelease(bundleRef);
+#else
         processPath = _CFProcessPath();
         if (processPath) {
             str = CFStringCreateWithFileSystemRepresentation(kCFAllocatorSystemDefault, processPath);
             if (!executableURL) executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, str, PLATFORM_PATH_STYLE, false);
         }
         if (executableURL) bundleURL = _CFBundleCopyBundleURLForExecutableURL(executableURL);
+#endif
         if (bundleURL) {
             // make sure that main bundle has executable path
             //??? what if we are not the main executable in the bundle?
