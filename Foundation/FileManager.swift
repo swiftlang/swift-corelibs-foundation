@@ -593,32 +593,26 @@ open class FileManager : NSObject {
     
     open func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
         var s = stat()
-        if lstat(path, &s) >= 0 {
-            if let isDirectory = isDirectory {
-                if (s.st_mode & S_IFMT) == S_IFLNK {
-                    if stat(path, &s) >= 0 {
-                        isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
-                    } else {
-                        return false
-                    }
-                } else {
-                    let isDir = (s.st_mode & S_IFMT) == S_IFDIR
-                    isDirectory.pointee = ObjCBool(isDir)
-                }
-            }
-
-            // don't chase the link for this magic case -- we might be /Net/foo
-            // which is a symlink to /private/Net/foo which is not yet mounted...
-            if (s.st_mode & S_IFMT) == S_IFLNK {
-                if (s.st_mode & S_ISVTX) == S_ISVTX {
-                    return true
-                }
-                // chase the link; too bad if it is a slink to /Net/foo
-                stat(path, &s)
-            }
-        } else {
+        guard lstat(path, &s) >= 0 else {
             return false
         }
+
+        if (s.st_mode & S_IFMT) == S_IFLNK {
+            // don't chase the link for this magic case -- we might be /Net/foo
+            // which is a symlink to /private/Net/foo which is not yet mounted...
+            if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
+                return true
+            }
+            // chase the link; too bad if it is a slink to /Net/foo
+            guard stat(path, &s) >= 0 else {
+                return false
+            }
+        }
+
+        if let isDirectory = isDirectory {
+            isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
+        }
+
         return true
     }
     
