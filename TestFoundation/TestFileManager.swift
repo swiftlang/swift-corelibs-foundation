@@ -23,6 +23,7 @@ class TestFileManager : XCTestCase {
             ("test_createFile", test_createFile ),
             ("test_moveFile", test_moveFile),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
+            ("test_fileExists", test_fileExists),
             ("test_fileAttributes", test_fileAttributes),
             ("test_fileSystemAttributes", test_fileSystemAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
@@ -161,7 +162,53 @@ class TestFileManager : XCTestCase {
         result.deallocate()
 #endif
     }
-    
+
+    func test_fileExists() {
+        let fm = FileManager.default
+        let tmpDir = fm.temporaryDirectory.appendingPathComponent("testFileExistsDir")
+        let testFile = tmpDir.appendingPathComponent("testFile")
+        let goodSymLink = tmpDir.appendingPathComponent("goodSymLink")
+        let badSymLink = tmpDir.appendingPathComponent("badSymLink")
+        let dirSymLink = tmpDir.appendingPathComponent("dirSymlink")
+
+        ignoreError { try fm.removeItem(atPath: tmpDir.path) }
+
+        do {
+            try fm.createDirectory(atPath: tmpDir.path, withIntermediateDirectories: false, attributes: nil)
+            XCTAssertTrue(fm.createFile(atPath: testFile.path, contents: Data()))
+            try fm.createSymbolicLink(atPath: goodSymLink.path, withDestinationPath: testFile.path)
+            try fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file")
+            try fm.createSymbolicLink(atPath: dirSymLink.path, withDestinationPath: "..")
+
+            var isDirFlag: ObjCBool = false
+            XCTAssertTrue(fm.fileExists(atPath: tmpDir.path))
+            XCTAssertTrue(fm.fileExists(atPath: tmpDir.path, isDirectory: &isDirFlag))
+            XCTAssertTrue(isDirFlag.boolValue)
+
+            isDirFlag = true
+            XCTAssertTrue(fm.fileExists(atPath: testFile.path))
+            XCTAssertTrue(fm.fileExists(atPath: testFile.path, isDirectory: &isDirFlag))
+            XCTAssertFalse(isDirFlag.boolValue)
+
+            isDirFlag = true
+            XCTAssertTrue(fm.fileExists(atPath: goodSymLink.path))
+            XCTAssertTrue(fm.fileExists(atPath: goodSymLink.path, isDirectory: &isDirFlag))
+            XCTAssertFalse(isDirFlag.boolValue)
+
+            isDirFlag = true
+            XCTAssertFalse(fm.fileExists(atPath: badSymLink.path))
+            XCTAssertFalse(fm.fileExists(atPath: badSymLink.path, isDirectory: &isDirFlag))
+
+            isDirFlag = false
+            XCTAssertTrue(fm.fileExists(atPath: dirSymLink.path))
+            XCTAssertTrue(fm.fileExists(atPath: dirSymLink.path, isDirectory: &isDirFlag))
+            XCTAssertTrue(isDirFlag.boolValue)
+        } catch {
+            XCTFail(String(describing: error))
+        }
+        ignoreError { try fm.removeItem(atPath: tmpDir.path) }
+    }
+
     func test_fileAttributes() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
