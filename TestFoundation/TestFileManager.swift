@@ -627,7 +627,7 @@ class TestFileManager : XCTestCase {
         let tmpParentDirURL = URL(fileURLWithPath: NSTemporaryDirectory() + "test_contentsEqualdir", isDirectory: true)
         let testDir1 = tmpParentDirURL.appendingPathComponent("testDir1")
         let testDir2 = tmpParentDirURL.appendingPathComponent("testDir2")
-        let testDir3 = testDir1.appendingPathComponent("subDir")
+        let testDir3 = testDir1.appendingPathComponent("subDir/anotherDir/extraDir/lastDir")
 
         defer { try? fm.removeItem(atPath: tmpParentDirURL.path) }
 
@@ -663,6 +663,10 @@ class TestFileManager : XCTestCase {
             try Data().write(to: testDir1.appendingPathComponent("empty_file"))
             try fm.createSymbolicLink(atPath: symlink, withDestinationPath: testFile1URL.path)
 
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("thisDir").path, withDestinationPath: ".")
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("parentDir").path, withDestinationPath: "..")
+            try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("rootDir").path, withDestinationPath: "/")
+
             // testDir2
             try fm.createDirectory(atPath: testDir2.path, withIntermediateDirectories: true)
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
@@ -696,8 +700,57 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile2URL.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testFile3URL.path, andPath: testFile4URL.path))
         XCTAssertFalse(fm.contentsEqual(atPath: symlink, andPath: testFile1URL.path))
+
         XCTAssertTrue(fm.contentsEqual(atPath: testDir1.path, andPath: testDir1.path))
         XCTAssertTrue(fm.contentsEqual(atPath: testDir2.path, andPath: testDir3.path))
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+
+        // Copy everything in testDir1 to testDir2 to make them equal
+        do {
+            for entry in try fm.subpathsOfDirectory(atPath: testDir1.path) {
+                // Skip entries that already exist
+                if entry == "bar2" || entry == "unreadable_file" {
+                    continue
+                }
+                let srcPath = testDir1.appendingPathComponent(entry).path
+                let dstPath = testDir2.appendingPathComponent(entry).path
+                if let attrs = try? fm.attributesOfItem(atPath: srcPath),
+                    let fileType = attrs[.type] as? FileAttributeType, fileType == .typeDirectory {
+                    try fm.createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
+                } else {
+                    try fm.copyItem(atPath: srcPath, toPath: dstPath)
+                }
+            }
+        } catch {
+            XCTFail("Failed to copy \(testDir1.path) to \(testDir2.path), \(error)")
+            return
+        }
+        // This will still fail due to unreadable files and a file in testDir2 not in testDir1
+        XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+        do {
+            try fm.copyItem(atPath: testDir2.appendingPathComponent("foo2").path, toPath: testDir1.appendingPathComponent("foo2").path)
+            try fm.removeItem(atPath: testDir1.appendingPathComponent("unreadable_file").path)
+        } catch {
+            XCTFail(String(describing: error))
+            return
+        }
+        XCTAssertTrue(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+
+        let dataFile1 = testDir1.appendingPathComponent("dataFile")
+        let dataFile2 = testDir2.appendingPathComponent("dataFile")
+        do {
+            try Data(count: 100_000).write(to: dataFile1)
+            try fm.copyItem(atPath: dataFile1.path, toPath: dataFile2.path)
+        } catch {
+            XCTFail("Could not create test data files: \(error)")
+            return
+        }
+        XCTAssertTrue(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
+        XCTAssertTrue(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+        var data = Data(count: 100_000)
+        data[99_999] = 1
+        try? data.write(to: dataFile1)
+        XCTAssertFalse(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
     }
 }
