@@ -563,7 +563,7 @@ class TestFileManager : XCTestCase {
         let fm = FileManager.default
         let srcPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
         let destPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
-        
+
         func cleanup() {
             ignoreError { try fm.removeItem(atPath: srcPath) }
             ignoreError { try fm.removeItem(atPath: destPath) }
@@ -599,8 +599,13 @@ class TestFileManager : XCTestCase {
         cleanup()
         createDirectory(atPath: srcPath)
         createDirectory(atPath: "\(srcPath)/tempdir")
+        createDirectory(atPath: "\(srcPath)/tempdir/subdir")
+        createDirectory(atPath: "\(srcPath)/tempdir/subdir/otherdir")
+        createDirectory(atPath: "\(srcPath)/tempdir/subdir/otherdir/extradir")
         createFile(atPath: "\(srcPath)/tempdir/tempfile")
         createFile(atPath: "\(srcPath)/tempdir/tempfile2")
+        createFile(atPath: "\(srcPath)/tempdir/subdir/otherdir/extradir/tempfile2")
+
         do {
             try fm.copyItem(atPath: srcPath, toPath: destPath)
         } catch let error {
@@ -610,16 +615,36 @@ class TestFileManager : XCTestCase {
         XCTAssertTrue(directoryExists(atPath: "\(destPath)/tempdir"))
         XCTAssertTrue(fm.fileExists(atPath: "\(destPath)/tempdir/tempfile"))
         XCTAssertTrue(fm.fileExists(atPath: "\(destPath)/tempdir/tempfile2"))
-        
+        XCTAssertTrue(directoryExists(atPath: "\(destPath)/tempdir/subdir/otherdir/extradir"))
+        XCTAssertTrue(fm.fileExists(atPath: "\(destPath)/tempdir/subdir/otherdir/extradir/tempfile2"))
+
         if (false == directoryExists(atPath: destPath)) {
             return
         }
         do {
             try fm.copyItem(atPath: srcPath, toPath: destPath)
+            XCTFail("Copy overwrites a file/folder that already exists")
         } catch {
-            return
+            // ignore
         }
-        XCTFail("Copy overwrites a file/folder that already exists")
+
+        // Test copying a symlink
+        let srcLink = srcPath + "/testlink"
+        let destLink = destPath + "/testlink"
+        do {
+            try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
+            try fm.copyItem(atPath: srcLink, toPath: destLink)
+            XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
+        } catch {
+            XCTFail("\(error)")
+        }
+
+        do {
+            try fm.copyItem(atPath: srcLink, toPath: destLink)
+            XCTFail("Creating link where one already exists")
+        } catch {
+            // ignore
+        }
     }
     
     func test_homedirectoryForUser() {
