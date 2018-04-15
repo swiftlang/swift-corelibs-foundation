@@ -38,13 +38,11 @@ FIXME SR-4280 timeouts in TestNSNotificationQueue tests
 
     func test_defaultQueue() {
         let defaultQueue1 = NotificationQueue.default
-        XCTAssertNotNil(defaultQueue1)
         let defaultQueue2 = NotificationQueue.default
         XCTAssertEqual(defaultQueue1, defaultQueue2)
 
         executeInBackgroundThread() {
             let defaultQueueForBackgroundThread = NotificationQueue.default
-            XCTAssertNotNil(defaultQueueForBackgroundThread)
             XCTAssertEqual(defaultQueueForBackgroundThread, NotificationQueue.default)
             XCTAssertNotEqual(defaultQueueForBackgroundThread, defaultQueue1)
         }

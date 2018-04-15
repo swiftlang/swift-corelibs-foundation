@@ -71,9 +71,7 @@ class TestURL : XCTestCase {
     
     func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
-        XCTAssertNotNil(homeDirectory, "Failed to find home directory")
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
-        XCTAssertNotNil(homeURL, "fileURLWithPath:isDirectory: failed")
         XCTAssertEqual(homeDirectory, homeURL.path)
 
         #if os(macOS)
@@ -88,14 +86,11 @@ class TestURL : XCTestCase {
         #endif
         // we're telling fileURLWithPath:isDirectory:relativeTo: Documents is a directory
         let url1 = URL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeTo: baseURL)
-        XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeTo: failed")
         // we're letting fileURLWithPath:relativeTo: determine Documents is a directory with I/O
         let url2 = URL(fileURLWithPath: relativePath, relativeTo: baseURL)
-        XCTAssertNotNil(url2, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url2, "\(url1) was not equal to \(url2)")
         // we're telling fileURLWithPath:relativeTo: Documents is a directory with a trailing slash
         let url3 = URL(fileURLWithPath: relativePath + "/", relativeTo: baseURL)
-        XCTAssertNotNil(url3, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
     

@@ -833,7 +833,6 @@ class TestNSData: LoopbackServerTest {
     // Check all of the NSMutableData constructors are available.
     func test_initNSMutableData() {
         let mData = NSMutableData()
-        XCTAssertNotNil(mData)
         XCTAssertEqual(mData.length, 0)
     }
 

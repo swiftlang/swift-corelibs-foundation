@@ -56,7 +56,6 @@ class TestDateFormatter: XCTestCase {
                             "shortStandaloneQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"]]
         
         let f = DateFormatter()
-        XCTAssertNotNil(f)
         XCTAssertNotNil(f.timeZone)
         XCTAssertNotNil(f.locale)
         

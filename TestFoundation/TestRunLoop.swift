@@ -38,9 +38,7 @@ class TestRunLoop : XCTestCase {
     
     func test_runLoopInit() {
         let mainRunLoop = RunLoop.main
-        XCTAssertNotNil(mainRunLoop)
         let currentRunLoop = RunLoop.current
-        XCTAssertNotNil(currentRunLoop)
 
         let secondAccessOfMainLoop = RunLoop.main
         XCTAssertEqual(mainRunLoop, secondAccessOfMainLoop, "fetching the main loop a second time should be equal")

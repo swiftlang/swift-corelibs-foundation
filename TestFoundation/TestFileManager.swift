@@ -153,7 +153,6 @@ class TestFileManager : XCTestCase {
     func test_fileSystemRepresentation() {
         let str = "☃"
         let result = FileManager.default.fileSystemRepresentation(withPath: str)
-        XCTAssertNotNil(result)
         XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
         XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
         XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
@@ -657,7 +656,6 @@ class TestFileManager : XCTestCase {
     func test_temporaryDirectoryForUser() {
         let filemanger = FileManager.default
         let tmpDir = filemanger.temporaryDirectory
-        XCTAssertNotNil(tmpDir)
         let tmpFileUrl = tmpDir.appendingPathComponent("test.bin")
         let tmpFilePath = tmpFileUrl.path
         

@@ -34,7 +34,7 @@ class TestProcessInfo : XCTestCase {
         XCTAssertFalse(versionString.isEmpty)
         
         let version = processInfo.operatingSystemVersion
-        XCTAssertNotNil(version.majorVersion != 0)
+        XCTAssert(version.majorVersion != 0)
     }
     
     func test_processName() {
