@@ -40,7 +40,6 @@ class TestNSURLRequest : XCTestCase {
     func test_construction() {
         let request = NSURLRequest(url: url)
         // Match macOS Foundation responses
-        XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
         XCTAssertEqual(request.httpMethod, "GET")
         XCTAssertNil(request.allHTTPHeaderFields)
@@ -52,7 +51,6 @@ class TestNSURLRequest : XCTestCase {
         let request = NSMutableURLRequest(url: url)
         
         //Confirm initial state matches NSURLRequest responses
-        XCTAssertNotNil(request)
         XCTAssertEqual(request.url, url)
         XCTAssertEqual(request.httpMethod, "GET")
         XCTAssertNil(request.allHTTPHeaderFields)

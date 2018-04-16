@@ -38,7 +38,7 @@ class TestPipe : XCTestCase {
         let data = aPipe.fileHandleForReading.readData(ofLength: text.count)
         
         // Confirm that we did read data
-        XCTAssertNotNil(data)
+        XCTAssertEqual(data.count, stringAsData?.count, "Expected to read \(String(describing:stringAsData?.count)) from pipe but read \(data.count) instead")
         
         // Confirm the data can be converted to a String
         let convertedData = String(data: data, encoding: .utf8)

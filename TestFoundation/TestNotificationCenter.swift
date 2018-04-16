@@ -35,7 +35,6 @@ class TestNotificationCenter : XCTestCase {
     
     func test_defaultCenter() {
         let defaultCenter1 = NotificationCenter.default
-        XCTAssertNotNil(defaultCenter1)
         let defaultCenter2 = NotificationCenter.default
         XCTAssertEqual(defaultCenter1, defaultCenter2)
     }
