@@ -636,25 +636,25 @@ class TestIndexPath: XCTestCase {
             return NSIndexPath(indexes: buffer.baseAddress, length: buffer.count)
         }
         
-        var ip1: IndexPath? = IndexPath()
+        var ip1: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip1, result: &ip1)
         XCTAssertNotNil(ip1)
         XCTAssertEqual(ip1!.count, 0)
         
-        var ip2: IndexPath? = IndexPath()
+        var ip2: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip2, result: &ip2)
         XCTAssertNotNil(ip2)
         XCTAssertEqual(ip2!.count, 1)
         XCTAssertEqual(ip2![0], 1)
         
-        var ip3: IndexPath? = IndexPath()
+        var ip3: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip3, result: &ip3)
         XCTAssertNotNil(ip3)
         XCTAssertEqual(ip3!.count, 2)
         XCTAssertEqual(ip3![0], 1)
         XCTAssertEqual(ip3![1], 2)
         
-        var ip4: IndexPath? = IndexPath()
+        var ip4: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip4, result: &ip4)
         XCTAssertNotNil(ip4)
         XCTAssertEqual(ip4!.count, 3)
@@ -673,25 +673,25 @@ class TestIndexPath: XCTestCase {
             return NSIndexPath(indexes: buffer.baseAddress, length: buffer.count)
         }
         
-        var ip1: IndexPath? = IndexPath()
+        var ip1: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip1, result: &ip1))
         XCTAssertNotNil(ip1)
         XCTAssertEqual(ip1!.count, 0)
         
-        var ip2: IndexPath? = IndexPath()
+        var ip2: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip2, result: &ip2))
         XCTAssertNotNil(ip2)
         XCTAssertEqual(ip2!.count, 1)
         XCTAssertEqual(ip2![0], 1)
         
-        var ip3: IndexPath? = IndexPath()
+        var ip3: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip3, result: &ip3))
         XCTAssertNotNil(ip3)
         XCTAssertEqual(ip3!.count, 2)
         XCTAssertEqual(ip3![0], 1)
         XCTAssertEqual(ip3![1], 2)
         
-        var ip4: IndexPath? = IndexPath()
+        var ip4: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip4, result: &ip4))
         XCTAssertNotNil(ip4)
         XCTAssertEqual(ip4!.count, 3)
