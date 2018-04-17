@@ -263,7 +263,7 @@ private extension NSAttributedString {
     
     func _attribute(_ attrName: NSAttributedStringKey, atIndex location: Int, rangeInfo: RangeInfo) -> Any? {
         var cfRange = CFRange()
-        return withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
+        let attribute = withUnsafeMutablePointer(to: &cfRange) { (cfRangePointer: UnsafeMutablePointer<CFRange>) -> AnyObject? in
             // Get attribute value using CoreFoundation function
             let attribute: AnyObject?
             if rangeInfo.shouldFetchLongestEffectiveRange, let searchRange = rangeInfo.longestEffectiveRangeSearchRange {
@@ -277,6 +277,8 @@ private extension NSAttributedString {
             rangeInfo.rangePointer?.pointee.length = cfRangePointer.pointee.length
             return attribute
         }
+
+        return _SwiftValue.fetch(attribute)
     }
     
     func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
