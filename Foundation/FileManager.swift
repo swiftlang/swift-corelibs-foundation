@@ -434,7 +434,81 @@ open class FileManager : NSObject {
         
         return self.string(withFileSystemRepresentation: buf, length: Int(len))
     }
-    
+
+    private func _readFrom(fd: Int32, toBuffer buffer: UnsafeMutablePointer<UInt8>, length bytesToRead: Int, filename: String) throws -> Int {
+        var bytesRead = 0
+
+        repeat {
+            bytesRead = read(fd, buffer, bytesToRead)
+        } while bytesRead < 0 && errno == EINTR
+        guard bytesRead >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: filename)
+        }
+        return bytesRead
+    }
+
+    private func _writeTo(fd: Int32, fromBuffer buffer : UnsafeMutablePointer<UInt8>, length bytesToWrite: Int, filename: String) throws {
+        var bytesWritten = 0
+        while bytesWritten < bytesToWrite {
+            var written = 0
+            let bytesLeftToWrite = bytesToWrite - bytesWritten
+            repeat {
+                written = write(fd, buffer.advanced(by: bytesWritten), bytesLeftToWrite)
+            } while written < 0 && errno == EINTR
+            guard written >= 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: filename)
+            }
+            bytesWritten += written
+        }
+    }
+
+    private func _copyRegularFile(atPath srcPath: String, toPath dstPath: String) throws {
+        let srcRep = fileSystemRepresentation(withPath: srcPath)
+        let dstRep = fileSystemRepresentation(withPath: dstPath)
+        defer {
+            srcRep.deallocate()
+            dstRep.deallocate()
+        }
+
+        var fileInfo = stat()
+        guard stat(srcRep, &fileInfo) >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+        }
+
+        let srcfd = open(srcRep, O_RDONLY)
+        guard srcfd >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+        }
+        defer { close(srcfd) }
+
+        let dstfd = open(dstRep, O_WRONLY | O_CREAT | O_TRUNC, 0o666)
+        guard dstfd >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: false, path: dstPath)
+        }
+        defer { close(dstfd) }
+
+        if fileInfo.st_size == 0 {
+            // no copying required
+            return
+        }
+
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(fileInfo.st_blksize))
+        defer { buffer.deallocate() }
+
+        var bytesRemaining = Int64(fileInfo.st_size)
+        while bytesRemaining > 0 {
+            let bytesToRead = min(bytesRemaining, Int64(fileInfo.st_blksize))
+            let bytesRead = try _readFrom(fd: srcfd, toBuffer: buffer, length: Int(bytesToRead), filename: srcPath)
+            if bytesRead == 0 {
+                // Early EOF
+                return
+            }
+            try _writeTo(fd: dstfd, fromBuffer: buffer, length: bytesRead, filename: dstPath)
+            bytesRemaining -= Int64(bytesRead)
+        }
+    }
+
+
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
         guard
             let attrs = try? attributesOfItem(atPath: srcPath),
@@ -448,18 +522,20 @@ open class FileManager : NSObject {
                 let destination = try destinationOfSymbolicLink(atPath: srcPath)
                 try createSymbolicLink(atPath: dstPath, withDestinationPath: destination)
             } else if fileType == .typeRegular {
-                if createFile(atPath: dstPath, contents: contents(atPath: srcPath), attributes: nil) == false {
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [NSFilePathErrorKey : NSString(string: dstPath)])
-                }
+                try _copyRegularFile(atPath: srcPath, toPath: dstPath)
             }
         }
 
         if fileType == .typeDirectory {
             try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
-            let subpaths = try subpathsOfDirectory(atPath: srcPath)
-            for subpath in subpaths {
-                let src = srcPath + "/" + subpath
-                let dst = dstPath + "/" + subpath
+
+            guard let enumerator = enumerator(atPath: srcPath) else {
+                throw _NSErrorWithErrno(ENOENT, reading: true, path: srcPath)
+            }
+
+            while let item = enumerator.nextObject() as? String {
+                let src = srcPath + "/" + item
+                let dst = dstPath + "/" + item
                 if let attrs = try? attributesOfItem(atPath: src), let fileType = attrs[.type] as? FileAttributeType {
                     if fileType == .typeDirectory {
                         try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
