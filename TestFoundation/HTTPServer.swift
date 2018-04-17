@@ -332,11 +332,11 @@ struct _HTTPResponse {
 }
 
 public class TestURLSessionServer {
-    let capitals: [String:String] = ["Nepal":"Kathmandu",
-                                     "Peru":"Lima",
-                                     "Italy":"Rome",
-                                     "USA":"Washington, D.C.",
-				     "UnitedStates": "USA",
+    let capitals: [String:String] = ["Nepal": "Kathmandu",
+                                     "Peru": "Lima",
+                                     "Italy": "Rome",
+                                     "USA": "Washington, D.C.",
+                                     "UnitedStates": "USA",
                                      "country.txt": "A country is a region that is identified as a distinct national entity in political geography"]
     let httpServer: _HTTPServer
     let startDelay: TimeInterval?
@@ -395,7 +395,7 @@ public class TestURLSessionServer {
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
-	if uri == "/UnitedStates" {
+        if uri == "/UnitedStates" {
             let value = capitals[String(uri.dropFirst())]!
             let text = request.getCommaSeparatedHeaders()
             let host = request.headers[1].components(separatedBy: " ")[1]
@@ -406,6 +406,32 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(newHost + "/" + value)", body: text)
             return httpResponse 
         }
+
+        if uri == "/DTDs/PropertyList-1.0.dtd" {
+            let dtd = """
+    <!ENTITY % plistObject "(array | data | date | dict | real | integer | string | true | false )" >
+    <!ELEMENT plist %plistObject;>
+    <!ATTLIST plist version CDATA "1.0" >
+
+    <!-- Collections -->
+    <!ELEMENT array (%plistObject;)*>
+    <!ELEMENT dict (key, %plistObject;)*>
+    <!ELEMENT key (#PCDATA)>
+
+    <!--- Primitive types -->
+    <!ELEMENT string (#PCDATA)>
+    <!ELEMENT data (#PCDATA)> <!-- Contents interpreted as Base-64 encoded -->
+    <!ELEMENT date (#PCDATA)> <!-- Contents should conform to a subset of ISO 8601 (in particular, YYYY '-' MM '-' DD 'T' HH ':' MM ':' SS 'Z'.  Smaller units may be omitted with a loss of precision) -->
+
+    <!-- Numerical primitives -->
+    <!ELEMENT true EMPTY>  <!-- Boolean constant true -->
+    <!ELEMENT false EMPTY> <!-- Boolean constant false -->
+    <!ELEMENT real (#PCDATA)> <!-- Contents should represent a floating point number matching ("+" | "-")? d+ ("."d*)? ("E" ("+" | "-") d+)? where d is a digit 0-9.  -->
+    <!ELEMENT integer (#PCDATA)> <!-- Contents should represent a (possibly signed) integer number in base 10 -->
+"""
+            return _HTTPResponse(response: .OK, body: dtd)
+        }
+
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 
