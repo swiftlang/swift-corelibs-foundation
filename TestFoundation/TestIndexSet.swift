@@ -40,6 +40,7 @@ class TestIndexSet : XCTestCase {
             ("testIndexRange", testIndexRange),
             ("testMutation", testMutation),
             ("testContainsAndIntersects", testContainsAndIntersects),
+            ("testContainsIndexSet", testContainsIndexSet),
             ("testIteration", testIteration),
             ("testRangeIteration", testRangeIteration),
             ("testSubrangeIteration", testSubrangeIteration),
@@ -406,6 +407,42 @@ class TestIndexSet : XCTestCase {
         XCTAssertFalse(someIndexes.intersects(integersIn: 0..<0))
         XCTAssertFalse(someIndexes.intersects(integersIn: 10...12))
         XCTAssertFalse(someIndexes.intersects(integersIn: 10..<12))
+    }
+
+    func testContainsIndexSet() {
+        var someIndexes = IndexSet()
+        someIndexes.insert(integersIn: 1..<2)
+        someIndexes.insert(integersIn: 100..<200)
+        someIndexes.insert(integersIn: 1000..<2000)
+
+        let contained1 = someIndexes
+        let contained2 = IndexSet(integersIn: 120..<150)
+
+        var contained3 = IndexSet()
+        contained3.insert(integersIn: 100..<200)
+        contained3.insert(integersIn: 1500..<1600)
+
+        let notContained1 = IndexSet(integer: 9)
+        let notContained2 = IndexSet(integersIn: 150..<300)
+        var notContained3 = IndexSet()
+        notContained3.insert(integersIn: 1..<2)
+        notContained3.insert(integersIn: 100..<200)
+        notContained3.insert(integersIn: 1000..<2000)
+        notContained3.insert(integersIn: 3000..<5000)
+
+        XCTAssertTrue(someIndexes.contains(integersIn: contained1))
+        XCTAssertTrue(someIndexes.contains(integersIn: contained2))
+        XCTAssertTrue(someIndexes.contains(integersIn: contained3))
+
+        XCTAssertFalse(someIndexes.contains(integersIn: notContained1))
+        XCTAssertFalse(someIndexes.contains(integersIn: notContained2))
+        XCTAssertFalse(someIndexes.contains(integersIn: notContained3))
+
+        let emptySet = IndexSet()
+
+        XCTAssertTrue(emptySet.contains(integersIn: emptySet))
+        XCTAssertTrue(someIndexes.contains(integersIn: emptySet))
+        XCTAssertFalse(emptySet.contains(integersIn: someIndexes))
     }
     
     func testIteration() {
