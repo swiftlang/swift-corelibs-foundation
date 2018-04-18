@@ -28,8 +28,18 @@ class TestTimer : XCTestCase {
     }
     
     func test_timerInit() {
-        let timer = Timer(fire: Date(), interval: 0.3, repeats: false) { _ in }
-        XCTAssertNotNil(timer)
+        let fireDate = Date()
+        let timeInterval: TimeInterval = 0.3
+
+        let timer = Timer(fire: fireDate, interval: timeInterval, repeats: false) { _ in }
+        XCTAssertEqual(timer.fireDate, fireDate)
+        XCTAssertEqual(timer.timeInterval, 0, "Time interval should be 0 for a non repeating Timer")
+        XCTAssert(timer.isValid)
+
+        let repeatingTimer = Timer(fire: fireDate, interval: timeInterval, repeats: true) { _ in }
+        XCTAssertEqual(repeatingTimer.fireDate, fireDate)
+        XCTAssertEqual(repeatingTimer.timeInterval, timeInterval)
+        XCTAssert(timer.isValid)
     }
     
     func test_timerTickOnce() {
