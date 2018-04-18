@@ -251,7 +251,7 @@ private extension NSAttributedString {
                 guard let stringKey = (key as? NSString)?._swiftObject else {
                     continue
                 }
-                results[NSAttributedStringKey(stringKey)] = value
+                results[NSAttributedStringKey(stringKey)] = _SwiftValue.fetch(value)
             }
             
             // Update effective range and return the results
