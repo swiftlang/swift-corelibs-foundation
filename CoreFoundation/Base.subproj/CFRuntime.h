@@ -193,13 +193,12 @@ CF_EXPORT void _CFRuntimeUnregisterClassWithTypeID(CFTypeID typeID);
 typedef struct __CFRuntimeBase {
     // This matches the isa and retain count storage in Swift
     uintptr_t _cfisa;
-    uint32_t _swift_strong_rc;
-    uint32_t _swift_weak_rc;
+    uintptr_t _swift_rc;
     // This is for CF's use, and must match _NSCFType layout
     _Atomic(uint64_t) _cfinfoa;
 } CFRuntimeBase;
 
-#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x0000000000000080ULL}
+#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
 
 #else
 

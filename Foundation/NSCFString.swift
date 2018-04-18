@@ -61,9 +61,8 @@ internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
         // FIXME: Split expression as a work-around for slow type
         //        checking (tracked by SR-5322).
-        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
-        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
-        let offset = offTemp1 + offTemp2
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<uintptr_t>.size
+        let offset = offTemp1 + MemoryLayout<_CFInfo>.size
         let ptr = Unmanaged.passUnretained(self).toOpaque()
         return ptr.load(fromByteOffset: offset, as: UnsafePointer<UInt8>.self)
     }
@@ -71,8 +70,8 @@ internal final class _NSCFConstantString : _NSCFString {
     private var _lenOffset : Int {
         // FIXME: Split expression as a work-around for slow type
         //        checking (tracked by SR-5322).
-        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
-        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<uintptr_t>.size
+        let offTemp2 = MemoryLayout<_CFInfo>.size
         return offTemp1 + offTemp2 + MemoryLayout<UnsafePointer<UInt8>>.size
     }
 

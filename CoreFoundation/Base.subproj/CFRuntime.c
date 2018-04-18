@@ -387,7 +387,7 @@ CFTypeRef _CFRuntimeCreateInstance(CFAllocatorRef allocator, CFTypeID typeID, CF
     CFRuntimeBase *memory = (CFRuntimeBase *)swift_allocObject(isa, size, align - 1);
     
     // Zero the rest of the memory, starting at cfinfo
-    memset(&memory->_cfinfoa, 0, size - (sizeof(memory->_cfisa) + sizeof(memory->_swift_strong_rc) + sizeof(memory->_swift_weak_rc)));
+    memset(&memory->_cfinfoa, 0, size - (sizeof(memory->_cfisa) + sizeof(memory->_swift_rc)));
     
     // Set up the cfinfo struct
     uint32_t *cfinfop = (uint32_t *)&(memory->_cfinfoa);

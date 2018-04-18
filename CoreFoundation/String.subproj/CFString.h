@@ -155,8 +155,7 @@ since it is the default choice with Mac OS X developer tools.
 struct __CFConstStr {
     struct {
         uintptr_t _cfisa;
-        uint32_t _swift_strong_rc;
-        uint32_t _swift_weak_rc;
+        uintptr_t _swift_rc;
         uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
@@ -175,12 +174,12 @@ struct __CFConstStr {
 
 #if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
 #else
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
 #endif
