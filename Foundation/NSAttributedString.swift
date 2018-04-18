@@ -251,7 +251,9 @@ private extension NSAttributedString {
                 guard let stringKey = (key as? NSString)?._swiftObject else {
                     continue
                 }
-                results[NSAttributedStringKey(stringKey)] = _SwiftValue.fetch(value)
+
+                let unwrappedValue = _SwiftValue.fetch(value as? AnyObject) ?? value
+                results[NSAttributedStringKey(stringKey)] = unwrappedValue
             }
             
             // Update effective range and return the results
