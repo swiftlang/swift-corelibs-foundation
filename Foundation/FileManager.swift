@@ -725,11 +725,163 @@ open class FileManager : NSObject {
     open func isDeletableFile(atPath path: String) -> Bool {
         NSUnimplemented()
     }
-    
+
+    private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
+        let fd1 = open(file1Rep, O_RDONLY)
+        guard fd1 >= 0 else {
+            return false
+        }
+        defer { close(fd1) }
+
+        let fd2 = open(file2Rep, O_RDONLY)
+        guard fd2 >= 0 else {
+            return false
+        }
+        defer { close(fd2) }
+
+        let buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        defer {
+            buffer1.deallocate()
+            buffer2.deallocate()
+        }
+
+        var bytesLeft = size
+        while bytesLeft > 0 {
+            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
+            guard read(fd1, buffer1, bytesToRead) == bytesToRead else {
+                return false
+            }
+            guard read(fd2, buffer2, bytesToRead) == bytesToRead else {
+                return false
+            }
+            guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
+                return false
+            }
+            bytesLeft -= Int64(bytesToRead)
+        }
+        return true
+    }
+
+    private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
+        let bufSize = Int(size)
+        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
+        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
+
+        let size1 = readlink(file1Rep, buffer1, bufSize)
+        let size2 = readlink(file2Rep, buffer2, bufSize)
+
+        let compare: Bool
+        if size1 < 0 || size2 < 0 || size1 != size || size1 != size2 {
+            compare = false
+        } else {
+            compare = memcmp(buffer1, buffer2, size1) == 0
+        }
+
+        buffer1.deallocate()
+        buffer2.deallocate()
+        return compare
+    }
+
+    private func _compareDirectories(atPath path1: String, andPath path2: String) -> Bool {
+        guard let enumerator1 = enumerator(atPath: path1) else {
+            return false
+        }
+
+        guard let enumerator2 = enumerator(atPath: path2) else {
+            return false
+        }
+
+        var path1entries = Set<String>()
+        while let item = enumerator1.nextObject() as? String {
+            path1entries.insert(item)
+        }
+
+        while let item = enumerator2.nextObject() as? String {
+            if path1entries.remove(item) == nil {
+                return false
+            }
+            if contentsEqual(atPath: NSString(string: path1).appendingPathComponent(item), andPath: NSString(string: path2).appendingPathComponent(item)) == false {
+                return false
+            }
+        }
+        return path1entries.isEmpty
+    }
+
+    private func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
+        let _fsRep: UnsafePointer<Int8>
+        if fsRep == nil {
+            _fsRep = fileSystemRepresentation(withPath: path)
+            defer { _fsRep.deallocate() }
+        } else {
+            _fsRep = fsRep!
+        }
+        var statInfo = stat()
+        guard lstat(_fsRep, &statInfo) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+        return statInfo
+    }
+
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        NSUnimplemented()
+        let fsRep1 = fileSystemRepresentation(withPath: path1)
+        defer { fsRep1.deallocate() }
+
+        guard let file1 = try? _lstatFile(atPath: path1, withFileSystemRepresentation: fsRep1) else {
+            return false
+        }
+        let file1Type = file1.st_mode & S_IFMT
+
+        // Dont use access() for symlinks as only the contents should be checked even
+        // if the symlink doesnt point to an actual file, but access() will always try
+        // to resolve the link and fail if the destination is not found
+        if path1 == path2 && file1Type != S_IFLNK {
+            return access(fsRep1, R_OK) == 0
+        }
+
+        let fsRep2 = fileSystemRepresentation(withPath: path2)
+        defer { fsRep2.deallocate() }
+        guard let file2 = try? _lstatFile(atPath: path2, withFileSystemRepresentation: fsRep2) else {
+            return false
+        }
+        let file2Type = file2.st_mode & S_IFMT
+
+        // Are paths the same type: file, directory, symbolic link etc.
+        guard file1Type == file2Type else {
+            return false
+        }
+
+        if file1Type == S_IFCHR || file1Type == S_IFBLK {
+            // For character devices, just check the major/minor pair is the same.
+            return _dev_major(file1.st_rdev) == _dev_major(file2.st_rdev)
+                && _dev_minor(file1.st_rdev) == _dev_minor(file2.st_rdev)
+        }
+
+        // If both paths point to the same device/inode or they are both zero length
+        // then they are considered equal so just check readability.
+        if (file1.st_dev == file2.st_dev && file1.st_ino == file2.st_ino)
+            || (file1.st_size == 0 && file2.st_size == 0) {
+            return access(fsRep1, R_OK) == 0 && access(fsRep2, R_OK) == 0
+        }
+
+        if file1Type == S_IFREG {
+            // Regular files and symlinks should at least have the same filesize if contents are equal.
+            guard file1.st_size == file2.st_size else {
+                return false
+            }
+            return _compareFiles(withFileSystemRepresentation: path1, andFileSystemRepresentation: path2, size: Int64(file1.st_size), bufSize: Int(file1.st_blksize))
+        }
+        else if file1Type == S_IFLNK {
+            return _compareSymlinks(withFileSystemRepresentation: fsRep1, andFileSystemRepresentation: fsRep2, size: Int64(file1.st_size))
+        }
+        else if file1Type == S_IFDIR {
+            return _compareDirectories(atPath: path1, andPath: path2)
+        }
+
+        // Dont know how to compare other file types.
+        return false
     }
     
     /* displayNameAtPath: returns an NSString suitable for presentation to the user. For directories which have localization information, this will return the appropriate localized string. This string is not suitable for passing to anything that must interact with the filesystem.
