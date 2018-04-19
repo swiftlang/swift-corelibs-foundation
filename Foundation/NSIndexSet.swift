@@ -349,7 +349,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     open func contains(_ indexSet: IndexSet) -> Bool {
         var result = true
-        enumerateRanges(options: []) { range, stop in
+        let nsIndexSet = indexSet._bridgeToObjectiveC()
+        nsIndexSet.enumerateRanges(options: []) { range, stop in
             if !self.contains(in: range) {
                 result = false
                 stop.pointee = true
