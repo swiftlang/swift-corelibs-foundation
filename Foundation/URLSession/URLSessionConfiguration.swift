@@ -43,7 +43,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.httpShouldSetCookies = true
         self.httpCookieAcceptPolicy = .onlyFromMainDocumentDomain
         self.httpMaximumConnectionsPerHost = 6
-        self.httpCookieStorage = nil
+        self.httpCookieStorage = HTTPCookieStorage.shared
         self.urlCredentialStorage = nil
         self.urlCache = nil
         self.shouldUseExtendedBackgroundIdleMode = false

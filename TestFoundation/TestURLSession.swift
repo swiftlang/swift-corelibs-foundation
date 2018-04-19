@@ -37,6 +37,10 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
             ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate),
             ("test_concurrentRequests", test_concurrentRequests),
+            ("test_disableCookiesStorage", test_disableCookiesStorage),
+            ("test_cookiesStorage", test_cookiesStorage),
+            ("test_setCookies", test_setCookies),
+            ("test_dontSetCookies", test_dontSetCookies),
         ]
     }
     
@@ -516,6 +520,83 @@ class TestURLSession : LoopbackServerTest {
         }
     }
 
+    func test_disableCookiesStorage() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        config.httpCookieAcceptPolicy = HTTPCookie.AcceptPolicy.never
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+        let cookies = HTTPCookieStorage.shared.cookies
+        XCTAssertEqual(cookies?.count, 0)
+    }
+
+    func test_cookiesStorage() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+        let cookies = HTTPCookieStorage.shared.cookies
+        XCTAssertEqual(cookies?.count, 1)
+    }
+
+    func test_setCookies() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/setCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            let headers = String(data: data!, encoding: String.Encoding.utf8) ?? ""
+            XCTAssertNotNil(headers.range(of: "Cookie: fr=anjd&232"))
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+    }
+
+    func test_dontSetCookies() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        config.httpShouldSetCookies = false
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/setCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            let headers = String(data: data!, encoding: String.Encoding.utf8) ?? ""
+            XCTAssertNil(headers.range(of: "Cookie: fr=anjd&232"))
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+    }
 }
 
 class SharedDelegate: NSObject {
