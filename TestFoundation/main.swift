@@ -7,20 +7,13 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
+// Most imports now centraized in TestImports.swift
 
 #if os(macOS) || os(iOS)
     import Darwin
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
     import Glibc
 #endif
-
 
 // ignore SIGPIPE which is sent when writing to closed file descriptors.
 _ = signal(SIGPIPE, SIG_IGN)
