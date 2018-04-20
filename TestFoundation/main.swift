@@ -9,9 +9,9 @@
 
 // Most imports now centraized in TestImports.swift
 
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
     import Darwin
-#elseif os(Linux) || os(Android)
+#elseif canImport(Glibc)
     import Glibc
 #endif
 

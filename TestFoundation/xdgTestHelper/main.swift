@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(Linux) || os(Android)
+    import Foundation
+#else
+    import SwiftFoundation
+#endif
+
 enum HelperCheckStatus : Int32 {
     case ok                 = 0
     case fail               = 1
