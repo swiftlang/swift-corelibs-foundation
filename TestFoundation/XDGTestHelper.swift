@@ -7,12 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(Linux)
-    import Foundation
-#else
-    import SwiftFoundation
-#endif
-
 class XDGCheck {
 
     static func run() -> Never {

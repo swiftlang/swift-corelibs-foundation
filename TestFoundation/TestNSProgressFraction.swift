@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
 #if !DARWIN_COMPATIBILITY_TESTS
 class TestProgressFraction : XCTestCase {
     static var allTests: [(String, (TestProgressFraction) -> () throws -> Void)] {
