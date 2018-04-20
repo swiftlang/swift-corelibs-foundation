@@ -245,7 +245,7 @@ CF_INLINE void __CFStrClearHasLengthAndNullBytes(CFMutableStringRef str) {
 
 CF_INLINE Boolean __CFStrIsConstant(CFStringRef str) {
 #if DEPLOYMENT_RUNTIME_SWIFT
-    return str->base._swift_strong_rc & _CF_SWIFT_RC_PINNED_FLAG;
+    return str->base._swift_rc & _CF_SWIFT_RC_PINNED_FLAG;
 #else
     return __CFRuntimeIsConstant(str);
 #endif
