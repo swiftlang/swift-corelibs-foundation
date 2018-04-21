@@ -221,6 +221,28 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 3)
         formattedString = numberFormatter.string(from: 0.1)
         XCTAssertEqual(formattedString, "000.1")
+
+        numberFormatter.numberStyle = .currency
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 3)
+
+        // If .minimumIntegerDigits is set to 0 before .numberStyle change, preserve the value
+        let currencyFormatter = NumberFormatter()
+        XCTAssertEqual(currencyFormatter.minimumIntegerDigits, 0)
+        currencyFormatter.minimumIntegerDigits = 0
+        currencyFormatter.numberStyle = .currency
+        XCTAssertEqual(currencyFormatter.minimumIntegerDigits, 0)
+        currencyFormatter.locale = Locale(identifier: "en_US")
+        formattedString = currencyFormatter.string(from: NSNumber(value: 0))
+        XCTAssertEqual(formattedString, "$.00")
+
+        // If .minimumIntegerDigits is not set before .numberStyle change, update the value
+        let currencyFormatter2 = NumberFormatter()
+        XCTAssertEqual(currencyFormatter2.minimumIntegerDigits, 0)
+        currencyFormatter2.numberStyle = .currency
+        XCTAssertEqual(currencyFormatter2.minimumIntegerDigits, 1)
+        currencyFormatter2.locale = Locale(identifier: "en_US")
+        formattedString = currencyFormatter2.string(from: NSNumber(value: 0))
+        XCTAssertEqual(formattedString, "$0.00")
     }
     
     func test_maximumIntegerDigits() {
