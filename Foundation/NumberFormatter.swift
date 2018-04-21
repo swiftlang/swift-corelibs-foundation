@@ -140,7 +140,7 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPlusSign, value: _plusSign?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: _currencySymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterExponentSymbol, value: _exponentSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: _minimumIntegerDigits._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: minimumIntegerDigits._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxIntegerDigits, value: _maximumIntegerDigits._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinFractionDigits, value: _minimumFractionDigits._bridgeToObjectiveC()._cfObject)
         if _minimumFractionDigits <= 0 {
@@ -190,12 +190,15 @@ open class NumberFormatter : Formatter {
             case .currency, .currencyPlural, .currencyISOCode, .currencyAccounting:
                 _usesSignificantDigits = false
                 _usesGroupingSeparator = true
+                if _minimumIntegerDigits == nil {
+                    _minimumIntegerDigits = 1
+                }
                 _minimumFractionDigits = 2
                 
             case .decimal:
                 _usesGroupingSeparator = true
                 _maximumFractionDigits = 3
-                if _minimumIntegerDigits == 0 {
+                if _minimumIntegerDigits == nil {
                     _minimumIntegerDigits = 1
                 }
                 if _groupingSize == 0 {
@@ -680,11 +683,14 @@ open class NumberFormatter : Formatter {
             _roundingIncrement = newValue
         }
     }
-    
-    internal var _minimumIntegerDigits: Int = 0
+
+    // Use an optional for _minimumIntegerDigits to track if the value is
+    // set BEFORE the .numberStyle is changed. This allows preserving a setting
+    // of 0.
+    internal var _minimumIntegerDigits: Int?
     open var minimumIntegerDigits: Int {
         get {
-            return _minimumIntegerDigits
+            return _minimumIntegerDigits ?? 0
         }
         set {
             _reset()
