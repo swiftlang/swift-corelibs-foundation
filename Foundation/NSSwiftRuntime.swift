@@ -140,13 +140,13 @@ internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     }
 }
 
-@_versioned
+@usableFromInline
 @_cdecl("__CFSwiftGetBaseClass")
 internal func __CFSwiftGetBaseClass() -> UnsafeRawPointer {
     return unsafeBitCast(__NSCFType.self, to:UnsafeRawPointer.self)
 }
 
-@_versioned
+@usableFromInline
 @_cdecl("__CFInitializeSwift")
 internal func __CFInitializeSwift() {
     
