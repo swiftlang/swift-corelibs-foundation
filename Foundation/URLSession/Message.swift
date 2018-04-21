@@ -56,7 +56,7 @@ extension _NativeProtocol._ParsedResponseHeader {
             data[data.endIndex - 1] == _Delimiters.LF
             else { return nil }
         let lineBuffer = data.subdata(in: Range(data.startIndex..<data.endIndex-2))
-        guard let line = String(data: lineBuffer, encoding: String.Encoding.utf8) else { return nil}
+        guard let line = String(data: lineBuffer, encoding: .utf8) else { return nil}
         return byAppending(headerLine: line)
     }
     /// Append a status line.

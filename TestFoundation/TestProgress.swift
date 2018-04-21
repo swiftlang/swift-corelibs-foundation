@@ -363,16 +363,16 @@ class TestProgress : XCTestCase {
         child.resumingHandler = { childSema.signal() }
 
         parent.cancel()
-        XCTAssertEqual(.success, parentSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
-        XCTAssertEqual(.success, childSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
+        XCTAssertEqual(.success, parentSema.wait(timeout: .now() + .seconds(3)))
+        XCTAssertEqual(.success, childSema.wait(timeout: .now() + .seconds(3)))
         
         parent.pause()
-        XCTAssertEqual(.success, parentSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
-        XCTAssertEqual(.success, childSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
+        XCTAssertEqual(.success, parentSema.wait(timeout: .now() + .seconds(3)))
+        XCTAssertEqual(.success, childSema.wait(timeout: .now() + .seconds(3)))
 
         parent.resume()
-        XCTAssertEqual(.success, parentSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
-        XCTAssertEqual(.success, childSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
+        XCTAssertEqual(.success, parentSema.wait(timeout: .now() + .seconds(3)))
+        XCTAssertEqual(.success, childSema.wait(timeout: .now() + .seconds(3)))
     }
     
     func test_alreadyCancelled() {
@@ -387,8 +387,8 @@ class TestProgress : XCTestCase {
         parent.cancellationHandler = { parentSema.signal() }
         child.cancellationHandler = { childSema.signal() }
         
-        XCTAssertEqual(.success, parentSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
-        XCTAssertEqual(.success, childSema.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(3)))
+        XCTAssertEqual(.success, parentSema.wait(timeout: .now() + .seconds(3)))
+        XCTAssertEqual(.success, childSema.wait(timeout: .now() + .seconds(3)))
     }
     
     func test_userInfo() {

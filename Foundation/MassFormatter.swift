@@ -54,7 +54,7 @@ open class MassFormatter : Formatter {
                 return stoneString
             } else {
                 let poundsString = string(fromValue: pounds, unit: .pound)
-                let separator = unitStyle == MassFormatter.UnitStyle.short ? " " : ", "
+                let separator = unitStyle == .short ? " " : ", "
                 
                 return ("\(stoneString)\(separator)\(poundsString)")
             }
@@ -166,7 +166,7 @@ open class MassFormatter : Formatter {
             fatalError("Cannot format \(value) as string")
         }
         
-        let separator = unitStyle == MassFormatter.UnitStyle.short ? "" : " "
+        let separator = unitStyle == .short ? "" : " "
         
         return "\(formattedValue)\(separator)\(unitStringDisplayedAdjacent(toValue: value, unit: unit))"
     }

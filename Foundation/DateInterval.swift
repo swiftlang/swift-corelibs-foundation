@@ -183,7 +183,7 @@ extension DateInterval : CustomStringConvertible, CustomDebugStringConvertible, 
         c.append((label: "start", value: start))
         c.append((label: "end", value: end))
         c.append((label: "duration", value: duration))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 

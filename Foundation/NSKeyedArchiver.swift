@@ -99,8 +99,8 @@ open class NSKeyedArchiver : NSCoder {
     /// The available formats are `xml` and `binary`.
     open var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
         willSet {
-            if outputFormat != PropertyListSerialization.PropertyListFormat.xml &&
-                outputFormat != PropertyListSerialization.PropertyListFormat.binary {
+            if outputFormat != .xml &&
+                outputFormat != .binary {
                 NSUnimplemented()
             }
         }
@@ -165,7 +165,7 @@ open class NSKeyedArchiver : NSCoder {
         
         keyedArchiver.encode(rootObject, forKey: NSKeyedArchiveRootObjectKey)
         keyedArchiver.finishEncoding()
-        finishedEncoding = keyedArchiver._flags.contains(ArchiverFlags.finishedEncoding)
+        finishedEncoding = keyedArchiver._flags.contains(.finishedEncoding)
         
         return finishedEncoding
     }
@@ -231,7 +231,7 @@ open class NSKeyedArchiver : NSCoder {
     ///
     /// No more values can be encoded after this method is called. You must call this method when finished.
     open func finishEncoding() {
-        if _flags.contains(ArchiverFlags.finishedEncoding) {
+        if _flags.contains(.finishedEncoding) {
             return
         }
 
@@ -251,7 +251,7 @@ open class NSKeyedArchiver : NSCoder {
 
         let nsPlist = plist._bridgeToObjectiveC()
         
-        if self.outputFormat == PropertyListSerialization.PropertyListFormat.xml {
+        if self.outputFormat == .xml {
             success = _writeXMLData(nsPlist)
         } else {
             success = _writeBinaryData(nsPlist)
@@ -262,7 +262,7 @@ open class NSKeyedArchiver : NSCoder {
         }
 
         if success {
-            let _ = self._flags.insert(ArchiverFlags.finishedEncoding)
+            let _ = self._flags.insert(.finishedEncoding)
         }
     }
 
@@ -305,7 +305,7 @@ open class NSKeyedArchiver : NSCoder {
     }
     
     private func _validateStillEncoding() -> Bool {
-        if self._flags.contains(ArchiverFlags.finishedEncoding) {
+        if self._flags.contains(.finishedEncoding) {
             fatalError("Encoder already finished")
         }
         
@@ -868,13 +868,13 @@ open class NSKeyedArchiver : NSCoder {
     /// if you attempt to archive a class which does not conform to `NSSecureCoding`.
     open override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(ArchiverFlags.requiresSecureCoding)
+            return _flags.contains(.requiresSecureCoding)
         }
         set {
             if newValue {
-                let _ = _flags.insert(ArchiverFlags.requiresSecureCoding)
+                let _ = _flags.insert(.requiresSecureCoding)
             } else {
-                _flags.remove(ArchiverFlags.requiresSecureCoding)
+                _flags.remove(.requiresSecureCoding)
             }
         }
     }

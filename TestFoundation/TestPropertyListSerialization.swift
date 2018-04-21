@@ -21,7 +21,7 @@ class TestPropertyListSerialization : XCTestCase {
 //        dict["foo"] = "bar"
         var data: Data? = nil
         do {
-            data = try PropertyListSerialization.data(fromPropertyList: dict, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
+            data = try PropertyListSerialization.data(fromPropertyList: dict, format: .binary, options: 0)
         } catch {
             
         }

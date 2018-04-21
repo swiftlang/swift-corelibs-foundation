@@ -604,11 +604,11 @@ private struct JSONReader {
 
             self.step = {
                 switch encoding {
-                case String.Encoding.utf8:
+                case .utf8:
                     return 1
-                case String.Encoding.utf16BigEndian, String.Encoding.utf16LittleEndian:
+                case .utf16BigEndian, .utf16LittleEndian:
                     return 2
-                case String.Encoding.utf32BigEndian, String.Encoding.utf32LittleEndian:
+                case .utf32BigEndian, .utf32LittleEndian:
                     return 4
                 default:
                     return 1
@@ -623,15 +623,15 @@ private struct JSONReader {
 
             let index: Int
             switch encoding {
-            case String.Encoding.utf8:
+            case .utf8:
                 index = input
-            case String.Encoding.utf16BigEndian where buffer[input] == 0:
+            case .utf16BigEndian where buffer[input] == 0:
                 index = input + 1
-            case String.Encoding.utf32BigEndian where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
+            case .utf32BigEndian where buffer[input] == 0 && buffer[input+1] == 0 && buffer[input+2] == 0:
                 index = input + 3
-            case String.Encoding.utf16LittleEndian where buffer[input+1] == 0:
+            case .utf16LittleEndian where buffer[input+1] == 0:
                 index = input
-            case String.Encoding.utf32LittleEndian where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
+            case .utf32LittleEndian where buffer[input+1] == 0 && buffer[input+2] == 0 && buffer[input+3] == 0:
                 index = input
             default:
                 return nil
@@ -852,7 +852,7 @@ private struct JSONReader {
             }
         }
         
-        if source.encoding == String.Encoding.utf8 {
+        if source.encoding == .utf8 {
             
             return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }

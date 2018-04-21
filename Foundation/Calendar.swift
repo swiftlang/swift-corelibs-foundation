@@ -944,38 +944,38 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     
     internal static func _fromCalendarUnit(_ unit: NSCalendar.Unit) -> Component {
         switch unit {
-        case NSCalendar.Unit.era:
-            return Component.era
-        case NSCalendar.Unit.year:
-            return Component.year
-        case NSCalendar.Unit.month:
-            return Component.month
-        case NSCalendar.Unit.day:
-            return Component.day
-        case NSCalendar.Unit.hour:
-            return Component.hour
-        case NSCalendar.Unit.minute:
-            return Component.minute
-        case NSCalendar.Unit.second:
-            return Component.second
-        case NSCalendar.Unit.weekday:
-            return Component.weekday
-        case NSCalendar.Unit.weekdayOrdinal:
-            return Component.weekdayOrdinal
-        case NSCalendar.Unit.quarter:
-            return Component.quarter
-        case NSCalendar.Unit.weekOfMonth:
-            return Component.weekOfMonth
-        case NSCalendar.Unit.weekOfYear:
-            return Component.weekOfYear
-        case NSCalendar.Unit.yearForWeekOfYear:
-            return Component.yearForWeekOfYear
-        case NSCalendar.Unit.nanosecond:
-            return Component.nanosecond
-        case NSCalendar.Unit.calendar:
-            return Component.calendar
-        case NSCalendar.Unit.timeZone:
-            return Component.timeZone
+        case .era:
+            return .era
+        case .year:
+            return .year
+        case .month:
+            return .month
+        case .day:
+            return .day
+        case .hour:
+            return .hour
+        case .minute:
+            return .minute
+        case .second:
+            return .second
+        case .weekday:
+            return .weekday
+        case .weekdayOrdinal:
+            return .weekdayOrdinal
+        case .quarter:
+            return .quarter
+        case .weekOfMonth:
+            return .weekOfMonth
+        case .weekOfYear:
+            return .weekOfYear
+        case .yearForWeekOfYear:
+            return .yearForWeekOfYear
+        case .nanosecond:
+            return .nanosecond
+        case .calendar:
+            return .calendar
+        case .timeZone:
+            return .timeZone
         default:
             fatalError()
         }
@@ -1159,7 +1159,7 @@ extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, Cust
             (label: "firstWeekday", value: firstWeekday),
             (label: "minimumDaysInFirstWeek", value: minimumDaysInFirstWeek)
         ]
-        return Mirror(self, children: children, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: children, displayStyle: .struct)
     }
 }
 

@@ -313,21 +313,21 @@ class TestCodable : XCTestCase {
     
     // MARK: - CharacterSet
     lazy var characterSetValues: [CharacterSet] = [
-        CharacterSet.controlCharacters,
-        CharacterSet.whitespaces,
-        CharacterSet.whitespacesAndNewlines,
-        CharacterSet.decimalDigits,
-        CharacterSet.letters,
-        CharacterSet.lowercaseLetters,
-        CharacterSet.uppercaseLetters,
-        CharacterSet.nonBaseCharacters,
-        CharacterSet.alphanumerics,
-        CharacterSet.decomposables,
-        CharacterSet.illegalCharacters,
-        CharacterSet.punctuationCharacters,
-        CharacterSet.capitalizedLetters,
-        CharacterSet.symbols,
-        CharacterSet.newlines,
+        .controlCharacters,
+        .whitespaces,
+        .whitespacesAndNewlines,
+        .decimalDigits,
+        .letters,
+        .lowercaseLetters,
+        .uppercaseLetters,
+        .nonBaseCharacters,
+        .alphanumerics,
+        .decomposables,
+        .illegalCharacters,
+        .punctuationCharacters,
+        .capitalizedLetters,
+        .symbols,
+        .newlines,
         CharacterSet(charactersIn: "abcd")
     ]
     

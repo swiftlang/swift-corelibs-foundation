@@ -1878,7 +1878,7 @@ extension Data : CustomStringConvertible, CustomDebugStringConvertible, CustomRe
             children.append((label: "bytes", value: Array(self[startIndex..<Swift.min(nBytes + startIndex, endIndex)])))
         }
         
-        let m = Mirror(self, children:children, displayStyle: Mirror.DisplayStyle.struct)
+        let m = Mirror(self, children:children, displayStyle: .struct)
         return m
     }
 }

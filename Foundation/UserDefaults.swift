@@ -431,7 +431,7 @@ private extension UserDefaults {
                 let keySubstring = current[current.index(after: current.startIndex)...]
                 if !keySubstring.isEmpty {
                     let key = String(keySubstring)
-                    let value = next.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+                    let value = next.trimmingCharacters(in: .whitespacesAndNewlines)
                     
                     var parsed = false
                     if let prefix = value.first, propertyListPrefixes.contains(prefix) {

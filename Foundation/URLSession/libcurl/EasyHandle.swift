@@ -400,7 +400,7 @@ extension _EasyHandle {
         var p: UnsafeMutablePointer<Int8>? = nil
         try! CFURLSession_easy_getinfo_charp(rawHandle, CFURLSessionInfoREDIRECT_URL, &p).asError()
         guard let cstring = p else { return nil }
-        guard let s = String(cString: cstring, encoding: String.Encoding.utf8) else { return nil }
+        guard let s = String(cString: cstring, encoding: .utf8) else { return nil }
         return URL(string: s)
     }
 }

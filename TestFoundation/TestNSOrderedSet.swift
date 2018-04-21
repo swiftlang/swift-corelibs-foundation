@@ -347,7 +347,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? String, let rhs = rhs as? String {
                 return lhs.compare(rhs)
             }
-            return ComparisonResult.orderedSame
+            return .orderedSame
         }
         XCTAssertEqual(set[0] as? String, "a")
         XCTAssertEqual(set[1] as? String, "b")
@@ -358,7 +358,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? String, let rhs = rhs as? String {
                 return rhs.compare(lhs)
             }
-            return ComparisonResult.orderedSame
+            return .orderedSame
         }
         XCTAssertEqual(set[0] as? String, "a")
         XCTAssertEqual(set[1] as? String, "c")

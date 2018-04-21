@@ -795,7 +795,7 @@ extension NSString {
     }
     
     public var utf8String: UnsafePointer<Int8>? {
-        return _bytesInEncoding(self, String.Encoding.utf8, false, false, false)
+        return _bytesInEncoding(self, .utf8, false, false, false)
     }
     
     public var fastestEncoding: UInt {

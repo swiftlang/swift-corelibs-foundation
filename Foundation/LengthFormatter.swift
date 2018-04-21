@@ -48,7 +48,7 @@ open class LengthFormatter : Formatter {
         guard let formattedValue = numberFormatter.string(from:NSNumber(value: value)) else {
             fatalError("Cannot format \(value) as string")
         }
-        let separator = unitStyle == LengthFormatter.UnitStyle.short ? "" : " "
+        let separator = unitStyle == .short ? "" : " "
         return "\(formattedValue)\(separator)\(unitString(fromValue: value, unit: unit))"
     }
     

@@ -138,7 +138,7 @@ class CustomProtocol : URLProtocol {
     func sendResponse(statusCode: Int, headers: [String: String] = [:], data: Data) {
         let response = HTTPURLResponse(url: self.request.url!, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: headers)
         let capital = "Kathmandu"
-        let data = capital.data(using: String.Encoding.utf8)
+        let data = capital.data(using: .utf8)
         self.client?.urlProtocol(self, didReceive: response!, cacheStoragePolicy: .notAllowed)
         self.client?.urlProtocol(self, didLoad: data!)
         self.client?.urlProtocolDidFinishLoading(self)

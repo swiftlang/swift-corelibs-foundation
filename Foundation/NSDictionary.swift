@@ -463,7 +463,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     // the atomically flag is ignored if url of a type that cannot be written atomically.
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
-            let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: PropertyListSerialization.PropertyListFormat.xml, options: 0)
+            let pListData = try PropertyListSerialization.data(fromPropertyList: self, format: .xml, options: 0)
             try pListData.write(to: url, options: atomically ? .atomic : [])
             return true
         } catch {

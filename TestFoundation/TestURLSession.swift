@@ -74,7 +74,7 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertNotNil(data)
             guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
             XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data, encoding: String.Encoding.utf8) ?? ""
+            expectedResult = String(data: data, encoding: .utf8) ?? ""
             XCTAssertEqual("Washington, D.C.", expectedResult, "Did not receive expected value")
         }
         task.resume()
@@ -107,7 +107,7 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
             XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
-            expectedResult = String(data: data, encoding: String.Encoding.utf8) ?? ""
+            expectedResult = String(data: data, encoding: .utf8) ?? ""
             XCTAssertEqual("Rome", expectedResult, "Did not receive expected value")
         }
         task.resume()
@@ -249,7 +249,7 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
             guard let data = data else { return }
-            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
+            let headers = String(data: data, encoding: .utf8) ?? ""
             XCTAssertNotNil(headers.range(of: "header1: value1"))
         }
         task.resume()
@@ -275,7 +275,7 @@ class TestURLSession : LoopbackServerTest {
             defer { expect.fulfill() }
             XCTAssertNotNil(data)
             XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
-            let headers = String(data: data!, encoding: String.Encoding.utf8) ?? ""
+            let headers = String(data: data!, encoding: .utf8) ?? ""
             XCTAssertNotNil(headers.range(of: "header1: rvalue1"))
             XCTAssertNotNil(headers.range(of: "header2: rvalue2"))
             XCTAssertNotNil(headers.range(of: "header3: svalue3"))
@@ -643,7 +643,7 @@ class DataTask : NSObject {
 
 extension DataTask : URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        capital = String(data: data, encoding: String.Encoding.utf8)!
+        capital = String(data: data, encoding: .utf8)!
     }
 
     public func urlSession(_ session: URLSession,

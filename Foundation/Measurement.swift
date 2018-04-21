@@ -55,7 +55,7 @@ extension Measurement : CustomStringConvertible, CustomDebugStringConvertible, C
         var c: [(label: String?, value: Any)] = []
         c.append((label: "value", value: value))
         c.append((label: "unit", value: unit.symbol))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 

@@ -674,12 +674,12 @@ class TestNSData: LoopbackServerTest {
     func test_base64EncodedDataGetsEncodedText() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData()
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -689,12 +689,12 @@ class TestNSData: LoopbackServerTest {
     func test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1\naXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVu\nYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength64Characters, .endLineWithLineFeed])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -704,12 +704,12 @@ class TestNSData: LoopbackServerTest {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0\rZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength76Characters, .endLineWithCarriageReturn])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -719,12 +719,12 @@ class TestNSData: LoopbackServerTest {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhh\r\nZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength76Characters, .endLineWithCarriageReturn, .endLineWithLineFeed])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -734,7 +734,7 @@ class TestNSData: LoopbackServerTest {
     func test_base64EncodedStringGetsEncodedText() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhhZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }

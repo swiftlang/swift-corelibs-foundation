@@ -533,27 +533,27 @@ class TestDecimal: XCTestCase {
     }
 
     func test_Round() {
-        let testCases = [
+        let testCases: [(Double, Double, Int, NSDecimalNumber.RoundingMode)] = [
             // expected, start, scale, round
-            ( 0, 0.5, 0, Decimal.RoundingMode.down ),
-            ( 1, 0.5, 0, Decimal.RoundingMode.up ),
-            ( 2, 2.5, 0, Decimal.RoundingMode.bankers ),
-            ( 4, 3.5, 0, Decimal.RoundingMode.bankers ),
-            ( 5, 5.2, 0, Decimal.RoundingMode.plain ),
-            ( 4.5, 4.5, 1, Decimal.RoundingMode.down ),
-            ( 5.5, 5.5, 1, Decimal.RoundingMode.up ),
-            ( 6.5, 6.5, 1, Decimal.RoundingMode.plain ),
-            ( 7.5, 7.5, 1, Decimal.RoundingMode.bankers ),
+            ( 0, 0.5, 0, .down ),
+            ( 1, 0.5, 0, .up ),
+            ( 2, 2.5, 0, .bankers ),
+            ( 4, 3.5, 0, .bankers ),
+            ( 5, 5.2, 0, .plain ),
+            ( 4.5, 4.5, 1, .down ),
+            ( 5.5, 5.5, 1, .up ),
+            ( 6.5, 6.5, 1, .plain ),
+            ( 7.5, 7.5, 1, .bankers ),
 
-            ( -1, -0.5, 0, Decimal.RoundingMode.down ),
-            ( -2, -2.5, 0, Decimal.RoundingMode.up ),
-            ( -3, -2.5, 0, Decimal.RoundingMode.bankers ),
-            ( -4, -3.5, 0, Decimal.RoundingMode.bankers ),
-            ( -5, -5.2, 0, Decimal.RoundingMode.plain ),
-            ( -4.5, -4.5, 1, Decimal.RoundingMode.down ),
-            ( -5.5, -5.5, 1, Decimal.RoundingMode.up ),
-            ( -6.5, -6.5, 1, Decimal.RoundingMode.plain ),
-            ( -7.5, -7.5, 1, Decimal.RoundingMode.bankers ),
+            ( -1, -0.5, 0, .down ),
+            ( -2, -2.5, 0, .up ),
+            ( -3, -2.5, 0, .bankers ),
+            ( -4, -3.5, 0, .bankers ),
+            ( -5, -5.2, 0, .plain ),
+            ( -4.5, -4.5, 1, .down ),
+            ( -5.5, -5.5, 1, .up ),
+            ( -6.5, -6.5, 1, .plain ),
+            ( -7.5, -7.5, 1, .bankers ),
             ]
         for testCase in testCases {
             let (expected, start, scale, mode) = testCase
