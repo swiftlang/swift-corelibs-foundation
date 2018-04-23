@@ -21,6 +21,7 @@ class TestFileHandle : XCTestCase {
             ("test_constants", test_constants),
             ("test_pipe", test_pipe),
             ("test_nullDevice", test_nullDevice),
+            ("test_truncateFile", test_truncateFile)
         ]
     }
 
@@ -63,5 +64,40 @@ class TestFileHandle : XCTestCase {
         fh.write(Data(bytes: [1,2]))
         fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
+    }
+
+    func test_truncateFile() {
+        mkstemp(template: "test_truncateFile.XXXXXX") { (fh) in
+            fh.truncateFile(atOffset: 50)
+            XCTAssertEqual(fh.offsetInFile, 50)
+
+            fh.truncateFile(atOffset: 0)
+            XCTAssertEqual(fh.offsetInFile, 0)
+
+            fh.truncateFile(atOffset: 100)
+            XCTAssertEqual(fh.offsetInFile, 100)
+
+            fh.write(Data(bytes: [1, 2]))
+            XCTAssertEqual(fh.offsetInFile, 102)
+
+            fh.seek(toFileOffset: 4)
+            XCTAssertEqual(fh.offsetInFile, 4)
+
+            (0..<20).forEach { fh.write(Data(bytes: [$0])) }
+            XCTAssertEqual(fh.offsetInFile, 24)
+
+            fh.seekToEndOfFile()
+            XCTAssertEqual(fh.offsetInFile, 102)
+
+            fh.truncateFile(atOffset: 10)
+            XCTAssertEqual(fh.offsetInFile, 10)
+
+            fh.seek(toFileOffset: 0)
+            XCTAssertEqual(fh.offsetInFile, 0)
+
+            let data = fh.readDataToEndOfFile()
+            XCTAssertEqual(data.count, 10)
+            XCTAssertEqual(data, Data(bytes: [0, 0, 0, 0, 0, 1, 2, 3, 4, 5]))
+        }
     }
 }
