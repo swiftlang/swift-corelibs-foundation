@@ -34,7 +34,7 @@ Build and test steps:
 
 You will need:
 
-* A supported distribution of Linux. At this time, we support [Ubuntu 14.04 and Ubuntu 15.10](http://www.ubuntu.com).
+* A supported distribution of Linux. At this time, we support [Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 16.10](http://www.ubuntu.com).
 
 To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
