@@ -440,11 +440,7 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
-#if DEPLOYMENT_TARGET_ANDROID
-    CFURLRef prefDir = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-#else
     CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
-#endif
     CFStringRef  appName;
     CFStringRef  fileName;
     Boolean mustFreeAppName = false;
