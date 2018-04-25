@@ -317,7 +317,7 @@ public extension NSString {
         }
         
         // TODO: pathComponents keeps final path separator if any. Check that logic.
-        if components.last == "/" {
+        if components.last == "/" && components.count > 1 {
             components.removeLast()
         }
         
