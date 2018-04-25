@@ -142,13 +142,12 @@ open class FileHandle : NSObject, NSSecureCoding {
     open func seek(toFileOffset offset: UInt64) {
         lseek(_fd, off_t(offset), SEEK_SET)
     }
-    
+
     open func truncateFile(atOffset offset: UInt64) {
-        if lseek(_fd, off_t(offset), SEEK_SET) == 0 {
-            ftruncate(_fd, off_t(offset))
-        }
+        if lseek(_fd, off_t(offset), SEEK_SET) < 0 { fatalError("lseek() failed.") }
+        if ftruncate(_fd, off_t(offset)) < 0 { fatalError("ftruncate() failed.") }
     }
-    
+
     open func synchronizeFile() {
         fsync(_fd)
     }
