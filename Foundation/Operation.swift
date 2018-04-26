@@ -285,7 +285,7 @@ internal struct _OperationList {
             }
         }
     }
-    
+
     mutating func dequeue() -> Operation? {
         if !veryHigh.isEmpty {
             return veryHigh.remove(at: 0)
@@ -327,7 +327,7 @@ open class OperationQueue: NSObject {
     }
     let queueGroup = DispatchGroup()
 #endif
-    
+
     var _operations = _OperationList()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     internal var _concurrencyGate: DispatchSemaphore? {
@@ -353,17 +353,10 @@ open class OperationQueue: NSObject {
             } else {
                 effectiveName = "NSOperationQueue::\(Unmanaged.passUnretained(self).toOpaque())"
             }
-            let attr: DispatchQueue.Attributes
-            if maxConcurrentOperationCount == 1 {
-                attr = []
-                __concurrencyGate = DispatchSemaphore(value: 1)
-            } else {
-                attr = .concurrent
-                if maxConcurrentOperationCount != OperationQueue.defaultMaxConcurrentOperationCount {
-                    __concurrencyGate = DispatchSemaphore(value:maxConcurrentOperationCount)
-                }
+            if maxConcurrentOperationCount != OperationQueue.defaultMaxConcurrentOperationCount {
+                __concurrencyGate = DispatchSemaphore(value:maxConcurrentOperationCount)
             }
-            let queue = DispatchQueue(label: effectiveName, attributes: attr)
+            let queue = DispatchQueue(label: effectiveName, attributes: .concurrent)
             if _suspended {
                 queue.suspend()
             }
@@ -398,15 +391,16 @@ open class OperationQueue: NSObject {
         addOperations([op], waitUntilFinished: false)
     }
     
-    internal func _runOperation() {
-        if let op = _dequeueOperation() {
-            if !op.isCancelled {
-                op._waitUntilReady()
-                if !op.isCancelled {
-                    op.start()
-                }
-            }
+    internal func _dequeueReadyOperation() -> Operation? {
+        guard let op = _dequeueOperation() else {
+            return nil
         }
+
+        if !op.isCancelled {
+            op._waitUntilReady()
+        }
+
+        return op
     }
     
     open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
@@ -439,13 +433,16 @@ open class OperationQueue: NSObject {
             }
 
             let block = DispatchWorkItem(flags: .enforceQoS) { () -> Void in
-                if let sema = self._concurrencyGate {
-                    sema.wait()
-                    self._runOperation()
-                    sema.signal()
+                let op = self._dequeueReadyOperation()
+
+                if let gate = self._concurrencyGate {
+                    gate.wait()
+                    op?.start()
+                    gate.signal()
                 } else {
-                    self._runOperation()
+                    op?.start()
                 }
+
                 if let group = waitGroup {
                     group.leave()
                 }
