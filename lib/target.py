@@ -331,14 +331,17 @@ class Target:
     dynamic_library_suffix = ".dylib"
     static_library_prefix = "lib"
     static_library_suffix = ".a"
+    linker = None
 
     def __init__(self, triple):
         if "linux" in triple:
             self.sdk = OSType.Linux
             self.dynamic_library_suffix = ".so"
+            self.linker = "gold"
         elif "freebsd" in triple:
             self.sdk = OSType.FreeBSD
             self.dynamic_library_suffix = ".so"
+            self.linker = "gold"
         elif "windows" in triple or "win32" in triple:
             self.sdk = OSType.Win32
             self.dynamic_library_suffix = ".dll"
