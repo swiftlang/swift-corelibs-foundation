@@ -817,10 +817,14 @@ open class FileManager : NSObject {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
             _fsRep = fileSystemRepresentation(withPath: path)
-            defer { _fsRep.deallocate() }
         } else {
             _fsRep = fsRep!
         }
+
+        defer {
+            if fsRep == nil { _fsRep.deallocate() }
+        }
+
         var statInfo = stat()
         guard lstat(_fsRep, &statInfo) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
