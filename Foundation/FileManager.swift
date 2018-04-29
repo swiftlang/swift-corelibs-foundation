@@ -188,9 +188,11 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
-                if chmod(path, mode_t(modeT)) != 0 {
-                    fatalError("errno \(errno)")
-                }
+                _fileSystemRepresentation(withPath: path, {
+                    if chmod($0, mode_t(modeT)) != 0 {
+                        fatalError("errno \(errno)")
+                    }
+                })
             } else {
                 fatalError("Attribute type not implemented: \(attribute)")
             }
@@ -202,30 +204,32 @@ open class FileManager : NSObject {
         This method replaces createDirectoryAtPath:attributes:
      */
     open func createDirectory(atPath path: String, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = [:]) throws {
-        if createIntermediates {
-            var isDir: ObjCBool = false
-            if !fileExists(atPath: path, isDirectory: &isDir) {
-                let parent = path._nsObject.deletingLastPathComponent
-                if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
-                    try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
+        try _fileSystemRepresentation(withPath: path, { pathFsRep in
+            if createIntermediates {
+                var isDir: ObjCBool = false
+                if !fileExists(atPath: path, isDirectory: &isDir) {
+                    let parent = path._nsObject.deletingLastPathComponent
+                    if !parent.isEmpty && !fileExists(atPath: parent, isDirectory: &isDir) {
+                        try createDirectory(atPath: parent, withIntermediateDirectories: true, attributes: attributes)
+                    }
+                    if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    } else if let attr = attributes {
+                        try self.setAttributes(attr, ofItemAtPath: path)
+                    }
+                } else if isDir.boolValue {
+                    return
+                } else {
+                    throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
                 }
-                if mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
+            } else {
+                if mkdir(pathFsRep, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
                     throw _NSErrorWithErrno(errno, reading: false, path: path)
                 } else if let attr = attributes {
                     try self.setAttributes(attr, ofItemAtPath: path)
                 }
-            } else if isDir.boolValue {
-                return
-            } else {
-                throw _NSErrorWithErrno(EEXIST, reading: false, path: path)
             }
-        } else {
-            if mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) != 0 {
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
-            } else if let attr = attributes {
-                try self.setAttributes(attr, ofItemAtPath: path)
-            }
-        }
+        })
     }
 
     private func _contentsOfDir(atPath path: String, _ closure: (String, Int32) throws -> () ) throws {
@@ -310,10 +314,7 @@ open class FileManager : NSObject {
         This method replaces fileAttributesAtPath:traverseLink:.
      */
     open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
-        var s = stat()
-        guard lstat(path, &s) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: path)
-        }
+        let s = try _lstatFile(atPath: path)
         var result = [FileAttributeKey : Any]()
         result[.size] = NSNumber(value: UInt64(s.st_size))
 
@@ -415,9 +416,11 @@ open class FileManager : NSObject {
         This method replaces createSymbolicLinkAtPath:pathContent:
      */
     open func createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
-        if symlink(destPath, path) == -1 {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        }
+        try _fileSystemRepresentation(withPath: path, andPath: destPath, {
+            guard symlink($1, $0) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            }
+        })
     }
     
     /* destinationOfSymbolicLinkAtPath:error: returns an NSString containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter.
@@ -427,7 +430,9 @@ open class FileManager : NSObject {
     open func destinationOfSymbolicLink(atPath path: String) throws -> String {
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
-        let len = readlink(path, &buf, bufSize)
+        let len = _fileSystemRepresentation(withPath: path) {
+                readlink($0, &buf, bufSize)
+        }
         if len < 0 {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
@@ -508,6 +513,22 @@ open class FileManager : NSObject {
         }
     }
 
+    private func _copySymlink(atPath srcPath: String, toPath dstPath: String) throws {
+        let bufSize = Int(PATH_MAX) + 1
+        var buf = [Int8](repeating: 0, count: bufSize)
+
+        try _fileSystemRepresentation(withPath: srcPath) { srcFsRep in
+            let len = readlink(srcFsRep, &buf, bufSize)
+            if len < 0 {
+                throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+            }
+            try _fileSystemRepresentation(withPath: dstPath) { dstFsRep in
+                if symlink(buf, dstFsRep) == -1 {
+                    throw _NSErrorWithErrno(errno, reading: false, path: dstPath)
+                }
+            }
+        }
+    }
 
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
         guard
@@ -519,8 +540,7 @@ open class FileManager : NSObject {
 
         func copyNonDirectory(srcPath: String, dstPath: String, fileType: FileAttributeType) throws {
             if fileType == .typeSymbolicLink {
-                let destination = try destinationOfSymbolicLink(atPath: srcPath)
-                try createSymbolicLink(atPath: dstPath, withDestinationPath: destination)
+                try _copySymlink(atPath: srcPath, toPath: dstPath)
             } else if fileType == .typeRegular {
                 try _copyRegularFile(atPath: srcPath, toPath: dstPath)
             }
@@ -553,14 +573,16 @@ open class FileManager : NSObject {
         guard !self.fileExists(atPath: dstPath) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteFileExists.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
         }
-        if rename(srcPath, dstPath) != 0 {
-            if errno == EXDEV {
-                // TODO: Copy and delete.
-                NSUnimplemented("Cross-device moves not yet implemented")
-            } else {
-                throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
+        try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
+            if rename($0, $1) != 0 {
+                if errno == EXDEV {
+                    // TODO: Copy and delete.
+                    NSUnimplemented("Cross-device moves not yet implemented")
+                } else {
+                    throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
+                }
             }
-        }
+        })
     }
     
     open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
@@ -568,9 +590,11 @@ open class FileManager : NSObject {
         if self.fileExists(atPath: srcPath, isDirectory: &isDir) {
             if !isDir.boolValue {
                 // TODO: Symlinks should be copied instead of hard-linked.
-                if link(srcPath, dstPath) == -1 {
-                    throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
-                }
+                try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
+                    if link($0, $1) == -1 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
+                    }
+                })
             } else {
                 // TODO: Recurse through directories, copying them.
                 NSUnimplemented("Recursive linking not yet implemented")
@@ -622,7 +646,7 @@ open class FileManager : NSObject {
 
         } else if errno != ENOTDIR {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
-        } else if unlink(path) != 0 {
+        } else if _fileSystemRepresentation(withPath: path, { unlink($0) != 0 }) {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
         }
     }
@@ -676,7 +700,7 @@ open class FileManager : NSObject {
     
     @discardableResult
     open func changeCurrentDirectoryPath(_ path: String) -> Bool {
-        return chdir(path) == 0
+        return _fileSystemRepresentation(withPath: path, { chdir($0) == 0 })
     }
     
     /* The following methods are of limited utility. Attempting to predicate behavior based on the current state of the filesystem or a particular file on the filesystem is encouraging odd behavior in the face of filesystem race conditions. It's far better to attempt an operation (like loading a file or creating a directory) and handle the error gracefully than it is to try to figure out ahead of time whether the operation will succeed.
@@ -686,40 +710,47 @@ open class FileManager : NSObject {
     }
     
     open func fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
-        var s = stat()
-        guard lstat(path, &s) >= 0 else {
-            return false
-        }
-
-        if (s.st_mode & S_IFMT) == S_IFLNK {
-            // don't chase the link for this magic case -- we might be /Net/foo
-            // which is a symlink to /private/Net/foo which is not yet mounted...
-            if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
-                return true
-            }
-            // chase the link; too bad if it is a slink to /Net/foo
-            guard stat(path, &s) >= 0 else {
+        return _fileSystemRepresentation(withPath: path, { fsRep in
+            guard var s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
                 return false
             }
-        }
 
-        if let isDirectory = isDirectory {
-            isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
-        }
+            if (s.st_mode & S_IFMT) == S_IFLNK {
+                // don't chase the link for this magic case -- we might be /Net/foo
+                // which is a symlink to /private/Net/foo which is not yet mounted...
+                if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
+                    return true
+                }
+                // chase the link; too bad if it is a slink to /Net/foo
+                guard stat(fsRep, &s) >= 0 else {
+                    return false
+                }
+            }
 
-        return true
+            if let isDirectory = isDirectory {
+                isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
+            }
+
+            return true
+        })
     }
     
     open func isReadableFile(atPath path: String) -> Bool {
-        return access(path, R_OK) == 0
+        return _fileSystemRepresentation(withPath: path, {
+            access($0, R_OK) == 0
+        })
     }
     
     open func isWritableFile(atPath path: String) -> Bool {
-        return access(path, W_OK) == 0
+        return _fileSystemRepresentation(withPath: path, {
+            access($0, W_OK) == 0
+        })
     }
     
     open func isExecutableFile(atPath path: String) -> Bool {
-        return access(path, X_OK) == 0
+        return _fileSystemRepresentation(withPath: path, {
+            access($0, X_OK) == 0
+        })
     }
     
     open func isDeletableFile(atPath path: String) -> Bool {
@@ -812,10 +843,14 @@ open class FileManager : NSObject {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
             _fsRep = fileSystemRepresentation(withPath: path)
-            defer { _fsRep.deallocate() }
         } else {
             _fsRep = fsRep!
         }
+
+        defer {
+            if fsRep == nil { _fsRep.deallocate() }
+        }
+
         var statInfo = stat()
         guard lstat(_fsRep, &statInfo) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -961,7 +996,24 @@ open class FileManager : NSObject {
         }
         return UnsafePointer(buf)
     }
-    
+
+    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) rethrows -> ResultType {
+        let fsRep = fileSystemRepresentation(withPath: path)
+        defer { fsRep.deallocate() }
+        return try body(fsRep)
+    }
+
+    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<Int8>, UnsafePointer<Int8>) throws -> ResultType) rethrows -> ResultType {
+
+        let fsRep1 = fileSystemRepresentation(withPath: path1)
+        let fsRep2 = fileSystemRepresentation(withPath: path2)
+        defer {
+            fsRep1.deallocate()
+            fsRep2.deallocate()
+        }
+        return try body(fsRep1, fsRep2)
+    }
+
     /* stringWithFileSystemRepresentation:length: returns an NSString created from an array of bytes that are in the filesystem representation.
      */
     open func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {

@@ -603,11 +603,10 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
-    if rename(auxFilePath, filePath) != 0 {
-        do {
-            try FileManager.default.removeItem(atPath: auxFilePath)
-        } catch _ {
+    try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
+        if rename($0, $1) != 0 {
+            try? FileManager.default.removeItem(atPath: auxFilePath)
+            throw _NSErrorWithErrno(errno, reading: false, path: filePath)
         }
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
-    }
+    })
 }
