@@ -530,20 +530,12 @@ open class FileManager : NSObject {
         }
     }
 
-    open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+    private func _processItem(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
         guard
             let attrs = try? attributesOfItem(atPath: srcPath),
             let fileType = attrs[.type] as? FileAttributeType
             else {
                 return
-        }
-
-        func copyNonDirectory(srcPath: String, dstPath: String, fileType: FileAttributeType) throws {
-            if fileType == .typeSymbolicLink {
-                try _copySymlink(atPath: srcPath, toPath: dstPath)
-            } else if fileType == .typeRegular {
-                try _copyRegularFile(atPath: srcPath, toPath: dstPath)
-            }
         }
 
         if fileType == .typeDirectory {
@@ -560,12 +552,22 @@ open class FileManager : NSObject {
                     if fileType == .typeDirectory {
                         try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
                     } else {
-                        try copyNonDirectory(srcPath: src, dstPath: dst, fileType: fileType)
+                        try body(src, dst, fileType)
                     }
                 }
             }
         } else {
-            try copyNonDirectory(srcPath: srcPath, dstPath: dstPath, fileType: fileType)
+            try body(srcPath, dstPath, fileType)
+        }
+    }
+
+    open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try _processItem(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
+            if fileType == .typeSymbolicLink {
+                try _copySymlink(atPath: srcPath, toPath: dstPath)
+            } else if fileType == .typeRegular {
+                try _copyRegularFile(atPath: srcPath, toPath: dstPath)
+            }
         }
     }
     
@@ -586,18 +588,15 @@ open class FileManager : NSObject {
     }
     
     open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
-        var isDir: ObjCBool = false
-        if self.fileExists(atPath: srcPath, isDirectory: &isDir) {
-            if !isDir.boolValue {
-                // TODO: Symlinks should be copied instead of hard-linked.
+        try _processItem(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
+            if fileType == .typeSymbolicLink {
+                try _copySymlink(atPath: srcPath, toPath: dstPath)
+            } else if fileType == .typeRegular {
                 try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
                     if link($0, $1) == -1 {
                         throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
                     }
                 })
-            } else {
-                // TODO: Recurse through directories, copying them.
-                NSUnimplemented("Recursive linking not yet implemented")
             }
         }
     }
