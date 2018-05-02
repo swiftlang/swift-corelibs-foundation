@@ -868,7 +868,7 @@ public func modf(_ x: CGFloat) -> (CGFloat, CGFloat) {
 
 @_transparent
 public func ldexp(_ x: CGFloat, _ n: Int) -> CGFloat {
-    return CGFloat(ldexp(x.native, n))
+    return CGFloat(scalbn(x.native, n))
 }
 
 @_transparent
