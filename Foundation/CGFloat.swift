@@ -879,7 +879,7 @@ public func frexp(_ x: CGFloat) -> (CGFloat, Int) {
 
 @_transparent
 public func ilogb(_ x: CGFloat) -> Int {
-    return ilogb(x.native)
+    return x.native.exponent
 }
 
 @_transparent
