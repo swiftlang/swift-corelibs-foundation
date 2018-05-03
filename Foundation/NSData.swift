@@ -523,64 +523,69 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
-        var fd : Int32
-        var mode : mode_t? = nil
-        let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
-        var auxFilePath : String? = nil
-        if useAuxiliaryFile {
-            // Preserve permissions.
-            var info = stat()
-            if lstat(path, &info) == 0 {
-                mode = mode_t(info.st_mode)
-            } else if errno != ENOENT && errno != ENAMETOOLONG {
+        let fm = FileManager.default
+        try fm._fileSystemRepresentation(withPath: path, { pathFsRep in
+            var fd : Int32
+            var mode : mode_t? = nil
+            let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
+            var auxFilePath : String? = nil
+            if useAuxiliaryFile {
+                // Preserve permissions.
+                var info = stat()
+                if lstat(pathFsRep, &info) == 0 {
+                    let mode = mode_t(info.st_mode)
+                } else if errno != ENOENT && errno != ENAMETOOLONG {
+                    throw _NSErrorWithErrno(errno, reading: false, path: path)
+                }
+                let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
+                fd = newFD
+                auxFilePath = path
+                fchmod(fd, 0o666)
+            } else {
+                var flags = O_WRONLY | O_CREAT | O_TRUNC
+                if writeOptionsMask.contains(.withoutOverwriting) {
+                    flags |= O_EXCL
+                }
+                fd = _CFOpenFileWithMode(path, flags, 0o666)
+            }
+            if fd == -1 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-            let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
-            fd = newFD
-            auxFilePath = path
-            fchmod(fd, 0o666)
-        } else {
-            var flags = O_WRONLY | O_CREAT | O_TRUNC
-            if writeOptionsMask.contains(.withoutOverwriting) {
-                flags |= O_EXCL
+            defer {
+                close(fd)
             }
-            fd = _CFOpenFileWithMode(path, flags, 0o666)
-        }
-        if fd == -1 {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        }
-        defer {
-            close(fd)
-        }
 
-        try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
-            if range.length > 0 {
-                do {
-                    try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
-                    if fsync(fd) < 0 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+            try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
+                if range.length > 0 {
+                    do {
+                        try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
+                        if fsync(fd) < 0 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        }
+                    } catch let err {
+                        if let auxFilePath = auxFilePath {
+                            do {
+                                try FileManager.default.removeItem(atPath: auxFilePath)
+                            } catch _ {}
+                        }
+                        throw err
                     }
-                } catch let err {
-                    if let auxFilePath = auxFilePath {
+                }
+            }
+            if let auxFilePath = auxFilePath {
+                try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
+                    if rename(auxFilePathFsRep, pathFsRep) != 0 {
                         do {
                             try FileManager.default.removeItem(atPath: auxFilePath)
                         } catch _ {}
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
-                    throw err
-                }
+                    if let mode = mode {
+                        chmod(pathFsRep, mode)
+                    }
+                })
             }
-        }
-        if let auxFilePath = auxFilePath {
-            if rename(auxFilePath, path) != 0 {
-                do {
-                    try FileManager.default.removeItem(atPath: auxFilePath)
-                } catch _ {}
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
-            }
-            if let mode = mode {
-                chmod(path, mode)
-            }
-        }
+        })
     }
 
     /// Writes the data object's bytes to the file specified by a given path.
