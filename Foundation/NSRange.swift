@@ -354,7 +354,7 @@ extension NSRange {
         length = x.count
     }
     
-    internal func toCountableRange() -> CountableRange<Int>? {
+    internal func toCountableRange() -> Range<Int>? {
         if location == NSNotFound { return nil }
         return location..<(location+length)
     }

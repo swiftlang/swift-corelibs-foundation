@@ -105,7 +105,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             return IndexingIterator(_elements: self)
         }
         
-        public subscript(index : Index) -> CountableRange<IndexSet.Element> {
+        public subscript(index : Index) -> Range<IndexSet.Element> {
             let indexSetRange = indexSet._range(at: index)
             if let intersectingRange = intersectingRange {
                 return Swift.max(intersectingRange.lowerBound, indexSetRange.lowerBound)..<Swift.min(intersectingRange.upperBound, indexSetRange.upperBound)
@@ -722,8 +722,8 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
     
     private var i1: IndexSet.RangeView.Iterator
     private var i2: IndexSet.RangeView.Iterator
-    private var i1Range: CountableRange<Element>?
-    private var i2Range: CountableRange<Element>?
+    private var i1Range: Range<Element>?
+    private var i2Range: Range<Element>?
     private var i1UsedLower: Bool
     private var i2UsedLower: Bool
     
