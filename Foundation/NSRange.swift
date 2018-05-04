@@ -353,11 +353,6 @@ extension NSRange {
         location = x.lowerBound
         length = x.count
     }
-    
-    internal func toCountableRange() -> Range<Int>? {
-        if location == NSNotFound { return nil }
-        return location..<(location+length)
-    }
 }
     
 extension NSRange: NSSpecialValueCoding {

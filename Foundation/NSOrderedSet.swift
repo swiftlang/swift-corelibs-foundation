@@ -312,7 +312,7 @@ extension NSOrderedSet {
     public convenience init(array set: [Any], range: NSRange, copyItems flag: Bool) {
         var objects = set
 
-        if let range = range.toCountableRange(), range.count != set.count || flag {
+        if let range = Range(range), range.count != set.count || flag {
             objects = [Any]()
             for index in range.indices {
                 let object = set[index]
@@ -461,7 +461,7 @@ extension NSMutableOrderedSet {
     }
     
     open func replaceObjects(in range: NSRange, with objects: UnsafePointer<AnyObject>!, count: Int) {
-        if let range = range.toCountableRange() {
+        if let range = Range(range) {
             let buffer = UnsafeBufferPointer(start: objects, count: count)
             for (indexLocation, index) in range.indices.lazy.reversed().enumerated() {
                 let object = buffer[indexLocation]
@@ -478,7 +478,7 @@ extension NSMutableOrderedSet {
     }
     
     open func removeObjects(in range: NSRange) {
-        if let range = range.toCountableRange() {
+        if let range = Range(range) {
             for index in range.indices.lazy.reversed() {
                 removeObject(at: index)
             }

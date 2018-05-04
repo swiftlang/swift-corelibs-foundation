@@ -264,7 +264,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return
         }
         
-        objects += range.toCountableRange()!.map { self[$0] }
+        objects += Range(range)!.map { self[$0] }
     }
     
     open func index(of anObject: Any) -> Int {
@@ -874,7 +874,7 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage.removeSubrange(Range(range)!)
         } else {
-            for idx in range.toCountableRange()!.reversed() {
+            for idx in Range(range)!.reversed() {
                 removeObject(at: idx)
             }
         }
