@@ -24,6 +24,7 @@ class TestFileManager : XCTestCase {
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
+            ("test_linkItemAtPathToPath", test_linkItemAtPathToPath),
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
@@ -550,7 +551,13 @@ class TestFileManager : XCTestCase {
             XCTFail("Failed to clean up files")
         }
     }
-    
+
+    private func directoryExists(atPath path: String) -> Bool {
+        var isDir: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: path, isDirectory: &isDir)
+        return exists && isDir.boolValue
+    }
+
     func test_copyItemAtPathToPath() {
         let fm = FileManager.default
         let srcPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
@@ -560,13 +567,7 @@ class TestFileManager : XCTestCase {
             ignoreError { try fm.removeItem(atPath: srcPath) }
             ignoreError { try fm.removeItem(atPath: destPath) }
         }
-        
-        func directoryExists(atPath path: String) -> Bool {
-            var isDir: ObjCBool = false
-            let exists = fm.fileExists(atPath: path, isDirectory: &isDir)
-            return exists && isDir.boolValue
-        }
-        
+
         func createDirectory(atPath path: String) {
             do {
                 try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
@@ -638,7 +639,85 @@ class TestFileManager : XCTestCase {
             // ignore
         }
     }
-    
+
+    func test_linkItemAtPathToPath() {
+        let fm = FileManager.default
+        let basePath = NSTemporaryDirectory() + "linkItemAtPathToPath/"
+        let srcPath = basePath + "testdir\(NSUUID().uuidString)"
+        let destPath = basePath + "testdir\(NSUUID().uuidString)"
+        defer { ignoreError { try fm.removeItem(atPath: basePath) } }
+
+        func getFileInfo(atPath path: String, _ body: (String, Bool, UInt64, UInt64) -> ()) {
+            guard let enumerator = fm.enumerator(atPath: path) else {
+                XCTFail("Cant enumerate \(path)")
+                return
+            }
+            while let item = enumerator.nextObject() as? String {
+                let fname = "\(path)/\(item)"
+                do {
+                    let attrs = try fm.attributesOfItem(atPath: fname)
+                    let inode = (attrs[.systemFileNumber] as? NSNumber)?.uint64Value
+                    let linkCount = (attrs[.referenceCount] as? NSNumber)?.uint64Value
+                    let ftype = attrs[.type] as? FileAttributeType
+
+                    if inode == nil || linkCount == nil || ftype == nil {
+                        XCTFail("Unable to get attributes of \(fname)")
+                        return
+                    }
+                    let isDir = (ftype == .typeDirectory)
+                    body(item, isDir, inode!, linkCount!)
+                } catch {
+                    XCTFail("Unable to get attributes of \(fname): \(error)")
+                    return
+                }
+            }
+        }
+
+        ignoreError { try fm.removeItem(atPath: basePath) }
+        XCTAssertNotNil(try? fm.createDirectory(atPath: "\(srcPath)/tempdir/subdir/otherdir/extradir", withIntermediateDirectories: true, attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: "\(srcPath)/tempdir/tempfile", contents: Data(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: "\(srcPath)/tempdir/tempfile2", contents: Data(), attributes: nil))
+        XCTAssertTrue(fm.createFile(atPath: "\(srcPath)/tempdir/subdir/otherdir/extradir/tempfile2", contents: Data(), attributes: nil))
+
+        var fileInfos: [String: (Bool, UInt64, UInt64)] = [:]
+        getFileInfo(atPath: srcPath, { name, isDir, inode, linkCount in
+            fileInfos[name] = (isDir, inode, linkCount)
+        })
+        XCTAssertEqual(fileInfos.count, 7)
+        XCTAssertNotNil(try? fm.linkItem(atPath: srcPath, toPath: destPath), "Unable to link directory")
+
+        getFileInfo(atPath: destPath, { name, isDir, inode, linkCount in
+            guard let srcFileInfo = fileInfos.removeValue(forKey: name) else {
+                XCTFail("Cant find \(name) in \(destPath)")
+                return
+            }
+            let (srcIsDir, srcInode, srcLinkCount) = srcFileInfo
+            XCTAssertEqual(srcIsDir, isDir, "Directory/File type mismatch")
+            if isDir {
+                XCTAssertEqual(srcLinkCount, linkCount)
+            } else {
+                XCTAssertEqual(srcInode, inode)
+                XCTAssertEqual(srcLinkCount + 1, linkCount)
+            }
+        })
+
+        XCTAssertEqual(fileInfos.count, 0)
+        // linkItem should fail a 2nd time
+        XCTAssertNil(try? fm.linkItem(atPath: srcPath, toPath: destPath), "Copy overwrites a file/folder that already exists")
+
+        // Test 'linking' a symlink, which actually does a copy
+        let srcLink = srcPath + "/testlink"
+        let destLink = destPath + "/testlink"
+        do {
+            try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
+            try fm.linkItem(atPath: srcLink, toPath: destLink)
+            XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
+        } catch {
+            XCTFail("\(error)")
+        }
+        XCTAssertNil(try? fm.linkItem(atPath: srcLink, toPath: destLink), "Creating link where one already exists")
+    }
+
     func test_homedirectoryForUser() {
         let filemanger = FileManager.default
         XCTAssertNil(filemanger.homeDirectory(forUser: "someuser"))
