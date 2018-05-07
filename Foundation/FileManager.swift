@@ -1381,6 +1381,30 @@ extension FileManager {
         }
         
         override func nextObject() -> Any? {
+
+            func match(filename: String, to options: DirectoryEnumerationOptions, isDir: Bool) -> (Bool, Bool) {
+                var showFile = true
+                var skipDescendants = false
+
+                if isDir {
+                    if options.contains(.skipsSubdirectoryDescendants) {
+                        skipDescendants = true
+                    }
+#if canImport(Darwin)
+                    if options.contains(.skipsPackageDescendants) && filename.hasSuffix(".app") {
+                        skipDescendants = true
+                    }
+#endif
+                }
+                if options.contains(.skipsHiddenFiles) && (filename[filename._startOfLastPathComponent] == ".") {
+                    showFile = false
+                    skipDescendants = true
+                }
+
+                return (showFile, skipDescendants)
+            }
+
+
             if let stream = _stream {
                 
                 if !_gotRoot  {
@@ -1393,16 +1417,20 @@ extension FileManager {
                 _current = fts_read(stream)
                 while let current = _current {
                     let filename = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                    let skipHidden = (_options.contains(.skipsHiddenFiles) && filename[filename._startOfLastPathComponent] == ".")
 
                     switch Int32(current.pointee.fts_info) {
                         case FTS_D:
-                            if skipHidden || _options.contains(.skipsSubdirectoryDescendants) || (_options.contains(.skipsPackageDescendants) && filename.hasSuffix(".app")) {
+                            let (showFile, skipDescendants) = match(filename: filename, to: _options, isDir: true)
+                            if skipDescendants {
                                 fts_set(_stream, _current, FTS_SKIP)
                             }
-                            fallthrough
+                            if showFile {
+                                 return URL(fileURLWithPath: filename)
+                            }
+
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            if !skipHidden {
+                            let (showFile, _) = match(filename: filename, to: _options, isDir: false)
+                            if showFile {
                                 return URL(fileURLWithPath: filename)
                             }
                         case FTS_DNR, FTS_ERR, FTS_NS:
