@@ -530,7 +530,7 @@ open class FileManager : NSObject {
         }
     }
 
-    private func _processItem(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
+    private func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
         guard
             let attrs = try? attributesOfItem(atPath: srcPath),
             let fileType = attrs[.type] as? FileAttributeType
@@ -562,7 +562,7 @@ open class FileManager : NSObject {
     }
 
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
-        try _processItem(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
+        try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
             if fileType == .typeSymbolicLink {
                 try _copySymlink(atPath: srcPath, toPath: dstPath)
             } else if fileType == .typeRegular {
@@ -588,7 +588,7 @@ open class FileManager : NSObject {
     }
     
     open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
-        try _processItem(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
+        try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
             if fileType == .typeSymbolicLink {
                 try _copySymlink(atPath: srcPath, toPath: dstPath)
             } else if fileType == .typeRegular {
