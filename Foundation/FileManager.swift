@@ -943,9 +943,6 @@ open class FileManager : NSObject {
      */
     // Note: Because the error handler is an optional block, the compiler treats it as @escaping by default. If that behavior changes, the @escaping will need to be added back.
     open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
-        if mask.contains(.skipsPackageDescendants) || mask.contains(.skipsHiddenFiles) {
-            NSUnimplemented("Enumeration options not yet implemented")
-        }
         return NSURLDirectoryEnumerator(url: url, options: mask, errorHandler: handler)
     }
     
@@ -1307,19 +1304,25 @@ extension FileManager {
     internal class NSPathDirectoryEnumerator: DirectoryEnumerator {
         let baseURL: URL
         let innerEnumerator : DirectoryEnumerator
+        private var _currentItemPath: String?
+
         override var fileAttributes: [FileAttributeKey : Any]? {
-            NSUnimplemented()
+            guard let currentItemPath = _currentItemPath else {
+                return nil
+            }
+            return try? FileManager.default.attributesOfItem(atPath: baseURL.appendingPathComponent(currentItemPath).path)
         }
+
         override var directoryAttributes: [FileAttributeKey : Any]? {
-            NSUnimplemented()
+            return try? FileManager.default.attributesOfItem(atPath: baseURL.path)
         }
         
         override var level: Int {
-            NSUnimplemented()
+            return innerEnumerator.level
         }
         
         override func skipDescendants() {
-            NSUnimplemented()
+            innerEnumerator.skipDescendants()
         }
         
         init?(path: String) {
@@ -1337,9 +1340,9 @@ extension FileManager {
                 return nil
             }
             let path = url.path.replacingOccurrences(of: baseURL.path+"/", with: "")
+            _currentItemPath = path
             return path
         }
-
     }
 
     internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
@@ -1385,25 +1388,27 @@ extension FileManager {
                     
                     // Skip the root.
                     _current = fts_read(stream)
-                    
                 }
 
                 _current = fts_read(stream)
                 while let current = _current {
+                    let filename = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
+                    let skipHidden = (_options.contains(.skipsHiddenFiles) && filename[filename._startOfLastPathComponent] == ".")
+
                     switch Int32(current.pointee.fts_info) {
                         case FTS_D:
-                            if _options.contains(.skipsSubdirectoryDescendants) {
+                            if skipHidden || _options.contains(.skipsSubdirectoryDescendants) || (_options.contains(.skipsPackageDescendants) && filename.hasSuffix(".app")) {
                                 fts_set(_stream, _current, FTS_SKIP)
                             }
                             fallthrough
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                            return URL(fileURLWithPath: str)
+                            if !skipHidden {
+                                return URL(fileURLWithPath: filename)
+                            }
                         case FTS_DNR, FTS_ERR, FTS_NS:
-                            let keepGoing : Bool
+                            let keepGoing: Bool
                             if let handler = _errorHandler {
-                                let str = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                                keepGoing = handler(URL(fileURLWithPath: str), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
+                                keepGoing = handler(URL(fileURLWithPath: filename), _NSErrorWithErrno(current.pointee.fts_errno, reading: true))
                             } else {
                                 keepGoing = true
                             }
