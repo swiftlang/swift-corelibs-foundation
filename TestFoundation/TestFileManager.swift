@@ -478,10 +478,10 @@ class TestFileManager : XCTestCase {
         }
 
         if let foundItems = directoryItems(options: [.skipsPackageDescendants]) {
-#if canImport(Darwin)
-            XCTAssertEqual(foundItems.count, 10)
+#if DARWIN_COMPATIBILITY_TESTS
+            XCTAssertEqual(foundItems.count, 10)    // Only native Foundation does not gnore .skipsPackageDescendants
 #else
-            XCTAssertEqual(foundItems.count, 15)        // Non Darwin platforms ignore .skipsPackageDescendants
+            XCTAssertEqual(foundItems.count, 15)
 #endif
         } else {
             XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")

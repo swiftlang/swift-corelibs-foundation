@@ -1390,11 +1390,7 @@ extension FileManager {
                     if options.contains(.skipsSubdirectoryDescendants) {
                         skipDescendants = true
                     }
-#if canImport(Darwin)
-                    if options.contains(.skipsPackageDescendants) && filename.hasSuffix(".app") {
-                        skipDescendants = true
-                    }
-#endif
+                    // Ignore .skipsPackageDescendants
                 }
                 if options.contains(.skipsHiddenFiles) && (filename[filename._startOfLastPathComponent] == ".") {
                     showFile = false
