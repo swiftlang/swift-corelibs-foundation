@@ -268,6 +268,7 @@ class TestFileManager : XCTestCase {
     }
     
     func test_fileSystemAttributes() {
+#if !os(Android)
         let fm = FileManager.default
         let path = NSTemporaryDirectory()
         
@@ -299,6 +300,7 @@ class TestFileManager : XCTestCase {
         } catch let err {
             XCTFail("\(err)")
         }
+#endif
     }
     
     func test_setFileAttributes() {

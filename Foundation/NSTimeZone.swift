@@ -179,14 +179,6 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 extension NSTimeZone {
 
     open class var system: TimeZone {
-#if os(Android)
-        var now = time(nil), info = tm()
-        if localtime_r(&now, &info) != nil {
-            // NOTE: this is not a real time zone but a fixed offset from GMT.
-            // It will be incorrect outside the current daylight saving period.
-            return TimeZone(reference: NSTimeZone(forSecondsFromGMT: info.tm_gmtoff))
-        }
-#endif
         return CFTimeZoneCopySystem()._swiftObject
     }
 

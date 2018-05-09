@@ -71,8 +71,8 @@ internal final class _NSCFConstantString : _NSCFString {
         // FIXME: Split expression as a work-around for slow type
         //        checking (tracked by SR-5322).
         let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<uintptr_t>.size
-        let offTemp2 = MemoryLayout<_CFInfo>.size
-        return offTemp1 + offTemp2 + MemoryLayout<UnsafePointer<UInt8>>.size
+        let offset = offTemp1 + MemoryLayout<_CFInfo>.size
+        return offset + MemoryLayout<UnsafePointer<UInt8>>.size
     }
 
     private var _lenPtr :  UnsafeMutableRawPointer {

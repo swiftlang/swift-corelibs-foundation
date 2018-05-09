@@ -25,10 +25,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#if __has_include(<sys/syslog.h>)
-#include <sys/syslog.h>
-#elif __has_include(<syslog.h>)
+#if __has_include(<syslog.h>)
 #include <syslog.h>
+#else
+#include <sys/syslog.h>
 #endif
 #include <CoreFoundation/CFURLPriv.h>
 #endif

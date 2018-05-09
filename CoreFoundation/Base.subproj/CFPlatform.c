@@ -297,6 +297,9 @@ CF_EXPORT CFStringRef CFCopyFullUserName(void) {
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     struct passwd *upwd = getpwuid(euid ? euid : getuid());
+#if DEPLOYMENT_TARGET_ANDROID
+#define pw_gecos pw_name
+#endif
     if (upwd && upwd->pw_gecos) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
     }
