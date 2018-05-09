@@ -343,93 +343,153 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
             try fm.createDirectory(atPath: basePath2, withIntermediateDirectories: false, attributes: nil)
 
-            let _ = fm.createFile(atPath: itemPath, contents: Data(), attributes: nil)
-            let _ = fm.createFile(atPath: itemPath2, contents: Data(), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil)
+            let _ = fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil)
 
         } catch _ {
             XCTFail()
         }
-        
+
+        var item1FileAttributes: [FileAttributeKey: Any]!
+        var item2FileAttributes: [FileAttributeKey: Any]!
         if let e = FileManager.default.enumerator(atPath: basePath) {
+            let attrs = e.directoryAttributes
+            XCTAssertNotNil(attrs)
+            XCTAssertEqual(attrs?[.type] as? FileAttributeType, .typeDirectory)
+
             var foundItems = Set<String>()
             while let item = e.nextObject() as? String {
                 foundItems.insert(item)
+                if item == "item" {
+                    item1FileAttributes = e.fileAttributes
+                } else if item == "path2/item" {
+                    item2FileAttributes = e.fileAttributes
+                }
             }
             XCTAssertEqual(foundItems, Set(["item", "path2", "path2/item"]))
         } else {
             XCTFail()
         }
 
+        XCTAssertNotNil(item1FileAttributes)
+        if let size = item1FileAttributes[.size] as? NSNumber {
+            XCTAssertEqual(size.int64Value, 123)
+        } else {
+            XCTFail("Cant get file size for 'item'")
+        }
+
+        XCTAssertNotNil(item2FileAttributes)
+        if let size = item2FileAttributes[.size] as? NSNumber {
+            XCTAssertEqual(size.int64Value, 456)
+        } else {
+            XCTFail("Cant get file size for 'path2/item'")
+        }
+
+        if let e2 = FileManager.default.enumerator(atPath: basePath) {
+            var foundItems = Set<String>()
+            while let item = e2.nextObject() as? String {
+                foundItems.insert(item)
+                if item == "path2" {
+                    e2.skipDescendants()
+                    XCTAssertEqual(e2.level, 1)
+                    XCTAssertNotNil(e2.fileAttributes)
+                }
+            }
+            XCTAssertEqual(foundItems, Set(["item", "path2"]))
+        } else {
+            XCTFail()
+        }
     }
     
     func test_directoryEnumerator() {
         let fm = FileManager.default
-        let testDirName = "testdir\(NSUUID().uuidString)"
-        let path = NSTemporaryDirectory() + "\(testDirName)"
-        let itemPath = NSTemporaryDirectory() + "\(testDirName)/item"
-        
-        ignoreError { try fm.removeItem(atPath: path) }
-        
-        do {
-            try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: itemPath, contents: Data(), attributes: nil)
-        } catch _ {
-            XCTFail()
+        let basePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)/"
+        let subDirs1 = basePath + "subdir1/subdir2/.hiddenDir/subdir3/"
+        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5./.subdir6.ext/subdir7.ext./"
+        let itemPath1 = basePath + "itemFile1"
+        let itemPath2 = subDirs1 + "itemFile2."
+        let itemPath3 = subDirs1 + "itemFile3.ext."
+        let hiddenItem1 = basePath + ".hiddenFile1"
+        let hiddenItem2 = subDirs1 + ".hiddenFile2"
+        let hiddenItem3 = subDirs2 + ".hiddenFile3"
+        let hiddenItem4 = subDirs2 + ".hiddenFile4.ext"
+
+        var fileLevels: [String: Int] = [
+            "itemFile1": 1,
+            ".hiddenFile1": 1,
+            "subdir1": 1,
+            "subdir2": 2,
+            "subdir4.app": 3,
+            "subdir5.": 4,
+            ".subdir6.ext": 5,
+            "subdir7.ext.": 6,
+            ".hiddenFile4.ext": 7,
+            ".hiddenFile3": 7,
+            ".hiddenDir": 3,
+            "subdir3": 4,
+            "itemFile3.ext.": 5,
+            "itemFile2.": 5,
+            ".hiddenFile2": 5
+        ]
+
+        func directoryItems(options: FileManager.DirectoryEnumerationOptions) -> [String: Int]? {
+            if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: basePath), includingPropertiesForKeys: nil, options: options, errorHandler: nil) {
+                var foundItems = [String:Int]()
+                while let item = e.nextObject() as? URL {
+                    foundItems[item.lastPathComponent] = e.level
+                }
+                return foundItems
+            } else {
+                return nil
+            }
         }
 
-        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
-                foundItems[item.path] = e.level
+        ignoreError { try fm.removeItem(atPath: basePath) }
+        defer { ignoreError { try fm.removeItem(atPath: basePath) } }
+
+        XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs1, withIntermediateDirectories: true, attributes: nil))
+        XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs2, withIntermediateDirectories: true, attributes: nil))
+        for filename in [itemPath1, itemPath2, itemPath3, hiddenItem1, hiddenItem2, hiddenItem3, hiddenItem4] {
+            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Cant create file '\(filename)'")
+        }
+
+        if let foundItems = directoryItems(options: []) {
+            XCTAssertEqual(foundItems.count, fileLevels.count)
+            for (name, level) in foundItems {
+                XCTAssertEqual(fileLevels[name], level, "File level for \(name) is wrong")
             }
-            XCTAssertEqual(foundItems[itemPath], 1)
         } else {
-            XCTFail()
+            XCTFail("Cant enumerate directory at \(basePath) with options: []")
         }
-        
-        let subDirPath = NSTemporaryDirectory() + "\(testDirName)/testdir2"
-        let subDirItemPath = NSTemporaryDirectory() + "\(testDirName)/testdir2/item"
-        do {
-            try fm.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            let _ = fm.createFile(atPath: subDirItemPath, contents: Data(), attributes: nil)
-        } catch _ {
-            XCTFail()
-        }
-        
-        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
-                foundItems[item.path] = e.level
-            }
-            XCTAssertEqual(foundItems[itemPath], 1)
-            XCTAssertEqual(foundItems[subDirPath], 1)
-            XCTAssertEqual(foundItems[subDirItemPath], 2)
+
+        if let foundItems = directoryItems(options: [.skipsHiddenFiles]) {
+            XCTAssertEqual(foundItems.count, 5)
         } else {
-            XCTFail()
+            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles]")
         }
-        
-        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [.skipsSubdirectoryDescendants], errorHandler: nil) {
-            var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
-                foundItems[item.path] = e.level
-            }
-            XCTAssertEqual(foundItems[itemPath], 1)
-            XCTAssertEqual(foundItems[subDirPath], 1)
+
+        if let foundItems = directoryItems(options: [.skipsSubdirectoryDescendants]) {
+            XCTAssertEqual(foundItems.count, 3)
         } else {
-            XCTFail()
+            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsSubdirectoryDescendants]")
         }
-        
-        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: [], errorHandler: nil) {
-            var foundItems = [String:Int]()
-            while let item = e.nextObject() as? URL {
-                foundItems[item.path] = e.level
-            }
-            XCTAssertEqual(foundItems[itemPath], 1)
-            XCTAssertEqual(foundItems[subDirPath], 1)
+
+        if let foundItems = directoryItems(options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]) {
+            XCTAssertEqual(foundItems.count, 2)
         } else {
-            XCTFail()
+            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
         }
-        
+
+        if let foundItems = directoryItems(options: [.skipsPackageDescendants]) {
+#if DARWIN_COMPATIBILITY_TESTS
+            XCTAssertEqual(foundItems.count, 10)    // Only native Foundation does not gnore .skipsPackageDescendants
+#else
+            XCTAssertEqual(foundItems.count, 15)
+#endif
+        } else {
+            XCTFail("Cant enumerate directory at \(basePath) with options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]")
+        }
+
         var didGetError = false
         let handler : (URL, Error) -> Bool = { (URL, Error) in
             didGetError = true
@@ -443,20 +503,12 @@ class TestFileManager : XCTestCase {
         XCTAssertTrue(didGetError)
         
         do {
-            let contents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: path), includingPropertiesForKeys: nil, options: []).map {
+            let contents = try FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: basePath), includingPropertiesForKeys: nil, options: []).map {
                 return $0.path
             }
-            XCTAssertEqual(contents.count, 2)
-            XCTAssertTrue(contents.contains(itemPath))
-            XCTAssertTrue(contents.contains(subDirPath))
+            XCTAssertEqual(contents.count, 3)
         } catch {
             XCTFail()
-        }
-        
-        do {
-            try fm.removeItem(atPath: path)
-        } catch {
-            XCTFail("Failed to clean up files")
         }
     }
     
