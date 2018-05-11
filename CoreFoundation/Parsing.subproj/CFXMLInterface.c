@@ -909,7 +909,7 @@ _CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName) {
     return xmlHasProp(node, (const xmlChar*)propertyName);
 }
 
-_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int options) {
     uint32_t xmlOptions = 0;
 
     if ((options & _kCFXMLNodePreserveWhitespace) == 0) {
