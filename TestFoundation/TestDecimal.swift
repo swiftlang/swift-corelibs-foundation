@@ -124,6 +124,10 @@ class TestDecimal: XCTestCase {
         XCTAssertFalse(zero.isInfinite)
         XCTAssertFalse(zero.isNaN)
         XCTAssertFalse(zero.isSignaling)
+
+        let d1 = Decimal(1234567890123456789 as UInt64)
+        XCTAssertEqual(d1._exponent, 0)
+        XCTAssertEqual(d1._length, 4)
     }
     func test_Constants() {
         XCTAssertEqual(8, NSDecimalMaxSize)
@@ -273,7 +277,21 @@ class TestDecimal: XCTestCase {
                 }
             }
         }
+
         XCTAssertEqual(Decimal(186243 * 15673 as Int64), Decimal(186243) * Decimal(15673))
+
+        XCTAssertEqual(Decimal(5538) + Decimal(2880.4), Decimal(5538 + 2880.4))
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).adding(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 + 2880.4))
+
+        XCTAssertEqual(Decimal(5538) - Decimal(2880.4), Decimal(5538 - 2880.4))
+        XCTAssertEqual(Decimal(2880.4) - Decimal(5538), Decimal(2880.4 - 5538))
+        XCTAssertEqual(Decimal(0x10000) - Decimal(0x1000), Decimal(0xf000))
+        XCTAssertEqual(Decimal(0x1_0000_0000) - Decimal(0x1000), Decimal(0xFFFFF000))
+        XCTAssertEqual(Decimal(0x1_0000_0000_0000) - Decimal(0x1000), Decimal(0xFFFFFFFFF000))
+        XCTAssertEqual(Decimal(1234_5678_9012_3456_7899 as UInt64) - Decimal(1234_5678_9012_3456_7890 as UInt64), Decimal(9))
+        XCTAssertEqual(Decimal(0xffdd_bb00_8866_4422 as UInt64) - Decimal(0x7777_7777), Decimal(0xFFDD_BB00_10EE_CCAB as UInt64))
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).subtracting(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 - 2880.4))
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 2880.4).subtracting(NSDecimalNumber(floatLiteral: 5538)), NSDecimalNumber(floatLiteral: 2880.4 - 5538))
     }
 
     func test_Misc() {
@@ -478,6 +496,10 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(1, f._isCompact)
         let after = f.description
         XCTAssertEqual(before, after)
+
+        let nsd1 = NSDecimalNumber(decimal: Decimal(2657.6))
+        let nsd2 = NSDecimalNumber(floatLiteral: 2657.6)
+        XCTAssertEqual(nsd1, nsd2)
     }
 
     func test_PositivePowers() {

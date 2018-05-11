@@ -441,12 +441,39 @@ extension Decimal {
             self.compact()
         }
     }
+
     public init(_ value: UInt64) {
-        self.init(Double(value))
+        self = Decimal()
+        if value == 0 {
+            return
+        }
+
+        var compactValue = value
+        var exponent: Int32 = 0
+        while compactValue % 10 == 0 {
+            compactValue = compactValue / 10
+            exponent = exponent + 1
+        }
+        _isCompact = 1
+        _exponent = exponent
+
+        let wordCount = ((UInt64.bitWidth - compactValue.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
+        _length = UInt32(wordCount)
+        _mantissa.0 = UInt16(truncatingIfNeeded: compactValue >> 0)
+        _mantissa.1 = UInt16(truncatingIfNeeded: compactValue >> 16)
+        _mantissa.2 = UInt16(truncatingIfNeeded: compactValue >> 32)
+        _mantissa.3 = UInt16(truncatingIfNeeded: compactValue >> 48)
     }
+
     public init(_ value: Int64) {
-        self.init(Double(value))
+        if value < 0 {
+            self.init(value == Int64.min ? UInt64(Int64.max) + 1 : UInt64(abs(value)))
+            _isNegative = 1
+        } else {
+            self.init(UInt64(value))
+        }
     }
+
     public init(_ value: UInt) {
         self.init(UInt64(value))
     }
@@ -1164,16 +1191,14 @@ public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand:
 }
 
 fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i:UInt32 = 0
-    var carry:UInt16 = 0
-    var accumulator:UInt32 = 0
-
-    let c:UInt32 = min(left._length, right._length)
+    var i: UInt32 = 0
+    var carry: UInt16 = 0
+    let c: UInt32 = min(left._length, right._length)
 
     while i < c {
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
-        accumulator = li + ri + UInt32(carry)
+        let accumulator = li + ri + UInt32(carry)
         carry = UInt16(truncatingIfNeeded:accumulator >> 16)
         result[i] = UInt16(truncatingIfNeeded:accumulator)
         i += 1
@@ -1182,7 +1207,7 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
     while i < left._length {
         if carry != 0 {
             let li = UInt32(left[i])
-            accumulator = li + UInt32(carry)
+            let accumulator = li + UInt32(carry)
             carry = UInt16(truncatingIfNeeded:accumulator >> 16)
             result[i] = UInt16(truncatingIfNeeded:accumulator)
             i += 1
@@ -1197,7 +1222,7 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
     while i < right._length {
         if carry != 0 {
             let ri = UInt32(right[i])
-            accumulator = ri + UInt32(carry)
+            let accumulator = ri + UInt32(carry)
             carry = UInt16(truncatingIfNeeded:accumulator >> 16)
             result[i] = UInt16(truncatingIfNeeded:accumulator)
             i += 1
@@ -1209,17 +1234,17 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
             break
         }
     }
+    result._length = i
 
     if carry != 0 {
-        if result._length < i {
-            result._length = i
-            return .overflow
-        } else {
-            result[i] = carry
-            i += 1
-        }
+        result[i] = carry
+        i += 1
+        result._length = i
     }
-    result._length = i;
+    if i > Decimal.maxSize {
+        return .overflow
+    }
+
     return .noError;
 }
 
@@ -1231,26 +1256,24 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
 //    give b-a...
 //
 fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i:UInt32 = 0
-    var carry:UInt16 = 1
-    var accumulator:UInt32 = 0
-
-    let c:UInt32 = min(left._length, right._length)
+    var i: UInt32 = 0
+    var borrow: UInt16 = 0
+    let c: UInt32 = min(left._length, right._length)
 
     while i < c {
         let li = UInt32(left[i])
         let ri = UInt32(right[i])
-        accumulator = 0xffff + li - ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
+        let accumulator: UInt32 = (0x10000 + li) - UInt32(borrow) - ri
         result[i] = UInt16(truncatingIfNeeded:accumulator)
+        borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
         i += 1
     }
 
     while i < left._length {
-        if carry != 0 {
+        if borrow != 0 {
             let li = UInt32(left[i])
-            accumulator = 0xffff + li // + no carry
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
+            let accumulator = 0xffff + li // + no carry
+            borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
             result[i] = UInt16(truncatingIfNeeded:accumulator)
             i += 1
         } else {
@@ -1263,17 +1286,16 @@ fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal,
     }
     while i < right._length {
         let ri = UInt32(right[i])
-        accumulator = 0xffff - ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
+        let accumulator = 0xffff - ri + UInt32(borrow)
+        borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
         result[i] = UInt16(truncatingIfNeeded:accumulator)
         i += 1
     }
 
-    if carry != 0 {
+    if borrow != 0 {
         return .overflow
     }
     result._length = i;
-
     result.trimTrailingZeros()
 
     return .noError;
