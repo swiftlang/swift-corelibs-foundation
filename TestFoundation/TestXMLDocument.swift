@@ -33,6 +33,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_createElement", test_createElement),
             ("test_addNamespace", test_addNamespace),
             ("test_removeNamespace", test_removeNamespace),
+            ("test_optionPreserveAll", test_optionPreserveAll),
         ]
     }
 
@@ -509,6 +510,22 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssert(node?.localName == "prop")
         
         XCTAssert(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first?.name == "D:prop", "failed to get elements, got \(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first as Any)")
+    }
+
+    func test_optionPreserveAll() {
+        let xmlString = """
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+</document>
+"""
+
+        let data = xmlString.data(using: .utf8)!
+        guard let document = try? XMLDocument(data: data, options: .nodePreserveAll) else {
+            XCTFail("XMLDocument with options .nodePreserveAll")
+            return
+        }
+        let expected = xmlString.lowercased() + "\n"
+        XCTAssertEqual(expected, String(describing: document))
     }
 }
 
