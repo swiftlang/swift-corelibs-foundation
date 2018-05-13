@@ -11,6 +11,7 @@ class TestDecimal: XCTestCase {
 
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
+            ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
             ("test_AdditionWithNormalization", test_AdditionWithNormalization),
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_Constants", test_Constants),
@@ -31,6 +32,18 @@ class TestDecimal: XCTestCase {
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
         ]
+    }
+
+    func test_NSDecimalNumberInit() {
+        XCTAssertEqual(NSDecimalNumber(mantissa: 123456789000, exponent: -2, isNegative: true), -1234567890)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal()).decimalValue, Decimal(0))
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).intValue, 1)
+        XCTAssertEqual(NSDecimalNumber(string: "1.234").floatValue, 1.234)
+        XCTAssertTrue(NSDecimalNumber(string: "invalid").decimalValue.isNaN)
+        XCTAssertEqual(NSDecimalNumber(integerLiteral: 0).intValue, 0)
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: Double.pi).doubleValue, Double.pi)
+        XCTAssertEqual(NSDecimalNumber(booleanLiteral: true).boolValue, true)
+        XCTAssertEqual(NSDecimalNumber(booleanLiteral: false).boolValue, false)
     }
 
     func test_AdditionWithNormalization() {
