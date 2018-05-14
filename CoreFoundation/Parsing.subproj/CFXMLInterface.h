@@ -199,7 +199,7 @@ CFStringRef _Nullable _CFXMLCopyPathForNode(_CFXMLNodePtr node);
 
 _CFXMLNodePtr _Nullable _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName);
 
-_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int options);
 
 CFStringRef _Nullable _CFXMLNodeCopyLocalName(_CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLNodeCopyPrefix(_CFXMLNodePtr node);
