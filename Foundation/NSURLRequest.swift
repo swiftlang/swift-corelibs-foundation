@@ -139,10 +139,17 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     }
     
     private func setValues(from source: NSURLRequest) {
-        self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
+        self.cachePolicy = source.cachePolicy
+        self.timeoutInterval = source.timeoutInterval
         self.httpMethod = source.httpMethod
+        self.allHTTPHeaderFields = source.allHTTPHeaderFields
+        self._body = source._body
+        self.networkServiceType = source.networkServiceType
+        self.allowsCellularAccess = source.allowsCellularAccess
+        self.httpShouldHandleCookies = source.httpShouldHandleCookies
+        self.httpShouldUsePipelining = source.httpShouldUsePipelining
     }
     
     open override func mutableCopy() -> Any {

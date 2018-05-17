@@ -77,10 +77,13 @@ class TestURLRequest : XCTestCase {
         
         let urlA = URL(string: "http://swift.org")!
         let urlB = URL(string: "http://github.com")!
+        let postBody = "here is body".data(using: .utf8)
+
         mutableRequest.mainDocumentURL = urlA
         mutableRequest.url = urlB
         mutableRequest.httpMethod = "POST"
         mutableRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        mutableRequest.httpBody = postBody
         
         let requestCopy1 = mutableRequest
         
@@ -94,6 +97,8 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy1.url, urlB)
         XCTAssertEqual(mutableRequest.allHTTPHeaderFields?["Accept"], "application/json")
         XCTAssertEqual(requestCopy1.allHTTPHeaderFields?["Accept"], "application/json")
+        XCTAssertEqual(mutableRequest.httpBody, postBody)
+        XCTAssertEqual(requestCopy1.httpBody, postBody)
         
         // Change the original, and check that the copy has unchanged
         // values:
@@ -107,6 +112,7 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy1.httpMethod, "POST")
         XCTAssertEqual(requestCopy1.url, urlB)
         XCTAssertEqual(requestCopy1.allHTTPHeaderFields?["Accept"], "application/json")
+        XCTAssertEqual(requestCopy1.httpBody, postBody)
         
         // Check that we can copy the copy:
         let requestCopy2 = requestCopy1
@@ -115,6 +121,7 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy2.httpMethod, "POST")
         XCTAssertEqual(requestCopy2.url, urlB)
         XCTAssertEqual(requestCopy2.allHTTPHeaderFields?["Accept"], "application/json")
+        XCTAssertEqual(requestCopy2.httpBody, postBody)
     }
     
     func test_mutableCopy_1() {
