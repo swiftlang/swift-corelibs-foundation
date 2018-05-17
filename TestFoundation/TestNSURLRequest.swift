@@ -80,10 +80,13 @@ class TestNSURLRequest : XCTestCase {
         
         let urlA = URL(string: "http://swift.org")!
         let urlB = URL(string: "http://github.com")!
+        let postBody = "here is body".data(using: .utf8)
+
         mutableRequest.mainDocumentURL = urlA
         mutableRequest.url = urlB
         mutableRequest.httpMethod = "POST"
         mutableRequest.setValue("application/json", forHTTPHeaderField: "Accept")
+        mutableRequest.httpBody = postBody
 
         guard let requestCopy1 = mutableRequest.copy() as? NSURLRequest else {
             XCTFail(); return
@@ -99,6 +102,8 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(requestCopy1.url, urlB)
         XCTAssertEqual(mutableRequest.allHTTPHeaderFields?["Accept"], "application/json")
         XCTAssertEqual(requestCopy1.allHTTPHeaderFields?["Accept"], "application/json")
+        XCTAssertEqual(mutableRequest.httpBody, postBody)
+        XCTAssertEqual(requestCopy1.httpBody, postBody)
 
         // Change the original, and check that the copy has unchanged
         // values:
@@ -128,6 +133,7 @@ class TestNSURLRequest : XCTestCase {
         
         let urlA = URL(string: "http://swift.org")!
         let urlB = URL(string: "http://github.com")!
+
         originalRequest.mainDocumentURL = urlA
         originalRequest.url = urlB
         originalRequest.httpMethod = "POST"
