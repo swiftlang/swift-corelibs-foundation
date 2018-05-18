@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
+		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
 		B9C89ED21F6BF67C00087AF4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9C89ED11F6BF67C00087AF4 /* XCTest.framework */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
@@ -124,6 +125,7 @@
 
 /* Begin PBXFileReference section */
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
+		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
 		B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DarwinCompatibilityTests; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -253,6 +255,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B987C65D2093C8AF0026B50D /* TestImports.swift */,
 				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
@@ -506,6 +509,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,
 				B9C89F8B1F6D4DA900087AF4 /* HTTPServer.swift in Sources */,
 				B9C89F8C1F6D4DA900087AF4 /* TestHTTPCookieStorage.swift in Sources */,
