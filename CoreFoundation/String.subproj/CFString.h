@@ -156,7 +156,11 @@ struct __CFConstStr {
     struct {
         uintptr_t _cfisa;
         uintptr_t _swift_rc;
+#if defined(__LP64__)
         uint64_t _cfinfoa;
+#else
+        uint32_t _cfinfoa;
+#endif
     } _base;
     uint8_t *_ptr;
 #if defined(__LP64__) && defined(__BIG_ENDIAN__)
