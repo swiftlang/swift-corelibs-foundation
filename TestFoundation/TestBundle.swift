@@ -27,6 +27,21 @@ internal func testBundleName() -> String {
     return testBundle().infoDictionary!["CFBundleName"] as! String
 }
 
+internal func xdgTestHelperURL() -> URL {
+#if DARWIN_COMPATIBILITY_TESTS
+    let exeName = "/xdgTestHelper"
+#elseif os(macOS)
+    let exeName = "/xdgTestHelper.app/Contents/MacOS/xdgTestHelper"
+#else
+    let exeName = "/xdgTestHelper/xdgTestHelper"
+#endif
+
+    var path = testBundle().bundleURL.deletingLastPathComponent()
+    path.appendPathComponent(exeName)
+    return path
+}
+
+
 class BundlePlayground {
     enum Layout {
         case flat

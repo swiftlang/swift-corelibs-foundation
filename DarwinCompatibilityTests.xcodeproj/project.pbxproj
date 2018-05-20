@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
+		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
 		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
 		B9C89ED21F6BF67C00087AF4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9C89ED11F6BF67C00087AF4 /* XCTest.framework */; };
@@ -112,6 +114,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		B917D31A20B0DB8B00728EE0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		B9C89EBF1F6BF47D00087AF4 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 12;
@@ -124,6 +135,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
 		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
 		B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DarwinCompatibilityTests; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -160,7 +174,6 @@
 		B9C89EFF1F6BF89300087AF4 /* TestNSString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSString.swift; path = TestFoundation/TestNSString.swift; sourceTree = "<group>"; };
 		B9C89F001F6BF89300087AF4 /* TestNSUUID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSUUID.swift; path = TestFoundation/TestNSUUID.swift; sourceTree = "<group>"; };
 		B9C89F011F6BF89300087AF4 /* TestPropertyListSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestPropertyListSerialization.swift; path = TestFoundation/TestPropertyListSerialization.swift; sourceTree = "<group>"; };
-		B9C89F021F6BF89300087AF4 /* XDGTestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XDGTestHelper.swift; path = TestFoundation/XDGTestHelper.swift; sourceTree = "<group>"; };
 		B9C89F031F6BF89300087AF4 /* TestNSArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSArray.swift; path = TestFoundation/TestNSArray.swift; sourceTree = "<group>"; };
 		B9C89F051F6BF89400087AF4 /* TestFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestFileHandle.swift; path = TestFoundation/TestFileHandle.swift; sourceTree = "<group>"; };
 		B9C89F061F6BF89400087AF4 /* TestTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestTimer.swift; path = TestFoundation/TestTimer.swift; sourceTree = "<group>"; };
@@ -234,6 +247,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B917D31920B0DB8B00728EE0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B9C89EBE1F6BF47D00087AF4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -252,9 +273,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B917D31D20B0DB8B00728EE0 /* xdgTestHelper */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = xdgTestHelper;
+			sourceTree = "<group>";
+		};
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B917D32520B0DE2000728EE0 /* main.swift */,
 				B987C65D2093C8AF0026B50D /* TestImports.swift */,
 				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
@@ -355,8 +384,8 @@
 				B9C89F0F1F6BF89500087AF4 /* TestXMLDocument.swift */,
 				B9C89EED1F6BF89000087AF4 /* TestXMLParser.swift */,
 				B9C89F131F6BF89600087AF4 /* xdgTestHelper */,
-				B9C89F021F6BF89300087AF4 /* XDGTestHelper.swift */,
 				B9C89ED81F6BF77E00087AF4 /* DarwinCompatibilityTests */,
+				B917D31D20B0DB8B00728EE0 /* xdgTestHelper */,
 				B9C89EC21F6BF47D00087AF4 /* Products */,
 				B9C89ED01F6BF67C00087AF4 /* Frameworks */,
 			);
@@ -367,6 +396,7 @@
 			children = (
 				B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */,
 				B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */,
+				B917D31C20B0DB8B00728EE0 /* xdgTestHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -374,6 +404,7 @@
 		B9C89ED01F6BF67C00087AF4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B917D32320B0DB9700728EE0 /* Foundation.framework */,
 				B9C89ED11F6BF67C00087AF4 /* XCTest.framework */,
 			);
 			name = Frameworks;
@@ -392,6 +423,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B917D31B20B0DB8B00728EE0 /* xdgTestHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B917D32220B0DB8B00728EE0 /* Build configuration list for PBXNativeTarget "xdgTestHelper" */;
+			buildPhases = (
+				B917D31820B0DB8B00728EE0 /* Sources */,
+				B917D31920B0DB8B00728EE0 /* Frameworks */,
+				B917D31A20B0DB8B00728EE0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = xdgTestHelper;
+			productName = xdgTestHelper;
+			productReference = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */;
+			productType = "com.apple.product-type.tool";
+		};
 		B9C89EC01F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B9C89EC81F6BF47D00087AF4 /* Build configuration list for PBXNativeTarget "DarwinCompatibilityTests" */;
@@ -432,10 +480,14 @@
 		B9C89EB91F6BF47D00087AF4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0900;
+				LastSwiftUpdateCheck = 0930;
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
+					B917D31B20B0DB8B00728EE0 = {
+						CreatedOnToolsVersion = 9.3.1;
+						ProvisioningStyle = Automatic;
+					};
 					B9C89EC01F6BF47D00087AF4 = {
 						CreatedOnToolsVersion = 9.0;
 						LastSwiftMigration = 0910;
@@ -461,6 +513,7 @@
 			targets = (
 				B9C89EC01F6BF47D00087AF4 /* DarwinCompatibilityTests */,
 				B9C89ED61F6BF77E00087AF4 /* DarwinCompatibilityTests */,
+				B917D31B20B0DB8B00728EE0 /* xdgTestHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -497,6 +550,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B917D31820B0DB8B00728EE0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B917D32620B0DE2000728EE0 /* main.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B9C89EBD1F6BF47D00087AF4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -594,6 +655,34 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		B917D32020B0DB8B00728EE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		B917D32120B0DB8B00728EE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Release;
+		};
 		B9C89EC61F6BF47D00087AF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -759,6 +848,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B917D32220B0DB8B00728EE0 /* Build configuration list for PBXNativeTarget "xdgTestHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B917D32020B0DB8B00728EE0 /* Debug */,
+				B917D32120B0DB8B00728EE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B9C89EBC1F6BF47D00087AF4 /* Build configuration list for PBXProject "DarwinCompatibilityTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

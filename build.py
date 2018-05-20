@@ -527,8 +527,7 @@ Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["L
 
 foundation_tests.add_dependency(foundation_tests_resources)
 xdgTestHelper = SwiftExecutable('xdgTestHelper',
- ['TestFoundation/xdgTestHelper/main.swift',
- 'TestFoundation/XDGTestHelper.swift'])
+ ['TestFoundation/xdgTestHelper/main.swift'])
 foundation_tests.add_dependency(xdgTestHelper)
 foundation.add_phase(xdgTestHelper)
 foundation.add_phase(foundation_tests_resources)

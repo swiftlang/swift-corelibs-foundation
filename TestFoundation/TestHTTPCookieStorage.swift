@@ -273,7 +273,7 @@ class TestHTTPCookieStorage: XCTestCase {
     }
 
     func test_cookieInXDGSpecPath() {
-#if !os(Android) && !DARWIN_COMPATIBILITY_TESTS
+#if !os(Android)
         //Test without setting the environment variable
         let testCookie = HTTPCookie(properties: [
            .name: "TestCookie0",
@@ -284,12 +284,8 @@ class TestHTTPCookieStorage: XCTestCase {
         let storage = HTTPCookieStorage.shared
         storage.setCookie(testCookie)
         XCTAssertEqual(storage.cookies!.count, 1)
-        var destPath: String
-        let bundlePath = testBundle().bundlePath
-        var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
-        if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
-            bundleName = String(bundleName[..<range.lowerBound])
-        }
+        let destPath: String
+        let bundleName = "/" + testBundleName()
         if let xdg_data_home = getenv("XDG_DATA_HOME") {
             destPath = String(utf8String: xdg_data_home)! + bundleName + "/.cookies.shared"
         } else {
@@ -299,21 +295,15 @@ class TestHTTPCookieStorage: XCTestCase {
         var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)
         XCTAssertTrue(exists)
-        //Test by setting the environmental variable
-        let pathIndex = bundlePath.range(of: "/", options: .backwards)?.lowerBound
+
+        // Test by setting the environmental variable
         let task = Process()
-
-        #if os(macOS)
-        let exeName = "/xdgTestHelper.app/Contents/MacOS/xdgTestHelper"
-        #else
-        let exeName = "/xdgTestHelper/xdgTestHelper"
-        #endif
-
-        task.launchPath = bundlePath[..<pathIndex!] + exeName
+        task.executableURL = xdgTestHelperURL()
         var environment = ProcessInfo.processInfo.environment
         let testPath = NSHomeDirectory() + "/TestXDG"
         environment["XDG_DATA_HOME"] = testPath
         task.environment = environment
+
         // Launch the task
         task.launch()
         task.waitUntilExit()
