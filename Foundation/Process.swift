@@ -507,11 +507,44 @@ open class Process: NSObject {
         self.processIdentifier = pid
     }
     
-    open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
-    open func terminate()  { NSUnimplemented() }// Not always possible. Sends SIGTERM.
-    
-    open func suspend() -> Bool { NSUnimplemented() }
-    open func resume() -> Bool { NSUnimplemented() }
+    open func interrupt() {
+        if isRunning && processIdentifier > 0 {
+            kill(processIdentifier, SIGINT)
+        }
+    }
+
+    open func terminate() {
+        if isRunning && processIdentifier > 0 {
+            kill(processIdentifier, SIGTERM)
+        }
+    }
+
+    // Every suspend() has to be balanced with a resume() so keep a count of both.
+    private var suspendCount = 0
+
+    open func suspend() -> Bool {
+        guard isRunning else {
+            return false
+        }
+
+        suspendCount += 1
+        if suspendCount == 1, processIdentifier > 0 {
+            kill(processIdentifier, SIGSTOP)
+        }
+        return true
+    }
+
+    open func resume() -> Bool {
+        guard isRunning else {
+            return true
+        }
+
+        suspendCount -= 1
+        if suspendCount == 0, processIdentifier > 0 {
+            kill(processIdentifier, SIGCONT)
+        }
+        return true
+    }
     
     // status
     open private(set) var processIdentifier: Int32 = -1
