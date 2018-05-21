@@ -241,7 +241,11 @@ open class Process: NSObject {
     open func run() throws {
         
         self.processLaunchedCondition.lock()
-    
+        defer {
+            self.processLaunchedCondition.unlock()
+            self.processLaunchedCondition.broadcast()
+        }
+
         // Dispatch the manager thread if it isn't already running
         
         Process.setup()
@@ -250,7 +254,23 @@ open class Process: NSObject {
         guard let launchPath = self.executableURL?.path else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
         }
-        
+
+        // Initial checks that the launchPath points to an executable file. posix_spawn()
+        // can return success even if executing the program fails, eg fork() works but execve()
+        // fails, so try and check as much as possible beforehand.
+        try FileManager.default._fileSystemRepresentation(withPath: launchPath, { fsRep in
+            var statInfo = stat()
+            guard stat(fsRep, &statInfo) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+
+            guard statInfo.st_mode & S_IFMT == S_IFREG else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
+            }
+            guard access(fsRep, X_OK) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+        })
         // Convert the arguments array into a posix_spawn-friendly format
         
         var args = [launchPath]
@@ -452,7 +472,7 @@ open class Process: NSObject {
         }
 
         close(taskSocketPair[1])
-        
+
         self.runLoop = RunLoop.current
         self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
                                                            info: Unmanaged.passUnretained(self).toOpaque(),
@@ -484,9 +504,6 @@ open class Process: NSObject {
         isRunning = true
         
         self.processIdentifier = pid
-        
-        self.processLaunchedCondition.unlock()
-        self.processLaunchedCondition.broadcast()
     }
     
     open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
