@@ -212,14 +212,14 @@ typedef struct __CFRuntimeBase {
 
 typedef struct __CFRuntimeBase {
     uintptr_t _cfisa;
-#if __LP64__
+#if defined(__LP64__) || defined(__LLP64__)
     _Atomic(uint64_t) _cfinfoa;
 #else
     _Atomic(uint32_t) _cfinfoa;
 #endif
 } CFRuntimeBase;
 
-#if __LP64__
+#if defined(__LP64__) || defined(__LLP64__)
 #define INIT_CFRUNTIME_BASE(...) {0, 0x0000000000000080ULL}
 #else
 #define INIT_CFRUNTIME_BASE(...) {0, 0x00000080UL}
