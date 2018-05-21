@@ -819,7 +819,7 @@ public struct URL : ReferenceConvertible, Equatable {
         self = appendingPathExtension(pathExtension)
     }
 
-    /// Returns a URL constructed by removing the last path component of self.
+    /// Removes the last path component from self.
     ///
     /// This function may either remove a path component or append `/..`.
     ///
@@ -829,7 +829,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
     
 
-    /// Returns a URL constructed by removing any path extension.
+    /// Removes any path extension from self.
     ///
     /// If the URL has an empty path (e.g., `http://www.example.com`), then this function will do nothing.
     public mutating func deletePathExtension() {
