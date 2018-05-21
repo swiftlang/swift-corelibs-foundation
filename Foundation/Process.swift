@@ -171,13 +171,13 @@ open class Process: NSObject {
     open var arguments: [String]?
     open var environment: [String : String]? // if not set, use current
 
-    @available(*, deprecated: 4, renamed: "executableURL")
+    @available(*, deprecated, renamed: "executableURL")
     open var launchPath: String? {
         get { return executableURL?.path }
         set { executableURL = (newValue != nil) ? URL(fileURLWithPath: newValue!) : nil }
     }
 
-    @available(*, deprecated: 4, renamed: "currentDirectoryURL")
+    @available(*, deprecated, renamed: "currentDirectoryURL")
     open var currentDirectoryPath: String {
         get { return currentDirectoryURL.path }
         set { currentDirectoryURL = URL(fileURLWithPath: newValue) }
@@ -215,7 +215,7 @@ open class Process: NSObject {
     
     // Actions
     
-    @available(*, deprecated: 4, renamed: "run")
+    @available(*, deprecated, renamed: "run")
     open func launch() {
         do {
             try run()
@@ -535,7 +535,7 @@ open class Process: NSObject {
         return process
     }
 
-    @available(*, deprecated: 4, renamed: "run(_:arguments:terminationHandler:)")
+    @available(*, deprecated, renamed: "run(_:arguments:terminationHandler:)")
     // convenience; create and launch
     open class func launchedProcess(launchPath path: String, arguments: [String]) -> Process {
         let process = Process()
