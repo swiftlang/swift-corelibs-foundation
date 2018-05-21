@@ -156,7 +156,7 @@ struct __CFConstStr {
     struct {
         uintptr_t _cfisa;
         uintptr_t _swift_rc;
-#if defined(__LP64__)
+#if defined(__LP64__) || defined(__LLP64__)
         uint64_t _cfinfoa;
 #else
         uint32_t _cfinfoa;
