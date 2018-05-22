@@ -450,15 +450,16 @@ open class Process: NSObject {
             throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
         }
 
-        // Launch
+        defer {
+            // Reset the previous working directory path.
+            fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+        }
 
+        // Launch
         var pid = pid_t()
         guard posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
-
-        // Reset the previous working directory path.
-        fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
