@@ -226,7 +226,15 @@ rule SwiftExecutable
         script = flags + commands
 
         for product in self.products:
-            script += product.generate()
+            items = product.generate()
+            for item in items:
+                if isinstance(item, list):
+                    for subitem in item:
+                        #TODO: What to do with this elements?
+                        #script += subitem
+                        continue
+                else:
+                    script += item
 
         script += """
 
