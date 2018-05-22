@@ -176,8 +176,6 @@ _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     saxHandler->externalSubset = (externalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.externalSubset;
     
     saxHandler->initialized = XML_SAX2_MAGIC; // make sure start/endElementNS are used
-#else
-    memset(&saxHandler, 0, sizeof(saxHandler));
 #endif //if DEPLOYMENT_RUNTIME_SWIFT
     return saxHandler;
 }
