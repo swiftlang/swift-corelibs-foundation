@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -153,7 +153,7 @@ open class Process: NSObject {
             }
         }
     }
-    
+
     // Create an Process which can be run at a later time
     // An Process can only be run once. Subsequent attempts to
     // run an Process will raise.
@@ -162,48 +162,36 @@ open class Process: NSObject {
     //
     
     public override init() {
-    
+
     }
-    
-    // These methods can only be set before a launch.
-    
-    open var launchPath: String?
+
+    // These properties can only be set before a launch.
+    open var executableURL: URL?
+    open var currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
     open var arguments: [String]?
     open var environment: [String : String]? // if not set, use current
-    
-    open var currentDirectoryPath: String = FileManager.default.currentDirectoryPath
-    
-    open var executableURL: URL? {
-        get {
-            guard let launchPath = self.launchPath else {
-                return nil
-            }
-            
-            return URL(fileURLWithPath: launchPath)
-        }
-        set {
-            self.launchPath = newValue?.path
-        }
+
+    @available(*, deprecated, renamed: "executableURL")
+    open var launchPath: String? {
+        get { return executableURL?.path }
+        set { executableURL = (newValue != nil) ? URL(fileURLWithPath: newValue!) : nil }
     }
-    
-    open var currentDirectoryURL: URL {
-        get {
-            return URL(fileURLWithPath: self.currentDirectoryPath)
-        }
-        set {
-            self.currentDirectoryPath = newValue.path
-        }
+
+    @available(*, deprecated, renamed: "currentDirectoryURL")
+    open var currentDirectoryPath: String {
+        get { return currentDirectoryURL.path }
+        set { currentDirectoryURL = URL(fileURLWithPath: newValue) }
     }
-    
+
     // Standard I/O channels; could be either a FileHandle or a Pipe
-    
+
     open var standardInput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
                          "standardInput must be either Pipe or FileHandle")
         }
     }
-    
+
     open var standardOutput: Any? {
         willSet {
             precondition(newValue is Pipe || newValue is FileHandle,
@@ -227,20 +215,62 @@ open class Process: NSObject {
     
     // Actions
     
+    @available(*, deprecated, renamed: "run")
     open func launch() {
+        do {
+            try run()
+        } catch let nserror as NSError {
+            if let path = nserror.userInfo[NSFilePathErrorKey] as? String, path == currentDirectoryPath {
+                // Foundation throws an NSException when changing the working directory fails,
+                // and unfortunately launch() is not marked `throws`, so we get away with a
+                // fatalError.
+                switch CocoaError.Code(rawValue: nserror.code) {
+                case .fileReadNoSuchFile:
+                    fatalError("Process: The specified working directory does not exist.")
+                case .fileReadNoPermission:
+                    fatalError("Process: The specified working directory cannot be accessed.")
+                default:
+                    fatalError("Process: The specified working directory cannot be set.")
+                }
+            }
+        } catch {
+            fatalError(String(describing: error))
+        }
+    }
+
+    open func run() throws {
         
         self.processLaunchedCondition.lock()
-    
+        defer {
+            self.processLaunchedCondition.unlock()
+            self.processLaunchedCondition.broadcast()
+        }
+
         // Dispatch the manager thread if it isn't already running
         
         Process.setup()
         
         // Ensure that the launch path is set
-        
-        guard let launchPath = self.launchPath else {
-            fatalError()
+        guard let launchPath = self.executableURL?.path else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
         }
-        
+
+        // Initial checks that the launchPath points to an executable file. posix_spawn()
+        // can return success even if executing the program fails, eg fork() works but execve()
+        // fails, so try and check as much as possible beforehand.
+        try FileManager.default._fileSystemRepresentation(withPath: launchPath, { fsRep in
+            var statInfo = stat()
+            guard stat(fsRep, &statInfo) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+
+            guard statInfo.st_mode & S_IFMT == S_IFREG else {
+                throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
+            }
+            guard access(fsRep, X_OK) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+            }
+        })
         // Convert the arguments array into a posix_spawn-friendly format
         
         var args = [launchPath]
@@ -260,7 +290,6 @@ open class Process: NSObject {
             for arg in argv ..< argv + args.count {
                 free(UnsafeMutableRawPointer(arg.pointee))
             }
-            
             argv.deallocate()
         }
         
@@ -294,7 +323,7 @@ open class Process: NSObject {
         context.version = 0
         context.retain = runLoopSourceRetain
         context.release = runLoopSourceRelease
-	context.info = Unmanaged.passUnretained(self).toOpaque()
+        context.info = Unmanaged.passUnretained(self).toOpaque()
         
         let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
             (socket, type, address, data, info )  in
@@ -316,7 +345,7 @@ open class Process: NSObject {
             }
 #endif
             var waitResult : Int32 = 0
-            
+
             repeat {
 #if CYGWIN
                 waitResult = waitpid( process.processIdentifier, exitCodePtrWrapper, 0)
@@ -344,9 +373,9 @@ open class Process: NSObject {
             }
             
             // Set the running flag to false
-            
             process.isRunning = false
-            
+            process.processIdentifier = -1
+
             // Invalidate the source and wake up the run loop, if it's available
             
             CFRunLoopSourceInvalidate(process.runLoopSource)
@@ -417,27 +446,20 @@ open class Process: NSObject {
 
         let fileManager = FileManager()
         let previousDirectoryPath = fileManager.currentDirectoryPath
-        if !fileManager.changeCurrentDirectoryPath(currentDirectoryPath) {
-            // Foundation throws an NSException when changing the working directory fails,
-            // and unfortunately launch() is not marked `throws`, so we get away with a
-            // fatalError.
-            switch errno {
-            case ENOENT:
-                fatalError("Process: The specified working directory does not exist.")
-            case EACCES:
-                fatalError("Process: The specified working directory cannot be accessed.")
-            default:
-                fatalError("Process: The specified working directory cannot be set.")
-            }
+        if !fileManager.changeCurrentDirectoryPath(currentDirectoryURL.path) {
+            throw _NSErrorWithErrno(errno, reading: true, url: currentDirectoryURL)
+        }
+
+        defer {
+            // Reset the previous working directory path.
+            fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
         }
 
         // Launch
-
         var pid = pid_t()
-        posix(posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp))
-
-        // Reset the previous working directory path.
-        fileManager.changeCurrentDirectoryPath(previousDirectoryPath)
+        guard posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
+        }
 
         // Close the write end of the input and output pipes.
         if let pipe = standardInput as? Pipe {
@@ -451,7 +473,7 @@ open class Process: NSObject {
         }
 
         close(taskSocketPair[1])
-        
+
         self.runLoop = RunLoop.current
         self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
                                                            info: Unmanaged.passUnretained(self).toOpaque(),
@@ -483,9 +505,6 @@ open class Process: NSObject {
         isRunning = true
         
         self.processIdentifier = pid
-        
-        self.processLaunchedCondition.unlock()
-        self.processLaunchedCondition.broadcast()
     }
     
     open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
@@ -506,10 +525,18 @@ open class Process: NSObject {
     */
     open var terminationHandler: ((Process) -> Void)?
     open var qualityOfService: QualityOfService = .default  // read-only after the process is launched
-}
 
-extension Process {
-    
+
+    open class func run(_ url: URL, arguments: [String], terminationHandler: ((Process) -> Void)? = nil) throws -> Process {
+        let process = Process()
+        process.executableURL = url
+        process.arguments = arguments
+        process.terminationHandler = terminationHandler
+        try process.run()
+        return process
+    }
+
+    @available(*, deprecated, renamed: "run(_:arguments:terminationHandler:)")
     // convenience; create and launch
     open class func launchedProcess(launchPath path: String, arguments: [String]) -> Process {
         let process = Process()
@@ -519,7 +546,7 @@ extension Process {
     
         return process
     }
-    
+
     // poll the runLoop in defaultMode until process completes
     open func waitUntilExit() {
         

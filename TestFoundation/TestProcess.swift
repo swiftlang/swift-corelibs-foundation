@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2015 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2015 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -28,6 +28,7 @@ class TestProcess : XCTestCase {
                    ("test_passthrough_environment", test_passthrough_environment),
                    ("test_no_environment", test_no_environment),
                    ("test_custom_environment", test_custom_environment),
+                   ("test_run", test_run),
         ]
 #endif
     }
@@ -286,6 +287,49 @@ class TestProcess : XCTestCase {
             XCTFail("Test failed: \(error)")
         }
     }
+
+    func test_run() {
+        let fm = FileManager.default
+        let cwd = fm.currentDirectoryPath
+
+        do {
+            let process = try Process.run(URL(fileURLWithPath: "/bin/sh", isDirectory: false), arguments: ["-c", "exit 123"], terminationHandler: nil)
+            process.waitUntilExit()
+            XCTAssertEqual(process.terminationReason, .exit)
+            XCTAssertEqual(process.terminationStatus, 123)
+        } catch {
+            XCTFail("Cant execute /bin/sh: \(error)")
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+
+        do {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/sh", isDirectory: false)
+            process.arguments = ["-c", "exit 0"]
+            process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
+            try process.run()
+            XCTFail("Executed /bin/sh with invalid currentDirectoryURL")
+            process.terminate()
+            process.waitUntilExit()
+        } catch {
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+
+        do {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
+            process.arguments = []
+            process.currentDirectoryURL = URL(fileURLWithPath: "/tmp")
+            try process.run()
+            XCTFail("Somehow executed a directory!")
+            process.terminate()
+            process.waitUntilExit()
+        } catch {
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+        fm.changeCurrentDirectoryPath(cwd)
+    }
+
 #endif
 }
 
