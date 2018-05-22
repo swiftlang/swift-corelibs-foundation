@@ -628,6 +628,7 @@ static void *__CFTSDGetSpecific() {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_LINUX
+    __CFTSDInitialize();
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
     return TlsGetValue(__CFTSDIndexKey);

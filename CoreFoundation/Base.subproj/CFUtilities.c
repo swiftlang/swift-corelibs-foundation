@@ -658,7 +658,7 @@ static void _CFShowToFile(FILE *file, Boolean flush, const void *obj) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
          fprintf_l(file, NULL, "\n");
 #else
-         fprintf(file, NULL, "\n");
+         fprintf(file, "\n");
 #endif
          if (flush) fflush(file);
      }
