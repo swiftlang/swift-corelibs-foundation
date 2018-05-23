@@ -288,11 +288,11 @@ class TestDecimal: XCTestCase {
 
         XCTAssertEqual(Decimal(186243 * 15673 as Int64), Decimal(186243) * Decimal(15673))
 
-        XCTAssertEqual(Decimal(5538) + Decimal(2880.4), Decimal(5538 + 2880.4))
+        XCTAssertEqual(Decimal(string: "5538")! + Decimal(string: "2880.4")!, Decimal(string: "8418.4")!)
         XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).adding(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 + 2880.4))
 
-        XCTAssertEqual(Decimal(5538) - Decimal(2880.4), Decimal(5538 - 2880.4))
-        XCTAssertEqual(Decimal(2880.4) - Decimal(5538), Decimal(2880.4 - 5538))
+        XCTAssertEqual(Decimal(string: "5538.0")! - Decimal(string: "2880.4")!, Decimal(string: "2657.6")!)
+        XCTAssertEqual(Decimal(string: "2880.4")! - Decimal(5538), Decimal(string: "-2657.6")!)
         XCTAssertEqual(Decimal(0x10000) - Decimal(0x1000), Decimal(0xf000))
         XCTAssertEqual(Decimal(0x1_0000_0000) - Decimal(0x1000), Decimal(0xFFFFF000))
         XCTAssertEqual(Decimal(0x1_0000_0000_0000) - Decimal(0x1000), Decimal(0xFFFFFFFFF000))
@@ -300,6 +300,16 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(Decimal(0xffdd_bb00_8866_4422 as UInt64) - Decimal(0x7777_7777), Decimal(0xFFDD_BB00_10EE_CCAB as UInt64))
         XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).subtracting(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 - 2880.4))
         XCTAssertEqual(NSDecimalNumber(floatLiteral: 2880.4).subtracting(NSDecimalNumber(floatLiteral: 5538)), NSDecimalNumber(floatLiteral: 2880.4 - 5538))
+
+        XCTAssertEqual(Decimal.greatestFiniteMagnitude - Decimal.greatestFiniteMagnitude, Decimal(0))
+        XCTAssertEqual(Decimal.leastFiniteMagnitude - Decimal(1), Decimal.leastFiniteMagnitude)
+        let overflowed = Decimal.greatestFiniteMagnitude + Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(overflowed.isNaN)
+
+        let highBit = Decimal(_exponent: 0, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x8000))
+        let otherBits = Decimal(_exponent: 0, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0x7fff))
+        XCTAssertEqual(highBit - otherBits, Decimal(1))
+        XCTAssertEqual(otherBits + Decimal(1), highBit)
     }
 
     func test_Misc() {
