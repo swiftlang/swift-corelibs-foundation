@@ -1191,57 +1191,57 @@ public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand:
 }
 
 fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i: UInt32 = 0
+    var idx: UInt32 = 0
     var carry: UInt16 = 0
-    let c: UInt32 = min(left._length, right._length)
+    let maxIndex: UInt32 = min(left._length, right._length) // The highest index with bits set in both values
 
-    while i < c {
-        let li = UInt32(left[i])
-        let ri = UInt32(right[i])
-        let accumulator = li + ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        i += 1
+    while idx < maxIndex {
+        let li = UInt32(left[idx])
+        let ri = UInt32(right[idx])
+        let sum = li + ri + UInt32(carry)
+        carry = UInt16(truncatingIfNeeded: sum >> 16)
+        result[idx] = UInt16(truncatingIfNeeded: sum)
+        idx += 1
     }
 
-    while i < left._length {
+    while idx < left._length {
         if carry != 0 {
-            let li = UInt32(left[i])
-            let accumulator = li + UInt32(carry)
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+            let li = UInt32(left[idx])
+            let sum = li + UInt32(carry)
+            carry = UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < left._length {
-                result[i] = left[i]
-                i += 1
+            while idx < left._length {
+                result[idx] = left[idx]
+                idx += 1
             }
             break
         }
     }
-    while i < right._length {
+    while idx < right._length {
         if carry != 0 {
-            let ri = UInt32(right[i])
-            let accumulator = ri + UInt32(carry)
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+            let ri = UInt32(right[idx])
+            let sum = ri + UInt32(carry)
+            carry = UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < right._length {
-                result[i] = right[i]
-                i += 1
+            while idx < right._length {
+                result[idx] = right[idx]
+                idx += 1
             }
             break
         }
     }
-    result._length = i
+    result._length = idx
 
     if carry != 0 {
-        result[i] = carry
-        i += 1
-        result._length = i
+        result[idx] = carry
+        idx += 1
+        result._length = idx
     }
-    if i > Decimal.maxSize {
+    if idx > Decimal.maxSize {
         return .overflow
     }
 
@@ -1256,46 +1256,48 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
 //    give b-a...
 //
 fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i: UInt32 = 0
+    var idx: UInt32 = 0
+    let maxIndex: UInt32 = min(left._length, right._length) // The highest index with bits set in both values
     var borrow: UInt16 = 0
-    let c: UInt32 = min(left._length, right._length)
 
-    while i < c {
-        let li = UInt32(left[i])
-        let ri = UInt32(right[i])
-        let accumulator: UInt32 = (0x10000 + li) - UInt32(borrow) - ri
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
-        i += 1
+    while idx < maxIndex {
+        let li = UInt32(left[idx])
+        let ri = UInt32(right[idx])
+        // 0x10000 is to borrow in advance to avoid underflow.
+        let difference: UInt32 = (0x10000 + li) - UInt32(borrow) - ri
+        result[idx] = UInt16(truncatingIfNeeded: difference)
+        // borrow = 1 if the borrow was used.
+        borrow = 1 - UInt16(truncatingIfNeeded: difference >> 16)
+        idx += 1
     }
 
-    while i < left._length {
+    while idx < left._length {
         if borrow != 0 {
-            let li = UInt32(left[i])
-            let accumulator = 0xffff + li // + no carry
-            borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+            let li = UInt32(left[idx])
+            let sum = 0xffff + li // + no carry
+            borrow = 1 - UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < left._length {
-                result[i] = left[i]
-                i += 1
+            while idx < left._length {
+                result[idx] = left[idx]
+                idx += 1
             }
             break
         }
     }
-    while i < right._length {
-        let ri = UInt32(right[i])
-        let accumulator = 0xffff - ri + UInt32(borrow)
-        borrow = 1 - UInt16(truncatingIfNeeded:accumulator >> 16)
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        i += 1
+    while idx < right._length {
+        let ri = UInt32(right[idx])
+        let difference = 0xffff - ri + UInt32(borrow)
+        borrow = 1 - UInt16(truncatingIfNeeded: difference >> 16)
+        result[idx] = UInt16(truncatingIfNeeded: difference)
+        idx += 1
     }
 
     if borrow != 0 {
         return .overflow
     }
-    result._length = i;
+    result._length = idx;
     result.trimTrailingZeros()
 
     return .noError;
