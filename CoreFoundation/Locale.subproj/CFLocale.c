@@ -10,7 +10,6 @@
 
 // Note the header file is in the OpenSource set (stripped to almost nothing), but not the .c file
 
-#include <CoreFoundation/CFInternal.h>
 #include <CoreFoundation/CFLocale.h>
 #include <CoreFoundation/CFLocale_Private.h>
 #include <CoreFoundation/CFString.h>

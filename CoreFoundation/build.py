@@ -293,7 +293,7 @@ sources_list = [
 	'String.subproj/CFRegularExpression.c',
 	'String.subproj/CFAttributedString.c',
 	'String.subproj/CFRunArray.c',
-	'Base.subproj/CFKnownLocations.c',
+	'Base.subproj/CFKnownLocations.h',
 ]
 
 sources = CompileSources(sources_list)
