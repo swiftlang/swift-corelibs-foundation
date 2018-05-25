@@ -279,7 +279,6 @@ class TestFileManager : XCTestCase {
             
             let systemNumber = attrs[.systemNumber] as? NSNumber
             XCTAssertNotNil(systemNumber)
-            XCTAssertNotEqual(systemNumber!.uint64Value, 0)
             
             let systemFreeSize = attrs[.systemFreeSize] as? NSNumber
             XCTAssertNotNil(systemFreeSize)

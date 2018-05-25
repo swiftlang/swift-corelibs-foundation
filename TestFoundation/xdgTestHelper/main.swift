@@ -50,5 +50,15 @@ class XDGCheck {
     }
 }
 
-XDGCheck.run()
+if let arg = ProcessInfo.processInfo.arguments.last {
+    if arg == "--xdgcheck" {
+        XDGCheck.run()
+    }
+    if arg == "--getcwd" {
+        print(FileManager.default.currentDirectoryPath)
+    }
+    if arg == "--echo-PWD" {
+        print(ProcessInfo.processInfo.environment["PWD"] ?? "")
+    }
+}
 
