@@ -414,6 +414,7 @@ build """ + self._module.relative() + ": MergeSwiftModule " + objects + """
 # This builds a Swift executable using one invocation of swiftc (no partial compilation)
 class SwiftExecutable(BuildPhase):
     executableName = None
+    outputDirectory = None
     sources = []
     
     def __init__(self, executableName, sources):
@@ -421,9 +422,10 @@ class SwiftExecutable(BuildPhase):
         self.executableName = executableName
         self.name = executableName
         self.sources = sources
+        self.outputDirectory = executableName
     
     def generate(self):
-        appName = Configuration.current.build_directory.relative() + """/""" + self.executableName + """/""" + self.executableName
+        appName = Configuration.current.build_directory.relative() + """/""" + self.outputDirectory + """/""" + self.executableName
         libDependencyName = self.product.product_name
         swiftSources = ""
         for value in self.sources:
