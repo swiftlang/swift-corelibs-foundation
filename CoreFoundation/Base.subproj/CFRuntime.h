@@ -195,23 +195,31 @@ typedef struct __CFRuntimeBase {
     uintptr_t _cfisa;
     uintptr_t _swift_rc;
     // This is for CF's use, and must match _NSCFType layout
-    _Atomic(uint64_t) _cfinfoa;
-} CFRuntimeBase;
-
-#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
-
-#else
-
-typedef struct __CFRuntimeBase {
-    uintptr_t _cfisa;
-#if __LP64__
+#if defined(__LP64__) || defined(__LLP64__)
     _Atomic(uint64_t) _cfinfoa;
 #else
     _Atomic(uint32_t) _cfinfoa;
 #endif
 } CFRuntimeBase;
 
-#if __LP64__
+#if defined(__LP64__) || defined(__LLP64__)
+#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
+#else
+#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000080UL}
+#endif
+
+#else
+
+typedef struct __CFRuntimeBase {
+    uintptr_t _cfisa;
+#if defined(__LP64__) || defined(__LLP64__)
+    _Atomic(uint64_t) _cfinfoa;
+#else
+    _Atomic(uint32_t) _cfinfoa;
+#endif
+} CFRuntimeBase;
+
+#if defined(__LP64__) || defined(__LLP64__)
 #define INIT_CFRUNTIME_BASE(...) {0, 0x0000000000000080ULL}
 #else
 #define INIT_CFRUNTIME_BASE(...) {0, 0x00000080UL}
