@@ -79,29 +79,21 @@ open class NSDecimalNumber : NSNumber {
 
     fileprivate let decimal: Decimal
     public convenience init(mantissa: UInt64, exponent: Int16, isNegative: Bool) {
-        var d = Decimal()
-        d._exponent = Int32(exponent)
+        var d = Decimal(mantissa)
+        d._exponent += Int32(exponent)
         d._isNegative = isNegative ? 1 : 0
-        var man = mantissa
-        d._mantissa.0 = UInt16(man & 0xffff)
-        man >>= 4
-        d._mantissa.1 = UInt16(man & 0xffff)
-        man >>= 4
-        d._mantissa.2 = UInt16(man & 0xffff)
-        man >>= 4
-        d._mantissa.3 = UInt16(man & 0xffff)
-        d._length = 4
-        d.trimTrailingZeros()
-        // TODO more parts of the mantissa...
         self.init(decimal: d)
     }
+
     public init(decimal dcm: Decimal) {
         self.decimal = dcm
         super.init()
     }
+
     public convenience init(string numberValue: String?) {
         self.init(decimal: Decimal(string: numberValue ?? "") ?? Decimal.nan)
     }
+
     public convenience init(string numberValue: String?, locale: Any?) {
         self.init(decimal: Decimal(string: numberValue ?? "", locale: locale as? Locale) ?? Decimal.nan)
     }
@@ -133,6 +125,71 @@ open class NSDecimalNumber : NSNumber {
             UInt16(mantissaData[14]) << 8 & UInt16(mantissaData[15])
         )
         self.decimal = Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
+        super.init()
+    }
+
+    public init(value: Int) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: UInt) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: Int8) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: UInt8) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: Int16) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: UInt16) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: Int32) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: UInt32) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: Int64) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: UInt64) {
+        decimal = Decimal(value)
+        super.init()
+    }
+
+    public init(value: Bool) {
+        decimal = Decimal(value ? 1 : 0)
+        super.init()
+    }
+
+    public init(value: Float) {
+        decimal = Decimal(Double(value))
+        super.init()
+    }
+
+    public init(value: Double) {
+        decimal = Decimal(value)
         super.init()
     }
 
