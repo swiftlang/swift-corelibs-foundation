@@ -98,7 +98,7 @@ extension PersonNameComponents : CustomStringConvertible, CustomDebugStringConve
         if let r = nameSuffix { c.append((label: "nameSuffix", value: r)) }
         if let r = nickname { c.append((label: "nickname", value: r)) }
         if let r = phoneticRepresentation { c.append((label: "phoneticRepresentation", value: r)) }
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 

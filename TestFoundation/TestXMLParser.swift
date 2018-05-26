@@ -130,7 +130,7 @@ class TestXMLParser : XCTestCase {
 
     func test_withDataOptions() {
         let xml = TestXMLParser.xmlUnderTest()
-        let parser = XMLParser(data: xml.data(using: String.Encoding.utf8)!)
+        let parser = XMLParser(data: xml.data(using: .utf8)!)
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = true

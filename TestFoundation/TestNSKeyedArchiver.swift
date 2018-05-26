@@ -152,8 +152,8 @@ class TestNSKeyedArchiver : XCTestCase {
     
     private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.xml)
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.binary)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: .xml)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: .binary)
     }
     
     private func test_archive(_ object: AnyObject, allowsSecureCoding: Bool = true) {

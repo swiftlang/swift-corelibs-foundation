@@ -68,7 +68,7 @@ open class HTTPCookieStorage: NSObject {
         super.init()
         let bundlePath = Bundle.main.bundlePath
         var bundleName = bundlePath.components(separatedBy: "/").last!
-        if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
+        if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
             bundleName = String(bundleName[..<range.lowerBound])
         }
         let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName

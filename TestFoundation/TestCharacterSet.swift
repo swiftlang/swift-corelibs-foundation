@@ -23,12 +23,12 @@ private struct Box: Equatable {
     
     static var alphanumerics: Box {
         return Box(ns: NSCharacterSet.alphanumerics._bridgeToObjectiveC(),
-                   swift: CharacterSet.alphanumerics)
+                   swift: .alphanumerics)
     }
     
     static var decimalDigits: Box {
         return Box(ns: NSCharacterSet.decimalDigits._bridgeToObjectiveC(),
-                   swift: CharacterSet.decimalDigits)
+                   swift: .decimalDigits)
     }
 
     // MARK: Equatable
@@ -210,7 +210,7 @@ class TestCharacterSet : XCTestCase {
         XCTAssert(mcset.isSuperset(of: cset2))
         XCTAssert(cset2.isSuperset(of: mcset))
         
-        XCTAssertTrue(CharacterSet.whitespacesAndNewlines.isSuperset(of: CharacterSet.newlines), "whitespace and newline should be a superset of newline")
+        XCTAssertTrue(CharacterSet.whitespacesAndNewlines.isSuperset(of: .newlines), "whitespace and newline should be a superset of newline")
         let data = CharacterSet.uppercaseLetters.bitmapRepresentation
         XCTAssertNotNil(data)
     }

@@ -19,13 +19,13 @@ extension EnergyFormatter {
         fileprivate var unitEnergy: UnitEnergy {
             switch self {
             case .joule:
-                return UnitEnergy.joules
+                return .joules
             case .kilojoule:
-                return UnitEnergy.kilojoules
+                return .kilojoules
             case .calorie:
-                return UnitEnergy.calories
+                return .calories
             case .kilocalorie:
-                return UnitEnergy.kilocalories
+                return .kilocalories
             }
         }
 
@@ -88,7 +88,7 @@ open class EnergyFormatter: Formatter {
             fatalError("Cannot format \(value) as string")
         }
         
-        let separator = unitStyle == EnergyFormatter.UnitStyle.short ? "" : " "
+        let separator = unitStyle == .short ? "" : " "
         return "\(formattedValue)\(separator)\(unitString(fromValue: value, unit: unit))"
     }
 

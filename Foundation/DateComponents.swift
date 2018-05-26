@@ -346,7 +346,7 @@ extension DateComponents : CustomStringConvertible, CustomDebugStringConvertible
         if let r = weekOfYear { c.append((label: "weekOfYear", value: r)) }
         if let r = yearForWeekOfYear { c.append((label: "yearForWeekOfYear", value: r)) }
         if let r = isLeapMonth { c.append((label: "isLeapMonth", value: r)) }
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 

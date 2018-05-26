@@ -287,7 +287,7 @@ class TestHTTPCookieStorage: XCTestCase {
         var destPath: String
         let bundlePath = testBundle().bundlePath
         var bundleName = "/" + bundlePath.components(separatedBy: "/").last!
-        if let range = bundleName.range(of: ".", options: String.CompareOptions.backwards, range: nil, locale: nil) {
+        if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
             bundleName = String(bundleName[..<range.lowerBound])
         }
         if let xdg_data_home = getenv("XDG_DATA_HOME") {

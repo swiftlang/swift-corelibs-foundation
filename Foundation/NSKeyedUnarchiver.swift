@@ -118,19 +118,19 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         guard let unwrappedPlist = plist as? Dictionary<String, Any> else {
-            throw _decodingError(CocoaError.propertyListReadCorrupt,
+            throw _decodingError(.propertyListReadCorrupt,
                                  withDescription: "Unable to read archive. The data may be corrupt.")
         }
         
         let archiver = unwrappedPlist["$archiver"] as? String
         if archiver != NSStringFromClass(NSKeyedArchiver.self) {
-            throw _decodingError(CocoaError.propertyListReadCorrupt,
+            throw _decodingError(.propertyListReadCorrupt,
                                  withDescription: "Unknown archiver. The data may be corrupt.")
         }
         
         let version = unwrappedPlist["$version"] as? NSNumber
         if version?.int32Value != Int32(NSKeyedArchivePlistVersion) {
-            throw _decodingError(CocoaError.propertyListReadCorrupt,
+            throw _decodingError(.propertyListReadCorrupt,
                                  withDescription: "Unknown archive version. The data may be corrupt.")
         }
         
@@ -138,7 +138,7 @@ open class NSKeyedUnarchiver : NSCoder {
         let objects = unwrappedPlist["$objects"] as? Array<Any>
         
         if top == nil || objects == nil {
-            throw _decodingError(CocoaError.propertyListReadCorrupt,
+            throw _decodingError(.propertyListReadCorrupt,
                                  withDescription: "Unable to read archive contents. The data may be corrupt.")
         }
         
@@ -203,7 +203,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _validateStillDecoding() -> Bool {
-        if self._flags.contains(UnarchiverFlags.FinishedDecoding) {
+        if self._flags.contains(.FinishedDecoding) {
             fatalError("Decoder already finished")
         }
         
@@ -238,7 +238,7 @@ open class NSKeyedUnarchiver : NSCoder {
             return false
         }
         
-        if _flags.contains(UnarchiverFlags.RequiresSecureCoding) {
+        if _flags.contains(.RequiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
                 if unwrappedAllowedClasses.contains(where: {NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
                     return true
@@ -331,7 +331,7 @@ open class NSKeyedUnarchiver : NSCoder {
             if !_validateAndMapClassDictionary(classDict,
                                                allowedClasses: allowedClasses,
                                                classToConstruct: &classToConstruct) {
-                throw _decodingError(CocoaError.coderReadCorrupt, withDescription: "Invalid class \(classDict). The data may be corrupt.")
+                throw _decodingError(.coderReadCorrupt, withDescription: "Invalid class \(classDict). The data may be corrupt.")
             }
             
             _classes[classUid] = classToConstruct
@@ -428,12 +428,12 @@ open class NSKeyedUnarchiver : NSCoder {
         let _ = _validateStillDecoding()
 
         if !(objectRef is _NSKeyedArchiverUID) {
-            throw _decodingError(CocoaError.coderReadCorrupt,
+            throw _decodingError(.coderReadCorrupt,
                                  withDescription: "Object \(objectRef) is not a reference. The data may be corrupt.")
         }
 
         guard let dereferencedObject = _dereferenceObjectReference(objectRef as! _NSKeyedArchiverUID) else {
-            throw _decodingError(CocoaError.coderReadCorrupt,
+            throw _decodingError(.coderReadCorrupt,
                                  withDescription: "Invalid object reference \(objectRef). The data may be corrupt.")
         }
 
@@ -446,14 +446,14 @@ open class NSKeyedUnarchiver : NSCoder {
             object = _cachedObjectForReference(objectRef as! _NSKeyedArchiverUID)
             if object == nil {
                 guard let dict = dereferencedObject as? Dictionary<String, Any> else {
-                    throw _decodingError(CocoaError.coderReadCorrupt,
+                    throw _decodingError(.coderReadCorrupt,
                                          withDescription: "Invalid object encoding \(objectRef). The data may be corrupt.")
                 }
 
                 let innerDecodingContext = DecodingContext(dict)
 
                 guard let classReference = innerDecodingContext.dict["$class"] as? _NSKeyedArchiverUID else {
-                    throw _decodingError(CocoaError.coderReadCorrupt,
+                    throw _decodingError(.coderReadCorrupt,
                                          withDescription: "Invalid class reference \(String(describing: innerDecodingContext.dict["$class"])). The data may be corrupt.")
                 }
 
@@ -468,7 +468,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 }
 
                 guard let decodableClass = classToConstruct as? NSCoding.Type else {
-                    throw _decodingError(CocoaError.coderReadCorrupt,
+                    throw _decodingError(.coderReadCorrupt,
                                          withDescription: "Class \(classToConstruct!) is not decodable. The data may be corrupt.")
                 }
 
@@ -476,7 +476,7 @@ open class NSKeyedUnarchiver : NSCoder {
 
                 object = decodableClass.init(coder: self)
                 guard object != nil else {
-                    throw _decodingError(CocoaError.coderReadCorrupt,
+                    throw _decodingError(.coderReadCorrupt,
                                          withDescription: "Class \(classToConstruct!) failed to decode. The data may be corrupt.")
                 }
 
@@ -499,7 +499,7 @@ open class NSKeyedUnarchiver : NSCoder {
      */
     private func _decodeObject(forKey key: String?) throws -> Any? {
         guard let objectRef : Any? = _objectInCurrentDecodingContext(forKey: key) else {
-            throw _decodingError(CocoaError.coderValueNotFound, withDescription: "No value found for key \(key as Optional). The data may be corrupt.")
+            throw _decodingError(.coderValueNotFound, withDescription: "No value found for key \(key as Optional). The data may be corrupt.")
         }
         
         return try _decodeObject(objectRef!)
@@ -554,7 +554,7 @@ open class NSKeyedUnarchiver : NSCoder {
      Called when the caller has finished decoding.
      */
     open func finishDecoding() {
-        if _flags.contains(UnarchiverFlags.FinishedDecoding) {
+        if _flags.contains(.FinishedDecoding) {
             return
         }
 
@@ -568,7 +568,7 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiverDidFinish(self)
         }
 
-        let _ = self._flags.insert(UnarchiverFlags.FinishedDecoding)
+        let _ = self._flags.insert(.FinishedDecoding)
     }
 
     open class func setClass(_ cls: AnyClass?, forClassName codedName: String) {
@@ -647,7 +647,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     open override func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
         guard self._containers?.count == 1 else {
-            throw _decodingError(CocoaError.coderReadCorrupt,
+            throw _decodingError(.coderReadCorrupt,
                                  withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
         }
         
@@ -838,16 +838,16 @@ open class NSKeyedUnarchiver : NSCoder {
     // Enables secure coding support on this keyed unarchiver. When enabled, anarchiving a disallowed class throws an exception. Once enabled, attempting to set requiresSecureCoding to NO will throw an exception. This is to prevent classes from selectively turning secure coding off. This is designed to be set once at the top level and remain on. Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     open override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(UnarchiverFlags.RequiresSecureCoding)
+            return _flags.contains(.RequiresSecureCoding)
         }
         set {
-            if _flags.contains(UnarchiverFlags.RequiresSecureCoding) {
+            if _flags.contains(.RequiresSecureCoding) {
                 if !newValue {
                     fatalError("Cannot unset requiresSecureCoding")
                 }
             } else {
                 if newValue {
-                    let _ = _flags.insert(UnarchiverFlags.RequiresSecureCoding)
+                    let _ = _flags.insert(.RequiresSecureCoding)
                 }
             }
         }

@@ -226,7 +226,7 @@ extension Date : CustomDebugStringConvertible, CustomStringConvertible, CustomRe
     public var customMirror: Mirror {
         var c: [(label: String?, value: Any)] = []
         c.append((label: "timeIntervalSinceReferenceDate", value: timeIntervalSinceReferenceDate))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 

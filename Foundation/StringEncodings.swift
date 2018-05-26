@@ -55,93 +55,93 @@ public typealias NSStringEncoding = UInt
 
 @available(*, unavailable, renamed: "String.Encoding.ascii")
 public var NSASCIIStringEncoding: String.Encoding {
-    return String.Encoding.ascii
+    return .ascii
 }
 @available(*, unavailable, renamed: "String.Encoding.nextstep")
 public var NSNEXTSTEPStringEncoding: String.Encoding {
-    return String.Encoding.nextstep
+    return .nextstep
 }
 @available(*, unavailable, renamed: "String.Encoding.japaneseEUC")
 public var NSJapaneseEUCStringEncoding: String.Encoding {
-    return String.Encoding.japaneseEUC
+    return .japaneseEUC
 }
 @available(*, unavailable, renamed: "String.Encoding.utf8")
 public var NSUTF8StringEncoding: String.Encoding {
-    return String.Encoding.utf8
+    return .utf8
 }
 @available(*, unavailable, renamed: "String.Encoding.isoLatin1")
 public var NSISOLatin1StringEncoding: String.Encoding {
-    return String.Encoding.isoLatin1
+    return .isoLatin1
 }
 @available(*, unavailable, renamed: "String.Encoding.symbol")
 public var NSSymbolStringEncoding: String.Encoding {
-    return String.Encoding.symbol
+    return .symbol
 }
 @available(*, unavailable, renamed: "String.Encoding.nonLossyASCII")
 public var NSNonLossyASCIIStringEncoding: String.Encoding {
-    return String.Encoding.nonLossyASCII
+    return .nonLossyASCII
 }
 @available(*, unavailable, renamed: "String.Encoding.shiftJIS")
 public var NSShiftJISStringEncoding: String.Encoding {
-    return String.Encoding.shiftJIS
+    return .shiftJIS
 }
 @available(*, unavailable, renamed: "String.Encoding.isoLatin2")
 public var NSISOLatin2StringEncoding: String.Encoding {
-    return String.Encoding.isoLatin2
+    return .isoLatin2
 }
 @available(*, unavailable, renamed: "String.Encoding.unicode")
 public var NSUnicodeStringEncoding: String.Encoding {
-    return String.Encoding.unicode
+    return .unicode
 }
 @available(*, unavailable, renamed: "String.Encoding.windowsCP1251")
 public var NSWindowsCP1251StringEncoding: String.Encoding {
-    return String.Encoding.windowsCP1251
+    return .windowsCP1251
 }
 @available(*, unavailable, renamed: "String.Encoding.windowsCP1252")
 public var NSWindowsCP1252StringEncoding: String.Encoding {
-    return String.Encoding.windowsCP1252
+    return .windowsCP1252
 }
 @available(*, unavailable, renamed: "String.Encoding.windowsCP1253")
 public var NSWindowsCP1253StringEncoding: String.Encoding {
-    return String.Encoding.windowsCP1253
+    return .windowsCP1253
 }
 @available(*, unavailable, renamed: "String.Encoding.windowsCP1254")
 public var NSWindowsCP1254StringEncoding: String.Encoding {
-    return String.Encoding.windowsCP1254
+    return .windowsCP1254
 }
 @available(*, unavailable, renamed: "String.Encoding.windowsCP1250")
 public var NSWindowsCP1250StringEncoding: String.Encoding {
-    return String.Encoding.windowsCP1250
+    return .windowsCP1250
 }
 @available(*, unavailable, renamed: "String.Encoding.iso2022JP")
 public var NSISO2022JPStringEncoding: String.Encoding {
-    return String.Encoding.iso2022JP
+    return .iso2022JP
 }
 @available(*, unavailable, renamed: "String.Encoding.macOSRoman")
 public var NSMacOSRomanStringEncoding: String.Encoding {
-    return String.Encoding.macOSRoman
+    return .macOSRoman
 }
 @available(*, unavailable, renamed: "String.Encoding.utf16")
 public var NSUTF16StringEncoding: String.Encoding {
-    return String.Encoding.utf16
+    return .utf16
 }
 @available(*, unavailable, renamed: "String.Encoding.utf16BigEndian")
 public var NSUTF16BigEndianStringEncoding: String.Encoding {
-    return String.Encoding.utf16BigEndian
+    return .utf16BigEndian
 }
 @available(*, unavailable, renamed: "String.Encoding.utf16LittleEndian")
 public var NSUTF16LittleEndianStringEncoding: String.Encoding {
-    return String.Encoding.utf16LittleEndian
+    return .utf16LittleEndian
 }
 @available(*, unavailable, renamed: "String.Encoding.utf32")
 public var NSUTF32StringEncoding: String.Encoding {
-    return String.Encoding.utf32
+    return .utf32
 }
 @available(*, unavailable, renamed: "String.Encoding.utf32BigEndian")
 public var NSUTF32BigEndianStringEncoding: String.Encoding {
-    return String.Encoding.utf32BigEndian
+    return .utf32BigEndian
 }
 @available(*, unavailable, renamed: "String.Encoding.utf32LittleEndian")
 public var NSUTF32LittleEndianStringEncoding: String.Encoding {
-    return String.Encoding.utf32LittleEndian
+    return .utf32LittleEndian
 }

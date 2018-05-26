@@ -33,7 +33,7 @@
 /// on behalf of a suspended application, within certain constraints.
 open class URLSessionConfiguration : NSObject, NSCopying {
     public override init() {
-        self.requestCachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
+        self.requestCachePolicy = .useProtocolCachePolicy
         self.timeoutIntervalForRequest = 60
         self.timeoutIntervalForResource = 604800
         self.networkServiceType = .default

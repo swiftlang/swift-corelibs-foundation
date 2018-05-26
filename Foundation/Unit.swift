@@ -281,7 +281,7 @@ open class UnitAcceleration : Dimension {
     }
     
     open override class func baseUnit() -> UnitAcceleration {
-        return UnitAcceleration.metersPerSecondSquared
+        return .metersPerSecondSquared
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -362,7 +362,7 @@ open class UnitAngle : Dimension {
     }
     
     open override class func baseUnit() -> UnitAngle {
-        return UnitAngle.degrees
+        return .degrees
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -507,7 +507,7 @@ open class UnitArea : Dimension {
     }
     
     open override class func baseUnit() -> UnitArea {
-        return UnitArea.squareMeters
+        return .squareMeters
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -603,7 +603,7 @@ open class UnitDispersion : Dimension {
     }
     
     open override class func baseUnit() -> UnitDispersion {
-        return UnitDispersion.partsPerMillion
+        return .partsPerMillion
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -660,7 +660,7 @@ open class UnitDuration : Dimension {
     }
     
     open override class func baseUnit() -> UnitDuration {
-        return UnitDuration.seconds
+        return .seconds
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -740,7 +740,7 @@ open class UnitElectricCharge : Dimension {
     }
     
     open override class func baseUnit() -> UnitElectricCharge {
-        return UnitElectricCharge.coulombs
+        return .coulombs
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -814,7 +814,7 @@ open class UnitElectricCurrent : Dimension {
     }
     
     open override class func baseUnit() -> UnitElectricCurrent {
-        return UnitElectricCurrent.amperes
+        return .amperes
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -888,7 +888,7 @@ open class UnitElectricPotentialDifference : Dimension {
     }
     
     open override class func baseUnit() -> UnitElectricPotentialDifference {
-        return UnitElectricPotentialDifference.volts
+        return .volts
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -962,7 +962,7 @@ open class UnitElectricResistance : Dimension {
     }
     
     open override class func baseUnit() -> UnitElectricResistance {
-        return UnitElectricResistance.ohms
+        return .ohms
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1036,7 +1036,7 @@ open class UnitEnergy : Dimension {
     }
     
     open override class func baseUnit() -> UnitEnergy {
-        return UnitEnergy.joules
+        return .joules
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1133,7 +1133,7 @@ open class UnitFrequency : Dimension {
     }
     
     open override class func baseUnit() -> UnitFrequency {
-        return UnitFrequency.hertz
+        return .hertz
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1190,7 +1190,7 @@ open class UnitFuelEfficiency : Dimension {
     }
     
     open override class func baseUnit() -> UnitFuelEfficiency {
-        return UnitFuelEfficiency.litersPer100Kilometers
+        return .litersPer100Kilometers
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1399,7 +1399,7 @@ open class UnitLength : Dimension {
     }
     
     open override class func baseUnit() -> UnitLength {
-        return UnitLength.meters
+        return .meters
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1440,7 +1440,7 @@ open class UnitIlluminance : Dimension {
     }
     
     open override class func baseUnit() -> UnitIlluminance {
-        return UnitIlluminance.lux
+        return .lux
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1601,7 +1601,7 @@ open class UnitMass : Dimension {
     }
     
     open override class func baseUnit() -> UnitMass {
-        return UnitMass.kilograms
+        return .kilograms
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1722,7 +1722,7 @@ open class UnitPower : Dimension {
     }
     
     open override class func baseUnit() -> UnitPower {
-        return UnitPower.watts
+        return .watts
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1835,7 +1835,7 @@ open class UnitPressure : Dimension {
     }
     
     open override class func baseUnit() -> UnitPressure {
-        return UnitPressure.newtonsPerMetersSquared
+        return .newtonsPerMetersSquared
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1900,7 +1900,7 @@ open class UnitSpeed : Dimension {
     }
     
     open override class func baseUnit() -> UnitSpeed {
-        return UnitSpeed.metersPerSecond
+        return .metersPerSecond
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -1963,7 +1963,7 @@ open class UnitTemperature : Dimension {
     }
     
     open override class func baseUnit() -> UnitTemperature {
-        return UnitTemperature.kelvin
+        return .kelvin
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
@@ -2244,7 +2244,7 @@ open class UnitVolume : Dimension {
     }
     
     open override class func baseUnit() -> UnitVolume {
-        return UnitVolume.liters
+        return .liters
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
