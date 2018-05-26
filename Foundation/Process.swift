@@ -292,25 +292,25 @@ open class Process: NSObject {
             }
             argv.deallocate()
         }
-        
-        let envp: UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>
-        
-        if let env = environment {
-            let nenv = env.count
-            envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
-            envp.initialize(from: env.map { strdup("\($0)=\($1)") }, count: nenv)
-            envp[env.count] = nil
+
+        var env: [String: String]
+        if let e = environment {
+            env = e
         } else {
-            envp = _CFEnviron()
+            env = ProcessInfo.processInfo.environment
+            env["PWD"] = currentDirectoryURL.path
         }
 
+        let nenv = env.count
+        let envp = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1 + nenv)
+        envp.initialize(from: env.map { strdup("\($0)=\($1)") }, count: nenv)
+        envp[env.count] = nil
+
         defer {
-            if let env = environment {
-                for pair in envp ..< envp + env.count {
-                    free(UnsafeMutableRawPointer(pair.pointee))
-                }
-                envp.deallocate()
+            for pair in envp ..< envp + env.count {
+                free(UnsafeMutableRawPointer(pair.pointee))
             }
+            envp.deallocate()
         }
 
         var taskSocketPair : [Int32] = [0, 0]

@@ -275,17 +275,72 @@ class TestProcess : XCTestCase {
         }
     }
 
-    func test_current_working_directory() {
-        do {
-            let previousWorkingDirectory = FileManager.default.currentDirectoryPath
+    private func realpathOf(path: String) -> String? {
+        let fm = FileManager.default
+        let length = Int(PATH_MAX) + 1
+        var buf = [Int8](repeating: 0, count: length)
+        let fsRep = fm.fileSystemRepresentation(withPath: path)
+#if !DARWIN_COMPATIBILITY_TESTS
+       defer { fsRep.deallocate() }
+#endif
+        guard let result = realpath(fsRep, &buf) else {
+            return nil
+        }
+        return fm.string(withFileSystemRepresentation: result, length: strlen(result))
+    }
 
-            // Darwin Foundation requires the full path to the executable (.launchPath)
-            let (output, _) = try runTask(["/bin/bash", "-c", "pwd"], currentDirectoryPath: "/bin")
-            XCTAssertEqual(output.trimmingCharacters(in: .newlines), "/bin")
-            XCTAssertEqual(previousWorkingDirectory, FileManager.default.currentDirectoryPath)
+    func test_current_working_directory() {
+        let tmpDir = "/tmp"
+
+        guard let resolvedTmpDir = realpathOf(path: tmpDir) else {
+            XCTFail("Cant find realpath of /tmp")
+            return
+        }
+
+        let fm = FileManager.default
+        let previousWorkingDirectory = fm.currentDirectoryPath
+
+        // Test that getcwd() returns the currentDirectoryPath
+        do {
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), resolvedTmpDir)
         } catch let error {
             XCTFail("Test failed: \(error)")
         }
+
+        // Test that $PWD by default is set to currentDirectoryPath
+        do {
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
+
+        // Test that $PWD can be over-ridden
+        do {
+            var env = ProcessInfo.processInfo.environment
+            env["PWD"] = "/bin"
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "/bin")
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
+
+        // Test that $PWD can be set to empty
+        do {
+            var env = ProcessInfo.processInfo.environment
+            env["PWD"] = ""
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "")
+        } catch let error {
+            XCTFail("Test failed: \(error)")
+        }
+
+        XCTAssertEqual(previousWorkingDirectory, fm.currentDirectoryPath)
     }
 
     func test_run() {
@@ -360,7 +415,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     let stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
-    process.launch()
+    try process.run()
     process.waitUntilExit()
 
     guard process.terminationStatus == 0 else {
