@@ -9,6 +9,11 @@
 
 #if !DARWIN_COMPATIBILITY_TESTS
 class TestProgressFraction : XCTestCase {
+#if os(Android)
+    static var allTests: [(String, (TestProgressFraction) -> () throws -> Void)] {
+        return []
+    }
+#else
     static var allTests: [(String, (TestProgressFraction) -> () throws -> Void)] {
         return [
             ("test_equal", test_equal ),
@@ -151,6 +156,7 @@ class TestProgressFraction : XCTestCase {
         let r = f1 + f2
         XCTAssertFalse(r.overflowed)
     }
+#endif
 }
 #endif
 
