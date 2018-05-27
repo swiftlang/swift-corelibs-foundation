@@ -185,24 +185,28 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the data from the location specified by a given URL.
     public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
-        try _contentsOf(url: url, options: readOptionsMask)
+        let (data, _) = try NSData.contentsOf(url: url, options: readOptionsMask)
+        _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
     public init?(contentsOf url: URL) {
         super.init()
         do {
-            try _contentsOf(url: url)
+            let (data, _) = try NSData.contentsOf(url: url)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
         } catch {
             return nil
         }
     }
 
-    /// Initializes a data object with the data from the location specified by a given URL.
-    private func _contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws {
+    internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (NSData, URLResponse?) {
+        let readResult: NSData
+        var urlResponse: URLResponse?
+
         if url.isFileURL {
-            let readResult = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
-            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            let data = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
+            readResult = NSData(bytesNoCopy: data.bytes, length: data.length, deallocator: data.deallocator)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
@@ -210,6 +214,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             var resData: Data?
             let task = session.dataTask(with: url, completionHandler: { data, response, error in
                 resData = data
+                urlResponse = response
                 resError = error
                 cond.broadcast()
             })
@@ -218,8 +223,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = resData else {
                 throw resError!
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
+            readResult = NSData(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count)
         }
+        return (readResult, urlResponse)
     }
 
     /// Initializes a data object with the given Base64 encoded string.

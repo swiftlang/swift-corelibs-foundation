@@ -306,6 +306,7 @@ struct _HTTPResponse {
     enum Response : Int {
         case OK = 200
         case REDIRECT = 302
+        case NOTFOUND = 404
     }
     private let responseCode: Response
     private let headers: String
@@ -358,6 +359,16 @@ public class TestURLSessionServer {
         if req.uri.hasPrefix("/LandOfTheLostCities/") {
             /* these are all misbehaving servers */
             try httpServer.respondWithBrokenResponses(uri: req.uri)
+        } else if req.uri == "/NSString-ISO-8859-1-data.txt" {
+            // Serve this directly as binary data to avoid any String encoding conversions.
+            if let url = testBundle().url(forResource: "NSString-ISO-8859-1-data", withExtension: "txt"),
+                let content = try? Data(contentsOf: url) {
+                var responseData = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=ISO-8859-1\r\nContent-Length: \(content.count)\r\n\r\n".data(using: .ascii)!
+                responseData.append(content)
+                try httpServer.socket.writeRawData(responseData)
+            } else {
+                try httpServer.respond(with: _HTTPResponse(response: .NOTFOUND, body: "Not Found"))
+            }
         } else {
             try httpServer.respond(with: process(request: req), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
         }
