@@ -27,7 +27,7 @@ internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawVal
 #endif
 
 
-class TestNSString : XCTestCase {
+class TestNSString: LoopbackServerTest {
     
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         return [
@@ -291,6 +291,16 @@ class TestNSString : XCTestCase {
             XCTAssertNotEqual(string, "swift-corelibs-foundation", "Wrong result when reading UTF-8 file with UTF-16 encoding in contentsOf:encoding")
         } catch {
             XCTFail("Unable to init NSString from contentsOf:encoding:")
+        }
+
+        let url = URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/NSString-ISO-8859-1-data.txt")!
+        var enc: UInt = 0
+        let contents = try? NSString(contentsOf: url, usedEncoding: &enc)
+
+        XCTAssertNotNil(contents)
+        XCTAssertEqual(enc, String.Encoding.isoLatin1.rawValue)
+        if let contents = contents {
+            XCTAssertEqual(contents, "This file is encoded as ISO-8859-1\nÀÁÂÃÄÅÿ\n±\n")
         }
     }
 

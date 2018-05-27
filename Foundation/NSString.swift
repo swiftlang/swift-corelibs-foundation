@@ -1254,12 +1254,14 @@ extension NSString {
     public convenience init(contentsOfFile path: String, encoding enc: UInt) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
-    
+
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        let readResult = try NSData(contentsOf: url, options:[])
+        let (readResult, urlResponse) = try NSData.contentsOf(url: url)
 
         let encoding: UInt
         let offset: Int
+        // Look for a BOM (Byte Order Marker) to try and determine the text Encoding, this also skips
+        // over the bytes. This takes precedence over the textEncoding in the http header
         let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity:readResult.length)
         if readResult.length >= 4 && bytePtr[0] == 0xFF && bytePtr[1] == 0xFE && bytePtr[2] == 0x00 && bytePtr[3] == 0x00 {
             encoding = String.Encoding.utf32LittleEndian.rawValue
@@ -1277,13 +1279,14 @@ extension NSString {
             encoding = String.Encoding.utf32BigEndian.rawValue
             offset = 4
         }
-        else {
+        else if let charSet = urlResponse?.textEncodingName, let textEncoding = String.Encoding(charSet: charSet) {
+            encoding = textEncoding.rawValue
+            offset = 0
+        } else {
             //Need to work on more conditions. This should be the default
             encoding = String.Encoding.utf8.rawValue
             offset = 0
         }
-
-        enc?.pointee = encoding
 
         // Since the encoding being passed includes the byte order the BOM wont be checked or skipped, so pass offset to
         // manually skip the BOM header.
@@ -1301,6 +1304,7 @@ extension NSString {
                 "NSDebugDescription" : "Unable to bridge CFString to String."
                 ])
         }
+        enc?.pointee = encoding
     }
     
     public convenience init(contentsOfFile path: String, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
