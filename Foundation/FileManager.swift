@@ -1045,7 +1045,7 @@ open class FileManager : NSObject {
         let initialPath = initialPath ?? path
         let resolvedPath = _appendSymlinkDestination(destination, toPath: path)
         
-        // As in Darwin Foundation, after a recursion limit we return the intial path without resolution.
+        // As in Darwin Foundation, after a recursion limit we return the initial path without resolution.
         guard recursionLevel <= 100 else {
             return initialPath
         }
