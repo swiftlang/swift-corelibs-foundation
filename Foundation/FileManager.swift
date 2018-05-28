@@ -1033,7 +1033,7 @@ open class FileManager : NSObject {
         NSUnimplemented()
     }
     
-    internal func _tryToResolveTrailingSymlinkInPath(_ path: String, recursionLevel: Int = 0) -> String? {
+    internal func _tryToResolveTrailingSymlinkInPath(_ path: String, recursionLevel: Int = 0, initialPath: String? = nil) -> String? {
         guard _pathIsSymbolicLink(path) else {
             return nil
         }
@@ -1042,13 +1042,17 @@ open class FileManager : NSObject {
             return nil
         }
         
+        let initialPath = initialPath ?? path
         let resolvedPath = _appendSymlinkDestination(destination, toPath: path)
         
-        guard recursionLevel <= 50 else {
-            return resolvedPath
+        // As in Darwin Foundation, after a recursion limit we return the intial path without resolution.
+        guard recursionLevel <= 100 else {
+            return initialPath
         }
         
-        let recursivelyResolvedPath = _tryToResolveTrailingSymlinkInPath(resolvedPath, recursionLevel: recursionLevel + 1)
+        let recursivelyResolvedPath = _tryToResolveTrailingSymlinkInPath(resolvedPath,
+                                                                         recursionLevel: recursionLevel + 1,
+                                                                         initialPath: initialPath)
         
         if recursivelyResolvedPath != nil {
             return recursivelyResolvedPath
