@@ -29,7 +29,6 @@ class TestFileManager : XCTestCase {
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
-            ("test_contentsEqual", test_contentsEqual)
             ("test_XDGStopgapsCoverAllConstants", test_XDGStopgapsCoverAllConstants),
             ("test_parseXDGConfiguration", test_parseXDGConfiguration),
             ("test_xdgURLSelection", test_xdgURLSelection),
