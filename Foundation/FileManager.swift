@@ -1044,7 +1044,7 @@ open class FileManager : NSObject {
         
         let resolvedPath = _appendSymlinkDestination(destination, toPath: path)
         
-        guard recursionLevel >= 50 else {
+        guard recursionLevel <= 50 else {
             return resolvedPath
         }
         
