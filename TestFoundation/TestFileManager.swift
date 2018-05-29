@@ -828,7 +828,7 @@ class TestFileManager : XCTestCase {
             
             try FileManager.default.removeItem(at: baseURL)
 
-            // D) Check infinite recursion loops are stopped and the function return the intial symlink
+            // D) Check infinite recursion loops are stopped and the function returns the intial symlink
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
             
             try FileManager.default.createSymbolicLink(at: link1URL, withDestinationURL: link2URL)
