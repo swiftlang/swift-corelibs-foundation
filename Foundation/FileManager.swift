@@ -609,7 +609,7 @@ open class FileManager : NSObject {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = FileManager.default.fileSystemRepresentation(withPath: path)
+            let fsRep = self.fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
             ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
             ps.advanced(by: 1).initialize(to: nil)
@@ -1038,7 +1038,7 @@ open class FileManager : NSObject {
             return nil
         }
         
-        guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
+        guard let destination = try? self.destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
         
