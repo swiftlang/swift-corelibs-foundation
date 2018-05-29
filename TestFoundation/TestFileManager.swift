@@ -837,11 +837,8 @@ class TestFileManager : XCTestCase {
 
             let resolvedURL_D = link1URL.resolvingSymlinksInPath()
             
-            let destination_D1 = try FileManager.default.destinationOfSymbolicLink(atPath: resolvedURL_D.path)
-            let destination_D2 = try FileManager.default.destinationOfSymbolicLink(atPath: link1URL.path)
+            XCTAssertEqual(resolvedURL_D.lastPathComponent, link1URL.lastPathComponent)
 
-            XCTAssertEqual(destination_D1, destination_D2)
-            
             try FileManager.default.removeItem(at: baseURL)
         }
         catch {
