@@ -30,16 +30,21 @@ class XDGCheck {
             .path: "/",
             .domain: "example.com",
             ]
+
         guard let simpleCookie = HTTPCookie(properties: properties) else {
             exit(HelperCheckStatus.cookieStorageNil.rawValue)
         }
-        guard let rawValue = getenv("XDG_DATA_HOME") else {
+        guard let rawValue = getenv("XDG_DATA_HOME"), let xdg_data_home = String(utf8String: rawValue) else {
             exit(HelperCheckStatus.fail.rawValue)
         }
-        let xdg_data_home = String(utf8String: rawValue)
+
         storage.setCookie(simpleCookie)
         let fm = FileManager.default
-        let destPath = xdg_data_home! + "/xdgTestHelper/.cookies.shared"
+
+        guard let bundleName = Bundle.main.infoDictionary?["CFBundleName"] as? String else {
+            exit(HelperCheckStatus.fail.rawValue)
+        }
+        let destPath = xdg_data_home + "/" + bundleName + "/.cookies.shared"
         var isDir: ObjCBool = false
         let exists = fm.fileExists(atPath: destPath, isDirectory: &isDir)
         if (!exists) {
