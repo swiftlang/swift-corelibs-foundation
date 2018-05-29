@@ -776,7 +776,9 @@ class TestFileManager : XCTestCase {
         do {
 
             // Initialization
-            var baseURL = FileManager.default.temporaryDirectory.appendingPathComponent("test_resolvingSymlinksInPath")
+            var baseURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("test_resolvingSymlinksInPath")
+                .appendingPathComponent(UUID().uuidString)
             
             try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 
