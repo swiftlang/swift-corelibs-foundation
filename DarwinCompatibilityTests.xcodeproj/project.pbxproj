@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
@@ -135,6 +136,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "NSString-ISO-8859-1-data.txt"; path = "TestFoundation/Resources/NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
@@ -301,6 +303,7 @@
 				B9C89FAA1F6DCAE700087AF4 /* NSString-UTF16-LE-data.txt */,
 				B9C89FB01F6DCAE900087AF4 /* NSString-UTF32-BE-data.txt */,
 				B9C89FA51F6DCAE500087AF4 /* NSString-UTF32-LE-data.txt */,
+				B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */,
 				B9C89FAE1F6DCAE800087AF4 /* NSStringTestData.txt */,
 				B9C89FB21F6DCAE900087AF4 /* NSURLTestData.plist */,
 				B9C89FB61F6DCAEA00087AF4 /* NSXMLDocumentTestData.xml */,
@@ -523,6 +526,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */,
 				B9C89FBA1F6DCAEB00087AF4 /* NSString-UTF32-LE-data.txt in Resources */,
 				B9C89FBB1F6DCAEB00087AF4 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
 				B9C89FBC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */,

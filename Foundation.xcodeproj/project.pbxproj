@@ -329,6 +329,7 @@
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
 		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B907F36B20BB07A700013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
 		B90C57BC1EEEEA5A005208AE /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5835F31C20C9B500C81317 /* TestThread.swift */; };
 		B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */; };
@@ -812,6 +813,7 @@
 		A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestByteCountFormatter.swift; sourceTree = "<group>"; };
 		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
 		B167A6641ED7303F0040B09A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
 		B91095781EEF237800A71930 /* NSString-UTF16-LE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-LE-data.txt"; sourceTree = "<group>"; };
 		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
@@ -1457,6 +1459,7 @@
 				B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */,
 				B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */,
 				B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */,
+				B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */,
 				528776181BF27D9500CB0090 /* Test.plist */,
 				EA66F63B1BF1619600136161 /* NSURLTestData.plist */,
 				E1A3726E1C31EBFB0023AF4D /* NSXMLDocumentTestData.xml */,
@@ -2150,6 +2153,7 @@
 				D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
 				D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
 				D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
+				B907F36B20BB07A700013CBE /* NSString-ISO-8859-1-data.txt in Resources */,
 				D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */,
 				D3A597F71C3415CC00295652 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,
 				CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */,

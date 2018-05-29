@@ -27,6 +27,39 @@ extension String {
         public static let utf32 = Encoding(rawValue: 0x8c000100)
         public static let utf32BigEndian = Encoding(rawValue: 0x98000100)
         public static let utf32LittleEndian = Encoding(rawValue: 0x9c000100)
+
+        // Map selected IANA character set names to encodings, see
+        // https://www.iana.org/assignments/character-sets/character-sets.xhtml
+        internal init?(charSet: String) {
+            let encoding: Encoding?
+
+            switch charSet.lowercased() {
+            case "us-ascii":        encoding = .ascii
+            case "utf-8":           encoding = .utf8
+            case "utf-16":          encoding = .utf16
+            case "utf-16be":        encoding = .utf16BigEndian
+            case "utf-16le":        encoding = .utf16LittleEndian
+            case "utf-32":          encoding = .utf32
+            case "utf-32be":        encoding = .utf32BigEndian
+            case "utf-32le":        encoding = .utf32LittleEndian
+            case "iso-8859-1":      encoding = .isoLatin1
+            case "iso-8859-2":      encoding = .isoLatin2
+            case "iso-2022-jp":     encoding = .iso2022JP
+            case "windows-1250":    encoding = .windowsCP1250
+            case "windows-1251":    encoding = .windowsCP1251
+            case "windows-1252":    encoding = .windowsCP1252
+            case "windows-1253":    encoding = .windowsCP1253
+            case "windows-1254":    encoding = .windowsCP1254
+            case "shift_jis":       encoding = .shiftJIS
+            case "euc-jp":          encoding = .japaneseEUC
+            case "macintosh":       encoding = .macOSRoman
+            default:                encoding = nil
+            }
+            guard let value = encoding?.rawValue else {
+                return nil
+            }
+            rawValue = value
+        }
     }
     
     public typealias EncodingConversionOptions = NSString.EncodingConversionOptions
@@ -49,6 +82,7 @@ extension String.Encoding : CustomStringConvertible {
         return String.localizedName(of: self)
     }
 }
+
 
 @available(*, unavailable, renamed: "String.Encoding")
 public typealias NSStringEncoding = UInt
