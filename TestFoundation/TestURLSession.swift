@@ -38,6 +38,10 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithSharedDelegate", test_dataTaskWithSharedDelegate),
             // ("test_simpleUploadWithDelegate", test_simpleUploadWithDelegate), - Server needs modification
             ("test_concurrentRequests", test_concurrentRequests),
+            ("test_disableCookiesStorage", test_disableCookiesStorage),
+            ("test_cookiesStorage", test_cookiesStorage),
+            ("test_setCookies", test_setCookies),
+            ("test_dontSetCookies", test_dontSetCookies),
         ]
     }
     

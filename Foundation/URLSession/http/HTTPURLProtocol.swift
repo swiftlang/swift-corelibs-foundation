@@ -78,6 +78,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             fatalError("No URL in request.")
         }
         easyHandle.set(url: url)
+        let session = task?.session as! URLSession
+        let _config = session._configuration
+        easyHandle.set(sessionConfig: _config)
         easyHandle.setAllowedProtocolsToHTTPAndHTTPS()
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
