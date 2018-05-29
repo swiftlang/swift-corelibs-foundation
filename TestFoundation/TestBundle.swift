@@ -250,6 +250,7 @@ class TestBundle : XCTestCase {
             ("test_bundlePreflight", test_bundlePreflight),
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
+            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
         ]
     }
     
@@ -438,5 +439,13 @@ class TestBundle : XCTestCase {
             XCTAssertNotNil(bundle.url(forAuxiliaryExecutable: _auxiliaryExecutable))
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
         }
+    }
+    
+    func test_mainBundleExecutableURL() {
+        let maybeURL = Bundle.main.executableURL
+        XCTAssertNotNil(maybeURL)
+        guard let url = maybeURL else { return }
+        
+        XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
     }
 }
