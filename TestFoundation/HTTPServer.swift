@@ -389,6 +389,16 @@ public class TestURLSessionServer {
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
+        if uri == "/requestCookies" {
+            let text = request.getCommaSeparatedHeaders()
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)\r\nSet-Cookie: fr=anjd&232; Max-Age=7776000; path=/; domain=127.0.0.1; secure; httponly\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: text)
+        }
+
+        if uri == "/setCookies" {
+            let text = request.getCommaSeparatedHeaders()
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+        }
+
         if uri == "/UnitedStates" {
             let value = capitals[String(uri.dropFirst())]!
             let text = request.getCommaSeparatedHeaders()
