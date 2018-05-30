@@ -326,6 +326,9 @@ extension Decimal : SignedNumeric {
         return answer;
     }
 
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
     public mutating func negate() {
         guard _length != 0 else { return }
         _isNegative = _isNegative == 0 ? 1 : 0
@@ -389,6 +392,7 @@ extension Decimal {
         self.init(Int64(value))
     }
     public init(_ value: Double) {
+        precondition(!value.isInfinite, "Decimal does not yet fully adopt FloatingPoint")
         if value.isNaN {
             self = Decimal.nan
         } else if value == 0.0 {
@@ -477,15 +481,25 @@ extension Decimal {
     public init(_ value: UInt) {
         self.init(UInt64(value))
     }
+
     public init(_ value: Int) {
         self.init(Int64(value))
     }
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var infinity: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var signalingNaN: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
     public var isSignalingNaN: Bool {
         return false
     }
+
     public static var nan: Decimal {
         return quietNaN
     }
+
     public static var quietNaN: Decimal {
         var quiet = Decimal()
         quiet._isNegative = 1
