@@ -42,6 +42,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
             ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
+            ("test_basicAuthRequest", test_basicAuthRequest),
         ]
     }
     
@@ -642,6 +643,14 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(config.urlCredentialStorage, nil)
         XCTAssertEqual(config.urlCache, nil)
         XCTAssertEqual(config.shouldUseExtendedBackgroundIdleMode, true)
+   }
+
+   func test_basicAuthRequest() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/auth/basic"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
+        d.run(with: url)
+        waitForExpectations(timeout: 60)
     }
 }
 
@@ -790,6 +799,12 @@ extension DataTask : URLSessionTaskDelegate {
             cancellation.fulfill()
         }
         self.error = true
+    }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge:
+        URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition,
+        URLCredential?) -> Void) {
+        completionHandler(.useCredential, URLCredential(user: "user", password: "passwd", persistence: .none))
     }
 }
 

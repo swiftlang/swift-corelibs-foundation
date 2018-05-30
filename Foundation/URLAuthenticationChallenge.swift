@@ -33,7 +33,7 @@ public protocol URLAuthenticationChallengeSender : NSObjectProtocol {
      */
     func performDefaultHandling(for challenge: URLAuthenticationChallenge)
     
-    
+
     /*!
      @method rejectProtectionSpaceAndContinueWithChallenge:
      */
@@ -190,5 +190,28 @@ open class URLAuthenticationChallenge : NSObject, NSSecureCoding {
         get {
             return _sender
         }
+    }
+}
+
+extension _HTTPURLProtocol : URLAuthenticationChallengeSender {
+
+    func cancel(_ challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func performDefaultHandling(for challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
+    }
+
+    func rejectProtectionSpaceAndContinue(with challenge: URLAuthenticationChallenge) {
+        NSUnimplemented()
     }
 }

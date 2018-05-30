@@ -120,7 +120,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+        if let hh = request.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
