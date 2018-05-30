@@ -10,6 +10,7 @@
 
 
 #include <CoreFoundation/CFCalendar.h>
+#include <CoreFoundation/CFLocaleInternal.h>
 #include <CoreFoundation/CFRuntime.h>
 #include "CFInternal.h"
 #include "CFPriv.h"

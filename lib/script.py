@@ -226,7 +226,7 @@ rule SwiftExecutable
         script = flags + commands
 
         for product in self.products:
-            script += product.generate()
+            script += "".join([product_build_command for product_build_command in product.generate() if not isinstance(product_build_command, list)])
 
         script += """
 
