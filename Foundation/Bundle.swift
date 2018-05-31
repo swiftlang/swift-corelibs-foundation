@@ -67,6 +67,20 @@ open class Bundle: NSObject {
         _bundle = result
     }
     
+    internal convenience init?(executableURL: URL) {
+        guard let bundleURL = _CFBundleCopyBundleURLForExecutableURL(executableURL._cfObject)?.takeRetainedValue() else {
+            return nil
+        }
+        
+        self.init(url: bundleURL._swiftObject)
+    }
+    
+    internal convenience init?(executablePath: String) {
+        let executableURL = URL(fileURLWithPath: executablePath)
+        
+        self.init(executableURL: executableURL)
+    }
+    
     override open var description: String {
         return "\(String(describing: Bundle.self)) <\(bundleURL.path)> (\(isLoaded  ? "loaded" : "not yet loaded"))"
     }

@@ -9,6 +9,12 @@
 
 import CoreFoundation
 
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
+@testable import Foundation
+#else
+@testable import SwiftFoundation
+#endif
+
 internal func testBundle() -> Bundle {
     #if DARWIN_COMPATIBILITY_TESTS
     for bundle in Bundle.allBundles {
@@ -70,6 +76,7 @@ class BundlePlayground {
     let layout: Layout
     
     private(set) var bundlePath: String!
+    private(set) var executablePath: String!
     private var playgroundPath: String?
     
     init?(bundleName: String,
@@ -108,7 +115,8 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: bundleURL.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
-                guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(bundleName).path, contents: nil) else {
+                self.executablePath = bundleURL.appendingPathComponent(bundleName).path
+                guard FileManager.default.createFile(atPath: executablePath, contents: nil) else {
                     return false
                 }
                 guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else {
@@ -146,13 +154,14 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("lib").path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
-                #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+                #if canImport(Darwin)
                 let pathExtension = "dylib"
                 #else
                 let pathExtension = "so"
                 #endif
                 
-                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent("lib").appendingPathComponent("lib\(bundleName).\(pathExtension)").path, contents: nil) else { return false }
+                self.executablePath = temporaryDirectory.appendingPathComponent("lib").appendingPathComponent("lib\(bundleName).\(pathExtension)").path
+                guard FileManager.default.createFile(atPath: executablePath, contents: nil) else { return false }
                 
                 let executablesDirectory = temporaryDirectory.appendingPathComponent("libexec").appendingPathComponent("\(bundleName).executables")
                 try FileManager.default.createDirectory(atPath: executablesDirectory.path, withIntermediateDirectories: true, attributes: nil)
@@ -187,7 +196,8 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main executable:
-                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent(bundleName).path, contents: nil) else { return false }
+                self.executablePath = temporaryDirectory.appendingPathComponent(bundleName).path
+                guard FileManager.default.createFile(atPath: executablePath, contents: nil) else { return false }
                 
                 // Make a .resources directory:
                 let resourcesDirectory = temporaryDirectory.appendingPathComponent("\(bundleName).resources")
@@ -248,6 +258,7 @@ class TestBundle : XCTestCase {
             ("test_bundleLoadWithError", test_bundleLoadWithError),
             ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
             ("test_bundlePreflight", test_bundlePreflight),
+            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
             ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
@@ -421,6 +432,20 @@ class TestBundle : XCTestCase {
             
             // Must throw as the main executable is a dummy empty file.
             XCTAssertThrowsError(try bundle.preflight())
+        }
+    }
+    
+    func test_bundleReverseBundleLookup() {
+        _withEachPlaygroundLayout { (playground) in
+            if playground.layout == .fhsInstalled {
+                // Pending to be implemented.
+                return
+            }
+            
+            let bundle = Bundle(executablePath: playground.executablePath)
+            
+            XCTAssertNotNil(bundle)
+            XCTAssertEqual(bundle?.bundlePath, playground.bundlePath)
         }
     }
     
