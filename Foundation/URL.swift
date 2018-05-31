@@ -955,7 +955,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
 }
 
-extension URL : _ObjectTypeBridgeable {
+extension URL : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURL {
         return _url

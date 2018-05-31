@@ -50,7 +50,7 @@ public class NSUserClass : NSObject, NSSecureCoding {
     }
 }
 
-public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureCoding {
+public class UserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
     public class var supportsSecureCoding: Bool {
@@ -63,24 +63,26 @@ public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureC
     
     init(_ value: Int) {
         self.ivar = value
+        super.init()
     }
     
     public required init?(coder aDecoder: NSCoder) {
         self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
+        super.init()
     }
     
-    public var description: String {
+    public override var description: String {
         get {
             return "UserClass \(ivar)"
         }
     }
     
-    public static func ==(lhs: UserClass, rhs: UserClass) -> Bool {
-        return lhs.ivar == rhs.ivar
-    }
-    
-    public var hashValue: Int {
-        return ivar
+    public override func isEqual(_ other: Any?) -> Bool {
+      guard let other = other as? UserClass else {
+        return false
+      }
+      
+      return ivar == other.ivar
     }
 }
 

@@ -297,28 +297,28 @@ open class NSDecimalNumber : NSNumber {
     // return 'd' for double
     
     open override var int8Value: Int8 {
-        return Int8(decimal.doubleValue)
+        return Int8(exactly: decimal.doubleValue) ?? 0 as Int8
     }
     open override var uint8Value: UInt8 {
-        return UInt8(decimal.doubleValue)
+        return UInt8(exactly: decimal.doubleValue) ?? 0 as UInt8
     }
     open override var int16Value: Int16 {
-        return Int16(decimal.doubleValue)
+        return Int16(exactly: decimal.doubleValue) ?? 0 as Int16
     }
     open override var uint16Value: UInt16 {
-        return UInt16(decimal.doubleValue)
+        return UInt16(exactly: decimal.doubleValue) ?? 0 as UInt16
     }
     open override var int32Value: Int32 {
-        return Int32(decimal.doubleValue)
+        return Int32(exactly: decimal.doubleValue) ?? 0 as Int32
     }
     open override var uint32Value: UInt32 {
-        return UInt32(decimal.doubleValue)
+        return UInt32(exactly: decimal.doubleValue) ?? 0 as UInt32
     }
     open override var int64Value: Int64 {
-        return Int64(decimal.doubleValue)
+        return Int64(exactly: decimal.doubleValue) ?? 0 as Int64
     }
     open override var uint64Value: UInt64 {
-        return UInt64(decimal.doubleValue)
+        return UInt64(exactly: decimal.doubleValue) ?? 0 as UInt64
     }
     open override var floatValue: Float {
         return Float(decimal.doubleValue)
@@ -330,10 +330,10 @@ open class NSDecimalNumber : NSNumber {
         return !decimal.isZero
     }
     open override var intValue: Int {
-        return Int(decimal.doubleValue)
+        return Int(exactly: decimal.doubleValue) ?? 0 as Int
     }
     open override var uintValue: UInt {
-        return UInt(decimal.doubleValue)
+        return UInt(exactly: decimal.doubleValue) ?? 0 as UInt
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -341,6 +341,9 @@ open class NSDecimalNumber : NSNumber {
         return self.decimal == other.decimal
     }
 
+    override var _swiftValueOfOptimalType: Any {
+      return decimal
+    }
 }
 
 // return an approximate double value

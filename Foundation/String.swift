@@ -12,7 +12,7 @@
 
 import CoreFoundation
 
-extension String : _ObjectTypeBridgeable {
+extension String : _ObjectiveCBridgeable {
     
     public typealias _ObjectType = NSString
     public func _bridgeToObjectiveC() -> _ObjectType {

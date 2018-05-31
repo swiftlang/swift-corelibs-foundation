@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-extension Dictionary : _ObjectTypeBridgeable {
+extension Dictionary : _ObjectiveCBridgeable {
     
     public typealias _ObjectType = NSDictionary
     public func _bridgeToObjectiveC() -> _ObjectType {

@@ -352,7 +352,7 @@ extension DateComponents : CustomStringConvertible, CustomDebugStringConvertible
 
 // MARK: - Bridging
 
-extension DateComponents : _ObjectTypeBridgeable {
+extension DateComponents : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }
