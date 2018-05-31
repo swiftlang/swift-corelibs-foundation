@@ -30,20 +30,42 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
+// Freestanding bundles are supported on all platforms.
+#if TRUE
+#define FREESTANDING_BUNDLES 1
+#else
+#define FREESTANDING_BUNDLES 0
+#endif
+
 // FHS bundles are supported on the Swift and C runtimes, except on Windows.
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#define FHS_BUNDLES 1
+#else
+#define FHS_BUNDLES 0
+#endif
+
+#if FHS_BUNDLES || FREESTANDING_BUNDLES
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
+    #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
+    #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".so")
+    #define _CFBundleExecutableFilenamePrefix CFSTR("")
+    #define _CFBundleExecutableFilenameSuffix CFSTR("")
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+    #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
+    #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dylib")
+    #define _CFBundleExecutableFilenamePrefix CFSTR("")
+    #define _CFBundleExecutableFilenameSuffix CFSTR("")
+#elif DEPLOYMENT_TARGET_WINDOWS
+    #define _CFBundleSharedLibraryFilenamePrefix CFSTR("")
+    #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dll")
+    #define _CFBundleExecutableFilenamePrefix CFSTR("")
+    #define _CFBundleExecutableFilenameSuffix CFSTR(".exe")
 #else // a non-covered DEPLOYMENT_TARGET…
-    #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
-#endif // DEPLOYMENT_TARGET_…
+    #error Disable Freestanding / FHS bundles or specify shared library prefixes and suffixes for this platform.
+#endif
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif
 
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
