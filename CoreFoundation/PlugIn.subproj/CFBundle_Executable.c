@@ -66,24 +66,27 @@ static Boolean _binaryLoadable(CFURLRef url) {
 }
 
 static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeName) {
-    // Given an url to a folder and a name, this returns the url to the executable in that folder with that name, if it exists, and NULL otherwise.  This function deals with appending the ".exe" or ".dll" on Windows.
+    // Given an url to a folder and a name, this returns the url to the executable in that folder
+    // with that name, if it exists, and NULL otherwise.
+    // This function deals with appending the library and executable prefix/suffixes of each platform.
+    
     CFURLRef executableURL = NULL;
     if (!urlPath || !exeName) return NULL;
     
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-        const uint8_t *image_suffix = (uint8_t *)__CFgetenvIfNotRestricted("DYLD_IMAGE_SUFFIX");
+    const uint8_t *image_suffix = (uint8_t *)__CFgetenvIfNotRestricted("DYLD_IMAGE_SUFFIX");
     
     if (image_suffix) {
         CFStringRef newExeName, imageSuffix;
         imageSuffix = CFStringCreateWithCString(kCFAllocatorSystemDefault, (char *)image_suffix, kCFStringEncodingUTF8);
         if (CFStringHasSuffix(exeName, CFSTR(".dylib"))) {
             CFStringRef bareExeName = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, exeName, CFRangeMake(0, CFStringGetLength(exeName)-6));
-            newExeName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@.dylib"), exeName, imageSuffix);
+            newExeName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@.dylib"), bareExeName, imageSuffix);
             CFRelease(bareExeName);
         } else {
             newExeName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@"), exeName, imageSuffix);
         }
-        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, newExeName, kCFURLPOSIXPathStyle, false, urlPath);
+        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, newExeName, PLATFORM_PATH_STYLE, false, urlPath);
         if (executableURL && !_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
             executableURL = NULL;
@@ -91,41 +94,45 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
         CFRelease(newExeName);
         CFRelease(imageSuffix);
     }
+#endif
     
     if (!executableURL) {
-        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLPOSIXPathStyle, false, urlPath);
+        // Try finding the executable with input name.
+        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, PLATFORM_PATH_STYLE, false, urlPath);
+        
         if (executableURL && !_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
             executableURL = NULL;
         }
     }
-#endif
     
 #if FHS_BUNDLES || FREESTANDING_BUNDLES
     if (!executableURL) {
-        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLPOSIXPathStyle, false, urlPath);
+        // Try finding the executable using library prefix/suffix.
+        CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleSharedLibraryFilenamePrefix, exeName, _CFBundleSharedLibraryFilenameSuffix);
         
-        // Try with the input name.
+        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, sharedLibraryName, PLATFORM_PATH_STYLE, false, urlPath);
+        
         if (!_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
-            
-            CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleSharedLibraryFilenamePrefix, exeName, _CFBundleSharedLibraryFilenameSuffix);
-            
-            executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, sharedLibraryName, kCFURLPOSIXPathStyle, false, urlPath);
-            
-            if (!_binaryLoadable(executableURL)) {
-                CFRelease(executableURL);
-                
-                CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleExecutableFilenamePrefix, exeName, _CFBundleExecutableFilenameSuffix);
-                
-                executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, sharedLibraryName, kCFURLPOSIXPathStyle, false, urlPath);
-
-                if (!_binaryLoadable(executableURL)) {
-                    CFRelease(executableURL);
-                    executableURL = NULL;
-                }
-            }
+            executableURL = NULL;
         }
+        
+        CFRelease(sharedLibraryName);
+    }
+    
+    if (!executableURL) {
+        // Try finding the executable using executable prefix/suffix.
+        CFStringRef executableName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleExecutableFilenamePrefix, exeName, _CFBundleExecutableFilenameSuffix);
+        
+        executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, executableName, PLATFORM_PATH_STYLE, false, urlPath);
+        
+        if (!_binaryLoadable(executableURL)) {
+            CFRelease(executableURL);
+            executableURL = NULL;
+        }
+        
+        CFRelease(executableName);
     }
 #endif
     
@@ -137,7 +144,6 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
     CFDictionaryRef infoDict = NULL;
     CFStringRef executablePath = NULL;
     CFURLRef executableURL = NULL;
-    Boolean foundIt = false;
     Boolean lookupMainExe = (executableName ? false : true);
     
     if (bundle) {
@@ -155,14 +161,11 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
         __CFUnlock(&bundle->_lock);
         if (executablePath) {
             executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, executablePath, PLATFORM_PATH_STYLE, false);
-            if (executableURL) {
-                foundIt = true;
-            }
             CFRelease(executablePath);
         }
     }
     
-    if (!foundIt) {
+    if (!executableURL) {
         if (lookupMainExe) executableName = _CFBundleCopyExecutableName(bundle, url, infoDict);
         if (executableName) {
 #if (DEPLOYMENT_TARGET_EMBEDDED && !TARGET_IPHONE_SIMULATOR)
@@ -172,93 +175,109 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
 #endif
             
 #if FHS_BUNDLES
-            if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
-                // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
+            if (bundle && bundle->_isFHSInstalledBundle) {
                 
-                CFURLRef sharePath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
-                CFURLRef prefixPath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, sharePath);
-                CFRelease(sharePath);
-                
-                CFStringRef directories[] = { _CFBundleFHSDirectoriesInExecutableSearchOrder };
-                size_t directoriesCount = sizeof(directories) / sizeof(directories[0]);
-                
-                for (size_t i = 0; i < directoriesCount; i++) {
-                    CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefixPath, directories[i], true);
-                    executableURL = _CFBundleCopyExecutableURLRaw(where, executableName);
-                    CFRelease(where);
+                if (lookupMainExe) {
+                    // For a FHS installed bundles we try to find the main executable in the different prefix locations:
+                    CFURLRef sharePath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
+                    CFURLRef prefixPath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, sharePath);
+                    CFRelease(sharePath);
                     
-                    if (executableURL) {
-                        foundIt = true;
-                        break;
+                    CFStringRef directories[] = { _CFBundleFHSDirectoriesInExecutableSearchOrder };
+                    size_t directoriesCount = sizeof(directories) / sizeof(directories[0]);
+                    
+                    for (size_t i = 0; i < directoriesCount; i++) {
+                        CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefixPath, directories[i], true);
+                        executableURL = _CFBundleCopyExecutableURLRaw(where, executableName);
+                        CFRelease(where);
                     }
+                    
+                    CFRelease(prefixPath);
                 }
-                
-                CFRelease(prefixPath);
-            }
-#endif // FHS_BUNDLES
-            
-            // Now, look for the executable inside the bundle.
-            if (!foundIt && doExecSearch && 0 != version) {
-                CFURLRef exeDirURL = NULL;
-                
-#if FHS_BUNDLES
-                if (bundle && bundle->_isFHSInstalledBundle) {
+                else {
+                    // For FHS bundles we try to find the auxiliary executables in `prefix/libexec` if.
+                    
                     CFURLRef withoutExtension = CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, url);
                     CFStringRef lastPathComponent = CFURLCopyLastPathComponent(withoutExtension);
                     
                     CFURLRef libexec = CFURLCreateWithString(kCFAllocatorSystemDefault, CFSTR("../../" _CFBundleFHSDirectoryCLiteral_libexec), url);
                     
                     CFStringRef exeDirName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@"), lastPathComponent, _CFBundleFHSExecutablesDirectorySuffix);
-                    exeDirURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, libexec, exeDirName, true);
+                    CFURLRef exeDirURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, libexec, exeDirName, true);
+                    executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
                     
                     CFRelease(withoutExtension);
                     CFRelease(lastPathComponent);
                     CFRelease(libexec);
                     CFRelease(exeDirName);
-                } else
-#endif // FHS_BUNDLES
+                    CFRelease(exeDirURL);
+                }
+            }
+            else {
+#endif
+                
+                // Now, look for the executable inside the bundle.
+                if (!executableURL && doExecSearch && 0 != version) {
+                    CFURLRef exeDirURL = NULL;
+                    
+                    // First, we find the executable directory:
+                    
                     if (1 == version) {
                         exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase1, url);
-                    } else if (2 == version) {
+                    }
+                    else if (2 == version) {
                         exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase2, url);
-                    } else {
+                    }
+                    else {
+                        
 #if FREESTANDING_BUNDLES
-                        // On Windows and on targets that support FHS bundles, if the bundle URL is foo.resources, then the executable is at the same level as the .resources directory
+                        // For freestanding bundles if the directory has a `.resources` extension, the executable is at the same level.
                         CFStringRef extension = CFURLCopyPathExtension(url);
                         if (extension && CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension)) {
                             exeDirURL = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
-                        } else {
+                        }
+#endif
+                        
+                        if (!exeDirURL) {
                             exeDirURL = (CFURLRef)CFRetain(url);
                         }
-#else
-                        exeDirURL = (CFURLRef)CFRetain(url);
-#endif
                     }
-                
-                // Historical note: This used to search the directories "Mac OS X", "MacOSClassic", then "MacOS8". As of 10.13 we only look in "MacOS".
-                CFURLRef exeSubdirURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, _CFBundleGetPlatformExecutablesSubdirectoryName(), kCFURLPOSIXPathStyle, true, exeDirURL);
-                executableURL = _CFBundleCopyExecutableURLRaw(exeSubdirURL, executableName);
-                CFRelease(exeSubdirURL);
-                
-                if (!executableURL) executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
-                CFRelease(exeDirURL);
-            }
-            
-            // If this was an old bundle, or we did not find the executable in the Executables subdirectory, look directly in the bundle wrapper.
-            if (!executableURL) executableURL = _CFBundleCopyExecutableURLRaw(url, executableName);
-            
+                    
+                    // After finding the executable directory, we search the executable:
+                    //
+                    // Historical note: This used to search the directories "Mac OS X", "MacOSClassic", then "MacOS8".
+                    // As of 10.13 we only look in "MacOS".
+                    CFURLRef exeSubdirURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, _CFBundleGetPlatformExecutablesSubdirectoryName(), PLATFORM_PATH_STYLE, true, exeDirURL);
+                    executableURL = _CFBundleCopyExecutableURLRaw(exeSubdirURL, executableName);
+                    CFRelease(exeSubdirURL);
+                    
+                    if (!executableURL) {
+                        executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
+                    }
+                    
+                    CFRelease(exeDirURL);
+                    
+                    // If this was an old bundle, or we did not find the executable in the Executables subdirectory, look directly in the bundle wrapper.
+                    if (!executableURL) {
+                        executableURL = _CFBundleCopyExecutableURLRaw(url, executableName);
+                    }
+                    
 #if DEPLOYMENT_TARGET_WINDOWS
-            // Windows only: If we still haven't found the exe, look in the Executables folder.
-            // But only for the main bundle exe
-            if (lookupMainExe && !executableURL) {
-                CFURLRef exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, CFSTR("../../Executables"), url);
-                executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
-                CFRelease(exeDirURL);
+                    // Windows only: If we still haven't found the exe, look in the Executables folder.
+                    // But only for the main bundle exe
+                    if (lookupMainExe && !executableURL) {
+                        CFURLRef exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, CFSTR("../../Executables"), url);
+                        executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
+                        CFRelease(exeDirURL);
+                    }
+#endif
+                }
+#if FHS_BUNDLES
             }
 #endif
             
             if (lookupMainExe && !ignoreCache && bundle && executableURL) {
-                // We found it.  Cache the path.
+                // We found it. Cache the path.
                 CFURLRef absURL = CFURLCopyAbsoluteURL(executableURL);
                 executablePath = CFURLCopyFileSystemPath(absURL, PLATFORM_PATH_STYLE);
                 CFRelease(absURL);
@@ -267,42 +286,46 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                 __CFUnlock(&bundle->_lock);
                 CFRelease(executablePath);
             }
+            
             if (lookupMainExe && bundle && !executableURL) bundle->_binaryType = __CFBundleNoBinary;
             if (lookupMainExe) CFRelease(executableName);
         }
     }
+    
     if (!bundle && infoDict) CFRelease(infoDict);
     return executableURL;
 }
 
-static CFStringRef _CFStringRemovePrefixSuffix(CFStringRef str, CFStringRef prefix, CFStringRef suffix) {
-    CFMutableStringRef mutableString = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, str);
+static CFStringRef _CFBundleCopyNameByRemovingExcutablePlatformPrefixSuffix(CFStringRef str, CFStringRef prefix, CFStringRef suffix) {
+    CFStringRef bundleName = NULL;
     
-    // Check if the executable has shared library prefix/suffix.
-    CFRange prefixRange = CFStringFind(mutableString,
-                                       _CFBundleSharedLibraryFilenamePrefix,
-                                       kCFCompareAnchored);
-    CFRange suffixRange = CFStringFind(mutableString,
-                                       _CFBundleSharedLibraryFilenameSuffix,
-                                       kCFCompareAnchored|kCFCompareBackwards);
+    // For plaforms without prefix/suffix we must return NULL so it is checked with other type of prefix/suffix.
+    if (!(CFEqual(prefix, CFSTR("")) && CFEqual(suffix, CFSTR("")))) {
+        
+        // Check if the executable has shared library prefix/suffix.
+        CFRange prefixRange = CFStringFind(str,
+                                           _CFBundleSharedLibraryFilenamePrefix,
+                                           kCFCompareAnchored);
+        CFRange suffixRange = CFStringFind(str,
+                                           _CFBundleSharedLibraryFilenameSuffix,
+                                           kCFCompareAnchored|kCFCompareBackwards);
+        
+        // Only return the stripped string if both the prefix and suffix are found.
+        CFIndex inputStringLength = CFStringGetLength(str);
+        
+        if (prefixRange.location != kCFNotFound &&
+            suffixRange.location != kCFNotFound &&
+            prefixRange.location == 0 &&
+            suffixRange.location + suffixRange.length == inputStringLength) {
+            
+            CFRange bundleNameRange = CFRangeMake(prefixRange.length,
+                                                  inputStringLength - prefixRange.length - suffixRange.length);
+            
+            bundleName = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, str, bundleNameRange);
+        }
+    }
     
-    // Only return the stripped string if both the prefix and suffix are found.
-    if (prefixRange.location != kCFNotFound &&
-        suffixRange.location != kCFNotFound &&
-        prefixRange.location == 0 &&
-        suffixRange.location + suffixRange.length == CFStringGetLength(mutableString)) {
-        CFStringReplace(mutableString, prefixRange, CFSTR(""));
-        
-        suffixRange = CFStringFind(mutableString,
-                                   _CFBundleSharedLibraryFilenameSuffix,
-                                   kCFCompareAnchored|kCFCompareBackwards);
-        
-        CFStringReplace(mutableString, suffixRange, CFSTR(""));
-        return mutableString;
-    }
-    else {
-        return NULL;
-    }
+    return bundleName;
 }
 
 static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
@@ -320,38 +343,50 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
     
 #if FREESTANDING_BUNDLES
     if (!url) {
+        CFStringRef bundleName = NULL;
+        
         CFURLRef executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, str, PLATFORM_PATH_STYLE, false);
         CFStringRef executableName = CFURLCopyLastPathComponent(executableURL);
-        CFStringRef bundleName = NULL;
         
         // Check if the executable has shared library prefix/suffix (libCF.dylib, libCF.so, CF.dll).
         if (!bundleName) {
-            bundleName = _CFStringRemovePrefixSuffix(executableName,
-                                                     _CFBundleSharedLibraryFilenamePrefix,
-                                                     _CFBundleSharedLibraryFilenameSuffix);
+            bundleName = _CFBundleCopyNameByRemovingExcutablePlatformPrefixSuffix(executableName,
+                                                                                  _CFBundleSharedLibraryFilenamePrefix,
+                                                                                  _CFBundleSharedLibraryFilenameSuffix);
         }
         
-        // Check if the executable has executable-style prefix/suffix (CF, CF.exe).
+        // Check if the executable has executable-style prefix/suffix (CF.exe).
         if (!bundleName) {
-            bundleName = _CFStringRemovePrefixSuffix(executableName,
-                                                     _CFBundleExecutableFilenamePrefix,
-                                                     _CFBundleExecutableFilenameSuffix);
+            bundleName = _CFBundleCopyNameByRemovingExcutablePlatformPrefixSuffix(executableName,
+                                                                                  _CFBundleExecutableFilenamePrefix,
+                                                                                  _CFBundleExecutableFilenameSuffix);
         }
         
         // Otherwise, use the executable name as bundle name (CF).
         if (!bundleName) {
-            bundleName = executableName;
+            bundleName = CFStringCreateCopy(kCFAllocatorSystemDefault, executableName);
         }
         
         // Find the sibling `.resources` directory (CF.resources).
         CFURLRef parentDirectory = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, executableURL);
-        CFStringRef siblingResourceDirectoryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@.%@"), bundleName, _CFBundleSiblingResourceDirectoryExtension);
         
-        CFURLRef siblingResourceDirectory = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, parentDirectory, siblingResourceDirectoryName, true);
+        CFRelease(executableName);
+        CFRelease(executableURL);
+        
+        CFStringRef siblingResourceDirectoryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@.%@"), bundleName, _CFBundleSiblingResourceDirectoryExtension);
+        CFRelease(bundleName);
+        
+        CFURLRef siblingResourceDirectoryURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, parentDirectory, siblingResourceDirectoryName, true);
+        
+        CFRelease(parentDirectory);
+        CFRelease(siblingResourceDirectoryName);
         
         // Check that the bundle directory exists.
-        if (_CFURLExists(siblingResourceDirectory)) {
-            url = siblingResourceDirectory;
+        if (_CFURLExists(siblingResourceDirectoryURL)) {
+            url = siblingResourceDirectoryURL;
+        }
+        else {
+            CFRelease(siblingResourceDirectoryURL);
         }
     }
 #endif
