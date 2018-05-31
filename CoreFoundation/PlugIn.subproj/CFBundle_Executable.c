@@ -341,6 +341,10 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
     
     CFURLRef url = NULL;
     
+#if FHS_BUNDLES
+    // Pending to be implemented.
+#endif
+    
 #if FREESTANDING_BUNDLES
     if (!url) {
         CFStringRef bundleName = NULL;
