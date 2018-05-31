@@ -62,10 +62,12 @@ open class JSONSerialization : NSObject {
                 return true
             }
             
-            if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt ||
-                obj is Int8 || obj is Int16 || obj is Int32 || obj is Int64 ||
-                obj is UInt8 || obj is UInt16 || obj is UInt32 || obj is UInt64 {
-                return true
+            if !(obj is _NSNumberCastingWithoutBridging) {
+              if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt ||
+                  obj is Int8 || obj is Int16 || obj is Int32 || obj is Int64 ||
+                  obj is UInt8 || obj is UInt16 || obj is UInt32 || obj is UInt64 {
+                  return true
+              }
             }
 
             // object is a Double and is not NaN or infinity
@@ -315,12 +317,19 @@ private struct JSONWriter {
         self.writer = writer
     }
     
-    mutating func serializeJSON(_ obj: Any?) throws {
+    mutating func serializeJSON(_ object: Any?) throws {
 
-        guard let obj = obj else {
+        var toSerialize = object
+
+        if let number = toSerialize as? _NSNumberCastingWithoutBridging {
+            toSerialize = number._swiftValueOfOptimalType
+        }
+        
+        guard let obj = toSerialize else {
             try serializeNull()
             return
         }
+        
         // For better performance, the most expensive conditions to evaluate should be last.
         switch (obj) {
         case let str as String:

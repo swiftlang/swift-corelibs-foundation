@@ -131,7 +131,7 @@ extension UUID : CustomReflectable {
     }
 }
 
-extension UUID : _ObjectTypeBridgeable {
+extension UUID : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSUUID {
         return reference

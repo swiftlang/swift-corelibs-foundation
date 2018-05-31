@@ -267,7 +267,7 @@ extension URLRequest : CustomStringConvertible, CustomDebugStringConvertible, Cu
     }
 }
 
-extension URLRequest : _ObjectTypeBridgeable {
+extension URLRequest : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSURLRequest.self
     }

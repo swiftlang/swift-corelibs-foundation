@@ -12,27 +12,8 @@
 
 import CoreFoundation
 
-// Support protocols for casting
-public protocol _ObjectBridgeable {
-    func _bridgeToAnyObject() -> AnyObject
-}
-
 public protocol _StructBridgeable {
     func _bridgeToAny() -> Any
-}
-
-/// - Note: This is a similar interface to the _ObjectiveCBridgeable protocol
-public protocol _ObjectTypeBridgeable : _ObjectBridgeable {
-    associatedtype _ObjectType : AnyObject
-    
-    func _bridgeToObjectiveC() -> _ObjectType
-    
-    static func _forceBridgeFromObjectiveC(_ source: _ObjectType, result: inout Self?)
-    
-    @discardableResult
-    static func _conditionallyBridgeFromObjectiveC(_ source: _ObjectType, result: inout Self?) -> Bool
-    
-    static func _unconditionallyBridgeFromObjectiveC(_ source: _ObjectType?) -> Self
 }
 
 /// - Note: This does not exist currently on Darwin but it is the inverse correlation to the bridge types such that a 
@@ -44,7 +25,7 @@ public protocol _StructTypeBridgeable : _StructBridgeable {
 }
 
 // Default adoption of the type specific variants to the Any variant
-extension _ObjectTypeBridgeable {
+extension _ObjectiveCBridgeable {
     public func _bridgeToAnyObject() -> AnyObject {
         return _bridgeToObjectiveC()
     }
@@ -74,8 +55,8 @@ internal protocol _NSBridgeable {
 
 
 /// - Note: This is an internal boxing value for containing abstract structures
-internal final class _SwiftValue : NSObject, NSCopying {
-    internal private(set) var value: Any
+internal final class _SwiftValue : NSObject, NSCopying, _NSSwiftValue {
+    public private(set) var value: Any
     
     static func fetch(_ object: AnyObject?) -> Any? {
         if let obj = object {
@@ -108,10 +89,8 @@ internal final class _SwiftValue : NSObject, NSCopying {
     static func store(_ value: Any) -> NSObject {
         if let val = value as? NSObject {
             return val
-        } else if let val = value as? _ObjectBridgeable {
-            return val._bridgeToAnyObject() as! NSObject
         } else {
-            return _SwiftValue(value)
+            return (value as AnyObject) as! NSObject
         }
     }
     
@@ -144,4 +123,6 @@ internal final class _SwiftValue : NSObject, NSCopying {
     public func copy(with zone: NSZone?) -> Any {
         return _SwiftValue(value)
     }
+    
+    public static let null: AnyObject = NSNull()
 }

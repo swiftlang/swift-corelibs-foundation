@@ -774,13 +774,7 @@ extension IndexPath : CustomStringConvertible, CustomDebugStringConvertible, Cus
     }
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias IndexPathBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias IndexPathBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension IndexPath : IndexPathBridgeType {
+extension IndexPath : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexPath.self
     }

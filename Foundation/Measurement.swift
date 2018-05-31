@@ -206,14 +206,8 @@ extension Measurement {
 
 // Implementation note: similar to NSArray, NSDictionary, etc., NSMeasurement's import as an ObjC generic type is suppressed by the importer. Eventually we will need a more general purpose mechanism to correctly import generic types.
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias MeasurementBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias MeasurementBridgeType = _ObjectiveCBridgeable
-#endif
-
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
-extension Measurement : MeasurementBridgeType {
+extension Measurement : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSMeasurement {
         return NSMeasurement(doubleValue: value, unit: unit)
