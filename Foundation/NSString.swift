@@ -633,13 +633,19 @@ extension NSString {
         let scanner = Scanner(string: _swiftObject)
         // skip initial whitespace if present
         let _ = scanner.scanCharactersFromSet(.whitespaces)
+
+        if scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY")) != nil {
+            return true
+        }
+
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString("+") == nil {
             let _ = scanner.scanString("-")
         }
+        
         // scan any following zeroes
         let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
-        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY123456789")) != nil
+        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "123456789")) != nil
     }
 
     public var uppercased: String {
