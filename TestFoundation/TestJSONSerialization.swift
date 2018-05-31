@@ -1207,7 +1207,8 @@ extension TestJSONSerialization {
     }
     
     func test_serialize_UIntMin() {
-        let json: [Any] = [UInt.min]
+        let array: [UInt] = [UInt.min]
+        let json = array as [Any]
         XCTAssertEqual(try trySerialize(json), "[\(UInt.min)]")
     }
 

@@ -91,7 +91,7 @@ extension Notification : CustomReflectable {
 }
 
 
-extension Notification : _ObjectTypeBridgeable {
+extension Notification : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSNotification.self
     }

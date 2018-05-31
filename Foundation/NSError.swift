@@ -402,7 +402,7 @@ extension CFError : Error {
 
 /// An internal protocol to represent Swift error enums that map to standard
 /// Cocoa NSError domains.
-public protocol _ObjectTypeBridgeableError : Error {
+public protocol _ObjectiveCBridgeableError : Error {
     /// Produce a value of the error type corresponding to the given NSError,
     /// or return nil if it cannot be bridged.
     init?(_bridgedNSError: NSError)
@@ -472,15 +472,15 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: U
 /// NSError domain.
 ///
 /// This protocol is used primarily to generate the conformance to
-/// _ObjectTypeBridgeableError for such an enum.
-public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _ObjectTypeBridgeableError, Hashable {
+/// _ObjectiveCBridgeableError for such an enum.
+public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _ObjectiveCBridgeableError, Hashable {
     /// The NSError domain to which this type is bridged.
     static var _nsErrorDomain: String { get }
 }
 
 /// Describes a bridged error that stores the underlying NSError, so
 /// it can be queried.
-public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectTypeBridgeableError, CustomNSError, Hashable {
+public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable {
     /// The type of an error code.
     associatedtype Code: _ErrorCodeProtocol
 
@@ -1377,4 +1377,36 @@ extension POSIXError {
 
     /// Interface output queue is full.
     public static var EQFULL: POSIXError.Code { return .EQFULL }
+}
+
+enum UnknownNSError: Error {
+    case missingError
+}
+
+public // COMPILER_INTRINSIC
+func _convertNSErrorToError(_ error: NSError?) -> Error {
+    return error ?? UnknownNSError.missingError
+}
+
+public // COMPILER_INTRINSIC
+func _convertErrorToNSError(_ error: Error) -> NSError {
+    if let object = _extractDynamicValue(error as Any) {
+        return unsafeBitCast(object, to: NSError.self)
+    } else {
+        let domain: String
+        let code: Int
+        let userInfo: [String: Any]
+        
+        if let error = error as? CustomNSError {
+            domain = type(of: error).errorDomain
+            code = error.errorCode
+            userInfo = error.errorUserInfo
+        } else {
+            domain = "SwiftError"
+            code = 0
+            userInfo = (_swift_Foundation_getErrorDefaultUserInfo(error) as? [String : Any]) ?? [:]
+        }
+        
+        return NSError(domain: domain, code: code, userInfo: userInfo)
+    }
 }

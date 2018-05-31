@@ -1163,7 +1163,7 @@ extension Calendar : CustomDebugStringConvertible, CustomStringConvertible, Cust
     }
 }
 
-extension Calendar: _ObjectTypeBridgeable {
+extension Calendar: _ObjectiveCBridgeable {
     public typealias _ObjectType = NSCalendar
     
     @_semantics("convertToObjectiveC")

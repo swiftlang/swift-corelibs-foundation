@@ -187,7 +187,7 @@ extension DateInterval : CustomStringConvertible, CustomDebugStringConvertible, 
     }
 }
 
-extension DateInterval : _ObjectTypeBridgeable {
+extension DateInterval : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

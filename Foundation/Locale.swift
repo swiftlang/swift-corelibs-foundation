@@ -439,7 +439,7 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
 }
 
 
-extension Locale : _ObjectTypeBridgeable {
+extension Locale : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

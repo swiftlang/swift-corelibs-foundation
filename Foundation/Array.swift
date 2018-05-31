@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-extension Array : _ObjectTypeBridgeable {
+extension Array : _ObjectiveCBridgeable {
     
     public typealias _ObjectType = NSArray
     public func _bridgeToObjectiveC() -> _ObjectType {

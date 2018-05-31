@@ -102,7 +102,7 @@ extension PersonNameComponents : CustomStringConvertible, CustomDebugStringConve
     }
 }
 
-extension PersonNameComponents : _ObjectTypeBridgeable {
+extension PersonNameComponents : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSPersonNameComponents.self
     }

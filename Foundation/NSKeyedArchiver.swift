@@ -597,9 +597,7 @@ open class NSKeyedArchiver : NSCoder {
         object = _replacementObject(objv)
         
         // bridge value types
-        if let bridgedObject = object as? _ObjectBridgeable {
-            object = bridgedObject._bridgeToAnyObject()
-        }
+        object = object as AnyObject
         
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {

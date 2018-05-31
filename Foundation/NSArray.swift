@@ -334,13 +334,12 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
                 if val1 != val2 {
                     return false
                 }
-            } else if let val1 = object(at: idx) as? _ObjectBridgeable,
-                let val2 = otherArray[idx] as? _ObjectBridgeable {
-                if !(val1._bridgeToAnyObject() as! NSObject).isEqual(val2._bridgeToAnyObject()) {
+            } else {
+              let val1 = object(at: idx)
+              let val2 = otherArray[idx]
+                if !((val1 as AnyObject) as! NSObject).isEqual(val2 as AnyObject) {
                     return false
                 }
-            } else {
-                return false
             }
         }
         
