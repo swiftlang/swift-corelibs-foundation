@@ -30,14 +30,14 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
-// Freestanding bundles are supported on all platforms.
-#if TRUE
+// Freestanding bundles are not supported on Darwin.
+#if !DEPLOYMENT_RUNTIME_OBJC
 #define FREESTANDING_BUNDLES 1
 #else
 #define FREESTANDING_BUNDLES 0
 #endif
 
-// FHS bundles are supported on the Swift and C runtimes, except on Windows.
+// FHS bundles are not supported on Darwin, Windows and Android.
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 #define FHS_BUNDLES 1
 #else
