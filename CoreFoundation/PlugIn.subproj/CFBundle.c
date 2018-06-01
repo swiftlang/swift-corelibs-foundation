@@ -1750,3 +1750,29 @@ CF_EXPORT CFURLRef CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle) {
     return result;
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+
+// SPI from the Swift runtime:
+extern const void *_swift_getTypeContextDescriptor(const void *swiftClass);
+
+CF_EXPORT __attribute__((visibility("default")))
+CFStringRef _CFBundleDlfcnCopyPathToBinaryContainingSwiftClass(const void *swiftClass) {
+    if (!swiftClass) {
+        return NULL;
+    }
+    
+    Dl_info info = { 0 };
+    
+    // For AOT classes, the type context descriptor is guaranteed to come from the binary that has the symbols for that class. Thus, dladdr() can place it.
+    const void *descriptor = _swift_getTypeContextDescriptor(swiftClass);
+    int result = dladdr(descriptor, &info);
+    
+    if (result == 0 || !info.dli_fname) {
+        return NULL;
+    } else {
+        return CFStringCreateWithFileSystemRepresentation(kCFAllocatorDefault, info.dli_fname);
+    }
+}
+
+#endif
+

@@ -353,6 +353,9 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
 
+// The argument is the unsafeBitCast(<the AnyClass>, to: UnsafeRawPointer.self)
+CF_EXPORT __attribute__((visibility("default")))
+CFStringRef _Nullable _CFBundleDlfcnCopyPathToBinaryContainingSwiftClass(const void *_Nullable swiftClass);
 
 typedef struct {
     void *_Nonnull memory;

@@ -54,7 +54,35 @@ open class Bundle: NSObject {
     }
     
     public init(for aClass: AnyClass) {
-        NSUnimplemented()
+        let pointer = unsafeBitCast(aClass, to: UnsafeRawPointer.self)
+        
+        if let path = _CFBundleDlfcnCopyPathToBinaryContainingSwiftClass(pointer) {
+            
+            // dladdr() on Linux is documented to return argv[0]
+            // If this is argv[0], do not create a new bundle (which will use the main bundle below).
+            let pathNS = unsafeBitCast(path, to: NSString.self)
+            let pathString = pathNS as String
+            if ProcessInfo.processInfo.arguments.first != pathString {
+                
+                let url = unsafeBitCast(NSURL(fileURLWithPath: pathString), to: CFURL.self)
+                if let bundleURL = _CFBundleCopyBundleURLForExecutableURL(url) {
+                    _bundle = CFBundleCreate(kCFAllocatorSystemDefault, bundleURL.takeRetainedValue())
+                } else {
+                    fatalError("Class '\(aClass)' resolved to path \(pathNS) but couldn't find a bundle associated with that executable.")
+                }
+                
+            }
+        }
+        
+        if _bundle == nil {
+            // You get here if:
+            // - dladdr() returned exactly argv[0]. In this case, we know it's the main bundle.
+            // - _CFBundleDlfcnCopyPathToBinaryContainingSwiftClass returned nil. This can happen for JIT classes, aka:
+            //  1. Classes in x.swift when called as swift x.swift
+            //  2. Classes in the REPL
+            // In both cases, they're conceptually part of the main program, and both also use the main bundle.
+            _bundle = Bundle.main._bundle
+        }
     }
 
     public init?(identifier: String) {
