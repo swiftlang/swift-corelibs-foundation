@@ -99,7 +99,7 @@ class TestNSString: LoopbackServerTest {
         for string in trueStrings {
             XCTAssert(string.boolValue)
         }
-        let falseStrings: [NSString] = ["false", "FALSE", "fAlSe", "no", "NO", "0", "<true>", "_true", "-00000"]
+        let falseStrings: [NSString] = ["false", "FALSE", "fAlSe", "no", "NO", "0", "<true>", "_true", "-00000", "+t", "+", "0t", "++"]
         for string in falseStrings {
             XCTAssertFalse(string.boolValue)
         }
