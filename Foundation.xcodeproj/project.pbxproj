@@ -344,7 +344,6 @@
 		B9974B9A1EDF4A22007F15B8 /* HTTPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */; };
 		B9974B9B1EDF4A22007F15B8 /* BodySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B941EDF4A22007F15B8 /* BodySource.swift */; };
 		B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B951EDF4A22007F15B8 /* EasyHandle.swift */; };
-		B9F1379A20B99455000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B9F1379920B99455000B7577 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		BB3D7558208A1E500085CFDC /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D7557208A1E500085CFDC /* TestImports.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
 		BDBB65901E256BFA001A7286 /* TestEnergyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */; };
@@ -457,12 +456,19 @@
 			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
 			remoteInfo = SwiftFoundation;
 		};
-		B9F1379620B99357000B7577 /* PBXContainerItemProxy */ = {
+		B90FD22F20C2FF420087EF44 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9F0DD33E1ECD734200F68030;
 			remoteInfo = xdgTestHelper;
+		};
+		B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
+			remoteInfo = SwiftFoundation;
 		};
 		EA993CE21BEACD8E000969A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -491,16 +497,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				5BDC406E1BD6D8C400ED97BB /* SwiftFoundation.framework in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B9F1379820B99363000B7577 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 6;
-			files = (
-				B9F1379A20B99455000B7577 /* xdgTestHelper in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -844,7 +840,6 @@
 		B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPMessage.swift; path = http/HTTPMessage.swift; sourceTree = "<group>"; };
 		B9974B941EDF4A22007F15B8 /* BodySource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BodySource.swift; sourceTree = "<group>"; };
 		B9974B951EDF4A22007F15B8 /* EasyHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyHandle.swift; sourceTree = "<group>"; };
-		B9F1379920B99455000B7577 /* xdgTestHelper */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = xdgTestHelper; path = DerivedData/Foundation/Build/Products/Debug/xdgTestHelper.app/Contents/MacOS/xdgTestHelper; sourceTree = "<group>"; };
 		BB3D7557208A1E500085CFDC /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestImports.swift; sourceTree = "<group>"; };
 		BD8042151E09857800487EB8 /* TestLengthFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestLengthFormatter.swift; sourceTree = "<group>"; };
 		BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEnergyFormatter.swift; sourceTree = "<group>"; };
@@ -1056,7 +1051,6 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
-				B9F1379920B99455000B7577 /* xdgTestHelper */,
 				B167A6641ED7303F0040B09A /* README.md */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
@@ -2042,12 +2036,12 @@
 				5BDC40591BD6D83B00ED97BB /* Frameworks */,
 				5BDC405A1BD6D83B00ED97BB /* Resources */,
 				5BDC406D1BD6D8B300ED97BB /* CopyFiles */,
-				B9F1379820B99363000B7577 /* CopyFiles */,
+				B90FD23320C303200087EF44 /* ShellScript */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				B9F1379720B99357000B7577 /* PBXTargetDependency */,
+				B90FD23020C2FF420087EF44 /* PBXTargetDependency */,
 				AE2FC5951CFEFC70008F7981 /* PBXTargetDependency */,
 			);
 			name = TestFoundation;
@@ -2066,6 +2060,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B90FD23220C2FF840087EF44 /* PBXTargetDependency */,
 			);
 			name = xdgTestHelper;
 			productName = xdgTestHelper;
@@ -2194,6 +2189,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B90FD23320C303200087EF44 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp ${BUILD_ROOT}/Debug/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILD_ROOT}/Debug/TestFoundation.app/Contents/MacOS/";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5B5D88581BBC938800234F36 /* Sources */ = {
@@ -2563,10 +2574,15 @@
 			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
 			targetProxy = AE2FC5941CFEFC70008F7981 /* PBXContainerItemProxy */;
 		};
-		B9F1379720B99357000B7577 /* PBXTargetDependency */ = {
+		B90FD23020C2FF420087EF44 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9F0DD33E1ECD734200F68030 /* xdgTestHelper */;
-			targetProxy = B9F1379620B99357000B7577 /* PBXContainerItemProxy */;
+			targetProxy = B90FD22F20C2FF420087EF44 /* PBXContainerItemProxy */;
+		};
+		B90FD23220C2FF840087EF44 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
+			targetProxy = B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */;
 		};
 		EA993CE31BEACD8E000969A2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
