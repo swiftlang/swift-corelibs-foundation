@@ -437,7 +437,7 @@ class TestBundle : XCTestCase {
     
     func test_bundleReverseBundleLookup() {
         _withEachPlaygroundLayout { (playground) in
-            if playground.layout == .fhsInstalled {
+            guard playground.layout != .fhsInstalled else {
                 // TODO: FHS Bundles reverse lookup pending to be implemented.
                 //
                 // Implementation required at `_CFBundleCopyBundleURLForExecutablePath()` on Core Foundation.
