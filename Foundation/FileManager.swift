@@ -609,7 +609,7 @@ open class FileManager : NSObject {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = FileManager.default.fileSystemRepresentation(withPath: path)
+            let fsRep = self.fileSystemRepresentation(withPath: path)
             let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
             ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
             ps.advanced(by: 1).initialize(to: nil)
@@ -1033,16 +1033,39 @@ open class FileManager : NSObject {
         NSUnimplemented()
     }
     
-    internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
+    internal func _tryToResolveTrailingSymlinkInPath(_ path: String, recursionLevel: Int = 0, initialPath: String? = nil) -> String? {
         guard _pathIsSymbolicLink(path) else {
             return nil
         }
         
-        guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
+        guard let destination = try? self.destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
         
-        return _appendSymlinkDestination(destination, toPath: path)
+        let initialPath = initialPath ?? path
+        let resolvedPath = _appendSymlinkDestination(destination, toPath: path)
+        
+        // As in Darwin Foundation, after a recursion limit we return the initial path without resolution.
+        var maximum_recursion = sysconf(Int32(_SC_SYMLOOP_MAX))
+        
+        if maximum_recursion <= 0 {
+            maximum_recursion = Int(_POSIX_SYMLOOP_MAX)
+        }
+        
+        guard recursionLevel <= maximum_recursion else {
+            return initialPath
+        }
+        
+        let recursivelyResolvedPath = _tryToResolveTrailingSymlinkInPath(resolvedPath,
+                                                                         recursionLevel: recursionLevel + 1,
+                                                                         initialPath: initialPath)
+        
+        if recursivelyResolvedPath != nil {
+            return recursivelyResolvedPath
+        }
+        else {
+            return resolvedPath
+        }
     }
     
     internal func _appendSymlinkDestination(_ dest: String, toPath: String) -> String {
