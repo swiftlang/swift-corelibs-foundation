@@ -30,42 +30,32 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
-// Freestanding bundles are not supported on Darwin.
-#if !DEPLOYMENT_RUNTIME_OBJC
-#define FREESTANDING_BUNDLES 1
-#else
-#define FREESTANDING_BUNDLES 0
-#endif
+// Freestanding bundles are not supported with the Objective-C Runtime.
+// !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES */
 
-// FHS bundles are not supported on Darwin, Windows and Android.
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
-#define FHS_BUNDLES 1
-#else
-#define FHS_BUNDLES 0
-#endif
+// FHS bundles are not supported on Windows and Android or with the Objective-C Runtime.
+// !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
 
-#if FHS_BUNDLES || FREESTANDING_BUNDLES
+#if !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES || FHS_BUNDLES */
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".so")
-    #define _CFBundleExecutableFilenamePrefix CFSTR("")
-    #define _CFBundleExecutableFilenameSuffix CFSTR("")
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dylib")
-    #define _CFBundleExecutableFilenamePrefix CFSTR("")
-    #define _CFBundleExecutableFilenameSuffix CFSTR("")
 #elif DEPLOYMENT_TARGET_WINDOWS
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dll")
     #define _CFBundleExecutableFilenamePrefix CFSTR("")
     #define _CFBundleExecutableFilenameSuffix CFSTR(".exe")
+    #define _CFBundleFilenameDebugPrefix CFSTR("")
+    #define _CFBundleFilenameDebugSuffix CFSTR("_debug")
 #else // a non-covered DEPLOYMENT_TARGET…
-    #error Disable Freestanding / FHS bundles or specify shared library prefixes and suffixes for this platform.
+    #error Disable Freestanding and FHS bundles or specify shared library / executable prefixes and suffixes for this platform.
 #endif
 
-#endif
+#endif /* FREESTANDING_BUNDLES || FHS_BUNDLES */
 
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
@@ -99,7 +89,7 @@ struct __CFBundle {
     
     CFURLRef _url;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
     Boolean _isFHSInstalledBundle;
 #endif
     

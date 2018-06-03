@@ -137,7 +137,7 @@ static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 
 #pragma mark -
 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
 
 // Functions and constants for FHS bundles:
 #define _CFBundleFHSDirectory_share CFSTR("share")
@@ -162,14 +162,14 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
     
     return isFHSBundle;
 }
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif /* FHS_BUNDLES */
 
 Boolean _CFBundleSupportsFHSBundles() {
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
     return true;
 #else
     return false;
-#endif
+#endif /* FHS_BUNDLES */
 }
 
 CF_PRIVATE os_log_t _CFBundleResourceLogger(void) {
@@ -714,9 +714,9 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 
     bundle->_url = newURL;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
     bundle->_isFHSInstalledBundle = _CFBundleURLIsForFHSInstalledBundle(newURL);
-#endif
+#endif /* FHS_BUNDLES */
 
     bundle->_version = localVersion;
     bundle->_infoDict = NULL;
