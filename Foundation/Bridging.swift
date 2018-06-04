@@ -54,8 +54,13 @@ internal protocol _NSBridgeable {
 }
 
 
+#if !canImport(ObjectiveC)
+// The _NSSwiftValue protocol is in the stdlib, and only available on platforms without ObjC.
+extension _SwiftValue: _NSSwiftValue {}
+#endif
+
 /// - Note: This is an internal boxing value for containing abstract structures
-internal final class _SwiftValue : NSObject, NSCopying, _NSSwiftValue {
+internal final class _SwiftValue : NSObject, NSCopying {
     public private(set) var value: Any
     
     static func fetch(_ object: AnyObject?) -> Any? {

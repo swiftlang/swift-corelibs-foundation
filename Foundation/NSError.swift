@@ -1383,6 +1383,8 @@ enum UnknownNSError: Error {
     case missingError
 }
 
+#if !canImport(ObjectiveC)
+
 public // COMPILER_INTRINSIC
 func _convertNSErrorToError(_ error: NSError?) -> Error {
     return error ?? UnknownNSError.missingError
@@ -1410,3 +1412,6 @@ func _convertErrorToNSError(_ error: Error) -> NSError {
         return NSError(domain: domain, code: code, userInfo: userInfo)
     }
 }
+
+#endif
+
