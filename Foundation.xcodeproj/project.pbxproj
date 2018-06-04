@@ -344,6 +344,7 @@
 		B9974B9A1EDF4A22007F15B8 /* HTTPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */; };
 		B9974B9B1EDF4A22007F15B8 /* BodySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B941EDF4A22007F15B8 /* BodySource.swift */; };
 		B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B951EDF4A22007F15B8 /* EasyHandle.swift */; };
+		B9C0E89620C31AB60064C68C /* CFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D888A1BBC963C00234F36 /* CFInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BB3D7558208A1E500085CFDC /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D7557208A1E500085CFDC /* TestImports.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
 		BDBB65901E256BFA001A7286 /* TestEnergyFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */; };
@@ -1982,6 +1983,7 @@
 				5B7C8ABE1BEA807A00C5B690 /* CFByteOrder.h in Headers */,
 				5B7C8AF71BEA81AC00C5B690 /* CFStringEncodingConverterExt.h in Headers */,
 				5B7C8AE31BEA81AC00C5B690 /* CFLogUtilities.h in Headers */,
+				B9C0E89620C31AB60064C68C /* CFInternal.h in Headers */,
 				5B7C8AD01BEA80FC00C5B690 /* CFNumber.h in Headers */,
 				5B6228BD1C179049009587FE /* CFRunArray.h in Headers */,
 				5B7C8ACE1BEA80FC00C5B690 /* CFNumberFormatter.h in Headers */,
