@@ -355,12 +355,12 @@ open class Process: NSObject {
             } while ( (waitResult == -1) && (errno == EINTR) )
 
             if WIFSIGNALED(exitCode) {
-                process.terminationStatus = WTERMSIG(exitCode)
-                process.terminationReason = .uncaughtSignal
+                process._terminationStatus = WTERMSIG(exitCode)
+                process._terminationReason = .uncaughtSignal
             } else {
                 assert(WIFEXITED(exitCode))
-                process.terminationStatus = WEXITSTATUS(exitCode)
-                process.terminationReason = .exit
+                process._terminationStatus = WEXITSTATUS(exitCode)
+                process._terminationReason = .exit
             }
             
             // If a termination handler has been set, invoke it on a background thread
@@ -374,7 +374,6 @@ open class Process: NSObject {
             
             // Set the running flag to false
             process.isRunning = false
-            process.processIdentifier = -1
 
             // Invalidate the source and wake up the run loop, if it's available
             
@@ -508,51 +507,58 @@ open class Process: NSObject {
     }
     
     open func interrupt() {
-        if isRunning && processIdentifier > 0 {
-            kill(processIdentifier, SIGINT)
-        }
+        precondition(hasStarted, "task not launched")
+        kill(processIdentifier, SIGINT)
     }
 
     open func terminate() {
-        if isRunning && processIdentifier > 0 {
-            kill(processIdentifier, SIGTERM)
-        }
+        precondition(hasStarted, "task not launched")
+        kill(processIdentifier, SIGTERM)
     }
 
     // Every suspend() has to be balanced with a resume() so keep a count of both.
     private var suspendCount = 0
 
     open func suspend() -> Bool {
-        guard isRunning else {
+        if kill(processIdentifier, SIGSTOP) == 0 {
+            suspendCount += 1
+            return true
+        } else {
             return false
         }
-
-        suspendCount += 1
-        if suspendCount == 1, processIdentifier > 0 {
-            kill(processIdentifier, SIGSTOP)
-        }
-        return true
     }
 
     open func resume() -> Bool {
-        guard isRunning else {
-            return true
+        var success = true
+        if suspendCount == 1 {
+            success = kill(processIdentifier, SIGCONT) == 0
         }
-
-        suspendCount -= 1
-        if suspendCount == 0, processIdentifier > 0 {
-            kill(processIdentifier, SIGCONT)
+        if success {
+            suspendCount -= 1
         }
-        return true
+        return success
     }
     
     // status
-    open private(set) var processIdentifier: Int32 = -1
+    open private(set) var processIdentifier: Int32 = 0
     open private(set) var isRunning: Bool = false
-    
-    open private(set) var terminationStatus: Int32 = 0
-    open private(set) var terminationReason: TerminationReason = .exit
-    
+    private var hasStarted: Bool { return processIdentifier > 0 }
+    private var hasFinished: Bool { return !isRunning && processIdentifier > 0 }
+
+    private var _terminationStatus: Int32 = 0
+    public var terminationStatus: Int32 {
+        precondition(hasStarted, "task not launched")
+        precondition(hasFinished, "task still running")
+        return _terminationStatus
+    }
+
+    private var _terminationReason: TerminationReason = .exit
+    public var terminationReason: TerminationReason {
+        precondition(hasStarted, "task not launched")
+        precondition(hasFinished, "task still running")
+        return _terminationReason
+    }
+
     /*
     A block to be invoked when the process underlying the Process terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The Process is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the Process has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an Process, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of Process which hasn't been updated to include an implementation of the storage and use of it.  
     */

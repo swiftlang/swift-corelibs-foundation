@@ -29,6 +29,7 @@ class TestProcess : XCTestCase {
                    ("test_no_environment", test_no_environment),
                    ("test_custom_environment", test_custom_environment),
                    ("test_run", test_run),
+                   ("test_preStartEndState", test_preStartEndState),
                    ("test_interrupt", test_interrupt),
                    ("test_terminate", test_terminate),
                    ("test_suspend_resume", test_suspend_resume),
@@ -386,6 +387,28 @@ class TestProcess : XCTestCase {
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
         fm.changeCurrentDirectoryPath(cwd)
+    }
+
+    func test_preStartEndState() {
+        let process = Process()
+        XCTAssertNil(process.executableURL)
+        XCTAssertNotNil(process.currentDirectoryURL)
+        XCTAssertNil(process.arguments)
+        XCTAssertNil(process.environment)
+        XCTAssertFalse(process.isRunning)
+        XCTAssertEqual(process.processIdentifier, 0)
+        XCTAssertEqual(process.qualityOfService, .default)
+
+        process.executableURL = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        _ = try? process.run()
+        XCTAssertTrue(process.isRunning)
+        XCTAssertTrue(process.processIdentifier > 0)
+        process.terminate()
+        process.waitUntilExit()
+        XCTAssertFalse(process.isRunning)
+        XCTAssertTrue(process.processIdentifier > 0)
+        XCTAssertEqual(process.terminationReason, .uncaughtSignal)
+        XCTAssertEqual(process.terminationStatus, SIGTERM)
     }
 
     func test_interrupt() {
