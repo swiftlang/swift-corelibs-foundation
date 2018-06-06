@@ -46,7 +46,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         super.init()
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
         for obj in buffer {
-            _storage.insert(obj as! NSObject)
+            _storage.insert(_SwiftValue.store(obj))
         }
     }
     

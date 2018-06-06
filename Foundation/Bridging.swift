@@ -16,6 +16,16 @@ public protocol _StructBridgeable {
     func _bridgeToAny() -> Any
 }
 
+fileprivate protocol Unwrappable {
+    func unwrap() -> Any?
+}
+
+extension Optional: Unwrappable {
+    func unwrap() -> Any? {
+        return self
+    }
+}
+
 /// - Note: This does not exist currently on Darwin but it is the inverse correlation to the bridge types such that a 
 /// reference type can be converted via a callout to a conversion method.
 public protocol _StructTypeBridgeable : _StructBridgeable {
@@ -65,7 +75,12 @@ internal final class _SwiftValue : NSObject, NSCopying {
     
     static func fetch(_ object: AnyObject?) -> Any? {
         if let obj = object {
-            return fetch(nonOptional: obj)
+            let value = fetch(nonOptional: obj)
+            if let wrapper = value as? Unwrappable, wrapper.unwrap() == nil {
+                return nil
+            } else {
+                return value
+            }
         }
         return nil
     }
@@ -75,6 +90,8 @@ internal final class _SwiftValue : NSObject, NSCopying {
             return true
         } else if object === kCFBooleanFalse {
             return false
+        } else if type(of: object) == NSNull.self {
+            return Optional<Any>.none as Any
         } else if let container = object as? _SwiftValue {
             return container.value
         } else if let val = object as? _StructBridgeable {
@@ -82,6 +99,13 @@ internal final class _SwiftValue : NSObject, NSCopying {
         } else {
             return object
         }
+    }
+    
+    static func store(optional value: Any?) -> NSObject? {
+        if let val = value {
+            return store(val)
+        }
+        return nil
     }
     
     static func store(_ value: Any?) -> NSObject? {
@@ -94,8 +118,20 @@ internal final class _SwiftValue : NSObject, NSCopying {
     static func store(_ value: Any) -> NSObject {
         if let val = value as? NSObject {
             return val
+        } else if let opt = value as? Unwrappable, opt.unwrap() == nil {
+            return NSNull()
         } else {
-            return (value as AnyObject) as! NSObject
+            #if canImport(ObjectiveC)
+                // On Darwin, this can be a native (ObjC) _SwiftValue.
+                let boxed = (value as AnyObject)
+                if !(boxed is NSObject) {
+                    return _SwiftValue(value) // Do not emit native boxes — wrap them in Swift Foundation boxes instead.
+                } else {
+                    return boxed as! NSObject
+                }
+            #else
+                return (value as AnyObject) as! NSObject
+            #endif
         }
     }
     
