@@ -12,6 +12,10 @@
 
 import CoreFoundation
 
+#if canImport(ObjectiveC)
+import ObjectiveC
+#endif
+
 public protocol _StructBridgeable {
     func _bridgeToAny() -> Any
 }
@@ -85,7 +89,71 @@ internal final class _SwiftValue : NSObject, NSCopying {
         return nil
     }
     
+    #if canImport(ObjectiveC)
+    private static var _objCNSNullClassStorage: Any.Type?
+    private static var objCNSNullClass: Any.Type? {
+        if let type = _objCNSNullClassStorage {
+            return type
+        }
+        
+        let name = "NSNull"
+        let maybeType = name.withCString { cString in
+            return objc_getClass(cString)
+        }
+        
+        if let type = maybeType as? Any.Type {
+            _objCNSNullClassStorage = type
+            return type
+        } else {
+            return nil
+        }
+    }
+    
+    private static var _swiftStdlibSwiftValueClassStorage: Any.Type?
+    private static var swiftStdlibSwiftValueClass: Any.Type? {
+        if let type = _swiftStdlibSwiftValueClassStorage {
+            return type
+        }
+        
+        let name = "_SwiftValue"
+        let maybeType = name.withCString { cString in
+            return objc_getClass(cString)
+        }
+        
+        if let type = maybeType as? Any.Type {
+            _swiftStdlibSwiftValueClassStorage = type
+            return type
+        } else {
+            return nil
+        }
+    }
+    
+    #endif
+    
     static func fetch(nonOptional object: AnyObject) -> Any {
+        #if canImport(ObjectiveC)
+        // You can pass the result of a `as AnyObject` expression to this method. This can have one of three results on Darwin:
+        // - It's a SwiftFoundation type. Bridging will take care of it below.
+        // - It's nil. The compiler is hardcoded to return [NSNull null] for nils.
+        // - It's some other Swift type. The compiler will box it in a native _SwiftValue.
+        // Case 1 is handled below.
+        // Case 2 is handled here:
+        if type(of: object as Any) == objCNSNullClass {
+            return Optional<Any>.none as Any
+        }
+        // Case 3 is handled here:
+        if type(of: object as Any) == swiftStdlibSwiftValueClass {
+            return object
+            // Since this returns Any, the object is casted almost immediately — e.g.:
+            //   _SwiftValue.fetch(x) as SomeStruct
+            // which will immediately unbox the native box. For callers, it will be exactly
+            // as if we returned the unboxed value directly.
+        }
+        
+        // On Linux, case 2 is handled below, and case 3 can't happen —
+        // the compiler will produce SwiftFoundation._SwiftValue boxes rather than ObjC ones.
+        #endif
+        
         if object === kCFBooleanTrue {
             return true
         } else if object === kCFBooleanFalse {
