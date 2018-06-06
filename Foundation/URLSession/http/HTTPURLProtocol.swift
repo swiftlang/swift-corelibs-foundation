@@ -401,10 +401,12 @@ internal extension _HTTPURLProtocol {
 
         let scheme = request.url?.scheme
         let host = request.url?.host
+        let port = request.url?.port
 
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
+        components.port = port
         //The path must either begin with "/" or be an empty string.
         if targetURL.relativeString.first != "/" {
             components.path = "/" + targetURL.relativeString
