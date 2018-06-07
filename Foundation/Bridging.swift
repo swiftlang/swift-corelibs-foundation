@@ -150,7 +150,7 @@ internal final class _SwiftValue : NSObject, NSCopying {
             // as if we returned the unboxed value directly.
         }
         
-        // On Linux, case 2 is handled below, and case 3 can't happen —
+        // On Linux, case 2 is handled by the stdlib bridging machinery, and case 3 can't happen —
         // the compiler will produce SwiftFoundation._SwiftValue boxes rather than ObjC ones.
         #endif
         
@@ -158,8 +158,6 @@ internal final class _SwiftValue : NSObject, NSCopying {
             return true
         } else if object === kCFBooleanFalse {
             return false
-        } else if type(of: object) == NSNull.self {
-            return Optional<Any>.none as Any
         } else if let container = object as? _SwiftValue {
             return container.value
         } else if let val = object as? _StructBridgeable {
