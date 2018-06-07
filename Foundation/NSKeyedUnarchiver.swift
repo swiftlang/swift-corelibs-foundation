@@ -483,7 +483,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 _cacheObject(object!, forReference: objectRef as! _NSKeyedArchiverUID)
             }
         } else {
-            object = dereferencedObject as AnyObject
+            object = _SwiftValue.store(dereferencedObject)
         }
 
         return _replacementObject(object)

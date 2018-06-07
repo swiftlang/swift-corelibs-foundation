@@ -337,7 +337,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             } else {
               let val1 = object(at: idx)
               let val2 = otherArray[idx]
-                if !((val1 as AnyObject) as! NSObject).isEqual(val2 as AnyObject) {
+                if !_SwiftValue.store(val1).isEqual(_SwiftValue.store(val2)) {
                     return false
                 }
             }
