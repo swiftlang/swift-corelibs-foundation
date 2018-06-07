@@ -668,19 +668,19 @@ extension NSString {
     
     public func uppercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
+        CFStringUppercase(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
 
     public func lowercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
+        CFStringLowercase(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
     
     public func capitalized(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
+        CFStringCapitalize(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
     
