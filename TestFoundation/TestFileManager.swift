@@ -1096,10 +1096,17 @@ VIDEOS=StopgapVideos
             try? FileManager.default.removeItem(at: path)
         }
         
+        var environment = [ "XDG_CONFIG_HOME": path.path,
+                            "_NSFileManagerUseXDGPathsForDirectoryDomains": "YES" ]
+        
+        // Copy all LD_* and DYLD_* variables over, in case we're running with altered paths (e.g. from ninja test on Linux)
+        for entry in ProcessInfo.processInfo.environment.lazy.filter({ $0.key.hasPrefix("DYLD_") || $0.key.hasPrefix("LD_") }) {
+            environment[entry.key] = entry.value
+        }
+        
         let helper = xdgTestHelperURL()
         let (stdout, _) = try runTask([ helper.path, "--nspathfor", method, identifier ],
-                                      environment: [ "XDG_CONFIG_HOME": path.path,
-                                                     "_NSFileManagerUseXDGPathsForDirectoryDomains": "YES" ])
+                                      environment: environment)
         
         return stdout.trimmingCharacters(in: CharacterSet.newlines)
     }
