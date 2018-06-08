@@ -57,20 +57,11 @@ open class Bundle: NSObject {
         let pointer = unsafeBitCast(aClass, to: UnsafeRawPointer.self)
         
         if let path = _CFBundleDlfcnCopyPathToBinaryContainingSwiftClass(pointer) {
-            
-            // dladdr() on Linux is documented to return argv[0]
-            // If this is argv[0], do not create a new bundle (which will use the main bundle below).
-            let pathNS = unsafeBitCast(path, to: NSString.self)
-            let pathString = pathNS as String
-            if ProcessInfo.processInfo.arguments.first != pathString {
-                
-                let url = unsafeBitCast(NSURL(fileURLWithPath: pathString), to: CFURL.self)
-                if let bundleURL = _CFBundleCopyBundleURLForExecutableURL(url) {
-                    _bundle = CFBundleCreate(kCFAllocatorSystemDefault, bundleURL.takeRetainedValue())
-                } else {
-                    fatalError("Class '\(aClass)' resolved to path \(pathNS) but couldn't find a bundle associated with that executable.")
-                }
-                
+            let url = unsafeBitCast(NSURL(fileURLWithPath: pathString), to: CFURL.self)
+            if let bundleURL = _CFBundleCopyBundleURLForExecutableURL(url)?.takeRetainedValue() {
+                _bundle = CFBundleCreate(kCFAllocatorSystemDefault, bundleURL())
+            } else {
+                fatalError("Class '\(aClass)' resolved to path \(pathNS) but couldn't find a bundle associated with that executable.")
             }
         }
         
