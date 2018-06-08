@@ -73,6 +73,7 @@ class TestCharacterSet : XCTestCase {
             ("test_SymmetricDifference", test_SymmetricDifference),
             ("test_formUnion", test_formUnion),
             ("test_union", test_union),
+            ("test_SR5971", test_SR5971),
         ]
     }
     
@@ -356,6 +357,15 @@ class TestCharacterSet : XCTestCase {
         let charset = CharacterSet(charactersIn: "a")
         let union = charset.union(CharacterSet(charactersIn: "A"))
         XCTAssertTrue(union.contains("A" as UnicodeScalar))
+    }
+
+    func test_SR5971() {
+        let problematicString = "\u{10000}"
+        let charset1 = CharacterSet(charactersIn:problematicString) // this should not crash
+        XCTAssertTrue(charset1.contains("\u{10000}"))
+        // Case from SR-3215
+        let charset2 = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&+")
+        XCTAssertTrue(charset2.contains("+"))
     }
     
 }
