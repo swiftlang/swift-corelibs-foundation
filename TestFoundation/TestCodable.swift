@@ -348,13 +348,11 @@ class TestCodable : XCTestCase {
             TimeZone(identifier: "America/Los_Angeles")!,
             TimeZone(identifier: "UTC")!,
             ]
-        
-        #if !os(Linux)
-            // Disabled due to [SR-5598] bug, which occurs on Linux, and breaks
-            // TimeZone.current == TimeZone(identifier: TimeZone.current.identifier) equality,
-            // causing encode -> decode -> compare test to fail.
-            values.append(TimeZone.current)
-        #endif
+
+        // Disabled due to [SR-5598] bug, which occurs on Linux, and breaks
+        // TimeZone.current == TimeZone(identifier: TimeZone.current.identifier) equality,
+        // causing encode -> decode -> compare test to fail.
+        // values.append(TimeZone.current)
 #else
         var values = [
             TimeZone(identifier: "UTC")!,
@@ -393,13 +391,11 @@ class TestCodable : XCTestCase {
             Calendar(identifier: .republicOfChina),
             ]
 
-        #if os(Linux)
             // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
             // serializing and deserializing TimeZone.current
             for index in values.indices {
                 values[index].timeZone = TimeZone(identifier: "UTC")!
             }
-        #endif
 
         return values
     }()
@@ -437,14 +433,10 @@ class TestCodable : XCTestCase {
     ]
 
     func test_DateComponents_JSON() {
-        #if os(Linux)
-            var calendar = Calendar(identifier: .gregorian)
-            // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
-            // serializing and deserializing TimeZone.current
-            calendar.timeZone = TimeZone(identifier: "UTC")!
-        #else
-            let calendar = Calendar(identifier: .gregorian)
-        #endif
+        var calendar = Calendar(identifier: .gregorian)
+        // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
+        // serializing and deserializing TimeZone.current
+        calendar.timeZone = TimeZone(identifier: "UTC")!
 
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
         do {
