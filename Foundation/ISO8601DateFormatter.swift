@@ -37,6 +37,8 @@ extension ISO8601DateFormatter {
         
         public static var withColonSeparatorInTimeZone = ISO8601DateFormatter.Options(rawValue: 1 << 10)
         
+        public static var withFractionalSeconds = ISO8601DateFormatter.Options(rawValue: 1 << 11)
+        
         public static var withFullDate = ISO8601DateFormatter.Options(rawValue: withYear.rawValue + withMonth.rawValue + withDay.rawValue + withDashSeparatorInDate.rawValue)
         
         public static var withFullTime = ISO8601DateFormatter.Options(rawValue: withTime.rawValue + withTimeZone.rawValue + withColonSeparatorInTime.rawValue + withColonSeparatorInTimeZone.rawValue)
