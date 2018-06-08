@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !(DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android))
+@testable import SwiftFoundation
+#endif
+
 class TestFileManager : XCTestCase {
     
     static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
