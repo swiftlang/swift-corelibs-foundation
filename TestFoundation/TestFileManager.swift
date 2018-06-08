@@ -7,14 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !(DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android))
+#if !DEPLOYMENT_RUNTIME_OBJC
 @testable import SwiftFoundation
 #endif
 
 class TestFileManager : XCTestCase {
     
     static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestFileManager) -> () throws -> Void)] = [
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),
             ("test_moveFile", test_moveFile),
@@ -34,9 +34,17 @@ class TestFileManager : XCTestCase {
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
             ("test_XDGStopgapsCoverAllConstants", test_XDGStopgapsCoverAllConstants),
+        ]
+        
+#if !DEPLOYMENT_RUNTIME_OBJC
+        tests.append(contentsOf: [
             ("test_parseXDGConfiguration", test_parseXDGConfiguration),
             ("test_xdgURLSelection", test_xdgURLSelection),
-        ]
+            ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
+        ])
+#endif
+        
+        return tests
     }
     
     func ignoreError(_ block: () throws -> Void) {
@@ -954,6 +962,7 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
     }
     
+#if !DEPLOYMENT_RUNTIME_OBJC // XDG tests require swift-corelibs-foundation
     func test_XDGStopgapsCoverAllConstants() {
         let stopgaps = _XDGUserDirectory.stopgapDefaultDirectoryURLs
         for directory in _XDGUserDirectory.allDirectories {
@@ -1062,11 +1071,69 @@ VIDEOS=StopgapVideos
         }
         
         assertSameAbsolutePath(_XDGUserDirectory.desktop.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("UserDesktop"))
-        
         assertSameAbsolutePath(_XDGUserDirectory.publicShare.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("SystemPublicShare"))
-        
         assertSameAbsolutePath(_XDGUserDirectory.music.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("StopgapMusic"))
     }
     
+    enum TestError: Error {
+        case notImplementedOnThisPlatform
+    }
     
+    func printPathByRunningHelper(withConfiguration config: String, method: String, identifier: String) throws -> String {
+        #if os(Android)
+            throw TestError.notImplementedOnThisPlatform
+        #endif
+        
+        let uuid = UUID().uuidString
+        let path = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("org.swift.Foundation.XDGTestHelper").appendingPathComponent(uuid)
+        try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
+        
+        let configFilePath = path.appendingPathComponent("user-dirs.dirs")
+        try config.write(to: configFilePath, atomically: true, encoding: .utf8)
+        defer {
+            try? FileManager.default.removeItem(at: path)
+        }
+        
+        let helper = xdgTestHelperURL()
+        let (stdout, _) = try runTask([ helper.path, "--nspathfor", method, identifier ],
+                                      environment: [ "XDG_CONFIG_HOME": path.path,
+                                                     "_NSFileManagerUseXDGPathsForDirectoryDomains": "YES" ])
+        
+        return stdout.trimmingCharacters(in: CharacterSet.newlines)
+    }
+    
+    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) {
+        for method in [ "NSSearchPath", "FileManagerDotURLFor", "FileManagerDotURLsFor" ] {
+            do {
+                let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
+                XCTAssertEqual(found, path)
+            } catch let error {
+                XCTFail("Failed with method \(method), configuration \(config), identifier \(identifier), equal to \(path), error \(error)")
+            }
+        }
+    }
+    
+    func test_fetchXDGPathsFromHelper() {
+        let prefix = NSHomeDirectory() + "/_Foundation_Test_"
+        
+        let configuration = """
+        DESKTOP=\(prefix)/Desktop
+        DOWNLOAD=\(prefix)/Download
+        PUBLICSHARE=\(prefix)/PublicShare
+        DOCUMENTS=\(prefix)/Documents
+        MUSIC=\(prefix)/Music
+        PICTURES=\(prefix)/Pictures
+        VIDEOS=\(prefix)/Videos
+        """
+        
+        assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
+        assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
+        assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
+        assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
+        assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
+        assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
+        assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
+    }
+#endif // !DEPLOYMENT_RUNTIME_OBJC
+
 }

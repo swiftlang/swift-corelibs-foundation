@@ -578,7 +578,7 @@ public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchP
     }
     
     return result.map { (url) in
-        var path = url.path
+        var path = url.absoluteURL.path
         if expandTilde {
             path = NSString(string: path).expandingTildeInPath
         }

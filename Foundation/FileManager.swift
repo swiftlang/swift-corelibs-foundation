@@ -7,9 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
     import Darwin
-#elseif os(Linux) || CYGWIN
+#endif
+
+#if canImport(Glibc)
     import Glibc
 #endif
 
@@ -128,23 +130,22 @@ open class FileManager : NSObject {
         
         init?(_ domainMask: SearchPathDomainMask) {
             if domainMask == .systemDomainMask {
-                self = .system
+                self = .system; return
             }
             if domainMask == .localDomainMask {
-                self = .local
+                self = .local; return
             }
             if domainMask == .networkDomainMask {
-                self = .network
+                self = .network; return
             }
             if domainMask == .userDomainMask {
-                self = .user
+                self = .user; return
             }
             
             return nil
         }
     }
     
-    #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
     private func darwinPathURLs(for domain: _SearchPathDomain, system: String?, local: String?, network: String?, userHomeSubpath: String?) -> [URL] {
         switch domain {
         case .system:
@@ -174,7 +175,6 @@ open class FileManager : NSObject {
             return [ URL(fileURLWithPath: all, isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
         }
     }
-    #endif
     
     #if os(Windows) // Non-Apple OSes that do not implement FHS/XDG are not currently supported.
     @available(*, unavailable, message: "Not implemented for this OS")
@@ -182,128 +182,36 @@ open class FileManager : NSObject {
         NSUnimplemented()
     }
     #else
-    
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
     open func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
-        
         guard let domain = _SearchPathDomain(domainMask) else {
             fatalError("Values other than .systemDomainMask, .localDomainMask, .userDomainMask, .networkDomainMask are unsupported")
         }
         
         // We are going to return appropriate paths on Darwin, but [] on platforms that do not have comparable locations.
         // For example, on FHS/XDG systems, applications are not installed in a single path.
-
-        #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-        // For Darwin:
-        switch directory {
-        case .applicationDirectory:
-            return darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true)
-
-        case .demoApplicationDirectory:
-            return darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true)
-
-        case .developerApplicationDirectory:
-            return darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true)
-            
-        case .adminApplicationDirectory:
-            return darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true)
-            
-        case .libraryDirectory:
-            return darwinPathURLs(for: domain, all: "Library")
-            
-        case .developerDirectory:
-            return darwinPathURLs(for: domain, all: "Developer", useLocalDirectoryForSystem: true)
-            
-        case .documentationDirectory:
-            return darwinPathURLs(for: domain, all: "Library/Documentation")
-            
-        case .coreServiceDirectory:
-            return darwinPathURLs(for: domain, system: "/System/Library/CoreServices", local: nil, network: nil, userHomeSubpath: nil)
-            
-        case .autosavedInformationDirectory:
-            return darwinPathURLs(for: domain, system: nil, local: nil, network: nil, userHomeSubpath: "Library/Autosave Information")
-            
-        case .inputMethodsDirectory:
-            return darwinPathURLs(for: domain, all: "Library/Input Methods")
-            
-        case .preferencePanesDirectory:
-            return darwinPathURLs(for: domain, system: "/System/Library/PreferencePanes", local: "/Library/PreferencePanes", network: nil, userHomeSubpath: "Library/PreferencePanes")
-
-        case .applicationScriptsDirectory:
-            // Only the ObjC Foundation can know where this is.
-            return []
-            
-        case .allApplicationsDirectory:
-            var directories: [URL] = []
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true))
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true))
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true))
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true))
-            return directories
-            
-        case .allLibrariesDirectory:
-            var directories: [URL] = []
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Library"))
-            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer"))
-            return directories
-            
-        case .printerDescriptionDirectory:
-            guard domain == .system else { return [] }
-            return [ URL(fileURLWithPath: "/System/Library/Printers/PPD", isDirectory: true) ]
         
-        case .desktopDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Desktop", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-            
-        case .documentDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Documents", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .cachesDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Library/Caches", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .applicationSupportDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Library/Application Support", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .downloadsDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Downloads", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .userDirectory:
-            return darwinPathURLs(for: domain, system: nil, local: "/Users", network: "/Network/Users", userHomeSubpath: nil)
-            
-        case .moviesDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Movies", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-            
-        case .musicDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Music", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .picturesDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Pictures", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .sharedPublicDirectory:
-            guard domain == .user else { return [] }
-            return [ URL(fileURLWithPath: "Public", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
-
-        case .trashDirectory:
-            let userTrashURL = URL(fileURLWithPath: ".Trash", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true))
-            if domain == .user || domain == .local {
-                return [ userTrashURL ]
-            } else {
-                return []
-            }
-            
-        case .itemReplacementDirectory:
-            // This directory is only returned by url(for:in:appropriateFor:create:)
-            return []
+        let useDarwinPaths: Bool
+        if let envVar = ProcessInfo.processInfo.environment["_NSFileManagerUseXDGPathsForDirectoryDomains"] {
+            useDarwinPaths = !NSString(string: envVar).boolValue
+        } else {
+            #if canImport(Darwin)
+                useDarwinPaths = true
+            #else
+                useDarwinPaths = false
+            #endif
         }
-        #elseif !os(Windows)
+        
+        if useDarwinPaths {
+            return darwinURLs(for: directory, in: domain)
+        } else {
+            return xdgURLs(for: directory, in: domain)
+        }
+    }
+    #endif
+    
+    private func xdgURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
         // FHS/XDG-compliant OSes:
         switch directory {
         case .autosavedInformationDirectory:
@@ -327,7 +235,7 @@ open class FileManager : NSObject {
             guard domain == .user else { return [] }
             let path = _SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
             return [ URL(fileURLWithPath: path, isDirectory: true) ]
-
+            
         case .downloadsDirectory:
             guard domain == .user else { return [] }
             return [ _XDGUserDirectory.download.url ]
@@ -358,7 +266,7 @@ open class FileManager : NSObject {
             } else {
                 return []
             }
-        
+            
         // None of these are supported outside of Darwin:
         case .applicationDirectory:
             fallthrough
@@ -391,11 +299,118 @@ open class FileManager : NSObject {
         case .itemReplacementDirectory:
             return []
         }
-        #endif
-        
     }
-    #endif
     
+    private func darwinURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
+        switch directory {
+        case .applicationDirectory:
+            return darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true)
+            
+        case .demoApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true)
+            
+        case .developerApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true)
+            
+        case .adminApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true)
+            
+        case .libraryDirectory:
+            return darwinPathURLs(for: domain, all: "Library")
+            
+        case .developerDirectory:
+            return darwinPathURLs(for: domain, all: "Developer", useLocalDirectoryForSystem: true)
+            
+        case .documentationDirectory:
+            return darwinPathURLs(for: domain, all: "Library/Documentation")
+            
+        case .coreServiceDirectory:
+            return darwinPathURLs(for: domain, system: "/System/Library/CoreServices", local: nil, network: nil, userHomeSubpath: nil)
+            
+        case .autosavedInformationDirectory:
+            return darwinPathURLs(for: domain, system: nil, local: nil, network: nil, userHomeSubpath: "Library/Autosave Information")
+            
+        case .inputMethodsDirectory:
+            return darwinPathURLs(for: domain, all: "Library/Input Methods")
+            
+        case .preferencePanesDirectory:
+            return darwinPathURLs(for: domain, system: "/System/Library/PreferencePanes", local: "/Library/PreferencePanes", network: nil, userHomeSubpath: "Library/PreferencePanes")
+            
+        case .applicationScriptsDirectory:
+            // Only the ObjC Foundation can know where this is.
+            return []
+            
+        case .allApplicationsDirectory:
+            var directories: [URL] = []
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true))
+            return directories
+            
+        case .allLibrariesDirectory:
+            var directories: [URL] = []
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Library"))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer"))
+            return directories
+            
+        case .printerDescriptionDirectory:
+            guard domain == .system else { return [] }
+            return [ URL(fileURLWithPath: "/System/Library/Printers/PPD", isDirectory: true) ]
+            
+        case .desktopDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Desktop", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .documentDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Documents", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .cachesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Library/Caches", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .applicationSupportDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Library/Application Support", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Downloads", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .userDirectory:
+            return darwinPathURLs(for: domain, system: nil, local: "/Users", network: "/Network/Users", userHomeSubpath: nil)
+            
+        case .moviesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Movies", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Music", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Pictures", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Public", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .trashDirectory:
+            let userTrashURL = URL(fileURLWithPath: ".Trash", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true))
+            if domain == .user || domain == .local {
+                return [ userTrashURL ]
+            } else {
+                return []
+            }
+            
+        case .itemReplacementDirectory:
+            // This directory is only returned by url(for:in:appropriateFor:create:)
+            return []
+        }
+    }
+        
     private enum URLForDirectoryError: Error {
         case directoryUnknown
     }
