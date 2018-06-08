@@ -296,7 +296,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
-                return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
+                return unsafeBitCast(_storage._guts.startASCII, to: UnsafePointer<Int8>.self)
             }
         }
         return nil
@@ -305,7 +305,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     internal var _fastContents: UnsafePointer<UniChar>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousUTF16 {
-                return UnsafePointer<UniChar>(_storage._core.startUTF16)
+                return UnsafePointer<UniChar>(_storage._guts.startUTF16)
             }
         }
         return nil
@@ -858,7 +858,7 @@ extension NSString {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
                 used = min(self.length, maxBufferCount - 1)
-                _storage._core.startASCII.withMemoryRebound(to: Int8.self,
+                _storage._guts.startASCII.withMemoryRebound(to: Int8.self,
                                                             capacity: used) {
                     buffer.moveAssign(from: $0, count: used)
                 }
