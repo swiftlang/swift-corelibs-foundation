@@ -226,7 +226,7 @@ open class Bundle: NSObject {
     // MARK: - Path Resource Lookup - Class
 
     open class func path(forResource name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        return Bundle.url(forResource: name, withExtension: ext, subdirectory: bundlePath, in: URL(fileURLWithPath: bundlePath))?.path ?? nil
+        return Bundle.url(forResource: name, withExtension: ext, subdirectory: bundlePath, in: URL(fileURLWithPath: bundlePath))?.path
     }
     
     open class func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
