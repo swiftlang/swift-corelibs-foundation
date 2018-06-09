@@ -39,7 +39,7 @@ internal extension URLSession {
         let allowsCellularAccess: Bool
         
         /// allows background tasks to be scheduled at the discretion of the system for optimal performance.
-        let discretionary: Bool
+        let isDiscretionary: Bool
         
         /// The proxy dictionary, as described by <CFNetwork/CFHTTPStream.h>
         let connectionProxyDictionary: [AnyHashable : Any]?
@@ -83,7 +83,7 @@ internal extension URLSession._Configuration {
         timeoutIntervalForResource = config.timeoutIntervalForResource
         networkServiceType = config.networkServiceType
         allowsCellularAccess = config.allowsCellularAccess
-        discretionary = config.discretionary
+        isDiscretionary = config.isDiscretionary
         connectionProxyDictionary = config.connectionProxyDictionary
         httpShouldUsePipelining = config.httpShouldUsePipelining
         httpShouldSetCookies = config.httpShouldSetCookies
