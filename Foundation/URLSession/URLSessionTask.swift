@@ -431,8 +431,16 @@ open class URLSessionDownloadTask : URLSessionTask {
     open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) {
         super.cancel()
         
-        // A token Data value is passed to the client to prevent unexpected
-        // failures that may be caused by passing nil instead
+        /*
+         * In Objective-C, this method relies on an Apple-maintained XPC process
+         * to manage the bookmarking of partially downloaded data. Therefore, the
+         * original behavior cannot be directly ported, here.
+         *
+         * Instead, we just call the completionHandler directly.
+         *
+         * A token Data value is passed to the client to prevent unexpected failures
+         * that may be caused from passing nil instead.
+         */
         completionHandler(Data())
     }
 }
