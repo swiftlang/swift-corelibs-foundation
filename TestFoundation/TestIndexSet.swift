@@ -152,6 +152,10 @@ class TestIndexSet : XCTestCase {
         expected.insert(integersIn: 6..<9)
         XCTAssertTrue(removalSet.isEqual(to: expected))
         
+        // Removing a non-existent element has no effect
+        removalSet.remove(9)
+        XCTAssertTrue(removalSet.isEqual(to: expected))
+        
         
     }
     
