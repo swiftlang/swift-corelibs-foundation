@@ -147,11 +147,11 @@ class TestIndexSet : XCTestCase {
         XCTAssertEqual(removalSet.firstIndex, 1)
         XCTAssertEqual(removalSet.lastIndex, 8)
         
-        var additionSet = IndexSet()
-        additionSet.insert(1)
-        additionSet.insert(integersIn: 6..<9)
+        var expected = IndexSet()
+        expected.insert(1)
+        expected.insert(integersIn: 6..<9)
+        XCTAssertTrue(removalSet.isEqual(to: expected))
         
-        XCTAssertTrue(removalSet.isEqual(to: additionSet))
         
     }
     
