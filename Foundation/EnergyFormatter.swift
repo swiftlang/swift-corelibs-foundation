@@ -179,12 +179,11 @@ open class EnergyFormatter: Formatter {
     open override func objectValue(_ string: String) throws -> Any? { return nil }
     
     /// Regions that use calories
-    private static let caloriesRegions: Set<String> = ["GB", "US"]
+    private static let caloriesRegions: Set<String> = ["en_US", "en_US_POSIX", "haw_US", "es_US", "chr_US", "en_GB", "kw_GB", "cy_GB", "gv_GB"]
     
     /// Whether the region uses calories
     private var usesCalories: Bool {
-        guard let region = numberFormatter.locale.regionCode else { return false }
-        return EnergyFormatter.caloriesRegions.contains(region)
+        return EnergyFormatter.caloriesRegions.contains(numberFormatter.locale.identifier)
     }
     
 }
