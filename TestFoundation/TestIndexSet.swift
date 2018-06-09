@@ -156,7 +156,10 @@ class TestIndexSet : XCTestCase {
         removalSet.remove(9)
         XCTAssertTrue(removalSet.isEqual(to: expected))
         
+        removalSet.removeAllIndexes()
         
+        expected = IndexSet()
+        XCTAssertTrue(removalSet.isEqual(to: expected))
     }
     
     func test_addition() {
