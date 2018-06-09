@@ -434,7 +434,7 @@ open class FileManager : NSObject {
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
         let len = _fileSystemRepresentation(withPath: path) {
-                readlink($0, &buf, bufSize)
+            readlink($0, &buf, bufSize)
         }
         if len < 0 {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -503,16 +503,16 @@ open class FileManager : NSObject {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(fileInfo.st_blksize))
         defer { buffer.deallocate() }
 
-        var bytesRemaining = Int64(fileInfo.st_size)
+        var bytesRemaining = Int(fileInfo.st_size)
         while bytesRemaining > 0 {
-            let bytesToRead = min(bytesRemaining, Int64(fileInfo.st_blksize))
-            let bytesRead = try _readFrom(fd: srcfd, toBuffer: buffer, length: Int(bytesToRead), filename: srcPath)
+            let bytesToRead = min(bytesRemaining, Int(fileInfo.st_blksize))
+            let bytesRead = try _readFrom(fd: srcfd, toBuffer: buffer, length: bytesToRead, filename: srcPath)
             if bytesRead == 0 {
                 // Early EOF
                 return
             }
             try _writeTo(fd: dstfd, fromBuffer: buffer, length: bytesRead, filename: dstPath)
-            bytesRemaining -= Int64(bytesRead)
+            bytesRemaining -= bytesRead
         }
     }
 
@@ -693,11 +693,10 @@ open class FileManager : NSObject {
     /* Process working directory management. Despite the fact that these are instance methods on FileManager, these methods report and change (respectively) the working directory for the entire process. Developers are cautioned that doing so is fraught with peril.
      */
     open var currentDirectoryPath: String {
-        let length = Int(PATH_MAX) + 1
-        var buf = [Int8](repeating: 0, count: length)
-        getcwd(&buf, length)
-        let result = self.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
-        return result
+        let len = Int(PATH_MAX) + 1
+        var buf = [Int8](repeating: 0, count: len)
+        getcwd(&buf, len)
+        return string(withFileSystemRepresentation: buf, length: len)
     }
     
     @discardableResult
@@ -779,9 +778,9 @@ open class FileManager : NSObject {
             buffer2.deallocate()
         }
 
-        var bytesLeft = size
+        var bytesLeft = Int(size)
         while bytesLeft > 0 {
-            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
+            let bytesToRead = min(bufSize, bytesLeft)
             guard read(fd1, buffer1, bytesToRead) == bytesToRead else {
                 return false
             }
@@ -791,15 +790,15 @@ open class FileManager : NSObject {
             guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
                 return false
             }
-            bytesLeft -= Int64(bytesToRead)
+            bytesLeft -= bytesToRead
         }
         return true
     }
 
     private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
         let bufSize = Int(size)
-        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
-        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
+        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
 
         let size1 = readlink(file1Rep, buffer1, bufSize)
         let size2 = readlink(file2Rep, buffer2, bufSize)
