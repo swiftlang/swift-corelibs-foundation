@@ -428,7 +428,13 @@ open class URLSessionDownloadTask : URLSessionTask {
      * If resume data cannot be created, the completion handler will be
      * called with nil resumeData.
      */
-    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) { NSUnimplemented() }
+    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) {
+        super.cancel()
+        
+        // A token Data value is passed to the client to prevent unexpected
+        // failures that may be caused by passing nil instead
+        completionHandler(Data())
+    }
 }
 
 /*
