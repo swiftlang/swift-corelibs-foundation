@@ -22,4 +22,4 @@ _C_LABEL(__CFCharacterSetBitmapDataSize):
     .int _C_LABEL(__CFCharacterSetBitmapDataEnd) - _C_LABEL(__CFCharacterSetBitmapData)
 
 NO_EXEC_STACK_DIRECTIVE
-
+SAFESEH_REGISTRATION_DIRECTIVE
