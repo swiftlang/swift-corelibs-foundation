@@ -139,7 +139,7 @@ class TestIndexSet : XCTestCase {
     }
     
     func test_removal() {
-        let removalSet = NSMutableIndexSet(indexesIn: NSRange(location: 0, length: 10))
+        var removalSet = NSMutableIndexSet(indexesIn: NSRange(location: 0, length: 10))
         removalSet.remove(0)
         removalSet.remove(in: NSRange(location: 9, length: 5))
         removalSet.remove(in: NSRange(location: 2, length: 4))
@@ -147,12 +147,41 @@ class TestIndexSet : XCTestCase {
         XCTAssertEqual(removalSet.firstIndex, 1)
         XCTAssertEqual(removalSet.lastIndex, 8)
         
-        var additionSet = IndexSet()
-        additionSet.insert(1)
-        additionSet.insert(integersIn: 6..<9)
+        var expected = IndexSet()
+        expected.insert(1)
+        expected.insert(integersIn: 6..<9)
+        XCTAssertTrue(removalSet.isEqual(to: expected))
         
-        XCTAssertTrue(removalSet.isEqual(to: additionSet))
+        // Removing a non-existent element has no effect
+        removalSet.remove(9)
+        XCTAssertTrue(removalSet.isEqual(to: expected))
         
+        removalSet.removeAllIndexes()
+        
+        expected = IndexSet()
+        XCTAssertTrue(removalSet.isEqual(to: expected))
+        
+        // Set removal
+        removalSet = NSMutableIndexSet(indexesIn: NSRange(location: 0, length: 10))
+        removalSet.remove(IndexSet(integersIn: 8..<11))
+        removalSet.remove(IndexSet(integersIn: 0..<2))
+        removalSet.remove(IndexSet(integersIn: 4..<6))
+        XCTAssertEqual(removalSet.count, 4)
+        XCTAssertEqual(removalSet.firstIndex, 2)
+        XCTAssertEqual(removalSet.lastIndex, 7)
+
+        expected = IndexSet()
+        expected.insert(integersIn: 2..<4)
+        expected.insert(integersIn: 6..<8)
+        XCTAssertTrue(removalSet.isEqual(to: expected))
+        
+        // Removing an empty set has no effect
+        removalSet.remove(IndexSet())
+        XCTAssertTrue(removalSet.isEqual(to: expected))
+        
+        // Removing non-existent elements has no effect
+        removalSet.remove(IndexSet(integersIn: 0..<2))
+        XCTAssertTrue(removalSet.isEqual(to: expected))
     }
     
     func test_addition() {
