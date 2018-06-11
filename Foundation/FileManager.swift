@@ -985,9 +985,7 @@ open class FileManager : NSObject {
             fatalError("string could not be converted")
         }
         let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        for i in 0..<len {
-            buf.advanced(by: i).initialize(to: 0)
-        }
+        buf.initialize(repeating: 0, count: len)
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
             buf.deallocate()
