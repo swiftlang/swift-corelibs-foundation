@@ -2207,7 +2207,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILD_ROOT}/Debug/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILD_ROOT}/Debug/TestFoundation.app/Contents/MacOS/";
+			shellScript = "cp ${BUILT_PRODUCTS_DIR}/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2650,6 +2650,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT DEBUG";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};

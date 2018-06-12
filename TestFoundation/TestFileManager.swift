@@ -7,10 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !DEPLOYMENT_RUNTIME_OBJC && (os(Linux) || os(Android))
-@testable import Foundation
-#else
-@testable import SwiftFoundation
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if (os(Linux) || os(Android))
+        @testable import Foundation
+    #else
+        @testable import SwiftFoundation
+    #endif
 #endif
 
 class TestFileManager : XCTestCase {
@@ -35,13 +37,18 @@ class TestFileManager : XCTestCase {
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
-            ("test_XDGStopgapsCoverAllConstants", test_XDGStopgapsCoverAllConstants),
         ]
+        
+#if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
+            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
+            ("test_xdgURLSelection", test_xdgURLSelection),
+        ])
+#endif
         
 #if !DEPLOYMENT_RUNTIME_OBJC
         tests.append(contentsOf: [
-            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
-            ("test_xdgURLSelection", test_xdgURLSelection),
             ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
         ])
 #endif
@@ -965,7 +972,9 @@ class TestFileManager : XCTestCase {
     }
     
 #if !DEPLOYMENT_RUNTIME_OBJC // XDG tests require swift-corelibs-foundation
-    func test_XDGStopgapsCoverAllConstants() {
+    
+    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT // These are white box tests for the internals of XDG parsing:
+    func test_xdgStopgapsCoverAllConstants() {
         let stopgaps = _XDGUserDirectory.stopgapDefaultDirectoryURLs
         for directory in _XDGUserDirectory.allDirectories {
             XCTAssertNotNil(stopgaps[directory])
@@ -1076,6 +1085,9 @@ VIDEOS=StopgapVideos
         assertSameAbsolutePath(_XDGUserDirectory.publicShare.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("SystemPublicShare"))
         assertSameAbsolutePath(_XDGUserDirectory.music.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("StopgapMusic"))
     }
+    #endif // NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    
+    // This test below is a black box test, and does not require @testable import.
     
     enum TestError: Error {
         case notImplementedOnThisPlatform
