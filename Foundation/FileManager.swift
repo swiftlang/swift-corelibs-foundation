@@ -300,7 +300,7 @@ open class FileManager : NSObject {
 
         try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
             contents.append(entryName)
-            if entryType == Int32(DT_DIR) {
+            if entryType == DT_DIR {
                 let subPath: String = path + "/" + entryName
                 let entries = try subpathsOfDirectory(atPath: subPath)
                 contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
