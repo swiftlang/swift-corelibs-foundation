@@ -503,16 +503,17 @@ open class FileManager : NSObject {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(fileInfo.st_blksize))
         defer { buffer.deallocate() }
 
-        var bytesRemaining = Int(fileInfo.st_size)
+        // Casted to Int64 because fileInfo.st_size is 64 bits long even on 32 bit platforms
+        var bytesRemaining = Int64(fileInfo.st_size)
         while bytesRemaining > 0 {
-            let bytesToRead = min(bytesRemaining, Int(fileInfo.st_blksize))
-            let bytesRead = try _readFrom(fd: srcfd, toBuffer: buffer, length: bytesToRead, filename: srcPath)
+            let bytesToRead = min(bytesRemaining, Int64(fileInfo.st_blksize))
+            let bytesRead = try _readFrom(fd: srcfd, toBuffer: buffer, length: Int(bytesToRead), filename: srcPath)
             if bytesRead == 0 {
                 // Early EOF
                 return
             }
             try _writeTo(fd: dstfd, fromBuffer: buffer, length: bytesRead, filename: dstPath)
-            bytesRemaining -= bytesRead
+            bytesRemaining -= Int64(bytesRead)
         }
     }
 
@@ -693,10 +694,10 @@ open class FileManager : NSObject {
     /* Process working directory management. Despite the fact that these are instance methods on FileManager, these methods report and change (respectively) the working directory for the entire process. Developers are cautioned that doing so is fraught with peril.
      */
     open var currentDirectoryPath: String {
-        let len = Int(PATH_MAX) + 1
-        var buf = [Int8](repeating: 0, count: len)
-        getcwd(&buf, len)
-        return string(withFileSystemRepresentation: buf, length: len)
+        let length = Int(PATH_MAX) + 1
+        var buf = [Int8](repeating: 0, count: length)
+        getcwd(&buf, length)
+        return string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
     }
     
     @discardableResult
@@ -778,9 +779,9 @@ open class FileManager : NSObject {
             buffer2.deallocate()
         }
 
-        var bytesLeft = Int(size)
+        var bytesLeft = size
         while bytesLeft > 0 {
-            let bytesToRead = min(bufSize, bytesLeft)
+            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
             guard read(fd1, buffer1, bytesToRead) == bytesToRead else {
                 return false
             }
@@ -790,7 +791,7 @@ open class FileManager : NSObject {
             guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
                 return false
             }
-            bytesLeft -= bytesToRead
+            bytesLeft -= Int64(bytesToRead)
         }
         return true
     }
