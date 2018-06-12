@@ -955,8 +955,8 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
                     && other.value == self.value)
     }
     
-    open let name: String
-    open let value: String?
+    public let name: String
+    public let value: String?
 }
 
 open class NSURLComponents: NSObject, NSCopying {

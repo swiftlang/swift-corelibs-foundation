@@ -265,9 +265,9 @@ open class URLSession : NSObject {
         let _ = URLSession.registerProtocols
     }
     
-    open let delegateQueue: OperationQueue
+    public let delegateQueue: OperationQueue
     open var delegate: URLSessionDelegate?
-    open let configuration: URLSessionConfiguration
+    public let configuration: URLSessionConfiguration
     
     /*
      * The sessionDescription property is available for the developer to
