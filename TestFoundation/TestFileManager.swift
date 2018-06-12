@@ -7,18 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    #if (os(Linux) || os(Android))
-        @testable import Foundation
-    #else
-        @testable import SwiftFoundation
-    #endif
-#endif
-
 class TestFileManager : XCTestCase {
     
     static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
-        var tests: [(String, (TestFileManager) -> () throws -> Void)] = [
+        return [
             ("test_createDirectory", test_createDirectory ),
             ("test_createFile", test_createFile ),
             ("test_moveFile", test_moveFile),
@@ -37,23 +29,8 @@ class TestFileManager : XCTestCase {
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
+            ("test_contentsEqual", test_contentsEqual)
         ]
-        
-#if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
-            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
-            ("test_xdgURLSelection", test_xdgURLSelection),
-        ])
-#endif
-        
-#if !DEPLOYMENT_RUNTIME_OBJC
-        tests.append(contentsOf: [
-            ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
-        ])
-#endif
-        
-        return tests
     }
     
     func ignoreError(_ block: () throws -> Void) {
@@ -970,191 +947,4 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
     }
-    
-#if !DEPLOYMENT_RUNTIME_OBJC // XDG tests require swift-corelibs-foundation
-    
-    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT // These are white box tests for the internals of XDG parsing:
-    func test_xdgStopgapsCoverAllConstants() {
-        let stopgaps = _XDGUserDirectory.stopgapDefaultDirectoryURLs
-        for directory in _XDGUserDirectory.allDirectories {
-            XCTAssertNotNil(stopgaps[directory])
-        }
-    }
-    
-    func test_parseXDGConfiguration() {
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        
-        let assertConfigurationProduces = { (configuration: String, paths: [_XDGUserDirectory: String]) in
-            XCTAssertEqual(_XDGUserDirectory.userDirectories(fromConfiguration: configuration).mapValues({ $0.absoluteURL.path }),
-                           paths.mapValues({ URL(fileURLWithPath: $0, isDirectory: true, relativeTo: home).absoluteURL.path }))
-        }
-        
-        assertConfigurationProduces("", [:])
-        
-        // Test partial configuration and paths relative to home.
-        assertConfigurationProduces(
-"""
-DESKTOP=/xdg_test/Desktop
-MUSIC=/xdg_test/Music
-PICTURES=Pictures
-""", [ .desktop: "/xdg_test/Desktop",
-       .music: "/xdg_test/Music",
-       .pictures: "Pictures" ])
-
-        // Test full configuration with XDG_…_DIR syntax, duplicate keys and varying indentation
-        // 'XDG_MUSIC_DIR' is duplicated, below.
-        assertConfigurationProduces(
-"""
-	XDG_MUSIC_DIR=ShouldNotBeUsedUseTheOneBelowInstead
-
-	XDG_DESKTOP_DIR=Desktop
-		XDG_DOWNLOAD_DIR=Download
-	XDG_PUBLICSHARE_DIR=Public
-XDG_DOCUMENTS_DIR=Documents
-	XDG_MUSIC_DIR=Music
-XDG_PICTURES_DIR=Pictures
-	XDG_VIDEOS_DIR=Videos
-""", [ .desktop: "Desktop",
-       .download: "Download",
-       .publicShare: "Public",
-       .documents: "Documents",
-       .music: "Music",
-       .pictures: "Pictures",
-       .videos: "Videos" ])
-        
-        // Same, without XDG…DIR.
-        assertConfigurationProduces(
-"""
-    MUSIC=ShouldNotBeUsedUseTheOneBelowInstead
-
-    DESKTOP=Desktop
-        DOWNLOAD=Download
-    PUBLICSHARE=Public
-DOCUMENTS=Documents
-    MUSIC=Music
-PICTURES=Pictures
-    VIDEOS=Videos
-""", [ .desktop: "Desktop",
-       .download: "Download",
-       .publicShare: "Public",
-       .documents: "Documents",
-       .music: "Music",
-       .pictures: "Pictures",
-       .videos: "Videos" ])
-    
-        assertConfigurationProduces(
-"""
-    DESKTOP=/home/Desktop
-This configuration file has an invalid syntax.
-""", [:])
-    }
-    
-    func test_xdgURLSelection() {
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        
-        let configuration = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=UserDesktop
-"""
-        )
-        
-        let osDefaults = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=SystemDesktop
-PUBLICSHARE=SystemPublicShare
-"""
-        )
-        
-        let stopgaps = _XDGUserDirectory.userDirectories(fromConfiguration:
-"""
-DESKTOP=StopgapDesktop
-DOWNLOAD=StopgapDownload
-PUBLICSHARE=StopgapPublicShare
-DOCUMENTS=StopgapDocuments
-MUSIC=StopgapMusic
-PICTURES=StopgapPictures
-VIDEOS=StopgapVideos
-"""
-        )
-        
-        let assertSameAbsolutePath = { (lhs: URL, rhs: URL) in
-            XCTAssertEqual(lhs.absoluteURL.path, rhs.absoluteURL.path)
-        }
-        
-        assertSameAbsolutePath(_XDGUserDirectory.desktop.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("UserDesktop"))
-        assertSameAbsolutePath(_XDGUserDirectory.publicShare.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("SystemPublicShare"))
-        assertSameAbsolutePath(_XDGUserDirectory.music.url(userConfiguration: configuration, osDefaultConfiguration: osDefaults, stopgaps: stopgaps), home.appendingPathComponent("StopgapMusic"))
-    }
-    #endif // NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    
-    // This test below is a black box test, and does not require @testable import.
-    
-    enum TestError: Error {
-        case notImplementedOnThisPlatform
-    }
-    
-    func printPathByRunningHelper(withConfiguration config: String, method: String, identifier: String) throws -> String {
-        #if os(Android)
-            throw TestError.notImplementedOnThisPlatform
-        #endif
-        
-        let uuid = UUID().uuidString
-        let path = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("org.swift.Foundation.XDGTestHelper").appendingPathComponent(uuid)
-        try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
-        
-        let configFilePath = path.appendingPathComponent("user-dirs.dirs")
-        try config.write(to: configFilePath, atomically: true, encoding: .utf8)
-        defer {
-            try? FileManager.default.removeItem(at: path)
-        }
-        
-        var environment = [ "XDG_CONFIG_HOME": path.path,
-                            "_NSFileManagerUseXDGPathsForDirectoryDomains": "YES" ]
-        
-        // Copy all LD_* and DYLD_* variables over, in case we're running with altered paths (e.g. from ninja test on Linux)
-        for entry in ProcessInfo.processInfo.environment.lazy.filter({ $0.key.hasPrefix("DYLD_") || $0.key.hasPrefix("LD_") }) {
-            environment[entry.key] = entry.value
-        }
-        
-        let helper = xdgTestHelperURL()
-        let (stdout, _) = try runTask([ helper.path, "--nspathfor", method, identifier ],
-                                      environment: environment)
-        
-        return stdout.trimmingCharacters(in: CharacterSet.newlines)
-    }
-    
-    func assertFetchingPath(withConfiguration config: String, identifier: String, yields path: String) {
-        for method in [ "NSSearchPath", "FileManagerDotURLFor", "FileManagerDotURLsFor" ] {
-            do {
-                let found = try printPathByRunningHelper(withConfiguration: config, method: method, identifier: identifier)
-                XCTAssertEqual(found, path)
-            } catch let error {
-                XCTFail("Failed with method \(method), configuration \(config), identifier \(identifier), equal to \(path), error \(error)")
-            }
-        }
-    }
-    
-    func test_fetchXDGPathsFromHelper() {
-        let prefix = NSHomeDirectory() + "/_Foundation_Test_"
-        
-        let configuration = """
-        DESKTOP=\(prefix)/Desktop
-        DOWNLOAD=\(prefix)/Download
-        PUBLICSHARE=\(prefix)/PublicShare
-        DOCUMENTS=\(prefix)/Documents
-        MUSIC=\(prefix)/Music
-        PICTURES=\(prefix)/Pictures
-        VIDEOS=\(prefix)/Videos
-        """
-        
-        assertFetchingPath(withConfiguration: configuration, identifier: "desktop", yields: "\(prefix)/Desktop")
-        assertFetchingPath(withConfiguration: configuration, identifier: "download", yields: "\(prefix)/Download")
-        assertFetchingPath(withConfiguration: configuration, identifier: "publicShare", yields: "\(prefix)/PublicShare")
-        assertFetchingPath(withConfiguration: configuration, identifier: "documents", yields: "\(prefix)/Documents")
-        assertFetchingPath(withConfiguration: configuration, identifier: "music", yields: "\(prefix)/Music")
-        assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
-        assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
-    }
-#endif // !DEPLOYMENT_RUNTIME_OBJC
-
 }
