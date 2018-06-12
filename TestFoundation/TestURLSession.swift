@@ -41,6 +41,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_cookiesStorage", test_cookiesStorage),
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
+            ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
         ]
     }
     
@@ -596,6 +597,40 @@ class TestURLSession : LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 30)
+    }
+
+    // Validate that the properties are correctly set
+    func test_initURLSessionConfiguration() {
+        let config = URLSessionConfiguration.default
+        config.requestCachePolicy = .useProtocolCachePolicy
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 604800
+        config.networkServiceType = .default
+        config.allowsCellularAccess = false
+        config.isDiscretionary = true
+        config.httpShouldUsePipelining = true
+        config.httpShouldSetCookies = true
+        config.httpCookieAcceptPolicy = .always
+        config.httpMaximumConnectionsPerHost = 2
+        config.httpCookieStorage = HTTPCookieStorage.shared
+        config.urlCredentialStorage = nil
+        config.urlCache = nil
+        config.shouldUseExtendedBackgroundIdleMode = true
+
+        XCTAssertEqual(config.requestCachePolicy, NSURLRequest.CachePolicy.useProtocolCachePolicy)
+        XCTAssertEqual(config.timeoutIntervalForRequest, 30)
+        XCTAssertEqual(config.timeoutIntervalForResource, 604800)
+        XCTAssertEqual(config.networkServiceType, NSURLRequest.NetworkServiceType.default)
+        XCTAssertEqual(config.allowsCellularAccess, false)
+        XCTAssertEqual(config.isDiscretionary, true)
+        XCTAssertEqual(config.httpShouldUsePipelining, true)
+        XCTAssertEqual(config.httpShouldSetCookies, true)
+        XCTAssertEqual(config.httpCookieAcceptPolicy, HTTPCookie.AcceptPolicy.always)
+        XCTAssertEqual(config.httpMaximumConnectionsPerHost, 2)
+        XCTAssertEqual(config.httpCookieStorage, HTTPCookieStorage.shared)
+        XCTAssertEqual(config.urlCredentialStorage, nil)
+        XCTAssertEqual(config.urlCache, nil)
+        XCTAssertEqual(config.shouldUseExtendedBackgroundIdleMode, true)
     }
 }
 
