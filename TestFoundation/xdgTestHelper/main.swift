@@ -7,12 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
 import Foundation
-#elseif os(Linux) || os(Android)
-@testable import Foundation
 #else
-@testable import SwiftFoundation
+import SwiftFoundation
 #endif
 
 enum HelperCheckStatus : Int32 {
@@ -57,93 +55,15 @@ class XDGCheck {
     }
 }
 
-// -----
-
-#if !DEPLOYMENT_RUNTIME_OBJC
-struct NSURLForPrintTest {
-    enum Method: String {
-        case NSSearchPath
-        case FileManagerDotURLFor
-        case FileManagerDotURLsFor
+if let arg = ProcessInfo.processInfo.arguments.last {
+    if arg == "--xdgcheck" {
+        XDGCheck.run()
     }
-    
-    enum Identifier: String {
-        case desktop
-        case download
-        case publicShare
-        case documents
-        case music
-        case pictures
-        case videos
+    if arg == "--getcwd" {
+        print(FileManager.default.currentDirectoryPath)
     }
-    
-    let method: Method
-    let identifier: Identifier
-    
-    func run() {
-        let directory: FileManager.SearchPathDirectory
-        
-        switch identifier {
-        case .desktop:
-            directory = .desktopDirectory
-        case .download:
-            directory = .downloadsDirectory
-        case .publicShare:
-            directory = .sharedPublicDirectory
-        case .documents:
-            directory = .documentDirectory
-        case .music:
-            directory = .musicDirectory
-        case .pictures:
-            directory = .picturesDirectory
-        case .videos:
-            directory = .moviesDirectory
-        }
-        
-        switch method {
-        case .NSSearchPath:
-            print(NSSearchPathForDirectoriesInDomains(directory, .userDomainMask, true).first!)
-        case .FileManagerDotURLFor:
-            print(try! FileManager.default.url(for: directory, in: .userDomainMask, appropriateFor: nil, create: false).path)
-        case .FileManagerDotURLsFor:
-            print(FileManager.default.urls(for: directory, in: .userDomainMask).first!.path)
-        }
+    if arg == "--echo-PWD" {
+        print(ProcessInfo.processInfo.environment["PWD"] ?? "")
     }
-}
-#endif
-
-// -----
-
-var arguments = ProcessInfo.processInfo.arguments.dropFirst().makeIterator()
-
-guard let arg = arguments.next() else {
-    fatalError("The unit test must specify the correct number of flags and arguments.")
-}
-
-switch arg {
-case "--xdgcheck":
-    XDGCheck.run()
-    
-case "--getcwd":
-    print(FileManager.default.currentDirectoryPath)
-
-case "--echo-PWD":
-    print(ProcessInfo.processInfo.environment["PWD"] ?? "")
-    
-#if !DEPLOYMENT_RUNTIME_OBJC
-case "--nspathfor":
-    guard let methodString = arguments.next(),
-        let method = NSURLForPrintTest.Method(rawValue: methodString),
-        let identifierString = arguments.next(),
-        let identifier = NSURLForPrintTest.Identifier(rawValue: identifierString) else {
-        fatalError("Usage: --nspathfor <METHOD> <DIRECTORY NAME>")
-    }
-    
-    let test = NSURLForPrintTest(method: method, identifier: identifier)
-    test.run()
-#endif
-    
-default:
-    fatalError("These arguments are not recognized. Only run this from a unit test.")
 }
 
