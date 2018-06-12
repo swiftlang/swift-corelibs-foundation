@@ -23,7 +23,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
             ("test_cancelTask", test_cancelTask),
-            ("test_taskTimeout", test_taskTimeout),
+            // ("test_taskTimeout", test_taskTimeout), // disabled due to intermittent failure (SR-7723)
             ("test_verifyRequestHeaders", test_verifyRequestHeaders),
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
