@@ -300,7 +300,7 @@ open class FileManager : NSObject {
 
         try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
             contents.append(entryName)
-            if entryType == Int32(DT_DIR) {
+            if entryType == DT_DIR {
                 let subPath: String = path + "/" + entryName
                 let entries = try subpathsOfDirectory(atPath: subPath)
                 contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
@@ -434,7 +434,7 @@ open class FileManager : NSObject {
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
         let len = _fileSystemRepresentation(withPath: path) {
-                readlink($0, &buf, bufSize)
+            readlink($0, &buf, bufSize)
         }
         if len < 0 {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -503,6 +503,7 @@ open class FileManager : NSObject {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(fileInfo.st_blksize))
         defer { buffer.deallocate() }
 
+        // Casted to Int64 because fileInfo.st_size is 64 bits long even on 32 bit platforms
         var bytesRemaining = Int64(fileInfo.st_size)
         while bytesRemaining > 0 {
             let bytesToRead = min(bytesRemaining, Int64(fileInfo.st_blksize))
@@ -696,8 +697,7 @@ open class FileManager : NSObject {
         let length = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: length)
         getcwd(&buf, length)
-        let result = self.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
-        return result
+        return string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
     }
     
     @discardableResult
@@ -798,8 +798,8 @@ open class FileManager : NSObject {
 
     private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
         let bufSize = Int(size)
-        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
-        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
+        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
 
         let size1 = readlink(file1Rep, buffer1, bufSize)
         let size2 = readlink(file2Rep, buffer2, bufSize)
