@@ -102,10 +102,10 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     /// An identifier for this task, assigned by and unique to the owning session
-    public let taskIdentifier: Int
+    open private(set) var taskIdentifier: Int
     
     /// May be nil if this is a stream task
-    /*@NSCopying*/ public let originalRequest: URLRequest?
+    /*@NSCopying*/ open private(set) var originalRequest: URLRequest?
     
     /// May differ from originalRequest due to http server redirection
     /*@NSCopying*/ open internal(set) var currentRequest: URLRequest? {
