@@ -7,12 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
 import Foundation
-#elseif os(Linux) || os(Android)
-@testable import Foundation
 #else
-@testable import SwiftFoundation
+import SwiftFoundation
 #endif
 
 enum HelperCheckStatus : Int32 {
