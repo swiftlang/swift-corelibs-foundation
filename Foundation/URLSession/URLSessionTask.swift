@@ -437,11 +437,8 @@ open class URLSessionDownloadTask : URLSessionTask {
          * original behavior cannot be directly ported, here.
          *
          * Instead, we just call the completionHandler directly.
-         *
-         * A token Data value is passed to the client to prevent unexpected failures
-         * that may be caused from passing nil instead.
          */
-        completionHandler(Data())
+        completionHandler(nil)
     }
 }
 
