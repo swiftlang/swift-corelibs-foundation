@@ -9,10 +9,12 @@
 
 import CoreFoundation
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
 @testable import Foundation
 #else
 @testable import SwiftFoundation
+#endif
 #endif
 
 internal func testBundle() -> Bundle {
@@ -444,10 +446,12 @@ class TestBundle : XCTestCase {
                 return
             }
             
+            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
             let bundle = Bundle(executablePath: playground.executablePath)
             
             XCTAssertNotNil(bundle)
             XCTAssertEqual(bundle?.bundlePath, playground.bundlePath)
+            #endif
         }
     }
     
