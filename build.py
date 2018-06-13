@@ -30,7 +30,8 @@ elif Configuration.current.target.sdk == OSType.Win32 and Configuration.current.
 	swift_cflags += ['-DCYGWIN']
 
 if Configuration.current.build_mode == Configuration.Debug:
-        foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+    foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+    swift_cflags += ['-enable-testing']
 
 foundation.ASFLAGS = " ".join([
         '-DCF_CHARACTERSET_BITMAP=\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\"',
@@ -377,6 +378,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSExpression.swift',
 	'Foundation/FileHandle.swift',
 	'Foundation/FileManager.swift',
+	'Foundation/FileManager_XDG.swift',
 	'Foundation/Formatter.swift',
 	'Foundation/NSGeometry.swift',
 	'Foundation/Host.swift',
@@ -498,6 +500,9 @@ swift_sources = CompileSwiftSources([
 	'Foundation/Codable.swift',
 	'Foundation/JSONEncoder.swift',
 ])
+
+if Configuration.current.build_mode == Configuration.Debug:
+    swift_sources.enable_testable_import = True
 
 swift_sources.add_dependency(headers)
 foundation.add_phase(swift_sources)

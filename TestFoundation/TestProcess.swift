@@ -611,7 +611,7 @@ class _SignalHelperRunner {
 }
 
 #if !os(Android)
-private func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
+internal func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
     var arguments = arguments
