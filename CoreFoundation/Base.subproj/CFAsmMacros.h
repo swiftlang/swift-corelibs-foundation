@@ -20,5 +20,16 @@
 #define NO_EXEC_STACK_DIRECTIVE
 #endif
 
+.macro SAFESEH_REGISTRATION_DIRECTIVE
+#if defined(_WIN32) && defined(_M_IX86)
+    .def @feat.00
+        .scl 3
+        .type 0
+    .endef
+    .globl @feat.00
+@feat.00 = 1
+#endif
+.endm
+
 #endif
 
