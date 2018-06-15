@@ -115,11 +115,13 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         if _ranges.count != indexSet.rangeView.count {
             return false
         }
-        
+
         // Iterate over indexes to compare each
-        for (r1, r2) in zip(_ranges, indexSet.rangeView) {
+        for (range, element) in zip(_ranges, indexSet.rangeView) {
+            let elementLength = element.upperBound - element.lowerBound
+
             // Return false if the ranges do not match
-            if r1.location != r2.lowerBound || r1.length != r2.upperBound - r2.lowerBound {
+            if range.location != element.lowerBound || range.length != elementLength {
                 return false
             }
         }
