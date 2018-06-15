@@ -127,54 +127,27 @@ open class ByteCountFormatter : Formatter {
         let byte = Double(byteCount)
         if byte == 0, allowsNonnumericFormatting, allowedUnits == [], includesUnit, includesCount {
             return partsToIncludeFor(value: "Zero", unit: .KB)
-        } else if byte == 1 || byte == -1 {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+        } else if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            if byte == 1 || byte == -1 {
                 return formatNumberFor(bytes: byte, unit: .byte)
-            } else {
-                return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            }
-        } else if  byte < byteSize[.KB]! && byte > -byteSize[.KB]!{
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.KB]! && byte > -byteSize[.KB]! {
                 return formatNumberFor(bytes: byte, unit: .bytes)
-            } else {
-                return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            }
-        } else if byte < byteSize[.MB]! && byte > -byteSize[.MB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.MB]! && byte > -byteSize[.MB]! {
                 return divide(byte, by: byteSize, for: .KB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[.GB]! && byte > -byteSize[.GB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.GB]! && byte > -byteSize[.GB]! {
                 return divide(byte, by: byteSize, for: .MB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[.TB]! && byte > -byteSize[.TB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.TB]! && byte > -byteSize[.TB]! {
                 return divide(byte, by: byteSize, for: .GB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[.PB]! && byte > -byteSize[.PB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.PB]! && byte > -byteSize[.PB]! {
                 return divide(byte, by: byteSize, for: .TB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[.EB]! && byte > -byteSize[.EB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.EB]! && byte > -byteSize[.EB]! {
                 return divide(byte, by: byteSize, for: .PB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else {
                 return divide(byte, by: byteSize, for: .EB)
             }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
         }
+
+        return valueToUseFor(byteCount: byte, unit: allowedUnits)
     }
     
     /*
