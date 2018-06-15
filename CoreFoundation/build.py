@@ -15,7 +15,7 @@ cf.GCC_PREFIX_HEADER = 'Base.subproj/CoreFoundation_Prefix.h'
 
 if Configuration.current.target.sdk == OSType.Linux:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CharacterSets" '
-	cf.LDFLAGS = '-Wl,@./linux.ld -Wl,-Bsymbolic '
+	cf.LDFLAGS = '-Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
