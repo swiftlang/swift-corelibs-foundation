@@ -111,16 +111,19 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open func isEqual(to indexSet: IndexSet) -> Bool {
-        
-        let otherRanges = indexSet.rangeView.map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
-        if _ranges.count != otherRanges.count {
+        // Exit early if the IndexSets do not have the same number of intervals
+        if _ranges.count != indexSet.rangeView.count {
             return false
         }
-        for (r1, r2) in zip(_ranges, otherRanges) {
-            if r1.length != r2.length || r1.location != r2.location {
+        
+        // Iterate over indexes to compare each
+        for (r1, r2) in zip(_ranges, indexSet.rangeView) {
+            // Return false if the ranges do not match
+            if r1.location != r2.lowerBound || r1.length != r2.upperBound - r2.lowerBound {
                 return false
             }
         }
+
         return true
     }
     
