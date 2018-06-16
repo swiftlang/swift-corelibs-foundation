@@ -268,12 +268,12 @@ class TestURLSession : LoopbackServerTest {
     func test_verifyHttpAdditionalHeaders() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
-        config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3"]
+        config.httpAdditionalHeaders = ["header2": "svalue2", "header3": "svalue3", "header4": "svalue4"]
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders"
         let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
         var expect = expectation(description: "POST \(urlString) with additional headers")
         var req = URLRequest(url: URL(string: urlString)!)
-        let headers = ["header1": "rvalue1", "header2": "rvalue2"]
+        let headers = ["header1": "rvalue1", "header2": "rvalue2", "Header4": "rvalue4"]
         req.httpMethod = "POST"
         req.allHTTPHeaderFields = headers
         var task = session.dataTask(with: req) { (data, _, error) -> Void in
@@ -284,6 +284,8 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertNotNil(headers.range(of: "header1: rvalue1"))
             XCTAssertNotNil(headers.range(of: "header2: rvalue2"))
             XCTAssertNotNil(headers.range(of: "header3: svalue3"))
+            XCTAssertNotNil(headers.range(of: "Header4: rvalue4"))
+            XCTAssertNil(headers.range(of: "header4: svalue"))
         }
         task.resume()
         

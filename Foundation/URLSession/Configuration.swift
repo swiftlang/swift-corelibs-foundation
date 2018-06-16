@@ -102,10 +102,6 @@ internal extension URLSession._Configuration {
 internal extension URLSession._Configuration {
     func configure(request: URLRequest) -> URLRequest {
         var request = request
-        httpAdditionalHeaders?.forEach {
-            guard request.value(forHTTPHeaderField: $0.0) == nil else { return }
-            request.setValue($0.1, forHTTPHeaderField: $0.0)
-        }
         return setCookies(on: request)
     }
 

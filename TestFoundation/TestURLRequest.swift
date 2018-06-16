@@ -60,16 +60,17 @@ class TestURLRequest : XCTestCase {
         
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         XCTAssertNotNil(request.allHTTPHeaderFields)
+        XCTAssertNil(request.allHTTPHeaderFields?["accept"])
         XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/json")
         
-        // Setting "accept" should remove "Accept"
+        // Setting "accept" should update "Accept"
         request.setValue("application/xml", forHTTPHeaderField: "accept")
-        XCTAssertNil(request.allHTTPHeaderFields?["Accept"])
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml")
+        XCTAssertNil(request.allHTTPHeaderFields?["accept"])
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml")
         
-        // Adding to "Accept" should add to "accept"
+        // Adding to "Accept" should add to "Accept"
         request.addValue("text/html", forHTTPHeaderField: "Accept")
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml,text/html")
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml,text/html")
     }
     
     func test_copy() {

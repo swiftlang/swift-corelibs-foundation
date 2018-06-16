@@ -454,11 +454,13 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func setValue(_ value: String?, forHTTPHeaderField field: String) {
+        // Store the field name capitalized to match native Foundation
+        let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
-        if let old = existingHeaderField(field, inHeaderFields: f) {
+        if let old = existingHeaderField(capitalizedFieldName, inHeaderFields: f) {
             f.removeValue(forKey: old.0)
         }
-        f[field] = value
+        f[capitalizedFieldName] = value
         allHTTPHeaderFields = f
     }
     
@@ -474,11 +476,13 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func addValue(_ value: String, forHTTPHeaderField field: String) {
+        // Store the field name capitalized to match native Foundation
+        let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
-        if let old = existingHeaderField(field, inHeaderFields: f) {
+        if let old = existingHeaderField(capitalizedFieldName, inHeaderFields: f) {
             f[old.0] = old.1 + "," + value
         } else {
-            f[field] = value
+            f[capitalizedFieldName] = value
         }
         allHTTPHeaderFields = f
     }
