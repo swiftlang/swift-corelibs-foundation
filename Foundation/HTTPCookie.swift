@@ -266,54 +266,55 @@ open class HTTPCookie : NSObject {
         }
         _version = version
 
-        if let portString = properties[.port] as? String, _version == 1 {
-            _portList = portString.split(separator: ",")
+        if let portString = properties[.port] as? String {
+            let portList = portString.split(separator: ",")
                 .compactMap { Int(String($0)) }
                 .map { NSNumber(value: $0) }
+            if version == 1 {
+                _portList = portList
+            } else {
+                // Version 0 only stores a single port number
+                _portList = portList.count > 0 ? [portList[0]] : nil
+            }
         } else {
             _portList = nil
         }
 
-        // TODO: factor into a utility function
-        if version == 0 {
+        var expDate: Date? = nil
+        // Maximum-Age is prefered over expires-Date but only version 1 cookies use Maximum-Age
+        if let maximumAge = properties[.maximumAge] as? String,
+            let secondsFromNow = Int(maximumAge) {
+            if version == 1 {
+                expDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
+            }
+        } else {
             let expiresProperty = properties[.expires]
             if let date = expiresProperty as? Date {
-                _expiresDate = date
+                expDate = date
             } else if let dateString = expiresProperty as? String {
                 let formatter = DateFormatter()
                 formatter.locale = Locale(identifier: "en_US_POSIX")
                 formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   // per RFC 6265 '<rfc1123-date, defined in [RFC2616], Section 3.3.1>'
                 let timeZone = TimeZone(abbreviation: "GMT")
                 formatter.timeZone = timeZone
-                _expiresDate = formatter.date(from: dateString)
-            } else {
-                _expiresDate = nil
+                expDate = formatter.date(from: dateString)
             }
-        } else if
-            let maximumAge = properties[.maximumAge] as? String,
-            let secondsFromNow = Int(maximumAge), _version == 1 {
-            _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
-        } else {
-            _expiresDate = nil
         }
+        _expiresDate = expDate
 
         if let discardString = properties[.discard] as? String {
             _sessionOnly = discardString == "TRUE"
         } else {
             _sessionOnly = properties[.maximumAge] == nil && version >= 1
         }
-        if version == 0 {
-            _comment = nil
-            _commentURL = nil
+
+        _comment = properties[.comment] as? String
+        if let commentURL = properties[.commentURL] as? URL {
+            _commentURL = commentURL
+        } else if let commentURL = properties[.commentURL] as? String {
+            _commentURL = URL(string: commentURL)
         } else {
-            _comment = properties[.comment] as? String
-            if let commentURL = properties[.commentURL] as? URL {
-                _commentURL = commentURL
-            } else if let commentURL = properties[.commentURL] as? String {
-                _commentURL = URL(string: commentURL)
-            } else {
-                _commentURL = nil
-            }
+            _commentURL = nil
         }
         _HTTPOnly = false
 
@@ -363,7 +364,11 @@ open class HTTPCookie : NSObject {
             cookieString.removeLast()
             cookieString.removeLast()
         }
-        return ["Cookie": cookieString]
+        if cookieString == "" {
+            return [:]
+        } else {
+            return ["Cookie": cookieString]
+        }
     }
 
     /// Return an array of cookies parsed from the specified response header fields and URL.
@@ -418,9 +423,9 @@ open class HTTPCookie : NSObject {
             properties[canonicalize(name)] = value
         }
 
-        //if domain wasn't provided use the URL
+        // If domain wasn't provided, extract it from the URL
         if properties[.domain] == nil {
-            properties[.domain] = url.absoluteString
+            properties[.domain] = url.host
         }
 
         //the default Path is "/"
