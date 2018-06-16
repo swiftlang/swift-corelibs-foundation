@@ -611,8 +611,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         guard isFileURL,
             let path = path else {
                 throw NSError(domain: NSCocoaErrorDomain,
-                              code: CocoaError.Code.fileNoSuchFile.rawValue)
-                //return false
+                              code: CocoaError.Code.fileReadUnsupportedScheme.rawValue)
         }
         
         guard FileManager.default.fileExists(atPath: path) else {
@@ -621,7 +620,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                           userInfo: [
                             "NSURL" : self,
                             "NSFilePath" : path])
-            //return false
         }
         
         return true

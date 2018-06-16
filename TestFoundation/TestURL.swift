@@ -432,7 +432,7 @@ class TestURL : XCTestCase {
             XCTFail()
         } catch let error as NSError {
             XCTAssertEqual(NSCocoaErrorDomain, error.domain)
-            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+            XCTAssertEqual(CocoaError.Code.fileReadUnsupportedScheme.rawValue, error.code)
         } catch {
             XCTFail()
         }
@@ -461,7 +461,7 @@ class TestURL : XCTestCase {
             XCTFail()
         } catch let error as NSError {
             XCTAssertEqual(NSCocoaErrorDomain, error.domain)
-            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+            XCTAssertEqual(CocoaError.Code.fileReadUnsupportedScheme.rawValue, error.code)
         } catch {
             XCTFail()
         }
