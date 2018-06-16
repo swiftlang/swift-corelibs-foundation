@@ -249,6 +249,58 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
     open override func isProxy() -> Bool {
         return _isProxy
     }
+
+    /*!
+       A string that represents the contents of the URLProtectionSpace Object.
+       This property is intended to produce readable output.
+    */
+    open override var description: String {
+        let authMethods: Set<String> = [
+            NSURLAuthenticationMethodDefault,
+            NSURLAuthenticationMethodHTTPBasic,
+            NSURLAuthenticationMethodHTTPDigest,
+            NSURLAuthenticationMethodHTMLForm,
+            NSURLAuthenticationMethodNTLM,
+            NSURLAuthenticationMethodNegotiate,
+            NSURLAuthenticationMethodClientCertificate,
+            NSURLAuthenticationMethodServerTrust
+        ]
+        var result = "<\(type(of: self)) \(Unmanaged.passUnretained(self).toOpaque())>: "
+        result += "Host:\(host), "
+
+        if let prot = self.protocol {
+            result += "Server:\(prot), "
+        } else {
+            result += "Server:(null), "
+        }
+
+        if authMethods.contains(self.authenticationMethod) {
+            result += "Auth-Scheme:\(self.authenticationMethod), "
+        } else {
+            result += "Auth-Scheme:NSURLAuthenticationMethodDefault, "
+        }
+
+        if let realm = self.realm {
+            result += "Realm:\(realm), "
+        } else {
+            result += "Realm:(null), "
+        }
+
+        result += "Port:\(self.port), "
+
+        if _isProxy {
+            result += "Proxy:YES, "
+        } else {
+            result += "Proxy:NO, "
+        }
+
+        if let proxyType = self.proxyType {
+            result += "Proxy-Type:\(proxyType), "
+        } else {
+            result += "Proxy-Type:(null)"
+        }
+        return result
+    }
 }
 
 extension URLProtectionSpace {
