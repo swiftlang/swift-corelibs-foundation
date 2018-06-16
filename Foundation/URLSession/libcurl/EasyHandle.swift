@@ -503,12 +503,12 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate?.didReceive(data: buffer) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
@@ -523,12 +523,12 @@ fileprivate extension _EasyHandle {
         let buffer = Data(bytes: data, count: size*nmemb)
         let d: Int = {
             switch delegate?.didReceive(headerData: buffer, contentLength: Int64(contentLength)) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
@@ -563,14 +563,14 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = UnsafeMutableBufferPointer(start: data, count: size * nmemb)
             switch delegate?.fill(writeBuffer: buffer) {
-            case .some(.pause):
+            case .pause?:
                 pauseState.insert(.sendPaused)
                 return Int(CFURLSessionReadFuncPause)
-            case .some(.abort):
+            case .abort?:
                 return Int(CFURLSessionReadFuncAbort)
-            case .some(.bytes(let length)):
-                return length 
-            case .none:
+            case .bytes(let length)?:
+                return length
+            case nil:
                 /* the delegate disappeared */
                 return Int(CFURLSessionReadFuncAbort)
             }

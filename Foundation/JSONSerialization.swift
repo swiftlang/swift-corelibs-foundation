@@ -685,7 +685,7 @@ private struct JSONReader {
     func consumeASCII(_ ascii: UInt8) -> (Index) throws -> Index? {
         return { (input: Index) throws -> Index? in
             switch self.source.takeASCII(input) {
-            case .none:
+            case nil:
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
                     "NSDebugDescription" : "Unexpected end of file during JSON parse."
                     ])

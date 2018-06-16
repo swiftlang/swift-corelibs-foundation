@@ -82,15 +82,15 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
                     case (nil, nil):
                         startIndex = 0
                         endIndex = 0
-                    case (nil, .some(let max)):
+                    case (nil, let max?):
                         // Start is before our first range
                         startIndex = 0
                         endIndex = max + 1
-                    case (.some(let min), nil):
+                    case (let min?, nil):
                         // End is after our last range
                         startIndex = min
                         endIndex = indexSet._rangeCount
-                    case (.some(let min), .some(let max)):
+                    case (let min?, let max?):
                         startIndex = min
                         endIndex = max + 1
                     }

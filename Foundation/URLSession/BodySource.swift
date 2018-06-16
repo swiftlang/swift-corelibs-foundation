@@ -167,11 +167,11 @@ fileprivate extension _BodyFileSource {
             switch (done, data, errno) {
             case (true, _, errno) where errno != 0:
                 self.availableChunk = .errorDetected(Int(errno))
-            case (true, .some(let d), 0) where d.isEmpty:
+            case (true, let d?, 0) where d.isEmpty:
                 self.append(data: d, endOfFile: true)
-            case (true, .some(let d), 0):
+            case (true, let d?, 0):
                 self.append(data: d, endOfFile: false)
-            case (false, .some(let d), 0):
+            case (false, let d?, 0):
                 self.append(data: d, endOfFile: false)
             default:
                 fatalError("Invalid arguments to read(3) callback.")
@@ -202,8 +202,8 @@ fileprivate extension _BodyFileSource {
         case .empty: return 0
         case .errorDetected: return 0
         case .data(let d): return d.count
-        case .done(.some(let d)): return d.count
-        case .done(.none): return 0
+        case .done(let d?): return d.count
+        case .done(nil): return 0
         }
     }
 }
@@ -228,7 +228,7 @@ extension _BodyFileSource : _BodySource {
             } else {
                 return .data(head)
             }
-        case .done(.some(let data)):
+        case .done(let data?):
             let l = min(length, data.count)
             let (head, tail) = splitData(dispatchData: data, atPosition: l)
             availableChunk = tail.isEmpty ? .done(nil) : .done(tail)
@@ -237,7 +237,7 @@ extension _BodyFileSource : _BodySource {
             } else {
                 return .data(head)
             }
-        case .done(.none):
+        case .done(nil):
             return .done
         }
     }

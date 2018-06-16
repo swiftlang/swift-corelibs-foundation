@@ -590,11 +590,11 @@ func expectEqualPaths(_ lhs: [CodingKey?], _ rhs: [CodingKey?], _ prefix: String
 
     for (k1, k2) in zip(lhs, rhs) {
         switch (k1, k2) {
-        case (.none, .none): continue
-        case (.some(let _k1), .none):
+        case (nil, nil): continue
+        case (let _k1?, nil):
             XCTFail("\(prefix) CodingKey mismatch: \(type(of: _k1)) != nil")
             return
-        case (.none, .some(let _k2)):
+        case (nil, let _k2?):
             XCTFail("\(prefix) CodingKey mismatch: nil != \(type(of: _k2))")
             return
         default: break
@@ -604,14 +604,14 @@ func expectEqualPaths(_ lhs: [CodingKey?], _ rhs: [CodingKey?], _ prefix: String
         let key2 = k2!
 
         switch (key1.intValue, key2.intValue) {
-        case (.none, .none): break
-        case (.some(let i1), .none):
+        case (nil, nil): break
+        case (let i1?, nil):
             XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != nil")
             return
-        case (.none, .some(let i2)):
+        case (nil, let i2?):
             XCTFail("\(prefix) CodingKey.intValue mismatch: nil != \(type(of: key2))(\(i2))")
             return
-        case (.some(let i1), .some(let i2)):
+        case (let i1?, let i2?):
             guard i1 == i2 else {
                 XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != \(type(of: key2))(\(i2))")
                 return
