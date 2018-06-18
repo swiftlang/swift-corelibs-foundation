@@ -23,7 +23,7 @@ class TestURLProtectionSpace : XCTestCase {
             realm: nil,
             authenticationMethod: "basic"
         )
-        XCTAssert(space.description.hasPrefix("<\(type(of: space)) "))
+        XCTAssert(space.description.hasPrefix("<\(type(of: space))"))
         XCTAssert(space.description.hasSuffix(": Host:apple.com, Server:http, Auth-Scheme:NSURLAuthenticationMethodDefault, Realm:(null), Port:80, Proxy:NO, Proxy-Type:(null)"))
 
         space = URLProtectionSpace(
@@ -33,7 +33,7 @@ class TestURLProtectionSpace : XCTestCase {
             realm: nil,
             authenticationMethod: "NSURLAuthenticationMethodHTMLForm"
         )
-        XCTAssert(space.description.hasPrefix("<\(type(of: space)) "))
+        XCTAssert(space.description.hasPrefix("<\(type(of: space))"))
         XCTAssert(space.description.hasSuffix(": Host:apple.com, Server:http, Auth-Scheme:NSURLAuthenticationMethodHTMLForm, Realm:(null), Port:80, Proxy:NO, Proxy-Type:(null)"))
     }
 }
