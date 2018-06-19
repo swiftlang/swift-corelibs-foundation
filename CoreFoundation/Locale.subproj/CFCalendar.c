@@ -48,7 +48,7 @@ static void __CFCalendarDeallocate(CFTypeRef cf) {
     if (calendar->_identifier) CFRelease(calendar->_identifier);
     if (calendar->_locale) CFRelease(calendar->_locale);
     if (calendar->_localeID) CFRelease(calendar->_localeID);
-    if (calendar->_identifier) CFRelease(calendar->_tz);
+    if (calendar->_tz) CFRelease(calendar->_tz);
     if (calendar->_cal) ucal_close(calendar->_cal);
 }
 
