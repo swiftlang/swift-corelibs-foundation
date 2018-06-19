@@ -85,12 +85,12 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
             switch (task?.body, try task?.body.getBodyLength()) {
-            case (.none, _):
+            case (nil, _):
                 set(requestBodyLength: .noBody)
-            case (_, .some(let length)):
+            case (_, let length?):
                 set(requestBodyLength: .length(length))
                 task!.countOfBytesExpectedToSend = Int64(length)
-            case (_, .none):
+            case (_, nil):
                 set(requestBodyLength: .unknown)
             }
         } catch let e {
@@ -289,7 +289,7 @@ fileprivate extension _HTTPURLProtocol {
     /// Any header values that should be removed from the ones set by libcurl
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
     var curlHeadersToRemove: [String] {
-        if case .none = task?.body {
+        if task?.body == nil  {
             return []
         } else {
             return ["Expect"]
