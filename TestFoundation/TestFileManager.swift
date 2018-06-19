@@ -584,6 +584,7 @@ class TestFileManager : XCTestCase {
             XCTAssertTrue(entries.contains("item2"))
             XCTAssertTrue(entries.contains("sub"))
             XCTAssertTrue(entries.contains("sub/item3"))
+            XCTAssertEqual(fm.subpaths(atPath: path), entries)
         }
         catch _ {
             XCTFail()
@@ -591,6 +592,8 @@ class TestFileManager : XCTestCase {
         
         do {
             // Check a bad path fails
+            XCTAssertNil(fm.subpaths(atPath: "/..."))
+
             let _ = try fm.subpathsOfDirectory(atPath: "/...")
             XCTFail()
         }

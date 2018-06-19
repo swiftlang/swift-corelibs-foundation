@@ -951,7 +951,7 @@ open class FileManager : NSObject {
     /* subpathsAtPath: returns an NSArray of all contents and subpaths recursively from the provided path. This may be very expensive to compute for deep filesystem hierarchies, and should probably be avoided.
      */
     open func subpaths(atPath path: String) -> [String]? {
-        NSUnimplemented()
+        return try? subpathsOfDirectory(atPath: path)
     }
     
     /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
