@@ -313,6 +313,16 @@ struct _HTTPRequest {
         return allHeaders
     }
 
+    public func getHeader(for key: String) -> String? {
+        let lookup = key.lowercased()
+        for header in headers {
+            let parts = header.components(separatedBy: ":")
+            if parts[0].lowercased() == lookup {
+                return parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " "))
+            }
+        }
+        return nil
+    }
 }
 
 struct _HTTPResponse {
@@ -365,6 +375,13 @@ public class TestURLSessionServer {
 
     public func readAndRespond() throws {
         let req = try httpServer.request()
+
+        if let value = req.getHeader(for: "x-pause") {
+            if let wait = Double(value), wait > 0 {
+                Thread.sleep(forTimeInterval: wait)
+            }
+        }
+
         if req.uri.hasPrefix("/LandOfTheLostCities/") {
             /* these are all misbehaving servers */
             try httpServer.respondWithBrokenResponses(uri: req.uri)
