@@ -28,8 +28,8 @@ class TestURLSession : LoopbackServerTest {
             ("test_verifyHttpAdditionalHeaders", test_verifyHttpAdditionalHeaders),
             ("test_timeoutInterval", test_timeoutInterval),
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
-            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath), /* temporarily disabled. Needs HTTPServer rework */
-            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout), /* temporarily disabled (https://bugs.swift.org/browse/SR-5751) */
+            ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
+            ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
             ("test_missingContentLengthButStillABody", test_missingContentLengthButStillABody),
@@ -226,10 +226,11 @@ class TestURLSession : LoopbackServerTest {
         XCTFail("Intermittent failures on Android")
 #else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
-        let url = URL(string: urlString)!
+        var urlRequest = URLRequest(url: URL(string: urlString)!)
+        urlRequest.setValue("2.0", forHTTPHeaderField: "X-Pause")
         let d = DataTask(with: expectation(description: "GET \(urlString): task cancelation"))
         d.cancelExpectation = expectation(description: "GET \(urlString): task canceled")
-        d.run(with: url)
+        d.run(with: urlRequest)
         d.cancel()
         waitForExpectations(timeout: 12)
 #endif
