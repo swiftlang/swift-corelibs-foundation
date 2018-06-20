@@ -484,8 +484,8 @@ open class Process: NSObject {
         
         self.processIdentifier = pid
         
-        self.processLaunchedCondition.unlock()
         self.processLaunchedCondition.broadcast()
+        self.processLaunchedCondition.unlock()
     }
     
     open func interrupt() { NSUnimplemented() } // Not always possible. Sends SIGINT.
