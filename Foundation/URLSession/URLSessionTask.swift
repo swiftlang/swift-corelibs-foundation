@@ -428,7 +428,18 @@ open class URLSessionDownloadTask : URLSessionTask {
      * If resume data cannot be created, the completion handler will be
      * called with nil resumeData.
      */
-    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) { NSUnimplemented() }
+    open func cancel(byProducingResumeData completionHandler: @escaping (Data?) -> Void) {
+        super.cancel()
+        
+        /*
+         * In Objective-C, this method relies on an Apple-maintained XPC process
+         * to manage the bookmarking of partially downloaded data. Therefore, the
+         * original behavior cannot be directly ported, here.
+         *
+         * Instead, we just call the completionHandler directly.
+         */
+        completionHandler(nil)
+    }
 }
 
 /*
