@@ -242,8 +242,8 @@ open class Process: NSObject {
         
         self.processLaunchedCondition.lock()
         defer {
-            self.processLaunchedCondition.unlock()
             self.processLaunchedCondition.broadcast()
+            self.processLaunchedCondition.unlock()
         }
 
         // Dispatch the manager thread if it isn't already running
