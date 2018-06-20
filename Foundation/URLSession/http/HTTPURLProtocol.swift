@@ -125,6 +125,14 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 httpHeaders = hh
             } else {
                 hh.forEach {
+                    // When adding a header, remove any current entry with the same header name regardless of case
+                    let newKey = $0.lowercased()
+                    for key in httpHeaders!.keys {
+                        if newKey == (key as! String).lowercased() {
+                            httpHeaders?.removeValue(forKey: key)
+                            break
+                        }
+                    }
                     httpHeaders![$0] = $1
                 }
             }

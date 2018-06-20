@@ -432,7 +432,7 @@ class TestBundle : XCTestCase {
             XCTAssertNotNil(bundle.executableURL)
         }
     }
-    
+
     func test_bundleFindAuxiliaryExecutables() {
         _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
@@ -440,12 +440,14 @@ class TestBundle : XCTestCase {
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
         }
     }
-    
+
     func test_mainBundleExecutableURL() {
+#if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
         let maybeURL = Bundle.main.executableURL
         XCTAssertNotNil(maybeURL)
         guard let url = maybeURL else { return }
         
         XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
+#endif
     }
 }
