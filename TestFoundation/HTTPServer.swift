@@ -40,7 +40,8 @@ extension UInt16 {
 }
 
 class _TCPSocket {
-  
+
+    private let sendFlags: CInt
     private var listenSocket: Int32!
     private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1) 
     private var connectionSocket: Int32!
@@ -55,27 +56,37 @@ class _TCPSocket {
 
     private func attempt(_ name: String, file: String = #file, line: UInt = #line, valid: (CInt) -> Bool,  _ b: @autoclosure () -> CInt) throws -> CInt {
         let r = b()
-        guard valid(r) else { throw ServerError(operation: name, errno: r, file: file, line: line) }
+        guard valid(r) else {
+            throw ServerError(operation: name, errno: errno, file: file, line: line)
+        }
         return r
     }
 
     public private(set) var port: UInt16
 
     init(port: UInt16?) throws {
-        #if os(Linux) && !os(Android)
+#if canImport(Darwin)
+        sendFlags = 0
+#else
+        sendFlags = CInt(MSG_NOSIGNAL)
+#endif
+
+#if os(Linux) && !os(Android)
             let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
-        #else
+#else
             let SOCKSTREAM = SOCK_STREAM
-        #endif
+#endif
         self.port = port ?? 0
         listenSocket = try attempt("socket", valid: isNotNegative, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
-        var on: Int = 1
-        _ = try attempt("setsockopt", valid: isZero, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<Int>.size)))
+        var on: CInt = 1
+        _ = try attempt("setsockopt", valid: isZero, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<CInt>.size)))
+
         let sa = createSockaddr(port)
         socketAddress.initialize(to: sa)
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, { 
             let addr = UnsafePointer<sockaddr>($0)
             _ = try attempt("bind", valid: isZero, bind(listenSocket, addr, socklen_t(MemoryLayout<sockaddr>.size)))
+            _ = try attempt("listen", valid: isZero, listen(listenSocket, SOMAXCONN))
         })
 
         var actualSA = sockaddr_in()
@@ -104,18 +115,21 @@ class _TCPSocket {
     }
 
     func acceptConnection(notify: ServerSemaphore) throws {
-        _ = try attempt("listen", valid: isZero, listen(listenSocket, SOMAXCONN))
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
             let addr = UnsafeMutablePointer<sockaddr>($0)
             var sockLen = socklen_t(MemoryLayout<sockaddr>.size) 
-            notify.signal()
             connectionSocket = try attempt("accept", valid: isNotNegative, accept(listenSocket, addr, &sockLen))
+#if canImport(Dawin)
+            // Disable SIGPIPEs when writing to closed sockets
+            var on: CInt = 1
+            _ = try attempt("setsockopt", valid: isZero, setsockopt(connectionSocket, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<CInt>.size)))
+#endif
         })
     }
  
     func readData() throws -> String {
         var buffer = [UInt8](repeating: 0, count: 4096)
-        _ = try attempt("read", valid: isNotNegative, CInt(read(connectionSocket, &buffer, 4096)))
+        _ = try attempt("read", valid: isNotNegative, CInt(read(connectionSocket, &buffer, buffer.count)))
         return String(cString: &buffer)
     }
     
@@ -129,14 +143,14 @@ class _TCPSocket {
 
     func writeRawData(_ data: Data) throws {
         _ = try data.withUnsafeBytes { ptr in
-            try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, ptr, data.count)))
+            try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, ptr, data.count, sendFlags)))
         }
     }
    
     func writeData(header: String, body: String, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        var header = Array(header.utf8)
-        _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &header, header.count)))
-        
+        var _header = Array(header.utf8)
+        _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &_header, _header.count, sendFlags)))
+
         if let sendDelay = sendDelay, let bodyChunks = bodyChunks {
             let count = max(1, Int(Double(body.utf8.count) / Double(bodyChunks)))
             let texts = split(body, count)
@@ -144,18 +158,24 @@ class _TCPSocket {
             for item in texts {
                 sleep(UInt32(sendDelay))
                 var bytes = Array(item.utf8)
-                _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, bytes.count)))
+                _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
             }
         } else {
             var bytes = Array(body.utf8)
-            _  = try attempt("write", valid: isNotNegative, CInt(write(connectionSocket, &bytes, bytes.count)))
+            _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
         }
     }
 
-    func shutdown() {
+    func closeClient() {
         if let connectionSocket = self.connectionSocket {
             close(connectionSocket)
+            self.connectionSocket = nil
         }
+    }
+
+    func shutdownListener() {
+        closeClient()
+        shutdown(listenSocket, CInt(SHUT_RDWR))
         close(listenSocket)
     }
 }
@@ -182,7 +202,8 @@ class _HTTPServer {
     }
 
     public func stop() {
-        socket.shutdown()
+        socket.closeClient()
+        socket.shutdownListener()
     }
    
     public func request() throws -> _HTTPRequest {
@@ -190,24 +211,14 @@ class _HTTPServer {
     }
 
     public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        let semaphore = DispatchSemaphore(value: 0)
-        let deadlineTime: DispatchTime
-            
-        if let startDelay = startDelay {
-           deadlineTime = .now() + .seconds(Int(startDelay))
-        } else {
-            deadlineTime = .now()
+        if let delay = startDelay {
+            Thread.sleep(forTimeInterval: delay)
         }
-
-        DispatchQueue.global().asyncAfter(deadline: deadlineTime) {
-            do {
-                try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)
-                semaphore.signal()
-            } catch { }
+        do {
+            try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)
+        } catch {
         }
-        semaphore.wait()
-        
-    } 
+    }
 
     func respondWithBrokenResponses(uri: String) throws {
         let responseData: Data
@@ -285,11 +296,13 @@ struct _HTTPRequest {
     let headers: [String]
 
     public init(request: String) {
-        let lines = request.components(separatedBy: _HTTPUtils.CRLF2)[0].components(separatedBy: _HTTPUtils.CRLF)
-        headers = Array(lines[0...lines.count-2])
-        method = Method(rawValue: headers[0].components(separatedBy: " ")[0])!
-        uri = headers[0].components(separatedBy: " ")[1]
-        body = lines.last!
+        let headerEnd = (request as NSString).range(of: _HTTPUtils.CRLF2)
+        let header = (request as NSString).substring(to: headerEnd.location)
+        headers = header.components(separatedBy: _HTTPUtils.CRLF)
+        let action = headers[0]
+        method = Method(rawValue: action.components(separatedBy: " ")[0])!
+        uri = action.components(separatedBy: " ")[1]
+        body = (request as NSString).substring(from: headerEnd.location + headerEnd.length)
     }
 
     public func getCommaSeparatedHeaders() -> String {
@@ -300,6 +313,16 @@ struct _HTTPRequest {
         return allHeaders
     }
 
+    public func getHeader(for key: String) -> String? {
+        let lookup = key.lowercased()
+        for header in headers {
+            let parts = header.components(separatedBy: ":")
+            if parts[0].lowercased() == lookup {
+                return parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " "))
+            }
+        }
+        return nil
+    }
 }
 
 struct _HTTPResponse {
@@ -349,13 +372,16 @@ public class TestURLSessionServer {
         self.sendDelay = sendDelay
         self.bodyChunks = bodyChunks
     }
-    public func start(started: ServerSemaphore) throws {
-        started.signal()
-        try httpServer.listen(notify: started)
-    }
-   
+
     public func readAndRespond() throws {
         let req = try httpServer.request()
+
+        if let value = req.getHeader(for: "x-pause") {
+            if let wait = Double(value), wait > 0 {
+                Thread.sleep(forTimeInterval: wait)
+            }
+        }
+
         if req.uri.hasPrefix("/LandOfTheLostCities/") {
             /* these are all misbehaving servers */
             try httpServer.respondWithBrokenResponses(uri: req.uri)
@@ -402,7 +428,7 @@ public class TestURLSessionServer {
 
         if uri == "/requestCookies" {
             let text = request.getCommaSeparatedHeaders()
-            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)\r\nSet-Cookie: fr=anjd&232; Max-Age=7776000; path=/; domain=127.0.0.1; secure; httponly\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: text)
+            return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)\r\nSet-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: text)
         }
 
         if uri == "/setCookies" {
@@ -482,8 +508,8 @@ extension ServerError : CustomStringConvertible {
 public class ServerSemaphore {
     let dispatchSemaphore = DispatchSemaphore(value: 0)
 
-    public func wait() {
-        dispatchSemaphore.wait()
+    public func wait(timeout: DispatchTime) -> DispatchTimeoutResult {
+        return dispatchSemaphore.wait(timeout: timeout)
     }
 
     public func signal() {
@@ -495,6 +521,11 @@ class LoopbackServerTest : XCTestCase {
     private static let staticSyncQ = DispatchQueue(label: "org.swift.TestFoundation.HTTPServer.StaticSyncQ")
 
     private static var _serverPort: Int = -1
+    private static let serverReady = ServerSemaphore()
+    private static var _serverActive = false
+    private static var testServer: TestURLSessionServer? = nil
+
+
     static var serverPort: Int {
         get {
             return staticSyncQ.sync { _serverPort }
@@ -504,30 +535,56 @@ class LoopbackServerTest : XCTestCase {
         }
     }
 
+    static var serverActive: Bool {
+        get { return staticSyncQ.sync { _serverActive } }
+        set { staticSyncQ.sync { _serverActive = newValue }}
+    }
+
+    static func terminateServer() {
+        serverActive = false
+        testServer?.stop()
+        testServer = nil
+    }
+
     override class func setUp() {
         super.setUp()
         func runServer(with condition: ServerSemaphore, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-            while true {
-                let test = try TestURLSessionServer(port: nil, startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
-                serverPort = Int(test.port)
-                try test.start(started: condition)
-                try test.readAndRespond()
-                serverPort = -2
-                test.stop()
+            let server = try TestURLSessionServer(port: nil, startDelay: startDelay, sendDelay: sendDelay, bodyChunks: bodyChunks)
+            testServer = server
+            serverPort = Int(server.port)
+            serverReady.signal()
+            serverActive = true
+
+            while serverActive {
+                do {
+                    try server.httpServer.listen(notify: condition)
+                    try server.readAndRespond()
+                    server.httpServer.socket.closeClient()
+                } catch {
+                }
             }
+            serverPort = -2
+
         }
 
-        let serverReady = ServerSemaphore()
         globalDispatchQueue.async {
             do {
                 try runServer(with: serverReady)
-
             } catch {
-                XCTAssertTrue(true)
-                return
             }
         }
 
-        serverReady.wait()
+        let timeout = DispatchTime(uptimeNanoseconds: DispatchTime.now().uptimeNanoseconds + 2_000_000_000)
+
+        while serverPort == -2 {
+            guard serverReady.wait(timeout: timeout) == .success else {
+                fatalError("Timedout waiting for server to be ready")
+            }
+        }
+    }
+
+    override class func tearDown() {
+        super.tearDown()
+        terminateServer()
     }
 }
