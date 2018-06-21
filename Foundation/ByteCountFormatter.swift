@@ -326,15 +326,17 @@ open class ByteCountFormatter : Formatter {
     
     // A helper method to return the length of an int
     private func lengthOfInt(number: Int) -> Int {
+        guard number != 0 else {
+            return 1
+        }
         var num = abs(number)
-        var length: [Int] = []
+        var length = 0
         
         while num > 0 {
-            let remainder = num % 10
-            length.append(remainder)
+            length += 1
             num /= 10
         }
-        return length.count
+        return length
     }
     
     // Returns the correct string based on the includesValue and includesUnit properties
