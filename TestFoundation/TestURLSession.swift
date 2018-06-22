@@ -611,7 +611,7 @@ class TestURLSession : LoopbackServerTest {
         config.timeoutIntervalForResource = 604800
         config.networkServiceType = .default
         config.allowsCellularAccess = false
-        config.isDiscretionary = true
+        config.discretionary = true
         config.httpShouldUsePipelining = true
         config.httpShouldSetCookies = true
         config.httpCookieAcceptPolicy = .always
@@ -626,7 +626,7 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(config.timeoutIntervalForResource, 604800)
         XCTAssertEqual(config.networkServiceType, NSURLRequest.NetworkServiceType.default)
         XCTAssertEqual(config.allowsCellularAccess, false)
-        XCTAssertEqual(config.isDiscretionary, true)
+        XCTAssertEqual(config.discretionary, true)
         XCTAssertEqual(config.httpShouldUsePipelining, true)
         XCTAssertEqual(config.httpShouldSetCookies, true)
         XCTAssertEqual(config.httpCookieAcceptPolicy, HTTPCookie.AcceptPolicy.always)
