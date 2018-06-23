@@ -28,6 +28,7 @@ class TestTimeZone: XCTestCase {
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
 
             ("test_customMirror", test_tz_customMirror),
+            ("test_knownTimeZones", test_knownTimeZones),
         ]
     }
 
@@ -188,5 +189,13 @@ class TestTimeZone: XCTestCase {
         XCTAssertNotNil(children["kind"])
         XCTAssertNotNil(children["secondsFromGMT"])
         XCTAssertNotNil(children["isDaylightSavingTime"])
+    }
+
+    func test_knownTimeZones() {
+        let timeZones = TimeZone.knownTimeZoneIdentifiers.sorted()
+        XCTAssertTrue(timeZones.count > 0, "No known timezones")
+        for tz in timeZones {
+            XCTAssertNotNil(TimeZone(identifier: tz), "Cant instantiate valid timeZone: \(tz)")
+        }
     }
 }

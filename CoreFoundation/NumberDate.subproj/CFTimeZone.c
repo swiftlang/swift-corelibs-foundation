@@ -891,6 +891,7 @@ void CFTimeZoneSetDefault(CFTimeZoneRef tz) {
 }
 
 static CFDictionaryRef __CFTimeZoneCopyCompatibilityDictionary(void);
+static Boolean __nameStringOK(CFStringRef name);
 
 CFArrayRef CFTimeZoneCopyKnownNames(void) {
     CFArrayRef tzs;
@@ -906,7 +907,7 @@ CFArrayRef CFTimeZoneCopyKnownNames(void) {
 	CFIndex idx;
 	for (idx = CFArrayGetCount(list); idx--; ) {
 	    CFStringRef item = (CFStringRef)CFArrayGetValueAtIndex(list, idx);
-	    if (CFDictionaryContainsKey(dict, item)) {
+	    if (CFDictionaryContainsKey(dict, item) || !__nameStringOK(item)) {
 		CFArrayRemoveValueAtIndex(list, idx);
 	    }
 	}
