@@ -59,7 +59,7 @@ class TestIndexPath: XCTestCase {
             ("test_AnyHashableCreatedFromNSIndexPath", test_AnyHashableCreatedFromNSIndexPath),
             ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
             ("test_slice_1ary", test_slice_1ary),
-            ("test_copy", test_copy)
+            ("test_copy", test_copy),
         ]
     }
 
