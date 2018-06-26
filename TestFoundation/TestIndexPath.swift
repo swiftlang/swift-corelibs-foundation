@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 class TestIndexPath: XCTestCase {
@@ -59,12 +59,19 @@ class TestIndexPath: XCTestCase {
             ("test_AnyHashableCreatedFromNSIndexPath", test_AnyHashableCreatedFromNSIndexPath),
             ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
             ("test_slice_1ary", test_slice_1ary),
+            ("test_copy", test_copy),
         ]
     }
 
     func testEmpty() {
         let ip = IndexPath()
         XCTAssertEqual(ip.count, 0)
+
+        // Darwin allows nil if length is 0
+        let nsip = NSIndexPath(indexes: nil, length: 0)
+        XCTAssertEqual(nsip.length, 0)
+        let newIp = nsip.adding(1)
+        XCTAssertEqual(newIp.count, 1)
     }
     
     func testSingleIndex() {
@@ -764,4 +771,12 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(0, slice.count)
     }
 
+    func test_copy() {
+        var indexes = [1, 2, 3]
+        let nip1 = NSIndexPath(indexes: &indexes, length: 3)
+        let nip2 = nip1
+        XCTAssertEqual(nip1.length, 3)
+        XCTAssertEqual(nip2.length, 3)
+        XCTAssertEqual(nip1, nip2)
+    }
 }
