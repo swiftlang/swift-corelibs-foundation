@@ -88,6 +88,7 @@ class TestNSString: LoopbackServerTest {
             ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
             ("test_reflection", { _ in test_reflection }),
             ("test_replacingOccurrences", test_replacingOccurrences),
+            ("test_replacingOccurrencesInSubclass", test_replacingOccurrencesInSubclass),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
             ("test_createCopy", test_createCopy),
@@ -1250,4 +1251,68 @@ extension TestNSString {
         let replaceSuffixWithMultibyte = testString.replacingOccurrences(of: testSuffix, with: testReplacementEmoji)
         XCTAssertEqual(replaceSuffixWithMultibyte, testPrefix + testEmoji + testReplacementEmoji)
     }
+    
+    func test_replacingOccurrencesInSubclass() {
+        class TestMutableString: NSMutableString {
+            internal var _storage: String
+            private var _replaceCharactersCount: Int = 0
+            var replaceCharactersCount: Int {
+                return _replaceCharactersCount
+            }
+
+            override var length: Int {
+                return _storage.utf16.count
+            }
+            
+            override func character(at index: Int) -> unichar {
+                let start = _storage.utf16.startIndex
+                return _storage.utf16[start.advanced(by: index)]
+            }
+
+            override func replaceCharacters(in range: NSRange, with aString: String) {
+                _replaceCharactersCount = _replaceCharactersCount + 1
+                let start = _storage.utf16.startIndex
+                let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
+                let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
+                _storage.replaceSubrange(min..<max, with: aString)
+            }
+            
+            override func mutableCopy(with zone: NSZone? = nil) -> Any {
+                return self
+            }
+
+            required init(stringLiteral value: StaticString) {
+                _storage = String(describing: value)
+                super.init(stringLiteral: value)
+            }
+            
+            required init(capacity: Int) {
+                fatalError("init(capacity:) has not been implemented")
+            }
+            
+            required init(string aString: String) {
+                fatalError("init(string:) has not been implemented")
+            }
+            
+            required convenience init?(coder aDecoder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+            
+            required init(characters: UnsafePointer<unichar>, length: Int) {
+                fatalError("init(characters:length:) has not been implemented")
+            }
+            
+            required convenience init(extendedGraphemeClusterLiteral value: StaticString) {
+                fatalError("init(extendedGraphemeClusterLiteral:) has not been implemented")
+            }
+            
+            required convenience init(unicodeScalarLiteral value: StaticString) {
+                fatalError("init(unicodeScalarLiteral:) has not been implemented")
+            }
+        }
+        let testString = TestMutableString(stringLiteral: "ababab")
+        XCTAssertEqual(testString.replacingOccurrences(of: "ab", with: "xx"), "xxxxxx")
+        XCTAssertEqual(testString.replaceCharactersCount, 3)
+    }
+
 }

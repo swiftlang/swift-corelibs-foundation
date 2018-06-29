@@ -1420,18 +1420,35 @@ extension NSMutableString {
             return _replaceOccurrencesOfRegularExpressionPattern(target, withTemplate:replacement, options:options, range: searchRange)
         }
         
+        guard let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) else {
+            return 0
+        }
+        let numOccurrences = CFArrayGetCount(findResults)
 
-        if let findResults = CFStringCreateArrayWithFindResults(kCFAllocatorSystemDefault, _cfObject, target._cfObject, CFRange(searchRange), options._cfValue(true)) {
-            let numOccurrences = CFArrayGetCount(findResults)
+        guard type(of: self) == NSMutableString.self else {
+            // If we're dealing with non NSMutableString, mutations must go through `replaceCharacters` (documented behavior)
             for cnt in 0..<numOccurrences {
                 let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? cnt : numOccurrences - cnt - 1)
                 replaceCharacters(in: NSRange(rangePtr!.load(as: CFRange.self)), with: replacement)
             }
             return numOccurrences
-        } else {
-            return 0
         }
 
+        let start = _storage.utf16.startIndex
+        var newStorage = Substring()
+        var sourceStringCurrentIndex = _storage.startIndex
+        for cnt in 0..<numOccurrences {
+            let rangePtr = CFArrayGetValueAtIndex(findResults, backwards ? numOccurrences - cnt - 1 : cnt)
+            let range = NSRange(rangePtr!.load(as: CFRange.self))
+            let matchStartIndex = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
+            let matchEndIndex = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
+            newStorage += _storage[sourceStringCurrentIndex..<matchStartIndex]
+            newStorage += replacement
+            sourceStringCurrentIndex = matchEndIndex
+        }
+        newStorage += _storage[sourceStringCurrentIndex..<_storage.endIndex]
+        _storage = String(newStorage)
+        return numOccurrences
     }
     
     public func applyTransform(_ transform: String, reverse: Bool, range: NSRange, updatedRange resultingRange: NSRangePointer?) -> Bool {
