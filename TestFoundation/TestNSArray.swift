@@ -725,8 +725,8 @@ class TestNSArray : XCTestCase {
 #endif
             XCTAssertEqual(data, data2)
             removeTestFile(testFile)
-        } catch let e {
-            XCTFail("Failed to write to file: \(e)")
+        } catch {
+            XCTFail("Failed to write to file: \(error)")
         }
     }
 
@@ -803,16 +803,12 @@ class TestNSArray : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 }

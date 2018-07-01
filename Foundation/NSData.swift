@@ -579,22 +579,18 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                         if fsync(fd) < 0 {
                             throw _NSErrorWithErrno(errno, reading: false, path: path)
                         }
-                    } catch let err {
+                    } catch {
                         if let auxFilePath = auxFilePath {
-                            do {
-                                try FileManager.default.removeItem(atPath: auxFilePath)
-                            } catch _ {}
+                            try? FileManager.default.removeItem(atPath: auxFilePath)
                         }
-                        throw err
+                        throw error
                     }
                 }
             }
             if let auxFilePath = auxFilePath {
                 try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
                     if rename(auxFilePathFsRep, pathFsRep) != 0 {
-                        do {
-                            try FileManager.default.removeItem(atPath: auxFilePath)
-                        } catch _ {}
+                        try? FileManager.default.removeItem(atPath: auxFilePath)
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                     if let mode = mode {
@@ -705,8 +701,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
-            } catch let e {
-                err = e
+            } catch {
+                err = error
             }
         }
         if let err = err {

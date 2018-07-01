@@ -122,15 +122,13 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
         return regex
     }
-    do {
-        let regex = try NSRegularExpression(pattern: pattern, options: options)
-        local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
-        return regex
-    } catch {
-        
+
+    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+        return nil
     }
-    
-    return nil
+
+    local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
+    return regex
 }
 
 internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {

@@ -32,20 +32,16 @@ class TestFileManager : XCTestCase {
             ("test_contentsEqual", test_contentsEqual)
         ]
     }
-    
-    func ignoreError(_ block: () throws -> Void) {
-        do { try block() } catch { }
-    }
-    
+
     func test_createDirectory() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
         
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-        } catch _ {
+        } catch {
             XCTFail()
         }
 
@@ -69,7 +65,7 @@ class TestFileManager : XCTestCase {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "testfile\(NSUUID().uuidString)"
         
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
@@ -128,8 +124,8 @@ class TestFileManager : XCTestCase {
         let path2 = NSTemporaryDirectory() + "testfile2\(NSUUID().uuidString)"
 
         func cleanup() {
-            ignoreError { try fm.removeItem(atPath: path) }
-            ignoreError { try fm.removeItem(atPath: path2) }
+            try? fm.removeItem(atPath: path)
+            try? fm.removeItem(atPath: path2)
         }
 
         cleanup()
@@ -139,7 +135,7 @@ class TestFileManager : XCTestCase {
 
         do {
             try fm.moveItem(atPath: path, toPath: path2)
-        } catch let error {
+        } catch {
             XCTFail("Failed to move file: \(error)")
         }
     }
@@ -164,7 +160,7 @@ class TestFileManager : XCTestCase {
         let badSymLink = tmpDir.appendingPathComponent("badSymLink")
         let dirSymLink = tmpDir.appendingPathComponent("dirSymlink")
 
-        ignoreError { try fm.removeItem(atPath: tmpDir.path) }
+        try? fm.removeItem(atPath: tmpDir.path)
 
         do {
             try fm.createDirectory(atPath: tmpDir.path, withIntermediateDirectories: false, attributes: nil)
@@ -199,14 +195,14 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail(String(describing: error))
         }
-        ignoreError { try fm.removeItem(atPath: tmpDir.path) }
+        try? fm.removeItem(atPath: tmpDir.path)
     }
 
     func test_fileAttributes() {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
 
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
@@ -256,8 +252,8 @@ class TestFileManager : XCTestCase {
                 }
             }
             
-        } catch let err {
-            XCTFail("\(err)")
+        } catch {
+            XCTFail("\(error)")
         }
         
         do {
@@ -296,8 +292,8 @@ class TestFileManager : XCTestCase {
             XCTAssertNotNil(systemNodes)
             XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
             
-        } catch let err {
-            XCTFail("\(err)")
+        } catch {
+            XCTFail("\(error)")
         }
 #endif
     }
@@ -306,7 +302,7 @@ class TestFileManager : XCTestCase {
         let path = NSTemporaryDirectory() + "test_setFileAttributes\(NSUUID().uuidString)"
         let fm = FileManager.default
         
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
         do {
@@ -336,7 +332,7 @@ class TestFileManager : XCTestCase {
         let basePath2 = NSTemporaryDirectory() + "\(testDirName)/path2"
         let itemPath2 = NSTemporaryDirectory() + "\(testDirName)/path2/item"
         
-        ignoreError { try fm.removeItem(atPath: basePath) }
+        try? fm.removeItem(atPath: basePath)
         
         do {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: false, attributes: nil)
@@ -345,7 +341,7 @@ class TestFileManager : XCTestCase {
             let _ = fm.createFile(atPath: itemPath, contents: Data(count: 123), attributes: nil)
             let _ = fm.createFile(atPath: itemPath2, contents: Data(count: 456), attributes: nil)
 
-        } catch _ {
+        } catch {
             XCTFail()
         }
 
@@ -443,8 +439,8 @@ class TestFileManager : XCTestCase {
             }
         }
 
-        ignoreError { try fm.removeItem(atPath: basePath) }
-        defer { ignoreError { try fm.removeItem(atPath: basePath) } }
+        try? fm.removeItem(atPath: basePath)
+        defer { try? fm.removeItem(atPath: basePath) }
 
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs1, withIntermediateDirectories: true, attributes: nil))
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs2, withIntermediateDirectories: true, attributes: nil))
@@ -518,13 +514,13 @@ class TestFileManager : XCTestCase {
         let itemPath1 = NSTemporaryDirectory() + "\(testDirName)/item"
         let itemPath2 = NSTemporaryDirectory() + "\(testDirName)/item2"
         
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
             let _ = fm.createFile(atPath: itemPath1, contents: Data(), attributes: nil)
             let _ = fm.createFile(atPath: itemPath2, contents: Data(), attributes: nil)
-        } catch _ {
+        } catch {
             XCTFail()
         }
         
@@ -535,7 +531,7 @@ class TestFileManager : XCTestCase {
             XCTAssertTrue(entries.contains("item"))
             XCTAssertTrue(entries.contains("item2"))
         }
-        catch _ {
+        catch {
             XCTFail()
         }
         
@@ -544,7 +540,7 @@ class TestFileManager : XCTestCase {
             let _ = try fm.contentsOfDirectory(atPath: "/...")
             XCTFail()
         }
-        catch _ {
+        catch {
             // Invalid directories should fail.
         }
         
@@ -563,7 +559,7 @@ class TestFileManager : XCTestCase {
         let itemPath2 = NSTemporaryDirectory() + "testdir/item2"
         let itemPath3 = NSTemporaryDirectory() + "testdir/sub/item3"
                 
-        ignoreError { try fm.removeItem(atPath: path) }
+        try? fm.removeItem(atPath: path)
         
         do {
             try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
@@ -572,7 +568,7 @@ class TestFileManager : XCTestCase {
             
             try fm.createDirectory(atPath: path2, withIntermediateDirectories: false, attributes: nil)
             let _ = fm.createFile(atPath: itemPath3, contents: Data(), attributes: nil)
-        } catch _ {
+        } catch {
             XCTFail()
         }
         
@@ -586,7 +582,7 @@ class TestFileManager : XCTestCase {
             XCTAssertTrue(entries.contains("sub/item3"))
             XCTAssertEqual(fm.subpaths(atPath: path), entries)
         }
-        catch _ {
+        catch {
             XCTFail()
         }
         
@@ -597,7 +593,7 @@ class TestFileManager : XCTestCase {
             let _ = try fm.subpathsOfDirectory(atPath: "/...")
             XCTFail()
         }
-        catch _ {
+        catch {
             // Invalid directories should fail.
         }
         
@@ -620,14 +616,14 @@ class TestFileManager : XCTestCase {
         let destPath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
 
         func cleanup() {
-            ignoreError { try fm.removeItem(atPath: srcPath) }
-            ignoreError { try fm.removeItem(atPath: destPath) }
+            try? fm.removeItem(atPath: srcPath)
+            try? fm.removeItem(atPath: destPath)
         }
 
         func createDirectory(atPath path: String) {
             do {
                 try fm.createDirectory(atPath: path, withIntermediateDirectories: false, attributes: nil)
-            } catch let error {
+            } catch {
                 XCTFail("Unable to create directory: \(error)")
             }
             XCTAssertTrue(directoryExists(atPath: path))
@@ -641,7 +637,7 @@ class TestFileManager : XCTestCase {
         createFile(atPath: srcPath)
         do {
             try fm.copyItem(atPath: srcPath, toPath: destPath)
-        } catch let error {
+        } catch {
             XCTFail("Failed to copy file: \(error)")
         }
 
@@ -657,7 +653,7 @@ class TestFileManager : XCTestCase {
 
         do {
             try fm.copyItem(atPath: srcPath, toPath: destPath)
-        } catch let error {
+        } catch {
             XCTFail("Unable to copy directory: \(error)")
         }
         XCTAssertTrue(directoryExists(atPath: destPath))
@@ -701,7 +697,7 @@ class TestFileManager : XCTestCase {
         let basePath = NSTemporaryDirectory() + "linkItemAtPathToPath/"
         let srcPath = basePath + "testdir\(NSUUID().uuidString)"
         let destPath = basePath + "testdir\(NSUUID().uuidString)"
-        defer { ignoreError { try fm.removeItem(atPath: basePath) } }
+        defer { try? fm.removeItem(atPath: basePath) }
 
         func getFileInfo(atPath path: String, _ body: (String, Bool, UInt64, UInt64) -> ()) {
             guard let enumerator = fm.enumerator(atPath: path) else {
@@ -729,7 +725,7 @@ class TestFileManager : XCTestCase {
             }
         }
 
-        ignoreError { try fm.removeItem(atPath: basePath) }
+        try? fm.removeItem(atPath: basePath)
         XCTAssertNotNil(try? fm.createDirectory(atPath: "\(srcPath)/tempdir/subdir/otherdir/extradir", withIntermediateDirectories: true, attributes: nil))
         XCTAssertTrue(fm.createFile(atPath: "\(srcPath)/tempdir/tempfile", contents: Data(), attributes: nil))
         XCTAssertTrue(fm.createFile(atPath: "\(srcPath)/tempdir/tempfile2", contents: Data(), attributes: nil))

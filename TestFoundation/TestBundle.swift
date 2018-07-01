@@ -133,7 +133,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = bundleURL.path
-            } catch _ {
+            } catch {
                 return false
             }
             
@@ -176,7 +176,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = resourcesDirectory.path
-            } catch _ {
+            } catch {
                 return false
             }
             
@@ -210,7 +210,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = resourcesDirectory.path
-            } catch _ {
+            } catch {
                 return false
             }
         }
@@ -222,12 +222,8 @@ class BundlePlayground {
     func destroy() {
         guard let path = self.playgroundPath else { return }
         self.playgroundPath = nil
-        
-        do {
-            try FileManager.default.removeItem(atPath: path)
-        } catch _ {
-            // ¯\_(ツ)_/¯ We did what we could.
-        }
+
+        try? FileManager.default.removeItem(atPath: path)
     }
     
     deinit {
@@ -363,11 +359,7 @@ class TestBundle : XCTestCase {
     }
     
     private func _cleanupPlayground(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            // Oh well
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
     
     func test_URLsForResourcesWithExtension() {

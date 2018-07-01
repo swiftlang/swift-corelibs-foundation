@@ -58,11 +58,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     open class func unarchiveObject(with data: Data) -> Any? {
-        do {
-            return try unarchiveTopLevelObjectWithData(data)
-        } catch {
-        }
-        return nil
+        return try? unarchiveTopLevelObjectWithData(data)
     }
     
     open class func unarchiveObject(withFile path: String) -> Any? {
