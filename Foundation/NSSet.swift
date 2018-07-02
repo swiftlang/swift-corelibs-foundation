@@ -208,6 +208,7 @@ extension NSSet {
     }
     
     open func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
+        // If self is larger then self cannot be a subset of otherSet
         if count > otherSet.count {
             return false
         }
