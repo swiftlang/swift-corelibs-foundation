@@ -210,6 +210,10 @@ extension NSOrderedSet {
     }
     
     open func isSubset(of other: NSOrderedSet) -> Bool {
+        if count > other.count {
+            return false
+        }
+
         for item in self {
             if !other.contains(item) {
                 return false
@@ -219,6 +223,10 @@ extension NSOrderedSet {
     }
 
     open func isSubset(of set: Set<AnyHashable>) -> Bool {
+        if count > set.count {
+            return false
+        }
+
         for item in self {
             if !set.contains(item as! AnyHashable) {
                 return false
