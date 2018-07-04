@@ -14,6 +14,7 @@ from .phases import Assemble
 from .phases import BuildAction
 from .phases import MergeSwiftModule
 from .target import OSType
+from .target import ArchType
 from .path import Path
 
 import os
@@ -119,7 +120,7 @@ class DynamicLibrary(Library):
         self.rule = "Link"
         self.product_name = Configuration.current.target.dynamic_library_prefix + self.name + Configuration.current.target.dynamic_library_suffix
         if (Configuration.current.target.sdk == OSType.Linux or Configuration.current.target.sdk == OSType.FreeBSD) and self.uses_swift_runtime_object:
-            self.runtime_object = '${SDKROOT}/lib/swift/${OS}/${ARCH}/swiftrt.o'
+            self.runtime_object = '${SDKROOT}/${LIBDIR}/swift/${OS}/${ARCH}/swiftrt.o'
             return Library.generate(self, ["-shared", "-Wl,-soname," + self.product_name, "-Wl,--no-undefined"], objects)
         else:
             return Library.generate(self, ["-shared"], objects)

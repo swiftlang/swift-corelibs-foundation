@@ -41,12 +41,12 @@ foundation.ASFLAGS = " ".join([
 
 # For now, we do not distinguish between public and private headers (they are all private to Foundation)
 # These are really part of CF, which should ultimately be a separate target
-foundation.ROOT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift"
-foundation.PUBLIC_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
-foundation.PRIVATE_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
-foundation.PROJECT_HEADERS_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
+foundation.ROOT_HEADERS_FOLDER_PATH = "${PREFIX}/${LIBDIR}/swift"
+foundation.PUBLIC_HEADERS_FOLDER_PATH = "${PREFIX}/${LIBDIR}/swift/CoreFoundation"
+foundation.PRIVATE_HEADERS_FOLDER_PATH = "${PREFIX}/${LIBDIR}/swift/CoreFoundation"
+foundation.PROJECT_HEADERS_FOLDER_PATH = "${PREFIX}/${LIBDIR}/swift/CoreFoundation"
 
-foundation.PUBLIC_MODULE_FOLDER_PATH = "${PREFIX}/lib/swift/CoreFoundation"
+foundation.PUBLIC_MODULE_FOLDER_PATH = "${PREFIX}/${LIBDIR}/swift/CoreFoundation"
 
 foundation.CFLAGS += " ".join([
 	'-DU_SHOW_DRAFT_API',
@@ -65,7 +65,7 @@ foundation.CFLAGS += " ".join([
 ])
 
 swift_cflags += [
-	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
+    '-I${BUILD_DIR}/Foundation/usr/${LIBDIR}/swift',
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
@@ -550,15 +550,15 @@ Configuration.current.variables["LIBS_DIRS"] = LIBS_DIRS
 
 extra_script = """
 rule InstallFoundation
-    command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
-    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
-    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
-    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
-    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
-    cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
-    cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
+    command = mkdir -p "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/${OS}"; $
+    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/${OS}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/${LIBDIR}/swift_static/${OS}"; $
+    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/${LIBDIR}/swift_static/${OS}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/${OS}/${ARCH}"; $
+    cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/${OS}/${ARCH}/"; $
+    cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/${OS}/${ARCH}/"; $
     mkdir -p "${DSTROOT}/${PREFIX}/local/include"; $
-    rsync -a "${BUILD_DIR}/Foundation/${PREFIX}/lib/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/lib/swift/"
+    rsync -a "${BUILD_DIR}/Foundation/${PREFIX}/${LIBDIR}/swift/CoreFoundation" "${DSTROOT}/${PREFIX}/${LIBDIR}/swift/"
 
 build ${BUILD_DIR}/.install: InstallFoundation ${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}
 
