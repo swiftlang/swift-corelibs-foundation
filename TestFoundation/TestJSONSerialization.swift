@@ -1439,8 +1439,8 @@ extension TestJSONSerialization {
             let data = decimalArray.data(using: String.Encoding.utf8)
             let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
             XCTAssertEqual(result?[0] as! Double, 12.1)
-            XCTAssertEqual(result?[1] as! Int, 10)
-            XCTAssertEqual(result?[2] as! Int, 0)
+            XCTAssertEqual(result?[1] as! Double, 10.0)
+            XCTAssertEqual(result?[2] as! Double, 0.0)
             XCTAssertEqual(result?[3] as! Double, 0.0001)
             XCTAssertEqual(result?[4] as! Int, 20)
             XCTAssertEqual(result?[5] as! Int, Int.max)
