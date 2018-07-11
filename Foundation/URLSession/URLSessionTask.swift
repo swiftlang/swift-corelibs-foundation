@@ -552,24 +552,30 @@ extension _ProtocolClient : URLProtocolClient {
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didCompleteWithError: nil)
                 task.state = .completed
-                task.workQueue.async {
+                session.workQueue.async {
                     session.taskRegistry.remove(task)
                 }
             }
         case .noDelegate:
             task.state = .completed
-            session.taskRegistry.remove(task)
+            session.workQueue.async {
+                session.taskRegistry.remove(task)
+            }
         case .dataCompletionHandler(let completion):
             session.delegateQueue.addOperation {
                 completion(`protocol`.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                session.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
                 completion(`protocol`.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                session.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         }
         task._protocol = nil
@@ -610,18 +616,20 @@ extension _ProtocolClient : URLProtocolClient {
             session.delegateQueue.addOperation {
                 delegate.urlSession(session, task: task, didCompleteWithError: error as Error)
                 task.state = .completed
-                task.workQueue.async {
+                session.workQueue.async {
                     session.taskRegistry.remove(task)
                 }
             }
         case .noDelegate:
             task.state = .completed
-            session.taskRegistry.remove(task)
+            session.workQueue.async {
+                session.taskRegistry.remove(task)
+            }
         case .dataCompletionHandler(let completion):
             session.delegateQueue.addOperation {
                 completion(nil, nil, error)
                 task.state = .completed
-                task.workQueue.async {
+                session.workQueue.async {
                     session.taskRegistry.remove(task)
                 }
             }
@@ -629,7 +637,9 @@ extension _ProtocolClient : URLProtocolClient {
             session.delegateQueue.addOperation {
                 completion(nil, nil, error)
                 task.state = .completed
-                session.taskRegistry.remove(task)
+                session.workQueue.async {
+                    session.taskRegistry.remove(task)
+                }
             }
         }
         task._protocol = nil
