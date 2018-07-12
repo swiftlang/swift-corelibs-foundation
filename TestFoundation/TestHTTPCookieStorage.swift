@@ -26,6 +26,7 @@ class TestHTTPCookieStorage: XCTestCase {
             ("test_cookiesForURLWithMainDocumentURL", test_cookiesForURLWithMainDocumentURL),
             ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
             ("test_descriptionCookie", test_descriptionCookie),
+            ("test_cookieDomainMatching", test_cookieDomainMatching),
         ]
     }
 
@@ -87,6 +88,11 @@ class TestHTTPCookieStorage: XCTestCase {
     func test_descriptionCookie() {
         descriptionCookie(with: .shared)
         descriptionCookie(with: .groupContainer("test"))
+    }
+
+    func test_cookieDomainMatching() {
+        cookieDomainMatching(with: .shared)
+        cookieDomainMatching(with: .groupContainer("test"))
     }
 
     func getStorage(for type: _StorageType) -> HTTPCookieStorage {
@@ -270,6 +276,49 @@ class TestHTTPCookieStorage: XCTestCase {
             return
         }
         XCTAssertEqual(storage.description, "<NSHTTPCookieStorage cookies count:\(cookies1.count)>")
+    }
+
+    func cookieDomainMatching(with storageType: _StorageType) {
+        let storage = getStorage(for: storageType)
+
+        let simpleCookie1 = HTTPCookie(properties: [   // swift.org domain only
+           .name: "TestCookie1",
+           .value: "TestValue1",
+           .path: "/",
+           .domain: "swift.org",
+        ])!
+
+        storage.setCookie(simpleCookie1)
+
+        let simpleCookie2 = HTTPCookie(properties: [   // *.swift.org
+           .name: "TestCookie2",
+           .value: "TestValue2",
+           .path: "/",
+           .domain: ".SWIFT.org",
+        ])!
+
+        storage.setCookie(simpleCookie2)
+
+        let simpleCookie3 = HTTPCookie(properties: [   // bugs.swift.org
+           .name: "TestCookie3",
+           .value: "TestValue3",
+           .path: "/",
+           .domain: "bugs.swift.org",
+        ])!
+
+        storage.setCookie(simpleCookie3)
+        XCTAssertEqual(storage.cookies!.count, 3)
+
+        let swiftOrgUrl = URL(string: "https://swift.ORG")!
+        let ciSwiftOrgUrl = URL(string: "https://CI.swift.ORG")!
+        let bugsSwiftOrgUrl = URL(string: "https://BUGS.swift.org")!
+        let exampleComUrl = URL(string: "http://www.example.com")!
+        let superSwiftOrgUrl = URL(string: "https://superswift.org")!
+        XCTAssertEqual(storage.cookies(for: swiftOrgUrl)!.count, 2)
+        XCTAssertEqual(storage.cookies(for: ciSwiftOrgUrl)!.count, 1)
+        XCTAssertEqual(storage.cookies(for: bugsSwiftOrgUrl)!.count, 2)
+        XCTAssertEqual(storage.cookies(for: exampleComUrl)!.count, 0)
+        XCTAssertEqual(storage.cookies(for: superSwiftOrgUrl)!.count, 0)
     }
 
     func test_cookieInXDGSpecPath() {
