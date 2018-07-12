@@ -15,6 +15,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream),
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
@@ -121,6 +122,56 @@ class TestURLSession : LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 12)
+    }
+    
+    func test_dataTaskWithHttpInputStream() {
+        func randomString(length: Int) -> String {
+            let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+            let len = UInt32(letters.length)
+            
+            var randomString = ""
+            
+            for _ in 0 ..< length {
+                let rand = arc4random_uniform(len)
+                var nextChar = letters.character(at: Int(rand))
+                randomString += NSString(characters: &nextChar, length: 1) as String
+            }
+            return randomString
+        }
+        
+        let delegate = HTTPBinResponseDelegateJSON<HTTPBinResponse>()
+
+        let dataString = randomString(length: 65537)
+        
+        let urlString = "http://httpbin.org/post"
+        let url = URL(string: urlString)!
+        let urlSession = URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        
+        guard let data = dataString.data(using: .utf8) else {
+            XCTFail()
+            return
+        }
+
+        let inputStream = InputStream(data: data)
+        inputStream.open()
+
+        urlRequest.httpBodyStream = inputStream
+        
+        urlRequest.setValue("en-us", forHTTPHeaderField: "Accept-Language")
+        urlRequest.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("chunked", forHTTPHeaderField: "Transfer-Encoding")
+
+        let urlTask = urlSession.dataTask(with: urlRequest)
+        urlTask.resume()
+
+        delegate.semaphore.wait()
+
+        XCTAssertTrue(urlTask.response != nil)
+        XCTAssertTrue(delegate.response != nil)
+        XCTAssertTrue(delegate.response?.data == dataString)
     }
     
     func test_downloadTaskWithURL() {
@@ -947,6 +998,51 @@ class HTTPRedirectionDataTask : NSObject {
     func cancel() {
         task.cancel()
     }
+}
+
+
+class HTTPBinResponseDelegate<T>: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
+    let semaphore = DispatchSemaphore(value: 0)
+    let outputStream = OutputStream.toMemory()
+    var response: T?
+    
+    override init() {
+        outputStream.open()
+    }
+    
+    deinit {
+        outputStream.close()
+    }
+    
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        _ = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) in
+            outputStream.write(bytes, maxLength: data.count)
+        })
+    }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let data = outputStream.property(forKey: .dataWrittenToMemoryStreamKey) as? NSData {
+            response = parseResposne(data: data._bridgeToSwift())
+        }
+        semaphore.signal()
+    }
+    
+    public func parseResposne(data: Data) -> T? {
+        fatalError("")
+    }
+}
+
+class HTTPBinResponseDelegateJSON<T: Codable>: HTTPBinResponseDelegate<T> {
+    override func parseResposne(data: Data) -> T? {
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+}
+
+struct HTTPBinResponse: Codable {
+    let data: String
+    let headers: [String: String]
+    let origin: String
+    let url: String
 }
 
 extension HTTPRedirectionDataTask : URLSessionDataDelegate {
