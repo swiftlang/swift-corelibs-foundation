@@ -260,8 +260,29 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }
 
     func seekInputStream(to position: UInt64) throws {
-        // We will reset the body source and seek forward.
-        NSUnimplemented()
+        // We will reset the body sourse and seek forward.
+        guard let session = task?.session as? URLSession else { fatalError() }
+        if let delegate = session.delegate as? URLSessionTaskDelegate {
+            delegate.urlSession(session, task: task!, needNewBodyStream: { [weak self] inputStream in
+                if let strongSelf = self, let url = strongSelf.request.url, let inputStream = inputStream {
+                    switch strongSelf.internalState {
+                    case .transferInProgress(let currentTransferState):
+                        switch currentTransferState.requestBodySource {
+                        case is _BodyStreamSource:
+                            let drain = strongSelf.createTransferBodyDataDrain()
+                            let source = _BodyStreamSource(inputStream: inputStream)
+                            let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
+                            strongSelf.internalState = .transferInProgress(transferState)
+                        default:
+                            NSUnimplemented()
+                        }
+                    default:
+                        //TODO: it's possible?
+                        break
+                    }
+                }
+            })
+        }
     }
 
     func updateProgressMeter(with propgress: _EasyHandle._Progress) {
@@ -313,8 +334,9 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
                 self?.easyHandle.unpauseSend()
             })
             return _TransferState(url: url, bodyDataDrain: drain,bodySource: source)
-        case .stream:
-            NSUnimplemented()
+        case .stream(let inputStream):
+            let source = _BodyStreamSource(inputStream: inputStream)
+            return _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
         }
     }
 
