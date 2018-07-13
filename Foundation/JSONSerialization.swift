@@ -23,7 +23,7 @@ extension JSONSerialization {
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
-        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 15)
+        internal static let useNativeNumericTypes = ReadingOptions(rawValue: 1 << 15)
     }
 
     public struct WritingOptions : OptionSet {
@@ -841,7 +841,7 @@ private struct JSONReader {
                     return nil
                 }
 
-                let shouldUseReferenceType = opt.contains(.useReferenceNumericTypes)
+                let shouldUseReferenceType = !opt.contains(.useNativeNumericTypes)
 
                 if intDistance == doubleDistance {
                     return (shouldUseReferenceType ? NSNumber(value: intResult) : intResult,
@@ -849,11 +849,6 @@ private struct JSONReader {
                 }
                 guard doubleDistance > 0 else {
                     return nil
-                }
-
-                if doubleResult == doubleResult.rounded() {
-                    return (shouldUseReferenceType ? NSNumber(value: Int(doubleResult)) : Int(doubleResult),
-                            doubleDistance)
                 }
 
                 return (shouldUseReferenceType ? NSNumber(value: doubleResult) : doubleResult,
@@ -887,11 +882,11 @@ private struct JSONReader {
             return (value, parser)
         }
         else if let parser = try consumeASCIISequence("true", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: true) : true
+            let result: Any = opt.contains(.useNativeNumericTypes) ? true : NSNumber(value: true)
             return (result, parser)
         }
         else if let parser = try consumeASCIISequence("false", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: false) : false
+            let result: Any = opt.contains(.useNativeNumericTypes) ? false : NSNumber(value: false)
             return (result, parser)
         }
         else if let parser = try consumeASCIISequence("null", input: input) {
