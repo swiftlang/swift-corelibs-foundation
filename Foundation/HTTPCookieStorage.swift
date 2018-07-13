@@ -352,8 +352,8 @@ extension HTTPCookie {
         //      domain string is a %x2E (".") character.
         //    * The string is a host name (i.e., not an IP address).
 
-        let dotlessDomain = domain.first == "." ? String(domain.suffix(domain.count - 1)) : domain
-        return dotlessDomain == host || (domain.first == "." && host.hasSuffix(domain))
+        guard domain.hasPrefix(".") else { return host == domain }
+        return host == domain.dropFirst() || host.hasSuffix(domain)
     }
 
     internal func persistableDictionary() -> [String: Any] {

@@ -314,11 +314,11 @@ class TestHTTPCookieStorage: XCTestCase {
         let bugsSwiftOrgUrl = URL(string: "https://BUGS.swift.org")!
         let exampleComUrl = URL(string: "http://www.example.com")!
         let superSwiftOrgUrl = URL(string: "https://superswift.org")!
-        XCTAssertEqual(storage.cookies(for: swiftOrgUrl)!.count, 2)
-        XCTAssertEqual(storage.cookies(for: ciSwiftOrgUrl)!.count, 1)
-        XCTAssertEqual(storage.cookies(for: bugsSwiftOrgUrl)!.count, 2)
-        XCTAssertEqual(storage.cookies(for: exampleComUrl)!.count, 0)
-        XCTAssertEqual(storage.cookies(for: superSwiftOrgUrl)!.count, 0)
+        XCTAssertEqual(Set(storage.cookies(for: swiftOrgUrl)!), Set([simpleCookie1, simpleCookie2]))
+        XCTAssertEqual(storage.cookies(for: ciSwiftOrgUrl)!, [simpleCookie2])
+        XCTAssertEqual(Set(storage.cookies(for: bugsSwiftOrgUrl)!), Set([simpleCookie2, simpleCookie3]))
+        XCTAssertEqual(storage.cookies(for: exampleComUrl)!, [])
+        XCTAssertEqual(storage.cookies(for: superSwiftOrgUrl)!, [])
     }
 
     func test_cookieInXDGSpecPath() {
