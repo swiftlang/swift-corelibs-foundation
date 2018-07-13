@@ -433,12 +433,14 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         try pListData.write(to: url, options: .atomic)
     }
 
+    @discardableResult
     @available(*, deprecated)
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
     }
 
     // the atomically flag is ignored if url of a type that cannot be written atomically.
+    @discardableResult
     @available(*, deprecated)
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
