@@ -859,7 +859,7 @@ open class JSONDecoder {
     /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not valid JSON.
     /// - throws: An error if any value throws an error during decoding.
     open func decode<T : Decodable>(_ type: T.Type, from data: Data) throws -> T {
-        let topLevel = try JSONSerialization.jsonObject(with: data, options: [.useReferenceNumericTypes])
+        let topLevel = try JSONSerialization.jsonObject(with: data, options: [])
         let decoder = _JSONDecoder(referencing: topLevel, options: self.options)
         return try T(from: decoder)
     }
