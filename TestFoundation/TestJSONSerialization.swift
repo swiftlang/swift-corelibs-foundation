@@ -7,11 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-// Exposing internal ReadingOptions for tests.
-extension JSONSerialization.ReadingOptions {
-    fileprivate static let useReferenceNumericTypes = JSONSerialization.ReadingOptions(rawValue: 1 << 15)
-}
-
 class TestJSONSerialization : XCTestCase {
     
     let supportedEncodings: [String.Encoding] = [
@@ -477,7 +472,7 @@ extension TestJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? NSNumber, true)
                 XCTAssertEqual(result?[1] as? NSNumber, false)
                 XCTAssertEqual(result?[2] as? String, "hello")
@@ -492,7 +487,7 @@ extension TestJSONSerialization {
 
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
 
         do {
             for encoding in supportedEncodings {
@@ -501,19 +496,22 @@ extension TestJSONSerialization {
                     return
                 }
                 let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? Int,        1)
-                XCTAssertEqual(result?[1] as? Int,       -1)
-                XCTAssertEqual(result?[2] as? Double,   1.3)
-                XCTAssertEqual(result?[3] as? Double,  -1.3)
-                XCTAssertEqual(result?[4] as? Int,     1000)
+                XCTAssertEqual(result?[0] as? Int,    1)
+                XCTAssertEqual(result?[1] as? Int,    -1)
+                XCTAssertEqual(result?[2] as? Double, 1.3)
+                XCTAssertEqual(result?[3] as? Double, -1.3)
+                XCTAssertEqual(result?[4] as? Int,    1000)
                 XCTAssertEqual(result?[5] as? Double, 0.001)
+                XCTAssertEqual(result?[6] as? Int,    10)
+                XCTAssertEqual(result?[6] as? Double, 10.0)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
+
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
 
         do {
             for encoding in supportedEncodings {
@@ -521,13 +519,15 @@ extension TestJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? NSNumber, 1)
                 XCTAssertEqual(result?[1] as? NSNumber, -1)
                 XCTAssertEqual(result?[2] as? NSNumber, 1.3)
                 XCTAssertEqual(result?[3] as? NSNumber, -1.3)
                 XCTAssertEqual(result?[4] as? NSNumber, 1000)
                 XCTAssertEqual(result?[5] as? NSNumber, 0.001)
+                XCTAssertEqual(result?[6] as? NSNumber, 10)
+                XCTAssertEqual(result?[6] as? NSNumber, 10.0)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -1449,7 +1449,7 @@ extension TestJSONSerialization {
         }
         do {
             let data = decimalArray.data(using: String.Encoding.utf8)
-            let result = try JSONSerialization.jsonObject(with: data!, options: [.useReferenceNumericTypes]) as? [Any]
+            let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
             XCTAssertEqual(result?[0] as! NSNumber, 12.1)
             XCTAssertEqual(result?[1] as! NSNumber, 10)
             XCTAssertEqual(result?[2] as! NSNumber, 0)

@@ -17,17 +17,16 @@ import CoreFoundation
 
 extension JSONSerialization {
     public struct ReadingOptions : OptionSet {
-        public let rawValue : UInt
+        public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
-        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 15)
     }
 
     public struct WritingOptions : OptionSet {
-        public let rawValue : UInt
+        public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
@@ -806,6 +805,7 @@ private struct JSONReader {
             || (byte >= 0x41 && byte <= 0x46)
             || (byte >= 0x61 && byte <= 0x66)
     }
+
     func parseCodeUnit(_ input: Index) -> (UTF16.CodeUnit, Index)? {
         let hexParser = takeMatching(isHexChr)
         guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
@@ -820,6 +820,7 @@ private struct JSONReader {
         0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
+
     func parseNumber(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
         func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
             let temp_buffer_size = 64
@@ -837,32 +838,15 @@ private struct JSONReader {
                 let doubleResult = strtod(startPointer, doubleEndPointer)
                 let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
 
-                guard intDistance > 0 || doubleDistance > 0 else {
-                    return nil
-                }
-
-                let shouldUseReferenceType = opt.contains(.useReferenceNumericTypes)
-
+                guard doubleDistance > 0 else { return nil }
                 if intDistance == doubleDistance {
-                    return (shouldUseReferenceType ? NSNumber(value: intResult) : intResult,
-                            intDistance)
+                    return (NSNumber(value: intResult), intDistance)
                 }
-                guard doubleDistance > 0 else {
-                    return nil
-                }
-
-                if doubleResult == doubleResult.rounded() {
-                    return (shouldUseReferenceType ? NSNumber(value: Int(doubleResult)) : Int(doubleResult),
-                            doubleDistance)
-                }
-
-                return (shouldUseReferenceType ? NSNumber(value: doubleResult) : doubleResult,
-                        doubleDistance)
+                return (NSNumber(value: doubleResult), doubleDistance)
             }
         }
         
         if source.encoding == .utf8 {
-            
             return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }
         else {
@@ -872,7 +856,6 @@ private struct JSONReader {
                 numberCharacters.append(ascii)
                 index = nextIndex
             }
-            
             numberCharacters.append(0)
             
             return numberCharacters.withUnsafeBufferPointer {
@@ -887,12 +870,10 @@ private struct JSONReader {
             return (value, parser)
         }
         else if let parser = try consumeASCIISequence("true", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: true) : true
-            return (result, parser)
+            return (NSNumber(value: true), parser)
         }
         else if let parser = try consumeASCIISequence("false", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: false) : false
-            return (result, parser)
+            return (NSNumber(value: false), parser)
         }
         else if let parser = try consumeASCIISequence("null", input: input) {
             return (NSNull(), parser)
