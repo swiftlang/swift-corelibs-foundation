@@ -14,17 +14,9 @@
 
 import Dispatch
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
     import Darwin
-#elseif os(Linux)
+#elseif canImport(Glibc)
     import Glibc
 #endif
 

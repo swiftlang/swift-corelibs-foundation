@@ -53,8 +53,10 @@ open class Bundle: NSObject {
         self.init(path: url.path)
     }
     
-    public init(for aClass: AnyClass) { NSUnimplemented() }
-    
+    public init(for aClass: AnyClass) {
+        NSUnimplemented()
+    }
+
     public init?(identifier: String) {
         super.init()
         

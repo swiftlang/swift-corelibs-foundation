@@ -7,17 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
 class TestNSAttributedString : XCTestCase {
     
     static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
@@ -192,10 +181,6 @@ class TestNSAttributedString : XCTestCase {
     }
     
     func test_enumerateAttributes() {
-#if os(Android)
-        // Invalid dictionary returned by CFAttributedStringGetAttributesAndLongestEffectiveRange
-        XCTFail("Intermittent failures on Android")
-#else
         let string = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit."
         
         let attrKey1 = NSAttributedStringKey("attribute.placeholder.key1")
@@ -254,7 +239,6 @@ class TestNSAttributedString : XCTestCase {
         }
         XCTAssertEqual(rangeDescriptionString, "(0,10)")
         XCTAssertEqual(attrsDescriptionString, "[attribute.placeholder.key1:attribute.placeholder.value1]")
-#endif
     }
     
     func test_copy() {

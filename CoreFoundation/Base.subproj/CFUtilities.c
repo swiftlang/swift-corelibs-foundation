@@ -1000,6 +1000,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
         CFStringGetCString(message, buffer, maxLength, encoding);
     
     __android_log_print(priority, tag, "%s", buffer);
+    fprintf(stderr, "%s\n", buffer);
     
     if (buffer != &stack_buffer[0]) free(buffer);
 #else
