@@ -125,6 +125,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-Xcc -fblocks'
 	])
 	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
+	foundation.LDFLAGS += '-L' + Configuration.current.variables['LIBDISPATCH_BUILD_DIR'] + ' -lBlocksRuntime '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
