@@ -116,6 +116,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 	foundation.CFLAGS += " "+" ".join([
 		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
+		'-I' + os.path.join(Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"], 'src', 'BlocksRuntime'),
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
 	])
 	swift_cflags += ([
