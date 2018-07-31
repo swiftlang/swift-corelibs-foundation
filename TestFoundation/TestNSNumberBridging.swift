@@ -24,6 +24,7 @@ class TestNSNumberBridging : XCTestCase {
             ("testNSNumberBridgeFromDouble", testNSNumberBridgeFromDouble),
             ("test_numericBitPatterns_to_floatingPointTypes", test_numericBitPatterns_to_floatingPointTypes),
             ("testNSNumberBridgeAnyHashable", testNSNumberBridgeAnyHashable),
+            ("testNSNumberToBool", testNSNumberToBool),
         ]
     }
 
@@ -622,6 +623,37 @@ class TestNSNumberBridging : XCTestCase {
 
             XCTAssertEqual(value, ns_value)
         }
+    }
+
+    func testNSNumberToBool() {
+        let b0 = NSNumber(value: 0) as? Bool
+        XCTAssertNotNil(b0)
+        XCTAssertEqual(b0, false)
+
+        let b1 = NSNumber(value: false) as? Bool
+        XCTAssertNotNil(b1)
+        XCTAssertEqual(b1, false)
+
+        let b2 = NSNumber(value: 1) as? Bool
+        XCTAssertNotNil(b2)
+        XCTAssertEqual(b2, true)
+
+        let b3 = NSNumber(value: true) as? Bool
+        XCTAssertNotNil(b3)
+        XCTAssertEqual(b3, true)
+
+        XCTAssertNil(NSNumber(value: -1) as? Bool)
+        XCTAssertNil(NSNumber(value: 2) as? Bool)
+        XCTAssertNil(NSNumber(value: Int8.min) as? Bool)
+        XCTAssertNil(NSNumber(value: Int8.max) as? Bool)
+        XCTAssertNil(NSNumber(value: Int16.min) as? Bool)
+        XCTAssertNil(NSNumber(value: Int16.max) as? Bool)
+        XCTAssertNil(NSNumber(value: Int32.min) as? Bool)
+        XCTAssertNil(NSNumber(value: Int32.max) as? Bool)
+        XCTAssertNil(NSNumber(value: Int64.min) as? Bool)
+        XCTAssertNil(NSNumber(value: Int64.max) as? Bool)
+        XCTAssertNil(NSNumber(value: Int.min) as? Bool)
+        XCTAssertNil(NSNumber(value: Int.max) as? Bool)
     }
 }
 

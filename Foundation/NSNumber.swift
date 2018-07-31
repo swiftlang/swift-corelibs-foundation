@@ -541,8 +541,13 @@ extension Bool : _ObjectiveCBridgeable {
     }
     
     public static func _conditionallyBridgeFromObjectiveC(_ x: NSNumber, result: inout Bool?) -> Bool {
-        result = x.boolValue
-        return true
+        if x.intValue == 0 || x.intValue == 1 {
+            result = x.boolValue
+            return true
+        } else {
+            result = nil
+            return false
+        }
     }
     
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNumber?) -> Bool {
