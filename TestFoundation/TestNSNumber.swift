@@ -35,6 +35,7 @@ class TestNSNumber : XCTestCase {
             ("test_objCType", test_objCType ),
             ("test_stringValue", test_stringValue),
             ("test_Equals", test_Equals),
+            ("test_boolValue", test_boolValue),
         ]
     }
     
@@ -1213,5 +1214,52 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).compare(NSNumber(value: 0)), ComparisonResult.orderedDescending)
         XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).compare(NSNumber(value: 0)), ComparisonResult.orderedDescending)
         XCTAssertTrue(NSNumber(value: Double(-0.0)) == NSNumber(value: Double(0.0)))
+    }
+
+    func test_boolValue() {
+        XCTAssertEqual(NSNumber(value: UInt8.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt8.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt16.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt32.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt64.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int8.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int64.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, false) // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int64.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)   // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int(-1)).boolValue, true)
     }
 }
