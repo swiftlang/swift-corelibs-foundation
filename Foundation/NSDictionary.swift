@@ -571,6 +571,12 @@ extension Dictionary : _NSBridgeable, _CFBridgeable {
     internal var _cfObject: CFDictionary { return _nsObject._cfObject }
 }
 
+extension NSDictionary : _HasCustomAnyHashableRepresentation {
+  public func _toCustomAnyHashable() -> AnyHashable? {
+    return AnyHashable(self as! Dictionary<AnyHashable, AnyHashable>)
+  }
+}
+
 open class NSMutableDictionary : NSDictionary {
     
     open func removeObject(forKey aKey: Any) {

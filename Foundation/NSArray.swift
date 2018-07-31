@@ -935,6 +935,12 @@ open class NSMutableArray : NSArray {
     }
 }
 
+extension NSArray : _HasCustomAnyHashableRepresentation {
+  public func _toCustomAnyHashable() -> AnyHashable? {
+    return AnyHashable(self as! Array<AnyHashable>)
+  }
+}
+
 extension NSArray : Sequence {
     final public func makeIterator() -> Iterator {
         return Iterator(self)
