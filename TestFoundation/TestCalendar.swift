@@ -198,8 +198,72 @@ class TestNSDateComponents: XCTestCase {
 
     static var allTests: [(String, (TestNSDateComponents) -> () throws -> Void)] {
         return [
+            ("test_hash", test_hash),
             ("test_copyNSDateComponents", test_copyNSDateComponents),
         ]
+    }
+
+    func test_hash() {
+        let c1 = NSDateComponents()
+        c1.year = 2018
+        c1.month = 8
+        c1.day = 1
+
+        let c2 = NSDateComponents()
+        c2.year = 2018
+        c2.month = 8
+        c2.day = 1
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hash, c2.hash)
+
+        checkHashableMutations_NSCopying(
+            NSDateComponents(),
+            \NSDateComponents.calendar,
+            [Calendar(identifier: .gregorian),
+                Calendar(identifier: .buddhist),
+                Calendar(identifier: .chinese),
+                Calendar(identifier: .coptic),
+                Calendar(identifier: .hebrew),
+                Calendar(identifier: .indian),
+                Calendar(identifier: .islamic),
+                Calendar(identifier: .iso8601),
+                Calendar(identifier: .japanese),
+                Calendar(identifier: .persian)])
+        checkHashableMutations_NSCopying(
+            NSDateComponents(),
+            \NSDateComponents.timeZone,
+            (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
+        // Note: These assume components aren't range checked.
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.era, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.year, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.quarter, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.month, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.day, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.hour, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.minute, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.second, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.nanosecond, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.weekOfYear, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.weekOfMonth, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.yearForWeekOfYear, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.weekday, 0...20)
+        checkHashableMutations_NSCopying(
+            NSDateComponents(), \NSDateComponents.weekdayOrdinal, 0...20)
+        // isLeapMonth does not have enough values to test it here.
     }
 
     func test_copyNSDateComponents() {
