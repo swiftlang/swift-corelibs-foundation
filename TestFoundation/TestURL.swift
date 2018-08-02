@@ -521,6 +521,7 @@ class TestURLComponents : XCTestCase {
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
+            ("test_hash", test_hash),
             ("test_createURLWithComponents", test_createURLWithComponents),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
@@ -615,7 +616,15 @@ class TestURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
-    
+
+    func test_hash() {
+        let c1 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+        let c2 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hashValue, c2.hashValue)
+    }
+
     func test_createURLWithComponents() {
         let urlComponents = NSURLComponents()
         urlComponents.scheme = "https";
