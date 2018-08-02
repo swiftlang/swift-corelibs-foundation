@@ -18,6 +18,7 @@ class TestURLRequest : XCTestCase {
             ("test_mutableCopy_1", test_mutableCopy_1),
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
+            ("test_hash", test_hash),
             ("test_methodNormalization", test_methodNormalization),
             ("test_description", test_description),
         ]
@@ -192,6 +193,39 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(originalRequest.httpMethod, "GET")
         XCTAssertEqual(originalRequest.url, urlA)
         XCTAssertNil(originalRequest.allHTTPHeaderFields)
+    }
+
+    func test_hash() {
+        let url = URL(string: "https://swift.org")!
+        let r1 = URLRequest(url: url)
+        let r2 = URLRequest(url: url)
+
+        XCTAssertEqual(r1, r2)
+        XCTAssertEqual(r1.hashValue, r2.hashValue)
+
+        checkHashableMutations_ValueType(
+            URLRequest(url: url),
+            \URLRequest.url,
+            (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashableMutations_ValueType(
+            URLRequest(url: url),
+            \URLRequest.mainDocumentURL,
+            (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashableMutations_ValueType(
+            URLRequest(url: url),
+            \URLRequest.httpMethod,
+            ["HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+                "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
+                "BUMFUZZLE", "ELUCIDATE"])
+        let inputStreams: [InputStream] = (0..<100).map { value in
+            InputStream(data: Data("\(value)".utf8))
+        }
+        checkHashableMutations_ValueType(
+            URLRequest(url: url),
+            \URLRequest.httpBodyStream,
+            inputStreams)
+        // allowsCellularAccess and httpShouldHandleCookies do
+        // not have enough values to test them here.
     }
 
     func test_methodNormalization() {

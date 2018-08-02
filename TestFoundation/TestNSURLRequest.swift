@@ -18,6 +18,7 @@ class TestNSURLRequest : XCTestCase {
             ("test_mutableCopy_1", test_mutableCopy_1),
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
+            ("test_hash", test_hash),
             ("test_NSCoding_1", test_NSCoding_1),
             ("test_NSCoding_2", test_NSCoding_2),
             ("test_NSCoding_3", test_NSCoding_3),
@@ -203,7 +204,41 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(originalRequest.url, urlA)
         XCTAssertNil(originalRequest.allHTTPHeaderFields)
     }
-    
+
+    func test_hash() {
+        let url = URL(string: "https://example.org")!
+
+        let r1 = NSURLRequest(url: url)
+        let r2 = NSURLRequest(url: url)
+        XCTAssertEqual(r1, r2)
+        XCTAssertEqual(r1.hashValue, r2.hashValue)
+
+        let urls: [URL?] = (0..<100).map { URL(string: "https://example.org/\($0)") }
+        checkHashableMutations_NSMutableCopying(
+            NSURLRequest(url: URL(string: "https://example.org")!),
+            \NSMutableURLRequest.url,
+            urls)
+        checkHashableMutations_NSMutableCopying(
+            NSURLRequest(url: URL(string: "https://example.org")!),
+            \NSMutableURLRequest.mainDocumentURL,
+            urls)
+        checkHashableMutations_NSMutableCopying(
+            NSURLRequest(url: URL(string: "https://example.org")!),
+            \NSMutableURLRequest.httpMethod,
+            ["HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+                "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
+                "BUMFUZZLE", "ELUCIDATE"])
+        let inputStreams: [InputStream?] = (0..<100).map { value in
+            InputStream(data: Data("\(value)".utf8))
+        }
+        checkHashableMutations_NSMutableCopying(
+            NSURLRequest(url: URL(string: "https://example.org")!),
+            \NSMutableURLRequest.httpBodyStream as ReferenceWritableKeyPath<NSMutableURLRequest, InputStream?>,
+            inputStreams as [InputStream?])
+        // allowsCellularAccess and httpShouldHandleCookies do
+        // not have enough values to test them here.
+    }
+
     func test_NSCoding_1() {
         let url = URL(string: "https://apple.com")!
         let requestA = NSURLRequest(url: url)
