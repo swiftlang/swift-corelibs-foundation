@@ -521,6 +521,7 @@ class TestURLComponents : XCTestCase {
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
+            ("test_hash", test_hash),
             ("test_createURLWithComponents", test_createURLWithComponents),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
@@ -615,7 +616,34 @@ class TestURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
-    
+
+    func test_hash() {
+        let c1 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+        let c2 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hashValue, c2.hashValue)
+
+        let strings: [String?] = (0..<20).map { "s\($0)" as String? }
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.scheme, strings)
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.user, strings)
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.password, strings)
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.host, strings)
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.port, (0..<20).map { $0 as Int? })
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.path, strings.compactMap { $0 })
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.query, strings)
+        checkHashableMutations_ValueType(URLComponents(), \URLComponents.fragment, strings)
+
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.scheme, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.user, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.password, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.host, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.port, (0..<20).map { $0 as NSNumber? })
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.path, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.query, strings)
+        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.fragment, strings)
+    }
+
     func test_createURLWithComponents() {
         let urlComponents = NSURLComponents()
         urlComponents.scheme = "https";
