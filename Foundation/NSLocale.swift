@@ -69,7 +69,11 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         
         return locale.localeIdentifier == localeIdentifier
     }
-    
+
+    override open var hash: Int {
+        return localeIdentifier.hash
+    }
+
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")

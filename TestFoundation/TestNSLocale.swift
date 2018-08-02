@@ -13,6 +13,7 @@ class TestNSLocale : XCTestCase {
             ("test_constants", test_constants),
             ("test_Identifier", test_Identifier),
             ("test_copy", test_copy),
+            ("test_hash", test_hash),
             ("test_staticProperties", test_staticProperties),
             ("test_localeProperties", test_localeProperties),
         ]
@@ -100,6 +101,14 @@ class TestNSLocale : XCTestCase {
         let localeCopy = locale
 
         XCTAssertTrue(locale == localeCopy)
+    }
+
+    func test_hash() {
+        let a1 = Locale(identifier: "en_US")
+        let a2 = Locale(identifier: "en_US")
+
+        XCTAssertEqual(a1, a2)
+        XCTAssertEqual(a1.hashValue, a2.hashValue)
     }
 
     func test_staticProperties() {
