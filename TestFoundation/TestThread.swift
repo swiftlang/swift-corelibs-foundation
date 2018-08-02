@@ -45,7 +45,7 @@ class TestThread : XCTestCase {
         }
         thread.start()
 
-        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 2))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
     }
