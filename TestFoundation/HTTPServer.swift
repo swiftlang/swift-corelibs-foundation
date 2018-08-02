@@ -522,6 +522,13 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: \(value)", body: text)
             return httpResponse
         }
+        if uri == "/redirect-with-default-port" {
+            let text = request.getCommaSeparatedHeaders()
+            let host = request.headers[1].components(separatedBy: " ")[1]
+            let ip = host.components(separatedBy: ":")[0]
+            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
+            return httpResponse
+        }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 
