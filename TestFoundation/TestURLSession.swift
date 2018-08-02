@@ -29,6 +29,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_timeoutInterval", test_timeoutInterval),
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
+            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
@@ -331,6 +332,14 @@ class TestURLSession : LoopbackServerTest {
 
     func test_httpRedirectionWithInCompleteRelativePath() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedKingdom"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+    }
+
+    func test_httpRedirectionWithDefaultPort() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect-with-default-port"
         let url = URL(string: urlString)!
         let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
         d.run(with: url)
@@ -893,6 +902,11 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         XCTAssertNotNil(response)
         XCTAssertEqual(302, response.statusCode, "HTTP response code is not 302")
+        if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
+            XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")
+            // Dont follow the redirect as the test server is not running on port 80
+            return
+        }
         completionHandler(request)
     }
 }
