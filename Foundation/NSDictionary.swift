@@ -572,9 +572,19 @@ extension Dictionary : _NSBridgeable, _CFBridgeable {
 }
 
 extension NSDictionary : _HasCustomAnyHashableRepresentation {
-  public func _toCustomAnyHashable() -> AnyHashable? {
-    return AnyHashable(self as! Dictionary<AnyHashable, AnyHashable>)
-  }
+    public func _toCustomAnyHashable() -> AnyHashable? {
+        // FIXME: I want to return AnyHashable(self as! [AnyHashable: AnyHashable])
+        // here, but a direct conversion to AnyHashable can fail with nested
+        // collections.
+        var d: [AnyHashable: AnyHashable] = [:]
+        d.reserveCapacity(self.count)
+        for (key, value) in self {
+            let k = key as AnyObject as! AnyHashable
+            let v = value as AnyObject as! AnyHashable
+            d[k] = v
+        }
+        return AnyHashable(d)
+    }
 }
 
 open class NSMutableDictionary : NSDictionary {
