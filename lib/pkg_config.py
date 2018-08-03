@@ -31,7 +31,7 @@ class PkgConfig(object):
         try:
             cmd = [Configuration.current.pkg_config] + list(pkg_config_args) + [self.package_name]
             print("Executing command '{}'".format(cmd), file=sys.stderr)
-            return shlex.split(subprocess.check_output(cmd))
+            return shlex.split(subprocess.check_output(cmd).decode('utf-8'))
         except subprocess.CalledProcessError as e:
             raise self.Error("pkg-config exited with error code {}".format(e.returncode))
 
