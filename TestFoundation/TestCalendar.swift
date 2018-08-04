@@ -198,8 +198,24 @@ class TestNSDateComponents: XCTestCase {
 
     static var allTests: [(String, (TestNSDateComponents) -> () throws -> Void)] {
         return [
+            ("test_hash", test_hash),
             ("test_copyNSDateComponents", test_copyNSDateComponents),
         ]
+    }
+
+    func test_hash() {
+        let c1 = NSDateComponents()
+        c1.year = 2018
+        c1.month = 8
+        c1.day = 1
+
+        let c2 = NSDateComponents()
+        c2.year = 2018
+        c2.month = 8
+        c2.day = 1
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hash, c2.hash)
     }
 
     func test_copyNSDateComponents() {
