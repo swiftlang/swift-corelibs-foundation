@@ -259,7 +259,18 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
                 && other.allowsCellularAccess == self.allowsCellularAccess
                 && other.httpShouldHandleCookies == self.httpShouldHandleCookies)
     }
-    
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(url)
+        hasher.combine(mainDocumentURL)
+        hasher.combine(httpMethod)
+        hasher.combine(httpBodyStream)
+        hasher.combine(allowsCellularAccess)
+        hasher.combine(httpShouldHandleCookies)
+        return hasher.finalize()
+    }
+
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     open class  var supportsSecureCoding: Bool { return true }
     
