@@ -487,7 +487,7 @@ extension TestJSONSerialization {
 
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, \(UInt64.max)]"
 
         do {
             for encoding in supportedEncodings {
@@ -504,6 +504,8 @@ extension TestJSONSerialization {
                 XCTAssertEqual(result?[5] as? Double, 0.001)
                 XCTAssertEqual(result?[6] as? Int,    10)
                 XCTAssertEqual(result?[6] as? Double, 10.0)
+                XCTAssertEqual(result?[7] as? Int64,  nil)
+                XCTAssertEqual(result?[7] as? UInt64, UInt64.max)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
