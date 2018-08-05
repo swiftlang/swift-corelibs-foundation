@@ -499,6 +499,104 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_numericLimits() {
+        struct DataStruct: Codable {
+            let int8Value: Int8?
+            let uint8Value: UInt8?
+            let int16Value: Int16?
+            let uint16Value: UInt16?
+            let int32Value: Int32?
+            let uint32Value: UInt32?
+            let int64Value: Int64?
+            let intValue: Int?
+            let uintValue: UInt?
+            let uint64Value: UInt64?
+            let floatValue: Float?
+            let doubleValue: Double?
+        }
+
+        func decode(_ type: String, _ value: String) throws {
+            var key = type.lowercased()
+            key.append("Value")
+            _ = try JSONDecoder().decode(DataStruct.self, from: "{ \"\(key)\": \(value) }".data(using: .utf8)!)
+        }
+
+        func testGoodValue(_ type: String, _ value: String) {
+            do {
+                try decode(type, value)
+            } catch {
+                XCTFail("Unexpected error: \(error) for parsing \(value) to \(type)")
+            }
+        }
+
+        func testErrorThrown(_ type: String, _ value: String, errorMessage: String) {
+            do {
+                try decode(type, value)
+                XCTFail("Decode of \(value) to \(type) should not succeed")
+            } catch DecodingError.dataCorrupted(let context) {
+                XCTAssertEqual(context.debugDescription, errorMessage)
+            } catch {
+                XCTAssertEqual(String(describing: error), errorMessage)
+            }
+        }
+
+
+        var goodValues = [
+            ("Int8", "0"), ("Int8", "1"), ("Int8", "-1"), ("Int8", "-128"), ("Int8", "127"),
+            ("UInt8", "0"), ("UInt8", "1"), ("UInt8", "255"), ("UInt8", "-0"),
+
+            ("Int16", "0"), ("Int16", "1"), ("Int16", "-1"), ("Int16", "-32768"), ("Int16", "32767"),
+            ("UInt16", "0"), ("UInt16", "1"), ("UInt16", "65535"), ("UInt16", "34.0"),
+
+            ("Int32", "0"), ("Int32", "1"), ("Int32", "-1"), ("Int32", "-2147483648"), ("Int32", "2147483647"),
+            ("UInt32", "0"), ("UInt32", "1"), ("UInt32", "4294967295"),
+
+            ("Int64", "0"), ("Int64", "1"), ("Int64", "-1"), ("Int64", "-9223372036854775808"), ("Int64", "9223372036854775807"),
+            ("UInt64", "0"), ("UInt64", "1"), ("UInt64", "18446744073709551615"),
+        ]
+
+        if Int.max == Int64.max {
+            goodValues += [
+                ("Int", "0"), ("Int", "1"), ("Int", "-1"), ("Int", "-9223372036854775808"), ("Int", "9223372036854775807"),
+                ("UInt", "0"), ("UInt", "1"), ("UInt", "18446744073709551615"),
+                ]
+        } else {
+            goodValues += [
+                ("Int", "0"), ("Int", "1"), ("Int", "-1"), ("Int", "-2147483648"), ("Int", "2147483647"),
+                ("UInt", "0"), ("UInt", "1"), ("UInt", "4294967295"),
+            ]
+        }
+
+        let badValues = [
+            ("Int8", "-129"), ("Int8", "128"), ("Int8", "1.2"),
+            ("UInt8", "-1"), ("UInt8", "256"),
+
+            ("Int16", "-32769"), ("Int16", "32768"),
+            ("UInt16", "-1"), ("UInt16", "65536"),
+
+            ("Int32", "-2147483649"), ("Int32", "2147483648"),
+            ("UInt32", "-1"), ("UInt32", "4294967296"),
+
+            ("Int64", "-9223372036854775809"), ("Int64", "9223372036854775808"), ("Int64", "-100000000000000000000"),
+            ("UInt64", "-1"), ("UInt64", "18446744073709551616"), ("Int64", "10000000000000000000000000000000000000"),
+        ]
+
+        for value in goodValues {
+            testGoodValue(value.0, value.1)
+        }
+
+        for (type, value) in badValues {
+            testErrorThrown(type, value, errorMessage: "Parsed JSON number <\(value)> does not fit in \(type).")
+        }
+
+        // Leading zeros are invalid
+        testErrorThrown("Int8", "0000000000000000000000000000001", errorMessage: "The operation could not be completed")
+        testErrorThrown("Double", "-.1", errorMessage: "The operation could not be completed")
+        testErrorThrown("Int32", "+1", errorMessage: "The operation could not be completed")
+        testErrorThrown("Int", ".012", errorMessage: "The operation could not be completed")
+    }
+
+
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
         return "{}".data(using: .utf8)!
@@ -1089,6 +1187,7 @@ extension TestJSONEncoder {
             ("test_codingOfDouble", test_codingOfDouble),
             ("test_codingOfString", test_codingOfString),
             ("test_codingOfURL", test_codingOfURL),
+            ("test_numericLimits", test_numericLimits),
         ]
     }
 }
