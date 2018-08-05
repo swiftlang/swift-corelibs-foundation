@@ -31,7 +31,8 @@ class TestDecimal: XCTestCase {
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
-            ("test_doubleValue", test_doubleValue)
+            ("test_doubleValue", test_doubleValue),
+            ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
         ]
     }
 
@@ -796,5 +797,27 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: z)), "1.50")
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: a)), "0.00")
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: b)), "0.00")
+    }
+
+    func test_NSDecimalNumberValues() {
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).int16Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).int32Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).int64Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).intValue, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-1")!).uint64Value, UInt64.max)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).int8Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).int16Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).int32Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).int64Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).intValue, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-128")!).uint64Value, 18446744073709551488)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "9223372036854775807")!).intValue, Int.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(string: "-9223372036854775808")!).intValue, Int.min)
+
+        let nsd = NSDecimalNumber(decimal: Decimal(string: "-9223372036854775808")!)
+        XCTAssertEqual(nsd, NSNumber(value: nsd.int64Value))
     }
 }
