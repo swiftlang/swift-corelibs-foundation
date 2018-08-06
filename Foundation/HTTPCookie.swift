@@ -246,7 +246,7 @@ open class HTTPCookie : NSObject {
         _path = path
         _name = name
         _value = value
-        _domain = canonicalDomain
+        _domain = canonicalDomain.lowercased()
 
         if let
             secureString = properties[.secure] as? String, !secureString.isEmpty
