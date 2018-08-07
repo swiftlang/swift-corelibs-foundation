@@ -822,45 +822,61 @@ private struct JSONReader {
     ]
 
     func parseNumber(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
-        func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
-            let temp_buffer_size = 64
-            var temp_buffer = [Int8](repeating: 0, count: temp_buffer_size)
-            return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<Int8>) -> (Any, IndexDistance)? in
-                memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
-                
-                let startPointer = buffer.baseAddress!
-                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
-                defer { intEndPointer.deallocate() }
-                let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
-                defer { doubleEndPointer.deallocate() }
-                let intResult = strtol(startPointer, intEndPointer, 10)
-                let intDistance = startPointer.distance(to: intEndPointer[0]!)
-                let doubleResult = strtod(startPointer, doubleEndPointer)
-                let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
+        let ZERO = UInt8(ascii: "0")
+        let ONE = UInt8(ascii: "1")
+        let NINE = UInt8(ascii: "9")
+        let MINUS = UInt8(ascii: "-")
 
-                guard doubleDistance > 0 else { return nil }
-                if intDistance == doubleDistance {
-                    return (NSNumber(value: intResult), intDistance)
-                }
-                return (NSNumber(value: doubleResult), doubleDistance)
+        func parseTypedNumber(_ string: String) throws -> (Any, IndexDistance)? {
+            let scan = Scanner(string: string)
+            var decimal = Decimal()
+            guard scan.scanDecimal(&decimal) else {
+                return nil
             }
+            return (NSDecimalNumber(decimal: decimal), scan.scanLocation)
         }
-        
+
+        // Validate the first few characters look like a JSON encoded number:
+        // Optional '-' sign at start only 1 leading zero if followed by a decimal point.
+        var index = input
+        func nextDigit() -> UInt8? {
+            guard let (ascii, nextIndex) = source.takeASCII(index) else { return nil }
+            index = nextIndex
+            return ascii
+        }
+
+        guard var digit = nextDigit() else { return nil }
+        guard digit == MINUS || (digit >= ZERO && digit <= NINE) else { return nil }
+        if digit == MINUS {
+            guard let d = nextDigit() else { return nil }
+            digit = d
+        }
+
+        if digit == ZERO {
+            if let digit2 = nextDigit(), digit2 >= ZERO && digit2 <= NINE {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
+                              userInfo: ["NSDebugDescription" : "Leading zeros not allowed character \(input)." ])
+            }
+        } else if digit < ONE || digit > NINE {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
+                          userInfo: ["NSDebugDescription" : "Numbers must start with a 1-9 at \(input)." ])
+        }
+
         if source.encoding == .utf8 {
-            return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
+            let count = source.buffer.count - input
+            let ptr = UnsafeMutableRawPointer(mutating: source.buffer.baseAddress!.advanced(by: input))
+            guard let string = String(bytesNoCopy: ptr, length: count,
+                                      encoding: .utf8, freeWhenDone: false) else { return nil }
+            return try parseTypedNumber(string).map { return ($0.0, input + $0.1) }
         }
         else {
-            var numberCharacters = [UInt8]()
+            var string = ""
             var index = input
             while let (ascii, nextIndex) = source.takeASCII(index), JSONReader.numberCodePoints.contains(ascii) {
-                numberCharacters.append(ascii)
+                string.append(String(UnicodeScalar(ascii)))
                 index = nextIndex
             }
-            numberCharacters.append(0)
-            
-            return numberCharacters.withUnsafeBufferPointer {
-                parseTypedNumber($0.baseAddress!, count: $0.count)
-            }.map { return ($0.0, index) }
+            return try parseTypedNumber(string).map { return ($0.0, index) }
         }
     }
 
