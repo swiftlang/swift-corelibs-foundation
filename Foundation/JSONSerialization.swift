@@ -826,22 +826,33 @@ private struct JSONReader {
             let temp_buffer_size = 64
             var temp_buffer = [Int8](repeating: 0, count: temp_buffer_size)
             return temp_buffer.withUnsafeMutableBufferPointer { (buffer: inout UnsafeMutableBufferPointer<Int8>) -> (Any, IndexDistance)? in
-                memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // ensure null termination
-                
+                memcpy(buffer.baseAddress!, address, min(count, temp_buffer_size - 1)) // Ensure null termination
+
                 let startPointer = buffer.baseAddress!
-                let intEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
-                defer { intEndPointer.deallocate() }
                 let doubleEndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
                 defer { doubleEndPointer.deallocate() }
-                let intResult = strtol(startPointer, intEndPointer, 10)
-                let intDistance = startPointer.distance(to: intEndPointer[0]!)
                 let doubleResult = strtod(startPointer, doubleEndPointer)
                 let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
-
-                guard doubleDistance > 0 else { return nil }
-                if intDistance == doubleDistance {
-                    return (NSNumber(value: intResult), intDistance)
+                guard doubleDistance > 0 else {
+                    return nil
                 }
+
+                let int64EndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
+                defer { int64EndPointer.deallocate() }
+                let int64Result = strtoll(startPointer, int64EndPointer, 10)
+                let int64Distance = startPointer.distance(to: int64EndPointer[0]!)
+                if int64Distance == doubleDistance {
+                    return (NSNumber(value: int64Result), int64Distance)
+                }
+
+                let uint64EndPointer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 1)
+                defer { uint64EndPointer.deallocate() }
+                let uint64Result = strtoull(startPointer, uint64EndPointer, 10)
+                let uint64Distance = startPointer.distance(to: uint64EndPointer[0]!)
+                if uint64Distance == doubleDistance {
+                    return (NSNumber(value: uint64Result), uint64Distance)
+                }
+
                 return (NSNumber(value: doubleResult), doubleDistance)
             }
         }
