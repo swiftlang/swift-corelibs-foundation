@@ -367,9 +367,9 @@ extension FileHandle {
 }
 
 open class Pipe: NSObject {
-    private let readHandle: FileHandle
-    private let writeHandle: FileHandle
-    
+    open let fileHandleForReading: FileHandle
+    open let fileHandleForWriting: FileHandle
+
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
         var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
@@ -383,19 +383,11 @@ open class Pipe: NSObject {
         /// don't need to add a `deinit` to this class
         
         /// Create the read handle from the first fd in `fds`
-        self.readHandle = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+        self.fileHandleForReading = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
         
         /// Advance `fds` by one to create the write handle from the second fd
-        self.writeHandle = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+        self.fileHandleForWriting = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
         
         super.init()
-    }
-    
-    open var fileHandleForReading: FileHandle {
-        return self.readHandle
-    }
-    
-    open var fileHandleForWriting: FileHandle {
-        return self.writeHandle
     }
 }
