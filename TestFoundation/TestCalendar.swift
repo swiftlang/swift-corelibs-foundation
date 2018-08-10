@@ -199,6 +199,7 @@ class TestNSDateComponents: XCTestCase {
     static var allTests: [(String, (TestNSDateComponents) -> () throws -> Void)] {
         return [
             ("test_copyNSDateComponents", test_copyNSDateComponents),
+            ("test_dateDifferenceComponents", test_dateDifferenceComponents),
         ]
     }
 
@@ -222,5 +223,17 @@ class TestNSDateComponents: XCTestCase {
         components.hour = 12
         XCTAssertEqual(components.hour, 12)
         XCTAssertEqual(copy.hour, 14)
+    }
+
+    func test_dateDifferenceComponents() {
+        let date1 = Date(timeIntervalSince1970: 0)
+
+        // 1971-06-21
+        let date2 = Date(timeIntervalSince1970:  46310400)
+        let difference = Calendar.current.dateComponents([.month, .year, .day], from: date1, to: date2)
+        XCTAssertEqual(difference.year, 1)
+        XCTAssertEqual(difference.month, 5)
+        XCTAssertEqual(difference.day, 20)
+
     }
 }
