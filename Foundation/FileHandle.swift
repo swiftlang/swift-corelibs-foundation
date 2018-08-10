@@ -19,7 +19,14 @@ open class FileHandle : NSObject, NSSecureCoding {
     internal var _fd: Int32
     internal var _closeOnDealloc: Bool
     internal var _closed: Bool = false
-    
+
+    open var readabilityHandler: ((FileHandle) -> Void)? = {
+      (FileHandle) -> Void in NSUnimplemented()
+    }
+    open var writeabilityHandler: ((FileHandle) -> Void)? = {
+      (FileHandle) -> Void in NSUnimplemented()
+    }
+
     open var availableData: Data {
         return _readDataOfLength(Int.max, untilEOF: false)
     }
@@ -344,14 +351,6 @@ extension FileHandle {
     }
 
     open func waitForDataInBackgroundAndNotify() {
-        NSUnimplemented()
-    }
-    
-    open var readabilityHandler: ((FileHandle) -> Void)? {
-        NSUnimplemented()
-    }
-
-    open var writeabilityHandler: ((FileHandle) -> Void)? {
         NSUnimplemented()
     }
 }
