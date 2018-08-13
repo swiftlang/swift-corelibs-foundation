@@ -487,7 +487,7 @@ extension TestJSONSerialization {
 
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -504,6 +504,11 @@ extension TestJSONSerialization {
                 XCTAssertEqual(result?[5] as? Double, 0.001)
                 XCTAssertEqual(result?[6] as? Int,    10)
                 XCTAssertEqual(result?[6] as? Double, 10.0)
+                XCTAssertEqual(result?[7] as? Double, -12.34e56)
+                XCTAssertEqual(result?[8] as? Double, 12.34e-56)
+                XCTAssertEqual(result?[9] as? Double, 12.34e6)
+                XCTAssertEqual(result?[10] as? Double, 2e-3)
+                XCTAssertEqual(result?[11] as? Double, 43)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -511,7 +516,7 @@ extension TestJSONSerialization {
     }
 
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -528,6 +533,12 @@ extension TestJSONSerialization {
                 XCTAssertEqual(result?[5] as? NSNumber, 0.001)
                 XCTAssertEqual(result?[6] as? NSNumber, 10)
                 XCTAssertEqual(result?[6] as? NSNumber, 10.0)
+                XCTAssertEqual(result?[7] as? NSNumber, -12.34e56)
+                XCTAssertEqual(result?[8] as? NSNumber, 12.34e-56)
+                XCTAssertEqual(result?[9] as? NSNumber, 12.34e6)
+                XCTAssertEqual(result?[10] as? NSNumber, 2e-3)
+                XCTAssertEqual(result?[11] as? NSNumber, 43)
+
             }
         } catch {
             XCTFail("Unexpected error: \(error)")

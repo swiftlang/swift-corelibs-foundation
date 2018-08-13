@@ -816,66 +816,145 @@ private struct JSONReader {
     }
     
     //MARK: - Number parsing
-    static let numberCodePoints: [UInt8] = [
-        0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
-        0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
-    ]
+    private static let ZERO = UInt8(ascii: "0")
+    private static let ONE = UInt8(ascii: "1")
+    private static let NINE = UInt8(ascii: "9")
+    private static let MINUS = UInt8(ascii: "-")
+    private static let PLUS = UInt8(ascii: "+")
+    private static let LOWER_EXPONENT = UInt8(ascii: "e")
+    private static let UPPER_EXPONENT = UInt8(ascii: "E")
+    private static let DECIMAL_SEPARATOR = UInt8(ascii: ".")
+    private static let allDigits = (ZERO...NINE)
+    private static let oneToNine = (ONE...NINE)
+
+    private static let numberCodePoints: [UInt8] = {
+        var numberCodePoints = Array(ZERO...NINE)
+        numberCodePoints.append(contentsOf: [DECIMAL_SEPARATOR, MINUS, PLUS, LOWER_EXPONENT, UPPER_EXPONENT])
+        return numberCodePoints
+    }()
+
 
     func parseNumber(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
-        let ZERO = UInt8(ascii: "0")
-        let ONE = UInt8(ascii: "1")
-        let NINE = UInt8(ascii: "9")
-        let MINUS = UInt8(ascii: "-")
 
         var isNegative = false
         var string = ""
-
-        // Validate the first few characters look like a JSON encoded number:
-        // Optional '-' sign at start only 1 leading zero if followed by a decimal point.
+        var isInteger = true
+        var exponent = 0
+        var positiveExponent = true
         var index = input
-        func nextASCII() -> UInt8? {
-            guard let (ascii, nextIndex) = source.takeASCII(index),
-                JSONReader.numberCodePoints.contains(ascii) else { return nil }
-            index = nextIndex
-            return ascii
-        }
+        var digitCount: Int?
+        var ascii: UInt8 = 0    // set by nextASCII()
 
-        guard var ascii = nextASCII() else { return nil }
-        guard ascii == MINUS || (ascii >= ZERO && ascii <= NINE) else { return nil }
-        if ascii == MINUS {
-            string = "-"
-            isNegative = true
-            guard let d = nextASCII() else { return nil }
-            ascii = d
-        }
+        // Validate the input is a valid JSON number, also gather the following
+        // about the input: isNegative, isInteger, the exponent and if it is +/-,
+        // and finally the count of digits including excluding an '.'
+        func checkJSONNumber() throws -> Bool {
+            // Return true if the next character is any one of the valid JSON number characters
+            func nextASCII() -> Bool {
+                guard let (ch, nextIndex) = source.takeASCII(index),
+                    JSONReader.numberCodePoints.contains(ch) else { return false }
 
-        if ascii == ZERO {
-            if let ascii2 = nextASCII() {
-                if ascii2 >= ZERO && ascii2 <= NINE {
-                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
-                                  userInfo: ["NSDebugDescription" : "Leading zeros not allowed at character \(input)." ])
+                index = nextIndex
+                ascii = ch
+                string.append(Character(UnicodeScalar(ascii)))
+                return true
+            }
+
+            // Consume as many digits as possible and return with the next non-digit
+            // or nil if end of string.
+            func readDigits() -> UInt8? {
+                while let (ch, nextIndex) = source.takeASCII(index) {
+                    if !JSONReader.allDigits.contains(ch) {
+                        return ch
+                    }
+                    string.append(Character(UnicodeScalar(ch)))
+                    index = nextIndex
                 }
-                string.append("0")
-                ascii = ascii2
+                return nil
             }
-        } else if ascii < ONE || ascii > NINE {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
-                          userInfo: ["NSDebugDescription" : "Numbers must start with a 1-9 at character \(input)." ])
-        }
-        string.append(Character(UnicodeScalar(ascii)))
-        while let ascii = nextASCII() {
-            string.append(Character(UnicodeScalar(ascii)))
+
+            guard nextASCII() else { return false }
+
+            if ascii == JSONReader.MINUS {
+                isNegative = true
+                guard nextASCII() else { return false }
+            }
+
+            if JSONReader.oneToNine.contains(ascii) {
+                guard let ch = readDigits() else { return true }
+                ascii = ch
+                if [ JSONReader.DECIMAL_SEPARATOR, JSONReader.LOWER_EXPONENT, JSONReader.UPPER_EXPONENT ].contains(ascii) {
+                    guard nextASCII() else { return false } // There should be at least one char as readDigits didnt remove the '.eE'
+                }
+            } else if ascii == JSONReader.ZERO {
+                guard nextASCII() else { return true }
+            } else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
+                              userInfo: ["NSDebugDescription" : "Numbers must start with a 1-9 at character \(input)." ])
+            }
+
+            if ascii == JSONReader.DECIMAL_SEPARATOR {
+                isInteger = false
+                guard readDigits() != nil else { return true }
+                guard nextASCII() else { return true }
+            } else if JSONReader.allDigits.contains(ascii) {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
+                              userInfo: ["NSDebugDescription" : "Leading zeros not allowed at character \(input)." ])
+            }
+
+            digitCount = string.count - (isInteger ? 0 : 1) - (isNegative ? 1 : 0)
+            guard ascii == JSONReader.LOWER_EXPONENT || ascii == JSONReader.UPPER_EXPONENT else {
+                // End of valid number characters
+                return true
+            }
+            digitCount = digitCount! - 1
+
+            // Process the exponent
+            isInteger = false
+            guard nextASCII() else { return false }
+            if ascii == JSONReader.MINUS {
+                positiveExponent = false
+                guard nextASCII() else { return false }
+            } else if ascii == JSONReader.PLUS {
+                positiveExponent = true
+                guard nextASCII() else { return false }
+            }
+            guard JSONReader.allDigits.contains(ascii) else { return false }
+            exponent = Int(ascii - JSONReader.ZERO)
+            while nextASCII() {
+                guard JSONReader.allDigits.contains(ascii) else { return false } // Invalid exponent character
+                exponent = (exponent * 10) + Int(ascii - JSONReader.ZERO)
+                if exponent > 324 {
+                    // Exponent is too large to store in a Double
+                    return false
+                }
+            }
+            return true
         }
 
-        if isNegative {
-            if let intValue = Int64(string) {
-                return (NSNumber(value: intValue), index)
-            }
-        } else {
-            if let uintValue = UInt64(string) {
-                return (NSNumber(value: uintValue), index)
+        guard try checkJSONNumber() == true else { return nil }
+        digitCount = digitCount ?? string.count - (isInteger ? 0 : 1) - (isNegative ? 1 : 0)
+
+        // Try Int64() or UInt64() first
+        if isInteger {
+            if isNegative {
+                if digitCount! <= 19, let intValue = Int64(string) {
+                    return (NSNumber(value: intValue), index)
+                }
+            } else {
+                if digitCount! <= 20, let uintValue = UInt64(string) {
+                    return (NSNumber(value: uintValue), index)
+                }
             }
         }
+
+        // Decimal holds more digits of precision but a smaller exponent than Double
+        // so try that if the exponent fits and there are more digits than Double can hold
+        if digitCount! > 17 && exponent >= -128 && exponent <= 127,
+            let decimal = Decimal(string: string), decimal.isFinite {
+            return (NSDecimalNumber(decimal: decimal), index)
+        }
+        // Fall back to Double() for everything else
         if let doubleValue = Double(string) {
             return (NSNumber(value: doubleValue), index)
         }

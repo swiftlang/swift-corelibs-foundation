@@ -513,6 +513,7 @@ class TestJSONEncoder : XCTestCase {
             let uint64Value: UInt64?
             let floatValue: Float?
             let doubleValue: Double?
+            let decimalValue: Decimal?
         }
 
         func decode(_ type: String, _ value: String) throws {
@@ -553,6 +554,13 @@ class TestJSONEncoder : XCTestCase {
 
             ("Int64", "0"), ("Int64", "1"), ("Int64", "-1"), ("Int64", "-9223372036854775808"), ("Int64", "9223372036854775807"),
             ("UInt64", "0"), ("UInt64", "1"), ("UInt64", "18446744073709551615"),
+
+            ("Double", "0"), ("Double", "1"), ("Double", "-1"), ("Double", "2.2250738585072014e-308"), ("Double", "1.7976931348623157e+308"),
+            ("Double", "5e-324"), ("Double", "3.141592653589793"),
+
+            ("Decimal", "1.2"), ("Decimal", "3.14159265358979323846264338327950288419"),
+            ("Decimal", "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+            ("Decimal", "-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
         ]
 
         if Int.max == Int64.max {
@@ -589,11 +597,12 @@ class TestJSONEncoder : XCTestCase {
             testErrorThrown(type, value, errorMessage: "Parsed JSON number <\(value)> does not fit in \(type).")
         }
 
-        // Leading zeros are invalid
+        // Invalid JSON number formats
         testErrorThrown("Int8", "0000000000000000000000000000001", errorMessage: "The operation could not be completed")
         testErrorThrown("Double", "-.1", errorMessage: "The operation could not be completed")
         testErrorThrown("Int32", "+1", errorMessage: "The operation could not be completed")
         testErrorThrown("Int", ".012", errorMessage: "The operation could not be completed")
+        testErrorThrown("Double", "2.7976931348623158e+308", errorMessage: "The operation could not be completed")
     }
 
 
