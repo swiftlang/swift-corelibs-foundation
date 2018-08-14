@@ -950,14 +950,23 @@ Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTim
     int direction = (startingAT <= resultAT) ? 1 : -1;
     char ch = *componentDesc;
     while (ch) {
+        if (count < 1) {
+            // Output vector has no more free entries
+            return false;
+        }
+
         UCalendarDateFields field = __CFCalendarGetICUFieldCodeFromChar(ch);
-        const int multiple_table[] = {0, 0, 16, 19, 24, 26, 24, 28, 14, 14, 14};
+        const int multiple_table[] = {0, 0, 16, 19, 24, 26, 24, 28, 14, 14, 14, 0, 0, 0, 0};
         int unit = __CFCalendarGetCalendarUnitFromChar(ch);
         if (unit < 0) {
             // Not a valid calendar unit character
             return false;
         }
-        int multiple = direction * (1 << multiple_table[flsl(unit) - 1]);
+        int idx = flsl(unit) - 1;
+        if (idx < 0 || idx >= (sizeof(multiple_table) / sizeof(int))) {
+            return false;
+        }
+        int multiple = direction * (1 << multiple_table[idx]);
         Boolean divide = false, alwaysDivide = false;
         int result = 0;
         while ((direction > 0 && curr < goal) || (direction < 0 && goal < curr)) {
@@ -983,10 +992,6 @@ Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTim
             if (0 == multiple) break;
             divide = alwaysDivide;
         }
-        }
-        if (count < 1) {
-            // Output vector has no free entries
-            return false;
         }
         *(*vector) = result;
         vector++;

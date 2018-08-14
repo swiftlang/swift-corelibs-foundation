@@ -226,14 +226,91 @@ class TestNSDateComponents: XCTestCase {
     }
 
     func test_dateDifferenceComponents() {
+        // 1970-01-01 00:00:00
         let date1 = Date(timeIntervalSince1970: 0)
 
-        // 1971-06-21
-        let date2 = Date(timeIntervalSince1970:  46310400)
-        let difference = Calendar.current.dateComponents([.month, .year, .day], from: date1, to: date2)
-        XCTAssertEqual(difference.year, 1)
-        XCTAssertEqual(difference.month, 5)
-        XCTAssertEqual(difference.day, 20)
+        // 1971-06-21 00:00:00
+        let date2 = Date(timeIntervalSince1970: 46310400)
 
+        // 2286-11-20 17:46:40
+        let date3 = Date(timeIntervalSince1970: 10_000_000_000)
+
+        // 2286-11-20 17:46:41
+        let date4 = Date(timeIntervalSince1970: 10_000_000_001)
+
+        let diff1 = Calendar.current.dateComponents([.month, .year, .day], from: date1, to: date2)
+        XCTAssertEqual(diff1.year, 1)
+        XCTAssertEqual(diff1.month, 5)
+        XCTAssertEqual(diff1.isLeapMonth, false)
+        XCTAssertEqual(diff1.day, 20)
+        XCTAssertNil(diff1.era)
+        XCTAssertNil(diff1.yearForWeekOfYear)
+        XCTAssertNil(diff1.quarter)
+        XCTAssertNil(diff1.weekOfYear)
+        XCTAssertNil(diff1.weekOfMonth)
+        XCTAssertNil(diff1.weekdayOrdinal)
+        XCTAssertNil(diff1.weekday)
+        XCTAssertNil(diff1.hour)
+        XCTAssertNil(diff1.minute)
+        XCTAssertNil(diff1.second)
+        XCTAssertNil(diff1.nanosecond)
+        XCTAssertNil(diff1.calendar)
+        XCTAssertNil(diff1.timeZone)
+
+        let diff2 = Calendar.current.dateComponents([.weekOfMonth], from: date2, to: date1)
+        XCTAssertEqual(diff2.weekOfMonth, -76)
+        XCTAssertEqual(diff2.isLeapMonth, false)
+
+        let diff3 = Calendar.current.dateComponents([.weekday], from: date2, to: date1)
+        XCTAssertEqual(diff3.weekday, -536)
+        XCTAssertEqual(diff3.isLeapMonth, false)
+
+        let diff4 = Calendar.current.dateComponents([.weekday, .weekOfMonth], from: date1, to: date2)
+        XCTAssertEqual(diff4.weekday, 4)
+        XCTAssertEqual(diff4.weekOfMonth, 76)
+        XCTAssertEqual(diff4.isLeapMonth, false)
+
+        let diff5 = Calendar.current.dateComponents([.weekday, .weekOfYear], from: date1, to: date2)
+        XCTAssertEqual(diff5.weekday, 4)
+        XCTAssertEqual(diff5.weekOfYear, 76)
+        XCTAssertEqual(diff5.isLeapMonth, false)
+
+        let diff6 = Calendar.current.dateComponents([.month, .weekOfMonth], from: date1, to: date2)
+        XCTAssertEqual(diff6.month, 17)
+        XCTAssertEqual(diff6.weekOfMonth, 2)
+        XCTAssertEqual(diff6.isLeapMonth, false)
+
+        let diff7 = Calendar.current.dateComponents([.weekOfYear, .weekOfMonth], from: date2, to: date1)
+        XCTAssertEqual(diff7.weekOfYear, -76)
+        XCTAssertEqual(diff7.weekOfMonth, 0)
+        XCTAssertEqual(diff7.isLeapMonth, false)
+
+        let diff8 = Calendar.current.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date2, to: date3)
+        XCTAssertEqual(diff8.era, 0)
+        XCTAssertEqual(diff8.year, 315)
+        XCTAssertEqual(diff8.quarter, 0)
+        XCTAssertEqual(diff8.month, 4)
+        XCTAssertEqual(diff8.day, 30)
+        XCTAssertEqual(diff8.hour, 17)
+        XCTAssertEqual(diff8.minute, 46)
+        XCTAssertEqual(diff8.second, 40)
+        XCTAssertEqual(diff8.nanosecond, 0)
+        XCTAssertEqual(diff8.isLeapMonth, false)
+        XCTAssertNil(diff8.calendar)
+        XCTAssertNil(diff8.timeZone)
+
+        let diff9 = Calendar.current.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date4, to: date3)
+        XCTAssertEqual(diff9.era, 0)
+        XCTAssertEqual(diff9.year, 0)
+        XCTAssertEqual(diff9.quarter, 0)
+        XCTAssertEqual(diff9.month, 0)
+        XCTAssertEqual(diff9.day, 0)
+        XCTAssertEqual(diff9.hour, 0)
+        XCTAssertEqual(diff9.minute, 0)
+        XCTAssertEqual(diff9.second, -1)
+        XCTAssertEqual(diff9.nanosecond, 0)
+        XCTAssertEqual(diff9.isLeapMonth, false)
+        XCTAssertNil(diff9.calendar)
+        XCTAssertNil(diff9.timeZone)
     }
 }
