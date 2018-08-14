@@ -598,11 +598,11 @@ class TestJSONEncoder : XCTestCase {
         }
 
         // Invalid JSON number formats
-        testErrorThrown("Int8", "0000000000000000000000000000001", errorMessage: "The operation could not be completed")
-        testErrorThrown("Double", "-.1", errorMessage: "The operation could not be completed")
-        testErrorThrown("Int32", "+1", errorMessage: "The operation could not be completed")
-        testErrorThrown("Int", ".012", errorMessage: "The operation could not be completed")
-        testErrorThrown("Double", "2.7976931348623158e+308", errorMessage: "The operation could not be completed")
+        testErrorThrown("Int8", "0000000000000000000000000000001", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Double", "-.1", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Int32", "+1", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Int", ".012", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Double", "2.7976931348623158e+308", errorMessage: "The given data was not valid JSON.")
     }
 
 
