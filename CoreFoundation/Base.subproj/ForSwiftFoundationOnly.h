@@ -315,7 +315,11 @@ CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_t _CFThreadRef;
 
+#if defined(__cplusplus)
+CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *__restrict__ _Nullable context);
+#else
 CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context);
+#endif
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);

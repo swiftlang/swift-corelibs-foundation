@@ -82,6 +82,17 @@
 #define _CF_RELEASES_ARGUMENT_OBJ
 #endif
 
+#if DEPLOYMENT_TARGET_WINDOWS
+  // No C99 support
+  #define _CF_RESTRICT
+#else
+  #if defined(__cplusplus)
+    #define _CF_RESTRICT __restrict__
+  #else
+    #define _CF_RESTRICT restrict
+  #endif
+#endif
+
 CF_EXTERN_C_BEGIN
 
 #include <CoreFoundation/CFBase.h>
