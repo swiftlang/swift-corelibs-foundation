@@ -537,7 +537,7 @@ fileprivate extension _EasyHandle {
         return d
     }
 
-    fileprivate func setCookies(headerData data: Data) {
+    func setCookies(headerData data: Data) {
         guard let config = _config, config.httpCookieAcceptPolicy !=  HTTPCookie.AcceptPolicy.never else { return }
         guard let headerData = String(data: data, encoding: String.Encoding.utf8) else { return }
         //Convert headerData from a string to a dictionary.

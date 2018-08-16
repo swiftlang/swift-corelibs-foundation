@@ -97,7 +97,7 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
 private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     
     
-    private private(set) var reciprocal: Double
+    private var reciprocal: Double
     
     
     fileprivate init(reciprocal: Double) {

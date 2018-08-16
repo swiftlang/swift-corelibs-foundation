@@ -220,7 +220,7 @@ extension NSLocale.Key {
 }
 
 
-public extension NSLocale {
+extension NSLocale {
     public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
 }
 

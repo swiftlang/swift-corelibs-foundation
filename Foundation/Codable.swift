@@ -11,7 +11,7 @@
 // Error Utilities
 //===----------------------------------------------------------------------===//
 
-internal extension DecodingError {
+extension DecodingError {
     /// Returns a `.typeMismatch` error describing the expected type.
     ///
     /// - parameter path: The path of `CodingKey`s taken to decode a value of this type.
