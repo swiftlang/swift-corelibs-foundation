@@ -203,27 +203,28 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(r1, r2)
         XCTAssertEqual(r1.hashValue, r2.hashValue)
 
-        checkHashableMutations_ValueType(
-            URLRequest(url: url),
-            \URLRequest.url,
-            (0..<20).map { URL(string: "https://example.org/\($0)")! })
-        checkHashableMutations_ValueType(
-            URLRequest(url: url),
-            \URLRequest.mainDocumentURL,
-            (0..<20).map { URL(string: "https://example.org/\($0)")! })
-        checkHashableMutations_ValueType(
-            URLRequest(url: url),
-            \URLRequest.httpMethod,
-            ["HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.url,
+            throughValues: (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.mainDocumentURL,
+            throughValues: (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.httpMethod,
+            throughValues: [
+                "HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
                 "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
                 "BUMFUZZLE", "ELUCIDATE"])
         let inputStreams: [InputStream] = (0..<100).map { value in
             InputStream(data: Data("\(value)".utf8))
         }
-        checkHashableMutations_ValueType(
-            URLRequest(url: url),
-            \URLRequest.httpBodyStream,
-            inputStreams)
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.httpBodyStream,
+            throughValues: inputStreams)
         // allowsCellularAccess and httpShouldHandleCookies do
         // not have enough values to test them here.
     }

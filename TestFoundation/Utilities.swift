@@ -8,64 +8,74 @@
 //
 
 
-func checkHashableMutations_ValueType<Item: Hashable, S: Sequence>(
-    _ item: Item,
-    _ keyPath: WritableKeyPath<Item, S.Element>,
-    _ values: S,
+
+func checkHashing_ValueType<Item: Hashable, S: Sequence>(
+    initialValue item: Item,
+    byMutating keyPath: WritableKeyPath<Item, S.Element>,
+    throughValues values: S,
     file: StaticString = #file,
     line: UInt = #line
 ) {
-    _checkHashableMutations(
-        Item.self, Item.self,
-        item,
-        { $0 },
-        keyPath,
-        values)
+    _checkHashing(
+        ofType: Item.self,
+        withMutableCounterpart: Item.self,
+        initialValue: item,
+        mutableCopyBlock: { $0 },
+        byMutating: keyPath,
+        throughValues: values,
+        file: file,
+        line: line)
 }
 
-func checkHashableMutations_NSCopying<Item: NSObject & NSCopying, S: Sequence>(
-    _ item: Item,
-    _ keyPath: ReferenceWritableKeyPath<Item, S.Element>,
-    _ values: S,
+func checkHashing_NSCopying<Item: NSObject & NSCopying, S: Sequence>(
+    initialValue item: Item,
+    byMutating keyPath: ReferenceWritableKeyPath<Item, S.Element>,
+    throughValues values: S,
     file: StaticString = #file,
     line: UInt = #line
 ) {
-    _checkHashableMutations(
-        Item.self, Item.self,
-        item,
-        { $0.copy() as! Item },
-        keyPath,
-        values)
+    _checkHashing(
+        ofType: Item.self,
+        withMutableCounterpart: Item.self,
+        initialValue: item,
+        mutableCopyBlock: { $0.copy() as! Item },
+        byMutating: keyPath,
+        throughValues: values,
+        file: file,
+        line: line)
 }
 
-func checkHashableMutations_NSMutableCopying<
+func checkHashing_NSMutableCopying<
   Source: NSObject & NSMutableCopying,
   Target: NSObject & NSMutableCopying,
   S: Sequence
 >(
-    _ item: Source,
-    _ keyPath: ReferenceWritableKeyPath<Target, S.Element>,
-    _ values: S,
+    initialValue item: Source,
+    byMutating keyPath: ReferenceWritableKeyPath<Target, S.Element>,
+    throughValues values: S,
     file: StaticString = #file,
     line: UInt = #line
 ) {
-    _checkHashableMutations(
-        Source.self, Target.self,
-        item,
-        { $0.mutableCopy() as! Target },
-        keyPath,
-        values)
+    _checkHashing(
+        ofType: Source.self,
+        withMutableCounterpart: Target.self,
+        initialValue: item,
+        mutableCopyBlock: { $0.mutableCopy() as! Target },
+        byMutating: keyPath,
+        throughValues: values,
+        file: file,
+        line: line)
 }
 
 // Check that mutating `object` via the specified key path affects its
 // hash value.
-func _checkHashableMutations<Source: Hashable, Target: Hashable, S: Sequence>(
-    _ source: Source.Type,
-    _ target: Target.Type,
-    _ object: Source,
-    _ copyBlock: (Source) -> Target,
-    _ keyPath: WritableKeyPath<Target, S.Element>,
-    _ values: S,
+func _checkHashing<Source: Hashable, Target: Hashable, S: Sequence>(
+    ofType source: Source.Type,
+    withMutableCounterpart target: Target.Type,
+    initialValue object: Source,
+    mutableCopyBlock copyBlock: (Source) -> Target,
+    byMutating keyPath: WritableKeyPath<Target, S.Element>,
+    throughValues values: S,
     file: StaticString = #file,
     line: UInt = #line
 ) {

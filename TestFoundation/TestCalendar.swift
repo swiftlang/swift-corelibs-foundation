@@ -217,10 +217,11 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertEqual(c1, c2)
         XCTAssertEqual(c1.hash, c2.hash)
 
-        checkHashableMutations_NSCopying(
-            NSDateComponents(),
-            \NSDateComponents.calendar,
-            [Calendar(identifier: .gregorian),
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.calendar,
+            throughValues: [
+                Calendar(identifier: .gregorian),
                 Calendar(identifier: .buddhist),
                 Calendar(identifier: .chinese),
                 Calendar(identifier: .coptic),
@@ -230,39 +231,67 @@ class TestNSDateComponents: XCTestCase {
                 Calendar(identifier: .iso8601),
                 Calendar(identifier: .japanese),
                 Calendar(identifier: .persian)])
-        checkHashableMutations_NSCopying(
-            NSDateComponents(),
-            \NSDateComponents.timeZone,
-            (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.timeZone,
+            throughValues: (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
         // Note: These assume components aren't range checked.
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.era, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.year, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.quarter, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.month, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.day, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.hour, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.minute, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.second, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.nanosecond, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.weekOfYear, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.weekOfMonth, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.yearForWeekOfYear, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.weekday, 0...20)
-        checkHashableMutations_NSCopying(
-            NSDateComponents(), \NSDateComponents.weekdayOrdinal, 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.era,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.year,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.quarter,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.month,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.day,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.hour,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.minute,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.second,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.nanosecond,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekOfYear,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekOfMonth,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.yearForWeekOfYear,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekday,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekdayOrdinal,
+            throughValues: 0...20)
         // isLeapMonth does not have enough values to test it here.
     }
 

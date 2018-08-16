@@ -214,27 +214,28 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(r1.hashValue, r2.hashValue)
 
         let urls: [URL?] = (0..<100).map { URL(string: "https://example.org/\($0)") }
-        checkHashableMutations_NSMutableCopying(
-            NSURLRequest(url: URL(string: "https://example.org")!),
-            \NSMutableURLRequest.url,
-            urls)
-        checkHashableMutations_NSMutableCopying(
-            NSURLRequest(url: URL(string: "https://example.org")!),
-            \NSMutableURLRequest.mainDocumentURL,
-            urls)
-        checkHashableMutations_NSMutableCopying(
-            NSURLRequest(url: URL(string: "https://example.org")!),
-            \NSMutableURLRequest.httpMethod,
-            ["HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.url,
+            throughValues: urls)
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.mainDocumentURL,
+            throughValues: urls)
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.httpMethod,
+            throughValues: [
+                "HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
                 "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
                 "BUMFUZZLE", "ELUCIDATE"])
         let inputStreams: [InputStream?] = (0..<100).map { value in
             InputStream(data: Data("\(value)".utf8))
         }
-        checkHashableMutations_NSMutableCopying(
-            NSURLRequest(url: URL(string: "https://example.org")!),
-            \NSMutableURLRequest.httpBodyStream as ReferenceWritableKeyPath<NSMutableURLRequest, InputStream?>,
-            inputStreams as [InputStream?])
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.httpBodyStream,
+            throughValues: inputStreams)
         // allowsCellularAccess and httpShouldHandleCookies do
         // not have enough values to test them here.
     }

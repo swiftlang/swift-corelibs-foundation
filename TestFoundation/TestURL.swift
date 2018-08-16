@@ -625,23 +625,71 @@ class TestURLComponents : XCTestCase {
         XCTAssertEqual(c1.hashValue, c2.hashValue)
 
         let strings: [String?] = (0..<20).map { "s\($0)" as String? }
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.scheme, strings)
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.user, strings)
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.password, strings)
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.host, strings)
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.port, (0..<20).map { $0 as Int? })
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.path, strings.compactMap { $0 })
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.query, strings)
-        checkHashableMutations_ValueType(URLComponents(), \URLComponents.fragment, strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.scheme,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.user,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.password,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.host,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.port,
+            throughValues: (0..<20).map { $0 as Int? })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.path,
+            throughValues: strings.compactMap { $0 })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.query,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.fragment,
+            throughValues: strings)
 
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.scheme, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.user, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.password, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.host, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.port, (0..<20).map { $0 as NSNumber? })
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.path, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.query, strings)
-        checkHashableMutations_NSCopying(NSURLComponents(), \NSURLComponents.fragment, strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.scheme,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.user,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.password,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.host,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.port,
+            throughValues: (0..<20).map { $0 as NSNumber? })
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.path,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.query,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.fragment,
+            throughValues: strings)
     }
 
     func test_createURLWithComponents() {

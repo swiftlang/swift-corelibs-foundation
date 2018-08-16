@@ -21,10 +21,10 @@ class TestDateComponents: XCTestCase {
         XCTAssertEqual(c1, c2)
         XCTAssertEqual(c1.hashValue, c2.hashValue)
 
-        checkHashableMutations_ValueType(
-            DateComponents(),
-            \DateComponents.calendar,
-            [
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.calendar,
+            throughValues: [
                 Calendar(identifier: .gregorian),
                 Calendar(identifier: .buddhist),
                 Calendar(identifier: .chinese),
@@ -36,26 +36,68 @@ class TestDateComponents: XCTestCase {
                 Calendar(identifier: .japanese),
                 Calendar(identifier: .persian)
             ])
-        checkHashableMutations_ValueType(
-            DateComponents(),
-            \DateComponents.timeZone,
-            (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.timeZone,
+            throughValues: (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
         // Note: These assume components aren't range checked.
         let integers: [Int?] = (0..<20).map { $0 as Int? }
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.era, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.year, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.quarter, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.month, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.day, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.hour, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.minute, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.second, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.nanosecond, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.weekOfYear, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.weekOfMonth, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.yearForWeekOfYear, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.weekday, integers)
-        checkHashableMutations_ValueType(DateComponents(), \DateComponents.weekdayOrdinal, integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.era,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.year,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.quarter,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.month,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.day,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.hour,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.minute,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.second,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.nanosecond,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.weekOfYear,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.weekOfMonth,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.yearForWeekOfYear,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.weekday,
+            throughValues: integers)
+        checkHashing_ValueType(
+            initialValue: DateComponents(),
+            byMutating: \DateComponents.weekdayOrdinal,
+            throughValues: integers)
         // isLeapMonth does not have enough values to test it here.
     }
 }
