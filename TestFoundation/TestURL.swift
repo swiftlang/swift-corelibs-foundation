@@ -521,6 +521,7 @@ class TestURLComponents : XCTestCase {
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
+            ("test_hash", test_hash),
             ("test_createURLWithComponents", test_createURLWithComponents),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
@@ -615,7 +616,82 @@ class TestURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
-    
+
+    func test_hash() {
+        let c1 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+        let c2 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hashValue, c2.hashValue)
+
+        let strings: [String?] = (0..<20).map { "s\($0)" as String? }
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.scheme,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.user,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.password,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.host,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.port,
+            throughValues: (0..<20).map { $0 as Int? })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.path,
+            throughValues: strings.compactMap { $0 })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.query,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.fragment,
+            throughValues: strings)
+
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.scheme,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.user,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.password,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.host,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.port,
+            throughValues: (0..<20).map { $0 as NSNumber? })
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.path,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.query,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.fragment,
+            throughValues: strings)
+    }
+
     func test_createURLWithComponents() {
         let urlComponents = NSURLComponents()
         urlComponents.scheme = "https";

@@ -523,6 +523,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
         'TestFoundation/HTTPServer.swift',
         'Foundation/ProgressFraction.swift',
+        'TestFoundation/Utilities.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
 Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'

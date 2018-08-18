@@ -983,6 +983,19 @@ open class NSURLComponents: NSObject, NSCopying {
                 && fragment == other.fragment)
     }
 
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(scheme)
+        hasher.combine(user)
+        hasher.combine(password)
+        hasher.combine(host)
+        hasher.combine(port)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+        return hasher.finalize()
+    }
+
     open func copy(with zone: NSZone? = nil) -> Any {
         let copy = NSURLComponents()
         copy.scheme = self.scheme

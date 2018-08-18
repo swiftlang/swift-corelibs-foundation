@@ -198,9 +198,102 @@ class TestNSDateComponents: XCTestCase {
 
     static var allTests: [(String, (TestNSDateComponents) -> () throws -> Void)] {
         return [
+            ("test_hash", test_hash),
             ("test_copyNSDateComponents", test_copyNSDateComponents),
             ("test_dateDifferenceComponents", test_dateDifferenceComponents),
         ]
+    }
+
+    func test_hash() {
+        let c1 = NSDateComponents()
+        c1.year = 2018
+        c1.month = 8
+        c1.day = 1
+
+        let c2 = NSDateComponents()
+        c2.year = 2018
+        c2.month = 8
+        c2.day = 1
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hash, c2.hash)
+
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.calendar,
+            throughValues: [
+                Calendar(identifier: .gregorian),
+                Calendar(identifier: .buddhist),
+                Calendar(identifier: .chinese),
+                Calendar(identifier: .coptic),
+                Calendar(identifier: .hebrew),
+                Calendar(identifier: .indian),
+                Calendar(identifier: .islamic),
+                Calendar(identifier: .iso8601),
+                Calendar(identifier: .japanese),
+                Calendar(identifier: .persian)])
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.timeZone,
+            throughValues: (-10...10).map { TimeZone(secondsFromGMT: 3600 * $0) })
+        // Note: These assume components aren't range checked.
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.era,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.year,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.quarter,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.month,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.day,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.hour,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.minute,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.second,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.nanosecond,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekOfYear,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekOfMonth,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.yearForWeekOfYear,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekday,
+            throughValues: 0...20)
+        checkHashing_NSCopying(
+            initialValue: NSDateComponents(),
+            byMutating: \NSDateComponents.weekdayOrdinal,
+            throughValues: 0...20)
+        // isLeapMonth does not have enough values to test it here.
     }
 
     func test_copyNSDateComponents() {
