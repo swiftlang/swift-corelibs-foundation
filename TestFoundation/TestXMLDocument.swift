@@ -34,6 +34,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_addNamespace", test_addNamespace),
             ("test_removeNamespace", test_removeNamespace),
             ("test_optionPreserveAll", test_optionPreserveAll),
+            ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
         ]
     }
 
@@ -526,6 +527,22 @@ class TestXMLDocument : LoopbackServerTest {
         }
         let expected = xmlString.lowercased() + "\n"
         XCTAssertEqual(expected, String(describing: document))
+    }
+
+    func test_rootElementRetainsDocument() {
+        let str = """
+<?xml version="1.0" encoding="UTF-8"?>
+<plans></plans>
+"""
+
+        let data = str.data(using: .utf8)!
+
+        func test() throws -> String? {
+            let doc = try XMLDocument(data: data, options: []).rootElement()
+            return doc?.name
+        }
+
+        XCTAssertEqual(try? test(), "plans")
     }
 }
 
