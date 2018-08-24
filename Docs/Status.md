@@ -183,9 +183,8 @@ There is no _Complete_ status for test coverage because there are always additio
     | `SocketPort`     | Unimplemented   | None          |                                                                               |
     | `PortMessage`    | Unimplemented   | None          |                                                                               |
     | `RunLoop`        | Mostly Complete | Incomplete    | `add(_: Port, forMode:)` and `remove(_: Port, forMode:)` remain unimplemented |
-    | `NSStream`       | Mostly Complete | Substantial   |                                                                               |
-    | `Stream`         | Unimplemented   | Substantial   | Methods which require a concrete implementation remain unimplemented          |
-    | `InputStream`    | Mostly Complete | Substantial   | `getBuffer(_:length:)` remains unimplemented                                  |
+    | `Stream`         | Complete        | Substantial   | `getStreamsToHost(withName:port:inputStream:outputStream:)` and `getBoundStreams(withBufferSize:inputStream:outputStream:)` class methods are disabled |
+    | `InputStream`    | Complete        | Substantial   |                                                                               |
     | `NSOutputStream` | Complete        | Substantial   |                                                                               |
     | `Timer`          | Complete        | Substantial   |                                                                               |
 

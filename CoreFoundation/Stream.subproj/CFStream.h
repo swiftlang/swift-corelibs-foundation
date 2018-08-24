@@ -231,6 +231,11 @@ Boolean CFWriteStreamSetProperty(CFWriteStreamRef stream, CFStreamPropertyKey pr
 */
 
 CF_EXPORT
+void *_CFReadStreamGetClient(CFReadStreamRef readStream);
+CF_EXPORT
+void *_CFWriteStreamGetClient(CFWriteStreamRef writeStream);
+
+CF_EXPORT
 Boolean CFReadStreamSetClient(CFReadStreamRef stream, CFOptionFlags streamEvents, CFReadStreamClientCallBack clientCB, CFStreamClientContext *clientContext);
 CF_EXPORT
 Boolean CFWriteStreamSetClient(CFWriteStreamRef stream, CFOptionFlags streamEvents, CFWriteStreamClientCallBack clientCB, CFStreamClientContext *clientContext);
