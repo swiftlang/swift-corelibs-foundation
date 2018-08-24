@@ -1,7 +1,7 @@
 /*	CFCalendar.c
-	Copyright (c) 2004-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2004-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -14,6 +14,7 @@
 #include <CoreFoundation/CFRuntime.h>
 #include "CFInternal.h"
 #include "CFPriv.h"
+#include "CFRuntime_Internal.h"
 #include <unicode/ucal.h>
 
 #define BUFFER_SIZE 512
@@ -52,9 +53,7 @@ static void __CFCalendarDeallocate(CFTypeRef cf) {
     if (calendar->_cal) ucal_close(calendar->_cal);
 }
 
-static CFTypeID __kCFCalendarTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFCalendarClass = {
+const CFRuntimeClass __CFCalendarClass = {
     0,
     "CFCalendar",
     NULL,    // init
@@ -67,9 +66,7 @@ static const CFRuntimeClass __CFCalendarClass = {
 };
 
 CFTypeID CFCalendarGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFCalendarTypeID = _CFRuntimeRegisterClass(&__CFCalendarClass); });
-    return __kCFCalendarTypeID;
+    return _kCFRuntimeIDCFCalendar;
 }
 
 CF_PRIVATE UCalendar *__CFCalendarCreateUCalendar(CFStringRef calendarID, CFStringRef localeID, CFTimeZoneRef tz) {

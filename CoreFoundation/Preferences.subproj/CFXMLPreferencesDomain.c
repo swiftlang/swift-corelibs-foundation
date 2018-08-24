@@ -1,7 +1,7 @@
 /*	CFXMLPreferencesDomain.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -16,12 +16,10 @@
 #include <CoreFoundation/CFDate.h>
 #include "CFInternal.h"
 #include <time.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#endif
-#if DEPLOYMENT_TARGET_MACOSX
 #include <mach/mach.h>
 #include <mach/mach_syscalls.h>
 #endif
@@ -46,7 +44,10 @@ static void getXMLKeysAndValues(CFAllocatorRef alloc, CFTypeRef context, void *x
 static CFDictionaryRef copyXMLDomainDictionary(CFTypeRef context, void *domain);
 static void setXMLDomainIsWorldReadable(CFTypeRef context, void *domain, Boolean isWorldReadable);
 
-CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks = {createXMLDomain, freeXMLDomain, fetchXMLValue, writeXMLValue, synchronizeXMLDomain, getXMLKeysAndValues, copyXMLDomainDictionary, setXMLDomainIsWorldReadable};
+CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks;
+const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks = {createXMLDomain, freeXMLDomain, fetchXMLValue, writeXMLValue, synchronizeXMLDomain, getXMLKeysAndValues, copyXMLDomainDictionary, setXMLDomainIsWorldReadable};
+
+CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void);
 
 // Directly ripped from Foundation....
 static void __CFMilliSleep(uint32_t msecs) {

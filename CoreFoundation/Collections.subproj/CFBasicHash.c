@@ -1,21 +1,23 @@
 /*	CFBasicHash.m
-	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Christopher Kane
 */
 
-#include "CFBasicHash.h"
-#include <CoreFoundation/CFRuntime.h>
-#include <CoreFoundation/CFSet.h>
-#include <Block.h>
-#include <math.h>
+#import "CFBasicHash.h"
+#import <CoreFoundation/CFRuntime.h>
+#import "CFRuntime_Internal.h"
+#import <CoreFoundation/CFSet.h>
+#import <Block.h>
+#import <math.h>
 #if __HAS_DISPATCH__
-#include <dispatch/dispatch.h>
+#import <dispatch/dispatch.h>
 #endif
+#import "CFOverflow.h"
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #define __SetLastAllocationEventName(A, B) do { if (__CFOASafe && (A)) __CFSetLastAllocationEventName(A, B); } while (0)
@@ -258,11 +260,19 @@ static const uintptr_t __CFBasicHashPrimitiveRoots[64] = {
 };
 
 CF_INLINE void *__CFBasicHashAllocateMemory(CFConstBasicHashRef ht, CFIndex count, CFIndex elem_size, Boolean strong, Boolean compactable) {
-    return CFAllocatorAllocate(CFGetAllocator(ht), count * elem_size, 0);
+    CFIndex memorySize;
+    if (os_mul_overflow(count, elem_size, &memorySize)) {
+        HALT_MSG("overflow while growing CFBasicHash");
+    }
+    return CFAllocatorAllocate(CFGetAllocator(ht), memorySize, 0);
 }
 
 CF_INLINE void *__CFBasicHashAllocateMemory2(CFAllocatorRef allocator, CFIndex count, CFIndex elem_size, Boolean strong, Boolean compactable) {
-    return CFAllocatorAllocate(allocator, count * elem_size, 0);
+    CFIndex memorySize;
+    if (os_mul_overflow(count, elem_size, &memorySize)) {
+        HALT_MSG("overflow while growing CFBasicHash");
+    }
+    return CFAllocatorAllocate(allocator, memorySize, 0);
 }
 
 #define __CFBasicHashSubABZero 0xa7baadb1
@@ -379,69 +389,69 @@ CF_INLINE Boolean __CFBasicHashHasHashCache(CFConstBasicHashRef ht) {
 }
 
 CF_INLINE uintptr_t __CFBasicHashImportValue(CFConstBasicHashRef ht, uintptr_t stack_value) {
-    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vret);
+    void * (*func)(CFAllocatorRef, void *) = (void * (*)(CFAllocatorRef, void *))CFBasicHashGetPtrAtIndex(ht->bits.__vret);
     if (!func || ht->bits.null_rc) return stack_value;
     CFAllocatorRef alloc = __CFGetAllocator(ht);
-    return func(alloc, stack_value);
+    return (uintptr_t)func(alloc, (void *)stack_value);
 }
 
 CF_INLINE uintptr_t __CFBasicHashImportKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    uintptr_t (*func)(CFAllocatorRef, uintptr_t) = (uintptr_t (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kret);
+    void * (*func)(CFAllocatorRef, void *) = (void * (*)(CFAllocatorRef, void *))CFBasicHashGetPtrAtIndex(ht->bits.__kret);
     if (!func || ht->bits.null_rc) return stack_key;
     CFAllocatorRef alloc = __CFGetAllocator(ht);
-    return func(alloc, stack_key);
+    return (uintptr_t)func(alloc, (void *)stack_key);
 }
 
 CF_INLINE void __CFBasicHashEjectValue(CFConstBasicHashRef ht, uintptr_t stack_value) {
-    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vrel);
+    void (*func)(CFAllocatorRef, void *) = (void (*)(CFAllocatorRef, void *))CFBasicHashGetPtrAtIndex(ht->bits.__vrel);
     if (!func || ht->bits.null_rc) return;
     CFAllocatorRef alloc = __CFGetAllocator(ht);
-    func(alloc, stack_value);
+    func(alloc, (void *)stack_value);
 }
 
 CF_INLINE void __CFBasicHashEjectKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    void (*func)(CFAllocatorRef, uintptr_t) = (void (*)(CFAllocatorRef, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__krel);
+    void (*func)(CFAllocatorRef, void *) = (void (*)(CFAllocatorRef, void *))CFBasicHashGetPtrAtIndex(ht->bits.__krel);
     if (!func || ht->bits.null_rc) return;
     CFAllocatorRef alloc = __CFGetAllocator(ht);
-    func(alloc, stack_key);
+    func(alloc, (void *)stack_key);
 }
 
 CF_INLINE CFStringRef __CFBasicHashDescValue(CFConstBasicHashRef ht, uintptr_t stack_value) CF_RETURNS_RETAINED {
-    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vdes);
+    CFStringRef (*func)(void *) = (CFStringRef (*)(void *))CFBasicHashGetPtrAtIndex(ht->bits.__vdes);
     if (!func) return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<%p>"), (void *)stack_value);
-    return func(stack_value);
+    return func((void *)stack_value);
 }
 
 CF_INLINE CFStringRef __CFBasicHashDescKey(CFConstBasicHashRef ht, uintptr_t stack_key) CF_RETURNS_RETAINED {
-    CFStringRef (*func)(uintptr_t) = (CFStringRef (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kdes);
+    CFStringRef (*func)(void *) = (CFStringRef (*)(void *))CFBasicHashGetPtrAtIndex(ht->bits.__kdes);
     if (!func) return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<%p>"), (void *)stack_key);
-    return func(stack_key);
+    return func((void *)stack_key);
 }
 
 CF_INLINE Boolean __CFBasicHashTestEqualValue(CFConstBasicHashRef ht, uintptr_t stack_value_a, uintptr_t stack_value_b) {
-    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__vequ);
+    Boolean (*func)(void *, void *) = (Boolean (*)(void *, void *))CFBasicHashGetPtrAtIndex(ht->bits.__vequ);
     if (!func) return (stack_value_a == stack_value_b);
-    return func(stack_value_a, stack_value_b);
+    return func((void *)stack_value_a, (void *)stack_value_b);
 }
 
 CF_INLINE Boolean __CFBasicHashTestEqualKey(CFConstBasicHashRef ht, uintptr_t in_coll_key, uintptr_t stack_key) {
     COCOA_HASHTABLE_TEST_EQUAL(ht, in_coll_key, stack_key);
-    Boolean (*func)(uintptr_t, uintptr_t) = (Boolean (*)(uintptr_t, uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kequ);
+    Boolean (*func)(void *, void *) = (Boolean (*)(void *, void *))CFBasicHashGetPtrAtIndex(ht->bits.__kequ);
     if (!func) return (in_coll_key == stack_key);
-    return func(in_coll_key, stack_key);
+    return func((void *)in_coll_key, (void *)stack_key);
 }
 
 CF_INLINE CFHashCode __CFBasicHashHashKey(CFConstBasicHashRef ht, uintptr_t stack_key) {
-    CFHashCode (*func)(uintptr_t) = (CFHashCode (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__khas);
-    CFHashCode hash_code = func ? func(stack_key) : stack_key;
+    CFHashCode (*func)(void *) = (CFHashCode (*)(void *))CFBasicHashGetPtrAtIndex(ht->bits.__khas);
+    CFHashCode hash_code = func ? func((void *)stack_key) : stack_key;
     COCOA_HASHTABLE_HASH_KEY(ht, stack_key, hash_code);
     return hash_code;
 }
 
 CF_INLINE uintptr_t __CFBasicHashGetIndirectKey(CFConstBasicHashRef ht, uintptr_t coll_key) {
-    uintptr_t (*func)(uintptr_t) = (uintptr_t (*)(uintptr_t))CFBasicHashGetPtrAtIndex(ht->bits.__kget);
+    void * (*func)(void *) = (void * (*)(void *))CFBasicHashGetPtrAtIndex(ht->bits.__kget);
     if (!func) return coll_key;
-    return func(coll_key);
+    return (uintptr_t)func((void *)coll_key);
 }
 
 CF_INLINE CFBasicHashValue *__CFBasicHashGetValues(CFConstBasicHashRef ht) {
@@ -1526,9 +1536,7 @@ CF_PRIVATE void __CFBasicHashDeallocate(CFTypeRef cf) {
 #endif
 }
 
-static CFTypeID __kCFBasicHashTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFBasicHashClass = {
+const CFRuntimeClass __CFBasicHashClass = {
     _kCFRuntimeScannedObject,
     "CFBasicHash",
     NULL,        // init
@@ -1541,9 +1549,7 @@ static const CFRuntimeClass __CFBasicHashClass = {
 };
 
 CF_PRIVATE CFTypeID CFBasicHashGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFBasicHashTypeID = _CFRuntimeRegisterClass(&__CFBasicHashClass); });
-    return __kCFBasicHashTypeID;
+    return _kCFRuntimeIDCFBasicHash;
 }
 
 CF_PRIVATE CFBasicHashRef CFBasicHashCreate(CFAllocatorRef allocator, CFOptionFlags flags, const CFBasicHashCallbacks *cb) {

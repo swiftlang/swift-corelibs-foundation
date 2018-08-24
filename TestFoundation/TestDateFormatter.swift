@@ -9,7 +9,7 @@
 
 class TestDateFormatter: XCTestCase {
     
-    let DEFAULT_LOCALE = "en_US"
+    let DEFAULT_LOCALE = "en_US_POSIX"
     let DEFAULT_TIMEZONE = "GMT"
     
     static var allTests : [(String, (TestDateFormatter) -> () throws -> Void)] {

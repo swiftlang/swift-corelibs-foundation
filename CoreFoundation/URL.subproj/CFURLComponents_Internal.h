@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLComponents_Internal.h
-	Copyright (c) 2015, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2018, Apple Inc. All rights reserved.
+ 
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #ifndef CFURLComponents_Internal_h
@@ -55,6 +50,7 @@ typedef CF_ENUM(unsigned short, _CFURIParserURLAllowedCharacter) {
     kURLFragmentAllowed	= 0x0080,
     kURLHexDigAllowed	= 0x0100,
     kURLAlphaAllowed	= 0x0200,
+    kURLQueryItemNameAllowed = 0x0400, // the same as kURLQueryAllowed only '=' and '&' are not allowed
 };
 
 CF_PRIVATE Boolean _CFURIParserParseURIReference(CFStringRef urlString, struct _URIParseInfo *parseInfo);

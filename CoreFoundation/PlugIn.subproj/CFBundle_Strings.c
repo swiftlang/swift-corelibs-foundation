@@ -1,7 +1,7 @@
 /*      CFBundle_Strings.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,6 +9,8 @@
 */
 
 #include "CFBundle_Internal.h"
+#include "CFCollections_Internal.h"
+
 #if DEPLOYMENT_TARGET_MACOSX
 
 #endif
@@ -19,15 +21,15 @@
 #pragma mark -
 #pragma mark Localized Strings
 
-typedef struct {
-    CFDictionaryRef localizedFormatStringsTable;
-    CFMutableDictionaryRef result;
-} VariableWidthStringContext;
+static void __CFStringsDictMergeApplyFunction(const void *key, const void *value, void *context) {
+    CFDictionarySetValue((CFMutableDictionaryRef)context, key, value);
+}
 
 
 CF_EXPORT CFStringRef CFBundleCopyLocalizedString(CFBundleRef bundle, CFStringRef key, CFStringRef value, CFStringRef tableName) {
     return CFBundleCopyLocalizedStringForLocalization(bundle, key, value, tableName, NULL);
 }
+
 
 static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableName, CFStringRef key, CFStringRef localizationName) {
     // Check the cache first. If it's not there, populate the cache and check again.
@@ -92,30 +94,35 @@ static CFStringRef _copyStringFromTable(CFBundleRef bundle, CFStringRef tableNam
             CFDictionaryRef stringsDictTable = (CFDictionaryRef)CFPropertyListCreateWithData(CFGetAllocator(bundle), tableData, kCFPropertyListImmutable, NULL, &error);
             CFRelease(tableData);
             
-            if (stringsDictTable && CFDictionaryGetTypeID() != CFGetTypeID(stringsDictTable)) {
-                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .stringsdict file: %@ / %@: Top-level object was not a dictionary", bundle, tableName);
-                CFRelease(stringsDictTable);
-                stringsDictTable = NULL;
-            } else if (!stringsDictTable && error) {
+            if (!stringsDictTable && error) {
                 os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .stringsdict file: %@ / %@: %@", bundle, tableName, error);
                 CFRelease(error);
                 error = NULL;
-            }
-            
-            // Post-process the strings table
-            if (stringsDictTable) {
+            } else if (stringsDictTable && CFDictionaryGetTypeID() != CFGetTypeID(stringsDictTable)) {
+                os_log_error(_CFBundleLocalizedStringLogger(), "Unable to load .stringsdict file: %@ / %@: Top-level object was not a dictionary", bundle, tableName);
+                CFRelease(stringsDictTable);
+                stringsDictTable = NULL;
+            } else if (stringsDictTable) {
+                // Post-process the strings table.
                 CFMutableDictionaryRef mutableStringsDictTable;
                 if (stringsTable) {
-                    // Use the strings table as base content for the stringsdict
+                    // Any strings that are in the stringsTable that are not in the stringsDict must be added to the stringsDict.
+                    // However, any entry in the stringsDictTable must override the content from stringsTable.
+                    
+                    // Start by copying the stringsTable.
                     mutableStringsDictTable = CFDictionaryCreateMutableCopy(NULL, 0, stringsTable);
+                    
+                    // Replace any stringsTable entries with entries from stringsDictTable. This will override any entries from the original stringsTable if they existed.
+                    CFDictionaryApplyFunction(stringsDictTable, __CFStringsDictMergeApplyFunction, mutableStringsDictTable);
                 } else {
-                    // Start from scratch with the stringsdict
-                    mutableStringsDictTable = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                    // Start with a copy of the stringsDictTable on its own.
+                    mutableStringsDictTable = CFDictionaryCreateMutableCopy(NULL, 0, stringsDictTable);
                 }
                 
-                
                 CFRelease(stringsDictTable);
+
                 if (stringsTable) CFRelease(stringsTable);
+                // The new strings table is the result of all the transforms above.
                 stringsTable = mutableStringsDictTable;
             }
         }

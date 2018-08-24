@@ -1,7 +1,7 @@
 /*	CFBag.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-    Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+    Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
     Licensed under Apache License v2.0 with Runtime Library Exception
     See http://swift.org/LICENSE.txt for license information
     See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -15,6 +15,7 @@
 
 #include <CoreFoundation/CFBag.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFBasicHash.h"
 #include <CoreFoundation/CFString.h>
 
@@ -89,9 +90,7 @@ static void __CFBagDeallocate(CFTypeRef cf) {
     __CFBasicHashDeallocate((CFBasicHashRef)cf);
 }
 
-static CFTypeID __kCFBagTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFBagClass = {
+const CFRuntimeClass __CFBagClass = {
     _kCFRuntimeScannedObject,
     "CFBag",
     NULL,        // init
@@ -104,11 +103,7 @@ static const CFRuntimeClass __CFBagClass = {
 };
 
 CFTypeID CFBagGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        __kCFBagTypeID = _CFRuntimeRegisterClass(&__CFBagClass);
-    });
-    return __kCFBagTypeID;
+    return _kCFRuntimeIDCFBag;
 }
 
 

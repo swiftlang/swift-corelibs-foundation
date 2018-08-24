@@ -1,7 +1,7 @@
 /*	CFPlatform.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -123,7 +123,7 @@ const char *_CFProcessPath(void) {
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-Boolean _CFIsMainThread(void) {
+CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
 
@@ -282,7 +282,28 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
             }
 	}
 #else
-#error Dont know how to compute user name on this platform
+#error "Please add an implementation for CFCopyUserName() that copies the account username"
+#endif
+    if (!result)
+        result = (CFStringRef)CFRetain(CFSTR(""));
+    return result;
+}
+
+#if DEPLOYMENT_TARGET_ANDROID
+#define pw_gecos pw_name
+#endif
+
+CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
+    CFStringRef result = NULL;
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+    uid_t euid;
+    __CFGetUGIDs(&euid, NULL);
+    struct passwd *upwd = getpwuid(euid ? euid : getuid());
+    if (upwd && upwd->pw_gecos) {
+        result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
+    }
+#else
+#error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
     if (!result) {
         result = (CFStringRef)CFRetain(CFSTR(""));
@@ -291,27 +312,10 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
     return result;
 }
 
-CF_EXPORT CFStringRef CFCopyFullUserName(void) {
-    CFStringRef result = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    uid_t euid;
-    __CFGetUGIDs(&euid, NULL);
-    struct passwd *upwd = getpwuid(euid ? euid : getuid());
 #if DEPLOYMENT_TARGET_ANDROID
-#define pw_gecos pw_name
+#undef pw_gecos
 #endif
-    if (upwd && upwd->pw_gecos) {
-        result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
-    }
-#else
-#error Don't know how to compute full user name on this platform
-#endif
-    if (!result) {
-        result = (CFStringRef)CFRetain(CFSTR(""));
-    }
-    
-    return result;
-}
+
 
 CFURLRef CFCopyHomeDirectoryURL(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
@@ -506,6 +510,8 @@ CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef a
 }
 #endif
 
+
+
 #pragma mark -
 #pragma mark Thread Functions
 
@@ -604,14 +610,9 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 #endif
 
 static pthread_key_t __CFTSDIndexKey;
-static pthread_once_t __CFTSDIndexKey_once = PTHREAD_ONCE_INIT;
-
-CF_PRIVATE void __CFTSDInitializeOnce() {
-    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
-}
 
 CF_PRIVATE void __CFTSDInitialize() {
-    (void)pthread_once(&__CFTSDIndexKey_once, __CFTSDInitializeOnce);
+    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
 }
 
 static void __CFTSDSetSpecific(void *arg) {
@@ -634,7 +635,8 @@ static void *__CFTSDGetSpecific() {
 #endif
 }
 
-CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
+_Atomic(bool) __CFMainThreadHasExited = false;
+
 static void __CFTSDFinalize(void *arg) {
     if (pthread_main_np()) {
         __CFMainThreadHasExited = true;
@@ -1354,10 +1356,9 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Non
 #endif
 }
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length) {
+CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     return pthread_getname_np(pthread_self(), buf, length);
-#elif DEPLOYMENT_TARGET_ANDROID
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
 #endif
@@ -1374,15 +1375,15 @@ CF_EXPORT char **_CFEnviron(void) {
 #endif
 }
 
-int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
     return open(path, opts, mode);
 }
 int _CFOpenFile(const char *path, int opts) {
     return open(path, opts);
 }
 
-void *_CFReallocf(void *ptr, size_t size) {
-#if DEPLOYMENT_TARGET_WINDOWS | DEPLOYMENT_TARGET_LINUX
+CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
+#if TARGET_OS_WIN32 | DEPLOYMENT_TARGET_LINUX
     void *mem = realloc(ptr, size);
     if (mem == NULL && ptr != NULL && size != 0) {
         free(ptr);

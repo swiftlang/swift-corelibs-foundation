@@ -1,7 +1,7 @@
 /*	CFBurstTrie.h
-        Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+        Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -60,7 +60,7 @@ typedef CF_OPTIONS(CFOptionFlags, CFBurstTrieOpts) {
 typedef void (*CFBurstTrieTraversalCallback)(void* context, const UInt8* key, uint32_t keyLength, uint32_t payload, Boolean *stop);
 
 CF_EXPORT 
-CFBurstTrieRef CFBurstTrieCreate() API_AVAILABLE(macos(10.7), ios(4.2), watchos(2.0), tvos(9.0));
+CFBurstTrieRef CFBurstTrieCreate(void) API_AVAILABLE(macos(10.7), ios(4.2), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
 CFBurstTrieRef CFBurstTrieCreateWithOptions(CFDictionaryRef options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));

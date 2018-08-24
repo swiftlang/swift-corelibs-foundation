@@ -1,7 +1,7 @@
 /*	ForFoundationOnly.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -23,6 +23,7 @@
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
+#include <CoreFoundation/CFStringEncodingConverterExt.h>
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFBag.h>
 #include <CoreFoundation/CFCalendar.h>
@@ -79,8 +80,6 @@ CF_EXPORT const CFStringRef _kCFBundleRawInfoPlistURLKey;
 CF_EXPORT const CFStringRef _kCFBundleNumericVersionKey;
 CF_EXPORT const CFStringRef _kCFBundleResourcesFileMappedKey;
 CF_EXPORT const CFStringRef _kCFBundleAllowMixedLocalizationsKey;
-CF_EXPORT const CFStringRef _kCFBundleInitialPathKey;
-CF_EXPORT const CFStringRef _kCFBundleResolvedPathKey;
 CF_EXPORT const CFStringRef _kCFBundlePrincipalClassKey;
 
 #if __BLOCKS__
@@ -102,8 +101,6 @@ _CF_EXPORT_SCOPE_END
 
 _CF_EXPORT_SCOPE_BEGIN
 
-extern void _CFPreferencesPurgeDomainCache(void);
-
 typedef struct {
     void *_Null_unspecified 	(*_Null_unspecified createDomain)(CFAllocatorRef _Nullable allocator, CFTypeRef context);
     void	(*_Null_unspecified freeDomain)(CFAllocatorRef _Nullable allocator, CFTypeRef context, void *domain);
@@ -112,60 +109,17 @@ typedef struct {
     Boolean	(*_Null_unspecified synchronize)(CFTypeRef context, void *domain);
     void	(*_Null_unspecified getKeysAndValues)(CFAllocatorRef _Nullable alloc, CFTypeRef context, void *domain, void *_Null_unspecified * _Null_unspecified buf[_Null_unspecified], CFIndex *numKeyValuePairs);
     CFDictionaryRef _Null_unspecified  (*_Null_unspecified copyDomainDictionary)(CFTypeRef context, void *domain);
-    /* HACK - see comment on _CFPreferencesDomainSetIsWorldReadable(), below */
+    /* HACK - this is to work around the fact that individual domains lose the information about their user/host/app triplet at creation time.  We should find a better way to propogate this information. */
     void	(*setIsWorldReadable)(CFTypeRef context, void *domain, Boolean isWorldReadable);
 } _CFPreferencesDomainCallBacks;
 
-CF_EXPORT CFAllocatorRef __CFPreferencesAllocator(void);
-CF_EXPORT  const _CFPreferencesDomainCallBacks __kCFVolatileDomainCallBacks;
-CF_EXPORT const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks;
-
 typedef struct CF_BRIDGED_MUTABLE_TYPE(id) __CFPreferencesDomain * CFPreferencesDomainRef;
-
-CF_EXPORT CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef context, const _CFPreferencesDomainCallBacks *callBacks);
-CF_EXPORT CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef domainName, CFStringRef userName, CFStringRef hostName);
-
-CF_EXPORT CFTypeRef _CFPreferencesDomainCreateValueForKey(CFPreferencesDomainRef domain, CFStringRef key);
-CF_EXPORT void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef key, CFTypeRef _Nullable value);
-CF_EXPORT Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain);
-
-CF_EXPORT CFArrayRef _Nullable _CFPreferencesCreateDomainList(CFStringRef userName, CFStringRef hostName);
-CF_EXPORT Boolean _CFSynchronizeDomainCache(void);
-
-CF_EXPORT void _CFPreferencesDomainSetDictionary(CFPreferencesDomainRef domain, CFDictionaryRef dict);
-CF_EXPORT CFDictionaryRef _CFPreferencesDomainDeepCopyDictionary(CFPreferencesDomainRef domain);
-CF_EXPORT Boolean _CFPreferencesDomainExists(CFStringRef domainName, CFStringRef userName, CFStringRef hostName);
-
-/* HACK - this is to work around the fact that individual domains lose the information about their user/host/app triplet at creation time.  We should find a better way to propogate this information.  REW, 1/13/00 */
-CF_EXPORT void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable);
 
 typedef struct {
     CFMutableArrayRef _search;  // the search list; an array of _CFPreferencesDomains
     CFMutableDictionaryRef _dictRep; // Mutable; a collapsed view of the search list, expressed as a single dictionary
     CFStringRef _appName;
 } _CFApplicationPreferences;
-
-CF_EXPORT _CFApplicationPreferences *_Nullable _CFStandardApplicationPreferences(CFStringRef appName);
-CF_EXPORT _CFApplicationPreferences *_CFApplicationPreferencesCreateWithUser(CFStringRef userName, CFStringRef appName);
-CF_EXPORT void _CFDeallocateApplicationPreferences(_CFApplicationPreferences *self);
-CF_EXPORT CFTypeRef _CFApplicationPreferencesCreateValueForKey(_CFApplicationPreferences *prefs, CFStringRef key);
-CF_EXPORT void _CFApplicationPreferencesSet(_CFApplicationPreferences *self, CFStringRef defaultName, CFTypeRef value);
-CF_EXPORT void _CFApplicationPreferencesRemove(_CFApplicationPreferences *self, CFStringRef defaultName);
-CF_EXPORT Boolean _CFApplicationPreferencesSynchronize(_CFApplicationPreferences *self);
-CF_EXPORT void _CFApplicationPreferencesUpdate(_CFApplicationPreferences *self); // same as updateDictRep
-CF_EXPORT CFDictionaryRef _CFApplicationPreferencesCopyRepresentation3(_CFApplicationPreferences *self, CFDictionaryRef hint, CFDictionaryRef insertion, CFPreferencesDomainRef afterDomain);
-CF_EXPORT CFDictionaryRef _CFApplicationPreferencesCopyRepresentationWithHint(_CFApplicationPreferences *self, CFDictionaryRef hint); // same as dictRep
-CF_EXPORT void _CFApplicationPreferencesSetStandardSearchList(_CFApplicationPreferences *appPreferences);
-CF_EXPORT void _CFApplicationPreferencesSetCacheForApp(_CFApplicationPreferences *appPrefs, CFStringRef appName);
-CF_EXPORT void _CFApplicationPreferencesAddSuitePreferences(_CFApplicationPreferences *appPrefs, CFStringRef suiteName);
-CF_EXPORT void _CFApplicationPreferencesRemoveSuitePreferences(_CFApplicationPreferences *appPrefs, CFStringRef suiteName);
-
-CF_EXPORT void _CFApplicationPreferencesAddDomain(_CFApplicationPreferences *self, CFPreferencesDomainRef domain, Boolean addAtTop);
-CF_EXPORT Boolean _CFApplicationPreferencesContainsDomain(_CFApplicationPreferences *self, CFPreferencesDomainRef domain);
-CF_EXPORT void _CFApplicationPreferencesRemoveDomain(_CFApplicationPreferences *self, CFPreferencesDomainRef domain);
-
-CF_EXPORT CFTypeRef _Nullable _CFApplicationPreferencesSearchDownToDomain(_CFApplicationPreferences *self, CFPreferencesDomainRef stopper, CFStringRef key);
-
 
 _CF_EXPORT_SCOPE_END
 
@@ -304,7 +258,7 @@ CF_EXPORT Boolean __CFStringDecodeByteStream3(const UInt8 *bytes, CFIndex len, C
 
 /* Convert single byte to Unicode; assumes one-to-one correspondence (that is, can only be used with 1-byte encodings). You can use the function if it's not NULL.
 */
-CF_EXPORT Boolean (*__CFCharToUniCharFunc)(UInt32 flags, UInt8 ch, UniChar *unicodeChar);
+CF_EXPORT CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc;
 
 /* Character class functions UnicodeData-2_1_5.txt
 */
@@ -348,8 +302,8 @@ CF_EXPORT void _CFStringAppendFormatAndArgumentsAux(CFMutableStringRef outputStr
 CF_EXPORT CFStringRef  _CFStringCreateWithFormatAndArgumentsAux(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
 
 CF_EXPORT void _CFStringAppendFormatAndArgumentsAux2(CFMutableStringRef outputString, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef formatString, va_list args);
-CF_EXPORT CFStringRef  _CFStringCreateWithFormatAndArgumentsAux2(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
-CF_EXPORT CFStringRef CFStringCreateStringWithValidatedFormat(CFAllocatorRef alloc, CFDictionaryRef formatOptions, CFStringRef validFormatSpecifiers, CFStringRef format, va_list arguments, CFErrorRef *errorPtr) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT CFStringRef _Nullable _CFStringCreateWithFormatAndArgumentsAux2(CFAllocatorRef _Nullable alloc, CFStringRef _Nonnull (*_Nullable copyDescFunc)(void *, const void *loc), CFStringRef _Nonnull (*_Nullable contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef _Nullable formatOptions, CFStringRef format, va_list arguments);
+CF_EXPORT CFStringRef _Nullable CFStringCreateStringWithValidatedFormat(CFAllocatorRef alloc, CFDictionaryRef formatOptions, CFStringRef validFormatSpecifiers, CFStringRef format, va_list arguments, CFErrorRef *errorPtr) API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
 /* For NSString (and NSAttributedString) usage, mutate with isMutable check
 */
@@ -435,15 +389,12 @@ CF_EXPORT CFTypeRef _CFPropertyListCreateFromXMLString(CFAllocatorRef _Nullable 
 
 // ---- Sudden Termination material ----------------------------------------
 
-#if DEPLOYMENT_TARGET_MACOSX
-
 CF_EXPORT void _CFSuddenTerminationDisable(void);
 CF_EXPORT void _CFSuddenTerminationEnable(void);
+
 CF_EXPORT void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus);
 CF_EXPORT void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus);
 CF_EXPORT size_t _CFSuddenTerminationDisablingCount(void);
-
-#endif
 
 // ---- Thread-specific data --------------------------------------------
 
@@ -568,6 +519,7 @@ CF_EXPORT CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err);
 CF_EXPORT CFStringRef _CFErrorCreateLocalizedFailureReason(CFErrorRef err);
 CF_EXPORT CFStringRef _CFErrorCreateLocalizedRecoverySuggestion(CFErrorRef err);
 CF_EXPORT CFStringRef _CFErrorCreateDebugDescription(CFErrorRef err);
+CF_EXPORT CFStringRef _CFErrorCreateRedactedDescription(CFErrorRef err);
 
 CF_EXPORT void *__CFURLReservedPtr(CFURLRef  url);
 CF_EXPORT void __CFURLSetReservedPtr(CFURLRef  url, void *_Nullable ptr);
@@ -641,13 +593,6 @@ CF_EXPORT _CFStringFileSystemRepresentationError _CFStringGetFileSystemRepresent
 
 
 
-CF_EXPORT CFIndex __CFProcessorCount(void);
-CF_EXPORT uint64_t __CFMemorySize(void);
-CF_EXPORT CFStringRef _CFProcessNameString(void);
-CF_EXPORT CFIndex __CFActiveProcessorCount(void);
-CF_EXPORT CFDictionaryRef __CFGetEnvironment(void);
-CF_EXPORT int32_t __CFGetPid(void);
-CF_EXPORT int32_t __CFGetPid(void);
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void);
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
@@ -657,7 +602,7 @@ CF_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out
 CF_EXPORT Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 CF_EXPORT Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
 CF_EXPORT Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarIsWeekend(CFCalendarRef calendar, CFAbsoluteTime at);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarIsWeekend(CFCalendarRef calendar, CFAbsoluteTime at);
 
 typedef struct {
     CFTimeInterval onsetTime;
@@ -666,7 +611,7 @@ typedef struct {
     CFIndex end;
 } _CFCalendarWeekendRange;
 
-CF_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
 
@@ -676,11 +621,6 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInRange(CFMuta
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithCharactersInString(CFMutableCharacterSetRef cset, CFStringRef theString);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitMutable(CFMutableCharacterSetRef cset);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCharacterSetInitWithBitmapRepresentation(CFMutableCharacterSetRef cset, CFDataRef theData);
-CF_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
-
-CF_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
-CF_EXPORT int _CFOpenFile(const char *path, int opts);
-CF_EXPORT void *_CFReallocf(void *ptr, size_t size);
 
 // The following functions can be used when you know for certain that the types involved are not objc types. For Foundation Only!
 CF_EXPORT Boolean _CFNonObjCEqual(CFTypeRef cf1, CFTypeRef cf2);
@@ -711,6 +651,47 @@ CF_EXPORT void (*__cf_tsanWriteFunction)(void *, void *, void *);
 } while (0)
 
 CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t *actualNumPointers);
+
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+// --- Static class references for Swift use; implements {DECLARE_,}STATIC_CLASS_REF.
+
+#if TARGET_OS_MAC
+#define STATIC_CLASS_PREFIX $s15SwiftFoundation
+#else
+#define STATIC_CLASS_PREFIX $s10Foundation
+#endif
+
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP___NSCFType 10
+#define STATIC_CLASS_NAME_LOOKUP___NSCFType __NSCFTypeCN
+
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP_NSNull 6
+#define STATIC_CLASS_NAME_LOOKUP_NSNull NSNullCN
+
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP___NSCFBoolean 13
+#define STATIC_CLASS_NAME_LOOKUP___NSCFBoolean __NSCFBooleanCN
+
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP___NSCFNumber 8
+#define STATIC_CLASS_NAME_LOOKUP___NSCFNumber NSNumberCN
+
+#define STATIC_CLASS_NAME_CONCAT_INNER(x,y) x ## y
+#define STATIC_CLASS_NAME_CONCAT(x,y) STATIC_CLASS_NAME_CONCAT_INNER(x,y)
+
+#define STATIC_CLASS_NAME_LOOKUP(CLASSNAME) STATIC_CLASS_NAME_CONCAT(STATIC_CLASS_NAME_LOOKUP_, CLASSNAME)
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP(CLASSNAME) STATIC_CLASS_NAME_CONCAT(STATIC_CLASS_NAME_LENGTH_LOOKUP_, CLASSNAME)
+
+#define STATIC_CLASS_NAME(CLASSNAME) STATIC_CLASS_NAME_CONCAT(STATIC_CLASS_NAME_LENGTH_LOOKUP(CLASSNAME), STATIC_CLASS_NAME_LOOKUP(CLASSNAME))
+
+#define DECLARE_STATIC_CLASS_REF(CLASSNAME) extern void STATIC_CLASS_NAME_CONCAT(STATIC_CLASS_PREFIX, STATIC_CLASS_NAME(CLASSNAME))
+#define STATIC_CLASS_REF(CLASSNAME) &(STATIC_CLASS_NAME_CONCAT(STATIC_CLASS_PREFIX, STATIC_CLASS_NAME(CLASSNAME)))
+
+#else // if !DEPLOYMENT_RUNTIME_SWIFT
+
+// We don't need static class refs if CF is used standalone, as there's no Swift or ObjC runtime to interoperate with.
+#define STATIC_CLASS_REF(...) NULL
+
+#endif
+
 
 _CF_EXPORT_SCOPE_END
 

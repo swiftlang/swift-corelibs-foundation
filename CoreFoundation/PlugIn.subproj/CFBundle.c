@@ -1,7 +1,7 @@
 /*      CFBundle.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -17,6 +17,7 @@
 #include <string.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFByteOrder.h>
 #include "CFBundle_BinaryTypes.h"
 #include <ctype.h>
@@ -118,9 +119,6 @@ CONST_STRING_DECL(_kCFBundleCFMLoadAsBundleKey, "CFBundleCFMLoadAsBundle")
 // Keys used by NSBundle for loaded Info plists.
 CONST_STRING_DECL(_kCFBundlePrincipalClassKey, "NSPrincipalClass")
 
-
-static CFTypeID __kCFBundleTypeID = _kCFRuntimeNotATypeID;
-
 static pthread_mutex_t CFBundleGlobalDataLock = PTHREAD_MUTEX_INITIALIZER;
 
 static CFMutableDictionaryRef _bundlesByIdentifier = NULL;
@@ -164,13 +162,15 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
 }
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
-Boolean _CFBundleSupportsFHSBundles() {
+CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
     return true;
 #else
     return false;
 #endif
 }
+
+#pragma mark -
 
 CF_PRIVATE os_log_t _CFBundleResourceLogger(void) {
     static os_log_t _log;
@@ -252,6 +252,10 @@ static void _CFBundleAddToTables(CFBundleRef bundle) {
                 if (newVersion >= existingVersion) break;
             }
             CFArrayInsertValueAtIndex(bundlesWithThisID, i, bundle);
+
+            // We've encountered a bundle with this ID already.
+            // Output some additional info here. It may not be an error (adding a newer version of a bundle is supported), so use os_log_debug.
+            os_log_debug(_CFBundleResourceLogger(), "More than one bundle with the same identifier has been added: %{public}@", bundlesWithThisID);
         } else {
             CFArrayCallBacks nonRetainingArrayCallbacks = kCFTypeArrayCallBacks;
             nonRetainingArrayCallbacks.retain = NULL;
@@ -467,13 +471,21 @@ CF_EXPORT void _CFBundleFlushBundleCaches(CFBundleRef bundle) {
     _CFBundleFlushBundleCachesAlreadyLocked(bundle, false);
 }
 
+#if !(__OBJC__ || __OBJC2__)
+static void _CFBundleArrayApplyFlushBundleCaches(const void *value, void *unusedContext) {
+    _CFBundleFlushBundleCachesAlreadyLocked((CFBundleRef)value, true);
+}
+#endif
+
 CF_PRIVATE void _CFBundleFlushAllBundleCaches(void) {
     pthread_mutex_lock(&CFBundleGlobalDataLock);
-    CFIndex count = CFArrayGetCount(_allBundles);
-    for (CFIndex idx = 0; idx < count; idx++) {
-        CFBundleRef bundle = (CFBundleRef)CFArrayGetValueAtIndex(_allBundles, idx);
-        _CFBundleFlushBundleCachesAlreadyLocked(bundle, true);
+#if __OBJC__ || __OBJC2__
+    for (id value in (id)_allBundles) {
+        _CFBundleFlushBundleCachesAlreadyLocked((CFBundleRef)value, true);
     }
+#else
+    CFArrayApplyFunction(_allBundles, CFRangeMake(0, CFArrayGetCount(_allBundles)), &_CFBundleArrayApplyFlushBundleCaches, NULL);
+#endif
     pthread_mutex_unlock(&CFBundleGlobalDataLock);
 }
 
@@ -618,7 +630,7 @@ static void __CFBundleDeallocate(CFTypeRef cf) {
     pthread_mutex_destroy(&(bundle->_bundleLoadingLock));
 }
 
-static const CFRuntimeClass __CFBundleClass = {
+const CFRuntimeClass __CFBundleClass = {
     _kCFRuntimeScannedObject,
     "CFBundle",
     NULL,      // init
@@ -634,11 +646,11 @@ static const CFRuntimeClass __CFBundleClass = {
 CF_PRIVATE void _CFBundleResourcesInitialize(void);
 
 CFTypeID CFBundleGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFBundleTypeID = _CFRuntimeRegisterClass(&__CFBundleClass); _CFBundleResourcesInitialize(); });
-    return __kCFBundleTypeID;
+    return _kCFRuntimeIDCFBundle;
 }
 
+// TODO: Remove this SPI, it appears no one is using it
+// <rdar://problem/30925651> Remove _CFBundleGetExistingBundleWithBundleURL
 CFBundleRef _CFBundleGetExistingBundleWithBundleURL(CFURLRef bundleURL) {
     CFBundleRef bundle = NULL;
     char buff[CFMaxPathSize];

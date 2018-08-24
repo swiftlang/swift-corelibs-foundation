@@ -1,7 +1,7 @@
 /*	CFXMLNode.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,6 +11,7 @@
 #include <CoreFoundation/CFXMLNode.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFXMLInputStream.h"
 
 CF_INLINE Boolean _nullSafeCFEqual(CFTypeRef cf1, CFTypeRef cf2) {
@@ -191,9 +192,7 @@ static void __CFXMLNodeDeallocate(CFTypeRef  cf) {
     }
 }
 
-static CFTypeID __kCFXMLNodeTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFXMLNodeClass = {
+const CFRuntimeClass __CFXMLNodeClass = {
     0,
     "CFXMLNode",
     NULL,      // init
@@ -206,9 +205,7 @@ static const CFRuntimeClass __CFXMLNodeClass = {
 };
 
 CFTypeID CFXMLNodeGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFXMLNodeTypeID = _CFRuntimeRegisterClass(&__CFXMLNodeClass); });
-    return __kCFXMLNodeTypeID;
+    return _kCFRuntimeIDCFXMLNode;
 }
 
 CFXMLNodeRef CFXMLNodeCreateCopy(CFAllocatorRef alloc, CFXMLNodeRef origNode) {

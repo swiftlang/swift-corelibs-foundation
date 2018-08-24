@@ -1,7 +1,7 @@
 /*	CFStringUtilities.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,6 +12,7 @@
 #include <CoreFoundation/CFStringEncodingConverterExt.h>
 #include <CoreFoundation/CFUniChar.h>
 #include <CoreFoundation/CFStringEncodingExt.h>
+#include "CFStringEncodingConverterPriv.h"
 #include "CFStringEncodingDatabase.h"
 #include "CFICUConverters.h"
 #include <limits.h>
@@ -368,8 +369,6 @@ static SInt32 __CompareCodePoints(const UniChar *text1Ptr, UniCharCount text1Len
 	return orderResult;
 }
 
-
-extern const CFStringRef __kCFLocaleCollatorID;
 
 static UCollator *__CFStringCreateCollator(CFLocaleRef compareLocale) {
     CFStringRef canonLocaleCFStr = (CFStringRef)CFLocaleGetValue(compareLocale, __kCFLocaleCollatorID);

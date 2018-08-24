@@ -1,7 +1,7 @@
 /*	CFBundle_Internal.h
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -34,13 +34,13 @@ CF_EXTERN_C_BEGIN
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
+#define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
+#define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-    #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-    #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+#define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
+#define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
 #else // a non-covered DEPLOYMENT_TARGET…
-    #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
+#error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
 #endif // DEPLOYMENT_TARGET_…
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
@@ -51,6 +51,9 @@ CF_EXTERN_C_BEGIN
 #define CFBundleExecutableRuntimeMismatchError      3586
 #define CFBundleExecutableLoadError                 3587
 #define CFBundleExecutableLinkError                 3588
+
+CF_PRIVATE char *__CFBundleMainID;
+
 
 CF_INLINE uint32_t _CFBundleSwapInt32Conditional(uint32_t arg, Boolean swap) {return swap ? CFSwapInt32(arg) : arg;}
 CF_INLINE uint32_t _CFBundleSwapInt64Conditional(uint64_t arg, Boolean swap) {return swap ? CFSwapInt64(arg) : arg;}
@@ -77,7 +80,7 @@ struct __CFBundle {
     
     CFURLRef _url;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
     Boolean _isFHSInstalledBundle;
 #endif
     
@@ -160,7 +163,7 @@ CF_PRIVATE SInt32 _CFBundleCurrentArchitecture(void);
 CF_PRIVATE Boolean _CFBundleGetObjCImageInfo(CFBundleRef bundle, uint32_t *objcVersion, uint32_t *objcFlags);
 
 #if defined(BINARY_SUPPORT_DYLD)
-CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable();
+CF_PRIVATE CFMutableDictionaryRef _CFBundleCreateInfoDictFromMainExecutable(void);
 CF_PRIVATE Boolean _CFBundleGrokObjCImageInfoFromMainExecutable(uint32_t *objcVersion, uint32_t *objcFlags);
 #endif
 
@@ -354,6 +357,13 @@ extern void _CFPlugInRemoveFactory(CFPlugInRef plugIn, _CFPFactoryRef factory);
 #define _CFBundleSolarisPlatformNameSuffix CFSTR("-solaris")
 #define _CFBundleLinuxPlatformNameSuffix CFSTR("-linux")
 #define _CFBundleFreeBSDPlatformNameSuffix CFSTR("-freebsd")
+
+STATIC_CONST_STRING_DECL(_CFBundleMacDeviceName, "mac");
+STATIC_CONST_STRING_DECL(_CFBundleiPhoneDeviceName, "iphone");
+STATIC_CONST_STRING_DECL(_CFBundleiPodDeviceName, "ipod");
+STATIC_CONST_STRING_DECL(_CFBundleiPadDeviceName, "ipad");
+STATIC_CONST_STRING_DECL(_CFBundleAppleWatchDeviceName, "applewatch");
+STATIC_CONST_STRING_DECL(_CFBundleAppleTVDeviceName, "appletv");
 
 CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void);
 CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void);

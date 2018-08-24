@@ -1,7 +1,7 @@
 /*	CFPreferences.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -26,12 +26,24 @@
 #include <CoreFoundation/CFUUID.h>
 #endif
 
-#include <assert.h>
-
 #if DEBUG_PREFERENCES_MEMORY
 #include "../Tests/CFCountingAllocator.c"
 #endif
 
+#include <assert.h>
+#include "CFRuntime_Internal.h"
+#include "CFKnownLocations.h"
+
+CF_PRIVATE Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain);
+CF_PRIVATE void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable);
+CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName);
+CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks;
+
+void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef  key, CFTypeRef  value);
+CFTypeRef  _CFPreferencesDomainCreateValueForKey(CFPreferencesDomainRef domain, CFStringRef key);
+CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef  domainName, CFStringRef  userName, CFStringRef  hostName);
+CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef  context, const _CFPreferencesDomainCallBacks *callBacks);
+CFDictionaryRef _CFPreferencesDomainDeepCopyDictionary(CFPreferencesDomainRef domain);
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel);
 
 struct __CFPreferencesDomain {
@@ -63,7 +75,7 @@ CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void) {
     return _preferencesAllocator;
 }
 
-// declaration for telling the 
+// declaration for telling the
 void _CFApplicationPreferencesDomainHasChanged(CFPreferencesDomainRef);
 
 #if DEBUG_PREFERENCES_MEMORY
@@ -386,9 +398,7 @@ static void __CFPreferencesDomainDeallocate(CFTypeRef cf) {
     if (domain->_context) CFRelease(domain->_context);
 }
 
-static CFTypeID __kCFPreferencesDomainTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFPreferencesDomainClass = {
+const CFRuntimeClass __CFPreferencesDomainClass = {
     0,
     "CFPreferencesDomain",
     NULL,      // init
@@ -396,7 +406,7 @@ static const CFRuntimeClass __CFPreferencesDomainClass = {
     __CFPreferencesDomainDeallocate,
     NULL,
     NULL,
-    NULL,      // 
+    NULL,      //
     __CFPreferencesDomainCopyDescription
 };
 
@@ -526,7 +536,7 @@ CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef  domainName, CFS
                 domain = checkDomain;	// repoint it at the domain picked up out of the cache.
             } else {
                 // We must not have found the domain in the cache, so it's ok for us to put this in.
-                CFDictionarySetValue(domainCache, domainKey, domain);                
+                CFDictionarySetValue(domainCache, domainKey, domain);
             }
             if(shouldReleaseDomain) CFRelease(domain);
         }
@@ -562,7 +572,7 @@ CF_PRIVATE void _CFPreferencesPurgeDomainCache(void) {
     __CFUnlock(&domainCacheLock);
 }
 
-CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
+CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
     CFArrayRef  domains;
     CFMutableArrayRef  marray;
@@ -665,12 +675,10 @@ CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFS
 //
 
 CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef  context, const _CFPreferencesDomainCallBacks *callBacks) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFPreferencesDomainTypeID = _CFRuntimeRegisterClass(&__CFPreferencesDomainClass); });
     CFAllocatorRef alloc = __CFPreferencesAllocator();
     CFPreferencesDomainRef newDomain;
     CFAssert(callBacks != NULL && callBacks->createDomain != NULL && callBacks->freeDomain != NULL && callBacks->fetchValue != NULL && callBacks->writeValue != NULL, __kCFLogAssertion, "Cannot create a domain with NULL callbacks");
-    newDomain = (CFPreferencesDomainRef)_CFRuntimeCreateInstance(alloc, __kCFPreferencesDomainTypeID, sizeof(struct __CFPreferencesDomain) - sizeof(CFRuntimeBase), NULL);
+    newDomain = (CFPreferencesDomainRef)_CFRuntimeCreateInstance(alloc, _kCFRuntimeIDCFPreferencesDomain, sizeof(struct __CFPreferencesDomain) - sizeof(CFRuntimeBase), NULL);
     if (newDomain) {
         newDomain->_callBacks = callBacks;
         if (context) CFRetain(context);

@@ -12,6 +12,14 @@
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
+		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
+		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
+		1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */; };
+		1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */; };
+		1578DA0F212B4070003C9516 /* CFMachPort_Lifetime.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA0C212B406F003C9516 /* CFMachPort_Lifetime.h */; };
+		1578DA11212B407B003C9516 /* CFString_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA10212B407B003C9516 /* CFString_Internal.h */; };
+		1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA12212B4C35003C9516 /* CFOverflow.h */; };
+		1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA14212B6F33003C9516 /* CFCollections_Internal.h */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
@@ -521,6 +529,14 @@
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
+		15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedStringPriv.h; sourceTree = "<group>"; };
+		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
+		1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFMachPort_Internal.h; sourceTree = "<group>"; };
+		1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFMachPort_Lifetime.c; sourceTree = "<group>"; };
+		1578DA0C212B406F003C9516 /* CFMachPort_Lifetime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFMachPort_Lifetime.h; sourceTree = "<group>"; };
+		1578DA10212B407B003C9516 /* CFString_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFString_Internal.h; sourceTree = "<group>"; };
+		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
+		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
@@ -1099,6 +1115,7 @@
 		5B5D88711BBC951A00234F36 /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				1578DA12212B4C35003C9516 /* CFOverflow.h */,
 				F03A43161D48778200A7791E /* CFAsmMacros.h */,
 				5BDC3F721BCC60EF00ED97BB /* module.modulemap */,
 				5B5D88741BBC954000234F36 /* CFAvailability.h */,
@@ -1112,6 +1129,7 @@
 				5B5D88CC1BBC986300234F36 /* CFPriv.h */,
 				5B5D88C31BBC981C00234F36 /* CFRuntime.c */,
 				5B5D88C21BBC981C00234F36 /* CFRuntime.h */,
+				1578DA08212B4060003C9516 /* CFRuntime_Internal.h */,
 				5B5D897D1BBDAEE600234F36 /* CFSortFunctions.c */,
 				5B5D89731BBDAD9900234F36 /* CFSystemDirectories.c */,
 				5B5D89601BBDABF400234F36 /* CFUtilities.c */,
@@ -1134,6 +1152,7 @@
 		5B5D88761BBC955900234F36 /* Collections */ = {
 			isa = PBXGroup;
 			children = (
+				1578DA14212B6F33003C9516 /* CFCollections_Internal.h */,
 				5B5D88781BBC956C00234F36 /* CFArray.c */,
 				5B5D88771BBC956C00234F36 /* CFArray.h */,
 				5B5D89161BBC9C5500234F36 /* CFBag.c */,
@@ -1169,6 +1188,7 @@
 				5B5D88911BBC969400234F36 /* CFCharacterSetPriv.h */,
 				5B5D887D1BBC960100234F36 /* CFString.c */,
 				5B5D887C1BBC960100234F36 /* CFString.h */,
+				1578DA10212B407B003C9516 /* CFString_Internal.h */,
 				5B5D887E1BBC960100234F36 /* CFStringDefaultEncoding.h */,
 				5B5D890F1BBC9C1B00234F36 /* CFStringEncodingExt.h */,
 				5B5D887F1BBC960100234F36 /* CFStringEncodings.c */,
@@ -1181,6 +1201,7 @@
 				5B6228BC1C179049009587FE /* CFRunArray.h */,
 				5B6228BA1C179041009587FE /* CFRunArray.c */,
 				5B6228C01C17905B009587FE /* CFAttributedString.h */,
+				15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */,
 				5B6228BE1C179052009587FE /* CFAttributedString.c */,
 			);
 			name = String;
@@ -1261,6 +1282,9 @@
 			children = (
 				5B5D88D01BBC9AAC00234F36 /* CFMachPort.c */,
 				5B5D88CF1BBC9AAC00234F36 /* CFMachPort.h */,
+				1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */,
+				1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */,
+				1578DA0C212B406F003C9516 /* CFMachPort_Lifetime.h */,
 				5B5D88DC1BBC9AEC00234F36 /* CFMessagePort.c */,
 				5B5D88DB1BBC9AEC00234F36 /* CFMessagePort.h */,
 				5B5D88D81BBC9AD800234F36 /* CFRunLoop.c */,
@@ -1916,10 +1940,12 @@
 				5B7C8ADC1BEA80FC00C5B690 /* CFSocket.h in Headers */,
 				5B7C8ACC1BEA80FC00C5B690 /* CFDateFormatter.h in Headers */,
 				5B7C8AD41BEA80FC00C5B690 /* CFXMLParser.h in Headers */,
+				1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */,
 				5B7C8AD11BEA80FC00C5B690 /* CFTimeZone.h in Headers */,
 				5B7C8AC31BEA80FC00C5B690 /* CFBag.h in Headers */,
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
+				1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
 				5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */,
@@ -1944,9 +1970,11 @@
 				5B7C8B021BEA830200C5B690 /* CFBurstTrie.h in Headers */,
 				5B7C8AD61BEA80FC00C5B690 /* CFPlugIn.h in Headers */,
 				5B7C8AD81BEA80FC00C5B690 /* CFPreferences.h in Headers */,
+				15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */,
 				5B7C8AF11BEA81AC00C5B690 /* CFStreamAbstract.h in Headers */,
 				153E951120111DC500F250BE /* CFKnownLocations.h in Headers */,
 				5B7C8AFE1BEA81AC00C5B690 /* CFURLComponents.h in Headers */,
+				1578DA11212B407B003C9516 /* CFString_Internal.h in Headers */,
 				5B7C8ABC1BEA805C00C5B690 /* CFAvailability.h in Headers */,
 				5B6E11A91DA45EB5009B48A3 /* CFDateFormatter_Private.h in Headers */,
 				5B7C8AF51BEA81AC00C5B690 /* CFStringDefaultEncoding.h in Headers */,
@@ -1957,12 +1985,14 @@
 				5B7C8AE21BEA80FC00C5B690 /* CFURLAccess.h in Headers */,
 				F03A43181D4877DD00A7791E /* CFAsmMacros.h in Headers */,
 				5B7C8ACA1BEA80FC00C5B690 /* CFError.h in Headers */,
+				1578DA0F212B4070003C9516 /* CFMachPort_Lifetime.h in Headers */,
 				5B7C8AE91BEA81AC00C5B690 /* CFLocaleInternal.h in Headers */,
 				5B7C8AE61BEA81AC00C5B690 /* ForSwiftFoundationOnly.h in Headers */,
 				5B7C8AC61BEA80FC00C5B690 /* CFData.h in Headers */,
 				5B7C8AC01BEA807A00C5B690 /* CFUUID.h in Headers */,
 				5B7C8AD31BEA80FC00C5B690 /* CFXMLNode.h in Headers */,
 				5B7C8AC21BEA80FC00C5B690 /* CFArray.h in Headers */,
+				1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */,
 				5B7C8AFD1BEA81AC00C5B690 /* CFUnicodePrecomposition.h in Headers */,
 				5B7C8ADB1BEA80FC00C5B690 /* CFRunLoop.h in Headers */,
 				5B7C8AFC1BEA81AC00C5B690 /* CFUnicodeDecomposition.h in Headers */,
@@ -1996,6 +2026,7 @@
 				5B7C8AD01BEA80FC00C5B690 /* CFNumber.h in Headers */,
 				5B6228BD1C179049009587FE /* CFRunArray.h in Headers */,
 				5B7C8ACE1BEA80FC00C5B690 /* CFNumberFormatter.h in Headers */,
+				1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2393,6 +2424,7 @@
 				5B7C8A791BEA7FCE00C5B690 /* CFUUID.c in Sources */,
 				5B7C8A7F1BEA7FCE00C5B690 /* CFData.c in Sources */,
 				5B7C8A9C1BEA7FF900C5B690 /* CFBundle.c in Sources */,
+				1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */,
 				5BF9B8001FABD5DA00EE1A7C /* CFBundle_Main.c in Sources */,
 				5B7C8AB51BEA801700C5B690 /* CFUniChar.c in Sources */,
 				61E011811C1B5998000037DD /* CFMessagePort.c in Sources */,

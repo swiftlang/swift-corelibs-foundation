@@ -585,7 +585,7 @@ public func NSUserName() -> String {
 }
 
 public func NSFullUserName() -> String {
-    let userName = CFCopyFullUserName().takeRetainedValue()
+    let userName = CFCopyFullUserName()
     return userName._swiftObject
 }
 
