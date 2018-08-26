@@ -503,8 +503,8 @@ class TestNSData: LoopbackServerTest {
             ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
-	    ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
-	    ("testBridgingCustom", testBridgingCustom),
+            ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
+            ("testBridgingCustom", testBridgingCustom),
             ("testCustomData", testCustomData),
             ("test_doubleDeallocation", test_doubleDeallocation),
             ("test_rangeZoo", test_rangeZoo),
@@ -1422,7 +1422,16 @@ extension TestNSData {
         let dataStruct = "Hello World".data(using: .utf8)!
         let dataObj = dataStruct._bridgeToObjectiveC()
         XCTAssertEqual(dataObj.hashValue, dataStruct.hashValue, "Data and NSData should have the same hash value")
-    }
+
+        XCTAssertEqual(NSData().hash, 0)
+        XCTAssertEqual(NSMutableData().hash, 0)
+
+        let data = Data([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        let d1 = NSData(data: data)
+        let md1 = NSMutableData(data: data)
+        XCTAssertEqual(d1.hash, 72772266)
+        XCTAssertEqual(md1.hash, 72772266)
+   }
     
     func test_base64Data_medium() {
         let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut at tincidunt arcu. Suspendisse nec sodales erat, sit amet imperdiet ipsum. Etiam sed ornare felis. Nunc mauris turpis, bibendum non lectus quis, malesuada placerat turpis. Nam adipiscing non massa et semper. Nulla convallis semper bibendum. Aliquam dictum nulla cursus mi ultricies, at tincidunt mi sagittis. Nulla faucibus at dui quis sodales. Morbi rutrum, dui id ultrices venenatis, arcu urna egestas felis, vel suscipit mauris arcu quis risus. Nunc venenatis ligula at orci tristique, et mattis purus pulvinar. Etiam ultricies est odio. Nunc eleifend malesuada justo, nec euismod sem ultrices quis. Etiam nec nibh sit amet lorem faucibus dapibus quis nec leo. Praesent sit amet mauris vel lacus hendrerit porta mollis consectetur mi. Donec eget tortor dui. Morbi imperdiet, arcu sit amet elementum interdum, quam nisl tempor quam, vitae feugiat augue purus sed lacus. In ac urna adipiscing purus venenatis volutpat vel et metus. Nullam nec auctor quam. Phasellus porttitor felis ac nibh gravida suscipit tempus at ante. Nunc pellentesque iaculis sapien a mattis. Aenean eleifend dolor non nunc laoreet, non dictum massa aliquam. Aenean quis turpis augue. Praesent augue lectus, mollis nec elementum eu, dignissim at velit. Ut congue neque id ullamcorper pellentesque. Maecenas euismod in elit eu vehicula. Nullam tristique dui nulla, nec convallis metus suscipit eget. Cras semper augue nec cursus blandit. Nulla rhoncus et odio quis blandit. Praesent lobortis dignissim velit ut pulvinar. Duis interdum quam adipiscing dolor semper semper. Nunc bibendum convallis dui, eget mollis magna hendrerit et. Morbi facilisis, augue eu fringilla convallis, mauris est cursus dolor, eu posuere odio nunc quis orci. Ut eu justo sem. Phasellus ut erat rhoncus, faucibus arcu vitae, vulputate erat. Aliquam nec magna viverra, interdum est vitae, rhoncus sapien. Duis tincidunt tempor ipsum ut dapibus. Nullam commodo varius metus, sed sollicitudin eros. Etiam nec odio et dui tempor blandit posuere.".data(using: .utf8)!
