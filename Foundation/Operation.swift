@@ -326,7 +326,6 @@ open class OperationQueue: NSObject {
         }
     }
     let queueGroup = DispatchGroup()
-    var unscheduledWorkItems: [DispatchWorkItem] = []
 #endif
     
     var _operations = _OperationList()
@@ -365,6 +364,9 @@ open class OperationQueue: NSObject {
                 }
             }
             let queue = DispatchQueue(label: effectiveName, attributes: attr)
+            if _suspended {
+                queue.suspend()
+            }
             __underlyingQueue = queue
             lock.unlock()
             return queue
@@ -430,13 +432,13 @@ open class OperationQueue: NSObject {
             _operations.insert(operation)
         }
         lock.unlock()
+        ops.forEach { (operation: Operation) -> Void in
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let items = ops.map { (operation: Operation) -> DispatchWorkItem in
             if let group = waitGroup {
                 group.enter()
             }
 
-            return DispatchWorkItem(flags: .enforceQoS) { () -> Void in
+            let block = DispatchWorkItem(flags: .enforceQoS) { () -> Void in
                 if let sema = self._concurrencyGate {
                     sema.wait()
                     self._runOperation()
@@ -448,17 +450,10 @@ open class OperationQueue: NSObject {
                     group.leave()
                 }
             }
+            _underlyingQueue.async(group: queueGroup, execute: block)
+#endif
         }
-
-        let queue = _underlyingQueue
-        lock.lock()
-        if _suspended {
-            unscheduledWorkItems += items
-        } else {
-            items.forEach { queue.async(group: queueGroup, execute: $0) }
-        }
-        lock.unlock()
-
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
         if let group = waitGroup {
             group.wait()
         }
@@ -503,16 +498,19 @@ open class OperationQueue: NSObject {
         }
         set {
             lock.lock()
-            _suspended = newValue
-            let items = unscheduledWorkItems
-            unscheduledWorkItems.removeAll()
-            lock.unlock()
-
-            if !newValue {
-                items.forEach {
-                    _underlyingQueue.async(group: queueGroup, execute: $0)
+            if _suspended != newValue {
+                _suspended = newValue
+#if DEPLOYMENT_ENABLE_LIBDISPATCH
+                if let queue = __underlyingQueue {
+                    if newValue {
+                        queue.suspend()
+                    } else {
+                        queue.resume()
+                    }
                 }
+#endif
             }
+            lock.unlock()
         }
     }
     
