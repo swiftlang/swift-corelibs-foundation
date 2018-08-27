@@ -16,6 +16,10 @@ class TestFileManager : XCTestCase {
             ("test_moveFile", test_moveFile),
             ("test_fileSystemRepresentation", test_fileSystemRepresentation),
             ("test_fileExists", test_fileExists),
+            ("test_isReadableFile", test_isReadableFile),
+            ("test_isWritableFile", test_isWritableFile),
+            ("test_isExecutableFile", test_isExecutableFile),
+            ("test_isDeletableFile", test_isDeletableFile),
             ("test_fileAttributes", test_fileAttributes),
             ("test_fileSystemAttributes", test_fileSystemAttributes),
             ("test_setFileAttributes", test_setFileAttributes),
@@ -200,6 +204,62 @@ class TestFileManager : XCTestCase {
             XCTFail(String(describing: error))
         }
         ignoreError { try fm.removeItem(atPath: tmpDir.path) }
+    }
+
+    func test_isReadableFile() {
+        let fm = FileManager.default
+        let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
+
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
+
+        do {
+            let attrs = try fm.attributesOfItem(atPath: path)
+            let permissions = attrs[FileAttributeKey.posixPermissions] as! UInt16
+            let fileIsReadableFile = (permissions & S_IRUSR == S_IRUSR)
+            let fmIsReadableFile = fm.isReadableFile(atPath: path)
+            XCTAssertTrue(fileIsReadableFile == fmIsReadableFile)
+        } catch let e {
+            XCTFail("\(e)")
+        }
+    }
+
+    func test_isWritableFile() {
+        let fm = FileManager.default
+        let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
+
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
+
+        do {
+            let attrs = try fm.attributesOfItem(atPath: path)
+            let permissions = attrs[FileAttributeKey.posixPermissions] as! UInt16
+            let fileIsReadableFile = (permissions & S_IWUSR == S_IWUSR)
+            let fmIsReadableFile = fm.isReadableFile(atPath: path)
+            XCTAssertTrue(fileIsReadableFile == fmIsReadableFile)
+        } catch let e {
+            XCTFail("\(e)")
+        }
+    }
+
+    func test_isExecutableFile() {
+        let fm = FileManager.default
+        let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
+
+        XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
+
+        do {
+            let attrs = try fm.attributesOfItem(atPath: path)
+            let permissions = attrs[FileAttributeKey.posixPermissions] as! UInt16
+            let fileIsReadableFile = (permissions & S_IXUSR == S_IXUSR)
+            let fmIsReadableFile = fm.isReadableFile(atPath: path)
+            XCTAssertTrue(fileIsReadableFile == fmIsReadableFile)
+        } catch let e {
+            XCTFail("\(e)")
+        }
+    }
+
+    func test_isDeletableFile() {
+        // TODO: Implement test
+        // how to test?
     }
 
     func test_fileAttributes() {
