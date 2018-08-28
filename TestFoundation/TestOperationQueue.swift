@@ -22,6 +22,7 @@ class TestOperationQueue : XCTestCase {
             ("test_CurrentQueueOnBackgroundQueueWithSelfCancel", test_CurrentQueueOnBackgroundQueueWithSelfCancel),
             ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
+            ("test_isSuspended", test_isSuspended),
         ]
     }
     
@@ -150,6 +151,29 @@ class TestOperationQueue : XCTestCase {
         operationQueue.addOperation {
             XCTAssertEqual(operationQueue, OperationQueue.current)
             expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 1)
+    }
+    
+    func test_isSuspended() {
+        let expectation1 = self.expectation(description: "DispatchQueue execution")
+        let expectation2 = self.expectation(description: "OperationQueue execution")
+        
+        let dispatchQueue = DispatchQueue(label: "underlying_queue")
+        let operationQueue = OperationQueue()
+        operationQueue.maxConcurrentOperationCount = 1
+        operationQueue.underlyingQueue = dispatchQueue
+        operationQueue.isSuspended = true
+        
+        operationQueue.addOperation {
+            XCTAssert(OperationQueue.current?.underlyingQueue === dispatchQueue)
+            expectation2.fulfill()
+        }
+        
+        dispatchQueue.async {
+            operationQueue.isSuspended = false
+            expectation1.fulfill()
         }
         
         waitForExpectations(timeout: 1)
