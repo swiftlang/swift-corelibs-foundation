@@ -321,7 +321,7 @@ extension URLSessionTask : ProgressReporting {
     }
 }
 
-internal extension URLSessionTask {
+extension URLSessionTask {
     /// Updates the (public) state based on private / internal state.
     ///
     /// - Note: This must be called on the `workQueue`.
@@ -389,7 +389,7 @@ fileprivate func errorCode(fileSystemError error: Error) -> Int {
     }
 }
 
-public extension URLSessionTask {
+extension URLSessionTask {
     /// The default URL session task priority, used implicitly for any task you
     /// have not prioritized. The floating point value of this constant is 0.5.
     public static let defaultPriority: Float = 0.5

@@ -146,7 +146,7 @@ internal final class _BodyFileSource {
     }
 }
 
-fileprivate extension _BodyFileSource {
+extension _BodyFileSource {
     fileprivate var desiredBufferLength: Int { return 3 * CFURLSessionMaxWriteSize }
     /// Enqueue a dispatch I/O read to fill the buffer.
     ///

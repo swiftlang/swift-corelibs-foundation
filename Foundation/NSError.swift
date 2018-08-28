@@ -421,7 +421,7 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedIn
     }
 }
 
-public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
     public var _domain: String { return Self._nsErrorDomain }
     public var _code: Int { return Int(rawValue) }
     
@@ -447,7 +447,7 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: Unsigned
     }
 }
 
-public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
     public var _domain: String { return Self._nsErrorDomain }
     public var _code: Int {
         return Int(bitPattern: UInt(rawValue))
@@ -499,7 +499,7 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableE
 }
 
 /// Various helper implementations for _BridgedStoredNSError
-public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: SignedInteger {
+extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: SignedInteger {
     // FIXME: Generalize to Integer.
     public var code: Code {
         return Code(rawValue: numericCast(_nsError.code))!
@@ -515,11 +515,11 @@ public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawVal
 
     /// The user-info dictionary for an error that was bridged from
     /// NSError.
-    var userInfo: [String : Any] { return errorUserInfo }
+    public var userInfo: [String : Any] { return errorUserInfo }
 }
 
 /// Various helper implementations for _BridgedStoredNSError
-public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: UnsignedInteger {
+extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: UnsignedInteger {
     // FIXME: Generalize to Integer.
     public var code: Code {
         return Code(rawValue: numericCast(_nsError.code))!
@@ -535,7 +535,7 @@ public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawVal
 }
 
 /// Implementation of __BridgedNSError for all _BridgedStoredNSErrors.
-public extension _BridgedStoredNSError {
+extension _BridgedStoredNSError {
     /// Default implementation of ``init(_bridgedNSError)`` to provide
     /// bridging from NSError.
     public init?(_bridgedNSError error: NSError) {
@@ -690,7 +690,7 @@ public extension CocoaError {
     }
 }
 
-public extension CocoaError {
+extension CocoaError {
     public static func error(_ code: CocoaError.Code, userInfo: [AnyHashable: Any]? = nil, url: URL? = nil) -> Error {
         var info: [String: Any] = userInfo as? [String: Any] ?? [:]
         if let url = url {
@@ -855,7 +855,7 @@ public struct URLError : _BridgedStoredNSError {
     }
 }
 
-public extension URLError {
+extension URLError {
     private var _nsUserInfo: [AnyHashable : Any] {
         return _nsError.userInfo
     }
@@ -871,7 +871,7 @@ public extension URLError {
     }
 }
 
-public extension URLError {
+extension URLError {
     public static var unknown:                                  URLError.Code { return .unknown }
     public static var cancelled:                                URLError.Code { return .cancelled }
     public static var badURL:                                   URLError.Code { return .badURL }

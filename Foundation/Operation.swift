@@ -230,7 +230,7 @@ open class BlockOperation: Operation {
     }
 }
 
-public extension OperationQueue {
+extension OperationQueue {
     public static let defaultMaxConcurrentOperationCount: Int = Int.max
 }
 
