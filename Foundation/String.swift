@@ -29,10 +29,13 @@ extension String : _ObjectiveCBridgeable {
             result = source._storage
         } else if type(of: source) == _NSCFString.self {
             let cf = unsafeBitCast(source, to: CFString.self)
+            let length = CFStringGetLength(cf)
             if let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) {
-                result = String(cString: str)
+                result = str.withMemoryRebound(to: UInt8.self, capacity: length) { ptr in
+                    let buffer = UnsafeBufferPointer(start: ptr, count: length)
+                    return String(decoding: buffer, as: UTF8.self)
+                }
             } else {
-                let length = CFStringGetLength(cf)
                 let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
                 CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
                 

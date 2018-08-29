@@ -31,6 +31,7 @@ class TestNSString: LoopbackServerTest {
     
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         return [
+            ("test_initData", test_initData),
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_integerValue", test_integerValue ),
@@ -95,7 +96,28 @@ class TestNSString: LoopbackServerTest {
             ("test_commonPrefix", test_commonPrefix)
         ]
     }
-    
+
+    func test_initData() {
+        let testString = "\u{00} This is a test string"
+        let data = testString.data(using: .utf8)!
+        XCTAssertEqual(data.count, 23)
+        _ = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
+            if let text1 = NSString(bytes: bytes , length: data.count, encoding: String.Encoding.utf8.rawValue) {
+                XCTAssertEqual(text1.length, data.count)
+                XCTAssertEqual(text1, testString as NSString)
+            } else {
+                XCTFail("Cant convert Data to NSString")
+            }
+        }
+
+        if let text2 = String(data: data, encoding: .utf8) {
+            XCTAssertEqual(text2.count, data.count)
+            XCTAssertEqual(text2, testString)
+        } else {
+            XCTFail("Cant convert Data to String")
+        }
+    }
+
     func test_boolValue() {
         let trueStrings: [NSString] = ["t", "true", "TRUE", "tRuE", "yes", "YES", "1", "+000009"]
         for string in trueStrings {
@@ -326,6 +348,16 @@ class TestNSString: LoopbackServerTest {
         if let contents = contents {
             XCTAssertEqual(contents, "This file is encoded as ISO-8859-1\nÀÁÂÃÄÅÿ\n±\n")
         }
+
+        guard let zeroFileURL = testBundle().url(forResource: "TestFileWithZeros", withExtension: "txt") else {
+            XCTFail("Cant get URL for TestFileWithZeros.txt")
+           return
+        }
+        guard let zeroString = try? String(contentsOf: zeroFileURL, encoding: .utf8) else {
+            XCTFail("Cant create string from \(zeroFileURL)")
+            return
+        }
+        XCTAssertEqual(zeroString, "Some\u{00}text\u{00}with\u{00}NUL\u{00}bytes\u{00}instead\u{00}of\u{00}spaces.\u{00}\n")
     }
 
     func test_FromContentOfFileUsedEncodingIgnored() {
