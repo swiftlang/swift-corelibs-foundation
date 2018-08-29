@@ -291,17 +291,34 @@ public extension CustomNSError {
     }
 }
 
-extension CustomNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
-    // The error code of Error with integral raw values is the raw value.
-    public var errorCode: Int {
-        return numericCast(self.rawValue)
+/// Convert an arbitrary binary integer to an Int, reinterpreting signed ->
+/// unsigned if needed but trapping if the result is otherwise not
+/// expressible.
+func unsafeBinaryIntegerToInt<T: BinaryInteger>(_ value: T) -> Int {
+    if T.isSigned {
+        return numericCast(value)
     }
+
+    let uintValue: UInt = numericCast(value)
+    return Int(bitPattern: uintValue)
 }
 
-extension CustomNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
+/// Convert from an Int to an arbitrary binary integer, reinterpreting signed
+/// -> unsigned if needed but trapping if the result is otherwise not
+/// expressible.
+func unsafeBinaryIntegerFromInt<T: BinaryInteger>(_ value: Int) -> T {
+    if T.isSigned {
+        return numericCast(value)
+    }
+
+    let uintValue = UInt(bitPattern: value)
+    return numericCast(uintValue)
+}
+
+extension CustomNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
     // The error code of Error with integral raw values is the raw value.
     public var errorCode: Int {
-        return numericCast(self.rawValue)
+        return unsafeBinaryIntegerToInt(self.rawValue)
     }
 }
 
@@ -313,12 +330,7 @@ public extension Error where Self : CustomNSError {
     var _code: Int { return self.errorCode }
 }
 
-public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: SignedInteger {
-    /// Default implementation for customized NSErrors.
-    var _code: Int { return self.errorCode }
-}
-
-public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: UnsignedInteger {
+public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: BinaryInteger {
     /// Default implementation for customized NSErrors.
     var _code: Int { return self.errorCode }
 }
@@ -415,15 +427,17 @@ public protocol __BridgedNSError : Error {
 }
 
 // Allow two bridged NSError types to be compared.
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
     public var _domain: String { return Self._nsErrorDomain }
-    public var _code: Int { return Int(rawValue) }
+    public var _code: Int {
+        return Int(rawValue)
+    }
     
     public init?(rawValue: RawValue) {
         self = unsafeBitCast(rawValue, to: Self.self)
@@ -435,34 +449,6 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedIn
         }
         
         self.init(rawValue: RawValue(Int(_bridgedNSError.code)))
-    }
-    
-    public var hashValue: Int { return _code }
-}
-
-// Allow two bridged NSError types to be compared.
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-}
-
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
-    public var _domain: String { return Self._nsErrorDomain }
-    public var _code: Int {
-        return Int(bitPattern: UInt(rawValue))
-    }
-    
-    public init?(rawValue: RawValue) {
-        self = unsafeBitCast(rawValue, to: Self.self)
-    }
-    
-    public init?(_bridgedNSError: NSError) {
-        if _bridgedNSError.domain != Self._nsErrorDomain {
-            return nil
-        }
-        
-        self.init(rawValue: RawValue(UInt(_bridgedNSError.code)))
     }
     
     public var hashValue: Int { return _code }
@@ -499,39 +485,22 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableE
 }
 
 /// Various helper implementations for _BridgedStoredNSError
-extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: SignedInteger {
-    // FIXME: Generalize to Integer.
+extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: BinaryInteger {
     public var code: Code {
-        return Code(rawValue: numericCast(_nsError.code))!
+        return Code(rawValue: unsafeBinaryIntegerFromInt(_nsError.code))!
     }
 
     /// Initialize an error within this domain with the given ``code``
     /// and ``userInfo``.
     public init(_ code: Code, userInfo: [String : Any] = [:]) {
         self.init(_nsError: NSError(domain: Self._nsErrorDomain,
-            code: numericCast(code.rawValue),
+            code: unsafeBinaryIntegerToInt(code.rawValue),
             userInfo: userInfo))
     }
 
     /// The user-info dictionary for an error that was bridged from
     /// NSError.
     public var userInfo: [String : Any] { return errorUserInfo }
-}
-
-/// Various helper implementations for _BridgedStoredNSError
-extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: UnsignedInteger {
-    // FIXME: Generalize to Integer.
-    public var code: Code {
-        return Code(rawValue: numericCast(_nsError.code))!
-    }
-
-    /// Initialize an error within this domain with the given ``code``
-    /// and ``userInfo``.
-    public init(_ code: Code, userInfo: [String : Any] = [:]) {
-        self.init(_nsError: NSError(domain: Self._nsErrorDomain,
-            code: numericCast(code.rawValue),
-            userInfo: userInfo))
-    }
 }
 
 /// Implementation of __BridgedNSError for all _BridgedStoredNSErrors.
@@ -568,20 +537,16 @@ public extension _BridgedStoredNSError {
 /// Describes the code of an error.
 public protocol _ErrorCodeProtocol : Equatable {
     /// The corresponding error code.
-    associatedtype _ErrorType
-
-    // FIXME: We want _ErrorType to be _BridgedStoredNSError and have its
-    // Code match Self, but we cannot express those requirements yet.
+    associatedtype _ErrorType: _BridgedStoredNSError
+        where _ErrorType.Code == Self
 }
 
-extension _ErrorCodeProtocol where Self._ErrorType: _BridgedStoredNSError {
+extension _ErrorCodeProtocol {
     /// Allow one to match an error code against an arbitrary error.
     public static func ~=(match: Self, error: Error) -> Bool {
         guard let specificError = error as? Self._ErrorType else { return false }
 
-        // FIXME: Work around IRGen crash when we set Code == Code._ErrorType.Code.
-        let specificCode = specificError.code as! Self
-        return match == specificCode
+        return match == specificError.code
     }
 }
 
