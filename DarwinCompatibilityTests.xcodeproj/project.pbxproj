@@ -12,6 +12,8 @@
 		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
 		B9C89ED21F6BF67C00087AF4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9C89ED11F6BF67C00087AF4 /* XCTest.framework */; };
+		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
+		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
 		B9C89F381F6BF89C00087AF4 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE81F6BF88F00087AF4 /* TestUtils.swift */; };
@@ -132,6 +134,8 @@
 		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
 		B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DarwinCompatibilityTests; sourceTree = BUILT_PRODUCTS_DIR; };
+		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
+		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C89EDB1F6BF77E00087AF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -283,6 +287,10 @@
 				B9C89FA91F6DCAE700087AF4 /* NSXMLDTDTestData.xml */,
 				B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */,
 				B9C89FB91F6DCAEB00087AF4 /* Test.plist */,
+				B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */,
+				B917D32520B0DE2000728EE0 /* main.swift */,
+				B987C65D2093C8AF0026B50D /* TestImports.swift */,
+				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89F891F6D4D9D00087AF4 /* HTTPServer.swift */,
 				B9C89F321F6BF89B00087AF4 /* TestAffineTransform.swift */,
 				B9C89EFB1F6BF89200087AF4 /* TestBundle.swift */,
@@ -486,6 +494,7 @@
 				B9C89FC11F6DCAEB00087AF4 /* Info.plist in Resources */,
 				B9C89FC21F6DCAEB00087AF4 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,
 				B9C89FC31F6DCAEB00087AF4 /* NSStringTestData.txt in Resources */,
+				B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */,
 				B9C89FC41F6DCAEB00087AF4 /* NSKeyedUnarchiver-OrderedSetTest.plist in Resources */,
 				B9C89FC51F6DCAEB00087AF4 /* NSString-UTF32-BE-data.txt in Resources */,
 				B9C89FC61F6DCAEB00087AF4 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
@@ -515,6 +524,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,
 				B9C89F8B1F6D4DA900087AF4 /* HTTPServer.swift in Sources */,
 				B9C89F8C1F6D4DA900087AF4 /* TestHTTPCookieStorage.swift in Sources */,

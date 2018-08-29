@@ -515,6 +515,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/NSKeyedUnarchiver-URLTest.plist',
     'TestFoundation/Resources/NSKeyedUnarchiver-UUIDTest.plist',
     'TestFoundation/Resources/NSKeyedUnarchiver-OrderedSetTest.plist',
+    'TestFoundation/Resources/TestFileWithZeros.txt',
 ])
 
 # TODO: Probably this should be another 'product', but for now it's simply a phase
