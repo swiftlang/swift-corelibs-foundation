@@ -291,10 +291,10 @@ public extension CustomNSError {
     }
 }
 
-/// Convert an arbitrary binary integer to an Int, reinterpreting signed ->
-/// unsigned if needed but trapping if the result is otherwise not
-/// expressible.
-func unsafeBinaryIntegerToInt<T: BinaryInteger>(_ value: T) -> Int {
+/// Convert an arbitrary fixed-width integer to an Int, reinterpreting
+/// signed -> unsigned if needed but trapping if the result is otherwise
+/// not expressible.
+func unsafeFixedWidthIntegerToInt<T: FixedWidthInteger>(_ value: T) -> Int {
     if T.isSigned {
         return numericCast(value)
     }
@@ -303,10 +303,10 @@ func unsafeBinaryIntegerToInt<T: BinaryInteger>(_ value: T) -> Int {
     return Int(bitPattern: uintValue)
 }
 
-/// Convert from an Int to an arbitrary binary integer, reinterpreting signed
-/// -> unsigned if needed but trapping if the result is otherwise not
+/// Convert from an Int to an arbitrary fixed-width integer, reinterpreting
+/// signed -> unsigned if needed but trapping if the result is otherwise not
 /// expressible.
-func unsafeBinaryIntegerFromInt<T: BinaryInteger>(_ value: Int) -> T {
+func unsafeFixedWidthIntegerFromInt<T: FixedWidthInteger>(_ value: Int) -> T {
     if T.isSigned {
         return numericCast(value)
     }
@@ -315,10 +315,10 @@ func unsafeBinaryIntegerFromInt<T: BinaryInteger>(_ value: Int) -> T {
     return numericCast(uintValue)
 }
 
-extension CustomNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
+extension CustomNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     // The error code of Error with integral raw values is the raw value.
     public var errorCode: Int {
-        return unsafeBinaryIntegerToInt(self.rawValue)
+        return unsafeFixedWidthIntegerToInt(self.rawValue)
     }
 }
 
@@ -330,7 +330,7 @@ public extension Error where Self : CustomNSError {
     var _code: Int { return self.errorCode }
 }
 
-public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: BinaryInteger {
+public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     /// Default implementation for customized NSErrors.
     var _code: Int { return self.errorCode }
 }
@@ -427,13 +427,13 @@ public protocol __BridgedNSError : Error {
 }
 
 // Allow two bridged NSError types to be compared.
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: BinaryInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     public var _domain: String { return Self._nsErrorDomain }
     public var _code: Int {
         return Int(rawValue)
@@ -485,16 +485,16 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableE
 }
 
 /// Various helper implementations for _BridgedStoredNSError
-extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: BinaryInteger {
+extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: FixedWidthInteger {
     public var code: Code {
-        return Code(rawValue: unsafeBinaryIntegerFromInt(_nsError.code))!
+        return Code(rawValue: unsafeFixedWidthIntegerFromInt(_nsError.code))!
     }
 
     /// Initialize an error within this domain with the given ``code``
     /// and ``userInfo``.
     public init(_ code: Code, userInfo: [String : Any] = [:]) {
         self.init(_nsError: NSError(domain: Self._nsErrorDomain,
-            code: unsafeBinaryIntegerToInt(code.rawValue),
+            code: unsafeFixedWidthIntegerToInt(code.rawValue),
             userInfo: userInfo))
     }
 
