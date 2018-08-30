@@ -30,24 +30,25 @@ extension String : _ObjectiveCBridgeable {
         } else if type(of: source) == _NSCFString.self {
             let cf = unsafeBitCast(source, to: CFString.self)
             let length = CFStringGetLength(cf)
-            if let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) {
-                result = str.withMemoryRebound(to: UInt8.self, capacity: length) { ptr in
-                    let buffer = UnsafeBufferPointer(start: ptr, count: length)
-                    return String(decoding: buffer, as: UTF8.self)
+            if length == 0 {
+                result = ""
+            } else if let ptr = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) {
+                result = ptr.withMemoryRebound(to: UInt8.self, capacity: length) {
+                    return String(decoding: UnsafeBufferPointer(start: $0, count: length), as: UTF8.self)
                 }
+            } else if let ptr = CFStringGetCharactersPtr(cf) {
+                result = String(decoding: UnsafeBufferPointer(start: ptr, count: length), as: UTF16.self)
             } else {
                 let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
                 CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
                 
-                let str = String(decoding: UnsafeBufferPointer(start: buffer, count: length), as: UTF16.self)
+                result = String(decoding: UnsafeBufferPointer(start: buffer, count: length), as: UTF16.self)
                 buffer.deinitialize(count: length)
                 buffer.deallocate()
-                result = str
             }
         } else if type(of: source) == _NSCFConstantString.self {
             let conststr = unsafeDowncast(source, to: _NSCFConstantString.self)
-            let str = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
-            result = str
+            result = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
         } else {
             let len = source.length
             var characters = [unichar](repeating: 0, count: len)
