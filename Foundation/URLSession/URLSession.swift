@@ -185,7 +185,7 @@ fileprivate func nextSessionIdentifier() -> Int32 {
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
 open class URLSession : NSObject {
-    fileprivate let _configuration: _Configuration
+    internal let _configuration: _Configuration
     fileprivate let multiHandle: _MultiHandle
     fileprivate var nextTaskIdentifier = 1
     internal let workQueue: DispatchQueue 
@@ -384,8 +384,7 @@ fileprivate extension URLSession {
     }
     func createConfiguredRequest(from request: URLSession._Request) -> URLRequest {
         let r = request.createMutableURLRequest()
-        _configuration.configure(request: r)
-        return r
+        return _configuration.configure(request: r)
     }
 }
 extension URLSession._Request {

@@ -57,6 +57,8 @@ internal final class _EasyHandle {
     fileprivate var pauseState: _PauseState = []
     internal var timeoutTimer: _TimeoutSource!
     internal lazy var errorBuffer = [UInt8](repeating: 0, count: Int(CFURLSessionEasyErrorSize))
+    internal var _config: URLSession._Configuration? = nil
+    internal var _url: URL? = nil
 
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
@@ -154,10 +156,16 @@ extension _EasyHandle {
     /// URL to use in the request
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_URL.html
     func set(url: URL) {
+        _url = url
         url.absoluteString.withCString {
             try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionURL, UnsafeMutablePointer(mutating: $0)).asError()
         }
     }
+
+    func set(sessionConfig config: URLSession._Configuration) {
+        _config = config
+    }
+
     /// Set allowed protocols
     ///
     /// - Note: This has security implications. Not limiting this, someone could
@@ -512,8 +520,8 @@ fileprivate extension _EasyHandle {
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_HEADERFUNCTION.html>
     func didReceive(headerData data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, contentLength: Double) -> Int {
+        let buffer = Data(bytes: data, count: size*nmemb)
         let d: Int = {
-            let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate?.didReceive(headerData: buffer, contentLength: Int64(contentLength)) {
             case .some(.proceed): return size * nmemb
             case .some(.abort): return 0
@@ -525,8 +533,28 @@ fileprivate extension _EasyHandle {
                 return 0
             }
         }()
+        setCookies(headerData: buffer)
         return d
     }
+
+    fileprivate func setCookies(headerData data: Data) {
+        guard let config = _config, config.httpCookieAcceptPolicy !=  HTTPCookie.AcceptPolicy.never else { return }
+        guard let headerData = String(data: data, encoding: String.Encoding.utf8) else { return }
+        //Convert headerData from a string to a dictionary.
+        //Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
+        let headerComponents = headerData.split { $0 == ":" }
+        var headers: [String: String] = [:]
+        //Trim the leading and trailing whitespaces (if any) before adding the header information to the dictionary.
+        if headerComponents.count > 1 {
+            headers[String(headerComponents[0].trimmingCharacters(in: .whitespacesAndNewlines))] = headerComponents[1].trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: _url!)
+        guard cookies.count > 0 else { return }
+        if let cookieStorage = config.httpCookieStorage {
+            cookieStorage.setCookies(cookies, for: _url, mainDocumentURL: nil)
+        }
+    }
+
     /// This callback function gets called by libcurl when it wants to send data
     /// it to the network.
     ///
