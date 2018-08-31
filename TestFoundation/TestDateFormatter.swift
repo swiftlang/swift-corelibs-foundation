@@ -22,6 +22,8 @@ class TestDateFormatter: XCTestCase {
             ("test_customDateFormat", test_customDateFormat),
             ("test_setLocalizedDateFormatFromTemplate", test_setLocalizedDateFormatFromTemplate),
             ("test_dateFormatString", test_dateFormatString),
+            ("test_setLocaleToNil", test_setLocaleToNil),
+            ("test_setTimeZoneToNil", test_setTimeZoneToNil),
         ]
     }
     
@@ -329,5 +331,29 @@ class TestDateFormatter: XCTestCase {
             
             XCTAssertEqual(f.dateFormat, dateFormat)
         }
+    }
+
+    func test_setLocaleToNil() {
+        let f = DateFormatter()
+        // Locale should be the current one by default
+        XCTAssertEqual(f.locale, .current)
+
+        f.locale = nil
+
+        // Locale should go back to current.
+        XCTAssertEqual(f.locale, .current)
+
+        // A nil locale should not crash a subsequent operation
+        let result: String? = f.string(from: Date())
+        XCTAssertNotNil(result)
+    }
+
+    func test_setTimeZoneToNil() {
+        let f = DateFormatter()
+        // Time zone should be the system one by default.
+        XCTAssertEqual(f.timeZone, NSTimeZone.system)
+        f.timeZone = nil
+        // Time zone should go back to the system one.
+        XCTAssertEqual(f.timeZone, NSTimeZone.system)
     }
 }
