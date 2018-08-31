@@ -542,7 +542,7 @@ CF_INLINE CFHashCode _CFHashDouble(const double d) {
         result += -((CFHashCode)(fabs(fractional)));
     } else if (fractional > 0) {
         // Caveat: the > 0 is incredibly important [28612173]
-        result += fractional;
+        result += (CFHashCode)fractional;
     }
     return result;
 }

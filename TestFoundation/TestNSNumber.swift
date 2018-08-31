@@ -36,6 +36,7 @@ class TestNSNumber : XCTestCase {
             ("test_stringValue", test_stringValue),
             ("test_Equals", test_Equals),
             ("test_boolValue", test_boolValue),
+            ("test_hash", test_hash),
         ]
     }
     
@@ -1261,5 +1262,27 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)   // Darwin compatibility
         XCTAssertEqual(NSNumber(value: Int.min + 1).boolValue, true)
         XCTAssertEqual(NSNumber(value: Int(-1)).boolValue, true)
+    }
+
+    func test_hash() {
+        // A zero double hashes as zero.
+        XCTAssertEqual(NSNumber(value: 0 as Double).hash, 0)
+
+        // A positive double without fractional part should hash the same as the
+        // equivalent 64 bit number.
+        XCTAssertEqual(NSNumber(value: 123456 as Double).hash, NSNumber(value: 123456 as Int64).hash)
+
+        // A negative double without fractional part should hash the same as the
+        // equivalent 64 bit number.
+        XCTAssertEqual(NSNumber(value: -123456 as Double).hash, NSNumber(value: -123456 as Int64).hash)
+
+        #if arch(i386) || arch(arm)
+            // This test used to fail in 32 bit platforms.
+            XCTAssertNotEqual(NSNumber(value: 551048378.24883795 as Double).hash, 0)
+
+            // Some hashes are correctly zero, though. Like the following which
+            // was found by trial and error.
+            XCTAssertEqual(NSNumber(value: 1.3819660135 as Double).hash, 0)
+        #endif
     }
 }
