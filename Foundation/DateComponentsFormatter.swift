@@ -43,8 +43,49 @@ open class DateComponentsFormatter : Formatter {
         NSUnimplemented()
     }
 
-    public required init?(coder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.allowedUnits = NSCalendar.Unit(rawValue: UInt(aDecoder.decodeInteger(forKey: "NS.allowedUnits")))
+        self.allowsFractionalUnits = aDecoder.decodeBool(forKey: "NS.allowsFractionalUnits")
+        self.calendar = (aDecoder.decodeObject(forKey: "NS.calendar") as? NSCalendar)?._swiftObject
+        self.collapsesLargestUnit = aDecoder.decodeBool(forKey: "NS.collapsesLargestUnit")
+        self.includesApproximationPhrase = aDecoder.decodeBool(forKey: "NS.includesApproximationPhrase")
+        self.includesTimeRemainingPhrase = aDecoder.decodeBool(forKey: "NS.includesTimeRemainingPhrase")
+        self.maximumUnitCount = aDecoder.decodeInteger(forKey: "NS.maximumUnitCount")
+        self.unitsStyle = UnitsStyle(rawValue: aDecoder.decodeInteger(forKey: "NS.unitsStyle")) ?? .positional
+        self.zeroFormattingBehavior = ZeroFormattingBehavior(rawValue: UInt(aDecoder.decodeInt32(forKey: "NS.zeroFormattingBehavior")))
+        self.formattingContext = .unknown
+        super.init(coder: aDecoder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        // TODO: thread locking
+        
+        super.encode(with: aCoder)
+        aCoder.encode(allowsFractionalUnits, forKey: "NS.allowsFractionalUnits")
+        aCoder.encode(calendar?._nsObject, forKey: "NS.calendar")
+        if collapsesLargestUnit {
+            aCoder.encode(collapsesLargestUnit, forKey: "NS.collapsesLargestUnit")
+        }
+        if includesApproximationPhrase {
+            aCoder.encode(includesApproximationPhrase, forKey: "NS.includesApproximationPhrase")
+        }
+        if includesTimeRemainingPhrase {
+            aCoder.encode(includesTimeRemainingPhrase, forKey: "NS.includesTimeRemainingPhrase")
+        }
+        if maximumUnitCount != 0 {
+            aCoder.encode(maximumUnitCount, forKey: "NS.maximumUnitCount")
+        }
+        if zeroFormattingBehavior.rawValue != 0 {
+            aCoder.encode(Int32(zeroFormattingBehavior.rawValue), forKey: "NS.zeroFormattingBehavior")
+        }
     }
     
     /* 'obj' must be an instance of NSDateComponents.

@@ -28,8 +28,38 @@ open class DateIntervalFormatter : Formatter {
         NSUnimplemented()
     }
 
-    public required init?(coder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.dateStyle = Style(rawValue: UInt(aDecoder.decodeInt64(forKey: "NS.dateStyle"))) ?? .noStyle
+        self.timeStyle = Style(rawValue: UInt(aDecoder.decodeInt64(forKey: "NS.timeStyle"))) ?? .noStyle
+        super.init(coder: aDecoder)
+        self.dateTemplate = aDecoder.decodeObject(of: NSString.self, forKey: "NS.dateTemplate") as String? ?? ""
+        /*self.dateTemplateFromStyles = aDecoder.decodeObject(of: NSString.self, forKey: "NS.dateTemplateFromStyles") as String?
+        self.modified = aDecoder.decodeBool(forKey: "NS.modified")
+        self.useTemplate = aDecoder.decodeBool(forKey: "NS.useTemplate")*/
+        self.locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale")?._swiftObject
+        self.calendar = (aDecoder.decodeObject(forKey: "NS.calendar") as? NSCalendar)?._swiftObject
+        self.timeZone = (aDecoder.decodeObject(forKey: "NS.timeZone") as? NSTimeZone)?._swiftObject
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        // TODO: thread locking
+        aCoder.encode(Int64(dateStyle.rawValue), forKey: "NS.dateStyle")
+        aCoder.encode(Int64(timeStyle.rawValue), forKey: "NS.timeStyle")
+        aCoder.encode(dateTemplate ?? "", forKey: "NS.dateTemplate")
+        /*aCoder.encode(dateTemplateFromStyles, forKey: "NS.dateTemplateFromStyles")
+        aCoder.encode(modified, forKey: "NS.modified")
+        aCoder.encode(useTemplate, forKey: "NS.useTemplate")*/
+        aCoder.encode(locale?._bridgeToObjectiveC(), forKey: "NS.locale")
+        aCoder.encode(calendar?._nsObject, forKey: "NS.calendar")
+        aCoder.encode(timeZone?._nsObject, forKey: "NS.timeZone")
     }
     
     /*@NSCopying*/ open var locale: Locale! // default is [NSLocale currentLocale]

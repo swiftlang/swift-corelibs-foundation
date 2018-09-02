@@ -101,9 +101,61 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     public static var supportsSecureCoding: Bool { return true }
 
-    public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder)  {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        let length = aDecoder.decodeInteger(forKey: "NSRangeCount")
+        
+        if length == 0 {
+            _ranges = []
+            return
+        }
+        if let data = aDecoder.decodeObject(of: NSData.self, forKey: "NSRangeData")?._swiftObject {
+            let rangesArray: [Int] = data.withUnsafeBytes {
+                return Array(UnsafeBufferPointer(start: $0, count: length * 2))
+            }
+            
+            _ranges.reserveCapacity(rangesArray.count / 2)
+            for i in 0..<(rangesArray.count / 2) {
+                let range = NSRange(location: rangesArray[i * 2], length: rangesArray[i * 2 + 1])
+                _ranges.append(range)
+            }
+        } else if length == 1 {
+            let loc = aDecoder.decodeInteger(forKey: "NSLocation")
+            let len = aDecoder.decodeInteger(forKey: "NSLength")
+            _ranges = [NSRange(location: loc, length: len)]
+        } else {
+            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                userInfo: [NSLocalizedDescriptionKey: "-[NSIndexSet initWithCoder:] decoder did not provide range data"])
+            aDecoder.failWithError(error)
+            return nil
+        }
+    }
+    
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(_count, forKey: "NSRangeCount")
+        switch _count {
+        case 0:
+            break
+        case 1:
+            aCoder.encode(_ranges[0].location, forKey: "NSLocation")
+            aCoder.encode(_ranges[0].length, forKey: "NSLength")
+        default:
+            var rangesArray = [Int]()
+            rangesArray.reserveCapacity(_ranges.count * 2)
+            _ranges.forEach { (range) in
+                rangesArray += [range.location, range.length]
+            }
+            let data = rangesArray.withUnsafeBufferPointer { (buffer)  in
+                NSMutableData(bytes: buffer.baseAddress, length: buffer.count)
+            }
+            aCoder.encode(data, forKey: "NSRangeData")
+        }
     }
     
     public convenience init(index value: Int) {

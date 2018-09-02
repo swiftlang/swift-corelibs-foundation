@@ -35,9 +35,29 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     
     open class var supportsSecureCoding: Bool { return true }
     
-    open func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(doubleValue, forKey: "NS.value")
+        aCoder.encode(unit, forKey: "NS.unit")
+    }
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.doubleValue = aDecoder.decodeDouble(forKey: "NS.value")
+        guard let unit = aDecoder.decodeObject(of: Unit.self, forKey: "NS.unit") else {
+            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                userInfo: [NSLocalizedDescriptionKey: "Unit class object has been corrupted!"._nsObject])
+            aDecoder.failWithError(error)
+            return nil
+        }
+        self.unit = unit
+    }
 }
 
 extension NSMeasurement : _StructTypeBridgeable {

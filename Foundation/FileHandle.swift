@@ -187,11 +187,13 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        // Darwin's NSFileHandle can be encoded using NSXPCCoder only, which is not present in this implementation.
+        // otherwise it will require concrete implementation in subclasses.
+        NSRequiresConcreteImplementation()
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     public static var supportsSecureCoding: Bool {

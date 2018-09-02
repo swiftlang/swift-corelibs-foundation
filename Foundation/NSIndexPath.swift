@@ -40,12 +40,55 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         self.init(indexes: [index])
     }
     
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        guard aDecoder.containsValue(forKey: "NSIndexPathLength") else {
+            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                userInfo: [NSLocalizedDescriptionKey: "-[NSIndexPath initWithCoder:] decoder did not provide a length value for the indexPath."])
+            aDecoder.failWithError(error)
+            return nil
+        }
+        let length = aDecoder.decodeInteger(forKey: "NSIndexPathLength")
+        
+        if length == 0 {
+            _indexes = []
+            return
+        }
+        
+        if let data = aDecoder.decodeObject(of: NSData.self, forKey: "NSIndexPathData")?._swiftObject {
+            _indexes = data.withUnsafeBytes {
+                return Array(UnsafeBufferPointer(start: $0, count: length))
+            }
+        } else if length == 1 && aDecoder.containsValue(forKey: "NSIndexPathValue") {
+            _indexes = [aDecoder.decodeInteger(forKey: "NSIndexPathValue")]
+        } else {
+            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                userInfo: [NSLocalizedDescriptionKey: "-[NSIndexPath initWithCoder:] decoder did not provide indexPath data."])
+            aDecoder.failWithError(error)
+            return nil
+        }
     }
     
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+    open func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(length, forKey: "NSIndexPathLength")
+        switch length {
+        case 0:
+            break
+        case 1:
+            aCoder.encode(_indexes[0], forKey: "NSIndexPathValue")
+        default:
+            let data = _indexes.withUnsafeBufferPointer { (buffer)  in
+                NSMutableData(bytes: buffer.baseAddress, length: buffer.count)
+            }
+            aCoder.encode(data, forKey: "NSIndexPathData")
+        }
     }
     
     public static var supportsSecureCoding: Bool { return true }

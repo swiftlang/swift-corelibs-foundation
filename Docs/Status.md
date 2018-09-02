@@ -101,7 +101,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `MassFormatter`                 | Complete        | Substantial   | Needs localization                                                                        |
     | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
     | `PersonNameComponentsFormatter` | Unimplemented   | None          |                                                                                           |
-    | `ByteCountFormatter`            | Mostly Complete | Substantial   | `init?(coder:)` remains unimplemented                                                     |
+    | `ByteCountFormatter`            | Complete        | Substantial   |                                                                                            |
     | `DateFormatter`                 | Mostly Complete | Incomplete    | `objectValue(_:range:)` remain unimplemented                                              |
     | `Formatter`                     | Complete        | N/A           |                                                                                           |
     | `MeasurementFormatter`          | Unimplemented   | None          |                                                                                           |
@@ -155,10 +155,10 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSOrderedSet`        | Mostly Complete | Substantial   | `NS[Mutable]Copying`, and `array` & `set` (and associated indexing methods) remain unimplemented                                                                    |
     | `NSMutableOrderedSet` | Mostly Complete | Substantial   | `NSCoding` and `sortRange(_:options:, usingComparator:)` with non-empty options remain unimplemented                                                                |
     | `NSCFArray`           | N/A             | N/A           | For internal use only                                                                                                                                               |
-    | `NSIndexSet`          | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
-    | `NSMutableIndexSet`   | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
+    | `NSIndexSet`          | Complete        | Incomplete    |                                                                                                                                                                     |
+    | `NSMutableIndexSet`   | Complete        | Incomplete    |                                                                                                                                                                      |
     | `IndexSet`            | Complete        | Incomplete    |                                                                                                                                                                     |
-    | `NSIndexPath`         | Mostly Complete | None          | `NSCoding`, `NSCopying`, `getIndexes(_:)` remain unimplemented                                                                                                      |
+    | `NSIndexPath`         | Complete        | None          |                                                                                                                                                                     |
     | `IndexPath`           | Complete        | Incomplete    |                                                                                                                                                                     |
     | `NSArray`             | Mostly Complete | Substantial   | Reading/writing to files/URLs, concurrent `enumerateObjects(at:options:using:)`, and `sortedArray(from:options:usingComparator:)` with options remain unimplemented |
     | `NSMutableArray`      | Mostly Complete | Substantial   | `exchangeObject(at:withObjectAt:)` and `replaceObjects(in:withObjectsFromArray:)` remain unimplemented for types other than `NSMutableArray`                        |
@@ -272,7 +272,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name      | Status          | Test Coverage | Notes                                                                                                                     |
     |------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
-    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding`, and background operations remain unimplemented                                                                |
+    | `FileHandle`     | Mostly Complete | Incomplete    | background operations remain unimplemented                                                                |
     | `Pipe`           | Complete        | Incomplete    |                                                                                                                           |
     | `FileManager`    | Incomplete      | Incomplete    | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
     | `Process`        | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, and `resume()` remain unimplemented                                            |

@@ -44,8 +44,59 @@ open class ByteCountFormatter : Formatter {
         super.init()
     }
     
-    public required init?(coder: NSCoder) {
-        NSUnimplemented()
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        super.init(coder: aDecoder)
+        if let context = Context(rawValue: Int(aDecoder.decodeInt32(forKey: "NSFormattingContext"))) {
+            self.formattingContext = context
+        }
+        self.allowedUnits = Units(rawValue: UInt(aDecoder.decodeInt32(forKey: "NSUnits")))
+        if let countStyle = CountStyle(rawValue: Int(aDecoder.decodeInt32(forKey: "NSKBSize"))) {
+            self.countStyle = countStyle
+        }
+        self.zeroPadsFractionDigits = aDecoder.decodeBool(forKey: "NSZeroPad")
+        self.includesActualByteCount = aDecoder.decodeBool(forKey: "NSActual")
+        self.allowsNonnumericFormatting = !aDecoder.decodeBool(forKey: "NSNoNonnumeric")
+        self.includesUnit = !aDecoder.decodeBool(forKey: "NSNoUnit")
+        self.includesCount = !aDecoder.decodeBool(forKey: "NSNoCount")
+        self.isAdaptive = !aDecoder.decodeBool(forKey: "NSNoAdaptive")
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        if allowedUnits.rawValue != 0 {
+            aCoder.encode(Int32(allowedUnits.rawValue), forKey: "NSUnits")
+        }
+        if countStyle.rawValue != 0 {
+            aCoder.encode(Int32(countStyle.rawValue), forKey: "NSKBSize")
+        }
+        if formattingContext.rawValue != 0 {
+            aCoder.encode(Int32(formattingContext.rawValue), forKey: "NSFormattingContext")
+        }
+        if zeroPadsFractionDigits {
+            aCoder.encode(zeroPadsFractionDigits, forKey: "NSZeroPad")
+        }
+        if includesActualByteCount {
+            aCoder.encode(includesActualByteCount, forKey: "NSActual")
+        }
+        if !allowsNonnumericFormatting {
+            aCoder.encode(!allowsNonnumericFormatting, forKey: "NSNoNonnumeric")
+        }
+        if !includesUnit {
+            aCoder.encode(!includesUnit, forKey: "NSNoUnit")
+        }
+        if !includesCount {
+            aCoder.encode(!includesCount, forKey: "NSNoCount")
+        }
+        if !isAdaptive {
+            aCoder.encode(!isAdaptive, forKey: "NSNoAdaptive")
+        }
     }
     
     /* Specify the units that can be used in the output. If ByteCountFormatter.Units is empty, uses platform-appropriate settings; otherwise will only use the specified units. This is the default value. Note that ZB and YB cannot be covered by the range of possible values, but you can still choose to use these units to get fractional display ("0.0035 ZB" for instance).

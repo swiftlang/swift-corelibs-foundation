@@ -79,8 +79,33 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
         super.init()
     }
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
-    open override func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.formatOptions = Options(rawValue: UInt(aDecoder.decodeInteger(forKey: "NS.formatOptions")))
+        super.init(coder: aDecoder)
+        if aDecoder.containsValue(forKey: "NS.timeZone") {
+            guard let timeZone = aDecoder.decodeObject(forKey: "NS.timeZone") as? NSTimeZone else {
+                let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                    userInfo: [NSLocalizedDescriptionKey: "Timezone has been corrupted!"._nsObject])
+                aDecoder.failWithError(error)
+                return nil
+            }
+            self.timeZone = timeZone._swiftObject
+        }
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(Int(formatOptions.rawValue), forKey: "NS.formatOptions")
+        aCoder.encode(timeZone?._nsObject, forKey: "NS.timeZone")
+    }
+    
     public static var supportsSecureCoding: Bool { return true }
     
     open func string(from date: Date) -> String {
