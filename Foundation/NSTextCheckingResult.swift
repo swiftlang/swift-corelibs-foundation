@@ -72,11 +72,25 @@ internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingRe
     }
 
     internal required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        if aDecoder.allowsKeyedCoding {
+            _regularExpression = aDecoder.decodeObject(of: NSRegularExpression.self, forKey: "NSRegularExpression")!
+            super.init()
+            _ranges = aDecoder.decodeObject(of: [NSArray.self], forKey: "NSRangeArray") as! [NSRange]
+        } else {
+            _regularExpression = aDecoder.decodeObject() as! NSRegularExpression
+            super.init()
+            _ranges = aDecoder.decodeObject() as! [NSRange]
+        }
     }
     
     internal override func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(_regularExpression, forKey: "NSRegularExpression")
+            aCoder.encode(_ranges._nsObject, forKey: "NSRangeArray")
+        } else {
+            aCoder.encode(_regularExpression)
+            aCoder.encode(_ranges._nsObject)
+        }
     }
     
     override var resultType: CheckingType { return .RegularExpression }

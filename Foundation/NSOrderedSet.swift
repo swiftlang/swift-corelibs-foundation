@@ -46,20 +46,31 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         }
     }
     
-    public required convenience init?(coder aDecoder: NSCoder) {
+    fileprivate static func _decodeObjects(coder aDecoder: NSCoder) throws -> [NSObject] {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         var idx = 0
-        var objects : [AnyObject] = []
+        var objects : [NSObject] = []
         while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
             guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
-                return nil
+                let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
+                                    userInfo: [NSLocalizedDescriptionKey: "Can not decode item at index \(idx)"])
+                throw error
             }
             objects.append(object as! NSObject)
             idx += 1
         }
-        self.init(array: objects)
+        return objects
+    }
+    
+    public required convenience init?(coder aDecoder: NSCoder) {
+        do {
+            self.init(array: try NSOrderedSet._decodeObjects(coder: aDecoder))
+        } catch {
+            aDecoder.failWithError(error)
+            return nil
+        }
     }
     
     open var count: Int {
@@ -379,7 +390,15 @@ open class NSMutableOrderedSet : NSOrderedSet {
         addObjects(from: elements)
     }
 
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public required convenience init?(coder aDecoder: NSCoder) {
+        do {
+            self.init(capacity: 0)
+            addObjects(from: try NSOrderedSet._decodeObjects(coder: aDecoder))
+        } catch {
+            aDecoder.failWithError(error)
+            return nil
+        }
+    }
 
     fileprivate func _removeObject(_ object: Any) {
         let value = _SwiftValue.store(object)

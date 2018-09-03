@@ -64,7 +64,7 @@
 #include <CoreFoundation/CFBitVector.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFCalendar.h>
-#include <CoreFoundation/CFCharacterSet.h>
+#include <CoreFoundation/CFCharacterSetPriv.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFDateFormatter.h>

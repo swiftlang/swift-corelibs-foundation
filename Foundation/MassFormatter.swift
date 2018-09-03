@@ -28,12 +28,27 @@ open class MassFormatter : Formatter {
         super.init()
     }
     
-    public required init?(coder: NSCoder) {
-        numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
-        unitStyle = .medium
-        isForPersonMassUse = false
-        super.init(coder:coder)
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.isForPersonMassUse = aDecoder.decodeBool(forKey: "NS.forPersonMassUse")
+        self.unitStyle = .medium
+        super.init(coder: aDecoder)
+        self.numberFormatter = NumberFormatter(coder: aDecoder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        super.encode(with: aCoder)
+        numberFormatter.encode(with: aCoder)
+        if isForPersonMassUse {
+            aCoder.encode(isForPersonMassUse, forKey: "NS.forPersonMassUse")
+        }
     }
     
     /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatter.Style.decimal

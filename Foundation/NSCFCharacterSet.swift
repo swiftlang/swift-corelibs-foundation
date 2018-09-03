@@ -10,10 +10,6 @@ import CoreFoundation
 
 internal class _NSCFCharacterSet : NSMutableCharacterSet {
     
-    required init(coder aDecoder: NSCoder) {
-        fatalError("Coding is not supported for bridge classes")
-    }
-    
     override func characterIsMember(_ aCharacter: unichar) -> Bool {
         return CFCharacterSetIsCharacterMember(_cfObject, UniChar(aCharacter))
     }

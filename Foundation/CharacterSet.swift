@@ -51,7 +51,7 @@ internal final class _SwiftNSCharacterSet : NSCharacterSet, _SwiftNativeFoundati
     }
     
     convenience required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        self.init(immutableObject: NSCharacterSet(coder: aDecoder))
     }
     
     deinit {

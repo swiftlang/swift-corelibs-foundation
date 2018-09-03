@@ -30,12 +30,27 @@ open class LengthFormatter : Formatter {
         super.init()
     }
     
-    public required init?(coder: NSCoder) {
-        numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .decimal
-        unitStyle = .medium
-        isForPersonHeightUse = false
-        super.init(coder:coder)
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        self.isForPersonHeightUse = aDecoder.decodeBool(forKey: "NS.forPersonHeightUse")
+        self.unitStyle = .medium
+        super.init(coder: aDecoder)
+        self.numberFormatter = NumberFormatter(coder: aDecoder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        super.encode(with: aCoder)
+        numberFormatter.encode(with: aCoder)
+        if isForPersonHeightUse {
+            aCoder.encode(isForPersonHeightUse, forKey: "NS.forPersonHeightUse")
+        }
     }
     
     /*@NSCopying*/ open var numberFormatter: NumberFormatter! // default is NumberFormatter with NumberFormatter.Style.decimal
