@@ -51,20 +51,21 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     }
     
     fileprivate static func _decodeObjects(coder aDecoder: NSCoder) -> [NSObject] {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
-            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            return objects as! [NSObject]
-        } else {
-            var objects = [AnyObject]()
-            var count = 0
-            while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
-                objects.append(object as! NSObject)
-                count += 1
+        if aDecoder.allowsKeyedCoding {
+            if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+                let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+                return objects as! [NSObject]
+            } else {
+                var objects = [AnyObject]()
+                var count = 0
+                while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
+                    objects.append(object as! NSObject)
+                    count += 1
+                }
+                return objects as! [NSObject]
             }
-            return objects as! [NSObject]
+        } else {
+            return (NSArray(coder: aDecoder)?._swiftObject as? [NSObject]) ?? []
         }
     }
     
@@ -434,50 +435,66 @@ open class NSCountedSet : NSMutableSet {
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            // TODO: Implement unkeyed coding support
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        
-        let count = Int(aDecoder.decodeInt64(forKey: "NS.count"))
-        
-        guard count > 0 else {
-            self.init()
-            return
-        }
-        
-        self.init(capacity: count)
-        for i in 0..<count {
-            guard let object = aDecoder.decodeObject(forKey: "NS.object\(i)") as? NSObject else {
-                let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                    userInfo: [NSLocalizedDescriptionKey: "decode failure at index \(i) - item nil"])
+        if aDecoder.allowsKeyedCoding {
+            let count = Int(aDecoder.decodeInt64(forKey: "NS.count"))
+            
+            guard count > 0 else {
+                self.init()
+                return
+            }
+            
+            self.init(capacity: count)
+            for i in 0..<count {
+                guard let object = aDecoder.decodeObject(forKey: "NS.object\(i)") as? NSObject else {
+                    let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                                    "decode failure at index \(i) - item nil"])
+                    aDecoder.failWithError(error)
+                    return nil
+                }
+                let count = aDecoder.decodeInt64(forKey: "NS.object\(i)")
+                _table[object] = Int(count)
+            }
+            
+            guard count == _table.keys.count else {
+                let error = CocoaError.error(.coderReadCorrupt,  userInfo: [NSLocalizedDescriptionKey:
+                                                " mismatch in count stored (\(_table.keys.count)) vs count present (\(count))"])
                 aDecoder.failWithError(error)
                 return nil
             }
-            let count = aDecoder.decodeInt64(forKey: "NS.object\(i)")
-            _table[object] = Int(count)
-        }
-        
-        guard count == _table.keys.count else {
-            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                userInfo: [NSLocalizedDescriptionKey: " mismatch in count stored (\(_table.keys.count)) vs count present (\(count))"])
-            aDecoder.failWithError(error)
-            return nil
+        } else {
+            self.init()
+            var count: UInt32 = 0
+            aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &count)
+            for _ in 0..<count {
+                let object = aDecoder.decodeObject() as? NSObject
+                var objCount: UInt32 = 0
+                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &objCount)
+                if let object = object {
+                    _table[object] = Int(objCount)
+                }
+            }
         }
     }
     
     open override func encode(with aCoder: NSCoder) {
-        guard aCoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        
         let _table = self._table
         let count = _table.keys.count
-        aCoder.encode(Int64(count), forKey: "NS.count")
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(Int64(count), forKey: "NS.count")
+        } else {
+            var count = Int32(count)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &count)
+        }
         
         for (offset: i, element: (key: item, value: count)) in _table.enumerated() {
-            aCoder.encode(item, forKey: "NS.object\(i)")
-            aCoder.encode(Int64(count), forKey: "NS.object\(i)")
+            if aCoder.allowsKeyedCoding {
+                aCoder.encode(item, forKey: "NS.object\(i)")
+                aCoder.encode(Int64(count), forKey: "NS.object\(i)")
+            } else {
+                aCoder.encode(item)
+                var count = Int32(count)
+                aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &count)
+            }
         }
     }
     

@@ -29,7 +29,26 @@ open class NSCompoundPredicate : NSPredicate {
         super.init(value: false)
     }
 
-    public required init?(coder: NSCoder) { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder) {
+        self.compoundPredicateType = LogicalType(rawValue: UInt(aDecoder.decodeInteger(forKey: "NSCompoundPredicateType")))!
+        guard let subpredicates = aDecoder.decodeObject(of: NSArray.self, forKey: "NSSubpredicates")?._swiftObject as? [NSPredicate] else {
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "Malformed set expression (bad subpredicatees)"])
+            aDecoder.failWithError(error)
+            return nil
+        }
+        self.subpredicates = subpredicates
+        super.init(coder: aDecoder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            preconditionFailure("Unkeyed coding is unsupported.")
+        }
+        
+        aCoder.encode(subpredicates._nsObject, forKey: "NSSubpredicates")
+        aCoder.encode(Int(compoundPredicateType.rawValue), forKey: "NSCompoundPredicateType")
+    }
     
     open var compoundPredicateType: LogicalType
     open var subpredicates: [NSPredicate]

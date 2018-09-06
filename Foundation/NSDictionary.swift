@@ -75,34 +75,58 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
-            let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
-            let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            self.init(objects: objects as! [NSObject], forKeys: keys)
-        } else {
-            var objects = [AnyObject]()
-            var keys = [NSObject]()
-            var count = 0
-            while let key = aDecoder.decodeObject(forKey: "NS.key.\(count)"),
-                let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
-                    keys.append(key as! NSObject)
-                    objects.append(object as! NSObject)
-                    count += 1
+        if aDecoder.allowsKeyedCoding {
+            if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+                let keys = aDecoder._decodeArrayOfObjectsForKey("NS.keys").map() { return $0 as! NSObject }
+                let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
+                self.init(objects: objects as! [NSObject], forKeys: keys)
+            } else {
+                var objects = [AnyObject]()
+                var keys = [NSObject]()
+                var count = 0
+                while let key = aDecoder.decodeObject(forKey: "NS.key.\(count)"),
+                    let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
+                        keys.append(key as! NSObject)
+                        objects.append(object as! NSObject)
+                        count += 1
+                }
+                self.init(objects: objects, forKeys: keys)
             }
-            self.init(objects: objects, forKeys: keys)
+        } else {
+            self.init()
+            var count: Int32 = 0
+            aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.Int), at: &count)
+            _storage.reserveCapacity(Int(count))
+            for _ in 0..<count {
+                let key = aDecoder.decodeObject() as! NSObject
+                let value = aDecoder.decodeObject() as AnyObject
+                self._storage[key] = value
+            }
         }
+        
     }
     
     open func encode(with aCoder: NSCoder) {
-        if let keyedArchiver = aCoder as? NSKeyedArchiver {
-            keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
-            keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
+        if aCoder.allowsKeyedCoding {
+            if let keyedArchiver = aCoder as? NSKeyedArchiver {
+                keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
+                keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
+            } else {
+                for (offset: i, element: (key: key, value: value)) in _storage.enumerated() {
+                    aCoder.encode(key, forKey: "NS.key.\(i)")
+                    aCoder.encode(value, forKey: "NS.object.\(i)")
+                }
+            }
         } else {
-            NSUnimplemented()
+            let storage = _storage
+            var count = Int32(storage.count)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.Int), at: &count)
+            for (key, value) in storage {
+                aCoder.encode(key)
+                aCoder.encode(value)
+            }
         }
+        
     }
     
     public static var supportsSecureCoding: Bool {

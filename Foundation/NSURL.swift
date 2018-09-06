@@ -277,25 +277,37 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     public static var supportsSecureCoding: Bool { return true }
     
     public convenience required init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
+        let base: URL?
+        let relative: NSString?
+        if aDecoder.allowsKeyedCoding {
+            base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
+            relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
+        } else {
+            var isRelative: CChar = 0
+            aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isRelative)
+            base = isRelative != 0 ? (aDecoder.decodeObject() as? NSURL)?._swiftObject : nil
+            relative = aDecoder.decodeObject() as? NSString
         }
-        let base = aDecoder.decodeObject(of: NSURL.self, forKey:"NS.base")?._swiftObject
-        let relative = aDecoder.decodeObject(of: NSString.self, forKey:"NS.relative")
-
+        
         if relative == nil {
             return nil
         }
-
+        
         self.init(string: String._unconditionallyBridgeFromObjectiveC(relative!), relativeTo: base)
     }
     
     open func encode(with aCoder: NSCoder) {
-        guard aCoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
+            aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
+        } else {
+            var isRelative: CChar = self.baseURL != nil ? 1 : 0
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isRelative)
+            if let baseURL = self.baseURL {
+                aCoder.encode(baseURL)
+            }
+            aCoder.encode(relativeString._bridgeToObjectiveC())
         }
-        aCoder.encode(self.baseURL?._nsObject, forKey:"NS.base")
-        aCoder.encode(self.relativeString._bridgeToObjectiveC(), forKey:"NS.relative")
     }
     
     public init(fileURLWithPath path: String, isDirectory isDir: Bool, relativeTo baseURL: URL?) {

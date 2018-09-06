@@ -51,8 +51,8 @@ open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
         
         self.doubleValue = aDecoder.decodeDouble(forKey: "NS.value")
         guard let unit = aDecoder.decodeObject(of: Unit.self, forKey: "NS.unit") else {
-            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                userInfo: [NSLocalizedDescriptionKey: "Unit class object has been corrupted!"._nsObject])
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "Unit class object has been corrupted!"._nsObject])
             aDecoder.failWithError(error)
             return nil
         }

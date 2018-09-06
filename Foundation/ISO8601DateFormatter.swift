@@ -88,8 +88,8 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
         super.init(coder: aDecoder)
         if aDecoder.containsValue(forKey: "NS.timeZone") {
             guard let timeZone = aDecoder.decodeObject(forKey: "NS.timeZone") as? NSTimeZone else {
-                let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                    userInfo: [NSLocalizedDescriptionKey: "Timezone has been corrupted!"._nsObject])
+                let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                                "Timezone has been corrupted!"._nsObject])
                 aDecoder.failWithError(error)
                 return nil
             }

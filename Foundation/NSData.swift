@@ -377,9 +377,11 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     open func encode(with aCoder: NSCoder) {
         if let aKeyedCoder = aCoder as? NSKeyedArchiver {
             aKeyedCoder._encodePropertyList(self, forKey: "NS.data")
-        } else {
+        } else if aCoder.allowsKeyedCoding {
             let bytePtr = self.bytes.bindMemory(to: UInt8.self, capacity: self.length)
-            aCoder.encodeBytes(bytePtr, length: self.length)
+            aCoder.encodeBytes(bytePtr, length: self.length, forKey: "NS.bytes")
+        } else {
+            aCoder.encode(self._swiftObject)
         }
     }
     
@@ -393,7 +395,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 return nil
             }
             _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
-        } else {
+        } else if aDecoder.allowsKeyedCoding {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }
                 return Data(buffer: buffer)
@@ -401,6 +403,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             
             guard let r = result else { return nil }
             _init(bytes: UnsafeMutableRawPointer(mutating: r._nsObject.bytes), length: r.count, copy: true)
+        } else if let r = aDecoder.decodeData() {
+            _init(bytes: UnsafeMutableRawPointer(mutating: r._nsObject.bytes), length: r.count, copy: true)
+        } else {
+            return nil
         }
     }
     

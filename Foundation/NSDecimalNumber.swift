@@ -97,35 +97,105 @@ open class NSDecimalNumber : NSNumber {
     public convenience init(string numberValue: String?, locale: Any?) {
         self.init(decimal: Decimal(string: numberValue ?? "", locale: locale as? Locale) ?? Decimal.nan)
     }
-
-    public required init?(coder: NSCoder) {
-        guard coder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
+    
+    typealias Mantissa = (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)
+    
+    private static func _decodeFromUnkeyedCoder(_ coder: NSCoder) -> Decimal? {
+        var exponent: Int32 = 0
+        var length: UInt16 = 0
+        var isNegative: CChar = 0
+        var isCompact: CChar = 0
+        var byteOrder: UInt32 = 0
+        var mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (0, 0, 0, 0, 0, 0, 0, 0)
+        coder.decodeValue(ofObjCType: String(_NSSimpleObjCType.Int), at: &exponent)
+        coder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UShort), at: &length)
+        coder.decodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isNegative)
+        coder.decodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isCompact)
+        coder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &byteOrder)
+        coder.decodeArray(ofObjCType: String(_NSSimpleObjCType.UShort), count: 8, at: &mantissa)
+        
+        return Decimal(_exponent: exponent, _length: UInt32(length), _isNegative: UInt32(isNegative),
+                       _isCompact: UInt32(isCompact), _reserved: 0, _mantissa: mantissa)
+    }
+    
+    private static func _decodeFromKeyedCoder(_ coder: NSCoder) -> Decimal? {
+        
+        func swapByteOrders(_ mantissa: inout Mantissa) {
+            mantissa.0 = mantissa.0.byteSwapped
+            mantissa.1 = mantissa.1.byteSwapped
+            mantissa.2 = mantissa.2.byteSwapped
+            mantissa.3 = mantissa.3.byteSwapped
+            mantissa.4 = mantissa.4.byteSwapped
+            mantissa.5 = mantissa.5.byteSwapped
+            mantissa.6 = mantissa.6.byteSwapped
+            mantissa.7 = mantissa.7.byteSwapped
         }
-        let exponent:Int32 = coder.decodeInt32(forKey: "NS.exponent")
-        let length:UInt32 = UInt32(coder.decodeInt32(forKey: "NS.length"))
-        let isNegative:UInt32 = UInt32(coder.decodeBool(forKey: "NS.negative") ? 1 : 0)
-        let isCompact:UInt32 = UInt32(coder.decodeBool(forKey: "NS.compact") ? 1 : 0)
-        // let byteOrder:UInt32 = UInt32(coder.decodeInt32(forKey: "NS.bo"))
+        
+        let exponent: Int32 = coder.decodeInt32(forKey: "NS.exponent")
+        let length: UInt32 = UInt32(coder.decodeInt32(forKey: "NS.length"))
+        let isNegative: UInt32 = UInt32(coder.decodeBool(forKey: "NS.negative") ? 1 : 0)
+        let isCompact: UInt32 = UInt32(coder.decodeBool(forKey: "NS.compact") ? 1 : 0)
+        let byteOrder: UInt32 = UInt32(coder.decodeInt32(forKey: "NS.bo"))
         guard let mantissaData: Data = coder.decodeObject(forKey: "NS.mantissa") as? Data else {
-            return nil // raise "Critical NSDecimalNumber archived data is missing"
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "Critical NSDecimalNumber archived data is missing"])
+            coder.failWithError(error)
+            return nil
         }
         guard mantissaData.count == Int(NSDecimalMaxSize * 2) else {
-            return nil  // raise "Critical NSDecimalNumber archived data is wrong size"
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "Critical NSDecimalNumber archived data is wrong size"])
+            coder.failWithError(error)
+            return nil
         }
-        // Byte order?
-        let mantissa:(UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (
-            UInt16(mantissaData[0]) << 8 & UInt16(mantissaData[1]),
-            UInt16(mantissaData[2]) << 8 & UInt16(mantissaData[3]),
-            UInt16(mantissaData[4]) << 8 & UInt16(mantissaData[5]),
-            UInt16(mantissaData[6]) << 8 & UInt16(mantissaData[7]),
-            UInt16(mantissaData[8]) << 8 & UInt16(mantissaData[9]),
-            UInt16(mantissaData[10]) << 8 & UInt16(mantissaData[11]),
-            UInt16(mantissaData[12]) << 8 & UInt16(mantissaData[13]),
-            UInt16(mantissaData[14]) << 8 & UInt16(mantissaData[15])
-        )
-        self.decimal = Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
+        var mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (0, 0, 0, 0, 0, 0, 0, 0)
+        withUnsafeMutableBytes(of: &mantissa) { (buffer) -> Void in
+            mantissaData.copyBytes(to: buffer.bindMemory(to: UInt8.self).baseAddress!, count: Int(NSDecimalMaxSize * 2))
+        }
+        if (byteOrder == 1) != (1.littleEndian == 1) { // host byteorder is different than encoded bytes
+            swapByteOrders(&mantissa)
+        }
+        
+        return Decimal(_exponent: exponent, _length: length, _isNegative: isNegative, _isCompact: isCompact, _reserved: 0, _mantissa: mantissa)
+    }
+
+    public required init?(coder aDecoder: NSCoder) {
+        let _decimal: Decimal?
+        if aDecoder.allowsKeyedCoding {
+            _decimal = NSDecimalNumber._decodeFromKeyedCoder(aDecoder)
+        } else {
+            _decimal = NSDecimalNumber._decodeFromUnkeyedCoder(aDecoder)
+        }
+        guard let decimal = _decimal else { return nil }
+        self.decimal = decimal
         super.init()
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(decimal._exponent, forKey: "NS.exponent")
+            aCoder.encode(Int32(decimal._length), forKey: "NS.length")
+            aCoder.encode(decimal._isNegative != 0 ? true : false, forKey: "NS.negative")
+            aCoder.encode(decimal._isCompact != 0 ? true : false, forKey: "NS.compact")
+            aCoder.encode(Int32(1.littleEndian == 1 ? 1 : 0), forKey: "NS.bo")
+            let mantissaData = withUnsafeBytes(of: decimal._mantissa) { (buffer) in
+                return Data(buffer: buffer.bindMemory(to: UInt8.self))
+            }
+            aCoder.encode(mantissaData, forKey: "NS.mantissa")
+        } else {
+            var exponent: Int32 = decimal._exponent
+            var length: UInt16 = UInt16(decimal._length)
+            var isNegative: CChar = CChar(decimal._isNegative)
+            var isCompact: CChar = CChar(decimal._isCompact)
+            var byteOrder: UInt32 = UInt32(1.littleEndian == 1 ? 1 : 0)
+            var mantissa = decimal._mantissa
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.Int), at: &exponent)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UShort), at: &length)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isNegative)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.Char), at: &isCompact)
+            aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &byteOrder)
+            aCoder.encodeArray(ofObjCType: String(_NSSimpleObjCType.UShort), count: 8, at: &mantissa)
+        }
     }
 
     public init(value: Int) {

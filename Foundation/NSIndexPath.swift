@@ -46,8 +46,8 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         }
         
         guard aDecoder.containsValue(forKey: "NSIndexPathLength") else {
-            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                userInfo: [NSLocalizedDescriptionKey: "-[NSIndexPath initWithCoder:] decoder did not provide a length value for the indexPath."])
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "-[NSIndexPath initWithCoder:] decoder did not provide a length value for the indexPath."])
             aDecoder.failWithError(error)
             return nil
         }
@@ -65,8 +65,8 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         } else if length == 1 && aDecoder.containsValue(forKey: "NSIndexPathValue") {
             _indexes = [aDecoder.decodeInteger(forKey: "NSIndexPathValue")]
         } else {
-            let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                userInfo: [NSLocalizedDescriptionKey: "-[NSIndexPath initWithCoder:] decoder did not provide indexPath data."])
+            let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                            "-[NSIndexPath initWithCoder:] decoder did not provide indexPath data."])
             aDecoder.failWithError(error)
             return nil
         }

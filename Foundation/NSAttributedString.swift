@@ -86,7 +86,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             var position = 0
             while position < length {
                 var rangeLength: UInt32 = 0
-                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt.rawValue), at: &rangeLength)
+                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &rangeLength)
                 let range = NSRange(location: position, length: Int(rangeLength))
                 let attrs = aDecoder.decodeObject() as! NSDictionary
                 CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
@@ -143,7 +143,7 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             while position < length {
                 let attrs = attributes(at: Int(position), effectiveRange: &range)
                 position = UInt32(range.upperBound)
-                aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt.rawValue), at: &position)
+                aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt), at: &position)
                 aCoder.encode(encodableAttributes(attrs))
             }
         }
@@ -517,7 +517,7 @@ open class NSMutableAttributedString : NSAttributedString {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        super.init(coder: aDecoder)
     }
     
 }

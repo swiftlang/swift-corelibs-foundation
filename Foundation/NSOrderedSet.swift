@@ -54,8 +54,8 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         var objects : [NSObject] = []
         while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
             guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
-                let error = NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue,
-                                    userInfo: [NSLocalizedDescriptionKey: "Can not decode item at index \(idx)"])
+                let error = CocoaError.error(.coderReadCorrupt, userInfo: [NSLocalizedDescriptionKey:
+                                                "Can not decode item at index \(idx)"])
                 throw error
             }
             objects.append(object as! NSObject)

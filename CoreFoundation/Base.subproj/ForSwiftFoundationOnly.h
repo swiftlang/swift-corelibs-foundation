@@ -20,6 +20,7 @@
 #include <CoreFoundation/CFLocaleInternal.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFPriv.h>
+#include <CoreFoundation/CFCharacterSetPriv.h>
 #include <CoreFoundation/CFXMLInterface.h>
 #include <CoreFoundation/CFRegularExpression.h>
 #include <CoreFoundation/CFLogUtilities.h>

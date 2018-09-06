@@ -795,31 +795,44 @@ open class NSNumber : NSValue {
     }
 
     public required convenience init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
-            let number = aDecoder._decodePropertyListForKey("NS.number")
-            if let val = number as? Double {
-                self.init(value:val)
-            } else if let val = number as? Int {
-                self.init(value:val)
-            } else if let val = number as? Bool {
-                self.init(value:val)
+        if aDecoder.allowsKeyedCoding {
+            if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.number") {
+                let number = aDecoder._decodePropertyListForKey("NS.number")
+                if let val = number as? Double {
+                    self.init(value:val)
+                } else if let val = number as? Int {
+                    self.init(value:val)
+                } else if let val = number as? Bool {
+                    self.init(value:val)
+                } else {
+                    return nil
+                }
             } else {
-                return nil
+                if aDecoder.containsValue(forKey: "NS.boolval") {
+                    self.init(value: aDecoder.decodeBool(forKey: "NS.boolval"))
+                } else if aDecoder.containsValue(forKey: "NS.intval") {
+                    self.init(value: aDecoder.decodeInt64(forKey: "NS.intval"))
+                } else if aDecoder.containsValue(forKey: "NS.dblval") {
+                    self.init(value: aDecoder.decodeDouble(forKey: "NS.dblval"))
+                } else {
+                    return nil
+                }
             }
         } else {
-            if aDecoder.containsValue(forKey: "NS.boolval") {
-                self.init(value: aDecoder.decodeBool(forKey: "NS.boolval"))
-            } else if aDecoder.containsValue(forKey: "NS.intval") {
-                self.init(value: aDecoder.decodeInt64(forKey: "NS.intval"))
-            } else if aDecoder.containsValue(forKey: "NS.dblval") {
-                self.init(value: aDecoder.decodeDouble(forKey: "NS.dblval"))
-            } else {
-                return nil
+            var type: CChar = 0
+            aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: &type)
+            guard type != 0 else { return nil }
+            var size = 0
+            var align = 0
+            _ = NSGetSizeAndAlignment(&type, &size, &align)
+            let buffer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: align)
+            defer {
+                buffer.deallocate()
             }
+            aDecoder.decodeValue(ofObjCType: &type, at: buffer)
+            self.init(bytes: buffer, objCType: &type)
         }
+        
     }
 
     open var int8Value: Int8 {
@@ -1040,19 +1053,15 @@ open class NSNumber : NSValue {
     }
     
     open override func encode(with aCoder: NSCoder) {
-        guard aCoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
         if let keyedCoder = aCoder as? NSKeyedArchiver {
             keyedCoder._encodePropertyList(self)
         } else {
-            if CFGetTypeID(self) == CFBooleanGetTypeID() {
+            if aCoder.allowsKeyedCoding, CFGetTypeID(self) == CFBooleanGetTypeID() {
                 aCoder.encode(boolValue, forKey: "NS.boolval")
-            } else {
+            } else if aCoder.allowsKeyedCoding {
                 switch objCType.pointee {
                 case 0x42:
                     aCoder.encode(boolValue, forKey: "NS.boolval")
-                    break
                 case 0x63: fallthrough
                 case 0x43: fallthrough
                 case 0x73: fallthrough
@@ -1069,6 +1078,17 @@ open class NSNumber : NSValue {
                     aCoder.encode(doubleValue, forKey: "NS.dblval")
                 default: break
                 }
+            } else {
+                var size = 0
+                var align = 0
+                _ = NSGetSizeAndAlignment(objCType, &size, &align)
+                let buffer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: align)
+                defer {
+                    buffer.deallocate()
+                }
+                guard _getValue(buffer, forType: _cfNumberType()) else { return }
+                aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.CharPtr), at: objCType)
+                aCoder.encodeValue(ofObjCType: objCType, at: buffer)
             }
         }
     }
