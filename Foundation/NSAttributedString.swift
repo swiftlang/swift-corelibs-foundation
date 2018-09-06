@@ -32,11 +32,121 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     fileprivate var _attributeArray: CFRunArrayRef
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        
+        func decodeAttributes(_ value: NSDictionary?) -> [NSAttributedStringKey: Any]? {
+            guard let value = value else { return nil }
+            return Dictionary(uniqueKeysWithValues: value.map({ (NSAttributedStringKey($0.key as! String), $0.value) }))
+        }
+        
+        func iterateInfoArray(_ info: inout Data, from idx: inout Int) -> (length: Int, index: Int) {
+            var length = 0
+            var index = 0
+            var byteIdx = idx
+            while info[byteIdx] > 127 {
+                length = length << 7 + Int(info[byteIdx])
+                byteIdx += 1
+            }
+            length = length << 7 + Int(info[byteIdx])
+            byteIdx += 1
+            while info[byteIdx] > 127 {
+                index = index << 7 + Int(info[byteIdx])
+                byteIdx += 1
+            }
+            index = index << 7 + Int(info[byteIdx])
+            byteIdx += 1
+            return (length, index)
+        }
+        
+        if aDecoder.allowsKeyedCoding {
+            _string = aDecoder.decodeObject(of: NSString.self, forKey: "NSString") ?? ""
+        } else {
+            _string = aDecoder.decodeObject() as! NSString
+        }
+        _attributeArray = CFRunArrayCreate(kCFAllocatorDefault)
+        super.init()
+        if _string.length == 0 { return }
+        
+        if aDecoder.allowsKeyedCoding {
+            if var info = aDecoder.decodeObject(of: NSData.self, forKey: "NSAttributeInfo")?._swiftObject,
+                let attsArray = aDecoder.decodeObject(of: NSArray.self, forKey: "NSAttributes")?._swiftObject as? [NSDictionary] {
+                var offset = 0
+                var byteIdx = 0
+                while byteIdx < info.count {
+                    let (rangeLength, index) = iterateInfoArray(&info, from: &byteIdx)
+                    let range = NSRange(location: offset, length: rangeLength)
+                    let attrs = attsArray[index]
+                    CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
+                    offset += rangeLength
+                }
+            } else {
+                let attrs = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NSAttributes")
+                addAttributesToAttributeArray(attrs: decodeAttributes(attrs))
+            }
+        } else {
+            var position = 0
+            while position < length {
+                var rangeLength: UInt32 = 0
+                aDecoder.decodeValue(ofObjCType: String(_NSSimpleObjCType.UInt.rawValue), at: &rangeLength)
+                let range = NSRange(location: position, length: Int(rangeLength))
+                let attrs = aDecoder.decodeObject() as! NSDictionary
+                CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
+                position += Int(rangeLength)
+            }
+        }
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        
+        func appendUInt(_ value: UInt, data: inout Data) {
+            var value = value
+            while value >= 128 {
+                let byte = UInt8(value & 0x7f + 128)
+                data.append(byte)
+                value /= 128
+            }
+            data.append(UInt8(value))
+        }
+        
+        func encodableAttributes(_ value: [NSAttributedStringKey: Any]) -> NSMutableDictionary {
+            return Dictionary(uniqueKeysWithValues: value.map({ ($0.key.rawValue, $0.value) }))
+                ._nsObject.mutableCopy() as! NSMutableDictionary
+        }
+        
+        // TODO: Implement thread lock
+        if aCoder.allowsKeyedCoding {
+            aCoder.encode(_string, forKey: "NSString")
+            let length =  _string.length
+            guard length > 0 else { return }
+            var range = NSRange(location: NSNotFound, length: 0)
+            let attrs = attributes(at: 0, effectiveRange: &range)
+            if range.length == length {
+                aCoder.encode(attrs, forKey: "NSAttributes")
+            } else {
+                var attrs = [Any]()
+                var info = Data()
+                var position = 0
+                var counter: UInt = 0
+                while position < length {
+                    attrs.append(encodableAttributes(attributes(at: position, effectiveRange: &range)))
+                    appendUInt(UInt(range.length), data: &info)
+                    appendUInt(counter, data: &info)
+                    counter += 1
+                    position = range.upperBound
+                }
+                aCoder.encode(attrs, forKey: "NSAttributes")
+                aCoder.encode(info._nsObject.mutableCopy(), forKey: "NSAttributeInfo")
+            }
+        } else {
+            aCoder.encode(_string)
+            var range = NSRange(location: NSNotFound, length: 0)
+            var position: UInt32 = 0
+            while position < length {
+                let attrs = attributes(at: Int(position), effectiveRange: &range)
+                position = UInt32(range.upperBound)
+                aCoder.encodeValue(ofObjCType: String(_NSSimpleObjCType.UInt.rawValue), at: &position)
+                aCoder.encode(encodableAttributes(attrs))
+            }
+        }
     }
     
     static public var supportsSecureCoding: Bool {
@@ -307,6 +417,7 @@ private extension NSAttributedString {
 
 extension NSAttributedString: _CFBridgeable {
     internal var _cfObject: CFAttributedString { return unsafeBitCast(self, to: CFAttributedString.self) }
+    internal var _cfMutableObject: CFMutableAttributedString { return unsafeBitCast(self, to: CFMutableAttributedString.self) }
 }
 
 extension NSAttributedString {
@@ -409,10 +520,6 @@ open class NSMutableAttributedString : NSAttributedString {
         NSUnimplemented()
     }
     
-}
-
-extension NSMutableAttributedString {
-    internal var _cfMutableObject: CFMutableAttributedString { return unsafeBitCast(self, to: CFMutableAttributedString.self) }
 }
 
 private extension NSMutableAttributedString {
