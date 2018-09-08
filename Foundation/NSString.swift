@@ -1325,8 +1325,13 @@ open class NSMutableString : NSString {
         }
 
         let start = _storage.utf16.startIndex
-        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
-        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
+        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage) ??
+            _storage.utf16.index(start, offsetBy: _storage.rangeOfComposedCharacterSequence(at: range.location).location)
+
+        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage) ?? {
+            let range = _storage.rangeOfComposedCharacterSequence(at: range.location + range.length)
+            return _storage.utf16.index(start, offsetBy: range.location)
+        }()
         _storage.replaceSubrange(min..<max, with: aString)
     }
     
