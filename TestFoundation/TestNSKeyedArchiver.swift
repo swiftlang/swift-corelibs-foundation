@@ -87,6 +87,9 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_generic_objc", test_archive_generic_objc),
             ("test_archive_locale", test_archive_locale),
             ("test_archive_string", test_archive_string),
+            ("test_archive_characterset", test_archive_characterset),
+            ("test_attributed_string", test_attributed_string),
+            ("test_mutable_attributed_string", test_mutable_attributed_string),
             ("test_archive_mutable_array", test_archive_mutable_array),
             ("test_archive_mutable_dictionary", test_archive_mutable_dictionary),
             ("test_archive_ns_user_class", test_archive_ns_user_class),
@@ -95,6 +98,9 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_nsrect", test_archive_nsrect),
             ("test_archive_null", test_archive_null),
             ("test_archive_set", test_archive_set),
+            ("test_archive_mutable_set", test_archive_mutable_set),
+            ("test_ordered_set", test_ordered_set),
+            ("test_archive_indexpath", test_archive_indexpath),
             ("test_archive_url", test_archive_url),
             ("test_archive_user_class", test_archive_user_class),
             ("test_archive_uuid_bvref", test_archive_uuid_byref),
@@ -143,8 +149,12 @@ class TestNSKeyedArchiver : XCTestCase {
                         XCTFail("Unable to decode data")
                         return false
                     }
-                
-                    XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
+                    
+                    if let rootObj = rootObj as? NSObject, let object = object as? NSObject {
+                        XCTAssert(rootObj.isEqual(object), "unarchived object \(rootObj) does not match \(object)")
+                    } else {
+                        XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
+                    }
                 } catch {
                     XCTFail("Error thrown: \(error)")
                 }
@@ -210,6 +220,29 @@ class TestNSKeyedArchiver : XCTestCase {
         test_archive(string)
     }
     
+    func test_archive_characterset() {
+        let csetString = NSCharacterSet(charactersIn: " /")
+        test_archive(csetString)
+        let csetRange = NSCharacterSet(range: NSRange(location: 32, length: 500))
+        test_archive(csetRange)
+        /*let csetBuiltin = NSMutableCharacterSet.alphanumeric()
+        test_archive(csetBuiltin, allowsSecureCoding: false)*/
+        let csetBitmap = NSMutableCharacterSet.alphanumeric()
+        csetBitmap.addCharacters(in: "!")
+        test_archive(csetBitmap)
+    }
+    
+    func test_attributed_string() {
+        let attrString = NSAttributedString(string: "Hello", attributes: [.init("Baseline") : 10])
+        test_archive(attrString)
+    }
+    
+    func test_mutable_attributed_string() {
+        let attrString = NSMutableAttributedString(string: "Hello, world!", attributes: [.init("NSBaselineOffset") : 10])
+        attrString.addAttribute(.init("NSBaselineOffset"), value: 5, range: NSRange(location: 3, length: 4))
+        test_archive(attrString)
+    }
+    
     func test_archive_mutable_array() {
         let array = NSMutableArray(array: ["one", "two", "three"])
         test_archive(array)
@@ -257,6 +290,29 @@ class TestNSKeyedArchiver : XCTestCase {
                                 NSString(string: "foobarbarbar"),
                                 NSValue(point: NSPoint(x: CGFloat(5.0), y: CGFloat(Double(1.5))))])
         test_archive(set, classes: [NSValue.self, NSSet.self])
+    }
+    
+    func test_archive_mutable_set() {
+        let set = NSMutableSet(array: [NSNumber(value: Int(1234234)),
+                                       NSNumber(value: Int(2374853)),
+                                       NSString(string: "foobarbarbar"),
+                                       NSValue(point: NSPoint(x: CGFloat(5.0), y: CGFloat(Double(1.5))))])
+        test_archive(set, classes: [NSValue.self, NSSet.self, NSMutableSet.self])
+    }
+    
+    func test_ordered_set() {
+        let set = NSOrderedSet(array: [NSNumber(value: Int(1234234)),
+                                       NSNumber(value: Int(2374853)),
+                                       NSString(string: "foobarbarbar"),
+                                       NSValue(point: NSPoint(x: CGFloat(5.0), y: CGFloat(Double(1.5))))])
+        test_archive(set, classes: [NSValue.self, NSOrderedSet.self])
+    }
+    
+    func test_archive_indexpath() {
+        let indexPath = NSIndexPath(index: 10)
+        test_archive(indexPath)
+        let multiIndexPath = IndexPath(indexes: [10, 20, 30])
+        test_archive(multiIndexPath._bridgeToObjectiveC())
     }
     
     func test_archive_url() {

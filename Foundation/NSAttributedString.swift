@@ -38,10 +38,9 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             return Dictionary(uniqueKeysWithValues: value.map({ (NSAttributedStringKey($0.key as! String), $0.value) }))
         }
         
-        func iterateInfoArray(_ info: inout Data, from idx: inout Int) -> (length: Int, index: Int) {
+        func iterateInfoArray(_ info: inout Data, from byteIdx: inout Int) -> (length: Int, index: Int) {
             var length = 0
             var index = 0
-            var byteIdx = idx
             while info[byteIdx] > 127 {
                 length = length << 7 + Int(info[byteIdx])
                 byteIdx += 1
@@ -67,15 +66,17 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         if _string.length == 0 { return }
         
         if aDecoder.allowsKeyedCoding {
-            if var info = aDecoder.decodeObject(of: NSData.self, forKey: "NSAttributeInfo")?._swiftObject,
-                let attsArray = aDecoder.decodeObject(of: NSArray.self, forKey: "NSAttributes")?._swiftObject as? [NSDictionary] {
+            if aDecoder.containsValue(forKey: "NSAttributeInfo"),
+                var info = aDecoder.decodeObject(of: NSData.self, forKey: "NSAttributeInfo")?._swiftObject,
+                let attrsArrayD = aDecoder.decodeObject(of: [NSArray.self, NSDictionary.self], forKey: "NSAttributes"),
+                let attrsArray = attrsArrayD as? [NSDictionary] {
                 var offset = 0
                 var byteIdx = 0
                 while byteIdx < info.count {
                     let (rangeLength, index) = iterateInfoArray(&info, from: &byteIdx)
                     let range = NSRange(location: offset, length: rangeLength)
-                    let attrs = attsArray[index]
-                    CFAttributedStringSetAttributes(_cfMutableObject, CFRange(range), attrs._cfObject, false)
+                    let attrs = attrsArray[index]
+                    CFRunArrayInsert(_attributeArray, CFRange(range), attrs._cfObject)
                     offset += rangeLength
                 }
             } else {
@@ -118,22 +119,22 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             let length =  _string.length
             guard length > 0 else { return }
             var range = NSRange(location: NSNotFound, length: 0)
-            let attrs = attributes(at: 0, effectiveRange: &range)
+            let attrs = encodableAttributes(attributes(at: 0, effectiveRange: &range))
             if range.length == length {
                 aCoder.encode(attrs, forKey: "NSAttributes")
             } else {
-                var attrs = [Any]()
+                var attrsArray = [Any]()
                 var info = Data()
                 var position = 0
                 var counter: UInt = 0
                 while position < length {
-                    attrs.append(encodableAttributes(attributes(at: position, effectiveRange: &range)))
+                    attrsArray.append(encodableAttributes(attributes(at: position, effectiveRange: &range)))
                     appendUInt(UInt(range.length), data: &info)
                     appendUInt(counter, data: &info)
                     counter += 1
                     position = range.upperBound
                 }
-                aCoder.encode(attrs, forKey: "NSAttributes")
+                aCoder.encode(attrsArray._nsObject, forKey: "NSAttributes")
                 aCoder.encode(info._nsObject.mutableCopy(), forKey: "NSAttributeInfo")
             }
         } else {
@@ -220,7 +221,12 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
             longestEffectiveRangeSearchRange: rangeLimit)
         return _attribute(attrName, atIndex: location, rangeInfo: rangeInfo)
     }
-
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSAttributedString else { return false }
+        
+        return isEqual(to: other)
+    }
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
     open func isEqual(to other: NSAttributedString) -> Bool {
         guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFAttributedStringGetTypeID()) else {

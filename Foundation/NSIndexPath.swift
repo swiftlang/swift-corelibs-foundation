@@ -41,6 +41,18 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     }
     
     public required init?(coder aDecoder: NSCoder) {
+        
+        func readElement(_ data: inout Data, from byteIdx: inout Int) -> Int {
+            var result: UInt = 0
+            while data[byteIdx] > 127 {
+                result = result << 7 + UInt(data[byteIdx])
+                byteIdx += 1
+            }
+            result = result << 7 + UInt(data[byteIdx])
+            byteIdx += 1
+            return Int(bitPattern: result)
+        }
+        
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
@@ -58,9 +70,12 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
             return
         }
         
-        if let data = aDecoder.decodeObject(of: NSData.self, forKey: "NSIndexPathData")?._swiftObject {
-            _indexes = data.withUnsafeBytes {
-                return Array(UnsafeBufferPointer(start: $0, count: length))
+        if length > 1, var data = aDecoder.decodeObject(of: NSData.self, forKey: "NSIndexPathData")?._swiftObject {
+            _indexes = []
+            var byteIdx = 0
+            while byteIdx < data.count {
+                let element = readElement(&data, from: &byteIdx)
+                _indexes.append(element)
             }
         } else if length == 1 && aDecoder.containsValue(forKey: "NSIndexPathValue") {
             _indexes = [aDecoder.decodeInteger(forKey: "NSIndexPathValue")]
@@ -73,6 +88,16 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func encode(with aCoder: NSCoder) {
+        func appendUInt(_ value: UInt, data: inout Data) {
+            var value = value
+            while value >= 128 {
+                let byte = UInt8(value & 0x7f + 128)
+                data.append(byte)
+                value /= 128
+            }
+            data.append(UInt8(value))
+        }
+        
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
@@ -84,14 +109,22 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         case 1:
             aCoder.encode(_indexes[0], forKey: "NSIndexPathValue")
         default:
-            let data = _indexes.withUnsafeBufferPointer { (buffer)  in
-                NSMutableData(bytes: buffer.baseAddress, length: buffer.count)
+            var data = Data()
+            for index in _indexes {
+                appendUInt(UInt(bitPattern: index), data: &data)
             }
-            aCoder.encode(data, forKey: "NSIndexPathData")
+            aCoder.encode(data._bridgeToObjectiveC().mutableCopy(), forKey: "NSIndexPathData")
         }
     }
     
     public static var supportsSecureCoding: Bool { return true }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let object = object as? NSIndexPath {
+            return self._indexes == object._indexes
+        }
+        return false
+    }
     
     open func adding(_ index: Int) -> IndexPath {
         return IndexPath(indexes: _indexes + [index])

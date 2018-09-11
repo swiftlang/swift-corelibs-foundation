@@ -29,7 +29,7 @@ let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
 #endif
 
 
-open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
+open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
@@ -45,9 +45,10 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         return unsafeBitCast(self, to: CFMutableCharacterSet.self)
     }
     
-    open override var hash: Int {
+    // Disabled due to recursion
+    /*open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
-    }
+    }*/
     
     open override func isEqual(_ value: Any?) -> Bool {
         guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFCharacterSetGetTypeID()) else {
@@ -178,14 +179,18 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
             let len = Int(value & 0xffffffff)
             _CFCharacterSetInitWithCharactersInRange(_cfMutableObject, CFRangeMake(loc, len))
         } else if let aDecoder = aDecoder as? NSKeyedUnarchiver,
+            aDecoder.containsValue(forKey: "NSString"),
             let aString = aDecoder._decodePropertyListForKey("NSString") as? NSString {
             _CFCharacterSetInitWithCharactersInString(_cfMutableObject, aString._cfObject)
-        } else if let aString = aDecoder.decodeObject(forKey: "NSStringObject") as? NSString {
+        } else if aDecoder.containsValue(forKey: "NSStringObject"),
+            let aString = aDecoder.decodeObject(of: NSString.self, forKey: "NSStringObject") {
             _CFCharacterSetInitWithCharactersInString(_cfMutableObject, aString._cfObject)
         } else if let aDecoder = aDecoder as? NSKeyedUnarchiver,
+            aDecoder.containsValue(forKey: "NSBitmap"),
             let representation = aDecoder._decodePropertyListForKey("NSBitmap") as? NSData {
             _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, representation._cfObject)
-        } else if let representation = aDecoder.decodeObject(forKey: "NSBitmapObject") as? NSData {
+        } else if aDecoder.containsValue(forKey: "NSBitmapObject"),
+            let representation = aDecoder.decodeObject(of: NSData.self, forKey: "NSBitmapObject") {
             _CFCharacterSetInitWithBitmapRepresentation(_cfMutableObject, representation._cfObject)
         } else {
             NSRequiresConcreteImplementation()
@@ -233,6 +238,10 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         if _CFCharacterSetIsInverted(_cfObject) {
             aCoder.encode(true, forKey: "NSIsInverted")
         }
+    }
+    
+    public static var supportsSecureCoding: Bool {
+        return true
     }
     
     open func characterIsMember(_ aCharacter: unichar) -> Bool {

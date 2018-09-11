@@ -159,7 +159,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.dateFormat] = newValue._nsObject
+            attributes[AttributeKey.dateFormat] = newValue?._nsObject
         }
     }
 
@@ -187,7 +187,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.locale] = newValue._bridgeToObjectiveC()
+            attributes[AttributeKey.locale] = newValue?._bridgeToObjectiveC()
         }
     }
     
@@ -207,7 +207,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.generatesCalendarDates] = newValue._nsObject
+            attributes[AttributeKey.generatesCalendarDates] = newValue?._nsObject
         }
     }
     
@@ -223,7 +223,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.calendar] = newValue._nsObject
+            attributes[AttributeKey.calendar] = newValue?._nsObject
         }
     }
 
@@ -276,7 +276,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.eraSymbols] = newValue._nsObject
+            attributes[AttributeKey.eraSymbols] = newValue?._nsObject
         }
     }
     
@@ -293,7 +293,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.monthSymbols] = newValue._nsObject
+            attributes[AttributeKey.monthSymbols] = newValue?._nsObject
         }
     }
 
@@ -310,7 +310,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortMonthSymbols] = newValue._nsObject
+            attributes[AttributeKey.shortMonthSymbols] = newValue?._nsObject
         }
     }
     
@@ -328,7 +328,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.weekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.weekdaySymbols] = newValue?._nsObject
         }
     }
 
@@ -345,7 +345,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortWeekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.shortWeekdaySymbols] = newValue?._nsObject
         }
     }
 
@@ -361,7 +361,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.amSymbol] = newValue._nsObject
+            attributes[AttributeKey.amSymbol] = newValue?._nsObject
         }
     }
 
@@ -377,7 +377,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.pmSymbol] = newValue._nsObject
+            attributes[AttributeKey.pmSymbol] = newValue?._nsObject
         }
     }
 
@@ -394,7 +394,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.longEraSymbols] = newValue._nsObject
+            attributes[AttributeKey.longEraSymbols] = newValue?._nsObject
         }
     }
 
@@ -411,7 +411,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.veryShortMonthSymbols] = newValue._nsObject
+            attributes[AttributeKey.veryShortMonthSymbols] = newValue?._nsObject
         }
     }
 
@@ -428,7 +428,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.standaloneMonthSymbols] = newValue._nsObject
+            attributes[AttributeKey.standaloneMonthSymbols] = newValue?._nsObject
         }
     }
 
@@ -445,7 +445,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortStandaloneMonthSymbols] = newValue._nsObject
+            attributes[AttributeKey.shortStandaloneMonthSymbols] = newValue?._nsObject
         }
     }
 
@@ -462,7 +462,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.veryShortStandaloneMonthSymbols] = newValue._nsObject
+            attributes[AttributeKey.veryShortStandaloneMonthSymbols] = newValue?._nsObject
         }
     }
 
@@ -479,7 +479,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.veryShortWeekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.veryShortWeekdaySymbols] = newValue?._nsObject
         }
     }
 
@@ -496,7 +496,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.standaloneWeekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.standaloneWeekdaySymbols] = newValue?._nsObject
         }
     }
 
@@ -513,7 +513,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortStandaloneWeekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.shortStandaloneWeekdaySymbols] = newValue?._nsObject
         }
     }
     
@@ -530,7 +530,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.veryShortStandaloneWeekdaySymbols] = newValue._nsObject
+            attributes[AttributeKey.veryShortStandaloneWeekdaySymbols] = newValue?._nsObject
         }
     }
 
@@ -547,7 +547,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.quarterSymbols] = newValue._nsObject
+            attributes[AttributeKey.quarterSymbols] = newValue?._nsObject
         }
     }
     
@@ -564,7 +564,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortQuarterSymbols] = newValue._nsObject
+            attributes[AttributeKey.shortQuarterSymbols] = newValue?._nsObject
         }
     }
 
@@ -581,7 +581,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.standaloneQuarterSymbols] = newValue._nsObject
+            attributes[AttributeKey.standaloneQuarterSymbols] = newValue?._nsObject
         }
     }
 
@@ -598,7 +598,7 @@ open class DateFormatter : Formatter {
         }
         set {
             _reset()
-            attributes[AttributeKey.shortStandaloneQuarterSymbols] = newValue._nsObject
+            attributes[AttributeKey.shortStandaloneQuarterSymbols] = newValue?._nsObject
         }
     }
 
