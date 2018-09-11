@@ -115,13 +115,33 @@ open class Stream: NSObject {
 
 // InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
-open class InputStream: Stream {
+open class InputStream: Stream, _CFBridgeable {
 
-    internal let _stream: CFReadStream!
+    typealias CFType = CFReadStream
+    internal var _base = _CFInfo(typeID: CFReadStreamGetTypeID())
+    internal var _flags : CFOptionFlags = 0
+    internal var _error : UnsafeMutablePointer<CFError>? = nil
+    internal var _client : UnsafeMutablePointer<_CFStreamClient>? = nil
+    internal var _info : UnsafeMutableRawPointer? = nil
+    internal var _callBacks : UnsafeMutablePointer<_CFStreamCallBacks>? = nil
+    internal var _lock : pthread_mutex_t?
+    internal var _previousRunloopsAndModes : UnsafeMutablePointer<CFArray>? = nil
+    #if DEPLOYMENT_ENABLE_LIBDISPATCH
+    internal var _queue : UnsafeMutableRawPointer?
+    #endif
+    internal var _pendingEventsToDeliver : _DarwinCompatibleBoolean = false
+    
+    internal var _cfObject: CFType {
+        return unsafeBitCast(self, to: CFType.self)
+    }
+    
+    override open var _cfTypeID: CFTypeID {
+        return CFReadStreamGetTypeID()
+    }
     
     open override var delegate: StreamDelegate? {
         get {
-            if let info = _CFReadStreamGetClient(_stream) {
+            if let info = _CFReadStreamGetClient(_cfObject) {
                 return info.assumingMemoryBound(to: StreamDelegate.self).pointee
             }
             return nil
@@ -130,44 +150,43 @@ open class InputStream: Stream {
             if let newValue = newValue as AnyObject? {
                 let info = Unmanaged.passUnretained(newValue).toOpaque()
                 var context = CFStreamClientContext(version: 0, info: info, retain: nil, release: nil, copyDescription: nil)
-                CFReadStreamSetClient(_stream, 0x1f, InputStream.clientCallback, &context)
+                CFReadStreamSetClient(_cfObject, 0x1f, InputStream.clientCallback, &context)
             } else {
-                CFReadStreamSetClient(_stream, 0, nil, nil)
+                CFReadStreamSetClient(_cfObject, 0, nil, nil)
             }
         }
     }
     
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
     open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-        return CFReadStreamRead(_stream, buffer, len)
+        return CFReadStreamRead(_cfObject, buffer, len)
     }
     
     // returns in O(1) a pointer to the buffer in 'buffer' and by reference in 'len' how many bytes are available. This buffer is only valid until the next stream operation. Subclassers may return NO for this if it is not appropriate for the stream type. This may return NO if the buffer is not available.
     open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool {
         let maxLen = len.pointee
-        buffer.pointee = UnsafeMutablePointer(mutating: CFReadStreamGetBuffer(_stream, maxLen, len))
+        buffer.pointee = UnsafeMutablePointer(mutating: CFReadStreamGetBuffer(_cfObject, maxLen, len))
         return buffer.pointee != nil && len.pointee >= 0
     }
     
     // returns YES if the stream has bytes available or if it impossible to tell without actually doing the read.
     open var hasBytesAvailable: Bool {
-        return CFReadStreamHasBytesAvailable(_stream)
+        return CFReadStreamHasBytesAvailable(_cfObject)
     }
     
     public init(data: Data) {
-        _stream = CFReadStreamCreateWithData(kCFAllocatorSystemDefault, data._cfObject)
+        super.init()
+        _CFReadStreamInitWithData(_cfObject, data._cfObject)
     }
     
     public init?(url: URL) {
-        _stream = CFReadStreamCreateWithFile(kCFAllocatorDefault, url._cfObject)
-    }
-    
-    fileprivate init(_ stream: CFReadStream) {
-        self._stream = stream
+        super.init()
+        let _pointer = OpaquePointer(Unmanaged.passUnretained(self).toOpaque())
+        _CFStreamInitWithFile(_pointer, url._cfObject, true)
     }
     
     deinit {
-        CFReadStreamSetClient(_stream, .max, nil, nil)
+        _CFDeinit(self)
     }
     
     public convenience init?(fileAtPath path: String) {
@@ -175,50 +194,50 @@ open class InputStream: Stream {
     }
     
     open override func open() {
-        CFReadStreamOpen(_stream)
+        CFReadStreamOpen(_cfObject)
     }
     
     open override func close() {
-        CFReadStreamClose(_stream)
+        CFReadStreamClose(_cfObject)
     }
     
     open override func property(forKey key: PropertyKey) -> AnyObject? {
-        return CFReadStreamCopyProperty(_stream, key.rawValue._cfObject)
+        return CFReadStreamCopyProperty(_cfObject, key.rawValue._cfObject)
     }
     
     open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
-        return CFReadStreamSetProperty(_stream, key.rawValue._cfObject, property)
+        return CFReadStreamSetProperty(_cfObject, key.rawValue._cfObject, property)
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFReadStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamScheduleWithRunLoop(_cfObject, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFReadStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFReadStreamUnscheduleFromRunLoop(_cfObject, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
     }
     
     open override var streamStatus: Status {
-        return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+        return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_cfObject)))!
     }
     
     open override var streamError: Error? {
-        return CFReadStreamCopyError(_stream)
+        return CFReadStreamCopyError(_cfObject)
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
         switch object {
         case let object as InputStream:
-            return self._stream == object._stream
+            return CFEqual(self._cfObject, object._cfObject)
         case let object as CFReadStream:
-            return self._stream == object
+            return CFEqual(self._cfObject, object)
         default:
             return false
         }
     }
     
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_stream))
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     fileprivate static let clientCallback: CFReadStreamClientCallBack = { cfstream , event, info in
@@ -226,7 +245,7 @@ open class InputStream: Stream {
             return
         }
         let handle = Stream.Event(rawValue: UInt(event))
-        delegate.stream(InputStream(cfstream), handle: handle)
+        delegate.stream(unsafeBitCast(cfstream, to: InputStream.self), handle: handle)
     }
 }
 
@@ -235,11 +254,31 @@ open class InputStream: Stream {
 // Currently this is left as named OutputStream due to conflicts with the standard library's text streaming target protocol named OutputStream (which ideally should be renamed)
 open class OutputStream : Stream {
     
-    internal var _stream: CFWriteStream!
+    typealias CFType = CFWriteStream
+    internal var _base = _CFInfo(typeID: CFWriteStreamGetTypeID())
+    internal var _flags : CFOptionFlags = 0
+    internal var _error : UnsafeMutablePointer<CFError>? = nil
+    internal var _client : UnsafeMutablePointer<_CFStreamClient>? = nil
+    internal var _info : UnsafeMutableRawPointer? = nil
+    internal var _callBacks : UnsafeMutablePointer<_CFStreamCallBacks>? = nil
+    internal var _lock : pthread_mutex_t? = nil
+    internal var _previousRunloopsAndModes : UnsafeMutablePointer<CFArray>? = nil
+    #if DEPLOYMENT_ENABLE_LIBDISPATCH
+    internal var _queue : UnsafeMutableRawPointer?
+    #endif
+    internal var _pendingEventsToDeliver : _DarwinCompatibleBoolean = false
+    
+    internal var _cfObject: CFType {
+        return unsafeBitCast(self, to: CFType.self)
+    }
+    
+    override open var _cfTypeID: CFTypeID {
+        return CFWriteStreamGetTypeID()
+    }
     
     open override var delegate: StreamDelegate? {
         get {
-            if let info = _CFWriteStreamGetClient(_stream) {
+            if let info = _CFWriteStreamGetClient(_cfObject) {
                 return info.assumingMemoryBound(to: StreamDelegate.self).pointee
             }
             return nil
@@ -248,44 +287,44 @@ open class OutputStream : Stream {
             if let newValue = newValue as AnyObject? {
                 let info = Unmanaged.passUnretained(newValue).toOpaque()
                 var context = CFStreamClientContext(version: 0, info: info, retain: nil, release: nil, copyDescription: nil)
-                CFWriteStreamSetClient(_stream, 0x1f, OutputStream.clientCallback, &context)
+                CFWriteStreamSetClient(_cfObject, 0x1f, OutputStream.clientCallback, &context)
             } else {
-                CFWriteStreamSetClient(_stream, 0, nil, nil)
+                CFWriteStreamSetClient(_cfObject, 0, nil, nil)
             }
         }
     }
     
     // writes the bytes from the specified buffer to the stream up to len bytes. Returns the number of bytes actually written.
     open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
-        return CFWriteStreamWrite(_stream, buffer, len)
+        return CFWriteStreamWrite(_cfObject, buffer, len)
     }
     
     // returns YES if the stream can be written to or if it is impossible to tell without actually doing the write.
     open var hasSpaceAvailable: Bool {
-        return CFWriteStreamCanAcceptBytes(_stream)
+        return CFWriteStreamCanAcceptBytes(_cfObject)
     }
     
     // NOTE: on Darwin this is     'open class func toMemory() -> Self'
     required public init(toMemory: ()) {
-        _stream = CFWriteStreamCreateWithAllocatedBuffers(kCFAllocatorDefault, kCFAllocatorDefault)
+        super.init()
+        _CFWriteStreamInitWithAllocatedBuffers(_cfObject, kCFAllocatorDefault)
     }
     
     // TODO: this should use the real buffer API
     public init(toBuffer buffer: UnsafeMutablePointer<UInt8>, capacity: Int) {
-        _stream = CFWriteStreamCreateWithBuffer(kCFAllocatorSystemDefault, buffer, capacity)
+        super.init()
+        _CFWriteStreamInitWithBuffer(_cfObject, buffer, capacity)
     }
     
     public init?(url: URL, append shouldAppend: Bool) {
-        _stream = CFWriteStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)
-        CFWriteStreamSetProperty(_stream, kCFStreamPropertyAppendToFile, shouldAppend._cfObject)
-    }
-    
-    fileprivate init(_ stream: CFWriteStream) {
-        self._stream = stream
+        super.init()
+        let _pointer = OpaquePointer(Unmanaged.passUnretained(self).toOpaque())
+        _CFStreamInitWithFile(_pointer, url._cfObject, true)
+        CFWriteStreamSetProperty(_cfObject, kCFStreamPropertyAppendToFile, shouldAppend._cfObject)
     }
     
     deinit {
-        CFWriteStreamSetClient(_stream, .max, nil, nil)
+        _CFDeinit(self)
     }
     
     public convenience init?(toFileAtPath path: String, append shouldAppend: Bool) {
@@ -293,11 +332,11 @@ open class OutputStream : Stream {
     }
     
     open override func open() {
-        CFWriteStreamOpen(_stream)
+        CFWriteStreamOpen(_cfObject)
     }
     
     open override func close() {
-        CFWriteStreamClose(_stream)
+        CFWriteStreamClose(_cfObject)
     }
     
     open class func toMemory() -> Self {
@@ -305,42 +344,42 @@ open class OutputStream : Stream {
     }
     
     open override func property(forKey key: PropertyKey) -> AnyObject? {
-        return CFWriteStreamCopyProperty(_stream, key.rawValue._cfObject)
+        return CFWriteStreamCopyProperty(_cfObject, key.rawValue._cfObject)
     }
     
     open override func setProperty(_ property: AnyObject?, forKey key: PropertyKey) -> Bool {
-        return CFWriteStreamSetProperty(_stream, key.rawValue._cfObject, property)
+        return CFWriteStreamSetProperty(_cfObject, key.rawValue._cfObject, property)
     }
     
     open override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFWriteStreamScheduleWithRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamScheduleWithRunLoop(_cfObject, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
     }
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
-        CFWriteStreamUnscheduleFromRunLoop(_stream, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
+        CFWriteStreamUnscheduleFromRunLoop(_cfObject, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
     }
     
     open override var streamStatus: Status {
-        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
+        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_cfObject)))!
     }
     
     open override var streamError: Error? {
-        return CFWriteStreamCopyError(_stream)
+        return CFWriteStreamCopyError(_cfObject)
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
         switch object {
         case let object as OutputStream:
-            return self._stream == object._stream
+            return self._cfObject == object._cfObject
         case let object as CFWriteStream:
-            return self._stream == object
+            return self._cfObject == object
         default:
             return false
         }
     }
     
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_stream))
+        return Int(bitPattern: CFHash(_cfObject))
     }
     
     fileprivate static let clientCallback: CFWriteStreamClientCallBack = { cfstream , event, info in
@@ -348,7 +387,7 @@ open class OutputStream : Stream {
             return
         }
         let handle = Stream.Event(rawValue: UInt(event))
-        delegate.stream(OutputStream(cfstream), handle: handle)
+        delegate.stream(unsafeBitCast(cfstream, to: OutputStream.self), handle: handle)
     }
 }
 

@@ -59,6 +59,8 @@ CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream);
 #define CF_PRIVATE __attribute__((__visibility__("hidden")))
 #endif
 
+void __CFCopyStream(struct _CFStream *newStream, struct _CFStream *source);
+
 // cb version must be > 0
 CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
 
@@ -74,6 +76,15 @@ CFReadStreamRef _CFReadStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int 
 CF_EXPORT
 CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+Boolean _CFStreamInitWithConstantCallbacks(struct _CFStream* newStream, void *info,  const struct _CFStreamCallBacks *cb, Boolean isReading);
+Boolean _CFStreamInitWithFile(struct _CFStream *stream, CFURLRef fileURL, Boolean forReading);
+
+CF_EXPORT Boolean _CFReadStreamInitWithBytesNoCopy(CFReadStreamRef stream, const UInt8 *bytes, CFIndex length, CFAllocatorRef bytesDeallocator);
+CF_EXPORT Boolean _CFReadStreamInitWithData(CFReadStreamRef stream, CFDataRef data);
+Boolean _CFWriteStreamInitWithBuffer(CFWriteStreamRef stream, UInt8 *buffer, CFIndex bufferCapacity);
+CF_EXPORT Boolean _CFWriteStreamInitWithAllocatedBuffers(CFWriteStreamRef stream, CFAllocatorRef bufferAllocator);
+#endif
 
 
 #define SECURITY_NONE   (0)

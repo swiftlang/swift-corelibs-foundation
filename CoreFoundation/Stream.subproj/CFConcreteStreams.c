@@ -847,6 +847,56 @@ CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, in
 static const struct _CFStreamCallBacksV1 readDataCallBacks = {1, readDataCreate, readDataFinalize, readDataCopyDescription, readDataOpen, NULL, dataRead, dataGetBuffer, dataCanRead, NULL, NULL, NULL, NULL, NULL, NULL, readDataSchedule, NULL};
 static const struct _CFStreamCallBacksV1 writeDataCallBacks = {1, writeDataCreate, writeDataFinalize, writeDataCopyDescription, writeDataOpen, NULL, NULL, NULL, NULL, dataWrite, dataCanWrite, NULL, dataCopyProperty, NULL, NULL, writeDataSchedule, NULL};
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+
+Boolean _CFStreamInitWithFile(struct _CFStream *stream, CFURLRef fileURL, Boolean forReading) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    struct _CFStream *result = _CFStreamCreateWithFile(allocator, fileURL, forReading);
+    if (result == NULL) return false;
+    __CFCopyStream(stream, result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+
+CF_EXPORT Boolean _CFReadStreamInitWithBytesNoCopy(CFReadStreamRef stream, const UInt8 *bytes, CFIndex length, CFAllocatorRef bytesDeallocator) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    CFReadStreamRef result = CFReadStreamCreateWithBytesNoCopy(allocator, bytes, length, bytesDeallocator);
+    if (result == NULL) return false;
+    __CFCopyStream((struct _CFStream *)stream, (struct _CFStream *)result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+
+/* This needs to be exported to make it callable from Foundation. */
+CF_EXPORT Boolean _CFReadStreamInitWithData(CFReadStreamRef stream, CFDataRef data) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    CFReadStreamRef result = CFReadStreamCreateWithData(allocator, data);
+    if (result == NULL) return false;
+    __CFCopyStream((struct _CFStream *)stream, (struct _CFStream *)result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+
+Boolean _CFWriteStreamInitWithBuffer(CFWriteStreamRef stream, UInt8 *buffer, CFIndex bufferCapacity) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    CFWriteStreamRef result = CFWriteStreamCreateWithBuffer(allocator, buffer, bufferCapacity);
+    if (result == NULL) return false;
+    __CFCopyStream((struct _CFStream *)stream, (struct _CFStream *)result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+
+CF_EXPORT Boolean _CFWriteStreamInitWithAllocatedBuffers(CFWriteStreamRef stream, CFAllocatorRef bufferAllocator) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    CFWriteStreamRef result = CFWriteStreamCreateWithAllocatedBuffers(allocator, bufferAllocator);
+    if (result == NULL) return false;
+    __CFCopyStream((struct _CFStream *)stream, (struct _CFStream *)result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+
+#endif
+
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithBytesNoCopy(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex length, CFAllocatorRef bytesDeallocator) {
     _CFReadDataStreamContext ctxt;
     CFReadStreamRef result;

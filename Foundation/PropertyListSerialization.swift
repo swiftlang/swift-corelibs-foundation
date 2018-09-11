@@ -109,6 +109,6 @@ open class PropertyListSerialization : NSObject {
     }
     
     open class func propertyList(with stream: InputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
-        return try propertyList(with: stream._stream, options: opt, format: format)
+        return try propertyList(with: stream._cfObject, options: opt, format: format)
     }
 }

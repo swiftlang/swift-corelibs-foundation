@@ -384,6 +384,32 @@ CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream) {
     return stream == NULL? NULL : stream->info;
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+void __CFCopyStream(struct _CFStream *newStream, struct _CFStream *source) {
+    newStream->_cfBase._cfinfoa = source->_cfBase._cfinfoa;
+    newStream->flags = source->flags;
+    newStream->error = source->error;
+    newStream->client = source->client;
+    newStream->info = source->info;
+    newStream->callBacks = source->callBacks;
+    newStream->streamLock = source->streamLock;
+    newStream->previousRunloopsAndModes = source->previousRunloopsAndModes;
+#if __HAS_DISPATCH__
+    newStream->queue = source->queue;
+#endif
+    newStream->pendingEventsToDeliver = source->pendingEventsToDeliver;
+}
+
+Boolean _CFStreamInitWithConstantCallbacks(struct _CFStream *newStream, void *info,  const struct _CFStreamCallBacks *cb, Boolean isReading) {
+    CFAllocatorRef allocator = kCFAllocatorSystemDefault;
+    struct _CFStream *result = _CFStreamCreateWithConstantCallbacks(allocator, info, cb, isReading);
+    if (result == NULL) return false;
+    __CFCopyStream(newStream, result);
+    CFAllocatorDeallocate(allocator, result);
+    return true;
+}
+#endif
+
 CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info,  const struct _CFStreamCallBacks *cb, Boolean isReading) {
     struct _CFStream *newStream;
     if (cb->version != 1) return NULL;
