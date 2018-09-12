@@ -449,12 +449,10 @@ extension NSString {
             guard let otherCh = otherIterator.next() else { break }
 
             if ch != otherCh {
-                if !caseInsensitive || (String(otherCh).lowercased() != String(ch).lowercased()) {
-                    break
-                }
+                guard caseInsensitive && String(ch).lowercased() == String(otherCh).lowercased() else { break }
             }
 
-            if literal, otherCh.unicodeScalars.count != ch.unicodeScalars.count { break }
+            if literal && otherCh.unicodeScalars.count != ch.unicodeScalars.count { break }
             result.append(ch)
         }
 

@@ -1217,10 +1217,13 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual("abcba".commonPrefix(with: "abcde"), "abc")
         XCTAssertEqual("/path/to/file1".commonPrefix(with: "/path/to/file2"), "/path/to/file")
         XCTAssertEqual("/a_really_long_path/to/a/file".commonPrefix(with: "/a_really_long_path/to/the/file"), "/a_really_long_path/to/")
-        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "Mädchenschule"), "Ma\u{308}dchen")
         XCTAssertEqual("this".commonPrefix(with: "THAT", options: [.caseInsensitive]), "th")
-        XCTAssertEqual("this".commonPrefix(with: "THAT", options: [.caseInsensitive, .literal]), "th")
-        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "Mädchenschule", options: [.literal]), "M")
+
+        // Both forms of ä, a\u{308} decomposed and \u{E4} precomposed, should match without .literal and not match when .literal is used
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule"), "Ma\u{308}dchen")
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.literal]), "M")
+        XCTAssertEqual("m\u{E4}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "mädchen")
+        XCTAssertEqual("ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "m")
     }
 }
 
