@@ -110,7 +110,7 @@ module = 'Base.subproj/module.modulemap',
 public = [
 	'Stream.subproj/CFStream.h',
 	'String.subproj/CFStringEncodingExt.h',
-	'Base.subproj/SwiftRuntime/CoreFoundation.h',
+	'Base.subproj/CoreFoundation.h',
 	'Base.subproj/SwiftRuntime/TargetConditionals.h',
 	'RunLoop.subproj/CFMessagePort.h',
 	'Collections.subproj/CFBinaryHeap.h',
