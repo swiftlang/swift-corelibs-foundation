@@ -160,7 +160,6 @@ struct __CFConstStr {
         uint64_t _cfinfoa;
 #else
         uint32_t _cfinfoa;
-        uint32_t _padding;
 #endif
     } _base;
     uint8_t *_ptr;

@@ -215,16 +215,10 @@ internal func NSInvalidArgument(_ message: String, method: String = #function, f
 
 internal struct _CFInfo {
     // This must match _CFRuntimeBase
-    var info: UInt32
-    var pad : UInt32
+    var info: UInt
     init(typeID: CFTypeID) {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
-        pad = 0
-    }
-    init(typeID: CFTypeID, extra: UInt32) {
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
-        pad = extra
+        info = (typeID << 8) | 0x80
     }
 }
 

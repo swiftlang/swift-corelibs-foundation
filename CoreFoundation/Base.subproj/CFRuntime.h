@@ -194,19 +194,18 @@ typedef struct __CFRuntimeBase {
     // This matches the isa and retain count storage in Swift
     uintptr_t _cfisa;
     uintptr_t _swift_rc;
-    // This is for CF's use, and must match _CFInfo layout
+    // This is for CF's use, and must match _CFInfo / _NSCFType layout
 #if defined(__LP64__) || defined(__LLP64__)
     _Atomic(uint64_t) _cfinfoa;
 #else
     _Atomic(uint32_t) _cfinfoa;
-    uint32_t          _padding;
 #endif
 } CFRuntimeBase;
 
 #if defined(__LP64__) || defined(__LLP64__)
 #define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
 #else
-#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000080UL, 0}
+#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000080UL}
 #endif
 
 #else
