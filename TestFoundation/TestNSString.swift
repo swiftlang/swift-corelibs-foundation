@@ -92,6 +92,7 @@ class TestNSString: LoopbackServerTest {
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
             ("test_createCopy", test_createCopy),
+            ("test_commonPrefix", test_commonPrefix)
         ]
     }
 
@@ -1230,6 +1231,22 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNotEqual(string, stringCopy)
         XCTAssertEqual(string, "foobar")
         XCTAssertEqual(stringCopy, "foo")
+    }
+
+    func test_commonPrefix() {
+        XCTAssertEqual("".commonPrefix(with: ""), "")
+        XCTAssertEqual("1234567890".commonPrefix(with: ""), "")
+        XCTAssertEqual("".commonPrefix(with: "1234567890"), "")
+        XCTAssertEqual("abcba".commonPrefix(with: "abcde"), "abc")
+        XCTAssertEqual("/path/to/file1".commonPrefix(with: "/path/to/file2"), "/path/to/file")
+        XCTAssertEqual("/a_really_long_path/to/a/file".commonPrefix(with: "/a_really_long_path/to/the/file"), "/a_really_long_path/to/")
+        XCTAssertEqual("this".commonPrefix(with: "THAT", options: [.caseInsensitive]), "th")
+
+        // Both forms of ä, a\u{308} decomposed and \u{E4} precomposed, should match without .literal and not match when .literal is used
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule"), "Ma\u{308}dchen")
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.literal]), "M")
+        XCTAssertEqual("m\u{E4}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "mädchen")
+        XCTAssertEqual("ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "m")
     }
 }
 
