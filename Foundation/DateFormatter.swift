@@ -97,7 +97,7 @@ open class DateFormatter : Formatter {
 
     internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: isLenient._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: _timeZone?._cfObject)
         if let ident = _calendar?.identifier {
             _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
         } else {
@@ -166,11 +166,31 @@ open class DateFormatter : Formatter {
         }
     }
 
-    /*@NSCopying*/ open var locale: Locale! = .current { willSet { _reset() } }
+    /*@NSCopying*/ internal var _locale: Locale? { willSet { _reset() } }
+    open var locale: Locale! {
+        get {
+            guard let locale = _locale else { return .current }
+            return locale
+        }
+        set {
+            _locale = newValue
+        }
+    }
 
     open var generatesCalendarDates = false { willSet { _reset() } }
 
-    /*@NSCopying*/ open var timeZone: TimeZone! = NSTimeZone.system { willSet { _reset() } }
+    /*@NSCopying*/ internal var _timeZone: TimeZone? { willSet { _reset() } }
+    open var timeZone: TimeZone! {
+        get {
+            guard let timeZone = _timeZone else {
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTimeZone) as! NSTimeZone)._swiftObject
+            }
+            return timeZone
+        }
+        set {
+            _timeZone = timeZone
+        }
+    }
 
     /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
     open var calendar: Calendar! {
