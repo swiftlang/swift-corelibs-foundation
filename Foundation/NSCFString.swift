@@ -57,6 +57,7 @@ internal class _NSCFString : NSMutableString {
     }
 }
 
+@usableFromInline
 internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
         // FIXME: Split expression as a work-around for slow type

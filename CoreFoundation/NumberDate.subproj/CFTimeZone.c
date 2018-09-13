@@ -1013,8 +1013,6 @@ void CFTimeZoneSetAbbreviationDictionary(CFDictionaryRef dict) {
     __CFTimeZoneUnlockGlobal();
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-
 CF_INLINE const UChar *STRING_to_UTF16(CFStringRef S) { // UTF16String
     CFIndex length = CFStringGetLength((CFStringRef)S);
     UChar *buffer = (UChar *)malloc((length + 1) * sizeof(UChar));
@@ -1244,7 +1242,6 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     }
     return false;
 }
-#endif
 
 CFTimeZoneRef CFTimeZoneCreate(CFAllocatorRef allocator, CFStringRef name, CFDataRef data) {
 // assert:    (NULL != name && NULL != data);

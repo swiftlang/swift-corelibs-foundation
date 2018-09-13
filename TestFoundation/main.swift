@@ -103,5 +103,6 @@ XCTMain([
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
+    testCase(TestDimension.allTests),
     testCase(TestNSLock.allTests),
 ])

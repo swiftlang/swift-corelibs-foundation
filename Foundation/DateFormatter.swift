@@ -15,16 +15,16 @@ open class DateFormatter : Formatter {
     private var _cfObject: CFType {
         guard let obj = __cfObject else {
             #if os(macOS) || os(iOS)
-                let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
-                let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
+            let dateStyle = CFDateFormatterStyle(rawValue: CFIndex(self.dateStyle.rawValue))!
+            let timeStyle = CFDateFormatterStyle(rawValue: CFIndex(self.timeStyle.rawValue))!
             #else
-                let dateStyle = CFDateFormatterStyle(self.dateStyle.rawValue)
-                let timeStyle = CFDateFormatterStyle(self.timeStyle.rawValue)
+            let dateStyle = CFDateFormatterStyle(self.dateStyle.rawValue)
+            let timeStyle = CFDateFormatterStyle(self.timeStyle.rawValue)
             #endif
             
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
             _setFormatterAttributes(obj)
-            if let dateFormat = attributes[AttributeKey.dateFormat] as? String {
+            if let dateFormat = _dateFormat {
                 CFDateFormatterSetFormat(obj, dateFormat._cfObject)
             }
             __cfObject = obj
@@ -33,8 +33,82 @@ open class DateFormatter : Formatter {
         return obj
     }
     
-    private var attributes: [String: Any] = [:]
-
+    private var attributes: [String: Any] {
+        get {
+            var result = [String: Any]()
+            
+            result[AttributeKey.dateFormat] = _dateFormat
+            result[AttributeKey.timeZone] = _timeZone
+            result[AttributeKey.calendar] = _calendar
+            result[AttributeKey.locale] = _locale
+            result[AttributeKey.amSymbol] = _amSymbol
+            result[AttributeKey.pmSymbol] = _pmSymbol
+            result[AttributeKey.eraSymbols] = _eraSymbols
+            result[AttributeKey.longEraSymbols] = _longEraSymbols
+            result[AttributeKey.veryShortWeekdaySymbols] = _veryShortWeekdaySymbols
+            result[AttributeKey.shortWeekdaySymbols] = _shortWeekdaySymbols
+            result[AttributeKey.weekdaySymbols] = _weekdaySymbols
+            result[AttributeKey.veryShortStandaloneWeekdaySymbols] = _veryShortStandaloneWeekdaySymbols
+            result[AttributeKey.shortStandaloneWeekdaySymbols] = _shortStandaloneWeekdaySymbols
+            result[AttributeKey.standaloneWeekdaySymbols] = _standaloneWeekdaySymbols
+            result[AttributeKey.veryShortMonthSymbols] = _veryShortMonthSymbols
+            result[AttributeKey.shortMonthSymbols] = _shortMonthSymbols
+            result[AttributeKey.monthSymbols] = _monthSymbols
+            result[AttributeKey.veryShortStandaloneMonthSymbols] = _veryShortStandaloneMonthSymbols
+            result[AttributeKey.shortStandaloneMonthSymbols] = _shortStandaloneMonthSymbols
+            result[AttributeKey.standaloneMonthSymbols] = _standaloneMonthSymbols
+            result[AttributeKey.shortQuarterSymbols] = _shortQuarterSymbols
+            result[AttributeKey.quarterSymbols] = _quarterSymbols
+            result[AttributeKey.shortStandaloneQuarterSymbols] = _shortStandaloneQuarterSymbols
+            result[AttributeKey.standaloneQuarterSymbols] = _standaloneQuarterSymbols
+            if doesRelativeDateFormatting {
+                result[AttributeKey.doesRelativeDateFormatting] = true
+            }
+            if generatesCalendarDates {
+                result[AttributeKey.generatesCalendarDates] = true
+            }
+            if isLenient {
+                result[AttributeKey.isLenient] = true
+            }
+            result[AttributeKey.twoDigitStartDate] = _twoDigitStartDate
+            result[AttributeKey.gregorianStartDate] = _gregorianStartDate
+            result[AttributeKey.defaultDate] = defaultDate
+            return result
+        }
+        set {
+            _dateFormat = newValue[AttributeKey.dateFormat] as? String
+            _timeZone = newValue[AttributeKey.timeZone] as? TimeZone
+            _calendar = newValue[AttributeKey.calendar] as? Calendar
+            _locale = newValue[AttributeKey.locale] as? Locale
+            _amSymbol = newValue[AttributeKey.amSymbol] as? String
+            _pmSymbol = newValue[AttributeKey.pmSymbol] as? String
+            _eraSymbols = newValue[AttributeKey.eraSymbols] as? [String]
+            _longEraSymbols = newValue[AttributeKey.longEraSymbols] as? [String]
+            _veryShortWeekdaySymbols = newValue[AttributeKey.veryShortWeekdaySymbols] as? [String]
+            _shortWeekdaySymbols = newValue[AttributeKey.shortWeekdaySymbols] as? [String]
+            _weekdaySymbols = newValue[AttributeKey.weekdaySymbols] as? [String]
+            _veryShortStandaloneWeekdaySymbols = newValue[AttributeKey.veryShortStandaloneWeekdaySymbols] as? [String]
+            _shortStandaloneWeekdaySymbols = newValue[AttributeKey.shortStandaloneWeekdaySymbols] as? [String]
+            _standaloneWeekdaySymbols = newValue[AttributeKey.standaloneWeekdaySymbols] as? [String]
+            _veryShortMonthSymbols = newValue[AttributeKey.veryShortMonthSymbols] as? [String]
+            _shortMonthSymbols = newValue[AttributeKey.shortMonthSymbols] as? [String]
+            _monthSymbols = newValue[AttributeKey.monthSymbols] as? [String]
+            _veryShortStandaloneMonthSymbols = newValue[AttributeKey.veryShortStandaloneMonthSymbols] as? [String]
+            _shortStandaloneMonthSymbols = newValue[AttributeKey.shortStandaloneMonthSymbols] as? [String]
+            _standaloneMonthSymbols = newValue[AttributeKey.standaloneMonthSymbols] as? [String]
+            _shortQuarterSymbols = newValue[AttributeKey.shortQuarterSymbols] as? [String]
+            _quarterSymbols = newValue[AttributeKey.quarterSymbols] as? [String]
+            _shortStandaloneQuarterSymbols = newValue[AttributeKey.shortStandaloneQuarterSymbols] as? [String]
+            _standaloneQuarterSymbols = newValue[AttributeKey.standaloneQuarterSymbols] as? [String]
+            doesRelativeDateFormatting = newValue[AttributeKey.doesRelativeDateFormatting] as? Bool ?? false
+            generatesCalendarDates = newValue[AttributeKey.generatesCalendarDates] as? Bool ?? false
+            isLenient = newValue[AttributeKey.isLenient] as? Bool ?? false
+            _twoDigitStartDate = newValue[AttributeKey.twoDigitStartDate] as? Date
+            _gregorianStartDate = newValue[AttributeKey.gregorianStartDate] as? Date
+            defaultDate = newValue[AttributeKey.defaultDate] as? Date
+        }
+    }
+    
     public override init() {
         super.init()
     }
@@ -61,20 +135,20 @@ open class DateFormatter : Formatter {
         attributes.setObject(NSNumber(value: 1040), forKey: "formatterBehavior")
         aCoder.encode(attributes, forKey: "NS.attributes")
     }
-
+    
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
-
+    
     open func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
-
+    
     open override func string(for obj: Any) -> String? {
         guard let date = obj as? Date else { return nil }
         return string(from: date)
     }
-
+    
     open func string(from date: Date) -> String {
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, _cfObject, date._cfObject)._swiftObject
     }
-
+    
     open func date(from string: String) -> Date? {
         var range = CFRange(location: 0, length: string.length)
         let date = withUnsafeMutablePointer(to: &range) { (rangep: UnsafeMutablePointer<CFRange>) -> Date? in
@@ -85,34 +159,34 @@ open class DateFormatter : Formatter {
         }
         return date
     }
-
+    
     open class func localizedString(from date: Date, dateStyle dstyle: Style, timeStyle tstyle: Style) -> String {
         let df = DateFormatter()
         df.dateStyle = dstyle
         df.timeStyle = tstyle
         return df.string(for: date._nsObject)!
     }
-
+    
     open class func dateFormat(fromTemplate tmplate: String, options opts: Int, locale: Locale?) -> String? {
         guard let res = CFDateFormatterCreateDateFormatFromTemplate(kCFAllocatorSystemDefault, tmplate._cfObject, CFOptionFlags(opts), locale?._cfObject) else {
             return nil
         }
         return res._swiftObject
     }
-
+    
     open func setLocalizedDateFormatFromTemplate(_ dateFormatTemplate: String) {
         if let format = DateFormatter.dateFormat(fromTemplate: dateFormatTemplate, options: 0, locale: locale) {
             dateFormat = format
         }
     }
-
+    
     private func _reset() {
         __cfObject = nil
     }
     
     internal func _setFormatterAttributes(_ formatter: CFDateFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterIsLenient, value: isLenient._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: timeZone?._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFDateFormatterTimeZone, value: _timeZone?._cfObject)
         if let ident = _calendar?.identifier {
             _setFormatterAttribute(formatter, attributeName: kCFDateFormatterCalendarName, value: Calendar._toNSCalendarIdentifier(ident).rawValue._cfObject)
         } else {
@@ -143,77 +217,71 @@ open class DateFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterShortStandaloneQuarterSymbols, value: _shortStandaloneQuarterSymbols?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFDateFormatterGregorianStartDate, value: _gregorianStartDate?._cfObject)
     }
-
+    
     internal func _setFormatterAttribute(_ formatter: CFDateFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFDateFormatterSetProperty(formatter, attributeName, value)
         }
     }
     
+    private var _dateFormat: String? { willSet { _reset() } }
     open var dateFormat: String! {
         get {
-            guard let format = attributes[AttributeKey.dateFormat] as? String else {
+            guard let format = _dateFormat else {
                 return __cfObject.map { CFDateFormatterGetFormat($0)._swiftObject } ?? ""
             }
             return format
         }
         set {
-            _reset()
-            attributes[AttributeKey.dateFormat] = newValue?._nsObject
+            _dateFormat = newValue
         }
     }
-
+    
     open var dateStyle: Style = .none {
         willSet {
-            dateFormat = nil
+            _dateFormat = nil
         }
         didSet {
-            dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
+            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
         }
     }
-
+    
     open var timeStyle: Style = .none {
         willSet {
-            dateFormat = nil
+            _dateFormat = nil
         }
         didSet {
-            dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
+            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
         }
     }
     
-    /*@NSCopying*/ open var locale: Locale! {
+    /*@NSCopying*/ internal var _locale: Locale? { willSet { _reset() } }
+    open var locale: Locale! {
         get {
-            return (attributes[AttributeKey.locale] as? NSLocale)?._swiftObject ?? .current
+            guard let locale = _locale else { return .current }
+            return locale
         }
         set {
-            _reset()
-            attributes[AttributeKey.locale] = newValue?._bridgeToObjectiveC()
+            _locale = newValue
         }
     }
     
-    open var generatesCalendarDates: Bool {
+    open var generatesCalendarDates = false { willSet { _reset() } }
+    
+    /*@NSCopying*/ internal var _timeZone: TimeZone? { willSet { _reset() } }
+    open var timeZone: TimeZone! {
         get {
-            return (attributes[AttributeKey.generatesCalendarDates] as? NSNumber)?.boolValue ?? false
+            guard let timeZone = _timeZone else {
+                return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTimeZone) as! NSTimeZone)._swiftObject
+            }
+            return timeZone
         }
         set {
-            _reset()
-            attributes[AttributeKey.generatesCalendarDates] = NSNumber(value: newValue)
-        }
-    }
-
-    /*@NSCopying*/ open var timeZone: TimeZone! {
-        get {
-            return (attributes[AttributeKey.generatesCalendarDates] as? NSTimeZone)?._swiftObject ?? NSTimeZone.system
-        }
-        set {
-            _reset()
-            attributes[AttributeKey.generatesCalendarDates] = newValue?._nsObject
+            _timeZone = timeZone
         }
     }
     
-    private var _calendar: Calendar? {
-        return (attributes[AttributeKey.calendar] as? NSCalendar)?._swiftObject
-    }
+    /*@NSCopying*/ internal var _calendar: Calendar! { willSet { _reset() } }
     open var calendar: Calendar! {
         get {
             guard let calendar = _calendar else {
@@ -222,25 +290,14 @@ open class DateFormatter : Formatter {
             return calendar
         }
         set {
-            _reset()
-            attributes[AttributeKey.calendar] = newValue?._nsObject
-        }
-    }
-
-    open var isLenient: Bool {
-        get {
-            return (attributes[AttributeKey.isLenient] as? NSNumber)?.boolValue ?? false
-        }
-        set {
-            _reset()
-            attributes[AttributeKey.isLenient] = NSNumber(value: newValue)
+            _calendar = newValue
         }
     }
     
-    private var _twoDigitStartDate: Date? {
-        return (attributes[AttributeKey.twoDigitStartDate] as? NSDate)?._swiftObject
-    }
-    /*@NSCopying*/ open var twoDigitStartDate: Date? {
+    open var isLenient = false { willSet { _reset() } }
+    
+    /*@NSCopying*/ internal var _twoDigitStartDate: Date? { willSet { _reset() } }
+    open var twoDigitStartDate: Date? {
         get {
             guard let startDate = _twoDigitStartDate else {
                 return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTwoDigitStartDate) as? NSDate)?._swiftObject
@@ -248,24 +305,13 @@ open class DateFormatter : Formatter {
             return startDate
         }
         set {
-            _reset()
-            attributes[AttributeKey.twoDigitStartDate] = newValue?._nsObject
-        }
-    }
-
-    /*@NSCopying*/ open var defaultDate: Date? {
-        get {
-            return (attributes[AttributeKey.defaultDate] as? NSDate)?._swiftObject
-        }
-        set {
-            _reset()
-            attributes[AttributeKey.defaultDate] = newValue?._nsObject
+            _twoDigitStartDate = newValue
         }
     }
     
-    internal var _eraSymbols: [String]? {
-        return attributes[AttributeKey.eraSymbols] as? [String]
-    }
+    /*@NSCopying*/ open var defaultDate: Date? { willSet { _reset() } }
+    
+    internal var _eraSymbols: [String]! { willSet { _reset() } }
     open var eraSymbols: [String]! {
         get {
             guard let symbols = _eraSymbols else {
@@ -275,14 +321,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.eraSymbols] = newValue?._nsObject
+            _eraSymbols = newValue
         }
     }
     
-    internal var _monthSymbols: [String]? {
-        return attributes[AttributeKey.monthSymbols] as? [String]
-    }
+    internal var _monthSymbols: [String]! { willSet { _reset() } }
     open var monthSymbols: [String]! {
         get {
             guard let symbols = _monthSymbols else {
@@ -292,14 +335,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.monthSymbols] = newValue?._nsObject
+            _monthSymbols = newValue
         }
     }
-
-    internal var _shortMonthSymbols: [String]? {
-        return attributes[AttributeKey.shortMonthSymbols] as? [String]
-    }
+    
+    internal var _shortMonthSymbols: [String]! { willSet { _reset() } }
     open var shortMonthSymbols: [String]! {
         get {
             guard let symbols = _shortMonthSymbols else {
@@ -309,15 +349,12 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortMonthSymbols] = newValue?._nsObject
+            _shortMonthSymbols = newValue
         }
     }
     
-
-    internal var _weekdaySymbols: [String]? {
-        return attributes[AttributeKey.weekdaySymbols] as? [String]
-    }
+    
+    internal var _weekdaySymbols: [String]! { willSet { _reset() } }
     open var weekdaySymbols: [String]! {
         get {
             guard let symbols = _weekdaySymbols else {
@@ -327,14 +364,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.weekdaySymbols] = newValue?._nsObject
+            _weekdaySymbols = newValue
         }
     }
-
-    internal var _shortWeekdaySymbols: [String]? {
-        return attributes[AttributeKey.shortWeekdaySymbols] as? [String]
-    }
+    
+    internal var _shortWeekdaySymbols: [String]! { willSet { _reset() } }
     open var shortWeekdaySymbols: [String]! {
         get {
             guard let symbols = _shortWeekdaySymbols else {
@@ -344,14 +378,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortWeekdaySymbols] = newValue?._nsObject
+            _shortWeekdaySymbols = newValue
         }
     }
-
-    internal var _amSymbol: String? {
-        return attributes[AttributeKey.amSymbol] as? String
-    }
+    
+    internal var _amSymbol: String! { willSet { _reset() } }
     open var amSymbol: String! {
         get {
             guard let symbol = _amSymbol else {
@@ -360,14 +391,11 @@ open class DateFormatter : Formatter {
             return symbol
         }
         set {
-            _reset()
-            attributes[AttributeKey.amSymbol] = newValue?._nsObject
+            _amSymbol = newValue
         }
     }
-
-    internal var _pmSymbol: String! {
-        return attributes[AttributeKey.pmSymbol] as? String
-    }
+    
+    internal var _pmSymbol: String! { willSet { _reset() } }
     open var pmSymbol: String! {
         get {
             guard let symbol = _pmSymbol else {
@@ -376,14 +404,11 @@ open class DateFormatter : Formatter {
             return symbol
         }
         set {
-            _reset()
-            attributes[AttributeKey.pmSymbol] = newValue?._nsObject
+            _pmSymbol = newValue
         }
     }
-
-    internal var _longEraSymbols: [String]? {
-        return attributes[AttributeKey.longEraSymbols] as? [String]
-    }
+    
+    internal var _longEraSymbols: [String]! { willSet { _reset() } }
     open var longEraSymbols: [String]! {
         get {
             guard let symbols = _longEraSymbols else {
@@ -393,14 +418,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.longEraSymbols] = newValue?._nsObject
+            _longEraSymbols = newValue
         }
     }
-
-    internal var _veryShortMonthSymbols: [String]? {
-        return attributes[AttributeKey.veryShortMonthSymbols] as? [String]
-    }
+    
+    internal var _veryShortMonthSymbols: [String]! { willSet { _reset() } }
     open var veryShortMonthSymbols: [String]! {
         get {
             guard let symbols = _veryShortMonthSymbols else {
@@ -410,14 +432,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.veryShortMonthSymbols] = newValue?._nsObject
+            _veryShortMonthSymbols = newValue
         }
     }
-
-    internal var _standaloneMonthSymbols: [String]? {
-        return attributes[AttributeKey.standaloneMonthSymbols] as? [String]
-    }
+    
+    internal var _standaloneMonthSymbols: [String]! { willSet { _reset() } }
     open var standaloneMonthSymbols: [String]! {
         get {
             guard let symbols = _standaloneMonthSymbols else {
@@ -427,14 +446,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.standaloneMonthSymbols] = newValue?._nsObject
+            _standaloneMonthSymbols = newValue
         }
     }
-
-    internal var _shortStandaloneMonthSymbols: [String]? {
-        return attributes[AttributeKey.shortStandaloneMonthSymbols] as? [String]
-    }
+    
+    internal var _shortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
     open var shortStandaloneMonthSymbols: [String]! {
         get {
             guard let symbols = _shortStandaloneMonthSymbols else {
@@ -444,14 +460,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortStandaloneMonthSymbols] = newValue?._nsObject
+            _shortStandaloneMonthSymbols = newValue
         }
     }
-
-    internal var _veryShortStandaloneMonthSymbols: [String]? {
-        return attributes[AttributeKey.veryShortStandaloneMonthSymbols] as? [String]
-    }
+    
+    internal var _veryShortStandaloneMonthSymbols: [String]! { willSet { _reset() } }
     open var veryShortStandaloneMonthSymbols: [String]! {
         get {
             guard let symbols = _veryShortStandaloneMonthSymbols else {
@@ -461,14 +474,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.veryShortStandaloneMonthSymbols] = newValue?._nsObject
+            _veryShortStandaloneMonthSymbols = newValue
         }
     }
-
-    internal var _veryShortWeekdaySymbols: [String]? {
-        return attributes[AttributeKey.veryShortWeekdaySymbols] as? [String]
-    }
+    
+    internal var _veryShortWeekdaySymbols: [String]! { willSet { _reset() } }
     open var veryShortWeekdaySymbols: [String]! {
         get {
             guard let symbols = _veryShortWeekdaySymbols else {
@@ -478,14 +488,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.veryShortWeekdaySymbols] = newValue?._nsObject
+            _veryShortWeekdaySymbols = newValue
         }
     }
-
-    internal var _standaloneWeekdaySymbols: [String]? {
-        return attributes[AttributeKey.standaloneWeekdaySymbols] as? [String]
-    }
+    
+    internal var _standaloneWeekdaySymbols: [String]! { willSet { _reset() } }
     open var standaloneWeekdaySymbols: [String]! {
         get {
             guard let symbols = _standaloneWeekdaySymbols else {
@@ -495,14 +502,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.standaloneWeekdaySymbols] = newValue?._nsObject
+            _standaloneWeekdaySymbols = newValue
         }
     }
-
-    internal var _shortStandaloneWeekdaySymbols: [String]? {
-        return attributes[AttributeKey.shortStandaloneWeekdaySymbols] as? [String]
-    }
+    
+    internal var _shortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
     open var shortStandaloneWeekdaySymbols: [String]! {
         get {
             guard let symbols = _shortStandaloneWeekdaySymbols else {
@@ -512,14 +516,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortStandaloneWeekdaySymbols] = newValue?._nsObject
+            _shortStandaloneWeekdaySymbols = newValue
         }
     }
     
-    internal var _veryShortStandaloneWeekdaySymbols: [String]? {
-        return attributes[AttributeKey.veryShortStandaloneWeekdaySymbols] as? [String]
-    }
+    internal var _veryShortStandaloneWeekdaySymbols: [String]! { willSet { _reset() } }
     open var veryShortStandaloneWeekdaySymbols: [String]! {
         get {
             guard let symbols = _veryShortStandaloneWeekdaySymbols else {
@@ -529,14 +530,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.veryShortStandaloneWeekdaySymbols] = newValue?._nsObject
+            _veryShortStandaloneWeekdaySymbols = newValue
         }
     }
-
-    internal var _quarterSymbols: [String]? {
-        return attributes[AttributeKey.quarterSymbols] as? [String]
-    }
+    
+    internal var _quarterSymbols: [String]! { willSet { _reset() } }
     open var quarterSymbols: [String]! {
         get {
             guard let symbols = _quarterSymbols else {
@@ -546,14 +544,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.quarterSymbols] = newValue?._nsObject
+            _quarterSymbols = newValue
         }
     }
     
-    internal var _shortQuarterSymbols: [String]? {
-        return attributes[AttributeKey.shortQuarterSymbols] as? [String]
-    }
+    internal var _shortQuarterSymbols: [String]! { willSet { _reset() } }
     open var shortQuarterSymbols: [String]! {
         get {
             guard let symbols = _shortQuarterSymbols else {
@@ -563,14 +558,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortQuarterSymbols] = newValue?._nsObject
+            _shortQuarterSymbols = newValue
         }
     }
-
-    internal var _standaloneQuarterSymbols: [String]? {
-        return attributes[AttributeKey.standaloneQuarterSymbols] as? [String]
-    }
+    
+    internal var _standaloneQuarterSymbols: [String]! { willSet { _reset() } }
     open var standaloneQuarterSymbols: [String]! {
         get {
             guard let symbols = _standaloneQuarterSymbols else {
@@ -580,14 +572,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.standaloneQuarterSymbols] = newValue?._nsObject
+            _standaloneQuarterSymbols = newValue
         }
     }
-
-    internal var _shortStandaloneQuarterSymbols: [String]? {
-        return attributes[AttributeKey.shortStandaloneQuarterSymbols] as? [String]
-    }
+    
+    internal var _shortStandaloneQuarterSymbols: [String]! { willSet { _reset() } }
     open var shortStandaloneQuarterSymbols: [String]! {
         get {
             guard let symbols = _shortStandaloneQuarterSymbols else {
@@ -597,14 +586,11 @@ open class DateFormatter : Formatter {
             return symbols
         }
         set {
-            _reset()
-            attributes[AttributeKey.shortStandaloneQuarterSymbols] = newValue?._nsObject
+            _shortStandaloneQuarterSymbols = newValue
         }
     }
-
-    internal var _gregorianStartDate: Date? {
-         return (attributes[AttributeKey.gregorianStartDate] as? NSDate)?._swiftObject
-    }
+    
+    internal var _gregorianStartDate: Date? { willSet { _reset() } }
     open var gregorianStartDate: Date? {
         get {
             guard let startDate = _gregorianStartDate else {
@@ -613,11 +599,10 @@ open class DateFormatter : Formatter {
             return startDate
         }
         set {
-            _reset()
-            attributes[AttributeKey.gregorianStartDate] = newValue?._nsObject
+            _gregorianStartDate = newValue
         }
     }
-
+    
     open var doesRelativeDateFormatting = false { willSet { _reset() } }
 }
 
@@ -632,7 +617,7 @@ extension DateFormatter {
 }
 
 extension DateFormatter {
-    internal struct AttributeKey {
+    internal struct AttributeKey: Equatable, Hashable {
         static let dateFormat = "dateFormat"
         static let timeZone = "timeZone"
         static let calendar = "calendar"
@@ -665,3 +650,4 @@ extension DateFormatter {
         static let defaultDate = "defaultDate"
     }
 }
+
