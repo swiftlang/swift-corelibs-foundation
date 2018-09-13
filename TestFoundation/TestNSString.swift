@@ -1289,5 +1289,37 @@ extension TestNSString {
 
         let replaceSuffixWithMultibyte = testString.replacingOccurrences(of: testSuffix, with: testReplacementEmoji)
         XCTAssertEqual(replaceSuffixWithMultibyte, testPrefix + testEmoji + testReplacementEmoji)
+
+        let str1 = "Hello\r\nworld."
+        XCTAssertEqual(str1.replacingOccurrences(of: "\n", with: " "), "Hello\r world.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r", with: " "), "Hello \nworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: " "), "Hello world.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\n\rworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\nworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\nworld.")
+
+        let str2 = "Hello\n\rworld."
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n", with: " "), "Hello \rworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\r", with: " "), "Hello\n world.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\r\n", with: " "), "Hello\n\rworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: " "), "Hello world.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: "\r\n"), "Hello\r\nworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: "\n\r"), "Hello\n\rworld.")
+
+        let str3 = "Hello\n\nworld."
+        XCTAssertEqual(str3.replacingOccurrences(of: "\n", with: " "), "Hello  world.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r", with: " "), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: " "), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\n\r", with: " "), "Hello\n\nworld.")
+
+        let str4 = "Hello\r\rworld."
+        XCTAssertEqual(str4.replacingOccurrences(of: "\n", with: " "), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r", with: " "), "Hello  world.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: " "), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\rworld.")
     }
 }
