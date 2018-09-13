@@ -232,7 +232,7 @@ open class Dimension : Unit {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encode(self.converter, forKey:"converter")
+        aCoder.encode(self.converter, forKey:"NS.converter")
     }
     
     open override func isEqual(_ object: Any?) -> Bool {
