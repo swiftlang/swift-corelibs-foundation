@@ -628,7 +628,7 @@ void CFArrayAppendValue(CFMutableArrayRef array, const void *value) {
 }
 
 void CFArraySetValueAtIndex(CFMutableArrayRef array, CFIndex idx, const void *value) {
-    CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.setObject, idx, value);
+    CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.setObject, value, idx);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, setObject:(id)value atIndex:(NSUInteger)idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
     CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);
