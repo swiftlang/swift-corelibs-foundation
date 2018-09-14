@@ -910,7 +910,7 @@ extern void __CFNumberInitialize(void);
 extern void __CFCharacterSetInitialize(void);
 extern void __CFPFactoryInitialize(void);
 extern void __CFPlugInInitialize(void);
-#if DEPLOYMENT_TARGET_LINUX || (DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT)
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -1076,7 +1076,7 @@ void __CFInitialize(void) {
 #if DEPLOYMENT_TARGET_WINDOWS
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif DEPLOYMENT_TARGET_LINUX || (DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT)
+#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_MACOSX
         __CFTSDInitialize();
 #endif
         __CFProphylacticAutofsAccess = true;
