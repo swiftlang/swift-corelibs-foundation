@@ -89,7 +89,7 @@ open class NumberFormatter : Formatter {
     
     open override func string(for obj: Any) -> String? {
         //we need to allow Swift's numeric types here - Int, Double et al.
-        guard let number = _SwiftValue.store(obj) as? NSNumber else { return nil }
+        guard let number = __SwiftValue.store(obj) as? NSNumber else { return nil }
         return string(from: number)
     }
     

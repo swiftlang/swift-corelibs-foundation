@@ -16,7 +16,7 @@ fileprivate func bridgeFromNSCFTypeIfNeeded(_ value: Any) -> Any {
     // This line will produce a 'Conditional cast always succeeds' warning if compoiled on Darwin, since Darwin has bridging casts of any value to an object,
     // but is required for non-Darwin to work correctly, since that platform _doesn't_ have bridging casts of that kind for now.
     if let object = value as? AnyObject {
-        return _SwiftValue.fetch(nonOptional: object)
+        return __SwiftValue.fetch(nonOptional: object)
     } else {
         return value
     }
@@ -118,7 +118,7 @@ open class UserDefaults: NSObject {
             return getFromRegistered()
         }
         
-        if let fetched = _SwiftValue.fetch(anObj) {
+        if let fetched = __SwiftValue.fetch(anObj) {
             return UserDefaults._unboxingNSNumbers(fetched)
         } else {
             return nil
@@ -145,7 +145,7 @@ open class UserDefaults: NSObject {
             fatalError("This value is not supported by set(_:forKey:)")
         }
         
-        CFPreferencesSetAppValue(defaultName._cfObject, _SwiftValue.store(value), suite?._cfObject ?? kCFPreferencesCurrentApplication)
+        CFPreferencesSetAppValue(defaultName._cfObject, __SwiftValue.store(value), suite?._cfObject ?? kCFPreferencesCurrentApplication)
     }
     open func removeObject(forKey defaultName: String) {
         CFPreferencesSetAppValue(defaultName._cfObject, nil, suite?._cfObject ?? kCFPreferencesCurrentApplication)
@@ -299,7 +299,7 @@ open class UserDefaults: NSObject {
             return registeredDefaultsIfAllowed
         }
         
-        let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
+        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
         
         if registeredDefaultsIfAllowed.isEmpty {
             return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]

@@ -104,7 +104,7 @@ open class JSONSerialization : NSObject {
 
             // object is NSNumber and is not NaN or infinity
             // For better performance, this (most expensive) test should be last.
-            if let number = _SwiftValue.store(obj) as? NSNumber {
+            if let number = __SwiftValue.store(obj) as? NSNumber {
                 if CFNumberIsFloatType(number._cfObject) {
                     let dv = number.doubleValue
                     let invalid = dv.isInfinite || dv.isNaN
@@ -369,8 +369,8 @@ private struct JSONWriter {
             writer(num.description)
         case is NSNull:
             try serializeNull()
-        case _ where _SwiftValue.store(obj) is NSNumber:
-            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        case _ where __SwiftValue.store(obj) is NSNumber:
+            try serializeNumber(__SwiftValue.store(obj) as! NSNumber)
         default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
