@@ -744,9 +744,41 @@ open class FileManager : NSObject {
             access($0, X_OK) == 0
         })
     }
-    
+
+    /**
+     - parameters:
+        - path: The path to the file we are trying to determine is deletable.
+
+      - returns: `true` if the file is deletable, `false` otherwise.
+     */
     open func isDeletableFile(atPath path: String) -> Bool {
-        NSUnimplemented()
+        // Get the parent directory of supplied path
+        let parent = path._nsObject.deletingLastPathComponent
+
+        return _fileSystemRepresentation(withPath: parent, andPath: path, { parentFsRep, fsRep  in
+            // Check the parent directory is writeable, else return false.
+            guard access(parentFsRep, W_OK) == 0 else {
+                return false
+            }
+
+            // Stat the parent directory, if that fails, return false.
+            guard let parentS = try? _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep) else {
+                return false
+            }
+
+            // Check if the parent is 'sticky' if it exists.
+            if (parentS.st_mode & S_ISVTX) == S_ISVTX {
+                guard let s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
+                    return false
+                }
+
+                // If the current user owns the file, return true.
+                return s.st_uid == getuid()
+            }
+
+            // Return true as the best guess.
+            return true
+        })
     }
 
     private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
