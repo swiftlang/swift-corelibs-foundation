@@ -929,19 +929,19 @@ class TestNSGeometry : XCTestCase {
     }
 
     func test_NSMakePoint() {
-        let p2 = NSMakePoint(CGFloat(3.6), CGFloat(4.5))
+        let p2 = NSPoint(x: CGFloat(3.6), y: CGFloat(4.5))
         XCTAssertEqual(p2.x, CGFloat(3.6))
         XCTAssertEqual(p2.y, CGFloat(4.5))
     }
 
     func test_NSMakeSize() {
-        let s2 = NSMakeSize(CGFloat(3.6), CGFloat(4.5))
+        let s2 = NSSize(width: CGFloat(3.6), height: CGFloat(4.5))
         XCTAssertEqual(s2.width, CGFloat(3.6))
         XCTAssertEqual(s2.height, CGFloat(4.5))
     }
 
     func test_NSMakeRect() {
-        let r2 = NSMakeRect(CGFloat(2.2), CGFloat(3.0), CGFloat(5.0), CGFloat(5.0))
+        let r2 = NSRect(x: CGFloat(2.2), y: CGFloat(3.0), width: CGFloat(5.0), height: CGFloat(5.0))
         XCTAssertEqual(r2.origin.x, CGFloat(2.2))
         XCTAssertEqual(r2.origin.y, CGFloat(3.0))
         XCTAssertEqual(r2.size.width, CGFloat(5.0))
@@ -949,7 +949,7 @@ class TestNSGeometry : XCTestCase {
     }
 
     func test_NSEdgeInsetsMake() {
-        let i2 = NSEdgeInsetsMake(CGFloat(2.2), CGFloat(3.0), CGFloat(5.0), CGFloat(5.0))
+        let i2 = NSEdgeInsets(top: CGFloat(2.2), left: CGFloat(3.0), bottom: CGFloat(5.0), right: CGFloat(5.0))
         XCTAssertEqual(i2.top, CGFloat(2.2))
         XCTAssertEqual(i2.left, CGFloat(3.0))
         XCTAssertEqual(i2.bottom, CGFloat(5.0))
@@ -957,14 +957,14 @@ class TestNSGeometry : XCTestCase {
     }
 
     func test_NSUnionRect() {
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(10.2), y: CGFloat(2.5), width: CGFloat(5.0), height: CGFloat(5.0))
 
-        XCTAssertTrue(NSIsEmptyRect(NSUnionRect(NSZeroRect, NSZeroRect)))
-        XCTAssertTrue(NSEqualRects(r1, NSUnionRect(r1, NSZeroRect)))
-        XCTAssertTrue(NSEqualRects(r2, NSUnionRect(NSZeroRect, r2)))
+        XCTAssertTrue(NSIsEmptyRect(NSRect.zero.union(NSRect.zero)))
+        XCTAssertTrue(NSEqualRects(r1, r1.union(NSRect.zero)))
+        XCTAssertTrue(NSEqualRects(r2, NSRect.zero.union(r2)))
 
-        let r3 = NSUnionRect(r1, r2)
+        let r3 = r1.union(r2)
         XCTAssertEqual(r3.origin.x, CGFloat(1.2))
         XCTAssertEqual(r3.origin.y, CGFloat(2.5))
         XCTAssertEqual(r3.size.width, CGFloat(14.0))
@@ -972,13 +972,13 @@ class TestNSGeometry : XCTestCase {
     }
 
     func test_NSIntersectionRect() {
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
-        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(-2.3), y: CGFloat(-1.5), width: CGFloat(1.0), height: CGFloat(1.0))
+        let r3 = NSRect(x: CGFloat(10.2), y: CGFloat(2.5), width: CGFloat(5.0), height: CGFloat(5.0))
 
-        XCTAssertTrue(NSIsEmptyRect(NSIntersectionRect(r1, r2)))
+        XCTAssertTrue(NSIsEmptyRect(r1.intersection(r2)))
 
-        let r4 = NSIntersectionRect(r1, r3)
+        let r4 = r1.intersection(r3)
         XCTAssertEqual(r4.origin.x, CGFloat(10.2))
         XCTAssertEqual(r4.origin.y, CGFloat(3.1))
         XCTAssertEqual(r4.size.width, CGFloat(1.0))
@@ -986,177 +986,177 @@ class TestNSGeometry : XCTestCase {
     }
 
     func test_NSOffsetRect() {
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
         let r2 = NSOffsetRect(r1, CGFloat(2.0), CGFloat(-5.0))
-        let expectedRect = NSMakeRect(CGFloat(3.2), CGFloat(-1.9), CGFloat(10.0), CGFloat(10.0))
+        let expectedRect = NSRect(x: CGFloat(3.2), y: CGFloat(-1.9), width: CGFloat(10.0), height: CGFloat(10.0))
         
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: r2))
     }
 
     func test_NSPointInRect() {
-        let p1 = NSMakePoint(CGFloat(2.2), CGFloat(5.3))
-        let p2 = NSMakePoint(CGFloat(1.2), CGFloat(3.1))
-        let p3 = NSMakePoint(CGFloat(1.2), CGFloat(5.3))
-        let p4 = NSMakePoint(CGFloat(5.2), CGFloat(3.1))
-        let p5 = NSMakePoint(CGFloat(11.2), CGFloat(13.1))
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+        let p1 = NSPoint(x: CGFloat(2.2), y: CGFloat(5.3))
+        let p2 = NSPoint(x: CGFloat(1.2), y: CGFloat(3.1))
+        let p3 = NSPoint(x: CGFloat(1.2), y: CGFloat(5.3))
+        let p4 = NSPoint(x: CGFloat(5.2), y: CGFloat(3.1))
+        let p5 = NSPoint(x: CGFloat(11.2), y: CGFloat(13.1))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(-2.3), y: CGFloat(-1.5), width: CGFloat(1.0), height: CGFloat(1.0))
 
-        XCTAssertFalse(NSPointInRect(NSZeroPoint, NSZeroRect))
-        XCTAssertFalse(NSPointInRect(p1, r2))
-        XCTAssertTrue(NSPointInRect(p1, r1))
-        XCTAssertTrue(NSPointInRect(p2, r1))
-        XCTAssertTrue(NSPointInRect(p3, r1))
-        XCTAssertTrue(NSPointInRect(p4, r1))
-        XCTAssertFalse(NSPointInRect(p5, r1))
+        XCTAssertFalse(NSRect.zero.contains(NSPoint.zero))
+        XCTAssertFalse(r2.contains(p1))
+        XCTAssertTrue(r1.contains(p1))
+        XCTAssertTrue(r1.contains(p2))
+        XCTAssertTrue(r1.contains(p3))
+        XCTAssertTrue(r1.contains(p4))
+        XCTAssertFalse(r1.contains(p5))
     }
 
     func test_NSMouseInRect() {
-        let p1 = NSMakePoint(CGFloat(2.2), CGFloat(5.3))
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
+        let p1 = NSPoint(x: CGFloat(2.2), y: CGFloat(5.3))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(-2.3), y: CGFloat(-1.5), width: CGFloat(1.0), height: CGFloat(1.0))
 
-        XCTAssertFalse(NSMouseInRect(NSZeroPoint, NSZeroRect, true))
+        XCTAssertFalse(NSMouseInRect(NSPoint.zero, NSRect.zero, true))
         XCTAssertFalse(NSMouseInRect(p1, r2, true))
         XCTAssertTrue(NSMouseInRect(p1, r1, true))
 
-        let p2 = NSMakePoint(NSMinX(r1), NSMaxY(r1))
+        let p2 = NSPoint(x: r1.minX, y: r1.maxY)
         XCTAssertFalse(NSMouseInRect(p2, r1, true))
         XCTAssertTrue(NSMouseInRect(p2, r1, false))
 
-        let p3 = NSMakePoint(NSMinX(r1), NSMinY(r1))
+        let p3 = NSPoint(x: r1.minX, y: r1.minY)
         XCTAssertFalse(NSMouseInRect(p3, r1, false))
         XCTAssertTrue(NSMouseInRect(p3, r1, true))
     }
 
     func test_NSContainsRect() {
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
-        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(5.5), CGFloat(0.5), CGFloat(5.0))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(-2.3), y: CGFloat(-1.5), width: CGFloat(1.0), height: CGFloat(1.0))
+        let r3 = NSRect(x: CGFloat(10.2), y: CGFloat(5.5), width: CGFloat(0.5), height: CGFloat(5.0))
 
-        XCTAssertFalse(NSContainsRect(r1, NSZeroRect))
-        XCTAssertFalse(NSContainsRect(r1, r2))
-        XCTAssertFalse(NSContainsRect(r2, r1))
-        XCTAssertTrue(NSContainsRect(r1, r3))
+        XCTAssertFalse(r1.contains(NSRect.zero))
+        XCTAssertFalse(r1.contains(r2))
+        XCTAssertFalse(r2.contains(r1))
+        XCTAssertTrue(r1.contains(r3))
     }
 
     func test_NSIntersectsRect() {
-        let r1 = NSMakeRect(CGFloat(1.2), CGFloat(3.1), CGFloat(10.0), CGFloat(10.0))
-        let r2 = NSMakeRect(CGFloat(-2.3), CGFloat(-1.5), CGFloat(1.0), CGFloat(1.0))
-        let r3 = NSMakeRect(CGFloat(10.2), CGFloat(2.5), CGFloat(5.0), CGFloat(5.0))
+        let r1 = NSRect(x: CGFloat(1.2), y: CGFloat(3.1), width: CGFloat(10.0), height: CGFloat(10.0))
+        let r2 = NSRect(x: CGFloat(-2.3), y: CGFloat(-1.5), width: CGFloat(1.0), height: CGFloat(1.0))
+        let r3 = NSRect(x: CGFloat(10.2), y: CGFloat(2.5), width: CGFloat(5.0), height: CGFloat(5.0))
 
-        XCTAssertFalse(NSIntersectsRect(NSZeroRect, NSZeroRect))
-        XCTAssertFalse(NSIntersectsRect(r1, NSZeroRect))
-        XCTAssertFalse(NSIntersectsRect(NSZeroRect, r2))
-        XCTAssertFalse(NSIntersectsRect(r1, r2))
-        XCTAssertTrue(NSIntersectsRect(r1, r3))
+        XCTAssertFalse(NSRect.zero.intersects(NSRect.zero))
+        XCTAssertFalse(r1.intersects(NSRect.zero))
+        XCTAssertFalse(NSRect.zero.intersects(r2))
+        XCTAssertFalse(r1.intersects(r2))
+        XCTAssertTrue(r1.intersects(r3))
     }
 
     func test_NSIntegralRect() {
-        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
-        XCTAssertEqual(NSIntegralRect(referenceNegativeRect), NSZeroRect)
+        let referenceNegativeRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(-105.7), height: CGFloat(-24.3))
+        XCTAssertEqual(referenceNegativeRect.integral, NSRect.zero)
 
         
-        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
-        let referenceNegativeOriginRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(105.7), CGFloat(24.3))
+        let referenceRect = NSRect(x: CGFloat(0.6), y: CGFloat(5.4), width: CGFloat(105.7), height: CGFloat(24.3))
+        let referenceNegativeOriginRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(105.7), height: CGFloat(24.3))
         
-        var expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(107.0), CGFloat(25.0))
-        var result = NSIntegralRect(referenceRect)
+        var expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(5.0), width: CGFloat(107.0), height: CGFloat(25.0))
+        var result = referenceRect.integral
         XCTAssertEqual(result, expectedResult)
 
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(107.0), CGFloat(25.0))
-        result = NSIntegralRect(referenceNegativeOriginRect)
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-6.0), width: CGFloat(107.0), height: CGFloat(25.0))
+        result = referenceNegativeOriginRect.integral
         XCTAssertEqual(result, expectedResult)
     
     }
     
     func test_NSIntegralRectWithOptions() {
-        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
-        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
-        let referenceNegativeOriginRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(105.7), CGFloat(24.3))
+        let referenceRect = NSRect(x: CGFloat(0.6), y: CGFloat(5.4), width: CGFloat(105.7), height: CGFloat(24.3))
+        let referenceNegativeRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(-105.7), height: CGFloat(-24.3))
+        let referenceNegativeOriginRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(105.7), height: CGFloat(24.3))
 
         var options: AlignmentOptions = [.alignMinXInward, .alignMinYInward, .alignHeightInward, .alignWidthInward]
-        var expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(6.0), CGFloat(105.0), CGFloat(24.0))
+        var expectedResult = NSRect(x: CGFloat(1.0), y: CGFloat(6.0), width: CGFloat(105.0), height: CGFloat(24.0))
         var result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXOutward, .alignMinYOutward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(5.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXInward, .alignMinYInward, .alignHeightInward, .alignWidthInward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(0.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(0.0), height: CGFloat(0.0))
         result = NSIntegralRectWithOptions(referenceNegativeRect, options)
         XCTAssertEqual(result, expectedResult)
         
         options = [.alignMinXInward, .alignMinYInward, .alignHeightInward, .alignWidthInward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(105.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(105.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXOutward, .alignMinYOutward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-6.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMaxXOutward, .alignMaxYOutward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-6.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(-6.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXOutward, .alignMaxXOutward, .alignMinYOutward, .alignMaxYOutward]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-6.0), CGFloat(107.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-6.0), width: CGFloat(107.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMaxXOutward, .alignMaxYOutward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(5.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(1.0), y: CGFloat(5.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMaxXInward, .alignMaxYInward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-7.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-7.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMaxXInward, .alignMaxYInward, .alignHeightOutward, .alignWidthOutward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(4.0), CGFloat(106.0), CGFloat(25.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(4.0), width: CGFloat(106.0), height: CGFloat(25.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXNearest, .alignMinYNearest, .alignHeightNearest, .alignWidthNearest]
-        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(5.0), CGFloat(106.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(1.0), y: CGFloat(5.0), width: CGFloat(106.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
         
         options = [.alignMinXNearest, .alignMinYNearest, .alignHeightNearest, .alignWidthNearest]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-5.0), width: CGFloat(106.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMaxXNearest, .alignMaxYNearest, .alignHeightNearest, .alignWidthNearest]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(6.0), CGFloat(106.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(6.0), width: CGFloat(106.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
         
         options = [.alignMaxXNearest, .alignMaxYNearest, .alignHeightNearest, .alignWidthNearest]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-5.0), width: CGFloat(106.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXInward, .alignMaxXInward, .alignMinYInward, .alignMaxYInward]
-        expectedResult = NSMakeRect(CGFloat(1.0), CGFloat(6.0), CGFloat(105.0), CGFloat(23.0))
+        expectedResult = NSRect(x: CGFloat(1.0), y: CGFloat(6.0), width: CGFloat(105.0), height: CGFloat(23.0))
         result = NSIntegralRectWithOptions(referenceRect, options)
         XCTAssertEqual(result, expectedResult)
         
         options = [.alignMinXInward, .alignMaxXInward, .alignMinYInward, .alignMaxYInward]
-        expectedResult = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(105.0), CGFloat(23.0))
+        expectedResult = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(105.0), height: CGFloat(23.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
 
         options = [.alignMinXNearest, .alignMaxXInward, .alignMinYInward, .alignMaxYNearest]
-        expectedResult = NSMakeRect(CGFloat(-1.0), CGFloat(-5.0), CGFloat(106.0), CGFloat(24.0))
+        expectedResult = NSRect(x: CGFloat(-1.0), y: CGFloat(-5.0), width: CGFloat(106.0), height: CGFloat(24.0))
         result = NSIntegralRectWithOptions(referenceNegativeOriginRect, options)
         XCTAssertEqual(result, expectedResult)
     }
@@ -1164,98 +1164,98 @@ class TestNSGeometry : XCTestCase {
     func test_NSDivideRect() {
 
         // divide empty rect
-        var inRect = NSZeroRect
-        var slice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        var remainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
+        var inRect = NSRect.zero
+        var slice = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        var remainder = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
         NSDivideRect(inRect, &slice, &remainder, CGFloat(0.0), .maxX)
-        var expectedSlice = NSZeroRect
-        var expectedRemainder = NSZeroRect
+        var expectedSlice = NSRect.zero
+        var expectedRemainder = NSRect.zero
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MinX edge
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
         NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .minX)
-        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
-        expectedRemainder = NSMakeRect(CGFloat(10.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
+        expectedSlice = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(10.0), height: CGFloat(35.0))
+        expectedRemainder = NSRect(x: CGFloat(10.0), y: CGFloat(-5.0), width: CGFloat(15.0), height: CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MinX edge with amount > width
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .minX)
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
+        NSDivideRect(inRect, &slice, &remainder, inRect.width + CGFloat(1.0), .minX)
         expectedSlice = inRect
-        expectedRemainder = NSMakeRect(CGFloat(25.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
+        expectedRemainder = NSRect(x: CGFloat(25.0), y: CGFloat(-5.0), width: CGFloat(0.0), height: CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MinY edge
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
         NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .minY)
-        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(10.0))
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(5.0), CGFloat(25.0), CGFloat(25.0))
+        expectedSlice = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(10.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(5.0), width: CGFloat(25.0), height: CGFloat(25.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MinY edge with amount > height
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .minY)
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
+        NSDivideRect(inRect, &slice, &remainder, inRect.height + CGFloat(1.0), .minY)
         expectedSlice = inRect
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(30.0), CGFloat(25.0), CGFloat(0.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(30.0), width: CGFloat(25.0), height: CGFloat(0.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MaxX edge
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
         NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .maxX)
-        expectedSlice = NSMakeRect(CGFloat(15.0), CGFloat(-5.0), CGFloat(10.0), CGFloat(35.0))
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(15.0), CGFloat(35.0))
+        expectedSlice = NSRect(x: CGFloat(15.0), y: CGFloat(-5.0), width: CGFloat(10.0), height: CGFloat(35.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(15.0), height: CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MaxX edge with amount > width
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSWidth(inRect) + CGFloat(1.0), .maxX)
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
+        NSDivideRect(inRect, &slice, &remainder, inRect.width + CGFloat(1.0), .maxX)
         expectedSlice = inRect
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(0.0), CGFloat(35.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(0.0), height: CGFloat(35.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MaxY edge
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
         NSDivideRect(inRect, &slice, &remainder, CGFloat(10.0), .maxY)
-        expectedSlice = NSMakeRect(CGFloat(0.0), CGFloat(20.0), CGFloat(25.0), CGFloat(10.0))
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(25.0))
+        expectedSlice = NSRect(x: CGFloat(0.0), y: CGFloat(20.0), width: CGFloat(25.0), height: CGFloat(10.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(25.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
 
         // divide rect by MaxY edge with amount > height
-        inRect = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(35.0))
-        slice = NSZeroRect
-        remainder = NSZeroRect
-        NSDivideRect(inRect, &slice, &remainder, NSHeight(inRect) + CGFloat(1.0), .maxY)
+        inRect = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(35.0))
+        slice = NSRect.zero
+        remainder = NSRect.zero
+        NSDivideRect(inRect, &slice, &remainder, inRect.height + CGFloat(1.0), .maxY)
         expectedSlice = inRect
-        expectedRemainder = NSMakeRect(CGFloat(0.0), CGFloat(-5.0), CGFloat(25.0), CGFloat(0.0))
+        expectedRemainder = NSRect(x: CGFloat(0.0), y: CGFloat(-5.0), width: CGFloat(25.0), height: CGFloat(0.0))
         XCTAssertEqual(slice, expectedSlice)
         XCTAssertEqual(remainder, expectedRemainder)
     }
     
     func test_EncodeToNSString() {
-        let referenceRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        let referenceRect = NSRect(x: CGFloat(0.6), y: CGFloat(5.4), width: CGFloat(105.7), height: CGFloat(24.3))
         
         var expectedString = "{0.6, 5.4}"
         var string = NSStringFromPoint(referenceRect.origin)
@@ -1274,7 +1274,7 @@ class TestNSGeometry : XCTestCase {
     }
     
     func test_EncodeNegativeToNSString() {
-        let referenceNegativeRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        let referenceNegativeRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(-105.7), height: CGFloat(-24.3))
         
         var expectedString = "{-0.6, -5.4}"
         var string = NSStringFromPoint(referenceNegativeRect.origin)
@@ -1297,17 +1297,17 @@ class TestNSGeometry : XCTestCase {
         var stringSize = "{105.7, 24.3}"
         var stringRect = "{{0.6, 5.4}, {105.7, 24.3}}"
         
-        let expectedPoint = NSMakePoint(CGFloat(0.6), CGFloat(5.4))
+        let expectedPoint = NSPoint(x: CGFloat(0.6), y: CGFloat(5.4))
         var point = NSPointFromString(stringPoint)
         XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
                        "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
         
-        let expectedSize = NSMakeSize(CGFloat(105.7), CGFloat(24.3))
+        let expectedSize = NSSize(width: CGFloat(105.7), height: CGFloat(24.3))
         var size = NSSizeFromString(stringSize)
         XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
                        "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
         
-        let expectedRect = NSMakeRect(CGFloat(0.6), CGFloat(5.4), CGFloat(105.7), CGFloat(24.3))
+        let expectedRect = NSRect(x: CGFloat(0.6), y: CGFloat(5.4), width: CGFloat(105.7), height: CGFloat(24.3))
         var rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
@@ -1353,17 +1353,17 @@ class TestNSGeometry : XCTestCase {
         let stringSize = ""
         let stringRect = ""
         
-        let expectedPoint = NSZeroPoint
+        let expectedPoint = NSPoint.zero
         let point = NSPointFromString(stringPoint)
         XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
                        "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
 
-        let expectedSize = NSZeroSize
+        let expectedSize = NSSize.zero
         let size = NSSizeFromString(stringSize)
         XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
                        "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
         
-        let expectedRect = NSZeroRect
+        let expectedRect = NSRect.zero
         let rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
@@ -1374,17 +1374,17 @@ class TestNSGeometry : XCTestCase {
         let stringSize = "{-105.7, -24.3}"
         let stringRect = "{{-0.6, -5.4}, {-105.7, -24.3}}"
         
-        let expectedPoint = NSMakePoint(CGFloat(-0.6), CGFloat(-5.4))
+        let expectedPoint = NSPoint(x: CGFloat(-0.6), y: CGFloat(-5.4))
         let point = NSPointFromString(stringPoint)
         XCTAssertTrue(_NSPoint(expectedPoint, equalsToPoint: point),
             "\(NSStringFromPoint(point)) is not equal to expected \(NSStringFromPoint(expectedPoint))")
         
-        let expectedSize = NSMakeSize(CGFloat(-105.7), CGFloat(-24.3))
+        let expectedSize = NSSize(width: CGFloat(-105.7), height: CGFloat(-24.3))
         let size = NSSizeFromString(stringSize)
         XCTAssertTrue(_NSSize(expectedSize, equalsToSize: size),
                        "\(NSStringFromSize(size)) is not equal to expected \(NSStringFromSize(expectedSize))")
         
-        let expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(-5.4), CGFloat(-105.7), CGFloat(-24.3))
+        let expectedRect = NSRect(x: CGFloat(-0.6), y: CGFloat(-5.4), width: CGFloat(-105.7), height: CGFloat(-24.3))
         let rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
@@ -1393,13 +1393,13 @@ class TestNSGeometry : XCTestCase {
     
     func test_DecodeGarbageFromNSString() {
         var stringRect = "-0.6a5.4das-105.7bfh24.3dfas;hk312}}"
-        var expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(5.4), CGFloat(-105.7), CGFloat(24.3))
+        var expectedRect = NSRect(x: CGFloat(-0.6), y: CGFloat(5.4), width: CGFloat(-105.7), height: CGFloat(24.3))
         var rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
 
         stringRect = "-0.6a5.4da}}"
-        expectedRect = NSMakeRect(CGFloat(-0.6), CGFloat(5.4), CGFloat(0.0), CGFloat(0.0))
+        expectedRect = NSRect(x: CGFloat(-0.6), y: CGFloat(5.4), width: CGFloat(0.0), height: CGFloat(0.0))
         rect = NSRectFromString(stringRect)
         XCTAssertTrue(_NSRect(expectedRect, equalsToRect: rect),
                        "\(NSStringFromRect(rect)) is not equal to expected \(NSStringFromRect(expectedRect))")
