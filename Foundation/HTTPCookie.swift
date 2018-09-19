@@ -93,6 +93,47 @@ open class HTTPCookie : NSObject {
     let _version: Int
     var _properties: [HTTPCookiePropertyKey : Any]
 
+    // See: https://tools.ietf.org/html/rfc2616#section-3.3.1
+
+    // Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123
+    static let _formatter1: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    // Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036
+    static let _formatter2: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEEE, dd-MMM-yy HH:mm:ss O"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    // Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format
+    static let _formatter3: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE MMM d HH:mm:ss yyyy"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    // Sun, 06-Nov-1994 08:49:37 GMT  ; Tomcat servers sometimes return cookies in this format
+    static let _formatter4: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE, dd-MMM-yyyy HH:mm:ss O"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    static let _allFormatters: [DateFormatter]
+        = [_formatter1, _formatter2, _formatter3, _formatter4]
+
     static let _attributes: [HTTPCookiePropertyKey]
         = [.name, .value, .originURL, .version, .domain,
            .path, .secure, .expires, .comment, .commentURL,
@@ -292,12 +333,8 @@ open class HTTPCookie : NSObject {
             if let date = expiresProperty as? Date {
                 expDate = date
             } else if let dateString = expiresProperty as? String {
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   // per RFC 6265 '<rfc1123-date, defined in [RFC2616], Section 3.3.1>'
-                let timeZone = TimeZone(abbreviation: "GMT")
-                formatter.timeZone = timeZone
-                expDate = formatter.date(from: dateString)
+                let results = HTTPCookie._allFormatters.compactMap { $0.date(from: dateString) }
+                expDate = results.first
             }
         }
         _expiresDate = expDate
@@ -418,7 +455,7 @@ open class HTTPCookie : NSObject {
             let name = pair.components(separatedBy: "=")[0]
             var value = pair.components(separatedBy: "\(name)=")[1]  //a value can have an "="
             if canonicalize(name) == .expires {
-                value = value.insertComma(at: 3)    //re-insert the comma
+                value = value.unmaskCommas()    //re-insert the comma
             }
             properties[canonicalize(name)] = value
         }
@@ -439,7 +476,7 @@ open class HTTPCookie : NSObject {
     //we pass this to a map()
     private class func removeCommaFromDate(_ value: String) -> String {
         if value.hasPrefix("Expires") || value.hasPrefix("expires")  {
-            return value.removeCommas()
+            return value.maskCommas()
         }
         return value
     }
@@ -623,12 +660,12 @@ fileprivate extension String {
         return self.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines)
     }
 
-    func removeCommas() -> String {
-        return self.replacingOccurrences(of: ",", with: "")
+    func maskCommas() -> String {
+        return self.replacingOccurrences(of: ",", with: "&comma")
     }
 
-    func insertComma(at index:Int) -> String {
-        return  String(self.prefix(index)) + ","  + String(self.suffix(self.count-index))
+    func unmaskCommas() -> String {
+        return self.replacingOccurrences(of: "&comma", with: ",")
     }
 }
 

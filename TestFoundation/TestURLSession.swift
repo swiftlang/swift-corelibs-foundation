@@ -42,6 +42,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_cookiesStorage", test_cookiesStorage),
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
+            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
         ]
     }
     
@@ -573,6 +574,31 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 30)
         let cookies = HTTPCookieStorage.shared.cookies
         XCTAssertEqual(cookies?.count, 1)
+    }
+
+    func test_redirectionWithSetCookies() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        if let storage = config.httpCookieStorage, let cookies = storage.cookies {
+            for cookie in cookies {
+                storage.deleteCookie(cookie)
+            }
+        }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectSetCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let data = data else { return }
+            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
+            print("headers here = \(headers)")
+            XCTAssertNotNil(headers.range(of: "Cookie: redirect=true"))
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
     }
 
     func test_setCookies() {
