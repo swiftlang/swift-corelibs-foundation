@@ -46,7 +46,7 @@ class TestNSError : XCTestCase {
         let nsdictionary = ["error": error] as NSDictionary
         let dictionary = nsdictionary as? Dictionary<String, Error>
         XCTAssertNotNil(dictionary)
-        XCTAssertEqual(error, dictionary?["error"] as NSError?)
+        XCTAssertEqual(error, dictionary?["error"] as? NSError)
     }
 
     func test_CustomNSError_domain() {
