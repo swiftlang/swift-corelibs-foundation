@@ -121,16 +121,23 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_dataTaskWithHttpInputStream() {
+        func uniformRandom(_ max: Int) -> Int {
+#if os(Linux)
+            return Int(random() % max)
+#else
+            return Int(arc4random_uniform(UInt32(max)))
+#endif
+        }
         func randomString(length: Int) -> String {
-            let letters : NSString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-            let len = UInt32(letters.length)
+            let letters = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+            let len = letters.count
             
             var randomString = ""
             
             for _ in 0 ..< length {
-                let rand = arc4random_uniform(len)
-                var nextChar = letters.character(at: Int(rand))
-                randomString += NSString(characters: &nextChar, length: 1) as String
+                let rand = uniformRandom(len)
+                let nextChar = letters[Int(rand)]
+                randomString += String(nextChar)
             }
             return randomString
         }
