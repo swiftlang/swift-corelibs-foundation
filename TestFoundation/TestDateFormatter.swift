@@ -25,6 +25,7 @@ class TestDateFormatter: XCTestCase {
             ("test_setLocaleToNil", test_setLocaleToNil),
             ("test_setTimeZoneToNil", test_setTimeZoneToNil),
             ("test_setTimeZone", test_setTimeZone),
+            ("test_ExpectedTimeZone", test_ExpectedTimeZone),
         ]
     }
     
@@ -374,5 +375,37 @@ class TestDateFormatter: XCTestCase {
         // Case 2: Los Angeles
         f.timeZone = losAngeles
         XCTAssertEqual(f.timeZone, losAngeles)
+    }
+
+    func test_ExpectedTimeZone() {
+        let gmt = TimeZone(abbreviation: DEFAULT_TIMEZONE)
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        let now = Date()
+
+        let f = DateFormatter()
+        f.dateFormat = "z"
+
+        // Case 1: TimeZone.current
+        f.timeZone = TimeZone.current
+        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
+
+        // Case 2: New York
+        f.timeZone = newYork
+        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
+
+        // Case 3: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
+
+        guard gmt != TimeZone.current else {
+            print("Inconclusive: This test checks to see if the formatter produces the same TZ as TimeZone.current")
+            print("When it fails, TimeZone.current formats as GMT instead of normal.")
+            print("Unfortunately, we can't use GMT as TimeZone.current for this test to be conclusive.")
+            return
+        }
     }
 }
