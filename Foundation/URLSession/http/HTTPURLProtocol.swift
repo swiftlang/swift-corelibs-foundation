@@ -219,8 +219,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 }
             }
         case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
-            // Follow the redirect.
-            startNewTransfer(with: request)
+            // Follow the redirect. Need to configure new request with cookies, etc.
+            let configuredRequest = session._configuration.configure(request: request)
+            startNewTransfer(with: configuredRequest)
         }
     }
 
