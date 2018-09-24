@@ -370,7 +370,7 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[_SwiftValue.store(object)] = replacement
+        self._replacementMap[__SwiftValue.store(object)] = replacement
     }
     
     private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
@@ -387,7 +387,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[_SwiftValue.store(decodedObject!)]
+        object = self._replacementMap[__SwiftValue.store(decodedObject!)]
         if object != nil {
             return object
         }
@@ -483,7 +483,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 _cacheObject(object!, forReference: objectRef as! _NSKeyedArchiverUID)
             }
         } else {
-            object = _SwiftValue.store(dereferencedObject)
+            object = __SwiftValue.store(dereferencedObject)
         }
 
         return _replacementObject(object)

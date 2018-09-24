@@ -352,7 +352,7 @@ open class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        let value = _SwiftValue.store(objv)!
+        let value = __SwiftValue.store(objv)!
         
         uid = self._objRefMap[value]
         if uid == nil {
@@ -376,7 +376,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[_SwiftValue.store(objv!)] != nil
+            return self._objRefMap[__SwiftValue.store(objv!)] != nil
         }
     }
     
@@ -448,7 +448,7 @@ open class NSKeyedArchiver : NSCoder {
             unwrappedDelegate.archiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[_SwiftValue.store(object)] = replacement
+        self._replacementMap[__SwiftValue.store(object)] = replacement
     }
    
     /**
@@ -597,7 +597,7 @@ open class NSKeyedArchiver : NSCoder {
         object = _replacementObject(objv)
         
         // bridge value types
-        object = _SwiftValue.store(object)
+        object = __SwiftValue.store(object)
         
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {
@@ -852,7 +852,7 @@ open class NSKeyedArchiver : NSCoder {
         objectRefs.reserveCapacity(objects.count)
         
         for object in objects {
-            let objectRef = _encodeObject(_SwiftValue.store(object))!
+            let objectRef = _encodeObject(__SwiftValue.store(object))!
 
             objectRefs.append(objectRef)
         }

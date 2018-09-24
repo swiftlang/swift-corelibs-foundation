@@ -216,7 +216,7 @@ open class HTTPCookieStorage: NSObject {
             persistDictionary[key] = cookie.persistableDictionary()
         }
 
-        let nsdict = _SwiftValue.store(persistDictionary) as! NSDictionary
+        let nsdict = __SwiftValue.store(persistDictionary) as! NSDictionary
         _ = nsdict.write(toFile: cookieFilePath, atomically: true)
     }
 
