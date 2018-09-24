@@ -24,6 +24,7 @@ class TestDateFormatter: XCTestCase {
             ("test_dateFormatString", test_dateFormatString),
             ("test_setLocaleToNil", test_setLocaleToNil),
             ("test_setTimeZoneToNil", test_setTimeZoneToNil),
+            ("test_setTimeZone", test_setTimeZone),
         ]
     }
     
@@ -355,5 +356,23 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = nil
         // Time zone should go back to the system one.
         XCTAssertEqual(f.timeZone, NSTimeZone.system)
+    }
+
+    func test_setTimeZone() {
+        // Test two different time zones. Should ensure that if one
+        // happens to be TimeZone.current, we still get a valid test.
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        // Case 1: New York
+        let f = DateFormatter()
+        f.timeZone = newYork
+        XCTAssertEqual(f.timeZone, newYork)
+
+        // Case 2: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.timeZone, losAngeles)
     }
 }
