@@ -25,7 +25,7 @@ class TestDateFormatter: XCTestCase {
             ("test_setLocaleToNil", test_setLocaleToNil),
             ("test_setTimeZoneToNil", test_setTimeZoneToNil),
             ("test_setTimeZone", test_setTimeZone),
-            ("test_ExpectedTimeZone", test_ExpectedTimeZone),
+            ("test_expectedTimeZone", test_expectedTimeZone),
         ]
     }
     
@@ -377,7 +377,7 @@ class TestDateFormatter: XCTestCase {
         XCTAssertEqual(f.timeZone, losAngeles)
     }
 
-    func test_ExpectedTimeZone() {
+    func test_expectedTimeZone() {
         let gmt = TimeZone(abbreviation: DEFAULT_TIMEZONE)
         let newYork = TimeZone(identifier: "America/New_York")!
         let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
@@ -388,24 +388,24 @@ class TestDateFormatter: XCTestCase {
 
         let f = DateFormatter()
         f.dateFormat = "z"
+        f.locale = Locale(identifier: "en_US_POSIX")
 
         // Case 1: TimeZone.current
+        // This case can catch some issues that cause TimeZone.current to be
+        // treated like GMT, but it doesn't work if TimeZone.current is GMT.
+        // If you do find an issue like this caused by this first case,
+        // it would benefit from a more specific test that fails when
+        // TimeZone.current is GMT as well.
+        // (ex. TestTimeZone.test_systemTimeZoneName)
         f.timeZone = TimeZone.current
-        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
+        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
 
         // Case 2: New York
         f.timeZone = newYork
-        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
+        XCTAssertEqual(f.string(from: now), newYork.abbreviation())
 
         // Case 3: Los Angeles
         f.timeZone = losAngeles
-        XCTAssertEqual(f.string(from: now), f.timeZone.abbreviation())
-
-        guard gmt != TimeZone.current else {
-            print("Inconclusive: This test checks to see if the formatter produces the same TZ as TimeZone.current")
-            print("When it fails, TimeZone.current formats as GMT instead of normal.")
-            print("Unfortunately, we can't use GMT as TimeZone.current for this test to be conclusive.")
-            return
-        }
+        XCTAssertEqual(f.string(from: now), losAngeles.abbreviation())
     }
 }
