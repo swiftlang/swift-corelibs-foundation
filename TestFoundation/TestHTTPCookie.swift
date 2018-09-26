@@ -175,9 +175,8 @@ class TestHTTPCookie: XCTestCase {
         let cookieString =
             """
             format1=true; expires=Wed, 01 Jan 2020 12:30:00 GMT; path=/; domain=swift.org; secure; httponly,
-            format2=true; expires=Wednesday, 01-Jan-20 12:30:00 GMT; path=/; domain=swift.org; secure; httponly,
-            format3=true; expires=Wed Jan 1 12:30:00 2020; path=/; domain=swift.org; secure; httponly,
-            format4=true; expires=Wed, 01-Jan-2020 12:30:00 GMT; path=/; domain=swift.org; secure; httponly
+            format2=true; expires=Wed Jan 1 12:30:00 2020; path=/; domain=swift.org; secure; httponly,
+            format3=true; expires=Wed, 01-Jan-2020 12:30:00 GMT; path=/; domain=swift.org; secure; httponly
             """
 
         let header = ["header1":"value1",
@@ -185,7 +184,7 @@ class TestHTTPCookie: XCTestCase {
                       "header2":"value2",
                       "header3":"value3"]
         let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "https://swift.org")!)
-        XCTAssertEqual(cookies.count, 4)
+        XCTAssertEqual(cookies.count, 3)
         cookies.forEach { cookie in
             XCTAssertEqual(cookie.expiresDate, testDate)
             XCTAssertEqual(cookie.domain, "swift.org")
