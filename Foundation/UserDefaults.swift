@@ -296,7 +296,7 @@ open class UserDefaults: NSObject {
         let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults : [:]
         
         let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
-        let defaultsFromDiskWithNumbersBoxed = _SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
+        let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
         
         if registeredDefaultsIfAllowed.isEmpty {
             return UserDefaults._unboxingNSNumbers(defaultsFromDiskWithNumbersBoxed) as! [String: Any]
