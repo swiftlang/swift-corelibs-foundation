@@ -1486,8 +1486,12 @@ STATIC_CONST_STRING_DECL(_temperatureUnitKey, "AppleTemperatureUnit");
 
 static bool __CFLocaleGetMeasurementSystemForPreferences(CFTypeRef metricPref, CFTypeRef measurementPref, UMeasurementSystem *outMeasurementSystem) {
     if (metricPref || measurementPref) {
+#if U_ICU_VERSION_MAJOR_NUM >= 55
         if (metricPref == kCFBooleanTrue && measurementPref && CFEqual(measurementPref, _measurementUnitsInches)) {
             *outMeasurementSystem = UMS_UK;
+#else
+            return false;
+#endif
         } else if (metricPref == kCFBooleanFalse) {
             *outMeasurementSystem = UMS_US;
         } else {
@@ -1554,10 +1558,12 @@ static  bool __CFLocaleGetMeasurementSystemForName(CFStringRef name, UMeasuremen
             *outMeasurementSystem = UMS_US;
             return true;
         }
+#if U_ICU_VERSION_MAJOR_NUM >= 55
         if (CFEqual(name, kCFLocaleMeasurementSystemUK)) {
             *outMeasurementSystem = UMS_UK;
             return true;
         }
+#endif
     }
     return false;
 }
