@@ -1337,7 +1337,7 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
     }
 }
 
-_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context) {
+_CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
     pthread_t thread;
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
