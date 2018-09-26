@@ -551,12 +551,18 @@ if "LIBDISPATCH_BUILD_DIR" in Configuration.current.variables:
 
 Configuration.current.variables["LIBS_DIRS"] = LIBS_DIRS
 
-extra_script = """
+if "darwin" in triple.lower():
+    extra_script = "INSTALL_TARGET_DIR=${OS}"
+else:
+    extra_script = "INSTALL_TARGET_DIR=${OS}/${ARCH}"
+
+extra_script += """
+
 rule InstallFoundation
-    command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
-    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${OS}"; $
-    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
-    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift_static/${OS}"; $
+    command = mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${INSTALL_TARGET_DIR}"; $
+    cp "${BUILD_DIR}/Foundation/${DYLIB_PREFIX}Foundation${DYLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift/${INSTALL_TARGET_DIR}"; $
+    mkdir -p "${DSTROOT}/${PREFIX}/lib/swift_static/${INSTALL_TARGET_DIR}"; $
+    cp "${BUILD_DIR}/Foundation/${STATICLIB_PREFIX}Foundation${STATICLIB_SUFFIX}" "${DSTROOT}/${PREFIX}/lib/swift_static/${INSTALL_TARGET_DIR}"; $
     mkdir -p "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftmodule" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
     cp "${BUILD_DIR}/Foundation/Foundation.swiftdoc" "${DSTROOT}/${PREFIX}/lib/swift/${OS}/${ARCH}/"; $
