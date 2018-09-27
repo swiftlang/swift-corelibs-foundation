@@ -121,13 +121,6 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_dataTaskWithHttpInputStream() {
-        func uniformRandom(_ max: Int) -> Int {
-#if os(Linux)
-            return Int(random() % max)
-#else
-            return Int(arc4random_uniform(UInt32(max)))
-#endif
-        }
         func randomString(length: Int) -> String {
             let letters = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
             let len = letters.count
@@ -135,8 +128,8 @@ class TestURLSession : LoopbackServerTest {
             var randomString = ""
             
             for _ in 0 ..< length {
-                let rand = uniformRandom(len)
-                let nextChar = letters[Int(rand)]
+                let rand = Int.random(in: 0..<len)
+                let nextChar = letters[rand]
                 randomString += String(nextChar)
             }
             return randomString
