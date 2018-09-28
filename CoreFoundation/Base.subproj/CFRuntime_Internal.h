@@ -1,9 +1,11 @@
-//
-//  CFRuntime_Internal.h
-//  CoreFoundation
-//
-//  Created by Tony Parker on 4/21/18.
-//
+/*	CFRuntime_Internal.h
+	Copyright (c) 2018, Apple Inc. and the Swift project authors
+ 
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+*/
 
 #ifndef CFRuntime_Internal_h
 #define CFRuntime_Internal_h
