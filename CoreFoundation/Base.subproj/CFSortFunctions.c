@@ -52,6 +52,8 @@ enum {
 
 #define __checkint_int64_mul(x, y, err)         (x * y)
 #define __checkint_uint64_add(x, y, err)        (x + y)
+#define __checkint_int32_mul(x,y,err)           (x * y)
+#define __checkint_uint32_add(x,y,err)          (x + y)
 
 #endif
 
