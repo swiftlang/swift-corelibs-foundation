@@ -1042,6 +1042,15 @@ static struct {
     {"CFNumberDisableCache", NULL},
     {"__CFPREFERENCES_AVOID_DAEMON", NULL},
     {"APPLE_FRAMEWORKS_ROOT", NULL},
+#if !DEPLOYMENT_RUNTIME_OBJC
+    {"HOME", NULL},
+    {"XDG_DATA_HOME", NULL},
+    {"XDG_CONFIG_HOME", NULL},
+    {"XDG_DATA_DIRS", NULL},
+    {"XDG_CONFIG_DIRS", NULL},
+    {"XDG_CACHE_HOME", NULL},
+    {"XDG_RUNTIME_DIR", NULL},
+#endif
     {NULL, NULL}, // the last one is for optional "COMMAND_MODE" "legacy", do not use this slot, insert before
 };
 
