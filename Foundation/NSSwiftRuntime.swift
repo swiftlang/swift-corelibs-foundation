@@ -86,6 +86,7 @@ extension ObjCBool : CustomStringConvertible {
 }
 #endif
 
+@usableFromInline
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
     
