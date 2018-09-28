@@ -38,8 +38,7 @@
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-// No C99 support
-#define restrict
+// Remember to use _CF_RESTRICT instead of restrict, which is correctly defined for DEPLOYMENT_TARGET_WINDOWS elsewhere.
 
 // Replace bzero
 #define bzero(dst, size)    ZeroMemory(dst, size)
@@ -245,7 +244,7 @@ static inline void __CFStorageSetChild(CFStorageNode *parentNode, CFIndex childI
     *((void **)&parentNode->info.notLeaf.child[childIndex]) = newChild;
 }
 
-static inline void __CFStorageGetChildren(const CFStorageNode *parent, CFStorageNode ** restrict resultArray, bool shouldRetain, bool shouldFreeze) {
+static inline void __CFStorageGetChildren(const CFStorageNode *parent, CFStorageNode ** _CF_RESTRICT resultArray, bool shouldRetain, bool shouldFreeze) {
     ASSERT(! parent->isLeaf);
     CFIndex i;
     for (i=0; i < 3; i++) {
@@ -273,7 +272,7 @@ CF_INLINE void __CFStorageSetCache(CFStorageRef storage, CFStorageNode *node, CF
 /* Gets the location for the specified absolute loc from the cached info.
  Returns NULL if the location is not in the cache.
  */
-CF_INLINE uint8_t *__CFStorageGetFromCache(CFStorageRef storage, CFIndex loc, CFRange * restrict validConsecutiveValueRange, bool requireUnfrozenNode) {
+CF_INLINE uint8_t *__CFStorageGetFromCache(CFStorageRef storage, CFIndex loc, CFRange * _CF_RESTRICT validConsecutiveValueRange, bool requireUnfrozenNode) {
     CFStorageNode * const cachedNode = storage->cacheNode; /* It's important we read from this field no more than once, for thread safety with other concurrent reads; that is why the field is marked volatile. */
     if (! cachedNode) return NULL; /* No cache */
     
@@ -308,7 +307,7 @@ CF_INLINE uint8_t *__CFStorageGetFromCache(CFStorageRef storage, CFIndex loc, CF
  relativeByteNum (not optional, for performance reasons) returns the relative byte number of the specified byte in the child.
  Don't call with leaf nodes!
  */
-CF_INLINE CFStorageNode *__CFStorageFindChild(const CFStorageNode * restrict node, CFIndex byteNum, bool forInsertionOrDeletion, CFIndex * restrict childNum, CFIndex * restrict relativeByteNum) {
+CF_INLINE CFStorageNode *__CFStorageFindChild(const CFStorageNode * _CF_RESTRICT node, CFIndex byteNum, bool forInsertionOrDeletion, CFIndex * _CF_RESTRICT childNum, CFIndex * _CF_RESTRICT relativeByteNum) {
     if (forInsertionOrDeletion) byteNum--;	/* If for insertion, we do <= checks, not <, so this accomplishes the same thing */
     CFStorageNode *result;
     result = node->info.notLeaf.child[0];

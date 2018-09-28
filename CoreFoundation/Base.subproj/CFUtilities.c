@@ -572,13 +572,13 @@ CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid) {
     __CFGetUGIDs(euid, egid);
 }
     
-CF_EXPORT uid_t _CFGetEUID() {
+CF_EXPORT uid_t _CFGetEUID(void) {
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     return euid;
 }
 
-CF_EXPORT uid_t _CFGetEGID() {
+CF_EXPORT uid_t _CFGetEGID(void) {
     uid_t egid;
     __CFGetUGIDs(NULL, &egid);
     return egid;
