@@ -32,7 +32,12 @@ extension String : _ObjectiveCBridgeable {
             let length = CFStringGetLength(cf)
             if length == 0 {
                 result = ""
-            } else if let ptr = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) {
+            } else if let ptr = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingASCII)) {
+                // ASCII encoding has 1 byte per code point and CFStringGetLength() returned the length in
+                // codepoints so length should be the length of the ASCII string in bytes. We cant ask for the UTF-8
+                // encoding as some codepoints are multi-byte in UTF8 so the buffer length wouldn't be known.
+                // Note: CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) does seems to return NULL
+                // for strings with multibyte UTF-8 but this isnt guaranteed or documented so ASCII is safer.
                 result = ptr.withMemoryRebound(to: UInt8.self, capacity: length) {
                     return String(decoding: UnsafeBufferPointer(start: $0, count: length), as: UTF8.self)
                 }
