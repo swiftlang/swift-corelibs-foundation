@@ -21,6 +21,8 @@ class TestNSDictionary : XCTestCase {
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
             ("test_settingWithStringKey", test_settingWithStringKey),
+            ("test_valueForKey", test_valueForKey),
+            ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
         ]
     }
         
@@ -216,6 +218,19 @@ class TestNSDictionary : XCTestCase {
         let dict = NSMutableDictionary()
         // has crashed in the past
         dict["stringKey"] = "value"
+    }
+    
+    func test_valueForKey() {
+        let dict: NSDictionary = ["foo": "bar"]
+        let result = dict.value(forKey: "foo")
+        XCTAssert(result as? String == "bar")
+    }
+    
+    func test_valueForKeyWithNestedDict() {
+        let dict: NSDictionary = ["foo": ["bar": "baz"]]
+        let result = dict.value(forKey: "foo")
+        let expectedResult: NSDictionary = ["bar": "baz"]
+        XCTAssert(result as? NSDictionary == expectedResult)
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {

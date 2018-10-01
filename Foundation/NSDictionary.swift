@@ -33,7 +33,12 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     open func value(forKey key: String) -> Any? {
-        NSUnsupported()
+        if key.hasPrefix("@") {
+            NSUnsupported()
+        } else {
+            return object(forKey: key)
+        }
+        
     }
     
     open func keyEnumerator() -> NSEnumerator {
