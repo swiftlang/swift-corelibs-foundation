@@ -223,14 +223,14 @@ class TestNSDictionary : XCTestCase {
     func test_valueForKey() {
         let dict: NSDictionary = ["foo": "bar"]
         let result = dict.value(forKey: "foo")
-        XCTAssert(result as? String == "bar")
+        XCTAssertEqual(result as? String, "bar")
     }
     
     func test_valueForKeyWithNestedDict() {
         let dict: NSDictionary = ["foo": ["bar": "baz"]]
         let result = dict.value(forKey: "foo")
         let expectedResult: NSDictionary = ["bar": "baz"]
-        XCTAssert(result as? NSDictionary == expectedResult)
+        XCTAssertEqual(result as? NSDictionary, expectedResult)
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
