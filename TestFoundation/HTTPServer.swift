@@ -435,6 +435,10 @@ public class TestURLSessionServer {
             let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
+        
+        if uri == "/redirectSetCookies" {
+            return _HTTPResponse(response: .REDIRECT, headers: "Location: /setCookies\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
+        }
 
         if uri == "/UnitedStates" {
             let value = capitals[String(uri.dropFirst())]!

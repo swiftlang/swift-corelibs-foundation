@@ -17,7 +17,8 @@ class TestHTTPCookie: XCTestCase {
             ("test_cookiesWithResponseHeader0cookies", test_cookiesWithResponseHeader0cookies),
             ("test_cookiesWithResponseHeader2cookies", test_cookiesWithResponseHeader2cookies),
             ("test_cookiesWithResponseHeaderNoDomain", test_cookiesWithResponseHeaderNoDomain),
-            ("test_cookiesWithResponseHeaderNoPathNoDomain", test_cookiesWithResponseHeaderNoPathNoDomain)
+            ("test_cookiesWithResponseHeaderNoPathNoDomain", test_cookiesWithResponseHeaderNoPathNoDomain),
+            ("test_cookieExpiresDateFormats", test_cookieExpiresDateFormats),
         ]
     }
 
@@ -167,5 +168,27 @@ class TestHTTPCookie: XCTestCase {
         let cookies =  HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "https://example.com")!)
         XCTAssertEqual(cookies[0].domain, "example.com")
         XCTAssertEqual(cookies[0].path, "/")
+    }
+    
+    func test_cookieExpiresDateFormats() {
+        let testDate = Date(timeIntervalSince1970: 1577881800)
+        let cookieString =
+            """
+            format1=true; expires=Wed, 01 Jan 2020 12:30:00 GMT; path=/; domain=swift.org; secure; httponly,
+            format2=true; expires=Wed Jan 1 12:30:00 2020; path=/; domain=swift.org; secure; httponly,
+            format3=true; expires=Wed, 01-Jan-2020 12:30:00 GMT; path=/; domain=swift.org; secure; httponly
+            """
+
+        let header = ["header1":"value1",
+                      "Set-Cookie": cookieString,
+                      "header2":"value2",
+                      "header3":"value3"]
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: header, for: URL(string: "https://swift.org")!)
+        XCTAssertEqual(cookies.count, 3)
+        cookies.forEach { cookie in
+            XCTAssertEqual(cookie.expiresDate, testDate)
+            XCTAssertEqual(cookie.domain, "swift.org")
+            XCTAssertEqual(cookie.path, "/")
+        }
     }
 }

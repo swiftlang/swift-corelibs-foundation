@@ -120,7 +120,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+        // In case this is a redirect, take the headers from the current (redirect) request.
+        if let hh = self.task?.currentRequest?.allHTTPHeaderFields ??
+                    self.task?.originalRequest?.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
@@ -211,8 +213,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 }
             }
         case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
-            // Follow the redirect.
-            startNewTransfer(with: request)
+            // Follow the redirect. Need to configure new request with cookies, etc.
+            let configuredRequest = session._configuration.configure(request: request)
+            startNewTransfer(with: configuredRequest)
         }
     }
 
