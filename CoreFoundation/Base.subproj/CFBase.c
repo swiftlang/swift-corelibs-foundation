@@ -22,8 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ForFoundationOnly.h"
-
 // -------- -------- -------- -------- -------- -------- -------- --------
 
 struct __CFAllocator {
@@ -746,8 +744,8 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
 
 
 
-static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
-    _Bool recovered = false;
+static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) {
+    bool recovered = false;
     if (reallocationFailureHandler) {
         reallocationFailureHandler(ptr, &recovered);
     }
@@ -759,7 +757,7 @@ static void __CFReallocationFailed(void *ptr, CFStringRef reason, void (^realloc
 }
 
 
-void *__CFSafelyReallocate(void *destination, size_t newCapacity, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
+void *__CFSafelyReallocate(void *destination, size_t newCapacity, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) {
     void *const reallocated = realloc(destination, newCapacity);
     if (__builtin_expect(reallocated == NULL, false)) {
         __CFReallocationFailed(destination,  CFSTR("realloc"), reallocationFailureHandler);
@@ -768,7 +766,7 @@ void *__CFSafelyReallocate(void *destination, size_t newCapacity, void (^realloc
 }
 
 
-void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destination, size_t newCapacity, CFOptionFlags options, void (^reallocationFailureHandler)(void *original, _Bool *outRecovered)) {
+void *__CFSafelyReallocateWithAllocator(CFAllocatorRef allocator, void *destination, size_t newCapacity, CFOptionFlags options, void (^reallocationFailureHandler)(void *original, bool *outRecovered)) {
     void *reallocated = CFAllocatorReallocate(allocator, destination, newCapacity, options);
     // NOTE: important difference in behavior between realloc vs CFAllocateReallocate NULL+0 -> NULL for allocators!
     if (__builtin_expect(reallocated == NULL, false) && !(destination == NULL && newCapacity == 0)) {

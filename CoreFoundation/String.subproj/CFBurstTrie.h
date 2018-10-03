@@ -60,7 +60,7 @@ typedef CF_OPTIONS(CFOptionFlags, CFBurstTrieOpts) {
 typedef void (*CFBurstTrieTraversalCallback)(void* context, const UInt8* key, uint32_t keyLength, uint32_t payload, Boolean *stop);
 
 CF_EXPORT 
-CFBurstTrieRef CFBurstTrieCreate(void) API_AVAILABLE(macos(10.7), ios(4.2), watchos(2.0), tvos(9.0));
+CFBurstTrieRef CFBurstTrieCreate() API_AVAILABLE(macos(10.7), ios(4.2), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
 CFBurstTrieRef CFBurstTrieCreateWithOptions(CFDictionaryRef options) API_AVAILABLE(macos(10.8), ios(6.0), watchos(2.0), tvos(9.0));

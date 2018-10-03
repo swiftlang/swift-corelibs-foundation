@@ -2152,7 +2152,7 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
-#if (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN) || DEPLOYMENT_TARGET_FREEBSD
+#if (TARGET_OS_LINUX && !TARGET_OS_CYGWIN) || TARGET_OS_BSD
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
 #elif TARGET_OS_CYGWIN
 #else

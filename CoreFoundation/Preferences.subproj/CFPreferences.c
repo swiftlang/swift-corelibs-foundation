@@ -10,18 +10,18 @@
 
 #include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFURLAccess.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFUserNotification.h>
 #endif
 #include <CoreFoundation/CFPropertyList.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include <sys/stat.h>
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #include <unistd.h>
 #include <CoreFoundation/CFUUID.h>
 #endif
@@ -89,12 +89,12 @@ CF_EXPORT void CFPreferencesDumpMem(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #pragma mark -
 #pragma mark Determining host UUID
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 // The entry point is in libSystem.B.dylib, but not actually declared
 // If this becomes available in a header (<rdar://problem/4943036>), I need to pull this out
 int gethostuuid(unsigned char *uuid_buf, const struct timespec *timeoutp);
@@ -169,14 +169,14 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 
 static unsigned long __CFSafeLaunchLevel = 0;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <shfolder.h>
 
 #endif
 
 static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFAllocatorRef alloc = __CFPreferencesAllocator();
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 	CFURLRef url = NULL;
 
@@ -449,7 +449,7 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
     CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
@@ -483,9 +483,9 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 	CFRelease(appName);
     }
     if (fileName) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX
         theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLPOSIXPathStyle, false, prefDir);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 		theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLWindowsPathStyle, false, prefDir);
 #endif
         if (prefDir) CFRelease(prefDir);

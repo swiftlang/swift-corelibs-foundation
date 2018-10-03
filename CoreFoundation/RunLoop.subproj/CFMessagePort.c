@@ -32,7 +32,7 @@
 #endif
 #endif
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#if TARGET_OS_MAC
 #include <bootstrap.h>
 #endif
 

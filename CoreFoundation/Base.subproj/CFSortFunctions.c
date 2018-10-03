@@ -12,11 +12,11 @@
 #include "CFInternal.h"
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
+#if TARGET_OS_MAC && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #else
 #define DISPATCH_APPLY_CURRENT_ROOT_QUEUE ((dispatch_queue_t _Nonnull)0)
-#endif // (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
+#endif // TARGET_OS_MAC && __has_include(<dispatch/private.h>)
 #endif // __HAS_DISPATCH__
 #include "CFLogUtilities.h"
 #include "CFInternal.h"

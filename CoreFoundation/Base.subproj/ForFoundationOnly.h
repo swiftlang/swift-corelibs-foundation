@@ -65,8 +65,8 @@ CF_IMPLICIT_BRIDGING_DISABLED
  
    The outRecovered BOOL can be used to control what happens after the handler is called. If left unset, and the reallocationFailureHandler does unwind-the-stack/abort, we use the standard CF out-of-memory flow.  If set to YES, then __CFSafelyReallocate{,WithAllocator} will return NULL.
  */
-CF_EXPORT void *_Nonnull __CFSafelyReallocate(void * _Nullable destination, size_t newCapacity, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, _Bool *_Nonnull outRecovered));
-CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nullable, void * _Nullable destination, size_t newCapacity, CFOptionFlags options, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, _Bool *_Nonnull outRecovered));
+CF_EXPORT void *_Nonnull __CFSafelyReallocate(void * _Nullable destination, size_t newCapacity, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
+CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nullable, void * _Nullable destination, size_t newCapacity, CFOptionFlags options, void (^_Nullable reallocationFailureHandler)(void *_Nonnull original, bool *_Nonnull outRecovered));
 
 // ---- CFBundle material ----------------------------------------
 

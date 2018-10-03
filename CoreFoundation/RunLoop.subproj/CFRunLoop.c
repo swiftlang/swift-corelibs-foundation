@@ -74,7 +74,7 @@ extern void os_release(void *object);
 
 extern mach_port_t _dispatch_get_main_queue_port_4CF(void);
 
-#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
+#elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
 #include <process.h>
 DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);
 DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);

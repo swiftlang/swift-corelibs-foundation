@@ -115,7 +115,7 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     }
     
     do {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         fileStream->fd = _wopen(path, flags, 0666);
 #else
         fileStream->fd = open((const char *)path, flags, 0666);

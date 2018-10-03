@@ -1513,13 +1513,13 @@ CFDictionaryRef __CFGetEnvironment() {
     static dispatch_once_t once = 0L;
     static CFMutableDictionaryRef envDict = NULL;
     dispatch_once(&once, ^{
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
         extern char **environ;
         char **envp = environ;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if !defined(environ) && !TARGET_OS_ANDROID
 #define environ __environ
 #endif

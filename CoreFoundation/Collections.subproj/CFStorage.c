@@ -37,8 +37,8 @@
 #include <dispatch/dispatch.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
-// Remember to use _CF_RESTRICT instead of restrict, which is correctly defined for DEPLOYMENT_TARGET_WINDOWS elsewhere.
+#if TARGET_OS_WIN32
+// Remember to use _CF_RESTRICT instead of restrict, which is correctly defined for TARGET_OS_WIN32 elsewhere.
 
 // Replace bzero
 #define bzero(dst, size)    ZeroMemory(dst, size)

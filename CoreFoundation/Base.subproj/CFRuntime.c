@@ -960,7 +960,7 @@ extern CFTypeID CFTreeGetTypeID(void);
 extern CFTypeID CFPlugInInstanceGetTypeID(void);
 extern CFTypeID CFStringTokenizerGetTypeID(void);
 extern CFTypeID CFStorageGetTypeID(void);
-#if DEPLOYMENT_TARGET_LINUX || (DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT)
+#if TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -1124,7 +1124,7 @@ void __CFInitialize(void) {
 #if DEPLOYMENT_TARGET_WINDOWS
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif DEPLOYMENT_TARGET_LINUX || (DEPLOYMENT_TARGET_MACOSX && !DEPLOYMENT_RUNTIME_OBJC)
+#elif TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
         __CFTSDInitialize();
 #endif
         __CFProphylacticAutofsAccess = true;

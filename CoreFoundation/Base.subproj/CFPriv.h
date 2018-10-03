@@ -26,15 +26,9 @@
 #include <CoreFoundation/CFSet.h>
 #include <math.h>
 
-#ifndef CF_CROSS_PLATFORM_EXPORT
-        #if !DEPLOYMENT_RUNTIME_OBJC
-            #define CF_CROSS_PLATFORM_EXPORT extern
-        #else
-            #define CF_CROSS_PLATFORM_EXPORT static __attribute__((used))
-        #endif
-#endif
+#define CF_CROSS_PLATFORM_EXPORT extern
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
   // No C99 support
   #define _CF_RESTRICT
 #else

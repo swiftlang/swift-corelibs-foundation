@@ -295,7 +295,7 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
 
 CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     CFStringRef result = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     struct passwd *upwd = getpwuid(euid ? euid : getuid());
@@ -312,7 +312,7 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     return result;
 }
 
-#if DEPLOYMENT_TARGET_ANDROID
+#if TARGET_OS_ANDROID
 #undef pw_gecos
 #endif
 

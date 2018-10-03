@@ -25,19 +25,19 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <CoreFoundation/CFDateFormatter.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <dirent.h>
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/fcntl.h>
 #endif
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #include <tzfile.h>
 #define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
 #define MACOS_TZDIR2 "/var/db/timezone/zoneinfo/"    // 10.13 onwards
 
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo/" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -76,7 +76,7 @@ static CFArrayRef __CFKnownTimeZoneList = NULL;
 static CFMutableDictionaryRef __CFTimeZoneCache = NULL;
 static CFLock_t __CFTimeZoneGlobalLock = CFLockInit;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static CFDictionaryRef __CFTimeZoneWinToOlsonDict = NULL;
 static CFLock_t __CFTimeZoneWinToOlsonLock = CFLockInit;
 #endif
@@ -105,7 +105,7 @@ CF_INLINE void __CFTimeZoneUnlockCompatibilityMapping(void) {
     __CFUnlock(&__CFTimeZoneCompatibilityMappingLock);
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 /* This function should be used for WIN32 instead of
  * __CFCopyRecursiveDirectoryList function.
  * It takes TimeZone names from the registry
@@ -141,7 +141,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     RegCloseKey(hkResult);
     return result;
 }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
     if (!__tzDir) __InitTZStrings();
@@ -457,7 +457,7 @@ CFTypeID CFTimeZoneGetTypeID(void) {
     return _kCFRuntimeIDCFTimeZone;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static const char *__CFTimeZoneWinToOlsonDefaults =
 /* Mappings to time zones in Windows Registry are best-guess */
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -694,7 +694,7 @@ static void __InitTZStrings(void) {
     __CFUnlock(&__CFTZDirLock);
 }
 
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#elif TARGET_OS_MAC
 static void __InitTZStrings(void) {
     static dispatch_once_t initOnce = 0;
 
@@ -729,7 +729,7 @@ static void __InitTZStrings(void) {
     });
 }
 
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 static void __InitTZStrings(void) {
     __tzZoneInfo = CFSTR(TZDIR);
     __tzDir = TZDIR "zone.tab";
@@ -744,7 +744,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     
     CFStringRef name = NULL;
     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     TIME_ZONE_INFORMATION tzi = { 0 };
     DWORD rval = GetTimeZoneInformation(&tzi);
     if (rval != TIME_ZONE_ID_INVALID) {
@@ -810,7 +810,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
-#if DEPLOYMENT_TARGET_ANDROID
+#if TARGET_OS_ANDROID
     // Timezone database by name not available on Android.
     // Approximate with gmtoff - could be general default.
     struct tm info;
@@ -1181,7 +1181,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             
             if (!__tzZoneInfo) __InitTZStrings();
             if (!__tzZoneInfo) return NULL;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
 #else
             baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
@@ -1381,7 +1381,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
 #else
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
@@ -1459,7 +1459,7 @@ CFDataRef CFTimeZoneGetData(CFTimeZoneRef tz) {
 /* This function converts CFAbsoluteTime to (Win32) SYSTEMTIME
  * (Aleksey Dukhnyakov)
  */
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 BOOL __CFTimeZoneGetWin32SystemTime(SYSTEMTIME * sys_time, CFAbsoluteTime time)
 {
     LONGLONG l;

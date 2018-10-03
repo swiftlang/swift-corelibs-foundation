@@ -179,11 +179,11 @@ struct __CFConstStr {
 #endif // defined(__LP64__) || defined(__LLP64__)
 };
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define CONST_STRING_LITERAL_SECTION __attribute__((section(".cfstrlit.data")))
 #else
 #define CONST_STRING_LITERAL_SECTION
-#endif // DEPLOYMENT_TARGET_LINUX
+#endif // TARGET_OS_LINUX
 
 #if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \

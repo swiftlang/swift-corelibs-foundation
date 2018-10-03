@@ -16,7 +16,7 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && DEPLOYMENT_RUNTIME_OBJC
+#if (TARGET_OS_MAC || TARGET_OS_WIN32) && DEPLOYMENT_RUNTIME_OBJC
 #import <Foundation/NSAttributedString.h>
 @interface NSAttributedString (NSPrivate)
 - (NSAttributedString *)_createAttributedSubstringWithRange:(NSRange)range;
