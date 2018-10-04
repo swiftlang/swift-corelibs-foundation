@@ -1524,7 +1524,7 @@ static UDate __CFDateFormatterCorrectTimeToARangeAroundCurrentDate(UCalendar *ca
         }
     } else {
         if (period < INT_MAX && futureMax > period) {
-            futureRange.location = 1,
+            futureRange.location = 1;
             futureRange.length = futureMax - period;
         }
         if (pastMin <= 0) {

@@ -1140,5 +1140,5 @@ extension NSData : _StructTypeBridgeable {
 }
 
 internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
-    return Unmanaged<AnyObject>.passRetained((data as! NSDictionary).copy() as! NSObject)
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
 }
