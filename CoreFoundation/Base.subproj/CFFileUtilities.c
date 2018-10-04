@@ -1075,6 +1075,23 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
         while ((dent = readdir(dirp))) {
 #if DEPLOYMENT_TARGET_LINUX
             CFIndex nameLen = strlen(dent->d_name);
+            if (dent->d_type == DT_UNKNOWN) {
+                // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
+                struct stat statBuf;
+                char pathToStat[sizeof(dent->d_name)];
+                strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
+                strlcat(pathToStat, "/", sizeof(pathToStat));
+                strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                if (stat(pathToStat, &statBuf) == 0) {
+                    if (S_ISDIR(statBuf.st_mode)) {
+                        dent->d_type = DT_DIR;
+                    } else if (S_ISREG(statBuf.st_mode)) {
+                        dent->d_type = DT_REG;
+                    } else if (S_ISLNK(statBuf.st_mode)) {
+                        dent->d_type = DT_LNK;
+                    }
+                }
+            }
 #else
             CFIndex nameLen = dent->d_namlen;
 #endif
