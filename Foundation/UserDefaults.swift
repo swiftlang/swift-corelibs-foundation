@@ -60,7 +60,7 @@ open class UserDefaults: NSObject {
             return true
         }
         
-        let isOfUncommonNumericTypes = value is Double || value is Float || value is Float || value is Int8 || value is UInt8 || value is Int16 || value is UInt16 || value is Int32 || value is UInt32 || value is Int64 || value is UInt64
+        let isOfUncommonNumericTypes = value is Double || value is Float || value is Int8 || value is UInt8 || value is Int16 || value is UInt16 || value is Int32 || value is UInt32 || value is Int64 || value is UInt64
         return isOfUncommonNumericTypes
     }
     
