@@ -170,10 +170,13 @@ struct __CFConstStr {
 #endif
 };
 
-#if DEPLOYMENT_TARGET_LINUX
-#define CONST_STRING_LITERAL_SECTION __attribute__((section(".cfstrlit.data")))
+
+#if defined(__ELF__)
+#define CONST_STRING_LITERAL_SECTION __attribute__((__section__("cfstring")))
+#elif defined(__MACH__)
+#define CONST_STRING_LITERAL_SECTION __attribute__((__section__("__DATA,__cfstring")))
 #else
-#define CONST_STRING_LITERAL_SECTION
+#define CONST_STRING_LITERAL_SECTION __attribute__((__section__("cfstring")))
 #endif
 
 #if __BIG_ENDIAN__
