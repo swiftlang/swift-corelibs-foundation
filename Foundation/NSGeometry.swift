@@ -119,7 +119,7 @@ public struct CGSize {
 
 extension CGSize {
     public static var zero: CGSize {
-        return CGSize(width: CGFloat(0), height: CGFloat(0))
+        return CGSize(width: 0, height: 0)
     }
     
     public init(width: Int, height: Int) {
@@ -682,10 +682,10 @@ public func NSEdgeInsetsEqual(_ aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) 
 }
 
 public func NSInsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
-    let x = CGFloat(aRect.origin.x.native + dX.native)
-    let y = CGFloat(aRect.origin.y.native + dY.native)
-    let w = CGFloat(aRect.size.width.native - (dX.native * 2))
-    let h = CGFloat(aRect.size.height.native - (dY.native * 2))
+    let x = aRect.origin.x.native + dX.native
+    let y = aRect.origin.y.native + dY.native
+    let w = aRect.size.width.native - (dX.native * 2)
+    let h = aRect.size.height.native - (dY.native * 2)
     return NSRect(x: x, y: y, width: w, height: h)
 }
 
@@ -990,12 +990,9 @@ public func NSPointFromString(_ aString: String) -> NSPoint {
     }
 
     let parsedNumbers = _scanDoublesFromString(aString, number: 2)
-    
     let x = parsedNumbers[0]
     let y = parsedNumbers[1]
-    let result = NSPoint(x: CGFloat(x), y: CGFloat(y))
-    
-    return result
+    return NSPoint(x: x, y: y)
 }
 
 public func NSSizeFromString(_ aString: String) -> NSSize {
@@ -1003,12 +1000,9 @@ public func NSSizeFromString(_ aString: String) -> NSSize {
         return .zero
     }
     let parsedNumbers = _scanDoublesFromString(aString, number: 2)
-    
     let w = parsedNumbers[0]
     let h = parsedNumbers[1]
-    let result = NSSize(width: CGFloat(w), height: CGFloat(h))
-    
-    return result
+    return NSSize(width: w, height: h)
 }
 
 public func NSRectFromString(_ aString: String) -> NSRect {
@@ -1017,15 +1011,11 @@ public func NSRectFromString(_ aString: String) -> NSRect {
     }
     
     let parsedNumbers = _scanDoublesFromString(aString, number: 4)
-    
     let x = parsedNumbers[0]
     let y = parsedNumbers[1]
     let w = parsedNumbers[2]
     let h = parsedNumbers[3]
-    
-    let result = NSRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
-    
-    return result
+    return NSRect(x: x, y: y, width: w, height: h)
 }
 
 extension NSValue {
