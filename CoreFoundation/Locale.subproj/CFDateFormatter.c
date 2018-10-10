@@ -1,7 +1,7 @@
 /*      CFDateFormatter.c
-	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -18,6 +18,7 @@
 #include <CoreFoundation/CFNumber.h>
 #include "CFPriv.h"
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFLocaleInternal.h"
 #include "CFICULogging.h"
 #include <math.h>
@@ -66,7 +67,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
         if (CFStringGetCString(ln, buffer, BUFFER_SIZE, kCFStringEncodingASCII)) localeName = buffer;
     }
     
-    static void (^flushCache)(void) = ^{
+    void (^flushCache)(void) = ^{
         __cficu_udatpg_close(ptg);
         ptg = NULL;
         free((void *)ptgLocaleName);
@@ -642,13 +643,14 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
     }
     if (!wantRelative && df->_property._HasCustomFormat == kCFBooleanTrue) {
         CFIndex cnt = CFStringGetLength(df->_format);
-        STACK_BUFFER_DECL(UChar, ubuffer, cnt);
+        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
         const UChar *ustr = (UChar *)CFStringGetCharactersPtr((CFStringRef)df->_format);
         if (NULL == ustr) {
             CFStringGetCharacters(df->_format, CFRangeMake(0, cnt), (UniChar *)ubuffer);
             ustr = ubuffer;
         }
         __cficu_udat_applyPattern(icudf, false, ustr, cnt);
+        SAFE_STACK_BUFFER_CLEANUP(ubuffer);
     }
     
     CFStringRef calident = (CFStringRef)CFLocaleGetValue(df->_locale, kCFLocaleCalendarIdentifierKey);
@@ -712,7 +714,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
             CFIndex cnt = CFStringGetLength(formatString);
             CFAssert1(cnt <= 1024, __kCFLogAssertion, "%s(): format string too long", __PRETTY_FUNCTION__);
             if (cnt <= 1024) {
-                STACK_BUFFER_DECL(UChar, ubuffer, cnt);
+                SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
                 const UChar *ustr = (UChar *)CFStringGetCharactersPtr((CFStringRef)formatString);
                 if (NULL == ustr) {
                     CFStringGetCharacters(formatString, CFRangeMake(0, cnt), (UniChar *)ubuffer);
@@ -725,6 +727,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
                     if (df->_format) CFRelease(df->_format);
                     df->_format = (CFStringRef)CFStringCreateCopy(CFGetAllocator(df), formatString);
                 }
+                SAFE_STACK_BUFFER_CLEANUP(ubuffer);
             }
             CFRelease(formatString);
             CFRelease(newFormat);
@@ -746,9 +749,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
     RESET_PROPERTY(_FormattingContext, kCFDateFormatterFormattingContextKey);
 }
 
-static CFTypeID __kCFDateFormatterTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFDateFormatterClass = {
+const CFRuntimeClass __CFDateFormatterClass = {
     0,
     "CFDateFormatter",
     NULL,        // init
@@ -761,9 +762,7 @@ static const CFRuntimeClass __CFDateFormatterClass = {
 };
 
 CFTypeID CFDateFormatterGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFDateFormatterTypeID = _CFRuntimeRegisterClass(&__CFDateFormatterClass); });
-    return __kCFDateFormatterTypeID;
+    return _kCFRuntimeIDCFDateFormatter;
 }
 
 static CFDateFormatterRef __SetUpCFDateFormatter(CFAllocatorRef allocator, CFLocaleRef locale, CFDateFormatterStyle dateStyle, CFDateFormatterStyle timeStyle, CFBooleanRef calculateISO8601) {
@@ -899,7 +898,13 @@ static CFMutableStringRef __createISO8601FormatString(CFISO8601DateFormatOptions
     BOOL useColonSeparatorInTime = (options & kCFISO8601DateFormatWithColonSeparatorInTime) == kCFISO8601DateFormatWithColonSeparatorInTime;
     BOOL useColonSeparatorInTimeZone = (options & kCFISO8601DateFormatWithColonSeparatorInTimeZone) == kCFISO8601DateFormatWithColonSeparatorInTimeZone;
     BOOL internetDateTime = (options & kCFISO8601DateFormatWithInternetDateTime) == kCFISO8601DateFormatWithInternetDateTime;
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+    
     BOOL includeFractionalSecs = (options & kCFISO8601DateFormatWithFractionalSeconds) == kCFISO8601DateFormatWithFractionalSeconds;
+
+#pragma clang diagnostic pop
 
     if (internetDateTime) {
         // Check for dashes
@@ -1297,7 +1302,7 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
 #if __HAS_APPLE_ICU__
     Boolean success = useTemplatePatternGenerator(formatter->_locale, ^(UDateTimePatternGenerator *ptg) {
         CFIndex cnt = CFStringGetLength(inString);
-        STACK_BUFFER_DECL(UChar, ubuffer, cnt);
+        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
         const UChar *ustr = (UChar *)CFStringGetCharactersPtr(inString);
         if (NULL == ustr) {
             CFStringGetCharacters(inString, CFRangeMake(0, cnt), (UniChar *)ubuffer);
@@ -1318,6 +1323,7 @@ static CFStringRef __CFDateFormatterCreateForcedString(CFDateFormatterRef format
             }
             free(largerBuffer);
         }
+        SAFE_STACK_BUFFER_CLEANUP(ubuffer);
     });
 #else
     Boolean success = false;
@@ -1359,7 +1365,7 @@ void CFDateFormatterSetFormat(CFDateFormatterRef formatter, CFStringRef formatSt
             __ResetUDateFormat(formatter, true);
             // the "true" results in: if you set a custom format string, you don't get relative date formatting
         }
-        STACK_BUFFER_DECL(UChar, ubuffer, cnt);
+        SAFE_STACK_BUFFER_DECL(UChar, ubuffer, cnt, 256);
         const UChar *ustr = (UChar *)CFStringGetCharactersPtr((CFStringRef)formatString);
         if (NULL == ustr) {
             CFStringGetCharacters(formatString, CFRangeMake(0, cnt), (UniChar *)ubuffer);
@@ -1373,6 +1379,7 @@ void CFDateFormatterSetFormat(CFDateFormatterRef formatter, CFStringRef formatSt
             formatter->_format = (CFStringRef)CFStringCreateCopy(CFGetAllocator(formatter), formatString);
             formatter->_property._HasCustomFormat = kCFBooleanTrue;
         }
+        SAFE_STACK_BUFFER_CLEANUP(ubuffer);
     }
     if (formatString) CFRelease(formatString);
 }

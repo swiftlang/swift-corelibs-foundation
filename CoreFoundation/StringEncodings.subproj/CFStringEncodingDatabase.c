@@ -1,7 +1,7 @@
 /*	CFStringEncodingDatabase.c
-	Copyright (c) 2005-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2005-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -242,7 +242,7 @@ static const uint16_t __CFWindowsCPList[] = {
 };
 
 // Canonical name
-static const char *__CFCanonicalNameList[] = {
+static const char * const __CFCanonicalNameList[] = {
     "macintosh",
     "japanese",
     "trad-chinese",
@@ -570,7 +570,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetFromCanonicalName(const char *c
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
 // This list indexes from DOS range
-static uint16_t __CFISO8859SimilarScriptList[] = {
+static uint16_t const __CFISO8859SimilarScriptList[] = {
     kCFStringEncodingMacRoman,
     kCFStringEncodingMacCentralEurRoman,
     kCFStringEncodingMacRoman,
@@ -588,7 +588,7 @@ static uint16_t __CFISO8859SimilarScriptList[] = {
     kCFStringEncodingMacRoman,
     kCFStringEncodingMacRomanian};
 
-static uint16_t __CFOtherSimilarScriptList[] = {
+static uint16_t const __CFOtherSimilarScriptList[] = {
     kCFStringEncodingMacRoman,
     kCFStringEncodingMacGreek,
     kCFStringEncodingMacCentralEurRoman,
@@ -658,7 +658,7 @@ static uint16_t __CFOtherSimilarScriptList[] = {
     kCFStringEncodingMacRoman
 };
 
-static const char *__CFISONameList[] = {
+static const char * const __CFISONameList[] = {
     "Western (ISO Latin 1)",
     "Central European (ISO Latin 2)",
     "Western (ISO Latin 3)",
@@ -677,7 +677,7 @@ static const char *__CFISONameList[] = {
     "Romanian (ISO Latin 10)",
 };
 
-static const char *__CFOtherNameList[] = {
+static const char * const __CFOtherNameList[] = {
     "Western (Mac OS Roman)",
     "Japanese (Mac OS)",
     "Traditional Chinese (Mac OS)",

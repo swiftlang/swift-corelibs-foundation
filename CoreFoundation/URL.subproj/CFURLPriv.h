@@ -1,7 +1,7 @@
 /*	CFURLPriv.h
-	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -213,11 +213,21 @@ CF_EXPORT
 const CFStringRef _kCFURLApplicationArchitecturesKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* The complete list of executable architectures found in the application bundle's executable (Read-only, value type CFArray of CFString) */
 
+CF_EXPORT
+const CFStringRef _kCFURLApplicationSupportedRegionsKey API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
+    /* The complete list of regions supported by the application as found in the application bundle’s Info.plist (Read-only, value type CFArray of CFString) */
+
 CF_EXPORT const CFStringRef _kCFURLFaultLogicalFileIsHiddenKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if the fault logical file is hidden. (Read only, CFBoolean) */
 
 CF_EXPORT const CFStringRef _kCFURLLocalizedNameComponentsKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
     /* An array containing the base name of the file and (if present) the extension to be used for display. Does not include extra Unicode visual ordering characters added by the system. For Finder use. (Read-only, value type CFArray of CFStrings) */
+
+CF_EXPORT const CFStringRef _kCFURLApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
+    /* Default is false. True means the application will be steered towards the eGPU regardless of which displays it is attached to. (Read-write, CFBoolean) */
+
+CF_EXPORT const CFStringRef _kCFURLCanSetApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
+    /* False if app’s Info.plist specifies a eGPU policy, True if app does not specify an policy. Finder does not show a checkbox when this value is false. (Read-only, CFBoolean) */
 
 /* Additional volume properties */
 

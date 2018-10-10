@@ -1,7 +1,7 @@
 /*	CFStringEncodingConverter.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -19,6 +19,10 @@
 #include "CFStringEncodingConverterPriv.h"
 #include <stdlib.h>
 
+#if __has_include(<os/lock.h>)
+#include <os/lock.h>
+#endif
+
 typedef CFIndex (*_CFToBytesProc)(const void *converter, uint32_t flags, const UniChar *characters, CFIndex numChars, uint8_t *bytes, CFIndex maxByteLen, CFIndex *usedByteLen);
 typedef CFIndex (*_CFToUnicodeProc)(const void *converter, uint32_t flags, const uint8_t *bytes, CFIndex numBytes, UniChar *characters, CFIndex maxCharLen, CFIndex *usedCharLen);
 
@@ -33,8 +37,8 @@ typedef struct {
 
 /* Macros
 */
-#define TO_BYTE(conv,flags,chars,numChars,bytes,max,used) (conv->toBytes ? conv->toBytes(conv,flags,chars,numChars,bytes,max,used) : ((CFStringEncodingToBytesProc)conv->definition->toBytes)(flags,chars,numChars,bytes,max,used))
-#define TO_UNICODE(conv,flags,bytes,numBytes,chars,max,used) (conv->toUnicode ?  (flags & (kCFStringEncodingUseCanonical|kCFStringEncodingUseHFSPlusCanonical) ? conv->toCanonicalUnicode(conv,flags,bytes,numBytes,chars,max,used) : conv->toUnicode(conv,flags,bytes,numBytes,chars,max,used)) : ((CFStringEncodingToUnicodeProc)conv->definition->toUnicode)(flags,bytes,numBytes,chars,max,used))
+#define TO_BYTE(conv,flags,chars,numChars,bytes,max,used) (conv->toBytes ? conv->toBytes(conv,flags,chars,numChars,bytes,max,used) : conv->definition->toBytes.standard(flags,chars,numChars,bytes,max,used))
+#define TO_UNICODE(conv,flags,bytes,numBytes,chars,max,used) (conv->toUnicode ?  (flags & (kCFStringEncodingUseCanonical|kCFStringEncodingUseHFSPlusCanonical) ? conv->toCanonicalUnicode(conv,flags,bytes,numBytes,chars,max,used) : conv->toUnicode(conv,flags,bytes,numBytes,chars,max,used)) : conv->definition->toUnicode.standard(flags,bytes,numBytes,chars,max,used))
 
 #define ASCIINewLine 0x0a
 #define kSurrogateHighStart 0xD800
@@ -224,7 +228,7 @@ static CFIndex __CFToBytesCheapEightBitWrapper(const void *converter, uint32_t f
     uint8_t byte;
 
     while (processedCharLen < length) {
-        if (!((CFStringEncodingCheapEightBitToBytesProc)((const _CFEncodingConverter*)converter)->definition->toBytes)(flags, characters[processedCharLen], &byte)) break;
+        if (!((const _CFEncodingConverter*)converter)->definition->toBytes.cheapEightBit(flags, characters[processedCharLen], &byte)) break;
 
         if (maxByteLen) bytes[processedCharLen] = byte;
         processedCharLen++;
@@ -240,7 +244,7 @@ static CFIndex __CFToUnicodeCheapEightBitWrapper(const void *converter, uint32_t
     UniChar character;
 
     while (processedByteLen < length) {
-        if (!((CFStringEncodingCheapEightBitToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes[processedByteLen], &character)) break;
+        if (!((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapEightBit(flags, bytes[processedByteLen], &character)) break;
 
         if (maxCharLen) characters[processedByteLen] = character;
         processedByteLen++;
@@ -259,7 +263,7 @@ static CFIndex __CFToCanonicalUnicodeCheapEightBitWrapper(const void *converter,
     bool isHFSPlus = (flags & kCFStringEncodingUseHFSPlusCanonical ? true : false);
 
     while ((processedByteLen < numBytes) && (!maxCharLen || (theUsedCharLen < maxCharLen))) {
-        if (!((CFStringEncodingCheapEightBitToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes[processedByteLen], &character)) break;
+        if (!((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapEightBit(flags, bytes[processedByteLen], &character)) break;
 
         if (CFUniCharIsDecomposableCharacter(character, isHFSPlus)) {
             CFIndex idx;
@@ -301,7 +305,7 @@ static CFIndex __CFToBytesStandardEightBitWrapper(const void *converter, uint32_
     *usedByteLen = 0;
 
     while (numChars && (!maxByteLen || (*usedByteLen < maxByteLen))) {
-        if (!(usedLen = ((CFStringEncodingStandardEightBitToBytesProc)((const _CFEncodingConverter*)converter)->definition->toBytes)(flags, characters, numChars, &byte))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toBytes.standardEightBit(flags, characters, numChars, &byte))) break;
 
         if (maxByteLen) bytes[*usedByteLen] = byte;
         (*usedByteLen)++;
@@ -321,7 +325,7 @@ static CFIndex __CFToUnicodeStandardEightBitWrapper(const void *converter, uint3
     *usedCharLen = 0;
 
     while ((processedByteLen < numBytes) && (!maxCharLen || (*usedCharLen < maxCharLen))) {
-        if (!(usedLen = ((CFStringEncodingCheapEightBitToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes[processedByteLen], charBuffer))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapEightBit(flags, bytes[processedByteLen], charBuffer))) break;
 
         if (maxCharLen) {
             CFIndex idx;
@@ -350,7 +354,7 @@ static CFIndex __CFToCanonicalUnicodeStandardEightBitWrapper(const void *convert
     CFIndex theUsedCharLen = 0;
 
     while ((processedByteLen < numBytes) && (!maxCharLen || (theUsedCharLen < maxCharLen))) {
-        if (!(usedLen = ((CFStringEncodingCheapEightBitToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes[processedByteLen], charBuffer))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapEightBit(flags, bytes[processedByteLen], charBuffer))) break;
 
         for (idx = 0;idx < usedLen;idx++) {
             if (CFUniCharIsDecomposableCharacter(charBuffer[idx], isHFSPlus)) {
@@ -392,7 +396,7 @@ static CFIndex __CFToBytesCheapMultiByteWrapper(const void *converter, uint32_t 
     *usedByteLen = 0;
 
     while ((processedCharLen < numChars) && (!maxByteLen || (*usedByteLen < maxByteLen))) {
-        if (!(usedLen = ((CFStringEncodingCheapMultiByteToBytesProc)((const _CFEncodingConverter*)converter)->definition->toBytes)(flags, characters[processedCharLen], byteBuffer))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toBytes.cheapMultibyte(flags, characters[processedCharLen], byteBuffer))) break;
 
         if (maxByteLen) {
             CFIndex idx;
@@ -419,7 +423,7 @@ static CFIndex __CFToUnicodeCheapMultiByteWrapper(const void *converter, uint32_
     *usedCharLen = 0;
 
     while (numBytes && (!maxCharLen || (*usedCharLen < maxCharLen))) {
-        if (!(usedLen = ((CFStringEncodingCheapMultiByteToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes, numBytes, &character))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapMultibyte(flags, bytes, numBytes, &character))) break;
 
         if (maxCharLen) *(characters++) = character;
         (*usedCharLen)++;
@@ -441,7 +445,7 @@ static CFIndex __CFToCanonicalUnicodeCheapMultiByteWrapper(const void *converter
     bool isHFSPlus = (flags & kCFStringEncodingUseHFSPlusCanonical ? true : false);
 
     while (numBytes && (!maxCharLen || (theUsedCharLen < maxCharLen))) {
-        if (!(usedLen = ((CFStringEncodingCheapMultiByteToUnicodeProc)((const _CFEncodingConverter*)converter)->definition->toUnicode)(flags, bytes, numBytes, &character))) break;
+        if (!(usedLen = ((const _CFEncodingConverter*)converter)->definition->toUnicode.cheapMultibyte(flags, bytes, numBytes, &character))) break;
 
         if (CFUniCharIsDecomposableCharacter(character, isHFSPlus)) {
             CFIndex idx;
@@ -580,7 +584,16 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
     const _CFEncodingConverter **commonConverterSlot = NULL;
     static _CFEncodingConverter *commonConverters[3] = {NULL, NULL, NULL}; // UTF8, MacRoman/WinLatin1, and the default encoding*
     static CFMutableDictionaryRef mappingTable = NULL;
+   
+#if __has_include(<os/lock.h>)
     static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    #define _CFGetConverter_Lock() os_unfair_lock_lock(&lock)
+    #define _CFGetConverter_Unlock() os_unfair_lock_unlock(&lock)
+#else
+    static CFLock_t cflock = CFLockInit;
+    #define _CFGetConverter_Lock() __CFLock(&cflock)
+    #define _CFGetConverter_Unlock() __CFUnlock(&cflock)
+#endif
 
     switch (encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
@@ -598,15 +611,15 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 	default: if (CFStringGetSystemEncoding() == encoding) commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[2]); break;
     }
 
-    os_unfair_lock_lock(&lock);
+    _CFGetConverter_Lock();
     converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
-    os_unfair_lock_unlock(&lock);
+    _CFGetConverter_Unlock();
 
     if (NULL == converter) {
         const CFStringEncodingConverter *definition = __CFStringEncodingConverterGetDefinition(encoding);
 
         if (NULL != definition) {
-            os_unfair_lock_lock(&lock);
+            _CFGetConverter_Lock();
             converter = ((NULL == commonConverterSlot) ? ((NULL == mappingTable) ? NULL : (const _CFEncodingConverter *)CFDictionaryGetValue(mappingTable, (const void *)(uintptr_t)encoding)) : *commonConverterSlot);
 
             if (NULL == converter) {
@@ -620,11 +633,14 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 		    *commonConverterSlot = converter;
 		}
             }
-            os_unfair_lock_unlock(&lock);
+            _CFGetConverter_Unlock();
         }
     }
 
     return converter;
+    
+#undef _CFGetConverter_Lock
+#undef _CFGetConverter_Unlock
 }
 
 /* Public API
@@ -641,7 +657,7 @@ uint32_t CFStringEncodingUnicodeToBytes(uint32_t encoding, uint32_t flags, const
         } else {
             if (!__CFToUTF8) {
                 const CFStringEncodingConverter *utf8Converter = CFStringEncodingGetConverter(kCFStringEncodingUTF8);
-                __CFToUTF8 = (CFStringEncodingToBytesProc)utf8Converter->toBytes;
+                __CFToUTF8 = utf8Converter->toBytes.standard;
             }
             convertedCharLen = __CFToUTF8(0, characters, numChars, bytes, maxByteLen, &usedLen);
         }

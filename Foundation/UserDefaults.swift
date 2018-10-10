@@ -295,10 +295,7 @@ open class UserDefaults: NSObject {
     private func _dictionaryRepresentation(includingVolatileDomains: Bool) -> [String: Any] {
         let registeredDefaultsIfAllowed = includingVolatileDomains ? registeredDefaults : [:]
         
-        guard let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost) else {
-            return registeredDefaultsIfAllowed
-        }
-        
+        let defaultsFromDiskCF = CFPreferencesCopyMultiple(nil, suite?._cfObject ?? kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         let defaultsFromDiskWithNumbersBoxed = __SwiftValue.fetch(defaultsFromDiskCF) as? [String: Any] ?? [:]
         
         if registeredDefaultsIfAllowed.isEmpty {

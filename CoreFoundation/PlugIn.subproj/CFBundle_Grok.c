@@ -1,7 +1,7 @@
 /*      CFBundle_Grok.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -82,7 +82,7 @@ static const uint32_t __CFBundleMagicNumbersArray[] = {
 };
 
 // string, with groups of 5 characters being 1 element in the array
-static const char * __CFBundleExtensionsArray =
+static const char * const __CFBundleExtensionsArray =
     "mach\0"  "mach\0"  "mach\0"  "mach\0"  "mach\0"  "mach\0"  "pef\0\0" "pef\0\0" 
     "elf\0\0" "jpeg\0"  "tiff\0"  "tiff\0"  "gif\0\0" "png\0\0" "icns\0"  "ico\0\0" 
     "rtf\0\0" "pdf\0\0" "ra\0\0\0""rm\0\0\0""au\0\0\0""au\0\0\0""iff\0\0" "riff\0"  
@@ -92,8 +92,8 @@ static const char * __CFBundleExtensionsArray =
     "ttf\0\0" "ttf\0\0" "otf\0\0" "dwg\0\0" "dgn\0\0" "dgn\0\0" "wrl\0\0" "xcf\0\0"
     "cpx\0\0" "dwf\0\0" "bom\0\0" "lit\0\0" "rtfd\0"  "caf\0\0" "cin\0\0" "exr\0\0";
 
-static const char * __CFBundleOOExtensionsArray = "sxc\0\0" "sxd\0\0" "sxg\0\0" "sxi\0\0" "sxm\0\0" "sxw\0\0";
-static const char * __CFBundleODExtensionsArray = "odc\0\0" "odf\0\0" "odg\0\0" "oth\0\0" "odi\0\0" "odm\0\0" "odp\0\0" "ods\0\0" "odt\0\0";
+static const char * const __CFBundleOOExtensionsArray = "sxc\0\0" "sxd\0\0" "sxg\0\0" "sxi\0\0" "sxm\0\0" "sxw\0\0";
+static const char * const __CFBundleODExtensionsArray = "odc\0\0" "odf\0\0" "odg\0\0" "oth\0\0" "odi\0\0" "odm\0\0" "odp\0\0" "ods\0\0" "odt\0\0";
 
 #define EXTENSION_LENGTH                5
 #define NUM_EXTENSIONS                  64

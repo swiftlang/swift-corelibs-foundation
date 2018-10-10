@@ -1,8 +1,8 @@
 /*
 	CFICULogging.h
-	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -21,6 +21,10 @@
 #include <unicode/unum.h>
 #include <unicode/ucurr.h>
 #include <unicode/ustring.h>
+
+#if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
+#include <os/log.h>
+#endif
 
 // ucal
 

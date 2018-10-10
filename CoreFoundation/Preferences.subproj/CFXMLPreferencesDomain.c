@@ -1,7 +1,7 @@
 /*	CFXMLPreferencesDomain.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -16,12 +16,10 @@
 #include <CoreFoundation/CFDate.h>
 #include "CFInternal.h"
 #include <time.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#endif
-#if DEPLOYMENT_TARGET_MACOSX
 #include <mach/mach.h>
 #include <mach/mach_syscalls.h>
 #endif
@@ -46,15 +44,18 @@ static void getXMLKeysAndValues(CFAllocatorRef alloc, CFTypeRef context, void *x
 static CFDictionaryRef copyXMLDomainDictionary(CFTypeRef context, void *domain);
 static void setXMLDomainIsWorldReadable(CFTypeRef context, void *domain, Boolean isWorldReadable);
 
-CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks = {createXMLDomain, freeXMLDomain, fetchXMLValue, writeXMLValue, synchronizeXMLDomain, getXMLKeysAndValues, copyXMLDomainDictionary, setXMLDomainIsWorldReadable};
+CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks;
+const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks = {createXMLDomain, freeXMLDomain, fetchXMLValue, writeXMLValue, synchronizeXMLDomain, getXMLKeysAndValues, copyXMLDomainDictionary, setXMLDomainIsWorldReadable};
+
+CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void);
 
 // Directly ripped from Foundation....
 static void __CFMilliSleep(uint32_t msecs) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     SleepEx(msecs, false);
 #elif defined(__svr4__) || defined(__hpux__)
     sleep((msecs + 900) / 1000);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_OSX || TARGET_OS_LINUX
     struct timespec input;
     input.tv_sec = msecs / 1000;
     input.tv_nsec = (msecs - input.tv_sec * 1000) * 1000000;
@@ -104,7 +105,7 @@ static Boolean _createDirectory(CFURLRef dirURL, Boolean worldReadable) {
     if (parentURL) CFRelease(parentURL);
     if (!parentExists) return false;
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_LINUX
     mode = worldReadable ? S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH : S_IRWXU;
 #else
     mode = 0666;
@@ -212,7 +213,7 @@ static CFTypeRef fetchXMLValue(CFTypeRef context, void *xmlDomain, CFStringRef k
 }
 
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #include <sys/fcntl.h>
 
 /* __CFWriteBytesToFileWithAtomicity is a "safe save" facility. Write the bytes using the specified mode on the file to the provided URL. If the atomic flag is true, try to do it in a fashion that will enable a safe save.
@@ -308,12 +309,12 @@ static Boolean _writeXMLFile(CFURLRef url, CFMutableDictionaryRef dict, Boolean 
         CFDataRef data = CFPropertyListCreateData(alloc, dict, desiredFormat, 0, NULL);
         if (data) {
             SInt32 mode;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_LINUX
             mode = isWorldReadable ? S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH : S_IRUSR|S_IWUSR;
 #else
 	    mode = 0666;
 #endif
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
             {	// Try quick atomic way first, then fallback to slower ways and error cases
                 CFStringRef scheme = CFURLCopyScheme(url);
                 if (!scheme) {

@@ -1,7 +1,7 @@
 /*      CFBundle_Locale.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,6 +9,7 @@
 */
 
 #include "CFBundle_Internal.h"
+
 
 
 #include <CoreFoundation/CFPreferences.h>
@@ -113,7 +114,7 @@ static const char * const __CFBundleLanguageNamesArray[] = {
 #define LANGUAGE_NAME_LENGTH    13
 
 // string, with groups of 3 characters being 1 element in the array of abbreviations
-const char * __CFBundleLanguageAbbreviationsArray =
+const char * const __CFBundleLanguageAbbreviationsArray =
     "en\0"   "fr\0"   "de\0"   "it\0"   "nl\0"   "sv\0"   "es\0"   "da\0"
     "pt\0"   "nb\0"   "he\0"   "ja\0"   "ar\0"   "fi\0"   "el\0"   "is\0"
     "mt\0"   "tr\0"   "hr\0"   "zh\0"   "ur\0"   "hi\0"   "th\0"   "ko\0"
@@ -393,27 +394,9 @@ static CFArrayRef _CFBundleCopyLProjDirectoriesForURL(CFAllocatorRef allocator, 
     return (CFArrayRef)result;
 }
 
-/* This function returns:
-    1. The predefined localizations in the Info.plist (CFBundleLocalizations)
-    2. Additionally, the .lproj directories inside the bundle
-    3. Additionally, the development region of the bundle (CFBundleDevelopmentRegion) -- although if it's already in #1, or #2, we don't append it again
-    4. As an ultimate fallback, an empty array
- 
- This doesn't attempt to include a list of localizations supported by a bundle by way of a fallback path; e.g., if the bundle has en_GB then we do not include en_IN (which falls back to en_GB if not present).
-
- Since the result of this is "typically passed as a parameter to either the CFBundleCopyPreferredLocalizationsFromArray or CFBundleCopyLocalizationsForPreferences function", those other functions will take into account the user prefs and pick the right lproj.
-*/
-CF_EXPORT CFArrayRef CFBundleCopyBundleLocalizations(CFBundleRef bundle) {
+// Only called from CFBundleCopyBundleLocalizations below
+static CFArrayRef _copyBundleLocalizationsFromResources(CFBundleRef bundle) {
     CFArrayRef result = NULL;
-    
-    __CFLock(&bundle->_lock);
-    if (bundle->_lookedForLocalizations) {
-        result = (CFArrayRef)CFRetain(bundle->_localizations);
-        __CFUnlock(&bundle->_lock);
-        return result;
-    }
-    __CFUnlock(&bundle->_lock);
-    
     CFDictionaryRef infoDict = CFBundleGetInfoDictionary(bundle);
     if (infoDict) {
         CFArrayRef predefinedLocalizations = (CFArrayRef)CFDictionaryGetValue(infoDict, kCFBundleLocalizationsKey);
@@ -475,6 +458,34 @@ CF_EXPORT CFArrayRef CFBundleCopyBundleLocalizations(CFBundleRef bundle) {
             result = CFArrayCreate(CFGetAllocator(bundle), NULL, 0, &kCFTypeArrayCallBacks);
         }
     }
+    return result;
+}
+
+/* This function returns:
+    1. The predefined localizations in the Info.plist (CFBundleLocalizations)
+    2. Additionally, the .lproj directories inside the bundle
+    3. Additionally, the development region of the bundle (CFBundleDevelopmentRegion) -- although if it's already in #1, or #2, we don't append it again
+    4. As an ultimate fallback, an empty array
+ 
+ This doesn't attempt to include a list of localizations supported by a bundle by way of a fallback path; e.g., if the bundle has en_GB then we do not include en_IN (which falls back to en_GB if not present).
+
+ Since the result of this is "typically passed as a parameter to either the CFBundleCopyPreferredLocalizationsFromArray or CFBundleCopyLocalizationsForPreferences function", those other functions will take into account the user prefs and pick the right lproj.
+*/
+CF_EXPORT CFArrayRef CFBundleCopyBundleLocalizations(CFBundleRef bundle) {
+    CFArrayRef result = NULL;
+    
+    __CFLock(&bundle->_lock);
+    if (bundle->_lookedForLocalizations) {
+        result = (CFArrayRef)CFRetain(bundle->_localizations);
+        __CFUnlock(&bundle->_lock);
+        return result;
+    }
+    __CFUnlock(&bundle->_lock);
+    
+
+    if (!result) {
+        result = _copyBundleLocalizationsFromResources(bundle);
+    }
     
     // Cache the result.
     __CFLock(&bundle->_lock);
@@ -516,8 +527,6 @@ CF_EXPORT CFArrayRef CFBundleCopyLocalizationsForURL(CFURLRef url) {
     }
     return result;
 }
-
-extern void *__CFAppleLanguages;
 
 
 

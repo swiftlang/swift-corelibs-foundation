@@ -1,7 +1,7 @@
 /*	CFPlugIn_Factory.h
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -33,7 +33,6 @@ extern void _CFPFactoryAddType(_CFPFactoryRef factory, CFUUIDRef typeID);
 extern void _CFPFactoryRemoveType(_CFPFactoryRef factory, CFUUIDRef typeID);
 
 extern Boolean _CFPFactorySupportsType(_CFPFactoryRef factory, CFUUIDRef typeID);
-extern CFArrayRef _CFPFactoryFindCopyForType(CFUUIDRef typeID);
 
 /* These methods are called by CFPlugInInstance when an instance is created or destroyed.  If a factory's instance count goes to 0 and the factory has been disabled, the factory is destroyed. */
 extern void _CFPFactoryAddInstance(_CFPFactoryRef factory);

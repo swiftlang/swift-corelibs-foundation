@@ -1,7 +1,7 @@
 /*	CFPlatformConverters.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -30,19 +30,33 @@ CF_INLINE bool __CFIsPlatformConverterAvailable(int encoding) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 static const CFStringEncodingConverter __CFICUBootstrap = {
-    NULL /* toBytes */, NULL /* toUnicode */, 6 /* maxBytesPerChar */, 4 /* maxDecomposedCharLen */,
-    kCFStringEncodingConverterICU /* encodingClass */,
-    NULL /* toBytesLen */, NULL /* toUnicodeLen */, NULL /* toBytesFallback */,
-    NULL /* toUnicodeFallback */, NULL /* toBytesPrecompose */, NULL, /* isValidCombiningChar */
+    .toBytes.standard = NULL,
+    .toUnicode.standard = NULL,
+    .maxBytesPerChar = 6,
+    .maxDecomposedCharLen = 4,
+    .encodingClass = kCFStringEncodingConverterICU,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = NULL,
+    .isValidCombiningChar = NULL,
 };
 
 #endif
 
 static const CFStringEncodingConverter __CFPlatformBootstrap = {
-    NULL /* toBytes */, NULL /* toUnicode */, 6 /* maxBytesPerChar */, 4 /* maxDecomposedCharLen */,
-    kCFStringEncodingConverterPlatformSpecific /* encodingClass */,
-    NULL /* toBytesLen */, NULL /* toUnicodeLen */, NULL /* toBytesFallback */,
-    NULL /* toUnicodeFallback */, NULL /* toBytesPrecompose */, NULL, /* isValidCombiningChar */
+    .toBytes.standard = NULL,
+    .toUnicode.standard = NULL,
+    .maxBytesPerChar = 6,
+    .maxDecomposedCharLen = 4,
+    .encodingClass = kCFStringEncodingConverterPlatformSpecific,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = NULL,
+    .isValidCombiningChar = NULL,
 };
 
 CF_PRIVATE const CFStringEncodingConverter *__CFStringEncodingGetExternalConverter(uint32_t encoding) {

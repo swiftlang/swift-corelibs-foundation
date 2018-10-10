@@ -1,7 +1,7 @@
 /*	CFSet.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-    Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+    Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
     Licensed under Apache License v2.0 with Runtime Library Exception
     See http://swift.org/LICENSE.txt for license information
     See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -17,6 +17,7 @@
 #include "CFInternal.h"
 #include "CFBasicHash.h"
 #include <CoreFoundation/CFString.h>
+#include "CFRuntime_Internal.h"
 
 
 #define CFDictionary 0
@@ -89,9 +90,7 @@ static void __CFSetDeallocate(CFTypeRef cf) {
     __CFBasicHashDeallocate((CFBasicHashRef)cf);
 }
 
-static CFTypeID __kCFSetTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFSetClass = {
+const CFRuntimeClass __CFSetClass = {
     _kCFRuntimeScannedObject,
     "CFSet",
     NULL,        // init
@@ -104,11 +103,7 @@ static const CFRuntimeClass __CFSetClass = {
 };
 
 CFTypeID CFSetGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        __kCFSetTypeID = _CFRuntimeRegisterClass(&__CFSetClass);
-    });
-    return __kCFSetTypeID;
+    return _kCFRuntimeIDCFSet;
 }
 
 

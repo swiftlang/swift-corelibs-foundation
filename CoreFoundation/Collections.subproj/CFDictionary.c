@@ -1,7 +1,7 @@
 /*	CFDictionary.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-    Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+    Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
     Licensed under Apache License v2.0 with Runtime Library Exception
     See http://swift.org/LICENSE.txt for license information
     See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -17,6 +17,7 @@
 #include "CFInternal.h"
 #include "CFBasicHash.h"
 #include <CoreFoundation/CFString.h>
+#include "CFRuntime_Internal.h"
 
 
 #define CFDictionary 0
@@ -89,9 +90,7 @@ static void __CFDictionaryDeallocate(CFTypeRef cf) {
     __CFBasicHashDeallocate((CFBasicHashRef)cf);
 }
 
-static CFTypeID __kCFDictionaryTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFDictionaryClass = {
+const CFRuntimeClass __CFDictionaryClass = {
     _kCFRuntimeScannedObject,
     "CFDictionary",
     NULL,        // init
@@ -104,11 +103,7 @@ static const CFRuntimeClass __CFDictionaryClass = {
 };
 
 CFTypeID CFDictionaryGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        __kCFDictionaryTypeID = _CFRuntimeRegisterClass(&__CFDictionaryClass);
-    });
-    return __kCFDictionaryTypeID;
+    return _kCFRuntimeIDCFDictionary;
 }
 
 
@@ -442,6 +437,16 @@ void CFDictionaryApplyFunction(CFHashRef hc, CFDictionaryApplierFunction applier
         });
 }
 
+CF_PRIVATE void CFDictionaryApply(CFHashRef hc, void (^block)(const void *key, const void *value, Boolean *stop)) {
+    __CFGenericValidateType(hc, CFDictionaryGetTypeID());
+    CFBasicHashApply((CFBasicHashRef)hc, ^(CFBasicHashBucket bkt) {
+        Boolean stop = false;
+        block((const_any_pointer_t)bkt.weak_key, (const_any_pointer_t)bkt.weak_value, &stop);
+        if (stop) return (Boolean)false;
+        return (Boolean)true;
+    });
+}
+    
 // This function is for Foundation's benefit; no one else should use it.
 CF_EXPORT unsigned long _CFDictionaryFastEnumeration(CFHashRef hc, struct __objcFastEnumerationStateEquivalent *state, void *stackbuffer, unsigned long count) {
     if (CF_IS_SWIFT(CFDictionaryGetTypeID(), hc)) return 0;

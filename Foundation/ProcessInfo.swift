@@ -74,7 +74,7 @@ open class ProcessInfo: NSObject {
     open var processName: String = _CFProcessNameString()._swiftObject
     
     open var processIdentifier: Int32 {
-        return __CFGetPid()
+        return Int32(getpid())
     }
     
     open var globallyUniqueString: String {
