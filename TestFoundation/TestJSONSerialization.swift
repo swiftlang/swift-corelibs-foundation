@@ -1232,18 +1232,35 @@ extension TestJSONSerialization {
     }
 
     func test_serialize_Float() {
-        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,0,1]")
+        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-1e-45,1e-45]")
+        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,1e-45,1]")
     }
 
     func test_serialize_Double() {
-        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-5e-324,5e-324]")
+        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-2.2250738585072014e-308,2.2250738585072014e-308]")
+        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-1.7976931348623157e+308]")
+        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[1.7976931348623157e+308]")
         XCTAssertEqual(try trySerialize([Double(-1.0),  Double(1.0)]), "[-1,1]")
+
+        // Test round-tripping Double values
+        let value1 = 7.7087009966199993
+        let value2 = 7.7087009966200002
+        let dict1 = ["value": value1]
+        let dict2 = ["value": value2]
+        let jsonData1 = try! JSONSerialization.data(withJSONObject: dict1)
+        let jsonData2 = try! JSONSerialization.data(withJSONObject: dict2)
+        let jsonString1 = String(decoding: jsonData1, as: UTF8.self)
+        let jsonString2 = String(decoding: jsonData2, as: UTF8.self)
+
+        XCTAssertEqual(jsonString1, "{\"value\":7.708700996619999}")
+        XCTAssertEqual(jsonString2, "{\"value\":7.70870099662}")
+        let decodedDict1 = try! JSONSerialization.jsonObject(with: jsonData1) as! [String : Double]
+        let decodedDict2 = try! JSONSerialization.jsonObject(with: jsonData2) as! [String : Double]
+        XCTAssertEqual(decodedDict1["value"], value1)
+        XCTAssertEqual(decodedDict2["value"], value2)
     }
 
     func test_serialize_Decimal() {

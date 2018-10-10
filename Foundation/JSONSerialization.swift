@@ -301,14 +301,6 @@ private struct JSONWriter {
     let pretty: Bool
     let sortedKeys: Bool
     let writer: (String?) -> Void
-    
-    private lazy var _numberformatter: CFNumberFormatter = {
-        let formatter: CFNumberFormatter
-        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, NSNumber(value: 15))
-        CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject)
-        return formatter
-    }()
 
     init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
@@ -334,35 +326,35 @@ private struct JSONWriter {
         case let str as String:
             try serializeString(str)
         case let boolValue as Bool:
-            serializeBool(boolValue)
+            writer(boolValue.description)
         case let num as Int:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int8:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int16:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int32:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int64:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt8:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt16:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt32:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt64:
-            serializeInteger(value: num)
+            writer(num.description)
         case let array as Array<Any?>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any?>:
             try serializeDictionary(dict)
         case let num as Float:
-            try serializeNumber(NSNumber(value: num))
+            try serializeFloat(num)
         case let num as Double:
-            try serializeNumber(NSNumber(value: num))
+            try serializeFloat(num)
         case let num as Decimal:
             writer(num.description)
         case let num as NSDecimalNumber:
@@ -370,37 +362,11 @@ private struct JSONWriter {
         case is NSNull:
             try serializeNull()
         case _ where _SwiftValue.store(obj) is NSNumber:
-            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+            let num = _SwiftValue.store(obj) as! NSNumber
+            writer(num.description)
         default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
-    }
-
-    private func serializeInteger<T: UnsignedInteger>(value: T, isNegative: Bool = false) {
-        let maxIntLength = 22   // 20 digits in UInt64 + optional sign + trailing '\0'
-        let asciiZero: CChar = 0x30  // ASCII '0' == 0x30
-        let asciiMinus: CChar = 0x2d // ASCII '-' == 0x2d
-
-        var number = UInt64(value)
-        var buffer = Array<CChar>(repeating: 0, count: maxIntLength)
-        var pos = maxIntLength - 1
-
-        repeat {
-            pos -= 1
-            buffer[pos] = asciiZero + CChar(number % 10)
-            number /= 10
-        } while number != 0
-
-        if isNegative {
-            pos -= 1
-            buffer[pos] = asciiMinus
-        }
-        let output = String(cString: Array(buffer.suffix(from: pos)))
-        writer(output)
-    }
-
-    private func serializeInteger<T: SignedInteger>(value: T) {
-        serializeInteger(value: UInt64(value.magnitude), isNegative: value < 0)
     }
 
     func serializeString(_ str: String) throws {
@@ -434,37 +400,24 @@ private struct JSONWriter {
         writer("\"")
     }
 
-    func serializeBool(_ bool: Bool) {
-        switch bool {
-        case true:
-            writer("true")
-        case false:
-            writer("false")
+    private func serializeFloat<T: FloatingPoint & LosslessStringConvertible>(_ num: T) throws {
+        guard num.isFinite else {
+             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(num)) in JSON write"])
         }
+        var str = num.description
+        if str.hasSuffix(".0") {
+            str.removeLast(2)
+        }
+        writer(str)
     }
 
     mutating func serializeNumber(_ num: NSNumber) throws {
         if CFNumberIsFloatType(num._cfObject) {
-            let dv = num.doubleValue
-            if !dv.isFinite {
-                let value: String
-                if dv.isNaN {
-                    value = "NaN"
-                } else if dv.isInfinite {
-                    value = "infinite"
-                } else {
-                    value = String(dv)
-                }
-
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(value)) in JSON write"])
-            }
-
-            let string = CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, num._cfObject)._swiftObject
-            writer(string)
+            try serializeFloat(num.doubleValue)
         } else {
             switch num._cfTypeID {
             case CFBooleanGetTypeID():
-                serializeBool(num.boolValue)
+                writer(num.boolValue.description)
             default:
                 writer(num.stringValue)
             }
