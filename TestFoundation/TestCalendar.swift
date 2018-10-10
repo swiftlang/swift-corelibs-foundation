@@ -16,7 +16,7 @@ class TestCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
-            ("test_gettingDatesOnPersianCalendar,
+            ("test_gettingDatesOnPersianCalendar",
                 test_gettingDatesOnPersianCalendar),
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
