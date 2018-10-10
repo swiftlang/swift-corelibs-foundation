@@ -138,18 +138,15 @@ open class NSKeyedArchiver : NSCoder {
 
         do {
             (fd, auxFilePath) = try _NSCreateTemporaryFile(path)
-        } catch _ {
+        } catch {
             return false
         }
         
         defer {
-            do {
-                if finishedEncoding {
-                    try _NSCleanupTemporaryFile(auxFilePath, path)
-                } else {
-                    try FileManager.default.removeItem(atPath: auxFilePath)
-                }
-            } catch _ {
+            if finishedEncoding {
+                try? _NSCleanupTemporaryFile(auxFilePath, path)
+            } else {
+                try? FileManager.default.removeItem(atPath: auxFilePath)
             }
         }
 

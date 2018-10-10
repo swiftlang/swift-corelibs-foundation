@@ -367,8 +367,8 @@ func main() -> Int32 {
             case .help:
                 return help()
         }
-    } catch let err {
-        switch err as! OptionParseError {
+    } catch {
+        switch error as! OptionParseError {
             case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()

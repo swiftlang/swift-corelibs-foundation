@@ -979,11 +979,7 @@ open class FileManager : NSObject {
     /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
      */
     open func contents(atPath path: String) -> Data? {
-        do {
-            return try Data(contentsOf: URL(fileURLWithPath: path))
-        } catch {
-            return nil
-        }
+        return try? Data(contentsOf: URL(fileURLWithPath: path))
     }
     
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
@@ -993,7 +989,7 @@ open class FileManager : NSObject {
                 try self.setAttributes(attr, ofItemAtPath: path)
             }
             return true
-        } catch _ {
+        } catch {
             return false
         }
     }

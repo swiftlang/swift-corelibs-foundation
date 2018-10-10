@@ -18,8 +18,8 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         if name.hasSuffix("/") {
             do {
                 try fm.createDirectory(atPath: name, withIntermediateDirectories: true, attributes: nil)
-            } catch let err {
-                print(err)
+            } catch {
+                print(error)
                 return false
             }
         } else {
@@ -29,8 +29,8 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
             if !fm.fileExists(atPath: dir, isDirectory: &isDir) {
                 do {
                     try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
-                } catch let err {
-                    print(err)
+                } catch {
+                    print(error)
                     return false
                 }
             } else if !isDir.boolValue {

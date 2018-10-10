@@ -84,7 +84,7 @@ class TestCodable : XCTestCase {
         for components in personNameComponentsValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: components)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(components)")
             }
         }
@@ -103,7 +103,7 @@ class TestCodable : XCTestCase {
             // We have to wrap the UUID since we cannot have a top-level string.
             do {
                 try expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid))
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(uuid)")
             }
         }
@@ -122,7 +122,7 @@ class TestCodable : XCTestCase {
         for url in urlValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: url)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(url)")
             }
         }
@@ -139,7 +139,7 @@ class TestCodable : XCTestCase {
         for range in nsrangeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: range)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(range)")
             }
         }
@@ -161,7 +161,7 @@ class TestCodable : XCTestCase {
         for locale in localeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: locale)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(locale)")
             }
         }
@@ -178,7 +178,7 @@ class TestCodable : XCTestCase {
         for indexSet in indexSetValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: indexSet)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(indexSet)")
             }
         }
@@ -196,7 +196,7 @@ class TestCodable : XCTestCase {
         for indexPath in indexPathValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: indexPath)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(indexPath)")
             }
         }
@@ -224,7 +224,7 @@ class TestCodable : XCTestCase {
         for transform in affineTransformValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: transform)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(transform)")
             }
         }
@@ -244,7 +244,7 @@ class TestCodable : XCTestCase {
         for decimal in decimalValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: decimal)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(decimal)")
             }
         }
@@ -264,7 +264,7 @@ class TestCodable : XCTestCase {
         for point in cgpointValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: point)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(point)")
             }
         }
@@ -284,7 +284,7 @@ class TestCodable : XCTestCase {
         for size in cgsizeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: size)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(size)")
             }
         }
@@ -305,7 +305,7 @@ class TestCodable : XCTestCase {
         for rect in cgrectValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: rect)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(rect)")
             }
         }
@@ -335,7 +335,7 @@ class TestCodable : XCTestCase {
         for characterSet in characterSetValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: characterSet)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(characterSet)")
             }
         }
@@ -366,7 +366,7 @@ class TestCodable : XCTestCase {
         for timeZone in timeZoneValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: timeZone)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(timeZone)")
             }
         }
@@ -404,7 +404,7 @@ class TestCodable : XCTestCase {
         for calendar in calendarValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: calendar)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(calendar)")
             }
         }
@@ -441,7 +441,7 @@ class TestCodable : XCTestCase {
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
         do {
             try expectRoundTripEqualityThroughJSON(for: components)
-        } catch let error {
+        } catch {
             XCTFail("\(error)")
         }
     }
@@ -452,7 +452,7 @@ class TestCodable : XCTestCase {
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms))
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles))
-        } catch let error {
+        } catch {
             XCTFail("\(error)")
         }
     }
@@ -548,7 +548,7 @@ class TestCodable : XCTestCase {
         for (components) in urlComponentsValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: components)
-            } catch let error {
+            } catch {
                 XCTFail("\(error)")
             }
         }

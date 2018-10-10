@@ -535,7 +535,7 @@ class TestNSData: LoopbackServerTest {
             let fileManager = FileManager.default
             XCTAssertTrue(fileManager.fileExists(atPath: savePath.path))
             try! fileManager.removeItem(atPath: savePath.path)
-        } catch _ {
+        } catch {
             XCTFail()
         }
     }
@@ -1516,11 +1516,7 @@ extension TestNSData {
             XCTFail("Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_writeFailure() {
@@ -1545,13 +1541,8 @@ extension TestNSData {
             XCTFail("unexpected error")
         }
         
-        
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
-        
+        try? FileManager.default.removeItem(at: url)
+
         // Make sure clearing the error condition allows the write to succeed
         do {
             try data.write(to: url, options: [.withoutOverwriting])
@@ -1559,11 +1550,7 @@ extension TestNSData {
             XCTAssertTrue(false, "Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_genericBuffers() {
