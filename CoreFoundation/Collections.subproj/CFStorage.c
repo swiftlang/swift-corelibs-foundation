@@ -1,7 +1,7 @@
 /*	CFStorage.c
-        Copyright (c) 1999-2017, Apple Inc. All rights reserved.
+        Copyright (c) 1999-2018, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -32,11 +32,13 @@
 
 #include <CoreFoundation/CFStorage.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
+// Remember to use _CF_RESTRICT instead of restrict, which is correctly defined for TARGET_OS_WIN32 elsewhere.
 
 // Replace bzero
 #define bzero(dst, size)    ZeroMemory(dst, size)
@@ -1065,9 +1067,7 @@ static void __CFStorageDeallocate(CFTypeRef cf) {
     __CFStorageClearRootNode(storage);
 }
 
-static CFTypeID __kCFStorageTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFStorageClass = {
+const CFRuntimeClass __CFStorageClass = {
     _kCFRuntimeScannedObject,
     "CFStorage",
     NULL,	// init
@@ -1168,9 +1168,7 @@ CFStorageRef CFStorageCreateWithSubrange(CFStorageRef mutStorage, CFRange range)
 }
 
 CFTypeID CFStorageGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFStorageTypeID = _CFRuntimeRegisterClass(&__CFStorageClass); });
-    return __kCFStorageTypeID;
+    return _kCFRuntimeIDCFStorage;
 }
 
 CFIndex CFStorageGetCount(CFStorageRef storage) {

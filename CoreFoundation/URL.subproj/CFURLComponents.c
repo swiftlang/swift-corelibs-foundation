@@ -1,24 +1,18 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLComponents.c
-	Copyright (c) 2015, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2018, Apple Inc. All rights reserved.
+ 
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 	Responsibility: Jim Luther/Chris Linn
 */
 
 
 #include <CoreFoundation/CFURLComponents.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFURLComponents_Internal.h"
-
-static CFTypeID __kCFURLComponentsTypeID = _kCFRuntimeNotATypeID;
 
 struct __CFURLComponents {
     CFRuntimeBase _base;
@@ -61,13 +55,33 @@ struct __CFURLComponents {
 };
 
 static Boolean __CFURLComponentsEqual(CFTypeRef left, CFTypeRef right);
+static CFHashCode __CFURLComponentsHash(CFTypeRef cf);
 
 static CFStringRef __CFURLComponentsCopyDescription(CFTypeRef cf) {
-    return CFRetain(CFSTR("A really nice CFURLComponents object"));
+    CFURLComponentsRef components = (CFURLComponentsRef)cf;
+    CFStringRef scheme = _CFURLComponentsCopyScheme(components);
+    CFStringRef percentEncodedUser = _CFURLComponentsCopyPercentEncodedUser(components);
+    CFStringRef percentEncodedPassword = _CFURLComponentsCopyPercentEncodedPassword(components);
+    CFStringRef percentEncodedHost = _CFURLComponentsCopyPercentEncodedHost(components);
+    CFNumberRef port = _CFURLComponentsCopyPort(components);
+    CFStringRef percentEncodedPath = _CFURLComponentsCopyPercentEncodedPath(components);
+    CFStringRef percentEncodedQuery = _CFURLComponentsCopyPercentEncodedQuery(components);
+    CFStringRef percentEncodedFragment = _CFURLComponentsCopyPercentEncodedFragment(components);
+    CFStringRef result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<URLComponents %p> {scheme = %@, user = %@, password = %@, host = %@, port = %@, path = %@, query = %@, fragment = %@}"), cf, scheme, percentEncodedUser, percentEncodedPassword, percentEncodedHost, port, percentEncodedPath, percentEncodedQuery, percentEncodedFragment);
+    if ( scheme ) CFRelease(scheme);
+    if ( percentEncodedUser ) CFRelease(percentEncodedUser);
+    if ( percentEncodedPassword ) CFRelease(percentEncodedPassword);
+    if ( percentEncodedHost ) CFRelease(percentEncodedHost);
+    if ( port ) CFRelease(port);
+    if ( percentEncodedPath ) CFRelease(percentEncodedPath);
+    if ( percentEncodedQuery ) CFRelease(percentEncodedQuery);
+    if ( percentEncodedFragment ) CFRelease(percentEncodedFragment);
+    return ( result );
 }
 
-CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef instance) {
-    __CFGenericValidateType(instance, _CFURLComponentsGetTypeID());
+CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFTypeRef cf) {
+    CFURLComponentsRef instance = (CFURLComponentsRef)cf;
+    __CFGenericValidateType(cf, _CFURLComponentsGetTypeID());
     
     if (instance->_urlString) CFRelease(instance->_urlString);
     if (instance->_schemeComponent) CFRelease(instance->_schemeComponent);
@@ -78,25 +92,22 @@ CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef ins
     if (instance->_pathComponent) CFRelease(instance->_pathComponent);
     if (instance->_queryComponent) CFRelease(instance->_queryComponent);
     if (instance->_fragmentComponent) CFRelease(instance->_fragmentComponent);
-    if (instance) CFAllocatorDeallocate(kCFAllocatorSystemDefault, instance);
 }
 
-static const CFRuntimeClass __CFURLComponentsClass = {
+const CFRuntimeClass __CFURLComponentsClass = {
     0,
     "CFURLComponents",
     NULL,      // init
     NULL,      // copy
     __CFURLComponentsDeallocate,
     __CFURLComponentsEqual,
-    NULL,      // hash
+    __CFURLComponentsHash,
     NULL,      //
     __CFURLComponentsCopyDescription
 };
 
 CFTypeID _CFURLComponentsGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFURLComponentsTypeID = _CFRuntimeRegisterClass(&__CFURLComponentsClass); });
-    return __kCFURLComponentsTypeID;
+    return _kCFRuntimeIDCFURLComponents;
 }
 
 CF_EXPORT CFURLComponentsRef _CFURLComponentsCreate(CFAllocatorRef alloc) {
@@ -182,7 +193,9 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateWithString(CFAllocatorRef all
     if (memory->_parseInfo.paramExists) {
         CFStringRef path = _CFURLComponentsCopyPath(memory);
         _CFURLComponentsSetPath(memory, path);
-        CFRelease(path);
+        if ( path ) {
+            CFRelease(path);
+        }
     }
     
     return memory;
@@ -198,12 +211,12 @@ CF_EXPORT CFURLComponentsRef _CFURLComponentsCreateCopy(CFAllocatorRef alloc, CF
     __CFLock(&components->_lock);
     memory->_lock = CFLockInit;
     memory->_urlString = components->_urlString ? CFStringCreateCopy(alloc, components->_urlString) : NULL;
+    
     memory->_parseInfo = components->_parseInfo;
     
     memory->_schemeComponentValid = components->_schemeComponentValid;
     memory->_userComponentValid = components->_userComponentValid;
     memory->_hostComponentValid = components->_hostComponentValid;
-    memory->_passwordComponentValid = components->_passwordComponentValid;
     memory->_portComponentValid = components->_portComponentValid;
     memory->_pathComponentValid = components->_pathComponentValid;
     memory->_queryComponentValid = components->_queryComponentValid;
@@ -235,70 +248,88 @@ static Boolean __CFURLComponentsEqual(CFTypeRef cf1, CFTypeRef cf2) {
     CFURLComponentsRef left = (CFURLComponentsRef)cf1;
     CFURLComponentsRef right = (CFURLComponentsRef)cf2;
     
-    __CFGenericValidateType(left, CFURLGetTypeID());
-    __CFGenericValidateType(right, CFURLGetTypeID());
+    __CFGenericValidateType(left, _CFURLComponentsGetTypeID());
+    __CFGenericValidateType(right, _CFURLComponentsGetTypeID());
     
     if (left == right) {
         return true;
     }
     
     Boolean (^componentEqual)(CFTypeRef l, CFTypeRef r) = ^(CFTypeRef l, CFTypeRef r) {
-        // if pointers are equal (including both nil), they are equal; otherwise, use isEqual
+        // if pointers are equal (including both nil), they are equal; otherwise, use isEqual if both l and r are not NULL; otherwise return false
         if (l == r) {
             return (Boolean)true;
-        } else {
-            return CFEqual(left, r);
+        } else if ( l && r ){
+            return CFEqual(l, r);
+        }
+        else {
+            return (Boolean)false;
         }
     };
     
+    Boolean result = false;
+    
+    // check in the order of mostly likely to fail (or even exist) so that if they are different, we spend less time here.
     CFStringRef leftPath = _CFURLComponentsCopyPercentEncodedPath(left);
     CFStringRef rightPath = _CFURLComponentsCopyPercentEncodedPath(right);
-    
-    CFStringRef leftHost = _CFURLComponentsCopyPercentEncodedHost(left);
-    CFStringRef rightHost = _CFURLComponentsCopyPercentEncodedHost(right);
-    
-    CFStringRef leftQuery = _CFURLComponentsCopyPercentEncodedQuery(left);
-    CFStringRef rightQuery = _CFURLComponentsCopyPercentEncodedQuery(right);
-    
-    CFStringRef leftFragment = _CFURLComponentsCopyPercentEncodedFragment(left);
-    CFStringRef rightFragment = _CFURLComponentsCopyPercentEncodedFragment(right);
-    
-    CFStringRef leftUser = _CFURLComponentsCopyPercentEncodedUser(left);
-    CFStringRef rightUser = _CFURLComponentsCopyPercentEncodedUser(right);
-    
-    CFStringRef leftPassword = _CFURLComponentsCopyPercentEncodedPassword(left);
-    CFStringRef rightPassword = _CFURLComponentsCopyPercentEncodedPassword(right);
-    
-    
-    Boolean result =
-    componentEqual(left->_schemeComponent, right->_schemeComponent) &&
-    componentEqual(leftPath, rightPath) &&
-    componentEqual(leftHost, rightHost) &&
-    componentEqual(left->_portComponent, right->_portComponent) &&
-    componentEqual(leftQuery, rightQuery) &&
-    componentEqual(leftFragment, rightFragment) &&
-    componentEqual(leftUser, rightUser) &&
-    componentEqual(leftPassword, rightPassword);
-    
+    if ( componentEqual(leftPath, rightPath) ) {
+        CFStringRef leftScheme = _CFURLComponentsCopyScheme(left);
+        CFStringRef rightScheme = _CFURLComponentsCopyScheme(right);
+        if ( componentEqual(leftScheme, rightScheme) ) {
+            CFStringRef leftHost = _CFURLComponentsCopyPercentEncodedHost(left);
+            CFStringRef rightHost = _CFURLComponentsCopyPercentEncodedHost(right);
+            if ( componentEqual(leftHost, rightHost) ) {
+                CFNumberRef leftPort = _CFURLComponentsCopyPort(left);
+                CFNumberRef rightPort = _CFURLComponentsCopyPort(right);
+                if ( componentEqual(leftPort, rightPort) ) {
+                    CFStringRef leftQuery = _CFURLComponentsCopyPercentEncodedQuery(left);
+                    CFStringRef rightQuery = _CFURLComponentsCopyPercentEncodedQuery(right);
+                    if ( componentEqual(leftQuery, rightQuery) ) {
+                        CFStringRef leftFragment = _CFURLComponentsCopyPercentEncodedFragment(left);
+                        CFStringRef rightFragment = _CFURLComponentsCopyPercentEncodedFragment(right);
+                        if ( componentEqual(leftFragment, rightFragment) ) {
+                            CFStringRef leftUser = _CFURLComponentsCopyPercentEncodedUser(left);
+                            CFStringRef rightUser = _CFURLComponentsCopyPercentEncodedUser(right);
+                            if ( componentEqual(leftUser, rightUser) ) {
+                                CFStringRef leftPassword = _CFURLComponentsCopyPercentEncodedPassword(left);
+                                CFStringRef rightPassword = _CFURLComponentsCopyPercentEncodedPassword(right);
+                                if ( componentEqual(leftPassword, rightPassword) ) {
+                                    result = true;
+                                }
+                                if (leftPassword) CFRelease(leftPassword);
+                                if (rightPassword) CFRelease(rightPassword);
+                            }
+                            if (leftUser) CFRelease(leftUser);
+                            if (rightUser) CFRelease(rightUser);
+                        }
+                        if (leftFragment) CFRelease(leftFragment);
+                        if (rightFragment) CFRelease(rightFragment);
+                    }
+                    if (leftQuery) CFRelease(leftQuery);
+                    if (rightQuery) CFRelease(rightQuery);
+                }
+                if (leftPort) CFRelease(leftPort);
+                if (rightPort) CFRelease(rightPort);
+            }
+            if (leftHost) CFRelease(leftHost);
+            if (rightHost) CFRelease(rightHost);
+        }
+        if (leftScheme) CFRelease(leftScheme);
+        if (rightScheme) CFRelease(rightScheme);
+    }
     if (leftPath) CFRelease(leftPath);
     if (rightPath) CFRelease(rightPath);
     
-    if (leftHost) CFRelease(leftHost);
-    if (rightHost) CFRelease(rightHost);
-    
-    if (leftQuery) CFRelease(leftQuery);
-    if (rightQuery) CFRelease(rightQuery);
-    
-    if (leftFragment) CFRelease(leftFragment);
-    if (rightFragment) CFRelease(rightFragment);
-    
-    if (leftUser) CFRelease(leftUser);
-    if (rightUser) CFRelease(rightUser);
-    
-    if (leftPassword) CFRelease(leftPassword);
-    if (rightPassword) CFRelease(rightPassword);
-    
     return result;
+}
+
+static CFHashCode __CFURLComponentsHash(CFTypeRef cf) {
+    CFHashCode result = 0;
+    // there is always a path (it might be an empty string) and that's enough to get a hash
+    CFStringRef strComponent = _CFURLComponentsCopyPercentEncodedPath((CFURLComponentsRef)cf);
+    result = CFHash(strComponent);
+    CFRelease(strComponent);
+    return ( result );
 }
 
 CF_EXPORT CFURLRef _CFURLComponentsCopyURL(CFURLComponentsRef components) {
@@ -306,14 +337,13 @@ CF_EXPORT CFURLRef _CFURLComponentsCopyURL(CFURLComponentsRef components) {
 }
 
 CF_EXPORT CFURLRef _CFURLComponentsCopyURLRelativeToURL(CFURLComponentsRef components, CFURLRef relativeToURL) {
+    CFURLRef result = NULL;
     CFStringRef urlString = _CFURLComponentsCopyString(components);
     if (urlString) {
-        CFURLRef url = CFURLCreateWithString(kCFAllocatorSystemDefault, urlString, relativeToURL);
+        result = CFURLCreateWithString(kCFAllocatorSystemDefault, urlString, relativeToURL);
         CFRelease(urlString);
-        return url;
-    } else {
-        return NULL;
     }
+    return ( result );
 }
 
 CF_EXPORT CFStringRef _CFURLComponentsCopyString(CFURLComponentsRef components) {
@@ -476,7 +506,23 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyUser(CFURLComponentsRef components) {
         components->_userComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoNameRange(&components->_parseInfo, false));
         components->_userComponentValid = true;
     }
-    result = components->_userComponent ? _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_userComponent) : NULL;
+    if ( components->_userComponent ) {
+        result = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_userComponent);
+    }
+    else {
+        // ensure the password subcomponent is valid
+        if ( !components->_passwordComponentValid ) {
+            components->_passwordComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoPasswordRange(&components->_parseInfo, false));
+            components->_passwordComponentValid = true;
+        }
+        if ( components->_passwordComponent ) {
+            // if there's a password subcomponent, then there has to be a user subcomponent
+            result = CFRetain(CFSTR(""));
+        }
+        else {
+            result = NULL;
+        }
+    }
     __CFUnlock(&components->_lock);
     
     return ( result );
@@ -496,6 +542,60 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPassword(CFURLComponentsRef components
     return ( result );
 }
 
+static void _SetValidPortComponent(CFURLComponentsRef components) {
+    enum {
+        kDefaultBuffersize = 20, // The maximum port number we can represent is 9223372036854775807 (LLONG_MAX) which is 19 digits, so the stack allocated buffer will work for all valid port numbers with no leading zeros
+    };
+    if ( !components->_portComponentValid ) {
+        // if there's not a valid port, _portComponent should be nil
+        components->_portComponent = NULL;
+        
+        CFRange range = _CFURIParserGetPortRange(&components->_parseInfo, false);
+        // rfc3986 says URI producers should omit the port component and its ":" delimiter if port is empty.
+        if ( (range.location != kCFNotFound) && (range.length != 0) ) {
+            // _CFURIParserURLStringIsValid has already ensured the characters in the port range are valid DIGIT characters.
+            
+            // determine the buffer size needed, and use either the stack allocated buffer or a malloced buffer
+            CFIndex neededBufSize = CFStringGetMaximumSizeForEncoding(range.length, kCFStringEncodingASCII) + 1;
+            STACK_BUFFER_DECL(char, stackBuffer, kDefaultBuffersize);
+            char *buf = NULL;
+            CFIndex bufSize;
+            if ( neededBufSize <= kDefaultBuffersize ) {
+                // use stackBuffer
+                buf = &stackBuffer[0];
+                bufSize = kDefaultBuffersize;
+            }
+            else {
+                // buf not big enough? malloc it.
+                buf = (char *)malloc(neededBufSize);
+                bufSize = neededBufSize;
+            }
+            
+            if ( buf ) {
+                // get the bytes into buf
+                CFIndex usedBufLen;
+                if ( CFStringGetBytes(components->_urlString, range, kCFStringEncodingASCII, 0, false, (UInt8 *)buf, bufSize, &usedBufLen) != 0 ) {
+                    buf[usedBufLen] = '\0'; // null terminate the string
+                    // convert to a long long
+                    errno = 0;
+                    long long value = strtoll(buf, NULL, 10);
+                    // make sure there wasn't underflow or overflow (ERANGE), and value is not negative
+                    if ( (errno != ERANGE) && (value >= 0) ) {
+                        // create the port number
+                        components->_portComponent = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberLongLongType, &value);
+                    }
+                }
+                
+                // free the buf if malloced
+                if ( buf != stackBuffer ) {
+                    free(buf);
+                }
+            }
+        }
+        components->_portComponentValid = true;
+    }
+}
+
 CF_EXPORT CFStringRef _CFURLComponentsCopyHost(CFURLComponentsRef components) {
     CFStringRef result;
     
@@ -504,7 +604,45 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyHost(CFURLComponentsRef components) {
         components->_hostComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetHostRange(&components->_parseInfo, false));
         components->_hostComponentValid = true;
     }
-    result = components->_hostComponent ? _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_hostComponent) : NULL;
+    if ( components->_hostComponent ) {
+        result = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_hostComponent);
+    }
+    else {
+        // force initialization of the other authority subcomponents in the order I think they are likely to be present: port, user, password
+        
+        // ensure the port subcomponent is valid
+        _SetValidPortComponent(components);
+        
+        if ( components->_portComponent ) {
+            // if there's a port subcomponent, then there has to be a host subcomponent
+            result = CFRetain(CFSTR(""));
+        }
+        else {
+            // ensure the user subcomponent is valid
+            if ( !components->_userComponentValid ) {
+                components->_userComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoNameRange(&components->_parseInfo, false));
+                components->_userComponentValid = true;
+            }
+            if ( components->_userComponent ) {
+                // if there's a user subcomponent, then there has to be a host subcomponent
+                result = CFRetain(CFSTR(""));
+            }
+            else {
+                // ensure the password subcomponent is valid
+                if ( !components->_passwordComponentValid ) {
+                    components->_passwordComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoPasswordRange(&components->_parseInfo, false));
+                    components->_passwordComponentValid = true;
+                }
+                if ( components->_passwordComponent ) {
+                    // if there's a password subcomponent, then there has to be a host subcomponent
+                    result = CFRetain(CFSTR(""));
+                }
+                else {
+                    result = NULL;
+                }
+            }
+        }
+    }
     __CFUnlock(&components->_lock);
     
     return ( result );
@@ -514,33 +652,7 @@ CF_EXPORT CFNumberRef _CFURLComponentsCopyPort(CFURLComponentsRef components) {
     CFNumberRef result;
     
     __CFLock(&components->_lock);
-    if ( !components->_portComponentValid ) {
-        CFRange range = _CFURIParserGetPortRange(&components->_parseInfo, false);
-        // rfc3986 says URI producers should omit the port component and its ":" delimiter if port is empty.
-        if ( range.location != kCFNotFound && range.length != 0) {
-            CFStringRef portString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, components->_urlString, CFRangeMake(range.location, range.length));
-            char buf[16];
-            if (!CFStringGetCString(portString, buf, 16, kCFStringEncodingASCII)) {
-                HALT;
-            }
-            long long value;
-#if DEPLOYMENT_TARGET_LINUX
-            if (sscanf(buf, "%lld", &value) != 1) {
-                HALT;
-            }
-#else
-            if (sscanf_l(buf, NULL, "%lld", &value) != 1) {
-                HALT;
-            }
-#endif
-            components->_portComponent = CFNumberCreate(kCFAllocatorSystemDefault, kCFNumberLongLongType, &value);
-            CFRelease(portString);
-        }
-        else {
-            components->_portComponent = nil;
-        }
-        components->_portComponentValid = true;
-    }
+    _SetValidPortComponent(components);
     result = components->_portComponent ? CFRetain(components->_portComponent) : NULL;
     __CFUnlock(&components->_lock);
     
@@ -556,11 +668,11 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPath(CFURLComponentsRef components) {
         components->_pathComponentValid = true;
     }
     if (!components->_pathComponent) {
-        result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
+        result = CFRetain(CFSTR(""));
     } else {
         result = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, components->_pathComponent);
         if (!result) {
-            result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
+            result = CFRetain(CFSTR(""));
         }
     }
     __CFUnlock(&components->_lock);
@@ -700,7 +812,23 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPercentEncodedUser(CFURLComponentsRef 
         components->_userComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoNameRange(&components->_parseInfo, false));
         components->_userComponentValid = true;
     }
-    result = components->_userComponent ? CFRetain(components->_userComponent) : NULL;
+    if ( components->_userComponent ) {
+        result = CFRetain(components->_userComponent);
+    }
+    else {
+        // ensure the password subcomponent is valid
+        if ( !components->_passwordComponentValid ) {
+            components->_passwordComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoPasswordRange(&components->_parseInfo, false));
+            components->_passwordComponentValid = true;
+        }
+        if ( components->_passwordComponent ) {
+            // if there's a password subcomponent, then there has to be a user subcomponent
+            result = CFRetain(CFSTR(""));
+        }
+        else {
+            result = NULL;
+        }
+    }
     __CFUnlock(&components->_lock);
     
     return ( result );
@@ -728,7 +856,45 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPercentEncodedHost(CFURLComponentsRef 
         components->_hostComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetHostRange(&components->_parseInfo, false));
         components->_hostComponentValid = true;
     }
-    result = components->_hostComponent ? CFRetain(components->_hostComponent) : NULL;
+    if ( components->_hostComponent ) {
+        result = CFRetain(components->_hostComponent);
+    }
+    else {
+        // force initialization of the other authority subcomponents in the order I think they are likely to be present: port, user, password
+        
+        // ensure the port subcomponent is valid
+        _SetValidPortComponent(components);
+        
+        if ( components->_portComponent ) {
+            // if there's a port subcomponent, then there has to be a host subcomponent
+            result = CFRetain(CFSTR(""));
+        }
+        else {
+            // ensure the user subcomponent is valid
+            if ( !components->_userComponentValid ) {
+                components->_userComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoNameRange(&components->_parseInfo, false));
+                components->_userComponentValid = true;
+            }
+            if ( components->_userComponent ) {
+                // if there's a user subcomponent, then there has to be a host subcomponent
+                result = CFRetain(CFSTR(""));
+            }
+            else {
+                // ensure the password subcomponent is valid
+                if ( !components->_passwordComponentValid ) {
+                    components->_passwordComponent = CreateComponentWithURLStringRange(components->_urlString, _CFURIParserGetUserinfoPasswordRange(&components->_parseInfo, false));
+                    components->_passwordComponentValid = true;
+                }
+                if ( components->_passwordComponent ) {
+                    // if there's a password subcomponent, then there has to be a host subcomponent
+                    result = CFRetain(CFSTR(""));
+                }
+                else {
+                    result = NULL;
+                }
+            }
+        }
+    }
     __CFUnlock(&components->_lock);
     
     return ( result );
@@ -745,7 +911,7 @@ CF_EXPORT CFStringRef _CFURLComponentsCopyPercentEncodedPath(CFURLComponentsRef 
     result = components->_pathComponent ? CFRetain(components->_pathComponent) : NULL;
     __CFUnlock(&components->_lock);
     
-    if (!result) result = CFStringCreateCopy(kCFAllocatorSystemDefault, CFSTR(""));
+    if (!result) result = CFRetain(CFSTR(""));
     
     return ( result );
 }
@@ -1018,8 +1184,12 @@ CF_EXPORT CFRange _CFURLComponentsGetRangeOfFragment(CFURLComponentsRef componen
     return ( _CFURIParserGetFragmentRange(theParseInfo, false) );
 }
 
-// Returns an array of dictionaries; each dictionary has two keys: "name", for the name, and "value" for the value. If one of the keys is missing then we did not populate that part of the entry.
-CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef components) {
+// keys for dictionaries returned by _CFURLComponentsCopyQueryItems
+CONST_STRING_DECL(_kCFURLComponentsNameKey, "name")
+CONST_STRING_DECL(_kCFURLComponentsValueKey, "value")
+
+// Returns an array of dictionaries; each dictionary has two keys: _kCFURLComponentsNameKey for the name, and _kCFURLComponentsValueKey for the value. If one of the keys is missing then we did not populate that part of the entry.
+static CFArrayRef _CFURLComponentsCopyQueryItemsInternal(CFURLComponentsRef components, Boolean removePercentEncoding) {
     CFStringRef queryString = _CFURLComponentsCopyPercentEncodedQuery(components);
     CFArrayRef result = NULL;
     
@@ -1046,15 +1216,21 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                         nameRange.length = idx - nameRange.location;
                         if ( nameRange.length ) {
                             nameString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, queryString, nameRange);
-                            if ( sawPercent ) {
+                            if ( removePercentEncoding && sawPercent ) {
                                 CFStringRef temp = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, nameString);
                                 CFRelease(nameString);
-                                nameString = temp;
+                                if ( temp ) {
+                                    nameString = temp;
+                                }
+                                else {
+                                    // the percent-decoded string had invalid UTF8 bytes - return an empty name string
+                                    nameString = CFRetain(CFSTR(""));
+                                }
                                 sawPercent = false;
                             }
                         }
                         else {
-                            nameString = (CFStringRef)CFRetain(CFSTR(""));
+                            nameString = CFRetain(CFSTR(""));
                         }
                         nameRange.location = kCFNotFound;
                         valueRange.location = idx + 1;
@@ -1068,7 +1244,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                         valueRange.length = idx - valueRange.location;
                         if ( valueRange.length ) {
                             valueString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, queryString, valueRange);
-                            if ( sawPercent ) {
+                            if ( removePercentEncoding && sawPercent ) {
                                 CFStringRef temp = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, valueString);
                                 CFRelease(valueString);
                                 valueString = temp;
@@ -1076,35 +1252,42 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                             }
                         }
                         else {
-                            valueString = (CFStringRef)CFRetain(CFSTR(""));
+                            valueString = CFRetain(CFSTR(""));
                         }
-                        CFStringRef name = CFSTR("name");
-                        CFTypeRef keys[] = {name, CFSTR("value")};
+                        CFTypeRef keys[] = {_kCFURLComponentsNameKey, _kCFURLComponentsValueKey};
                         CFTypeRef values[] = {nameString, valueString};
-                        CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                        // valueString will be NULL if the percent-decoded string had invalid UTF8 bytes
+                        CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, valueString ? 2 : 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                         CFArrayAppendValue(intermediateResult, entry);
                         CFRelease(entry);
                         valueRange.location = kCFNotFound;
                         CFRelease(nameString);
-                        CFRelease(valueString);
+                        if ( valueString ) {
+                            CFRelease(valueString);
+                        }
                     }
                     else {
                         // there was no value string, so this was the end of the name string
                         nameRange.length = idx - nameRange.location;
                         if ( nameRange.length ) {
                             nameString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, queryString, nameRange);
-                            if ( sawPercent ) {
+                            if ( removePercentEncoding && sawPercent ) {
                                 CFStringRef temp = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, nameString);
                                 CFRelease(nameString);
-                                nameString = temp;
+                                if ( temp ) {
+                                    nameString = temp;
+                                }
+                                else {
+                                    // the percent-decoded string had invalid UTF8 bytes - return an empty name string
+                                    nameString = CFRetain(CFSTR(""));
+                                }
                                 sawPercent = false;
                             }
                         }
                         else {
-                            nameString =  (CFStringRef)CFRetain(CFSTR(""));
+                            nameString =  CFSTR("");
                         }
-                        CFStringRef name = CFSTR("name");
-                        CFTypeRef keys[] = {name};
+                        CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                         CFTypeRef values[] = {nameString};
                         CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                         CFArrayAppendValue(intermediateResult, entry);
@@ -1113,8 +1296,8 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                     }
                     nameRange.location = idx + 1;
                 }
-                else if ( ch == '%' ) {
-                    sawPercent = YES;
+                else if ( removePercentEncoding && (ch == '%') ) {
+                    sawPercent = true;
                 }
             }
             
@@ -1123,7 +1306,7 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                 valueRange.length = idx - valueRange.location;
                 if ( valueRange.length ) {
                     valueString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, queryString, valueRange);
-                    if ( sawPercent ) {
+                    if ( removePercentEncoding && sawPercent ) {
                         CFStringRef temp = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, valueString);
                         CFRelease(valueString);
                         valueString = temp;
@@ -1131,34 +1314,41 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
                     }
                 }
                 else {
-                    valueString = (CFStringRef)CFRetain(CFSTR(""));
+                    valueString = CFRetain(CFSTR(""));
                 }
-                CFStringRef name = CFSTR("name");
-                CFTypeRef keys[] = {name, CFSTR("value")};
+                CFTypeRef keys[] = {_kCFURLComponentsNameKey, _kCFURLComponentsValueKey};
                 CFTypeRef values[] = {nameString, valueString};
-                CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+                // valueString will be NULL if the percent-decoded string had invalid UTF8 bytes
+                CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, valueString ? 2 : 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                 CFArrayAppendValue(intermediateResult, entry);
                 CFRelease(entry);
                 CFRelease(nameString);
-                CFRelease(valueString);
+                if ( valueString ) {
+                    CFRelease(valueString);
+                }
             }
             else {
                 // at end of query while parsing the name string
                 nameRange.length = idx - nameRange.location;
                 if ( nameRange.length ) {
                     nameString = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, queryString, nameRange);
-                    if ( sawPercent ) {
+                    if ( removePercentEncoding && sawPercent ) {
                         CFStringRef temp = _CFStringCreateByRemovingPercentEncoding(kCFAllocatorSystemDefault, nameString);
                         CFRelease(nameString);
-                        nameString = temp;
+                        if ( temp ) {
+                            nameString = temp;
+                        }
+                        else {
+                            // the percent-decoded string had invalid UTF8 bytes - return an empty name string
+                            nameString = CFRetain(CFSTR(""));
+                        }
                         sawPercent = false;
                     }
                 }
                 else {
-                    nameString =  (CFStringRef)CFRetain(CFSTR(""));
+                    nameString =  CFSTR("");
                 }
-                CFStringRef name = CFSTR("name");
-                CFTypeRef keys[] = {name};
+                CFTypeRef keys[] = {_kCFURLComponentsNameKey};
                 CFTypeRef values[] = {nameString};
                 CFDictionaryRef entry = CFDictionaryCreate(kCFAllocatorSystemDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
                 CFArrayAppendValue(intermediateResult, entry);
@@ -1181,8 +1371,17 @@ CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef component
     return ( result );
 }
 
+CF_EXPORT CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef components) {
+    return ( _CFURLComponentsCopyQueryItemsInternal(components, true) );
+}
+
+CF_EXPORT CFArrayRef _CFURLComponentsCopyPercentEncodedQueryItems(CFURLComponentsRef components) {
+    return ( _CFURLComponentsCopyQueryItemsInternal(components, false) );
+}
+
 // n.b. names and values must have the same length
-CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values) {
+static Boolean _CFURLComponentsSetQueryItemsInternal(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values, Boolean addPercentEncoding ) {
+    Boolean result = true;
     if ( names != NULL ) {
         if ( CFArrayGetCount(names) != CFArrayGetCount(values) ) HALT;
         if ( CFArrayGetCount(names) ) {
@@ -1208,22 +1407,47 @@ CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFAr
                 CFTypeRef name = CFArrayGetValueAtIndex(names, i);
                 CFTypeRef value = CFArrayGetValueAtIndex(values, i);
                 if ( name && name != kCFNull ) {
-                    CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, name, queryNameValueAllowed);
-                    CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
-                    CFRelease(stringWithPercentEncoding);
+                    if ( addPercentEncoding ) {
+                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, name, queryNameValueAllowed);
+                        CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
+                        CFRelease(stringWithPercentEncoding);
+                    }
+                    else {
+                        // verify name string contains no illegal characters
+                        if ( !_CFURIParserValidateComponent(name, CFRangeMake(0, CFStringGetLength(name)), kURLQueryItemNameAllowed, true) ) {
+                            result = false;
+                            break;
+                        }
+                        CFStringAppendStringToAppendBuffer(&buf, name);
+                    }
                 }
                 if ( value && value != kCFNull ) {
                     chars[0] = '=';
                     CFStringAppendCharactersToAppendBuffer(&buf, chars, 1);
-                    CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
-                    CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
-                    CFRelease(stringWithPercentEncoding);
+                    if ( addPercentEncoding ) {
+                        CFStringRef stringWithPercentEncoding = _CFStringCreateByAddingPercentEncodingWithAllowedCharacters(kCFAllocatorSystemDefault, value, queryNameValueAllowed);
+                        CFStringAppendStringToAppendBuffer(&buf, stringWithPercentEncoding);
+                        CFRelease(stringWithPercentEncoding);
+                    }
+                    else {
+                        // verify value string contains no illegal characters
+                        if ( !_CFURIParserValidateComponent(value, CFRangeMake(0, CFStringGetLength(value)), kURLQueryAllowed, true) ) {
+                            result = false;
+                            break;
+                        }
+                        CFStringAppendStringToAppendBuffer(&buf, value);
+                    }
                 }
                 // else the query item string will be simply "name"
             }
+            // even if the result is false, CFStringCreateMutableWithAppendBuffer has to be called so the CFStringAppendBuffer's string can be obtained and released
             CFStringRef queryString = CFStringCreateMutableWithAppendBuffer(&buf);
-            _CFURLComponentsSetPercentEncodedQuery(components, queryString);
-            CFRelease(queryString);
+            if ( result ) {
+                _CFURLComponentsSetPercentEncodedQuery(components, queryString);
+            }
+            if ( queryString ) {
+                CFRelease(queryString);
+            }
         }
         else {
             // If there's an array but the count is zero, set the query to a zero length string
@@ -1234,4 +1458,13 @@ CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFAr
         // If there is no items array, set the query to nil
         _CFURLComponentsSetPercentEncodedQuery(components, NULL);
     }
+    return ( result );
+}
+
+CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values ) {
+    (void)_CFURLComponentsSetQueryItemsInternal(components, names, values, true); // _CFURLComponentsSetQueryItemsInternal cannot fail if addPercentEncoding is true
+}
+
+CF_EXPORT Boolean _CFURLComponentsSetPercentEncodedQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values ) {
+    return ( _CFURLComponentsSetQueryItemsInternal(components, names, values, false) );
 }

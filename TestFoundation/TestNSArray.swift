@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 class TestNSArray : XCTestCase {
     
     static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
@@ -42,6 +44,7 @@ class TestNSArray : XCTestCase {
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
+            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
         ]
     }
     
@@ -792,6 +795,14 @@ class TestNSArray : XCTestCase {
 
         let match5 = paths.pathsMatchingExtensions(["..txt"])
         XCTAssertEqual(match5, [])
+    }
+
+    func test_arrayUsedAsCFArrayInvokesArrayMethods() {
+        let number = 789 as NSNumber
+        let array = NSMutableArray(array: [123, 456])
+        CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
+        XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
+        XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {

@@ -86,6 +86,7 @@ extension ObjCBool : CustomStringConvertible {
 }
 #endif
 
+@usableFromInline
 internal class __NSCFType : NSObject {
     private var _cfinfo : Int32
     
@@ -285,6 +286,8 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber._cfNumberGetType = _CFSwiftNumberGetType
     __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
+    
+    __CFSwiftBridge.NSData.copy = _CFSwiftDataCreateCopy
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }

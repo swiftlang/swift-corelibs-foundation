@@ -1,7 +1,7 @@
 /*	CoreFoundation_Prefix.h
-	Copyright (c) 2005-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2005-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,7 +12,9 @@
 
 #define _DARWIN_UNLIMITED_SELECT 1
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS)
+#include <CoreFoundation/CFAvailability.h>
+
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
 #if DEPLOYMENT_RUNTIME_SWIFT
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
 #define __HAS_DISPATCH__ 1
@@ -453,15 +455,12 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 #endif
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#define CF_PRIVATE __attribute__((__visibility__("hidden"))) extern
 #endif
     
+    // [FIXED_35517899] We can't currently support this, but would like to leave things annotated
 #if !defined(CF_TEST_PRIVATE)
-#ifdef UNIT_TEST
-#define CF_TEST_PRIVATE
-#else
-#define CF_TEST_PRIVATE __attribute__((__visibility__("hidden"))) extern
-#endif
+#define CF_TEST_PRIVATE CF_PRIVATE
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS

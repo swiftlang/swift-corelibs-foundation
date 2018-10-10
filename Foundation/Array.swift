@@ -12,7 +12,7 @@ extension Array : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSArray
     public func _bridgeToObjectiveC() -> _ObjectType {
         return NSArray(array: map { (element: Element) -> AnyObject in
-            return _SwiftValue.store(element)
+            return __SwiftValue.store(element)
         })
     }
     

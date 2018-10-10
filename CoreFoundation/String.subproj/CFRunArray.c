@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -9,12 +9,13 @@
 
 
 /*	CFRunArray.c
-	Copyright (c) 2004-2015, Apple Inc. All rights reserved.
+	Copyright (c) 2004-2018, Apple Inc. All rights reserved.
 */
 
 #include "CFRunArray.h"
 #include <CoreFoundation/CFString.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
 /* CFRunArrayGuts (which holds an array of CFRunArrayItems) is the actual data keeper; the objects just point at these... CFRunArrayGuts has copy-on-write behavior.
 */
@@ -111,7 +112,7 @@ static void __CFRunArraySetBlockCapacity(CFRunArrayRef array, CFIndex desiredCou
     /* We realloc either when there isn't enough room, or when the needed size is less than half of what's there. In both cases we allocate 33% extra. */
     if ((array->guts->maxBlocks < desiredCount) || (array->guts->maxBlocks / 2) > desiredCount) {
 	CFIndex newCapacity = ((desiredCount + 3) / 3) * 4;
-	((struct __CFRunArray *)array)->guts = (CFRunArrayGuts *)CFAllocatorReallocate(CFGetAllocator(array), array->guts, sizeof(CFRunArrayGuts) + newCapacity * sizeof(CFRunArrayItem), 0);
+	((struct __CFRunArray *)array)->guts = __CFSafelyReallocateWithAllocator(CFGetAllocator(array), array->guts, sizeof(CFRunArrayGuts) + newCapacity * sizeof(CFRunArrayItem), 0, NULL);
 	array->guts->maxBlocks = newCapacity;
     }
 }
@@ -157,9 +158,7 @@ static void __CFRunArrayDeallocate(CFTypeRef cf) {
     }
 }
 
-static CFTypeID __kCFRunArrayTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFRunArrayClass = {
+const CFRuntimeClass __CFRunArrayClass = {
     0,
     "CFRunArray",
     NULL,	// init
@@ -172,9 +171,7 @@ static const CFRuntimeClass __CFRunArrayClass = {
 };
 
 CFTypeID CFRunArrayGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFRunArrayTypeID = _CFRuntimeRegisterClass(&__CFRunArrayClass); });
-    return __kCFRunArrayTypeID;
+    return _kCFRuntimeIDCFRunArray;
 }
 
 

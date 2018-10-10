@@ -276,12 +276,12 @@ open class Bundle: NSObject {
     
     open var infoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
-        return _SwiftValue.fetch(cfDict) as? [String : Any]
+        return __SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     open var localizedInfoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
-        return _SwiftValue.fetch(cfDict) as? [String : Any]
+        return __SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     open func object(forInfoDictionaryKey key: String) -> Any? {
@@ -299,7 +299,7 @@ open class Bundle: NSObject {
     }
     open var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
-        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
+        let nsLocalizations = __SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
 
@@ -310,7 +310,7 @@ open class Bundle: NSObject {
 
     open class func preferredLocalizations(from localizationsArray: [String]) -> [String] {
         let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
-        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
+        let nsLocalizations = __SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
     

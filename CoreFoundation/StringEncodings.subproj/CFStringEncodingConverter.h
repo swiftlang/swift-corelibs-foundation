@@ -1,7 +1,7 @@
 /*	CFStringEncodingConverter.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -71,17 +71,6 @@ CF_EXPORT uint32_t CFStringEncodingBytesToUnicode(uint32_t encoding, uint32_t fl
 */
 typedef CFIndex (*CFStringEncodingToBytesFallbackProc)(const UniChar *characters, CFIndex numChars, uint8_t *bytes, CFIndex maxByteLen, CFIndex *usedByteLen);
 typedef CFIndex (*CFStringEncodingToUnicodeFallbackProc)(const uint8_t *bytes, CFIndex numBytes, UniChar *characters, CFIndex maxCharLen, CFIndex *usedCharLen);
-
-CF_EXPORT bool CFStringEncodingIsValidEncoding(uint32_t encoding);
-
-/* Returns kCFStringEncodingInvalidId terminated encoding list
-*/
-CF_EXPORT const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void);
-
-/* Returns required length of destination buffer for conversion.  These functions are faster than specifying 0 to maxByteLen (maxCharLen), but unnecessarily optimal length
-*/
-CF_EXPORT CFIndex CFStringEncodingCharLengthForBytes(uint32_t encoding, uint32_t flags, const uint8_t *bytes, CFIndex numBytes);
-CF_EXPORT CFIndex CFStringEncodingByteLengthForCharacters(uint32_t encoding, uint32_t flags, const UniChar *characters, CFIndex numChars);
 
 /* Can register functions used for lossy conversion.  Reregisters default procs if NULL
 */

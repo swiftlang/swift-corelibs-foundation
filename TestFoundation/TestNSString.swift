@@ -92,9 +92,10 @@ class TestNSString: LoopbackServerTest {
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
             ("test_createCopy", test_createCopy),
+            ("test_commonPrefix", test_commonPrefix)
         ]
     }
-
+    
     func test_boolValue() {
         let trueStrings: [NSString] = ["t", "true", "TRUE", "tRuE", "yes", "YES", "1", "+000009"]
         for string in trueStrings {
@@ -189,25 +190,25 @@ class TestNSString: LoopbackServerTest {
     }
 
     func test_doubleValue() {
-        XCTAssertEqual(NSString(".2").doubleValue, 0.2)
-        XCTAssertEqual(NSString("+.2").doubleValue, 0.2)
-        XCTAssertEqual(NSString("-.2").doubleValue, -0.2)
-        XCTAssertEqual(NSString("1.23015e+3").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("12.3015e+02").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("+1.23015e+3").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("+12.3015e+02").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("-1.23015e+3").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-12.3015e+02").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-12.3015e02").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-31.25e-04").doubleValue, -0.003125)
+        XCTAssertEqual(NSString(string: ".2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "+.2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "-.2").doubleValue, -0.2)
+        XCTAssertEqual(NSString(string: "1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "-1.23015e+3").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e+02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-31.25e-04").doubleValue, -0.003125)
 
-        XCTAssertEqual(NSString(".e12").doubleValue, 0)
-        XCTAssertEqual(NSString("2e3.12").doubleValue, 2000)
-        XCTAssertEqual(NSString("1e2.3").doubleValue, 100)
-        XCTAssertEqual(NSString("12.e4").doubleValue, 120000)
-        XCTAssertEqual(NSString("1.2.3.4").doubleValue, 1.2)
-        XCTAssertEqual(NSString("1e2.3").doubleValue, 100)
-        XCTAssertEqual(NSString("1E3").doubleValue, 1000)
+        XCTAssertEqual(NSString(string: ".e12").doubleValue, 0)
+        XCTAssertEqual(NSString(string: "2e3.12").doubleValue, 2000)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "12.e4").doubleValue, 120000)
+        XCTAssertEqual(NSString(string: "1.2.3.4").doubleValue, 1.2)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "1E3").doubleValue, 1000)
     }
     
     func test_isEqualToStringWithSwiftString() {
@@ -1231,6 +1232,22 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(string, "foobar")
         XCTAssertEqual(stringCopy, "foo")
     }
+
+    func test_commonPrefix() {
+        XCTAssertEqual("".commonPrefix(with: ""), "")
+        XCTAssertEqual("1234567890".commonPrefix(with: ""), "")
+        XCTAssertEqual("".commonPrefix(with: "1234567890"), "")
+        XCTAssertEqual("abcba".commonPrefix(with: "abcde"), "abc")
+        XCTAssertEqual("/path/to/file1".commonPrefix(with: "/path/to/file2"), "/path/to/file")
+        XCTAssertEqual("/a_really_long_path/to/a/file".commonPrefix(with: "/a_really_long_path/to/the/file"), "/a_really_long_path/to/")
+        XCTAssertEqual("this".commonPrefix(with: "THAT", options: [.caseInsensitive]), "th")
+
+        // Both forms of ä, a\u{308} decomposed and \u{E4} precomposed, should match without .literal and not match when .literal is used
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule"), "Ma\u{308}dchen")
+        XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.literal]), "M")
+        XCTAssertEqual("m\u{E4}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "mädchen")
+        XCTAssertEqual("ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "m")
+    }
 }
 
 func test_reflection() {
@@ -1272,5 +1289,37 @@ extension TestNSString {
 
         let replaceSuffixWithMultibyte = testString.replacingOccurrences(of: testSuffix, with: testReplacementEmoji)
         XCTAssertEqual(replaceSuffixWithMultibyte, testPrefix + testEmoji + testReplacementEmoji)
+
+        let str1 = "Hello\r\nworld."
+        XCTAssertEqual(str1.replacingOccurrences(of: "\n", with: " "), "Hello\r world.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r", with: " "), "Hello \nworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: " "), "Hello world.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\n\rworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\nworld.")
+        XCTAssertEqual(str1.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\nworld.")
+
+        let str2 = "Hello\n\rworld."
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n", with: " "), "Hello \rworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\r", with: " "), "Hello\n world.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\r\n", with: " "), "Hello\n\rworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: " "), "Hello world.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: "\r\n"), "Hello\r\nworld.")
+        XCTAssertEqual(str2.replacingOccurrences(of: "\n\r", with: "\n\r"), "Hello\n\rworld.")
+
+        let str3 = "Hello\n\nworld."
+        XCTAssertEqual(str3.replacingOccurrences(of: "\n", with: " "), "Hello  world.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r", with: " "), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: " "), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\n\nworld.")
+        XCTAssertEqual(str3.replacingOccurrences(of: "\n\r", with: " "), "Hello\n\nworld.")
+
+        let str4 = "Hello\r\rworld."
+        XCTAssertEqual(str4.replacingOccurrences(of: "\n", with: " "), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r", with: " "), "Hello  world.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: " "), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\rworld.")
+        XCTAssertEqual(str4.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\rworld.")
     }
 }

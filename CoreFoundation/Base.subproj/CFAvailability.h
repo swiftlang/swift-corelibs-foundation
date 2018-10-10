@@ -1,7 +1,7 @@
 /*	CFAvailability.h
-	Copyright (c) 2013-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2013-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -18,7 +18,7 @@
 #error Missing header TargetConditionals.h
 #endif
 
-#if __has_include(<Availability.h>) && __has_include(<os/Availability.h>) && __has_include(<AvailabilityMacros.h>)
+#if __has_include(<Availability.h>) && __has_include(<os/availability.h>) && __has_include(<AvailabilityMacros.h>)
 #include <Availability.h>
 #include <os/availability.h>
 // Even if unused, these must remain here for compatibility, because projects rely on them being included.
@@ -114,9 +114,11 @@
 // Enums and Options
 #if __has_attribute(enum_extensibility)
 #define __CF_ENUM_ATTRIBUTES __attribute__((enum_extensibility(open)))
+#define __CF_CLOSED_ENUM_ATTRIBUTES __attribute__((enum_extensibility(closed)))
 #define __CF_OPTIONS_ATTRIBUTES __attribute__((flag_enum,enum_extensibility(open)))
 #else
 #define __CF_ENUM_ATTRIBUTES
+#define __CF_CLOSED_ENUM_ATTRIBUTES
 #define __CF_OPTIONS_ATTRIBUTES
 #endif
 
@@ -124,6 +126,7 @@
 #if (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && __has_feature(objc_fixed_enum))
 #define __CF_NAMED_ENUM(_type, _name)     enum __CF_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
 #define __CF_ANON_ENUM(_type)             enum __CF_ENUM_ATTRIBUTES : _type
+#define CF_CLOSED_ENUM(_type, _name)      enum __CF_CLOSED_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
 #if (__cplusplus)
 #define CF_OPTIONS(_type, _name) _type _name; enum __CF_OPTIONS_ATTRIBUTES : _type
 #else
@@ -132,6 +135,7 @@
 #else
 #define __CF_NAMED_ENUM(_type, _name) _type _name; enum
 #define __CF_ANON_ENUM(_type) enum
+#define CF_CLOSED_ENUM(_type, _name) _type _name; enum
 #define CF_OPTIONS(_type, _name) _type _name; enum
 #endif
 
@@ -197,6 +201,14 @@ CF_ENUM(CFIndex) {
  };
  */
 #define CF_ERROR_ENUM(...) __CF_ERROR_ENUM_GET_MACRO(__VA_ARGS__, __CF_NAMED_ERROR_ENUM, __CF_ANON_ERROR_ENUM)(__VA_ARGS__)
+
+#ifndef CF_SWIFT_BRIDGED_TYPEDEF
+#if __has_attribute(swift_bridged_typedef)
+#define CF_SWIFT_BRIDGED_TYPEDEF __attribute__((swift_bridged_typedef))
+#else
+#define CF_SWIFT_BRIDGED_TYPEDEF
+#endif
+#endif
 
 // Extension availability macros
 #define CF_EXTENSION_UNAVAILABLE(_msg)      __OS_EXTENSION_UNAVAILABLE(_msg)

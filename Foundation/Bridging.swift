@@ -70,11 +70,11 @@ internal protocol _NSBridgeable {
 
 #if !canImport(ObjectiveC)
 // The _NSSwiftValue protocol is in the stdlib, and only available on platforms without ObjC.
-extension _SwiftValue: _NSSwiftValue {}
+extension __SwiftValue: _NSSwiftValue {}
 #endif
 
 /// - Note: This is an internal boxing value for containing abstract structures
-internal final class _SwiftValue : NSObject, NSCopying {
+internal final class __SwiftValue : NSObject, NSCopying {
     public private(set) var value: Any
     
     static func fetch(_ object: AnyObject?) -> Any? {
@@ -115,7 +115,7 @@ internal final class _SwiftValue : NSObject, NSCopying {
             return type
         }
         
-        let name = "_SwiftValue"
+        let name = "__SwiftValue"
         let maybeType = name.withCString { cString in
             return objc_getClass(cString)
         }
@@ -135,7 +135,7 @@ internal final class _SwiftValue : NSObject, NSCopying {
         // You can pass the result of a `as AnyObject` expression to this method. This can have one of three results on Darwin:
         // - It's a SwiftFoundation type. Bridging will take care of it below.
         // - It's nil. The compiler is hardcoded to return [NSNull null] for nils.
-        // - It's some other Swift type. The compiler will box it in a native _SwiftValue.
+        // - It's some other Swift type. The compiler will box it in a native __SwiftValue.
         // Case 1 is handled below.
         // Case 2 is handled here:
         if type(of: object as Any) == objCNSNullClass {
@@ -145,20 +145,20 @@ internal final class _SwiftValue : NSObject, NSCopying {
         if type(of: object as Any) == swiftStdlibSwiftValueClass {
             return object
             // Since this returns Any, the object is casted almost immediately — e.g.:
-            //   _SwiftValue.fetch(x) as SomeStruct
+            //   __SwiftValue.fetch(x) as SomeStruct
             // which will immediately unbox the native box. For callers, it will be exactly
             // as if we returned the unboxed value directly.
         }
         
         // On Linux, case 2 is handled by the stdlib bridging machinery, and case 3 can't happen —
-        // the compiler will produce SwiftFoundation._SwiftValue boxes rather than ObjC ones.
+        // the compiler will produce SwiftFoundation.__SwiftValue boxes rather than ObjC ones.
         #endif
         
         if object === kCFBooleanTrue {
             return true
         } else if object === kCFBooleanFalse {
             return false
-        } else if let container = object as? _SwiftValue {
+        } else if let container = object as? __SwiftValue {
             return container.value
         } else if let val = object as? _StructBridgeable {
             return val._bridgeToAny()
@@ -188,10 +188,10 @@ internal final class _SwiftValue : NSObject, NSCopying {
             return NSNull()
         } else {
             #if canImport(ObjectiveC)
-                // On Darwin, this can be a native (ObjC) _SwiftValue.
+                // On Darwin, this can be a native (ObjC) __SwiftValue.
                 let boxed = (value as AnyObject)
                 if !(boxed is NSObject) {
-                    return _SwiftValue(value) // Do not emit native boxes — wrap them in Swift Foundation boxes instead.
+                    return __SwiftValue(value) // Do not emit native boxes — wrap them in Swift Foundation boxes instead.
                 } else {
                     return boxed as! NSObject
                 }
@@ -214,7 +214,7 @@ internal final class _SwiftValue : NSObject, NSCopying {
     
     override func isEqual(_ value: Any?) -> Bool {
         switch value {
-        case let other as _SwiftValue:
+        case let other as __SwiftValue:
             guard let left = other.value as? AnyHashable,
                 let right = self.value as? AnyHashable else { return self === other }
             
@@ -228,7 +228,7 @@ internal final class _SwiftValue : NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone?) -> Any {
-        return _SwiftValue(value)
+        return __SwiftValue(value)
     }
     
     public static let null: AnyObject = NSNull()

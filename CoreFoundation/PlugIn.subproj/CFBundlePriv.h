@@ -1,7 +1,7 @@
 /*	CFBundlePriv.h
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -249,6 +249,15 @@ void _CFBundleSetupXPCBootstrap(xpc_object_t bootstrap) API_AVAILABLE(macos(10.1
 #endif
 
 
+/* SPI for AppKit usage only, they should be only used in limited secnarios of the application load lifecycle */
+
+CF_EXPORT
+Boolean _CFBundleAddResourceURL(CFBundleRef bundle, CFURLRef url) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+
+CF_EXPORT
+Boolean _CFBundleRemoveResourceURL(CFBundleRef bundle, CFURLRef url) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+
+
 /* CFString & Localization Debug Utilities */
 
 CF_EXPORT
@@ -286,9 +295,6 @@ CFURLRef _CFBundleCopySharedFrameworksURL(CFBundleRef bundle);		// deprecated in
 
 CF_EXPORT
 CFURLRef _CFBundleCopySharedSupportURL(CFBundleRef bundle);		// deprecated in favor of CFBundleCopySharedSupportURL
-
-CF_EXPORT
-CFURLRef _CFBundleCopyBuiltInPlugInsURL(CFBundleRef bundle);		// deprecated in favor of CFBundleCopyBuiltInPlugInsURL
 
 CF_EXPORT
 CFURLRef _CFBundleCopyResourceURLForLanguage(CFBundleRef bundle, CFStringRef resourceName, CFStringRef resourceType, CFStringRef subDirName, CFStringRef language);	 // deprecated in favor of CFBundleCopyResourceURLForLocalization

@@ -44,7 +44,7 @@ open class PropertyListSerialization : NSObject {
 #else
         let fmt = CFPropertyListFormat(format.rawValue)
 #endif
-        let plistObj = _SwiftValue.store(plist)
+        let plistObj = __SwiftValue.store(plist)
         return CFPropertyListIsValid(plistObj, fmt)
     }
 
@@ -57,7 +57,7 @@ open class PropertyListSerialization : NSObject {
             let fmt = CFPropertyListFormat(format.rawValue)
 #endif
             let options = CFOptionFlags(opt)
-            let plistObj = _SwiftValue.store(plist)
+            let plistObj = __SwiftValue.store(plist)
             let d = CFPropertyListCreateData(kCFAllocatorSystemDefault, plistObj, fmt, options, outErr)
             return d?.takeRetainedValue()
         }
@@ -84,7 +84,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _SwiftValue.fetch(nonOptional: decoded!)
+            return __SwiftValue.fetch(nonOptional: decoded!)
         }
     }
     
@@ -104,7 +104,7 @@ open class PropertyListSerialization : NSObject {
         if let err = error {
             throw err.takeUnretainedValue()._nsObject
         } else {
-            return _SwiftValue.fetch(nonOptional: decoded!)
+            return __SwiftValue.fetch(nonOptional: decoded!)
         }
     }
     

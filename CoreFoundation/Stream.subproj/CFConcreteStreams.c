@@ -1,7 +1,7 @@
 /*	CFConcreteStreams.c
-	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -101,10 +101,10 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     flags |= (_O_BINARY|_O_NOINHERIT);
     if (_CFURLGetWideFileSystemRepresentation(fileStream->url, TRUE, path, CFMaxPathSize) == FALSE)
 #else
-    char path[CFMaxPathSize];
+        char path[CFMaxPathSize];
     if (CFURLGetFileSystemRepresentation(fileStream->url, TRUE, (UInt8 *)path, CFMaxPathSize) == FALSE)
 #endif
-     {
+    {
         error->error = ENOENT;
         error->domain = kCFStreamErrorDomainPOSIX;
         return FALSE;
@@ -115,30 +115,30 @@ static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *erro
     }
     
     do {
-#if DEPLOYMENT_TARGET_WINDOWS
-	fileStream->fd = _wopen(path, flags, 0666);
+#if TARGET_OS_WIN32
+        fileStream->fd = _wopen(path, flags, 0666);
 #else
-    fileStream->fd = open((const char *)path, flags, 0666);
+        fileStream->fd = open((const char *)path, flags, 0666);
 #endif
         if (fileStream->fd < 0)
             break;
         
         if ((fileStream->offset != -1) && (lseek(fileStream->fd, fileStream->offset, SEEK_SET) == -1))
             break;
-
+        
 #ifdef REAL_FILE_SCHEDULING
         if (fileStream->rlInfo.rlArray != NULL) {
             constructCFFD(fileStream, forRead, stream);
         }
 #endif
-
+        
         return TRUE;
     } while (1);
-
+    
     __CFBitSet(fileStream->flags, USE_RUNLOOP_ARRAY);
     error->error = errno;
     error->domain = kCFStreamErrorDomainPOSIX;
-
+    
     return FALSE;
 }
 

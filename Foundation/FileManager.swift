@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 #if os(macOS) || os(iOS)
@@ -342,16 +342,7 @@ open class FileManager : NSObject {
             result[.groupOwnerAccountName] = name
         }
 
-        var type : FileAttributeType
-        switch s.st_mode & S_IFMT {
-            case S_IFCHR: type = .typeCharacterSpecial
-            case S_IFDIR: type = .typeDirectory
-            case S_IFBLK: type = .typeBlockSpecial
-            case S_IFREG: type = .typeRegular
-            case S_IFLNK: type = .typeSymbolicLink
-            case S_IFSOCK: type = .typeSocket
-            default: type = .typeUnknown
-        }
+        let type = FileAttributeType(statMode: s.st_mode)
         result[.type] = type
         
         if type == .typeBlockSpecial || type == .typeCharacterSpecial {
@@ -426,7 +417,7 @@ open class FileManager : NSObject {
         })
     }
     
-    /* destinationOfSymbolicLinkAtPath:error: returns an NSString containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter.
+    /* destinationOfSymbolicLinkAtPath:error: returns a String containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be thrown.
      
         This method replaces pathContentOfSymbolicLinkAtPath:
      */
@@ -535,13 +526,11 @@ open class FileManager : NSObject {
     }
 
     private func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
-        guard
-            let attrs = try? attributesOfItem(atPath: srcPath),
-            let fileType = attrs[.type] as? FileAttributeType
-            else {
+        guard let stat = try? _lstatFile(atPath: srcPath) else {
                 return
         }
 
+        let fileType = FileAttributeType(statMode: stat.st_mode)
         if fileType == .typeDirectory {
             try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
 
@@ -552,7 +541,8 @@ open class FileManager : NSObject {
             while let item = enumerator.nextObject() as? String {
                 let src = srcPath + "/" + item
                 let dst = dstPath + "/" + item
-                if let attrs = try? attributesOfItem(atPath: src), let fileType = attrs[.type] as? FileAttributeType {
+                if let stat = try? _lstatFile(atPath: src) {
+                    let fileType = FileAttributeType(statMode: stat.st_mode)
                     if fileType == .typeDirectory {
                         try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
                     } else {
@@ -754,9 +744,41 @@ open class FileManager : NSObject {
             access($0, X_OK) == 0
         })
     }
-    
+
+    /**
+     - parameters:
+        - path: The path to the file we are trying to determine is deletable.
+
+      - returns: `true` if the file is deletable, `false` otherwise.
+     */
     open func isDeletableFile(atPath path: String) -> Bool {
-        NSUnimplemented()
+        // Get the parent directory of supplied path
+        let parent = path._nsObject.deletingLastPathComponent
+
+        return _fileSystemRepresentation(withPath: parent, andPath: path, { parentFsRep, fsRep  in
+            // Check the parent directory is writeable, else return false.
+            guard access(parentFsRep, W_OK) == 0 else {
+                return false
+            }
+
+            // Stat the parent directory, if that fails, return false.
+            guard let parentS = try? _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep) else {
+                return false
+            }
+
+            // Check if the parent is 'sticky' if it exists.
+            if (parentS.st_mode & S_ISVTX) == S_ISVTX {
+                guard let s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
+                    return false
+                }
+
+                // If the current user owns the file, return true.
+                return s.st_uid == getuid()
+            }
+
+            // Return true as the best guess.
+            return true
+        })
     }
 
     private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
@@ -1032,10 +1054,7 @@ open class FileManager : NSObject {
     }
     
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
-        guard _pathIsSymbolicLink(path) else {
-            return nil
-        }
-        
+        // destinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
         guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
@@ -1050,16 +1069,6 @@ open class FileManager : NSObject {
             let temp = toPath._bridgeToObjectiveC().deletingLastPathComponent
             return temp._bridgeToObjectiveC().appendingPathComponent(dest)
         }
-    }
-    
-    internal func _pathIsSymbolicLink(_ path: String) -> Bool {
-        guard
-            let attrs = try? attributesOfItem(atPath: path),
-            let fileType = attrs[.type] as? FileAttributeType
-        else {
-            return false
-        }
-        return fileType == .typeSymbolicLink
     }
 }
 
@@ -1197,6 +1206,18 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 
     public static func ==(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {
         return lhs.rawValue == rhs.rawValue
+    }
+
+    fileprivate init(statMode: mode_t) {
+        switch statMode & S_IFMT {
+        case S_IFCHR: self = .typeCharacterSpecial
+        case S_IFDIR: self = .typeDirectory
+        case S_IFBLK: self = .typeBlockSpecial
+        case S_IFREG: self = .typeRegular
+        case S_IFLNK: self = .typeSymbolicLink
+        case S_IFSOCK: self = .typeSocket
+        default: self = .typeUnknown
+        }
     }
 
     public static let typeDirectory = FileAttributeType(rawValue: "NSFileTypeDirectory")

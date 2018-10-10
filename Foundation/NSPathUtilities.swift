@@ -33,7 +33,7 @@ public func NSTemporaryDirectory() -> String {
     return "/tmp/"
 }
 
-internal extension String {
+extension String {
     
     internal var _startOfLastPathComponent : String.Index {
         precondition(!hasSuffix("/") && length > 1)
@@ -153,7 +153,7 @@ internal extension String {
     }
 }
 
-public extension NSString {
+extension NSString {
     
     public var isAbsolutePath: Bool {
         return hasPrefix("~") || hasPrefix("/")
@@ -585,7 +585,7 @@ public func NSUserName() -> String {
 }
 
 public func NSFullUserName() -> String {
-    let userName = CFCopyFullUserName().takeRetainedValue()
+    let userName = CFCopyFullUserName()
     return userName._swiftObject
 }
 

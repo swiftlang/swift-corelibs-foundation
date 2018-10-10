@@ -116,6 +116,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 	foundation.CFLAGS += " "+" ".join([
 		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
+		'-I' + os.path.join(Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"], 'src', 'BlocksRuntime'),
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
 	])
 	swift_cflags += ([
@@ -226,6 +227,13 @@ private = [
 	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
 	'CoreFoundation/Parsing.subproj/CFPropertyList_Private.h',
 	'CoreFoundation/Base.subproj/CFKnownLocations.h',
+    'CoreFoundation/Base.subproj/CFOverflow.h',
+	'CoreFoundation/Base.subproj/CFRuntime_Internal.h',
+	'CoreFoundation/Collections.subproj/CFCollections_Internal.h',
+	'CoreFoundation/RunLoop.subproj/CFMachPort_Internal.h',
+	'CoreFoundation/RunLoop.subproj/CFMachPort_Lifetime.h',
+	'CoreFoundation/String.subproj/CFAttributedStringPriv.h',
+	'CoreFoundation/String.subproj/CFString_Internal.h',
 ],
 project = [
 ])
@@ -292,6 +300,7 @@ sources = CompileSources([
     'CoreFoundation/Preferences.subproj/CFXMLPreferencesDomain.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMachPort.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMessagePort.c',
+    # 'CoreFoundation/RunLoop.subproj/CFMachPort_Lifetime.c',
 	'CoreFoundation/RunLoop.subproj/CFRunLoop.c',
 	'CoreFoundation/RunLoop.subproj/CFSocket.c',
 	'CoreFoundation/Stream.subproj/CFConcreteStreams.c',

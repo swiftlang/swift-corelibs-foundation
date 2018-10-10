@@ -1,7 +1,7 @@
 /*	CFStreamPriv.h
-	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -116,6 +116,17 @@ CFIndex __CFSocketRead(CFSocketRef s, UInt8* buffer, CFIndex length, int* error)
 CF_EXPORT
 void __CFSocketSetSocketReadBufferAttrs(CFSocketRef s, CFTimeInterval timeout, CFIndex length);
 
+/*
+ *  kCFStreamPropertySocketSSLContext
+ *
+ *  Discussion:
+ *    Stream property key, for both set and copy operations.  CFDataRef
+ *    containing a reference to the SecureTransport SecureContext
+ *    structure.
+ *
+ */
+CF_EXPORT const CFStringRef kCFStreamPropertySocketSSLContext;
+
 CF_EXTERN_C_END
 
 /*
@@ -134,7 +145,6 @@ CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle API_AVAILABLE(mac
  *		stream on which this property is set.
  */
 CF_EXPORT const CFStringRef _kCFStreamPropertyHTTPTrailer API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-
 
 #endif /* ! __COREFOUNDATION_CFSTREAMPRIV__ */
 

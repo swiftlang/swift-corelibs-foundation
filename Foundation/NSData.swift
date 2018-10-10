@@ -288,7 +288,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: _CFNonObjCHash(_cfObject))
     }
 
     /// Returns a Boolean value indicating whether this data object is the same as another.
@@ -1137,4 +1137,8 @@ extension NSData : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Data {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
+}
+
+internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
 }

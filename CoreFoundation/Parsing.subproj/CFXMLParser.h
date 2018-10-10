@@ -1,5 +1,5 @@
 /*	CFXMLParser.h
-	Copyright (c) 1998-2017, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2018, Apple Inc. All rights reserved.
 */
 
 /*  CFXMLParser is deprecated as of Mac OS X 10.8. The suggested replacements are the Foundation classes NSXMLParser and NSXMLDocument, or the libxml2 library. */

@@ -1,7 +1,7 @@
 /*	CFBinaryPList.c
-	Copyright (c) 2000-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2000-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <string.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFStream.h>
 
 typedef struct {
@@ -100,9 +101,7 @@ static CFStringRef __CFKeyedArchiverUIDCopyFormattingDescription(CFTypeRef cf, C
     return CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("@%u@"), uid->_value);
 }
 
-static CFTypeID __kCFKeyedArchiverUIDTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFKeyedArchiverUIDClass = {
+const CFRuntimeClass __CFKeyedArchiverUIDClass = {
     0,
     "CFKeyedArchiverUID",
     NULL,	// init
@@ -115,9 +114,7 @@ static const CFRuntimeClass __CFKeyedArchiverUIDClass = {
 };
 
 CFTypeID _CFKeyedArchiverUIDGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFKeyedArchiverUIDTypeID = _CFRuntimeRegisterClass(&__CFKeyedArchiverUIDClass); });
-    return __kCFKeyedArchiverUIDTypeID;
+    return _kCFRuntimeIDCFKeyedArchiverUID;
 }
 
 CFKeyedArchiverUIDRef _CFKeyedArchiverUIDCreate(CFAllocatorRef allocator, uint32_t value) {
@@ -264,28 +261,6 @@ TRAILER
 */
 
 
-static CFTypeID stringtype = -1, datatype = -1, numbertype = -1, datetype = -1;
-static CFTypeID booltype = -1, nulltype = -1, dicttype = -1, arraytype = -1;
-static CFTypeID uuidtype = -1, urltype = -1, osettype = -1, settype = -1;
-
-static void initStatics() {
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        stringtype = CFStringGetTypeID();
-        datatype = CFDataGetTypeID();
-        numbertype = CFNumberGetTypeID();
-        booltype = CFBooleanGetTypeID();
-        datetype = CFDateGetTypeID();
-        dicttype = CFDictionaryGetTypeID();
-        arraytype = CFArrayGetTypeID();
-        settype = CFSetGetTypeID();
-        nulltype = CFNullGetTypeID();
-        uuidtype = CFUUIDGetTypeID();
-        urltype = CFURLGetTypeID();
-        osettype = -1;
-    });
-}
-
 static void _appendInt(__CFBinaryPlistWriteBuffer *buf, uint64_t bigint, Boolean dryRun) {
     uint8_t marker;
     uint8_t *bytes;
@@ -417,14 +392,14 @@ static Boolean _appendObject(__CFBinaryPlistWriteBuffer *buf, CFTypeRef obj, CFD
     uint64_t refnum;
     CFIndex idx2;
     CFTypeID type = CFGetTypeID(obj);
-	if (stringtype == type) {
+	if (_kCFRuntimeIDCFString == type) {
 	    _appendString(buf, (CFStringRef)obj, dryRun);
-	} else if (numbertype == type) {
+	} else if (_kCFRuntimeIDCFNumber == type) {
 	    _appendNumber(buf, (CFNumberRef)obj, dryRun);
-	} else if (booltype == type) {
+	} else if (_kCFRuntimeIDCFBoolean == type) {
 	    uint8_t marker = CFBooleanGetValue((CFBooleanRef)obj) ? kCFBinaryPlistMarkerTrue : kCFBinaryPlistMarkerFalse;
 	    bufferWrite(buf, &marker, 1, dryRun);
-	} else if (datatype == type) {
+	} else if (_kCFRuntimeIDCFData == type) {
 	    CFIndex count = CFDataGetLength((CFDataRef)obj);
 	    uint8_t marker = (uint8_t)(kCFBinaryPlistMarkerData | (count < 15 ? count : 0xf));
 	    bufferWrite(buf, &marker, 1, dryRun);
@@ -432,13 +407,13 @@ static Boolean _appendObject(__CFBinaryPlistWriteBuffer *buf, CFTypeRef obj, CFD
 		_appendInt(buf, (uint64_t)count, dryRun);
 	    }
 	    bufferWrite(buf, CFDataGetBytePtr((CFDataRef)obj), count, dryRun);
-	} else if (datetype == type) {
+	} else if (_kCFRuntimeIDCFDate == type) {
 	    CFSwappedFloat64 swapped;
 	    uint8_t marker = kCFBinaryPlistMarkerDate;
 	    bufferWrite(buf, &marker, 1, dryRun);
 	    swapped = CFConvertFloat64HostToSwapped(CFDateGetAbsoluteTime((CFDateRef)obj));
 	    bufferWrite(buf, (uint8_t *)&swapped, sizeof(swapped), dryRun);
-	} else if (dicttype == type) {
+	} else if (_kCFRuntimeIDCFDictionary == type) {
             CFIndex count = CFDictionaryGetCount((CFDictionaryRef)obj);
             uint8_t marker = (uint8_t)(kCFBinaryPlistMarkerDict | (count < 15 ? count : 0xf));
             bufferWrite(buf, &marker, 1, dryRun);
@@ -465,7 +440,7 @@ static Boolean _appendObject(__CFBinaryPlistWriteBuffer *buf, CFTypeRef obj, CFD
 		}
             }
             if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-	} else if (arraytype == type) {
+	} else if (_kCFRuntimeIDCFArray == type) {
 	    CFIndex count = CFArrayGetCount((CFArrayRef)obj);
 	    CFPropertyListRef *list, buffer[256];
 	    uint8_t marker = (uint8_t)(kCFBinaryPlistMarkerArray | (count < 15 ? count : 0xf));
@@ -507,7 +482,7 @@ static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CF
     // Do not unique dictionaries or arrays, because: they
     // are slow to compare, and have poor hash codes.
     // Uniquing bools is unnecessary.
-    if (stringtype == type || numbertype == type || datetype == type || datatype == type) {
+    if (_kCFRuntimeIDCFString == type || _kCFRuntimeIDCFNumber == type || _kCFRuntimeIDCFDate == type || _kCFRuntimeIDCFData == type) {
 	CFIndex before = CFSetGetCount(uniquingset);
 	CFSetAddValue(uniquingset, plist);
 	CFIndex after = CFSetGetCount(uniquingset);
@@ -523,7 +498,7 @@ static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CF
     refnum = CFArrayGetCount(objlist);
     CFArrayAppendValue(objlist, plist);
     CFDictionaryAddValue(objtable, plist, (const void *)(uintptr_t)refnum);
-    if (dicttype == type) {
+    if (_kCFRuntimeIDCFDictionary == type) {
         CFIndex count = CFDictionaryGetCount((CFDictionaryRef)plist);
         STACK_BUFFER_DECL(CFPropertyListRef, buffer, count <= 128 ? count * 2 : 1);
         CFPropertyListRef *list = (count <= 128) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, 2 * count * sizeof(CFTypeRef), 0);
@@ -532,7 +507,7 @@ static void _flattenPlist(CFPropertyListRef plist, CFMutableArrayRef objlist, CF
             _flattenPlist(list[idx], objlist, objtable, uniquingset);
         }
         if (list != buffer) CFAllocatorDeallocate(kCFAllocatorSystemDefault, list);
-    } else if (arraytype == type) {
+    } else if (_kCFRuntimeIDCFArray == type) {
         CFIndex count = CFArrayGetCount((CFArrayRef)plist);
         STACK_BUFFER_DECL(CFPropertyListRef, buffer, count <= 256 ? count : 1);
         CFPropertyListRef *list = (count <= 256) ? buffer : (CFPropertyListRef *)CFAllocatorAllocate(kCFAllocatorSystemDefault, count * sizeof(CFTypeRef), 0);
@@ -578,8 +553,6 @@ CF_PRIVATE CFIndex __CFBinaryPlistWriteOrPresize(CFPropertyListRef plist, CFType
 
     //If we're actually serializing, rather than just pre-sizing, we have to have something to serialize into.
     CFAssert(stream || sizeOnly, __kCFLogAssertion, "Passing NULL for the stream argument to __CFBinaryPlistWriteOrPresize is only valid if sizeOnly is true");
-
-    initStatics();
 
     /*
      This is exactly the same as a CFDictionary with NULL callbacks, except that it has the "aggressive growth" flag set, since we're not keeping it around. Radar 21883482
@@ -765,8 +738,6 @@ CF_INLINE uint64_t _getSizedInt(const uint8_t *data, uint8_t valSize) {
 bool __CFBinaryPlistGetTopLevelInfo(const uint8_t *databytes, uint64_t datalen, uint8_t *marker, uint64_t *offset, CFBinaryPlistTrailer *trailer) {
     CFBinaryPlistTrailer trail;
 
-    initStatics();
-
     if (!databytes || datalen < sizeof(trail) + 8 + 1) FAIL_FALSE;
     // Tiger and earlier will parse "bplist00"
     // Leopard will parse "bplist00" or "bplist01"
@@ -854,7 +825,7 @@ bool __CFBinaryPlistGetTopLevelInfo(const uint8_t *databytes, uint64_t datalen, 
 
 CF_INLINE Boolean _plistIsPrimitive(CFPropertyListRef pl) {
     CFTypeID type = CFGetTypeID(pl);
-    if (dicttype == type || arraytype == type || settype == type || osettype == type) FAIL_FALSE;
+    if (_kCFRuntimeIDCFDictionary == type || _kCFRuntimeIDCFArray == type || _kCFRuntimeIDCFSet == type) FAIL_FALSE;
     return true;
 }
 
@@ -1030,7 +1001,7 @@ CFSetRef __CFBinaryPlistCopyTopLevelKeys(CFAllocatorRef allocator, const uint8_t
         // Unlike in __CFBinaryPlistGetOffsetForValueFromDictionary3, we're accumulating keys, so we go through the CFObjectRef case always.
         CFPropertyListRef keyInData = NULL;
         if (!(__CFBinaryPlistCreateObjectFiltered(databytes, datalen, off, trailer, allocator, kCFPropertyListImmutable, NULL, NULL, 0, NULL, &keyInData) &&
-              CFGetTypeID(keyInData) == stringtype)) {
+              CFGetTypeID(keyInData) == _kCFRuntimeIDCFString)) {
             bad = true;
             if (keyInData) {
                 // we're not storing keyInData in the buffer, so we need to free it now; buffered keys are cleaned below
@@ -1099,7 +1070,7 @@ bool __CFBinaryPlistGetOffsetForValueFromDictionary3(const uint8_t *databytes, u
     // For short keys (15 bytes or less) in ASCII form, we can do a quick comparison check
     // We get the pointer or copy the buffer here, outside of the loop
     CFIndex stringKeyLen = -1;
-    if (CFGetTypeID(key) == stringtype) {
+    if (CFGetTypeID(key) == _kCFRuntimeIDCFString) {
 	stringKeyLen = CFStringGetLength((CFStringRef)key);
     }
     
