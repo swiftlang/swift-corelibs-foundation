@@ -47,9 +47,7 @@ private var managerThreadRunLoop : RunLoop? = nil
 private var managerThreadRunLoopIsRunning = false
 private var managerThreadRunLoopIsRunningCondition = NSCondition()
 
-#if os(macOS) || os(iOS)
 internal let kCFSocketDataCallBack = CFSocketCallBackType.dataCallBack.rawValue
-#endif
 
 private func emptyRunLoopCallback(_ context : UnsafeMutableRawPointer?) -> Void {}
 

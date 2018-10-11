@@ -77,11 +77,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     
     public init(pattern: String, options: Options = []) throws {
         var error: Unmanaged<CFError>?
-#if os(macOS) || os(iOS)
         let opt =  _CFRegularExpressionOptions(rawValue: options.rawValue)
-#else
-        let opt = _CFRegularExpressionOptions(options.rawValue)
-#endif
         if let regex = _CFRegularExpressionCreate(kCFAllocatorSystemDefault, pattern._cfObject, opt, &error) {
             _internal = regex
         } else {
@@ -94,11 +90,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     }
     
     open var options: Options {
-#if os(macOS) || os(iOS)
         let opt = _CFRegularExpressionGetOptions(_internal).rawValue
-#else
-        let opt = _CFRegularExpressionGetOptions(_internal)
-#endif
     
         return Options(rawValue: opt)
     }
@@ -152,11 +144,7 @@ internal class _NSRegularExpressionMatcher {
 internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
     if ranges == nil {
-#if os(macOS) || os(iOS)
         let opts = options.rawValue
-#else
-        let opts = options
-#endif
         stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
             matcher.block(nil, NSRegularExpression.MatchingFlags(rawValue: opts), $0)
         })
@@ -164,11 +152,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
         let result = ranges!.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
             NSTextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
         }
-#if os(macOS) || os(iOS)
         let flags = NSRegularExpression.MatchingFlags(rawValue: options.rawValue)
-#else
-        let flags = NSRegularExpression.MatchingFlags(rawValue: options)
-#endif
         stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
             matcher.block(result, flags, $0)
         })
@@ -183,11 +167,7 @@ extension NSRegularExpression {
     public func enumerateMatches(in string: String, options: NSRegularExpression.MatchingOptions = [], range: NSRange, using block: @escaping (NSTextCheckingResult?, NSRegularExpression.MatchingFlags, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
         let matcher = _NSRegularExpressionMatcher(regex: self, block: block)
         withExtendedLifetime(matcher) { (m: _NSRegularExpressionMatcher) -> Void in
-#if os(macOS) || os(iOS)
         let opts = _CFRegularExpressionMatchingOptions(rawValue: options.rawValue)
-#else
-        let opts = _CFRegularExpressionMatchingOptions(options.rawValue)
-#endif
             _CFRegularExpressionEnumerateMatchesInString(_internal, string._cfObject, opts, CFRange(range), unsafeBitCast(matcher, to: UnsafeMutableRawPointer.self), _NSRegularExpressionMatch)
         }
     }

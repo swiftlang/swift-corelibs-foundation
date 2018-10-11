@@ -248,11 +248,7 @@ extension NSTimeZone {
     }
 
     open func localizedName(_ style: NameStyle, locale: Locale?) -> String? {
-        #if os(macOS) || os(iOS)
-            let cfStyle = CFTimeZoneNameStyle(rawValue: style.rawValue)!
-        #else
-            let cfStyle = CFTimeZoneNameStyle(style.rawValue)
-        #endif
+        let cfStyle = CFTimeZoneNameStyle(rawValue: style.rawValue)!
         return CFTimeZoneCopyLocalizedName(self._cfObject, cfStyle, locale?._cfObject ?? CFLocaleCopyCurrent())._swiftObject
     }
 

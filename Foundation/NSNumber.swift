@@ -10,7 +10,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
 internal let kCFNumberSInt8Type = CFNumberType.sInt8Type
 internal let kCFNumberSInt16Type = CFNumberType.sInt16Type
 internal let kCFNumberSInt32Type = CFNumberType.sInt32Type
@@ -28,9 +27,6 @@ internal let kCFNumberCFIndexType = CFNumberType.cfIndexType
 internal let kCFNumberNSIntegerType = CFNumberType.nsIntegerType
 internal let kCFNumberCGFloatType = CFNumberType.cgFloatType
 internal let kCFNumberSInt128Type = CFNumberType(rawValue: 17)!
-#else
-internal let kCFNumberSInt128Type: CFNumberType = 17
-#endif
 
 extension Int8 : _ObjectiveCBridgeable {
     @available(swift, deprecated: 4, renamed: "init(truncating:)")

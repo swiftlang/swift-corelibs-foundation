@@ -152,20 +152,12 @@ extension NSLocale {
     
     open class func characterDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageCharacterDirection(isoLangCode._cfObject)
-#if os(macOS) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
-#else
-        return NSLocale.LanguageDirection(rawValue: UInt(dir))!
-#endif
     }
     
     open class func lineDirection(forLanguage isoLangCode: String) -> NSLocale.LanguageDirection {
         let dir = CFLocaleGetLanguageLineDirection(isoLangCode._cfObject)
-#if os(macOS) || os(iOS)
         return NSLocale.LanguageDirection(rawValue: UInt(dir.rawValue))!
-#else
-        return NSLocale.LanguageDirection(rawValue: UInt(dir))!
-#endif
     }
 }
 

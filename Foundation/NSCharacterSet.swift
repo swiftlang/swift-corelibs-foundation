@@ -10,7 +10,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
 let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
@@ -26,8 +25,6 @@ let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.capitalizedLe
 let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.symbol
 let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.newline
 let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
-#endif
-
 
 open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
     typealias CFType = CFCharacterSet
