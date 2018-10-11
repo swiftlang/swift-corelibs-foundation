@@ -215,7 +215,7 @@ open class FileManager : NSObject {
         // FHS/XDG-compliant OSes:
         switch directory {
         case .autosavedInformationDirectory:
-            let runtimePath = _SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
+            let runtimePath = __SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
             return [ URL(fileURLWithPath: "Autosave Information", isDirectory: true, relativeTo: URL(fileURLWithPath: runtimePath, isDirectory: true)) ]
             
         case .desktopDirectory:
@@ -228,12 +228,12 @@ open class FileManager : NSObject {
             
         case .cachesDirectory:
             guard domain == .user else { return [] }
-            let path = _SwiftValue.fetch(nonOptional: _CFXDGCreateCacheDirectoryPath()) as! String
+            let path = __SwiftValue.fetch(nonOptional: _CFXDGCreateCacheDirectoryPath()) as! String
             return [ URL(fileURLWithPath: path, isDirectory: true) ]
             
         case .applicationSupportDirectory:
             guard domain == .user else { return [] }
-            let path = _SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
+            let path = __SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
             return [ URL(fileURLWithPath: path, isDirectory: true) ]
             
         case .downloadsDirectory:

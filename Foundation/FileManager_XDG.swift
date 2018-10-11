@@ -103,14 +103,14 @@ enum _XDGUserDirectory: String {
     }
     
     static let configuredDirectoryURLs: [_XDGUserDirectory: URL] = {
-        let configurationHome = _SwiftValue.fetch(nonOptional: _CFXDGCreateConfigHomePath()) as! String
+        let configurationHome = __SwiftValue.fetch(nonOptional: _CFXDGCreateConfigHomePath()) as! String
         let configurationFile = URL(fileURLWithPath: "user-dirs.dirs", isDirectory: false, relativeTo: URL(fileURLWithPath: configurationHome, isDirectory: true))
         
         return userDirectories(fromConfigurationFileAt: configurationFile) ?? [:]
     }()
     
     static let osDefaultDirectoryURLs: [_XDGUserDirectory: URL] = {
-        let configurationDirs = _SwiftValue.fetch(nonOptional: _CFXDGCreateConfigDirectoriesPaths()) as! [String]
+        let configurationDirs = __SwiftValue.fetch(nonOptional: _CFXDGCreateConfigDirectoriesPaths()) as! [String]
         
         for directory in configurationDirs {
             let configurationFile = URL(fileURLWithPath: directory, isDirectory: true).appendingPathComponent("user-dirs.defaults")
