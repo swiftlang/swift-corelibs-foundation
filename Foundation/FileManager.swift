@@ -128,21 +128,38 @@ open class FileManager : NSObject {
         case network
         case user
         
+        static let correspondingValues: [UInt: _SearchPathDomain] = [
+            SearchPathDomainMask.systemDomainMask.rawValue: .system,
+            SearchPathDomainMask.localDomainMask.rawValue: .local,
+            SearchPathDomainMask.networkDomainMask.rawValue: .network,
+            SearchPathDomainMask.userDomainMask.rawValue: .user,
+        ]
+        
+        static let searchOrder: [SearchPathDomainMask] = [
+            .systemDomainMask,
+            .localDomainMask,
+            .networkDomainMask,
+            .userDomainMask,
+        ]
+        
         init?(_ domainMask: SearchPathDomainMask) {
-            if domainMask == .systemDomainMask {
-                self = .system; return
+            if let value = _SearchPathDomain.correspondingValues[domainMask.rawValue] {
+                self = value
+            } else {
+                return nil
             }
-            if domainMask == .localDomainMask {
-                self = .local; return
-            }
-            if domainMask == .networkDomainMask {
-                self = .network; return
-            }
-            if domainMask == .userDomainMask {
-                self = .user; return
+        }
+        
+        static func allInSearchOrder(from domainMask: SearchPathDomainMask) -> [_SearchPathDomain] {
+            var domains: [_SearchPathDomain] = []
+
+            for bit in _SearchPathDomain.searchOrder {
+                if domainMask.contains(bit) {
+                    domains.append(_SearchPathDomain.correspondingValues[bit.rawValue]!)
+                }
             }
             
-            return nil
+            return domains
         }
     }
     
@@ -185,9 +202,7 @@ open class FileManager : NSObject {
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
     open func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
-        guard let domain = _SearchPathDomain(domainMask) else {
-            fatalError("Values other than .systemDomainMask, .localDomainMask, .userDomainMask, .networkDomainMask are unsupported")
-        }
+        let domains = _SearchPathDomain.allInSearchOrder(from: domainMask)
         
         // We are going to return appropriate paths on Darwin, but [] on platforms that do not have comparable locations.
         // For example, on FHS/XDG systems, applications are not installed in a single path.
@@ -203,11 +218,17 @@ open class FileManager : NSObject {
             #endif
         }
         
-        if useDarwinPaths {
-            return darwinURLs(for: directory, in: domain)
-        } else {
-            return xdgURLs(for: directory, in: domain)
+        var urls: [URL] = []
+        
+        for domain in domains {
+            if useDarwinPaths {
+                urls.append(contentsOf: darwinURLs(for: directory, in: domain))
+            } else {
+                urls.append(contentsOf: xdgURLs(for: directory, in: domain))
+            }
         }
+        
+        return urls
     }
     #endif
     
