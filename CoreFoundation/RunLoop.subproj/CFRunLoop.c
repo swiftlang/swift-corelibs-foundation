@@ -46,15 +46,24 @@ CF_INLINE uint64_t check_uint64_add(uint64_t x, uint64_t y, int32_t* err) {
 };
 #endif
 
-#if __HAS_DISPATCH__ && __has_include(<dispatch/private.h>)
+#if __HAS_DISPATCH__
+#if __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
-#elif __HAS_DISPATCH__
+#else
 extern dispatch_queue_t _dispatch_runloop_root_queue_create_4CF(const char *_Nullable label, unsigned long flags);
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
 extern mach_port_t _dispatch_runloop_root_queue_get_port_4CF(dispatch_queue_t queue);
 #endif
 extern void _dispatch_source_set_runloop_timer_4CF(dispatch_source_t source, dispatch_time_t start, uint64_t interval, uint64_t leeway);
 extern bool _dispatch_runloop_root_queue_perform_4CF(dispatch_queue_t queue);
+
+#if TARGET_OS_MAC
+typedef mach_port_t dispatch_runloop_handle_t;
+#elif defined(__linux__) || defined(__FreeBSD__)
+typedef int dispatch_runloop_handle_t;
+#endif
+
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_SIMULATOR
