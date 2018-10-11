@@ -252,7 +252,7 @@ private extension NSAttributedString {
                     continue
                 }
 
-                let unwrappedValue = _SwiftValue.fetch(value as? AnyObject) ?? value
+                let unwrappedValue = __SwiftValue.fetch(value as? AnyObject) ?? value
                 results[NSAttributedStringKey(stringKey)] = unwrappedValue
             }
             
@@ -280,7 +280,7 @@ private extension NSAttributedString {
             return attribute
         }
 
-        return _SwiftValue.fetch(attribute)
+        return __SwiftValue.fetch(attribute)
     }
     
     func _enumerate(in enumerationRange: NSRange, reversed: Bool, using block: (Int, UnsafeMutablePointer<ObjCBool>) -> NSRange) {
@@ -346,7 +346,7 @@ open class NSMutableAttributedString : NSAttributedString {
     }
 
     open func addAttribute(_ name: NSAttributedStringKey, value: Any, range: NSRange) {
-        CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, _SwiftValue.store(value))
+        CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, __SwiftValue.store(value))
     }
 
     open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) {
