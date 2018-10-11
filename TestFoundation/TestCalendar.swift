@@ -16,6 +16,8 @@ class TestCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
+            ("test_gettingDatesOnPersianCalendar",
+                test_gettingDatesOnPersianCalendar),
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),
@@ -115,6 +117,18 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(components.month, 4)
         XCTAssertEqual(components.day, 15)
         XCTAssertEqual(components.isLeapMonth, true)
+    }
+
+    func test_gettingDatesOnPersianCalendar() {
+        let date = Date(timeIntervalSince1970: 1539146705)
+
+        var calendar = Calendar(identifier: .persian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        XCTAssertEqual(components.year, 1397)
+        XCTAssertEqual(components.month, 7)
+        XCTAssertEqual(components.day, 18)
+
     }
 
     func test_ampmSymbols() {
