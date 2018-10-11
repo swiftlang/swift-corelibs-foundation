@@ -331,7 +331,16 @@ class TestNSDateComponents: XCTestCase {
         // 2286-11-20 17:46:41
         let date4 = Date(timeIntervalSince1970: 10_000_000_001)
 
-        let diff1 = Calendar.current.dateComponents([.month, .year, .day], from: date1, to: date2)
+        // The date components below assume UTC/GMT time zone.
+        guard let timeZone = TimeZone(abbreviation: "UTC") else {
+            XCTFail("Unable to create UTC TimeZone for Test")
+            return
+        }
+
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
+
+        let diff1 = calendar.dateComponents([.month, .year, .day], from: date1, to: date2)
         XCTAssertEqual(diff1.year, 1)
         XCTAssertEqual(diff1.month, 5)
         XCTAssertEqual(diff1.isLeapMonth, false)
@@ -350,35 +359,35 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertNil(diff1.calendar)
         XCTAssertNil(diff1.timeZone)
 
-        let diff2 = Calendar.current.dateComponents([.weekOfMonth], from: date2, to: date1)
+        let diff2 = calendar.dateComponents([.weekOfMonth], from: date2, to: date1)
         XCTAssertEqual(diff2.weekOfMonth, -76)
         XCTAssertEqual(diff2.isLeapMonth, false)
 
-        let diff3 = Calendar.current.dateComponents([.weekday], from: date2, to: date1)
+        let diff3 = calendar.dateComponents([.weekday], from: date2, to: date1)
         XCTAssertEqual(diff3.weekday, -536)
         XCTAssertEqual(diff3.isLeapMonth, false)
 
-        let diff4 = Calendar.current.dateComponents([.weekday, .weekOfMonth], from: date1, to: date2)
+        let diff4 = calendar.dateComponents([.weekday, .weekOfMonth], from: date1, to: date2)
         XCTAssertEqual(diff4.weekday, 4)
         XCTAssertEqual(diff4.weekOfMonth, 76)
         XCTAssertEqual(diff4.isLeapMonth, false)
 
-        let diff5 = Calendar.current.dateComponents([.weekday, .weekOfYear], from: date1, to: date2)
+        let diff5 = calendar.dateComponents([.weekday, .weekOfYear], from: date1, to: date2)
         XCTAssertEqual(diff5.weekday, 4)
         XCTAssertEqual(diff5.weekOfYear, 76)
         XCTAssertEqual(diff5.isLeapMonth, false)
 
-        let diff6 = Calendar.current.dateComponents([.month, .weekOfMonth], from: date1, to: date2)
+        let diff6 = calendar.dateComponents([.month, .weekOfMonth], from: date1, to: date2)
         XCTAssertEqual(diff6.month, 17)
         XCTAssertEqual(diff6.weekOfMonth, 2)
         XCTAssertEqual(diff6.isLeapMonth, false)
 
-        let diff7 = Calendar.current.dateComponents([.weekOfYear, .weekOfMonth], from: date2, to: date1)
+        let diff7 = calendar.dateComponents([.weekOfYear, .weekOfMonth], from: date2, to: date1)
         XCTAssertEqual(diff7.weekOfYear, -76)
         XCTAssertEqual(diff7.weekOfMonth, 0)
         XCTAssertEqual(diff7.isLeapMonth, false)
 
-        let diff8 = Calendar.current.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date2, to: date3)
+        let diff8 = calendar.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date2, to: date3)
         XCTAssertEqual(diff8.era, 0)
         XCTAssertEqual(diff8.year, 315)
         XCTAssertEqual(diff8.quarter, 0)
@@ -392,7 +401,7 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertNil(diff8.calendar)
         XCTAssertNil(diff8.timeZone)
 
-        let diff9 = Calendar.current.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date4, to: date3)
+        let diff9 = calendar.dateComponents([.era, .quarter, .year, .month, .day, .hour, .minute, .second, .nanosecond, .calendar, .timeZone], from: date4, to: date3)
         XCTAssertEqual(diff9.era, 0)
         XCTAssertEqual(diff9.year, 0)
         XCTAssertEqual(diff9.quarter, 0)
