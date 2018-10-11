@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
@@ -16,9 +16,12 @@ import Glibc
 #endif
 
 open class FileHandle : NSObject, NSSecureCoding {
-    internal var _fd: Int32
-    internal var _closeOnDealloc: Bool
-    internal var _closed: Bool = false
+    private var _fd: Int32
+    private var _closeOnDealloc: Bool
+
+    open var fileDescriptor: Int32 {
+        return _fd
+    }
 
     open var readabilityHandler: ((FileHandle) -> Void)? = {
       (FileHandle) -> Void in NSUnimplemented()
@@ -40,10 +43,11 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> Data {
+        precondition(_fd >= 0, "Bad file descriptor")
         var statbuf = stat()
         var dynamicBuffer: UnsafeMutableRawPointer? = nil
         var total = 0
-        if _closed || fstat(_fd, &statbuf) < 0 {
+        if fstat(_fd, &statbuf) < 0 {
             fatalError("Unable to read file")
         }
         if statbuf.st_mode & S_IFMT != S_IFREG {
@@ -126,6 +130,7 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     open func write(_ data: Data) {
+        guard _fd >= 0 else { return }
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
@@ -138,39 +143,48 @@ open class FileHandle : NSObject, NSSecureCoding {
     // TODO: Error handling.
     
     open var offsetInFile: UInt64 {
+        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_CUR))
     }
     
     @discardableResult
     open func seekToEndOfFile() -> UInt64 {
+        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_END))
     }
     
     open func seek(toFileOffset offset: UInt64) {
+        precondition(_fd >= 0, "Bad file descriptor")
         lseek(_fd, off_t(offset), SEEK_SET)
     }
 
     open func truncateFile(atOffset offset: UInt64) {
+        precondition(_fd >= 0, "Bad file descriptor")
         if lseek(_fd, off_t(offset), SEEK_SET) < 0 { fatalError("lseek() failed.") }
         if ftruncate(_fd, off_t(offset)) < 0 { fatalError("ftruncate() failed.") }
     }
 
     open func synchronizeFile() {
+        precondition(_fd >= 0, "Bad file descriptor")
         fsync(_fd)
     }
     
     open func closeFile() {
-        if !_closed {
+        if _fd >= 0 {
             close(_fd)
-            _closed = true
+            _fd = -1
         }
     }
-    
+
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {
         _fd = fd
         _closeOnDealloc = closeopt
     }
-    
+
+    public convenience init(fileDescriptor fd: Int32) {
+        self.init(fileDescriptor: fd, closeOnDealloc: false)
+    }
+
     internal init?(path: String, flags: Int32, createMode: Int) {
         _fd = _CFOpenFileWithMode(path, flags, mode_t(createMode))
         _closeOnDealloc = true
@@ -181,8 +195,9 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     deinit {
-        if _fd >= 0 && _closeOnDealloc && !_closed {
+        if _fd >= 0 && _closeOnDealloc {
             close(_fd)
+            _fd = -1
         }
     }
     
@@ -355,38 +370,32 @@ extension FileHandle {
     }
 }
 
-extension FileHandle {
-    public convenience init(fileDescriptor fd: Int32) {
-        self.init(fileDescriptor: fd, closeOnDealloc: false)
-    }
-    
-    open var fileDescriptor: Int32 {
-        return _fd
-    }
-}
-
 open class Pipe: NSObject {
-    open let fileHandleForReading: FileHandle
-    open let fileHandleForWriting: FileHandle
+    public let fileHandleForReading: FileHandle
+    public let fileHandleForWriting: FileHandle
 
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
         var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
         defer {
-            free(fds)
+            fds.deallocate()
         }
         /// If the operating system prevents us from creating file handles, stop
-        guard pipe(fds) == 0 else { fatalError("Could not open pipe file handles") }
-        
-        /// The handles below auto-close when the `NSFileHandle` is deallocated, so we
-        /// don't need to add a `deinit` to this class
-        
-        /// Create the read handle from the first fd in `fds`
-        self.fileHandleForReading = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
-        
-        /// Advance `fds` by one to create the write handle from the second fd
-        self.fileHandleForWriting = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
-        
+        let ret = pipe(fds)
+        switch (ret, errno) {
+        case (0, _):
+            self.fileHandleForReading = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+            self.fileHandleForWriting = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+
+        case (-1, EMFILE), (-1, ENFILE):
+            // Unfortunately this initializer does not throw and isnt failable so this is only
+            // way of handling this situation.
+            self.fileHandleForReading = FileHandle(fileDescriptor: -1, closeOnDealloc: false)
+            self.fileHandleForWriting = FileHandle(fileDescriptor: -1, closeOnDealloc: false)
+
+        default:
+            fatalError("Error calling pipe(): \(errno)")
+        }
         super.init()
     }
 }

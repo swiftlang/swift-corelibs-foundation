@@ -253,7 +253,7 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: nil)
             let env = try parseEnv(output)
             XCTAssertGreaterThan(env.count, 0)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
     }
@@ -263,7 +263,7 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: [:])
             let env = try parseEnv(output)
             XCTAssertEqual(env.count, 0)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
     }
@@ -274,7 +274,7 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: input)
             let env = try parseEnv(output)
             XCTAssertEqual(env, input)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
     }
@@ -309,7 +309,7 @@ class TestProcess : XCTestCase {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), resolvedTmpDir)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
 
@@ -318,7 +318,7 @@ class TestProcess : XCTestCase {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
 
@@ -329,7 +329,7 @@ class TestProcess : XCTestCase {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "/bin")
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
 
@@ -340,7 +340,7 @@ class TestProcess : XCTestCase {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
             XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "")
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
 
@@ -611,7 +611,7 @@ class _SignalHelperRunner {
 }
 
 #if !os(Android)
-private func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
+internal func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
     var arguments = arguments

@@ -642,6 +642,16 @@ class TestNSNumberBridging : XCTestCase {
         XCTAssertNotNil(b3)
         XCTAssertEqual(b3, true)
 
+        let b4 = NSNumber(value: 0.0) as? Bool
+        XCTAssertNotNil(b4)
+        XCTAssertEqual(b4, false)
+
+        let b5 = NSNumber(value: 1.0) as? Bool
+        XCTAssertNotNil(b5)
+        XCTAssertEqual(b5, true)
+
+        XCTAssertNil(NSNumber(value: 0.25) as? Bool)
+        XCTAssertNil(NSNumber(value: 1.25) as? Bool)
         XCTAssertNil(NSNumber(value: -1) as? Bool)
         XCTAssertNil(NSNumber(value: 2) as? Bool)
         XCTAssertNil(NSNumber(value: Int8.min) as? Bool)

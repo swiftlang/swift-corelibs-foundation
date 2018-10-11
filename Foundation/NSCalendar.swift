@@ -644,41 +644,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, year yearValuePointer: UnsafeMutablePointer<Int>?, month monthValuePointer: UnsafeMutablePointer<Int>?, day dayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         let comps = components([.era, .year, .month, .day], from: date)
-        if let value = comps.era {
-            eraValuePointer?.pointee = value
-        } else {
-            eraValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.year {
-            yearValuePointer?.pointee = value
-        } else {
-            yearValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.month {
-            monthValuePointer?.pointee = value
-        } else {
-            monthValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.day {
-            dayValuePointer?.pointee = value
-        } else {
-            dayValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.year {
-            yearValuePointer?.pointee = value
-        } else {
-            yearValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.month {
-            monthValuePointer?.pointee = value
-        } else {
-            monthValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.day {
-            dayValuePointer?.pointee = value
-        } else {
-            dayValuePointer?.pointee = NSDateComponentUndefined
-        }
+
+        eraValuePointer?.pointee = comps.era ?? NSDateComponentUndefined
+        yearValuePointer?.pointee = comps.year ?? NSDateComponentUndefined
+        monthValuePointer?.pointee = comps.month ?? NSDateComponentUndefined
+        dayValuePointer?.pointee = comps.day ?? NSDateComponentUndefined
     }
     
     /*
@@ -687,41 +657,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     open func getEra(_ eraValuePointer: UnsafeMutablePointer<Int>?, yearForWeekOfYear yearValuePointer: UnsafeMutablePointer<Int>?, weekOfYear weekValuePointer: UnsafeMutablePointer<Int>?, weekday weekdayValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date)
-        if let value = comps.era {
-            eraValuePointer?.pointee = value
-        } else  {
-            eraValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.yearForWeekOfYear {
-            yearValuePointer?.pointee = value
-        } else {
-            yearValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.weekOfYear {
-            weekValuePointer?.pointee = value
-        } else {
-            weekValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.weekday {
-            weekdayValuePointer?.pointee = value
-        } else {
-            weekdayValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.yearForWeekOfYear {
-            yearValuePointer?.pointee = value
-        } else {
-            yearValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.weekOfYear {
-            weekValuePointer?.pointee = value
-        } else {
-            weekValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.weekday {
-            weekdayValuePointer?.pointee = value
-        } else {
-            weekdayValuePointer?.pointee = NSDateComponentUndefined
-        }
+
+        eraValuePointer?.pointee = comps.era ?? NSDateComponentUndefined
+        yearValuePointer?.pointee = comps.year ?? NSDateComponentUndefined
+        weekValuePointer?.pointee = comps.weekOfYear ?? NSDateComponentUndefined
+        weekdayValuePointer?.pointee = comps.weekday ?? NSDateComponentUndefined
     }
     
     /*
@@ -730,41 +670,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     */
     open func getHour(_ hourValuePointer: UnsafeMutablePointer<Int>?, minute minuteValuePointer: UnsafeMutablePointer<Int>?, second secondValuePointer: UnsafeMutablePointer<Int>?, nanosecond nanosecondValuePointer: UnsafeMutablePointer<Int>?, from date: Date) {
         let comps = components([.hour, .minute, .second, .nanosecond], from: date)
-        if let value = comps.hour {
-            hourValuePointer?.pointee = value
-        } else {
-            hourValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.minute {
-            minuteValuePointer?.pointee = value
-        } else {
-            minuteValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.second {
-            secondValuePointer?.pointee = value
-        } else {
-            secondValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.nanosecond {
-            nanosecondValuePointer?.pointee = value
-        } else {
-            nanosecondValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.minute {
-            minuteValuePointer?.pointee = value
-        } else {
-            minuteValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.second {
-            secondValuePointer?.pointee = value
-        } else {
-            secondValuePointer?.pointee = NSDateComponentUndefined
-        }
-        if let value = comps.nanosecond {
-            nanosecondValuePointer?.pointee = value
-        } else {
-            nanosecondValuePointer?.pointee = NSDateComponentUndefined
-        }
+
+        hourValuePointer?.pointee = comps.hour ?? NSDateComponentUndefined
+        minuteValuePointer?.pointee = comps.minute ?? NSDateComponentUndefined
+        secondValuePointer?.pointee = comps.second ?? NSDateComponentUndefined
+        nanosecondValuePointer?.pointee = comps.nanosecond ?? NSDateComponentUndefined
     }
     
     /*

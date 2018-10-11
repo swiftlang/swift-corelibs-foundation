@@ -535,7 +535,7 @@ class TestNSData: LoopbackServerTest {
             let fileManager = FileManager.default
             XCTAssertTrue(fileManager.fileExists(atPath: savePath.path))
             try! fileManager.removeItem(atPath: savePath.path)
-        } catch _ {
+        } catch {
             XCTFail()
         }
     }
@@ -1475,11 +1475,12 @@ extension TestNSData {
         if let contents = contents {
             XCTAssertTrue(contents.length > 0)
             let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
-            let str = String(bytesNoCopy: ptr, length: contents.length,
-                             encoding: .ascii, freeWhenDone: false)
-            XCTAssertNotNil(str)
-            if let str = str {
+            var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
+            if zeroIdx == NSNotFound { zeroIdx = contents.length }
+            if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
                 XCTAssertTrue(str.hasSuffix("TestFoundation"))
+            } else {
+                XCTFail("Cant create String")
             }
         }
 
@@ -1516,11 +1517,7 @@ extension TestNSData {
             XCTFail("Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_writeFailure() {
@@ -1545,13 +1542,8 @@ extension TestNSData {
             XCTFail("unexpected error")
         }
         
-        
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
-        
+        try? FileManager.default.removeItem(at: url)
+
         // Make sure clearing the error condition allows the write to succeed
         do {
             try data.write(to: url, options: [.withoutOverwriting])
@@ -1559,11 +1551,7 @@ extension TestNSData {
             XCTAssertTrue(false, "Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_genericBuffers() {
