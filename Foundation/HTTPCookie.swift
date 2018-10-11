@@ -93,6 +93,38 @@ open class HTTPCookie : NSObject {
     let _version: Int
     var _properties: [HTTPCookiePropertyKey : Any]
 
+    // See: https://tools.ietf.org/html/rfc2616#section-3.3.1
+
+    // Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123
+    static let _formatter1: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    // Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format
+    static let _formatter2: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE MMM d HH:mm:ss yyyy"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    // Sun, 06-Nov-1994 08:49:37 GMT  ; Tomcat servers sometimes return cookies in this format
+    static let _formatter3: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE, dd-MMM-yyyy HH:mm:ss O"
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        return formatter
+    }()
+
+    static let _allFormatters: [DateFormatter]
+        = [_formatter1, _formatter2, _formatter3]
+
     static let _attributes: [HTTPCookiePropertyKey]
         = [.name, .value, .originURL, .version, .domain,
            .path, .secure, .expires, .comment, .commentURL,
@@ -246,7 +278,7 @@ open class HTTPCookie : NSObject {
         _path = path
         _name = name
         _value = value
-        _domain = canonicalDomain
+        _domain = canonicalDomain.lowercased()
 
         if let
             secureString = properties[.secure] as? String, !secureString.isEmpty
@@ -266,54 +298,51 @@ open class HTTPCookie : NSObject {
         }
         _version = version
 
-        if let portString = properties[.port] as? String, _version == 1 {
-            _portList = portString.split(separator: ",")
+        if let portString = properties[.port] as? String {
+            let portList = portString.split(separator: ",")
                 .compactMap { Int(String($0)) }
                 .map { NSNumber(value: $0) }
+            if version == 1 {
+                _portList = portList
+            } else {
+                // Version 0 only stores a single port number
+                _portList = portList.count > 0 ? [portList[0]] : nil
+            }
         } else {
             _portList = nil
         }
 
-        // TODO: factor into a utility function
-        if version == 0 {
+        var expDate: Date? = nil
+        // Maximum-Age is prefered over expires-Date but only version 1 cookies use Maximum-Age
+        if let maximumAge = properties[.maximumAge] as? String,
+            let secondsFromNow = Int(maximumAge) {
+            if version == 1 {
+                expDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
+            }
+        } else {
             let expiresProperty = properties[.expires]
             if let date = expiresProperty as? Date {
-                _expiresDate = date
+                expDate = date
             } else if let dateString = expiresProperty as? String {
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss O"   // per RFC 6265 '<rfc1123-date, defined in [RFC2616], Section 3.3.1>'
-                let timeZone = TimeZone(abbreviation: "GMT")
-                formatter.timeZone = timeZone
-                _expiresDate = formatter.date(from: dateString)
-            } else {
-                _expiresDate = nil
+                let results = HTTPCookie._allFormatters.compactMap { $0.date(from: dateString) }
+                expDate = results.first
             }
-        } else if
-            let maximumAge = properties[.maximumAge] as? String,
-            let secondsFromNow = Int(maximumAge), _version == 1 {
-            _expiresDate = Date(timeIntervalSinceNow: Double(secondsFromNow))
-        } else {
-            _expiresDate = nil
         }
+        _expiresDate = expDate
 
         if let discardString = properties[.discard] as? String {
             _sessionOnly = discardString == "TRUE"
         } else {
             _sessionOnly = properties[.maximumAge] == nil && version >= 1
         }
-        if version == 0 {
-            _comment = nil
-            _commentURL = nil
+
+        _comment = properties[.comment] as? String
+        if let commentURL = properties[.commentURL] as? URL {
+            _commentURL = commentURL
+        } else if let commentURL = properties[.commentURL] as? String {
+            _commentURL = URL(string: commentURL)
         } else {
-            _comment = properties[.comment] as? String
-            if let commentURL = properties[.commentURL] as? URL {
-                _commentURL = commentURL
-            } else if let commentURL = properties[.commentURL] as? String {
-                _commentURL = URL(string: commentURL)
-            } else {
-                _commentURL = nil
-            }
+            _commentURL = nil
         }
         _HTTPOnly = false
 
@@ -363,7 +392,11 @@ open class HTTPCookie : NSObject {
             cookieString.removeLast()
             cookieString.removeLast()
         }
-        return ["Cookie": cookieString]
+        if cookieString == "" {
+            return [:]
+        } else {
+            return ["Cookie": cookieString]
+        }
     }
 
     /// Return an array of cookies parsed from the specified response header fields and URL.
@@ -413,14 +446,14 @@ open class HTTPCookie : NSObject {
             let name = pair.components(separatedBy: "=")[0]
             var value = pair.components(separatedBy: "\(name)=")[1]  //a value can have an "="
             if canonicalize(name) == .expires {
-                value = value.insertComma(at: 3)    //re-insert the comma
+                value = value.unmaskCommas()    //re-insert the comma
             }
             properties[canonicalize(name)] = value
         }
 
-        //if domain wasn't provided use the URL
+        // If domain wasn't provided, extract it from the URL
         if properties[.domain] == nil {
-            properties[.domain] = url.absoluteString
+            properties[.domain] = url.host
         }
 
         //the default Path is "/"
@@ -434,7 +467,7 @@ open class HTTPCookie : NSObject {
     //we pass this to a map()
     private class func removeCommaFromDate(_ value: String) -> String {
         if value.hasPrefix("Expires") || value.hasPrefix("expires")  {
-            return value.removeCommas()
+            return value.maskCommas()
         }
         return value
     }
@@ -618,12 +651,12 @@ fileprivate extension String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func removeCommas() -> String {
-        return self.replacingOccurrences(of: ",", with: "")
+    func maskCommas() -> String {
+        return self.replacingOccurrences(of: ",", with: "&comma")
     }
 
-    func insertComma(at index:Int) -> String {
-        return  String(self.prefix(index)) + ","  + String(self.suffix(self.count-index))
+    func unmaskCommas() -> String {
+        return self.replacingOccurrences(of: "&comma", with: ",")
     }
 }
 

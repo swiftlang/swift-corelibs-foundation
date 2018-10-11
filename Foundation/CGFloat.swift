@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
@@ -630,30 +630,6 @@ extension CGFloat : Strideable {
 //===----------------------------------------------------------------------===//
 // Deprecated operators
 //===----------------------------------------------------------------------===//
-
-@available(*, unavailable, message: "use += 1")
-@discardableResult
-public prefix func ++(rhs: inout CGFloat) -> CGFloat {
-    fatalError("++ is not available")
-}
-
-@available(*, unavailable, message: "use -= 1")
-@discardableResult
-public prefix func --(rhs: inout CGFloat) -> CGFloat {
-    fatalError("-- is not available")
-}
-
-@available(*, unavailable, message: "use += 1")
-@discardableResult
-public postfix func ++(lhs: inout CGFloat) -> CGFloat {
-    fatalError("++ is not available")
-}
-
-@available(*, unavailable, message: "use -= 1")
-@discardableResult
-public postfix func --(lhs: inout CGFloat) -> CGFloat {
-    fatalError("-- is not available")
-}
 
 @available(*, unavailable, message: "Use truncatingRemainder instead")
 public func %(lhs: CGFloat, rhs: CGFloat) -> CGFloat {

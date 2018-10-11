@@ -143,7 +143,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = bundleURL.path
-            } catch _ {
+            } catch {
                 return false
             }
             
@@ -187,7 +187,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = resourcesDirectory.path
-            } catch _ {
+            } catch {
                 return false
             }
             
@@ -222,7 +222,7 @@ class BundlePlayground {
                 }
                 
                 self.bundlePath = resourcesDirectory.path
-            } catch _ {
+            } catch {
                 return false
             }
         }
@@ -234,12 +234,8 @@ class BundlePlayground {
     func destroy() {
         guard let path = self.playgroundPath else { return }
         self.playgroundPath = nil
-        
-        do {
-            try FileManager.default.removeItem(atPath: path)
-        } catch _ {
-            // ¯\_(ツ)_/¯ We did what we could.
-        }
+
+        try? FileManager.default.removeItem(atPath: path)
     }
     
     deinit {
@@ -376,11 +372,7 @@ class TestBundle : XCTestCase {
     }
     
     private func _cleanupPlayground(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            // Oh well
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
     
     func test_URLsForResourcesWithExtension() {
@@ -463,7 +455,7 @@ class TestBundle : XCTestCase {
             XCTAssertNotNil(bundle.executableURL)
         }
     }
-    
+
     func test_bundleFindAuxiliaryExecutables() {
         _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
@@ -471,12 +463,14 @@ class TestBundle : XCTestCase {
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
         }
     }
-    
+
     func test_mainBundleExecutableURL() {
+#if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
         let maybeURL = Bundle.main.executableURL
         XCTAssertNotNil(maybeURL)
         guard let url = maybeURL else { return }
         
         XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
+#endif
     }
 }

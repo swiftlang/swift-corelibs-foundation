@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,11 +11,11 @@
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <io.h>
@@ -1178,7 +1178,6 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
 #endif
 }
 
-
 #if !DEPLOYMENT_RUNTIME_OBJC
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -1357,4 +1356,3 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 }
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC
-

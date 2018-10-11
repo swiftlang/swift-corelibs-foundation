@@ -476,7 +476,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension AffineTransform : _ObjectTypeBridgeable {
+extension AffineTransform : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

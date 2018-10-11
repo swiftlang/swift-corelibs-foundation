@@ -18,6 +18,7 @@ class TestNSURLRequest : XCTestCase {
             ("test_mutableCopy_1", test_mutableCopy_1),
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
+            ("test_hash", test_hash),
             ("test_NSCoding_1", test_NSCoding_1),
             ("test_NSCoding_2", test_NSCoding_2),
             ("test_NSCoding_3", test_NSCoding_3),
@@ -65,14 +66,14 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertNotNil(request.allHTTPHeaderFields)
         XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/json")
         
-        // Setting "accept" should remove "Accept"
+        // Setting "accept" should update "Accept"
         request.setValue("application/xml", forHTTPHeaderField: "accept")
-        XCTAssertNil(request.allHTTPHeaderFields?["Accept"])
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml")
+        XCTAssertNil(request.allHTTPHeaderFields?["accept"])
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml")
         
-        // Adding to "Accept" should add to "accept"
+        // Adding to "Accept" should add to "Accept"
         request.addValue("text/html", forHTTPHeaderField: "Accept")
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml,text/html")
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml,text/html")
     }
     
     func test_copy() {
@@ -203,7 +204,42 @@ class TestNSURLRequest : XCTestCase {
         XCTAssertEqual(originalRequest.url, urlA)
         XCTAssertNil(originalRequest.allHTTPHeaderFields)
     }
-    
+
+    func test_hash() {
+        let url = URL(string: "https://example.org")!
+
+        let r1 = NSURLRequest(url: url)
+        let r2 = NSURLRequest(url: url)
+        XCTAssertEqual(r1, r2)
+        XCTAssertEqual(r1.hashValue, r2.hashValue)
+
+        let urls: [URL?] = (0..<100).map { URL(string: "https://example.org/\($0)") }
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.url,
+            throughValues: urls)
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.mainDocumentURL,
+            throughValues: urls)
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.httpMethod,
+            throughValues: [
+                "HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+                "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
+                "BUMFUZZLE", "ELUCIDATE"])
+        let inputStreams: [InputStream?] = (0..<100).map { value in
+            InputStream(data: Data("\(value)".utf8))
+        }
+        checkHashing_NSMutableCopying(
+            initialValue: NSURLRequest(url: URL(string: "https://example.org")!),
+            byMutating: \NSMutableURLRequest.httpBodyStream,
+            throughValues: inputStreams)
+        // allowsCellularAccess and httpShouldHandleCookies do
+        // not have enough values to test them here.
+    }
+
     func test_NSCoding_1() {
         let url = URL(string: "https://apple.com")!
         let requestA = NSURLRequest(url: url)

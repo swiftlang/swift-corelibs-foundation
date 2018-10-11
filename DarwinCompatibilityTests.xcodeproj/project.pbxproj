@@ -10,8 +10,10 @@
 		B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
+		B94897772135E7AD00FB930E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94897762135E7AC00FB930E /* Utilities.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
 		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
+		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
 		B9C89F381F6BF89C00087AF4 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE81F6BF88F00087AF4 /* TestUtils.swift */; };
@@ -111,6 +113,7 @@
 		B9C89FCE1F6DCAEB00087AF4 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB91F6DCAEB00087AF4 /* Test.plist */; };
 		B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B9F326A01FC714DD003C3599 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
+		DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,8 +153,10 @@
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
+		B94897762135E7AC00FB930E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Utilities.swift; path = TestFoundation/Utilities.swift; sourceTree = "<group>"; };
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
 		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
+		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C89EDB1F6BF77E00087AF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -255,6 +260,7 @@
 		B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "PropertyList-1.0.dtd"; path = "TestFoundation/Resources/PropertyList-1.0.dtd"; sourceTree = "<group>"; };
 		B9C89FB91F6DCAEB00087AF4 /* Test.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Test.plist; path = TestFoundation/Resources/Test.plist; sourceTree = "<group>"; };
 		B9F3269E1FC714DD003C3599 /* DarwinShims.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DarwinShims.swift; sourceTree = "<group>"; };
+		DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestURLProtectionSpace.swift; path = TestFoundation/TestURLProtectionSpace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -286,9 +292,6 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
-				B917D32520B0DE2000728EE0 /* main.swift */,
-				B987C65D2093C8AF0026B50D /* TestImports.swift */,
-				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				B9C89FB31F6DCAE900087AF4 /* NSKeyedUnarchiver-ComplexTest.plist */,
@@ -311,6 +314,11 @@
 				B9C89FA91F6DCAE700087AF4 /* NSXMLDTDTestData.xml */,
 				B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */,
 				B9C89FB91F6DCAEB00087AF4 /* Test.plist */,
+				B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */,
+				B917D32520B0DE2000728EE0 /* main.swift */,
+				B94897762135E7AC00FB930E /* Utilities.swift */,
+				B987C65D2093C8AF0026B50D /* TestImports.swift */,
+				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89F891F6D4D9D00087AF4 /* HTTPServer.swift */,
 				B9C89F321F6BF89B00087AF4 /* TestAffineTransform.swift */,
 				B9C89EFB1F6BF89200087AF4 /* TestBundle.swift */,
@@ -379,6 +387,7 @@
 				B9C89F171F6BF89600087AF4 /* TestUnitConverter.swift */,
 				B9C89F191F6BF89700087AF4 /* TestURL.swift */,
 				B9C89F2D1F6BF89A00087AF4 /* TestURLCredential.swift */,
+				DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */,
 				B9C89EEB1F6BF89000087AF4 /* TestURLProtocol.swift */,
 				B9C89F141F6BF89600087AF4 /* TestURLRequest.swift */,
 				B9C89EF51F6BF89100087AF4 /* TestURLResponse.swift */,
@@ -516,6 +525,7 @@
 				B9C89FC11F6DCAEB00087AF4 /* Info.plist in Resources */,
 				B9C89FC21F6DCAEB00087AF4 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,
 				B9C89FC31F6DCAEB00087AF4 /* NSStringTestData.txt in Resources */,
+				B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */,
 				B9C89FC41F6DCAEB00087AF4 /* NSKeyedUnarchiver-OrderedSetTest.plist in Resources */,
 				B9C89FC51F6DCAEB00087AF4 /* NSString-UTF32-BE-data.txt in Resources */,
 				B9C89FC61F6DCAEB00087AF4 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
@@ -545,6 +555,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B94897772135E7AD00FB930E /* Utilities.swift in Sources */,
 				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,
 				B9C89F8B1F6D4DA900087AF4 /* HTTPServer.swift in Sources */,
@@ -574,6 +585,7 @@
 				B9C89F4C1F6BF89C00087AF4 /* TestDateFormatter.swift in Sources */,
 				B9C89F4D1F6BF89C00087AF4 /* TestHTTPCookie.swift in Sources */,
 				B9C89F4E1F6BF89C00087AF4 /* TestNSError.swift in Sources */,
+				DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */,
 				B9C89F4F1F6BF89C00087AF4 /* TestNSString.swift in Sources */,
 				B9C89F501F6BF89C00087AF4 /* TestNSUUID.swift in Sources */,
 				B9C89F511F6BF89C00087AF4 /* TestPropertyListSerialization.swift in Sources */,

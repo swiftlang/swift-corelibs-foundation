@@ -1,7 +1,7 @@
 /*	CFPropertyList.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -19,6 +19,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFStringEncodingConverter.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFBurstTrie.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFStream.h>
@@ -32,6 +33,7 @@
 #include <time.h>
 #include <ctype.h>
 
+#include "CFOverflow.h"
 
 CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
@@ -92,24 +94,6 @@ CF_EXPORT CFNumberType _CFNumberGetType2(CFNumberRef number);
 
 // Used to reference an old-style plist parser error inside of a more general XML error
 #define CFPropertyListOldStyleParserErrorKey     CFSTR("kCFPropertyListOldStyleParsingError")
-
-static CFTypeID stringtype, datatype, numbertype, datetype;
-static CFTypeID booltype, nulltype, dicttype, arraytype, settype;
-
-static void initStatics() {
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        stringtype = CFStringGetTypeID();
-        datatype = CFDataGetTypeID();        
-        numbertype = CFNumberGetTypeID();
-        booltype = CFBooleanGetTypeID();
-        datetype = CFDateGetTypeID();
-        dicttype = CFDictionaryGetTypeID();
-        arraytype = CFArrayGetTypeID();
-        settype = CFSetGetTypeID();
-        nulltype = CFNullGetTypeID();
-    });
-}
 
 CF_PRIVATE CFErrorRef __CFPropertyListCreateError(CFIndex code, CFStringRef debugString, ...) {    
     va_list argList;        
@@ -179,12 +163,12 @@ static void __CFPropertyListIsDictPlistAux(const void *key, const void *value, v
     if (!ctx->answer) return;
     if (!key && ctx->error && !*(ctx->error)) *(ctx->error) = (CFStringRef)CFRetain(CFSTR("property list dictionaries cannot contain NULL keys"));
     if (!value && ctx->error && !*(ctx->error)) *(ctx->error) = (CFStringRef)CFRetain(CFSTR("property list dictionaries cannot contain NULL values"));
-    if (stringtype != CFGetTypeID(key) && ctx->error && !*(ctx->error)) {
+    if (_kCFRuntimeIDCFString != CFGetTypeID(key) && ctx->error && !*(ctx->error)) {
 	CFStringRef desc = CFCopyTypeIDDescription(CFGetTypeID(key));
 	*(ctx->error) = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("property list dictionaries may only have keys which are CFStrings, not '%@'"), desc);
 	CFRelease(desc);
     }
-    ctx->answer = key && value && (stringtype == CFGetTypeID(key)) && __CFPropertyListIsValidAux(value, true, ctx->set, ctx->format, ctx->error);
+    ctx->answer = key && value && (_kCFRuntimeIDCFString == CFGetTypeID(key)) && __CFPropertyListIsValidAux(value, true, ctx->set, ctx->format, ctx->error);
 }
 
 static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, CFMutableSetRef set, CFPropertyListFormat format, CFStringRef *error) {
@@ -193,16 +177,16 @@ static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, 
     	return false;
     }
     CFTypeID type = CFGetTypeID(plist);
-    if (stringtype == type) return true;
-    if (datatype == type) return true;
+    if (_kCFRuntimeIDCFString == type) return true;
+    if (_kCFRuntimeIDCFData == type) return true;
     if (kCFPropertyListOpenStepFormat != format) {
-	if (booltype == type) return true;
-	if (numbertype == type) return true;
-	if (datetype == type) return true;        
+	if (_kCFRuntimeIDCFBoolean == type) return true;
+	if (_kCFRuntimeIDCFNumber == type) return true;
+	if (_kCFRuntimeIDCFDate == type) return true;
 	if (_CFKeyedArchiverUIDGetTypeID() == type) return true;
     }
-    if (!recursive && arraytype == type) return true;
-    if (!recursive && dicttype == type) return true;
+    if (!recursive && _kCFRuntimeIDCFArray == type) return true;
+    if (!recursive && _kCFRuntimeIDCFDictionary == type) return true;
     
     // at any one invocation of this function, set should contain the objects in the "path" down to this object. For the outermost invocation it can be NULL.
     Boolean createdSet = false;
@@ -214,13 +198,13 @@ static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, 
 	return false;
     }
     Boolean result = false;
-    if (arraytype == type) {
+    if (_kCFRuntimeIDCFArray == type) {
 	struct context ctx = {true, set, format, error}; 
 	CFSetAddValue(set, plist);
 	CFArrayApplyFunction((CFArrayRef)plist, CFRangeMake(0, CFArrayGetCount((CFArrayRef)plist)), __CFPropertyListIsArrayPlistAux, &ctx);
 	CFSetRemoveValue(set, plist);
 	result = ctx.answer;
-    } else if (dicttype == type) {
+    } else if (_kCFRuntimeIDCFDictionary == type) {
 	struct context ctx = {true, set, format, error}; 
 	CFSetAddValue(set, plist);
 	CFDictionaryApplyFunction((CFDictionaryRef)plist, __CFPropertyListIsDictPlistAux, &ctx);
@@ -240,7 +224,6 @@ static bool __CFPropertyListIsValidAux(CFPropertyListRef plist, bool recursive, 
 }
 
 static Boolean _CFPropertyListIsValidWithErrorString(CFPropertyListRef plist, CFPropertyListFormat format, CFStringRef *error) {
-    initStatics();
     CFAssert1(plist != NULL, __kCFLogAssertion, "%s(): NULL is not a property list", __PRETTY_FUNCTION__);
     return __CFPropertyListIsValidAux(plist, true, NULL, format, error);
 }
@@ -512,7 +495,7 @@ extern CFStringRef __CFNumberCopyFormattingDescriptionAsFloat64(CFTypeRef cf);
 static void _CFAppendXML0(CFTypeRef object, UInt32 indentation, CFMutableDataRef xmlString) {
     UInt32 typeID = CFGetTypeID(object);
     _appendIndents(indentation, xmlString);
-    if (typeID == stringtype) {
+    if (typeID == _kCFRuntimeIDCFString) {
         _plistAppendUTF8CString(xmlString, "<");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[STRING_IX], STRING_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">");
@@ -550,7 +533,7 @@ static void _CFAppendXML0(CFTypeRef object, UInt32 indentation, CFMutableDataRef
         _plistAppendUTF8CString(xmlString, "</");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[DICT_IX], DICT_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
-    } else if (typeID == arraytype) {
+    } else if (typeID == _kCFRuntimeIDCFArray) {
         UInt32 i, count = CFArrayGetCount((CFArrayRef)object);
         if (count == 0) {
             _plistAppendUTF8CString(xmlString, "<");
@@ -568,7 +551,7 @@ static void _CFAppendXML0(CFTypeRef object, UInt32 indentation, CFMutableDataRef
         _plistAppendUTF8CString(xmlString, "</");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[ARRAY_IX], ARRAY_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
-    } else if (typeID == dicttype) {
+    } else if (typeID == _kCFRuntimeIDCFDictionary) {
         UInt32 i, count = CFDictionaryGetCount((CFDictionaryRef)object);
         CFMutableArrayRef keyArray;
         if (count == 0) {
@@ -604,7 +587,7 @@ static void _CFAppendXML0(CFTypeRef object, UInt32 indentation, CFMutableDataRef
         _plistAppendUTF8CString(xmlString, "</");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[DICT_IX], DICT_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
-    } else if (typeID == datatype) {
+    } else if (typeID == _kCFRuntimeIDCFData) {
         _plistAppendUTF8CString(xmlString, "<");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[DATA_IX], DATA_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
@@ -613,7 +596,7 @@ static void _CFAppendXML0(CFTypeRef object, UInt32 indentation, CFMutableDataRef
         _plistAppendUTF8CString(xmlString, "</");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[DATA_IX], DATA_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
-    } else if (typeID == datetype) {
+    } else if (typeID == _kCFRuntimeIDCFDate) {
         // YYYY '-' MM '-' DD 'T' hh ':' mm ':' ss 'Z'
 	int32_t y = 0, M = 0, d = 0, H = 0, m = 0, s = 0;
         CFAbsoluteTime at = CFDateGetAbsoluteTime((CFDateRef)object);
@@ -655,7 +638,7 @@ if (date.year != y || date.month != M || date.day != d || date.hour != H || date
         _plistAppendUTF8CString(xmlString, "</");
         _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[DATE_IX], DATE_TAG_LENGTH);
         _plistAppendUTF8CString(xmlString, ">\n");
-    } else if (typeID == numbertype) {
+    } else if (typeID == _kCFRuntimeIDCFNumber) {
         if (CFNumberIsFloatType((CFNumberRef)object)) {
             _plistAppendUTF8CString(xmlString, "<");
             _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[REAL_IX], REAL_TAG_LENGTH);
@@ -677,7 +660,7 @@ if (date.year != y || date.month != M || date.day != d || date.hour != H || date
             _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[INTEGER_IX], INTEGER_TAG_LENGTH);
             _plistAppendUTF8CString(xmlString, ">\n");
         }
-    } else if (typeID == booltype) {
+    } else if (typeID == _kCFRuntimeIDCFBoolean) {
         if (CFBooleanGetValue((CFBooleanRef)object)) {
             _plistAppendUTF8CString(xmlString, "<");
             _plistAppendCharacters(xmlString, CFXMLPlistTagsUnicode[TRUE_IX], TRUE_TAG_LENGTH);
@@ -709,7 +692,6 @@ static void _CFGenerateXMLPropertyListToData(CFMutableDataRef xml, CFTypeRef pro
 #pragma mark Exported Creation Functions
 
 CFDataRef _CFPropertyListCreateXMLData(CFAllocatorRef allocator, CFPropertyListRef propertyList, Boolean checkValidPlist) {
-    initStatics();
     CFMutableDataRef xml;
     CFAssert1(propertyList != NULL, __kCFLogAssertion, "%s(): Cannot be called with a NULL property list", __PRETTY_FUNCTION__);
     if (checkValidPlist && !CFPropertyListIsValid(propertyList, kCFPropertyListXMLFormat_v1_0)) {
@@ -730,7 +712,6 @@ CF_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef alloca
 }
 
 Boolean CFPropertyListIsValid(CFPropertyListRef plist, CFPropertyListFormat format) {
-    initStatics();
     CFAssert1(plist != NULL, __kCFLogAssertion, "%s(): NULL is not a property list", __PRETTY_FUNCTION__);
     return __CFPropertyListIsValidAux(plist, true, NULL, format, NULL);
 #if defined(DEBUG)
@@ -1565,7 +1546,7 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
 	    CFIndex cnt = CFDictionaryGetCount(dict);
 	    if (1 == cnt) {
 		CFTypeRef val = CFDictionaryGetValue(dict, CFSTR("CF$UID"));
-		if (val && CFGetTypeID(val) == numbertype) {
+		if (val && CFGetTypeID(val) == _kCFRuntimeIDCFNumber) {
 		    CFTypeRef uid;
 		    uint32_t v;
 		    CFNumberGetValue((CFNumberRef)val, kCFNumberSInt32Type, &v);
@@ -2395,7 +2376,6 @@ static Boolean __savePlistData(CFDataRef data, CFOptionFlags opt) {
 // If the data is from a converted string, then originalString is non-NULL. If originalString is NULL, then pass in guessedEncoding.
 // keyPaths is a set of CFStrings, ':'-separated paths
 static Boolean _CFPropertyListCreateFromUTF8Data(CFAllocatorRef allocator, CFDataRef xmlData, CFIndex skipBytes, CFStringRef originalString, CFStringEncoding guessedEncoding, CFOptionFlags option, CFErrorRef *outError, Boolean allowNewTypes, CFPropertyListFormat *format, CFSetRef keyPaths, CFTypeRef *out, Boolean doXML, Boolean doOpenStep) {
-    initStatics();
     
     CFAssert1(xmlData != NULL, __kCFLogAssertion, "%s(): NULL data not allowed", __PRETTY_FUNCTION__);
     
@@ -2518,7 +2498,6 @@ static CFDataRef _createUTF8DataFromString(CFAllocatorRef allocator, CFStringRef
 
 // Set topLevelKeys to a set of top level keys to decode. If NULL, all keys are decoded. If the top level object is not a dictionary, all objects are decoded. If the plist is not XML, all objects are decoded.
 static Boolean _CFPropertyListCreateWithData(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFErrorRef *outError, Boolean allowNewTypes, CFPropertyListFormat *format, CFSetRef topLevelKeys, CFTypeRef *out) {
-    initStatics();
     CFStringEncoding encoding;
     
     // we support the restriction of the kinds of parses we will try
@@ -2618,7 +2597,6 @@ CFTypeRef _CFPropertyListCreateFromXMLStringError(CFAllocatorRef allocator, CFSt
 }
 
 CFTypeRef _CFPropertyListCreateFromXMLString(CFAllocatorRef allocator, CFStringRef xmlString, CFOptionFlags option, CFStringRef *errorString, Boolean allowNewTypes, CFPropertyListFormat *format) {
-    initStatics();
     if (errorString) *errorString = NULL;
     CFErrorRef error = NULL;
     CFTypeRef result = _CFPropertyListCreateFromXMLStringError(allocator, xmlString, option, &error, allowNewTypes, format);
@@ -2665,8 +2643,6 @@ CF_PRIVATE bool __CFBinaryPlistCreateObjectFiltered(const uint8_t *databytes, ui
 
 // Returns a subset of the property list, only including the key paths in the CFSet.
 bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFSetRef keyPaths, CFPropertyListRef *value, CFErrorRef *error) {
-    
-    initStatics();
     
     if (!keyPaths || !data) {
         return false;
@@ -2716,8 +2692,6 @@ bool _CFPropertyListCreateFiltered(CFAllocatorRef allocator, CFDataRef data, CFO
  @return True if the key is found, false otherwise.
  */
 bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags option, CFStringRef keyPath, CFPropertyListRef *value, CFErrorRef *error) {
-    
-    initStatics();
     
     if (!keyPath || CFStringGetLength(keyPath) == 0) {
         return false;
@@ -2791,10 +2765,10 @@ bool _CFPropertyListCreateSingleValue(CFAllocatorRef allocator, CFDataRef data, 
             for (CFIndex i = 0;  i < CFArrayGetCount(keyPathArray); i++) {
                 CFStringRef oneKey = (CFStringRef)CFArrayGetValueAtIndex(keyPathArray, i);
                 SInt32 intValue = CFStringGetIntValue(oneKey);
-                if (((intValue == 0 && CFStringCompare(CFSTR("0"), oneKey, 0) != kCFCompareEqualTo) || intValue == INT_MAX || intValue == INT_MIN) && nextObject && CFGetTypeID((CFTypeRef)nextObject) == dicttype) {
+                if (((intValue == 0 && CFStringCompare(CFSTR("0"), oneKey, 0) != kCFCompareEqualTo) || intValue == INT_MAX || intValue == INT_MIN) && nextObject && CFGetTypeID((CFTypeRef)nextObject) == _kCFRuntimeIDCFDictionary) {
                     // Treat as a string key into a dictionary
                     nextObject = (CFPropertyListRef)CFDictionaryGetValue((CFDictionaryRef)nextObject, oneKey);
-                } else if (nextObject && CFGetTypeID((CFTypeRef)nextObject) == arraytype) {
+                } else if (nextObject && CFGetTypeID((CFTypeRef)nextObject) == _kCFRuntimeIDCFArray) {
                     // Treat as integer index into an array
                     nextObject = (CFPropertyListRef)CFArrayGetValueAtIndex((CFArrayRef)nextObject, intValue);
                 } else {
@@ -2855,7 +2829,7 @@ CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef dat
             const CFPropertyListRef plist = CFPropertyListCreateWithData(allocator, data, option, NULL, outError);
             if (plist) {
                 const CFTypeID type = CFGetTypeID(plist);
-                if (type != dicttype) {
+                if (type != _kCFRuntimeIDCFDictionary) {
                     if (outError) {
                         *outError = __CFPropertyListCreateError(kCFPropertyListReadCorruptError, CFSTR("Cannot copy top-level keys for plist with non-dictionary root object"));
                     }
@@ -2888,7 +2862,6 @@ CFSetRef _CFPropertyListCopyTopLevelKeys(CFAllocatorRef allocator, CFDataRef dat
 
 // Legacy
 CFTypeRef _CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDataRef xmlData, CFOptionFlags option, CFStringRef *errorString, Boolean allowNewTypes, CFPropertyListFormat *format) {
-    initStatics();
     CFTypeRef out = NULL;
     if (errorString) *errorString = NULL;
     CFErrorRef error = NULL;
@@ -2901,7 +2874,6 @@ CFTypeRef _CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDataRef x
 }
 
 CFPropertyListRef CFPropertyListCreateWithData(CFAllocatorRef allocator, CFDataRef data, CFOptionFlags options, CFPropertyListFormat *format, CFErrorRef *error) {
-    initStatics();
     CFAssert1(data != NULL, __kCFLogAssertion, "%s(): NULL data not allowed", __PRETTY_FUNCTION__);
     CFAssert2(options == kCFPropertyListImmutable || options == kCFPropertyListMutableContainers || options == kCFPropertyListMutableContainersAndLeaves, __kCFLogAssertion, "%s(): Unrecognized option %lu", __PRETTY_FUNCTION__, options);
     CFPropertyListRef out = NULL;
@@ -2910,7 +2882,6 @@ CFPropertyListRef CFPropertyListCreateWithData(CFAllocatorRef allocator, CFDataR
 }
 
 CFPropertyListRef CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDataRef xmlData, CFOptionFlags option, CFStringRef *errorString) {
-    initStatics();
     if (errorString) *errorString = NULL;
     CFErrorRef error = NULL;
     CFPropertyListRef result = CFPropertyListCreateWithData(allocator, xmlData, option, NULL, &error);
@@ -2922,7 +2893,6 @@ CFPropertyListRef CFPropertyListCreateFromXMLData(CFAllocatorRef allocator, CFDa
 }
 
 CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) {
-    initStatics();
     CFAssert1(format != kCFPropertyListOpenStepFormat, __kCFLogAssertion, "%s(): kCFPropertyListOpenStepFormat not supported for writing", __PRETTY_FUNCTION__);
     CFAssert2(format == kCFPropertyListXMLFormat_v1_0 || format == kCFPropertyListBinaryFormat_v1_0, __kCFLogAssertion, "%s(): Unrecognized option %ld", __PRETTY_FUNCTION__, format);
     CFAssert1(propertyList != NULL, __kCFLogAssertion, "%s(): Cannot be called with a NULL property list", __PRETTY_FUNCTION__);
@@ -2962,7 +2932,6 @@ CFDataRef CFPropertyListCreateData(CFAllocatorRef allocator, CFPropertyListRef p
 }
 
 CFIndex CFPropertyListWrite(CFPropertyListRef propertyList, CFWriteStreamRef stream, CFPropertyListFormat format, CFOptionFlags options, CFErrorRef *error) {
-    initStatics();
     CFAssert1(stream != NULL, __kCFLogAssertion, "%s(): NULL stream not allowed", __PRETTY_FUNCTION__);
     CFAssert1(format != kCFPropertyListOpenStepFormat, __kCFLogAssertion, "%s(): kCFPropertyListOpenStepFormat not supported for writing", __PRETTY_FUNCTION__);
     CFAssert2(format == kCFPropertyListXMLFormat_v1_0 || format == kCFPropertyListBinaryFormat_v1_0, __kCFLogAssertion, "%s(): Unrecognized option %ld", __PRETTY_FUNCTION__, format);
@@ -3030,7 +2999,6 @@ CFIndex CFPropertyListWrite(CFPropertyListRef propertyList, CFWriteStreamRef str
 }
 
 CFIndex CFPropertyListWriteToStream(CFPropertyListRef propertyList, CFWriteStreamRef stream, CFPropertyListFormat format, CFStringRef *errorString) {
-    initStatics();
     if (errorString) *errorString = NULL;
     CFErrorRef error = NULL;
     
@@ -3096,7 +3064,6 @@ static bool __convertReadStreamToBytes(CFReadStreamRef stream, CFIndex max, uint
 }
 
 CFPropertyListRef CFPropertyListCreateWithStream(CFAllocatorRef allocator, CFReadStreamRef stream, CFIndex streamLength, CFOptionFlags mutabilityOption, CFPropertyListFormat *format, CFErrorRef *error) {
-    initStatics();
     
     CFAssert1(stream != NULL, __kCFLogAssertion, "%s(): NULL stream not allowed", __PRETTY_FUNCTION__);
     CFAssert1(CFReadStreamGetTypeID() == CFGetTypeID(stream), __kCFLogAssertion, "%s(): stream argument is not a read stream", __PRETTY_FUNCTION__);
@@ -3139,7 +3106,6 @@ CFPropertyListRef CFPropertyListCreateWithStream(CFAllocatorRef allocator, CFRea
 }
 
 CFPropertyListRef CFPropertyListCreateFromStream(CFAllocatorRef allocator, CFReadStreamRef stream, CFIndex length, CFOptionFlags mutabilityOption, CFPropertyListFormat *format, CFStringRef *errorString) {
-    initStatics();
     if (errorString) *errorString = NULL;
     CFErrorRef error = NULL;
     CFPropertyListRef result = CFPropertyListCreateWithStream(allocator, stream, length, mutabilityOption, format, &error);
@@ -3196,7 +3162,6 @@ static CFMutableArrayRef _arrayDeepMutableCopy(CFAllocatorRef allocator, CFArray
 }
 
 CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPropertyListRef propertyList, CFOptionFlags mutabilityOption) {
-    initStatics();
     CFPropertyListRef result = NULL;
     CFAssert1(propertyList != NULL, __kCFLogAssertion, "%s(): cannot copy a NULL property list", __PRETTY_FUNCTION__);
     __CFAssertIsPList(propertyList);
@@ -3204,7 +3169,7 @@ CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPrope
 	if (!CFPropertyListIsValid(propertyList, kCFPropertyListBinaryFormat_v1_0)) return NULL;
     
     CFTypeID typeID = CFGetTypeID(propertyList);
-    if (typeID == dicttype) {
+    if (typeID == _kCFRuntimeIDCFDictionary) {
         CFDictionaryRef dict = (CFDictionaryRef)propertyList;
         Boolean isMutable = (mutabilityOption != kCFPropertyListImmutable);
         CFIndex count = CFDictionaryGetCount(dict);
@@ -3248,32 +3213,32 @@ CFPropertyListRef CFPropertyListCreateDeepCopy(CFAllocatorRef allocator, CFPrope
             }
             free_cftype_array(keys);
         }
-    } else if (typeID == arraytype) {
+    } else if (typeID == _kCFRuntimeIDCFArray) {
         if (mutabilityOption == kCFPropertyListImmutable) {
             result = _arrayDeepImmutableCopy(allocator, (CFArrayRef)propertyList, mutabilityOption);
         } else {
             result = _arrayDeepMutableCopy(allocator, (CFArrayRef)propertyList, mutabilityOption);
         }
-    } else if (typeID == datatype) {
+    } else if (typeID == _kCFRuntimeIDCFData) {
         if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
             result = CFDataCreateMutableCopy(allocator, 0, (CFDataRef)propertyList);
         } else {
             result = CFDataCreateCopy(allocator, (CFDataRef)propertyList);
         }
-    } else if (typeID == numbertype) {
+    } else if (typeID == _kCFRuntimeIDCFNumber) {
         // Warning - this will break if byteSize is ever greater than 128
         uint8_t bytes[128];
         CFNumberType numType = _CFNumberGetType2((CFNumberRef)propertyList);
         CFNumberGetValue((CFNumberRef)propertyList, numType, (void *)bytes);
         result = CFNumberCreate(allocator, numType, (void *)bytes);
-    } else if (typeID == booltype) {
+    } else if (typeID == _kCFRuntimeIDCFBoolean) {
         // Booleans are immutable & shared instances
         CFRetain(propertyList);
         result = propertyList;
-    } else if (typeID == datetype) {
+    } else if (typeID == _kCFRuntimeIDCFDate) {
         // Dates are immutable
         result = CFDateCreate(allocator, CFDateGetAbsoluteTime((CFDateRef)propertyList));
-    } else if (typeID == stringtype) {
+    } else if (typeID == _kCFRuntimeIDCFString) {
         if (mutabilityOption == kCFPropertyListMutableContainersAndLeaves) {
             result = CFStringCreateMutableCopy(allocator, 0, (CFStringRef)propertyList);
         } else {

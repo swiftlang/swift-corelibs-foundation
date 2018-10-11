@@ -30,6 +30,7 @@ XCTMain([
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestDate.allTests),
+    testCase(TestDateComponents.allTests),
     testCase(TestNSDateComponents.allTests),
     testCase(TestDateFormatter.allTests),
     testCase(TestDecimal.allTests),
@@ -77,6 +78,7 @@ XCTMain([
     testCase(TestURL.allTests),
     testCase(TestURLComponents.allTests),
     testCase(TestURLCredential.allTests),
+    testCase(TestURLProtectionSpace.allTests),
     testCase(TestURLProtocol.allTests),
     testCase(TestNSURLRequest.allTests),
     testCase(TestURLRequest.allTests),
@@ -101,5 +103,6 @@ XCTMain([
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
+    testCase(TestDimension.allTests),
     testCase(TestNSLock.allTests),
 ])

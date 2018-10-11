@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
 class TestTimeZone: XCTestCase {
 
     static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
@@ -28,6 +30,8 @@ class TestTimeZone: XCTestCase {
             // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
 
             ("test_customMirror", test_tz_customMirror),
+            ("test_knownTimeZones", test_knownTimeZones),
+            ("test_systemTimeZoneName", test_systemTimeZoneName),
         ]
     }
 
@@ -188,5 +192,26 @@ class TestTimeZone: XCTestCase {
         XCTAssertNotNil(children["kind"])
         XCTAssertNotNil(children["secondsFromGMT"])
         XCTAssertNotNil(children["isDaylightSavingTime"])
+    }
+
+    func test_knownTimeZones() {
+        let timeZones = TimeZone.knownTimeZoneIdentifiers.sorted()
+        XCTAssertTrue(timeZones.count > 0, "No known timezones")
+        for tz in timeZones {
+            XCTAssertNotNil(TimeZone(identifier: tz), "Cant instantiate valid timeZone: \(tz)")
+        }
+    }
+
+    func test_systemTimeZoneName() {
+        // Ensure that the system time zone creates names the same way as creating them with an identifier.
+        // If it isn't the same, bugs in DateFormat can result, but in this specific case, the bad length
+        // is only visible to CoreFoundation APIs, and the Swift versions hide it, making it hard to detect.
+        let timeZone = CFTimeZoneCopySystem()
+        let timeZoneName = CFTimeZoneGetName(timeZone)
+
+        let createdTimeZone = TimeZone(identifier: TimeZone.current.identifier)!
+
+        XCTAssertEqual(CFStringGetLength(timeZoneName), TimeZone.current.identifier.count)
+        XCTAssertEqual(CFStringGetLength(timeZoneName), createdTimeZone.identifier.count)
     }
 }

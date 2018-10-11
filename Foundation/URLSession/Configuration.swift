@@ -39,7 +39,7 @@ internal extension URLSession {
         let allowsCellularAccess: Bool
         
         /// allows background tasks to be scheduled at the discretion of the system for optimal performance.
-        let discretionary: Bool
+        let isDiscretionary: Bool
         
         /// The proxy dictionary, as described by <CFNetwork/CFHTTPStream.h>
         let connectionProxyDictionary: [AnyHashable : Any]?
@@ -83,7 +83,7 @@ internal extension URLSession._Configuration {
         timeoutIntervalForResource = config.timeoutIntervalForResource
         networkServiceType = config.networkServiceType
         allowsCellularAccess = config.allowsCellularAccess
-        discretionary = config.discretionary
+        isDiscretionary = config.isDiscretionary
         connectionProxyDictionary = config.connectionProxyDictionary
         httpShouldUsePipelining = config.httpShouldUsePipelining
         httpShouldSetCookies = config.httpShouldSetCookies
@@ -102,10 +102,6 @@ internal extension URLSession._Configuration {
 internal extension URLSession._Configuration {
     func configure(request: URLRequest) -> URLRequest {
         var request = request
-        httpAdditionalHeaders?.forEach {
-            guard request.value(forHTTPHeaderField: $0.0) == nil else { return }
-            request.setValue($0.1, forHTTPHeaderField: $0.0)
-        }
         return setCookies(on: request)
     }
 
@@ -115,7 +111,7 @@ internal extension URLSession._Configuration {
             if let cookieStorage = self.httpCookieStorage, let url = request.url, let cookies = cookieStorage.cookies(for: url) {
                 let cookiesHeaderFields =  HTTPCookie.requestHeaderFields(with: cookies)
                 if let cookieValue = cookiesHeaderFields["Cookie"], cookieValue != "" {
-                    request.addValue(cookieValue, forHTTPHeaderField: "Cookie")
+                    request.setValue(cookieValue, forHTTPHeaderField: "Cookie")
                 }
             }
         }

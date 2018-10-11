@@ -26,14 +26,19 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
-        if let val = _storage[_SwiftValue.store(aKey)] {
-            return _SwiftValue.fetch(nonOptional: val)
+        if let val = _storage[__SwiftValue.store(aKey)] {
+            return __SwiftValue.fetch(nonOptional: val)
         }
         return nil
     }
     
     open func value(forKey key: String) -> Any? {
-        NSUnsupported()
+        if key.hasPrefix("@") {
+            NSUnsupported()
+        } else {
+            return object(forKey: key)
+        }
+        
     }
     
     open func keyEnumerator() -> NSEnumerator {
@@ -41,7 +46,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             NSRequiresConcreteImplementation()
         }
         
-        return NSGeneratorEnumerator(_storage.keys.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
+        return NSGeneratorEnumerator(_storage.keys.map { __SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
     
     @available(*, deprecated)
@@ -136,7 +141,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             mutableDictionary._storage = self._storage
             return mutableDictionary
         }
-        return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys.map { _SwiftValue.store($0) } )
+        return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys.map { __SwiftValue.store($0) } )
     }
 
     public convenience init(object: Any, forKey key: NSCopying) {
@@ -148,7 +153,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         keyBuffer.initialize(from: keys, count: keys.count)
 
         let valueBuffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: objects.count)
-        valueBuffer.initialize(from: objects.map { _SwiftValue.store($0) }, count: objects.count)
+        valueBuffer.initialize(from: objects.map { __SwiftValue.store($0) }, count: objects.count)
 
         self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
         
@@ -159,7 +164,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
     
     public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {
-        self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { _SwiftValue.store($0) })
+        self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { __SwiftValue.store($0) })
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -209,8 +214,8 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     open func getObjects(_ objects: inout [Any], andKeys keys: inout [Any], count: Int) {
         if type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self {
             for (key, value) in _storage {
-                keys.append(_SwiftValue.fetch(nonOptional: key))
-                objects.append(_SwiftValue.fetch(nonOptional: value))
+                keys.append(__SwiftValue.fetch(nonOptional: key))
+                objects.append(__SwiftValue.fetch(nonOptional: value))
             }
         } else {
             
@@ -395,13 +400,13 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
                 if otherValue != value {
                     return false
                 }
-            } else if let otherBridgeable = otherDictionary[key as! AnyHashable] as? _ObjectBridgeable,
-                      let bridgeable = object(forKey: key)! as? _ObjectBridgeable {
-                if !(otherBridgeable._bridgeToAnyObject() as! NSObject).isEqual(bridgeable._bridgeToAnyObject()) {
+            } else {
+                let otherBridgeable = otherDictionary[key as! AnyHashable]
+                let bridgeable = object(forKey: key)!
+                let equal = __SwiftValue.store(optional: otherBridgeable)?.isEqual(__SwiftValue.store(bridgeable))
+                if equal != true {
                     return false
                 }
-            } else {
-                return false
             }
         }
         
@@ -544,7 +549,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         var values = [Any]()
 
         for (key, value) in elements {
-            keys.append(_SwiftValue.store(key))
+            keys.append(__SwiftValue.store(key))
             values.append(value)
         }
         
@@ -578,7 +583,7 @@ open class NSMutableDictionary : NSDictionary {
             NSRequiresConcreteImplementation()
         }
 
-        _storage.removeValue(forKey: _SwiftValue.store(aKey))
+        _storage.removeValue(forKey: __SwiftValue.store(aKey))
     }
     
     /// - Note: this diverges from the darwin version that requires NSCopying (this differential preserves allowing strings and such to be used as keys)
@@ -586,7 +591,7 @@ open class NSMutableDictionary : NSDictionary {
         guard type(of: self) === NSDictionary.self || type(of: self) === NSMutableDictionary.self else {
             NSRequiresConcreteImplementation()
         }
-        _storage[_SwiftValue.store(aKey)] = _SwiftValue.store(anObject)
+        _storage[__SwiftValue.store(aKey)] = __SwiftValue.store(anObject)
     }
     
     public convenience required init() {

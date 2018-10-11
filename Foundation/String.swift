@@ -12,7 +12,7 @@
 
 import CoreFoundation
 
-extension String : _ObjectTypeBridgeable {
+extension String : _ObjectiveCBridgeable {
     
     public typealias _ObjectType = NSString
     public func _bridgeToObjectiveC() -> _ObjectType {
@@ -29,22 +29,31 @@ extension String : _ObjectTypeBridgeable {
             result = source._storage
         } else if type(of: source) == _NSCFString.self {
             let cf = unsafeBitCast(source, to: CFString.self)
-            if let str = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) {
-                result = String(cString: str)
+            let length = CFStringGetLength(cf)
+            if length == 0 {
+                result = ""
+            } else if let ptr = CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingASCII)) {
+                // ASCII encoding has 1 byte per code point and CFStringGetLength() returned the length in
+                // codepoints so length should be the length of the ASCII string in bytes. We cant ask for the UTF-8
+                // encoding as some codepoints are multi-byte in UTF8 so the buffer length wouldn't be known.
+                // Note: CFStringGetCStringPtr(cf, CFStringEncoding(kCFStringEncodingUTF8)) does seems to return NULL
+                // for strings with multibyte UTF-8 but this isnt guaranteed or documented so ASCII is safer.
+                result = ptr.withMemoryRebound(to: UInt8.self, capacity: length) {
+                    return String(decoding: UnsafeBufferPointer(start: $0, count: length), as: UTF8.self)
+                }
+            } else if let ptr = CFStringGetCharactersPtr(cf) {
+                result = String(decoding: UnsafeBufferPointer(start: ptr, count: length), as: UTF16.self)
             } else {
-                let length = CFStringGetLength(cf)
                 let buffer = UnsafeMutablePointer<UniChar>.allocate(capacity: length)
                 CFStringGetCharacters(cf, CFRangeMake(0, length), buffer)
                 
-                let str = String(decoding: UnsafeBufferPointer(start: buffer, count: length), as: UTF16.self)
+                result = String(decoding: UnsafeBufferPointer(start: buffer, count: length), as: UTF16.self)
                 buffer.deinitialize(count: length)
                 buffer.deallocate()
-                result = str
             }
         } else if type(of: source) == _NSCFConstantString.self {
             let conststr = unsafeDowncast(source, to: _NSCFConstantString.self)
-            let str = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
-            result = str
+            result = String(decoding: UnsafeBufferPointer(start: conststr._ptr, count: Int(conststr._length)), as: UTF8.self)
         } else {
             let len = source.length
             var characters = [unichar](repeating: 0, count: len)

@@ -82,15 +82,15 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
                     case (nil, nil):
                         startIndex = 0
                         endIndex = 0
-                    case (nil, .some(let max)):
+                    case (nil, let max?):
                         // Start is before our first range
                         startIndex = 0
                         endIndex = max + 1
-                    case (.some(let min), nil):
+                    case (let min?, nil):
                         // End is after our last range
                         startIndex = min
                         endIndex = indexSet._rangeCount
-                    case (.some(let min), .some(let max)):
+                    case (let min?, let max?):
                         startIndex = min
                         endIndex = max + 1
                     }
@@ -476,16 +476,23 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     
     /// Union the `IndexSet` with `other`.
     public func union(_ other: IndexSet) -> IndexSet {
-        // This algorithm is naïve but it works. We could avoid calling insert in some cases.
-        
-        var result = IndexSet()
-        for r in self.rangeView {
-            result.insert(integersIn: r)
+        var result: IndexSet
+        var dense: IndexSet
+
+        // Prepare to make a copy of the more sparse IndexSet to prefer copy over repeated inserts
+        if self.rangeView.count > other.rangeView.count {
+            result = self
+            dense = other
+        } else {
+            result = other
+            dense = self
         }
-        
-        for r in other.rangeView {
-            result.insert(integersIn: r)
+
+        // Insert each range from the less sparse IndexSet
+        dense.rangeView.forEach {
+            result.insert(integersIn: $0)
         }
+
         return result
     }
     
@@ -790,13 +797,7 @@ private func _toNSRange(_ r: Range<IndexSet.Element>) -> NSRange {
     return NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias IndexSetBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias IndexSetBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension IndexSet : IndexSetBridgeType {
+extension IndexSet : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexSet.self
     }

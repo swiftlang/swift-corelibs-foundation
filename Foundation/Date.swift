@@ -230,7 +230,7 @@ extension Date : CustomDebugStringConvertible, CustomStringConvertible, CustomRe
     }
 }
 
-extension Date : _ObjectTypeBridgeable {
+extension Date : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSDate {
         return NSDate(timeIntervalSinceReferenceDate: _time)

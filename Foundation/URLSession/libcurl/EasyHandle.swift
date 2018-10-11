@@ -503,12 +503,12 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate?.didReceive(data: buffer) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
@@ -523,12 +523,12 @@ fileprivate extension _EasyHandle {
         let buffer = Data(bytes: data, count: size*nmemb)
         let d: Int = {
             switch delegate?.didReceive(headerData: buffer, contentLength: Int64(contentLength)) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
@@ -537,12 +537,13 @@ fileprivate extension _EasyHandle {
         return d
     }
 
-    fileprivate func setCookies(headerData data: Data) {
+    func setCookies(headerData data: Data) {
         guard let config = _config, config.httpCookieAcceptPolicy !=  HTTPCookie.AcceptPolicy.never else { return }
         guard let headerData = String(data: data, encoding: String.Encoding.utf8) else { return }
-        //Convert headerData from a string to a dictionary.
-        //Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
-        let headerComponents = headerData.split { $0 == ":" }
+        // Convert headerData from a string to a dictionary.
+        // Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
+        // Value can have colons (ie, date), so only split at the first one, ie header:value
+        let headerComponents = headerData.split(separator: ":", maxSplits: 1)
         var headers: [String: String] = [:]
         //Trim the leading and trailing whitespaces (if any) before adding the header information to the dictionary.
         if headerComponents.count > 1 {
@@ -563,14 +564,14 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = UnsafeMutableBufferPointer(start: data, count: size * nmemb)
             switch delegate?.fill(writeBuffer: buffer) {
-            case .some(.pause):
+            case .pause?:
                 pauseState.insert(.sendPaused)
                 return Int(CFURLSessionReadFuncPause)
-            case .some(.abort):
+            case .abort?:
                 return Int(CFURLSessionReadFuncAbort)
-            case .some(.bytes(let length)):
-                return length 
-            case .none:
+            case .bytes(let length)?:
+                return length
+            case nil:
                 /* the delegate disappeared */
                 return Int(CFURLSessionReadFuncAbort)
             }

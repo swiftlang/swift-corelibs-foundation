@@ -20,8 +20,8 @@ class TestISO8601DateFormatter: XCTestCase {
     
     func test_stringFromDate() {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm zzz"
-        let dateString = "2016/10/08 22:31 GMT"
+        formatter.dateFormat = "yyyy/MM/dd HH:mm:ss.SSSS zzz"
+        let dateString = "2016/10/08 22:31:00.0713 GMT"
 
         guard let someDateTime = formatter.date(from: dateString) else {
             XCTFail("DateFormatter was unable to parse '\(dateString)' using '\(formatter.dateFormat ?? "")' date format.")
@@ -44,6 +44,9 @@ class TestISO8601DateFormatter: XCTestCase {
         isoFormatter.formatOptions = .withFullTime
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "22:31:00Z")
         
+        isoFormatter.formatOptions = [.withFullTime, .withFractionalSeconds]
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "22:31:00.071Z")
+        
         isoFormatter.formatOptions = .withFullDate
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08")
         
@@ -53,8 +56,14 @@ class TestISO8601DateFormatter: XCTestCase {
         isoFormatter.formatOptions = [.withFullTime, .withFullDate, .withSpaceBetweenDateAndTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00Z")
         
+        isoFormatter.formatOptions = [.withFullTime, .withFullDate, .withSpaceBetweenDateAndTime, .withFractionalSeconds]
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "2016-10-08 22:31:00.071Z")
+        
         isoFormatter.formatOptions = [.withDay, .withTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "282T223100")
+        
+        isoFormatter.formatOptions = [.withDay, .withTime, .withFractionalSeconds]
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "282T223100.071")
         
         isoFormatter.formatOptions = [.withWeekOfYear, .withTime]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "W40T223100")
@@ -79,6 +88,9 @@ class TestISO8601DateFormatter: XCTestCase {
 
         isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime, .withDashSeparatorInDate]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40 22:31:00")
+        
+        isoFormatter.formatOptions = [.withWeekOfYear, .withMonth, .withTime, .withColonSeparatorInTime, .withSpaceBetweenDateAndTime, .withDashSeparatorInDate, .withFractionalSeconds]
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40 22:31:00.071")
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "W4006")
@@ -92,6 +104,10 @@ class TestISO8601DateFormatter: XCTestCase {
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006")
 
+        // .withFractionalSeconds should be ignored if neither .withTime or .withFullTime are specified
+        isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withFractionalSeconds]
+        XCTAssertEqual(isoFormatter.string(from: someDateTime), "10W4006")
+        
         isoFormatter.formatOptions = [.withMonth, .withDay, .withWeekOfYear, .withDashSeparatorInDate]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40-06")
 

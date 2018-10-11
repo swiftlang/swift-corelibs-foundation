@@ -12,7 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#if TARGET_OS_WIN32
+#include <Windows.h>
+#include <Psapi.h>
+#else
 #include <dlfcn.h>
+#endif
 #if __has_include(<os/assumes.h>)
 #include <os/assumes.h>
 #else
@@ -245,7 +250,26 @@ void _Block_use_RR( void (*retain)(const void *),
                     void (*release)(const void *)) {
     _Block_retain_object = retain;
     _Block_release_object = release;
+#if TARGET_OS_WIN32
+    HANDLE hProcess = GetCurrentProcess();
+    HMODULE hModule[1024];
+    DWORD cbNeeded = 0;
+
+    if (!EnumProcessModules(hProcess, hModule, sizeof(hModule), &cbNeeded))
+      return;
+    if (cbNeeded > sizeof(hModule))
+      return;
+
+    for (unsigned I = 0; I < (cbNeeded / sizeof(HMODULE)); ++I) {
+      _Block_destructInstance =
+          (void (*)(const void *))GetProcAddress(hModule[I],
+                                                 "objc_destructInstance");
+      if (_Block_destructInstance)
+        break;
+    }
+#else
     _Block_destructInstance = dlsym(RTLD_DEFAULT, "objc_destructInstance");
+#endif
 }
 
 // Called from CF to indicate MRR. Newer version uses a versioned structure, so we can add more functions

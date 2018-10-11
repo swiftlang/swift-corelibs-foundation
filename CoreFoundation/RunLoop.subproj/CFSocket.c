@@ -1,7 +1,7 @@
 /*	CFSocket.c
-	Copyright (c) 1999-2017, Apple Inc.  and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc.  and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -177,7 +177,7 @@ static void __CFSocketDeallocate(CFTypeRef cf) {
 
 static CFTypeID __kCFSocketTypeID = _kCFRuntimeNotATypeID;
 
-static const CFRuntimeClass __CFSocketClass = {
+const CFRuntimeClass __CFSocketClass = {
     0,
     "CFSocket",
     NULL,      // init
@@ -942,9 +942,9 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/un.h>
 #include <libc.h>
 #include <dlfcn.h>
-#endif
 #if TARGET_OS_CYGWIN
 #include <sys/socket.h>
+#endif
 #endif
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
@@ -957,6 +957,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
 #ifndef NBBY
 #define NBBY 8
@@ -2151,7 +2152,7 @@ manageSelectError()
 
 static void *__CFSocketManager(void * arg)
 {
-#if (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN) || DEPLOYMENT_TARGET_FREEBSD
+#if (TARGET_OS_LINUX && !TARGET_OS_CYGWIN) || TARGET_OS_BSD
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
 #elif TARGET_OS_CYGWIN
 #else
@@ -2470,9 +2471,7 @@ static void __CFSocketDeallocate(CFTypeRef cf) {
 	s->_bufferedReadError = 0;
 }
 
-static CFTypeID __kCFSocketTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFSocketClass = {
+const CFRuntimeClass __CFSocketClass = {
     0,
     "CFSocket",
     NULL,      // init
@@ -2487,7 +2486,6 @@ static const CFRuntimeClass __CFSocketClass = {
 CFTypeID CFSocketGetTypeID(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-	__kCFSocketTypeID = _CFRuntimeRegisterClass(&__CFSocketClass); // initOnce covered
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         struct rlimit lim1;
         int ret1 = getrlimit(RLIMIT_NOFILE, &lim1);
@@ -2505,7 +2503,7 @@ CFTypeID CFSocketGetTypeID(void) {
         }
 #endif
     });
-    return __kCFSocketTypeID;
+    return _kCFRuntimeIDCFSocket;
 }
 
 #if DEPLOYMENT_TARGET_WINDOWS

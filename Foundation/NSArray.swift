@@ -24,7 +24,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         guard type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self else {
            NSRequiresConcreteImplementation()
         }
-        return _SwiftValue.fetch(nonOptional: _storage[index])
+        return __SwiftValue.fetch(nonOptional: _storage[index])
     }
     
     public override init() {
@@ -136,8 +136,8 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         
         let optionalArray : [AnyObject] =
             copyItems ?
-                array.map { return _SwiftValue.store($0).copy() as! NSObject } :
-                array.map { return _SwiftValue.store($0) }
+                array.map { return __SwiftValue.store($0).copy() as! NSObject } :
+                array.map { return __SwiftValue.store($0) }
         
         // This would have been nice, but "initializer delegation cannot be nested in another expression"
 //        optionalArray.withUnsafeBufferPointer { ptr in
@@ -168,7 +168,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
 
     internal var allObjects: [Any] {
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
-            return _storage.map { _SwiftValue.fetch(nonOptional: $0) }
+            return _storage.map { __SwiftValue.fetch(nonOptional: $0) }
         } else {
             return (0..<count).map { idx in
                 return self[idx]
@@ -245,12 +245,12 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
     
     open func firstObjectCommon(with otherArray: [Any]) -> Any? {
-        let set = otherArray.map { _SwiftValue.store($0) }
+        let set = otherArray.map { __SwiftValue.store($0) }
 
         for idx in 0..<count {
-            let item = _SwiftValue.store(self[idx])
+            let item = __SwiftValue.store(self[idx])
             if set.contains(item) {
-                return _SwiftValue.fetch(nonOptional: item)
+                return __SwiftValue.fetch(nonOptional: item)
             }
         }
         return nil
@@ -260,7 +260,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         objects.reserveCapacity(objects.count + range.length)
 
         if type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self {
-            objects += _storage[Range(range)!].map { _SwiftValue.fetch(nonOptional: $0) }
+            objects += _storage[Range(range)!].map { __SwiftValue.fetch(nonOptional: $0) }
             return
         }
         
@@ -334,13 +334,12 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
                 if val1 != val2 {
                     return false
                 }
-            } else if let val1 = object(at: idx) as? _ObjectBridgeable,
-                let val2 = otherArray[idx] as? _ObjectBridgeable {
-                if !(val1._bridgeToAnyObject() as! NSObject).isEqual(val2._bridgeToAnyObject()) {
+            } else {
+              let val1 = object(at: idx)
+              let val2 = otherArray[idx]
+                if !__SwiftValue.store(val1).isEqual(__SwiftValue.store(val2)) {
                     return false
                 }
-            } else {
-                return false
             }
         }
         
@@ -434,12 +433,14 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
         try pListData.write(to: url, options: .atomic)
     }
 
+    @discardableResult
     @available(*, deprecated)
     open func write(toFile path: String, atomically useAuxiliaryFile: Bool) -> Bool {
         return write(to: URL(fileURLWithPath: path), atomically: useAuxiliaryFile)
     }
 
     // the atomically flag is ignored if url of a type that cannot be written atomically.
+    @discardableResult
     @available(*, deprecated)
     open func write(to url: URL, atomically: Bool) -> Bool {
         do {
@@ -732,7 +733,7 @@ open class NSMutableArray : NSArray {
         guard type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
         }
-        _storage.insert(_SwiftValue.store(anObject), at: index)
+        _storage.insert(__SwiftValue.store(anObject), at: index)
     }
 
     open func insert(_ objects: [Any], at indexes: IndexSet) {
@@ -768,7 +769,7 @@ open class NSMutableArray : NSArray {
         }
         let min = index
         let max = index + 1
-        _storage.replaceSubrange(min..<max, with: [_SwiftValue.store(anObject) as AnyObject])
+        _storage.replaceSubrange(min..<max, with: [__SwiftValue.store(anObject) as AnyObject])
     }
     
     public override init() {
@@ -805,7 +806,7 @@ open class NSMutableArray : NSArray {
     
     open func addObjects(from otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
-            _storage += otherArray.map { _SwiftValue.store($0) as AnyObject }
+            _storage += otherArray.map { __SwiftValue.store($0) as AnyObject }
         } else {
             for obj in otherArray {
                 add(obj)
@@ -889,10 +890,10 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage.reserveCapacity(count - range.length + otherArray.count)
             for idx in 0..<range.length {
-                _storage[idx + range.location] = _SwiftValue.store(otherArray[idx])
+                _storage[idx + range.location] = __SwiftValue.store(otherArray[idx])
             }
             for idx in range.length..<otherArray.count {
-                _storage.insert(_SwiftValue.store(otherArray[idx]), at: idx + range.location)
+                _storage.insert(__SwiftValue.store(otherArray[idx]), at: idx + range.location)
             }
         } else {
             NSUnimplemented()
@@ -901,7 +902,7 @@ open class NSMutableArray : NSArray {
     
     open func setArray(_ otherArray: [Any]) {
         if type(of: self) === NSMutableArray.self {
-            _storage = otherArray.map { _SwiftValue.store($0) }
+            _storage = otherArray.map { __SwiftValue.store($0) }
         } else {
             replaceObjects(in: NSRange(location: 0, length: count), withObjectsFrom: otherArray)
         }

@@ -342,7 +342,7 @@ open class NSMutableAttributedString : NSAttributedString {
     }
 
     open func addAttribute(_ name: NSAttributedStringKey, value: Any, range: NSRange) {
-        CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, _SwiftValue.store(value))
+        CFAttributedStringSetAttribute(_cfMutableObject, CFRange(range), name.rawValue._cfObject, __SwiftValue.store(value))
     }
 
     open func addAttributes(_ attrs: [NSAttributedStringKey : Any], range: NSRange) {

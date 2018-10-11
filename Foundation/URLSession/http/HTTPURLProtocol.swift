@@ -85,12 +85,12 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
             switch (task?.body, try task?.body.getBodyLength()) {
-            case (.none, _):
+            case (nil, _):
                 set(requestBodyLength: .noBody)
-            case (_, .some(let length)):
+            case (_, let length?):
                 set(requestBodyLength: .length(length))
                 task!.countOfBytesExpectedToSend = Int64(length)
-            case (_, .none):
+            case (_, nil):
                 set(requestBodyLength: .unknown)
             }
         } catch let e {
@@ -120,11 +120,19 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+        if let hh = request.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
                 hh.forEach {
+                    // When adding a header, remove any current entry with the same header name regardless of case
+                    let newKey = $0.lowercased()
+                    for key in httpHeaders!.keys {
+                        if newKey == (key as! String).lowercased() {
+                            httpHeaders?.removeValue(forKey: key)
+                            break
+                        }
+                    }
                     httpHeaders![$0] = $1
                 }
             }
@@ -211,8 +219,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 }
             }
         case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
-            // Follow the redirect.
-            startNewTransfer(with: request)
+            // Follow the redirect. Need to configure new request with cookies, etc.
+            let configuredRequest = session._configuration.configure(request: request)
+            startNewTransfer(with: configuredRequest)
         }
     }
 
@@ -289,7 +298,7 @@ fileprivate extension _HTTPURLProtocol {
     /// Any header values that should be removed from the ones set by libcurl
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
     var curlHeadersToRemove: [String] {
-        if case .none = task?.body {
+        if task?.body == nil  {
             return []
         } else {
             return ["Expect"]
@@ -401,10 +410,17 @@ internal extension _HTTPURLProtocol {
 
         let scheme = request.url?.scheme
         let host = request.url?.host
+        let port = request.url?.port
 
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
+        // Use the original port if the new URL does not contain a host
+        // ie Location: /foo => <original host>:<original port>/Foo
+        // but Location: newhost/foo  will ignore the original port
+        if targetURL.host == nil {
+          components.port = port
+        }
         //The path must either begin with "/" or be an empty string.
         if targetURL.relativeString.first != "/" {
             components.path = "/" + targetURL.relativeString

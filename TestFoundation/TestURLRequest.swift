@@ -18,6 +18,7 @@ class TestURLRequest : XCTestCase {
             ("test_mutableCopy_1", test_mutableCopy_1),
             ("test_mutableCopy_2", test_mutableCopy_2),
             ("test_mutableCopy_3", test_mutableCopy_3),
+            ("test_hash", test_hash),
             ("test_methodNormalization", test_methodNormalization),
             ("test_description", test_description),
         ]
@@ -60,16 +61,17 @@ class TestURLRequest : XCTestCase {
         
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         XCTAssertNotNil(request.allHTTPHeaderFields)
+        XCTAssertNil(request.allHTTPHeaderFields?["accept"])
         XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/json")
         
-        // Setting "accept" should remove "Accept"
+        // Setting "accept" should update "Accept"
         request.setValue("application/xml", forHTTPHeaderField: "accept")
-        XCTAssertNil(request.allHTTPHeaderFields?["Accept"])
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml")
+        XCTAssertNil(request.allHTTPHeaderFields?["accept"])
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml")
         
-        // Adding to "Accept" should add to "accept"
+        // Adding to "Accept" should add to "Accept"
         request.addValue("text/html", forHTTPHeaderField: "Accept")
-        XCTAssertEqual(request.allHTTPHeaderFields?["accept"], "application/xml,text/html")
+        XCTAssertEqual(request.allHTTPHeaderFields?["Accept"], "application/xml,text/html")
     }
     
     func test_copy() {
@@ -191,6 +193,40 @@ class TestURLRequest : XCTestCase {
         XCTAssertEqual(originalRequest.httpMethod, "GET")
         XCTAssertEqual(originalRequest.url, urlA)
         XCTAssertNil(originalRequest.allHTTPHeaderFields)
+    }
+
+    func test_hash() {
+        let url = URL(string: "https://swift.org")!
+        let r1 = URLRequest(url: url)
+        let r2 = URLRequest(url: url)
+
+        XCTAssertEqual(r1, r2)
+        XCTAssertEqual(r1.hashValue, r2.hashValue)
+
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.url,
+            throughValues: (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.mainDocumentURL,
+            throughValues: (0..<20).map { URL(string: "https://example.org/\($0)")! })
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.httpMethod,
+            throughValues: [
+                "HEAD", "POST", "PUT", "DELETE", "CONNECT", "TWIZZLE",
+                "REFUDIATE", "BUY", "REJECT", "UNDO", "SYNERGIZE",
+                "BUMFUZZLE", "ELUCIDATE"])
+        let inputStreams: [InputStream] = (0..<100).map { value in
+            InputStream(data: Data("\(value)".utf8))
+        }
+        checkHashing_ValueType(
+            initialValue: URLRequest(url: url),
+            byMutating: \URLRequest.httpBodyStream,
+            throughValues: inputStreams)
+        // allowsCellularAccess and httpShouldHandleCookies do
+        // not have enough values to test them here.
     }
 
     func test_methodNormalization() {

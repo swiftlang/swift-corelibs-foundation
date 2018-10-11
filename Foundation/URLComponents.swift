@@ -395,7 +395,7 @@ extension URLQueryItem : _NSBridgeable {
     internal var _nsObject: NSType { return _queryItem }
 }
 
-extension URLComponents : _ObjectTypeBridgeable {
+extension URLComponents : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSURLComponents
     
     public static func _getObjectiveCType() -> Any.Type {
@@ -425,7 +425,7 @@ extension URLComponents : _ObjectTypeBridgeable {
     }
 }
 
-extension URLQueryItem : _ObjectTypeBridgeable {
+extension URLQueryItem : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSURLQueryItem
     
     public static func _getObjectiveCType() -> Any.Type {

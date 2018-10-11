@@ -348,6 +348,7 @@ class CompileSwiftSources(BuildPhase):
         BuildPhase.__init__(self, "CompileSwiftSources")
         if sources is not None:
             self._sources = sources
+        self.enable_testable_import = False
 
     @property
     def product(self):
@@ -396,11 +397,15 @@ class CompileSwiftSources(BuildPhase):
             partial_modules += compiled.relative() + ".~partial.swiftmodule "
             partial_docs += compiled.relative() + ".~partial.swiftdoc "
 
+        testable_import_flags = ""
+        if self.enable_testable_import:
+            testable_import_flags = "-enable-testing"
+
         generated += """
 build """ + self._module.relative() + ": MergeSwiftModule " + objects + """
     partials = """ + partial_modules + """
     module_name = """ + self.product.name + """
-    flags = -I""" + self.product.public_module_path.relative() + """ """ + TargetConditional.value(self.product.SWIFTCFLAGS) + """ -emit-module-doc-path """ + self._module.parent().path_by_appending(self.product.name).relative() + """.swiftdoc 
+    flags = """ + testable_import_flags + " -I" + self.product.public_module_path.relative() + """ """ + TargetConditional.value(self.product.SWIFTCFLAGS) + """ -emit-module-doc-path """ + self._module.parent().path_by_appending(self.product.name).relative() + """.swiftdoc 
 """
         return generated
 

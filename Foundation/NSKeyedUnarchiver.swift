@@ -58,11 +58,7 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     open class func unarchiveObject(with data: Data) -> Any? {
-        do {
-            return try unarchiveTopLevelObjectWithData(data)
-        } catch {
-        }
-        return nil
+        return try? unarchiveTopLevelObjectWithData(data)
     }
     
     open class func unarchiveObject(withFile path: String) -> Any? {
@@ -370,7 +366,7 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[_SwiftValue.store(object)] = replacement
+        self._replacementMap[__SwiftValue.store(object)] = replacement
     }
     
     private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
@@ -387,7 +383,7 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         // check replacement cache
-        object = self._replacementMap[_SwiftValue.store(decodedObject!)]
+        object = self._replacementMap[__SwiftValue.store(decodedObject!)]
         if object != nil {
             return object
         }
@@ -483,12 +479,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 _cacheObject(object!, forReference: objectRef as! _NSKeyedArchiverUID)
             }
         } else {
-            // reference to a non-container object
-            if let bridgedObject = dereferencedObject as? _ObjectBridgeable {
-                object = bridgedObject._bridgeToAnyObject()
-            } else {
-                object = dereferencedObject
-            }
+            object = __SwiftValue.store(dereferencedObject)
         }
 
         return _replacementObject(object)

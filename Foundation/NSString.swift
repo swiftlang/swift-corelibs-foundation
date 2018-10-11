@@ -122,15 +122,13 @@ internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpr
     if let regex = local.__NSRegularExpressionCache.object(forKey: key._nsObject) {
         return regex
     }
-    do {
-        let regex = try NSRegularExpression(pattern: pattern, options: options)
-        local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
-        return regex
-    } catch {
-        
+
+    guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+        return nil
     }
-    
-    return nil
+
+    local.__NSRegularExpressionCache.setObject(regex, forKey: key._nsObject)
+    return regex
 }
 
 internal func _bytesInEncoding(_ str: NSString, _ encoding: String.Encoding, _ fatalOnError: Bool, _ externalRep: Bool, _ lossy: Bool) -> UnsafePointer<Int8>? {
@@ -294,9 +292,13 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     }
     
     internal func _fastCStringContents(_ nullTerminated: Bool) -> UnsafePointer<Int8>? {
+        guard !nullTerminated else {
+            // There is no way to fastly and safely retrieve a pointer to a null-terminated string from a String of Swift.
+            return nil
+        }
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
-                return unsafeBitCast(_storage._core.startASCII, to: UnsafePointer<Int8>.self)
+                return unsafeBitCast(_storage._guts.startASCII, to: UnsafePointer<Int8>.self)
             }
         }
         return nil
@@ -305,7 +307,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
     internal var _fastContents: UnsafePointer<UniChar>? {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousUTF16 {
-                return UnsafePointer<UniChar>(_storage._core.startUTF16)
+                return UnsafePointer<UniChar>(_storage._guts.startUTF16)
             }
         }
         return nil
@@ -430,49 +432,29 @@ extension NSString {
     }
     
     public func commonPrefix(with str: String, options mask: CompareOptions = []) -> String {
-        var currentSubstring: CFMutableString?
-        let isLiteral = mask.contains(.literal)
-        var lastMatch = NSRange()
-        let selfLen = length
-        let otherLen = str.length
-        var low = 0
-        var high = selfLen
-        var probe = (low + high) / 2
-        if (probe > otherLen) {
-            probe = otherLen // A little heuristic to avoid some extra work
-        }
-        if selfLen == 0 || otherLen == 0 {
+
+        let receiver = self as String
+        if receiver.isEmpty || str.isEmpty {
             return ""
         }
-        var numCharsBuffered = 0
-        var arrayBuffer = [unichar](repeating: 0, count: 100)
-        let other = str._nsObject
-        return arrayBuffer.withUnsafeMutablePointerOrAllocation(selfLen, fastpath: UnsafeMutablePointer<unichar>(mutating: _fastContents)) { (selfChars: UnsafeMutablePointer<unichar>) -> String in
-            // Now do the binary search. Note that the probe value determines the length of the substring to check.
-            while true {
-                let range = NSRange(location: 0, length: isLiteral ? probe + 1 : NSMaxRange(rangeOfComposedCharacterSequence(at: probe))) // Extend the end of the composed char sequence
-                if range.length > numCharsBuffered { // Buffer more characters if needed
-                    getCharacters(selfChars, range: NSRange(location: numCharsBuffered, length: range.length - numCharsBuffered))
-                    numCharsBuffered = range.length
-                }
-                if currentSubstring == nil {
-                    currentSubstring = CFStringCreateMutableWithExternalCharactersNoCopy(kCFAllocatorSystemDefault, selfChars, range.length, range.length, kCFAllocatorNull)
-                } else {
-                    CFStringSetExternalCharactersNoCopy(currentSubstring, selfChars, range.length, range.length)
-                }
-                if other.range(of: currentSubstring!._swiftObject, options: mask.union(.anchored), range: NSRange(location: 0, length: otherLen)).length != 0 { // Match
-                    lastMatch = range
-                    low = probe + 1
-                } else {
-                    high = probe
-                }
-                if low >= high {
-                    break
-                }
-                probe = (low + high) / 2
+        let literal = mask.contains(.literal)
+        let caseInsensitive = mask.contains(.caseInsensitive)
+
+        var result = ""
+        var otherIterator = str.makeIterator()
+
+        for ch in receiver {
+            guard let otherCh = otherIterator.next() else { break }
+
+            if ch != otherCh {
+                guard caseInsensitive && String(ch).lowercased() == String(otherCh).lowercased() else { break }
             }
-            return lastMatch.length != 0 ? substring(with: lastMatch) : ""
+
+            if literal && otherCh.unicodeScalars.count != ch.unicodeScalars.count { break }
+            result.append(ch)
         }
+
+        return result
     }
     
     public func contains(_ str: String) -> Bool {
@@ -633,13 +615,19 @@ extension NSString {
         let scanner = Scanner(string: _swiftObject)
         // skip initial whitespace if present
         let _ = scanner.scanCharactersFromSet(.whitespaces)
+
+        if scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY")) != nil {
+            return true
+        }
+
         // scan a single optional '+' or '-' character, followed by zeroes
         if scanner.scanString("+") == nil {
             let _ = scanner.scanString("-")
         }
+        
         // scan any following zeroes
         let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
-        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY123456789")) != nil
+        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "123456789")) != nil
     }
 
     public var uppercased: String {
@@ -668,19 +656,19 @@ extension NSString {
     
     public func uppercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringUppercase(mutableCopy, locale?._cfObject ?? nil)
+        CFStringUppercase(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
 
     public func lowercased(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringLowercase(mutableCopy, locale?._cfObject ?? nil)
+        CFStringLowercase(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
     
     public func capitalized(with locale: Locale?) -> String {
         let mutableCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, self._cfObject)!
-        CFStringCapitalize(mutableCopy, locale?._cfObject ?? nil)
+        CFStringCapitalize(mutableCopy, locale?._cfObject)
         return mutableCopy._swiftObject
     }
     
@@ -858,7 +846,7 @@ extension NSString {
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
                 used = min(self.length, maxBufferCount - 1)
-                _storage._core.startASCII.withMemoryRebound(to: Int8.self,
+                _storage._guts.startASCII.withMemoryRebound(to: Int8.self,
                                                             capacity: used) {
                     buffer.moveAssign(from: $0, count: used)
                 }
@@ -1321,8 +1309,15 @@ open class NSMutableString : NSString {
         }
 
         let start = _storage.utf16.startIndex
-        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage)!
-        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage)!
+        let min = _storage.utf16.index(start, offsetBy: range.location).samePosition(in: _storage) ?? {
+            let characterRange = _storage.rangeOfComposedCharacterSequence(at: range.location)
+            return _storage.utf16.index(start, offsetBy: characterRange.location)
+        }()
+
+        let max = _storage.utf16.index(start, offsetBy: range.location + range.length).samePosition(in: _storage) ?? {
+            let characterRange = _storage.rangeOfComposedCharacterSequence(at: range.location + range.length)
+            return _storage.utf16.index(start, offsetBy: characterRange.location)
+        }()
         _storage.replaceSubrange(min..<max, with: aString)
     }
     

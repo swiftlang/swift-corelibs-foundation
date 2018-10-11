@@ -1,15 +1,10 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-
-
 /*	CFURLComponents.h
-	Copyright (c) 2015, Apple Inc. All rights reserved.
+	Copyright (c) 2015-2018, Apple Inc. All rights reserved.
+ 
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 */
 
 #ifndef __COREFOUNDATION_CFURLCOMPONENTS__
@@ -26,19 +21,9 @@ CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
 CF_ASSUME_NONNULL_BEGIN
 
-#ifndef CF_CROSS_PLATFORM_EXPORT
-#if DEPLOYMENT_RUNTIME_SWIFT
-#define CF_CROSS_PLATFORM_EXPORT extern
-#else
-#define CF_CROSS_PLATFORM_EXPORT static __attribute__((used))
-#endif
-#endif
-
-typedef struct __CFURLComponents *CFURLComponentsRef;
+typedef struct CF_BRIDGED_TYPE(id) __CFURLComponents *CFURLComponentsRef;
 
 CF_EXPORT CFTypeID _CFURLComponentsGetTypeID(void);
-
-CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFURLComponentsRef);
 
 // URLComponents are always mutable.
 CF_EXPORT _Nullable CFURLComponentsRef _CFURLComponentsCreate(CFAllocatorRef alloc);
@@ -102,15 +87,22 @@ CF_EXPORT CFStringRef _CFStringCreateByAddingPercentEncodingWithAllowedCharacter
 CF_EXPORT CFStringRef _Nullable _CFStringCreateByRemovingPercentEncoding(CFAllocatorRef alloc, CFStringRef string);
 
 // These return singletons
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet(void);
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet(void);
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet(void);
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet(void);
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet(void);
-CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet(void);
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLUserAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPasswordAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLHostAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLPathAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet();
+CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet();
+
+// keys for dictionaries returned by _CFURLComponentsCopyQueryItems
+CF_EXPORT const CFStringRef _kCFURLComponentsNameKey;
+CF_EXPORT const CFStringRef _kCFURLComponentsValueKey;
 
 CF_EXPORT _Nullable CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef components);
 CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values);
+
+CF_EXPORT _Nullable CFArrayRef _CFURLComponentsCopyPercentEncodedQueryItems(CFURLComponentsRef components);
+CF_EXPORT Boolean _CFURLComponentsSetPercentEncodedQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values);
 
 CF_ASSUME_NONNULL_END
 CF_EXTERN_C_END

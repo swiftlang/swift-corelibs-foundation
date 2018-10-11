@@ -1,21 +1,27 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 
 open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     
-    internal var _indexes : [Int]
+    private var _indexes : [Int]
+
     override public init() {
         _indexes = []
     }
-    public init(indexes: UnsafePointer<Int>!, length: Int) {
-        _indexes = Array(UnsafeBufferPointer(start: indexes, count: length))
+
+    public init(indexes: UnsafePointer<Int>?, length: Int) {
+        if length == 0 {
+            _indexes = []
+        } else {
+            _indexes = Array(UnsafeBufferPointer(start: indexes!, count: length))
+        }
     }
     
     private init(indexes: [Int]) {
@@ -26,7 +32,10 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any {
+        return self
+    }
+
     public convenience init(index: Int) {
         self.init(indexes: [index])
     }
@@ -44,6 +53,7 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     open func adding(_ index: Int) -> IndexPath {
         return IndexPath(indexes: _indexes + [index])
     }
+
     open func removingLastIndex() -> IndexPath {
         if _indexes.count <= 1 {
             return IndexPath(indexes: [])
@@ -55,6 +65,7 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
     open func index(atPosition position: Int) -> Int {
         return _indexes[position]
     }
+
     open var length: Int {
         return _indexes.count
     }
@@ -71,7 +82,12 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
             indexes.advanced(by: pos).pointee = idx
         }
     }
-    
+
+    @available(*, unavailable, renamed: "getIndex(_:range:)")
+    open func getIndexes(_ indexes: UnsafeMutablePointer<Int>) {
+        NSUnsupported()
+    }
+
     // comparison support
     // sorting an array of indexPaths using this comparison results in an array representing nodes in depth-first traversal order
     open func compare(_ otherObject: IndexPath) -> ComparisonResult {
@@ -94,10 +110,6 @@ open class NSIndexPath : NSObject, NSCopying, NSSecureCoding {
         }
         return .orderedSame
     }
-}
-
-extension NSIndexPath {
-    open func getIndexes(_ indexes: UnsafeMutablePointer<Int>) { NSUnimplemented() }
 }
 
 

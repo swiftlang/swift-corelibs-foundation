@@ -35,6 +35,8 @@ class TestNSNumber : XCTestCase {
             ("test_objCType", test_objCType ),
             ("test_stringValue", test_stringValue),
             ("test_Equals", test_Equals),
+            ("test_boolValue", test_boolValue),
+            ("test_hash", test_hash),
         ]
     }
     
@@ -1213,5 +1215,74 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).compare(NSNumber(value: 0)), .orderedDescending)
         XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).compare(NSNumber(value: 0)), .orderedDescending)
         XCTAssertTrue(NSNumber(value: Double(-0.0)) == NSNumber(value: Double(0.0)))
+    }
+
+    func test_boolValue() {
+        XCTAssertEqual(NSNumber(value: UInt8.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt8.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt16.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt16.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt32.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt32.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt64.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt64.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: UInt.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: UInt.min).boolValue, false)
+
+        XCTAssertEqual(NSNumber(value: Int8.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int8(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int16.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int16(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int32.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.min).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int32(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int64.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64.min).boolValue, false) // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int64.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int64(-1)).boolValue, true)
+
+        XCTAssertEqual(NSNumber(value: Int.max).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int.max - 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int.min).boolValue, false)   // Darwin compatibility
+        XCTAssertEqual(NSNumber(value: Int.min + 1).boolValue, true)
+        XCTAssertEqual(NSNumber(value: Int(-1)).boolValue, true)
+    }
+
+    func test_hash() {
+        // A zero double hashes as zero.
+        XCTAssertEqual(NSNumber(value: 0 as Double).hash, 0)
+
+        // A positive double without fractional part should hash the same as the
+        // equivalent 64 bit number.
+        XCTAssertEqual(NSNumber(value: 123456 as Double).hash, NSNumber(value: 123456 as Int64).hash)
+
+        // A negative double without fractional part should hash the same as the
+        // equivalent 64 bit number.
+        XCTAssertEqual(NSNumber(value: -123456 as Double).hash, NSNumber(value: -123456 as Int64).hash)
+
+        #if arch(i386) || arch(arm)
+            // This test used to fail in 32 bit platforms.
+            XCTAssertNotEqual(NSNumber(value: 551048378.24883795 as Double).hash, 0)
+
+            // Some hashes are correctly zero, though. Like the following which
+            // was found by trial and error.
+            XCTAssertEqual(NSNumber(value: 1.3819660135 as Double).hash, 0)
+        #endif
     }
 }

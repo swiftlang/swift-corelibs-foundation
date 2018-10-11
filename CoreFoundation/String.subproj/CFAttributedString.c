@@ -1,15 +1,12 @@
-// This source file is part of the Swift.org open source project
-//
-// Copyright (c) 2014 - 2015 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
-//
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-//
-/*	CFAttributedString.c
-	Copyright (c) 2004-2017, Apple Inc. All rights reserved.
+/*	    CFAttributedString.c
+	Copyright (c) 2004-2018, Apple Inc. All rights reserved.
+ 
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
+	Licensed under Apache License v2.0 with Runtime Library Exception
+	See http://swift.org/LICENSE.txt for license information
+	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
         Original Author: Ali Ozer
-	Responsibility: Ali Ozer
+	    Responsibility: Ali Ozer
 */
 
 #include <CoreFoundation/CFBase.h>
@@ -17,7 +14,14 @@
 #include "CFRunArray.h"
 #include <CoreFoundation/ForFoundationOnly.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
+#if (TARGET_OS_MAC || TARGET_OS_WIN32) && DEPLOYMENT_RUNTIME_OBJC
+#import <Foundation/NSAttributedString.h>
+@interface NSAttributedString (NSPrivate)
+- (NSAttributedString *)_createAttributedSubstringWithRange:(NSRange)range;
+@end
+#endif
 
 struct __CFAttributedString {
     CFRuntimeBase base;
@@ -118,9 +122,7 @@ static void __CFAttributedStringDeallocate(CFTypeRef cf) {
     CFRelease(attrStr->attributeArray);
 }
 
-static CFTypeID __kCFAttributedStringTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFAttributedStringClass = {
+const CFRuntimeClass __CFAttributedStringClass = {
     0,
     "CFAttributedString",
     NULL,	// init
@@ -133,9 +135,7 @@ static const CFRuntimeClass __CFAttributedStringClass = {
 };
 
 CFTypeID CFAttributedStringGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFAttributedStringTypeID = _CFRuntimeRegisterClass(&__CFAttributedStringClass); });
-    return __kCFAttributedStringTypeID;
+    return _kCFRuntimeIDCFAttributedString;
 }
 
 
@@ -475,14 +475,14 @@ void CFAttributedStringReplaceString(CFMutableAttributedStringRef attrStr, CFRan
 
 void CFAttributedStringSetAttributes(CFMutableAttributedStringRef attrStr, CFRange range, CFDictionaryRef replacementAttrs, Boolean clearOtherAttributes) {
     if (clearOtherAttributes) {
-	CF_OBJC_FUNCDISPATCHV(CFAttributedStringGetTypeID(), void, (NSMutableAttributedString *)attrStr, setAttributes:(NSDictionary *)replacementAttrs range: NSMakeRange(range.location, range.length));
+        CF_OBJC_FUNCDISPATCHV(CFAttributedStringGetTypeID(), void, (NSMutableAttributedString *)attrStr, setAttributes:(NSDictionary *)replacementAttrs range: NSMakeRange(range.location, range.length));
     } else {
-	CF_OBJC_FUNCDISPATCHV(CFAttributedStringGetTypeID(), void, (NSMutableAttributedString *)attrStr, addAttributes:(NSDictionary *)replacementAttrs range: NSMakeRange(range.location, range.length));
+        CF_OBJC_FUNCDISPATCHV(CFAttributedStringGetTypeID(), void, (NSMutableAttributedString *)attrStr, addAttributes:(NSDictionary *)replacementAttrs range: NSMakeRange(range.location, range.length));
     }
-
+    
     __CFAssertIsAttributedStringAndMutable(attrStr);
     __CFAssertRangeIsInBounds(attrStr, range.location, range.length);
-
+    
     if (clearOtherAttributes) { // Just blast all attribute dictionaries in the specified range
         if (range.length) {
             CFMutableDictionaryRef attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), replacementAttrs);
@@ -494,29 +494,39 @@ void CFAttributedStringSetAttributes(CFMutableAttributedStringRef attrStr, CFRan
         CFIndex numAdditionalItems = CFDictionaryGetCount(replacementAttrs);
         if (numAdditionalItems) {
             // Extract the new keys and values so we don't do it over and over for each range
-	    createLocalArray(additionalKeys, numAdditionalItems);
-	    createLocalArray(additionalValues, numAdditionalItems);
+            createLocalArray(additionalKeys, numAdditionalItems);
+            createLocalArray(additionalValues, numAdditionalItems);
             CFDictionaryGetKeysAndValues(replacementAttrs, additionalKeys, additionalValues);
-
-	    // CFAttributedStringBeginEditing(attrStr);
+            
+            // CFAttributedStringBeginEditing(attrStr);
             while (range.length) {
                 CFRange effectiveRange;
                 CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
-			// Intersect effectiveRange and range
-			if (effectiveRange.location < range.location) {
-			    effectiveRange.length -= (range.location - effectiveRange.location);
-			    effectiveRange.location = range.location;	    
-			}
-			if (effectiveRange.length > range.length) effectiveRange.length = range.length;
+#if !DEPLOYMENT_RUNTIME_SWIFT // We can't make assumptions of the retain count in Swift.
+                if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
+                    // !!! Retain count check cheesy; need to keep our own reference count
+                    // The attributes dictionary can just be modified in place
+                    // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
+                    __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
+                } else
+#endif // !DEPLOYMENT_RUNTIME_SWIFT
+                {
+                    // Intersect effectiveRange and range
+                    if (effectiveRange.location < range.location) {
+                        effectiveRange.length -= (range.location - effectiveRange.location);
+                        effectiveRange.location = range.location;
+                    }
+                    if (effectiveRange.length > range.length) effectiveRange.length = range.length;
                     // We need to make a new copy
                     attrs = __CFAttributedStringCreateAttributesDictionary(CFGetAllocator(attrStr), attrs);
                     __CFDictionaryAddMultiple(attrs, additionalKeys, additionalValues, numAdditionalItems);
                     CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
                     CFRelease(attrs);
+                }
                 range.length -= effectiveRange.length;
                 range.location += effectiveRange.length;
             }
-	    // CFAttributedStringEndEditing(attrStr);
+            // CFAttributedStringEndEditing(attrStr);
             
             freeLocalArray(additionalKeys);
             freeLocalArray(additionalValues);
@@ -534,6 +544,15 @@ void CFAttributedStringSetAttribute(CFMutableAttributedStringRef attrStr, CFRang
         CFRange effectiveRange;
         // effectiveRange.location returned here may be equal to or smaller than range.location
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
+#if !DEPLOYMENT_RUNTIME_SWIFT // We can't make assumptions of the retain count in Swift.
+        if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
+            // !!! Retain count check cheesy; need to keep our own reference count)
+            // The attributes dictionary can just be modified in place
+            // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
+            CFDictionarySetValue(attrs, attrName, value);
+        } else
+#endif // !DEPLOYMENT_RUNTIME_SWIFT
+        {
             // Intersect effectiveRange and range
             if (effectiveRange.location < range.location) {
                 effectiveRange.length -= (range.location - effectiveRange.location);
@@ -549,6 +568,7 @@ void CFAttributedStringSetAttribute(CFMutableAttributedStringRef attrStr, CFRang
                 CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
                 CFRelease(attrs);
             }
+        }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
     }
@@ -564,6 +584,15 @@ void CFAttributedStringRemoveAttribute(CFMutableAttributedStringRef attrStr, CFR
     while (range.length) {
         CFRange effectiveRange;
         CFMutableDictionaryRef attrs = (CFMutableDictionaryRef)CFRunArrayGetValueAtIndex(attrStr->attributeArray, range.location, &effectiveRange, NULL);
+#if !DEPLOYMENT_RUNTIME_SWIFT // We can't make assumptions of the retain count in Swift.
+        if (effectiveRange.location == range.location && effectiveRange.length <= range.length && CFGetRetainCount(attrs) == 1) {
+	    // !!! Retain count check cheesy; need to keep our own reference count
+            // The attributes dictionary can just be modified in place
+	    // Here we are assuming that CFRunArray is not under-reporting the effectiveRange for a given item!
+            CFDictionaryRemoveValue(attrs, attrName);
+        } else
+#endif // !DEPLOYMENT_RUNTIME_SWIFT
+        {
             // Intersect effectiveRange and range
             if (effectiveRange.location < range.location) {
                 effectiveRange.length -= (range.location - effectiveRange.location);
@@ -578,6 +607,7 @@ void CFAttributedStringRemoveAttribute(CFMutableAttributedStringRef attrStr, CFR
 		CFRunArrayReplace(attrStr->attributeArray, effectiveRange, attrs, effectiveRange.length);
 		CFRelease(attrs);
 	    }
+        }
         range.length -= effectiveRange.length;
         range.location += effectiveRange.length;
     }

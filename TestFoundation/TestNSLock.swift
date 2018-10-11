@@ -68,15 +68,15 @@ class TestNSLock: XCTestCase {
 
         for t in 0..<threadCount {
             let thread = Thread() {
+                condition.lock()
                 arrayLock.lock()
                 threadsStarted[t] = true
                 arrayLock.unlock()
 
-                condition.lock()
                 condition.wait()
                 condition.unlock()
                 for _ in 1...50 {
-                    let r = (endSeconds * drand48()) / 50
+                    let r = Double.random(in: 0...0.02)
                     Thread.sleep(forTimeInterval: r)
                     if lock.lock(before: endTime) {
                         lock.unlock()

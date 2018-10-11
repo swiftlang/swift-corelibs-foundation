@@ -1,15 +1,17 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
     import Darwin
-#elseif os(Linux) || CYGWIN
+#endif
+
+#if canImport(Glibc)
     import Glibc
 #endif
 
@@ -120,10 +122,318 @@ open class FileManager : NSObject {
         return result
     }
     
+    private enum _SearchPathDomain {
+        case system
+        case local
+        case network
+        case user
+        
+        static let correspondingValues: [UInt: _SearchPathDomain] = [
+            SearchPathDomainMask.systemDomainMask.rawValue: .system,
+            SearchPathDomainMask.localDomainMask.rawValue: .local,
+            SearchPathDomainMask.networkDomainMask.rawValue: .network,
+            SearchPathDomainMask.userDomainMask.rawValue: .user,
+        ]
+        
+        static let searchOrder: [SearchPathDomainMask] = [
+            .systemDomainMask,
+            .localDomainMask,
+            .networkDomainMask,
+            .userDomainMask,
+        ]
+        
+        init?(_ domainMask: SearchPathDomainMask) {
+            if let value = _SearchPathDomain.correspondingValues[domainMask.rawValue] {
+                self = value
+            } else {
+                return nil
+            }
+        }
+        
+        static func allInSearchOrder(from domainMask: SearchPathDomainMask) -> [_SearchPathDomain] {
+            var domains: [_SearchPathDomain] = []
+
+            for bit in _SearchPathDomain.searchOrder {
+                if domainMask.contains(bit) {
+                    domains.append(_SearchPathDomain.correspondingValues[bit.rawValue]!)
+                }
+            }
+            
+            return domains
+        }
+    }
+    
+    private func darwinPathURLs(for domain: _SearchPathDomain, system: String?, local: String?, network: String?, userHomeSubpath: String?) -> [URL] {
+        switch domain {
+        case .system:
+            guard let path = system else { return [] }
+            return [ URL(fileURLWithPath: path, isDirectory: true) ]
+        case .local:
+            guard let path = local else { return [] }
+            return [ URL(fileURLWithPath: path, isDirectory: true) ]
+        case .network:
+            guard let path = network else { return [] }
+            return [ URL(fileURLWithPath: path, isDirectory: true) ]
+        case .user:
+            guard let path = userHomeSubpath else { return [] }
+            return [ URL(fileURLWithPath: path, isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+        }
+    }
+    
+    private func darwinPathURLs(for domain: _SearchPathDomain, all: String, useLocalDirectoryForSystem: Bool = false) -> [URL] {
+        switch domain {
+        case .system:
+            return [ URL(fileURLWithPath: useLocalDirectoryForSystem ? "/\(all)" : "/System/\(all)", isDirectory: true) ]
+        case .local:
+            return [ URL(fileURLWithPath: "/\(all)", isDirectory: true) ]
+        case .network:
+            return [ URL(fileURLWithPath: "/Network/\(all)", isDirectory: true) ]
+        case .user:
+            return [ URL(fileURLWithPath: all, isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+        }
+    }
+    
+    #if os(Windows) // Non-Apple OSes that do not implement FHS/XDG are not currently supported.
+    @available(*, unavailable, message: "Not implemented for this OS")
+    open func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
+        NSUnimplemented()
+    }
+    #else
     /* -URLsForDirectory:inDomains: is analogous to NSSearchPathForDirectoriesInDomains(), but returns an array of NSURL instances for use with URL-taking APIs. This API is suitable when you need to search for a file or files which may live in one of a variety of locations in the domains specified.
      */
     open func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
-        NSUnimplemented()
+        let domains = _SearchPathDomain.allInSearchOrder(from: domainMask)
+        
+        // We are going to return appropriate paths on Darwin, but [] on platforms that do not have comparable locations.
+        // For example, on FHS/XDG systems, applications are not installed in a single path.
+        
+        let useDarwinPaths: Bool
+        if let envVar = ProcessInfo.processInfo.environment["_NSFileManagerUseXDGPathsForDirectoryDomains"] {
+            useDarwinPaths = !NSString(string: envVar).boolValue
+        } else {
+            #if canImport(Darwin)
+                useDarwinPaths = true
+            #else
+                useDarwinPaths = false
+            #endif
+        }
+        
+        var urls: [URL] = []
+        
+        for domain in domains {
+            if useDarwinPaths {
+                urls.append(contentsOf: darwinURLs(for: directory, in: domain))
+            } else {
+                urls.append(contentsOf: xdgURLs(for: directory, in: domain))
+            }
+        }
+        
+        return urls
+    }
+    #endif
+    
+    private func xdgURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
+        // FHS/XDG-compliant OSes:
+        switch directory {
+        case .autosavedInformationDirectory:
+            let runtimePath = __SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
+            return [ URL(fileURLWithPath: "Autosave Information", isDirectory: true, relativeTo: URL(fileURLWithPath: runtimePath, isDirectory: true)) ]
+            
+        case .desktopDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.desktop.url ]
+            
+        case .documentDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.documents.url ]
+            
+        case .cachesDirectory:
+            guard domain == .user else { return [] }
+            let path = __SwiftValue.fetch(nonOptional: _CFXDGCreateCacheDirectoryPath()) as! String
+            return [ URL(fileURLWithPath: path, isDirectory: true) ]
+            
+        case .applicationSupportDirectory:
+            guard domain == .user else { return [] }
+            let path = __SwiftValue.fetch(nonOptional: _CFXDGCreateDataHomePath()) as! String
+            return [ URL(fileURLWithPath: path, isDirectory: true) ]
+            
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.download.url ]
+            
+        case .userDirectory:
+            guard domain == .local else { return [] }
+            return [ URL(fileURLWithPath: "/home", isDirectory: true) ]
+            
+        case .moviesDirectory:
+            return [ _XDGUserDirectory.videos.url ]
+            
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.music.url ]
+            
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.pictures.url ]
+            
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [ _XDGUserDirectory.publicShare.url ]
+            
+        case .trashDirectory:
+            let userTrashURL = URL(fileURLWithPath: ".Trash", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true))
+            if domain == .user || domain == .local {
+                return [ userTrashURL ]
+            } else {
+                return []
+            }
+            
+        // None of these are supported outside of Darwin:
+        case .applicationDirectory:
+            fallthrough
+        case .demoApplicationDirectory:
+            fallthrough
+        case .developerApplicationDirectory:
+            fallthrough
+        case .adminApplicationDirectory:
+            fallthrough
+        case .libraryDirectory:
+            fallthrough
+        case .developerDirectory:
+            fallthrough
+        case .documentationDirectory:
+            fallthrough
+        case .coreServiceDirectory:
+            fallthrough
+        case .inputMethodsDirectory:
+            fallthrough
+        case .preferencePanesDirectory:
+            fallthrough
+        case .applicationScriptsDirectory:
+            fallthrough
+        case .allApplicationsDirectory:
+            fallthrough
+        case .allLibrariesDirectory:
+            fallthrough
+        case .printerDescriptionDirectory:
+            fallthrough
+        case .itemReplacementDirectory:
+            return []
+        }
+    }
+    
+    private func darwinURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
+        switch directory {
+        case .applicationDirectory:
+            return darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true)
+            
+        case .demoApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true)
+            
+        case .developerApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true)
+            
+        case .adminApplicationDirectory:
+            return darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true)
+            
+        case .libraryDirectory:
+            return darwinPathURLs(for: domain, all: "Library")
+            
+        case .developerDirectory:
+            return darwinPathURLs(for: domain, all: "Developer", useLocalDirectoryForSystem: true)
+            
+        case .documentationDirectory:
+            return darwinPathURLs(for: domain, all: "Library/Documentation")
+            
+        case .coreServiceDirectory:
+            return darwinPathURLs(for: domain, system: "/System/Library/CoreServices", local: nil, network: nil, userHomeSubpath: nil)
+            
+        case .autosavedInformationDirectory:
+            return darwinPathURLs(for: domain, system: nil, local: nil, network: nil, userHomeSubpath: "Library/Autosave Information")
+            
+        case .inputMethodsDirectory:
+            return darwinPathURLs(for: domain, all: "Library/Input Methods")
+            
+        case .preferencePanesDirectory:
+            return darwinPathURLs(for: domain, system: "/System/Library/PreferencePanes", local: "/Library/PreferencePanes", network: nil, userHomeSubpath: "Library/PreferencePanes")
+            
+        case .applicationScriptsDirectory:
+            // Only the ObjC Foundation can know where this is.
+            return []
+            
+        case .allApplicationsDirectory:
+            var directories: [URL] = []
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Demos", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer/Applications", useLocalDirectoryForSystem: true))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Applications/Utilities", useLocalDirectoryForSystem: true))
+            return directories
+            
+        case .allLibrariesDirectory:
+            var directories: [URL] = []
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Library"))
+            directories.append(contentsOf: darwinPathURLs(for: domain, all: "Developer"))
+            return directories
+            
+        case .printerDescriptionDirectory:
+            guard domain == .system else { return [] }
+            return [ URL(fileURLWithPath: "/System/Library/Printers/PPD", isDirectory: true) ]
+            
+        case .desktopDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Desktop", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .documentDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Documents", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .cachesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Library/Caches", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .applicationSupportDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Library/Application Support", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .downloadsDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Downloads", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .userDirectory:
+            return darwinPathURLs(for: domain, system: nil, local: "/Users", network: "/Network/Users", userHomeSubpath: nil)
+            
+        case .moviesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Movies", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .musicDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Music", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .picturesDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Pictures", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .sharedPublicDirectory:
+            guard domain == .user else { return [] }
+            return [ URL(fileURLWithPath: "Public", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)) ]
+            
+        case .trashDirectory:
+            let userTrashURL = URL(fileURLWithPath: ".Trash", isDirectory: true, relativeTo: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true))
+            if domain == .user || domain == .local {
+                return [ userTrashURL ]
+            } else {
+                return []
+            }
+            
+        case .itemReplacementDirectory:
+            // This directory is only returned by url(for:in:appropriateFor:create:)
+            return []
+        }
+    }
+        
+    private enum URLForDirectoryError: Error {
+        case directoryUnknown
     }
     
     /* -URLForDirectory:inDomain:appropriateForURL:create:error: is a URL-based replacement for FSFindFolder(). It allows for the specification and (optional) creation of a specific directory for a particular purpose (e.g. the replacement of a particular item on disk, or a particular Library directory.
@@ -131,7 +441,35 @@ open class FileManager : NSObject {
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
     open func url(for directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
-        NSUnimplemented()
+        let urls = self.urls(for: directory, in: domain)
+        guard let url = urls.first else {
+            // On Apple OSes, this case returns nil without filling in the error parameter; Swift then synthesizes an error rather than trap.
+            // We simulate that behavior by throwing a private error.
+            throw URLForDirectoryError.directoryUnknown
+        }
+        
+        if shouldCreate {
+            var attributes: [FileAttributeKey : Any] = [:]
+            
+            switch _SearchPathDomain(domain) {
+            case .some(.user):
+                attributes[.posixPermissions] = 0700
+                
+            case .some(.system):
+                attributes[.posixPermissions] = 0755
+                attributes[.ownerAccountID] = 0 // root
+                #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+                    attributes[.ownerAccountID] = 80 // on Darwin, the admin group's fixed ID.
+                #endif
+                
+            default:
+                break
+            }
+            
+            try createDirectory(at: url, withIntermediateDirectories: true, attributes: attributes)
+        }
+        
+        return url
     }
     
     /* Sets 'outRelationship' to NSURLRelationshipContains if the directory at 'directoryURL' directly or indirectly contains the item at 'otherURL', meaning 'directoryURL' is found while enumerating parent URLs starting from 'otherURL'. Sets 'outRelationship' to NSURLRelationshipSame if 'directoryURL' and 'otherURL' locate the same item, meaning they have the same NSURLFileResourceIdentifierKey value. If 'directoryURL' is not a directory, or does not contain 'otherURL' and they do not locate the same file, then sets 'outRelationship' to NSURLRelationshipOther. If an error occurs, returns NO and sets 'error'.
@@ -300,7 +638,7 @@ open class FileManager : NSObject {
 
         try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
             contents.append(entryName)
-            if entryType == Int32(DT_DIR) {
+            if entryType == DT_DIR {
                 let subPath: String = path + "/" + entryName
                 let entries = try subpathsOfDirectory(atPath: subPath)
                 contents.append(contentsOf: entries.map({file in "\(entryName)/\(file)"}))
@@ -342,16 +680,7 @@ open class FileManager : NSObject {
             result[.groupOwnerAccountName] = name
         }
 
-        var type : FileAttributeType
-        switch s.st_mode & S_IFMT {
-            case S_IFCHR: type = .typeCharacterSpecial
-            case S_IFDIR: type = .typeDirectory
-            case S_IFBLK: type = .typeBlockSpecial
-            case S_IFREG: type = .typeRegular
-            case S_IFLNK: type = .typeSymbolicLink
-            case S_IFSOCK: type = .typeSocket
-            default: type = .typeUnknown
-        }
+        let type = FileAttributeType(statMode: s.st_mode)
         result[.type] = type
         
         if type == .typeBlockSpecial || type == .typeCharacterSpecial {
@@ -426,7 +755,7 @@ open class FileManager : NSObject {
         })
     }
     
-    /* destinationOfSymbolicLinkAtPath:error: returns an NSString containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter.
+    /* destinationOfSymbolicLinkAtPath:error: returns a String containing the path of the item pointed at by the symlink specified by 'path'. If this method returns 'nil', an NSError will be thrown.
      
         This method replaces pathContentOfSymbolicLinkAtPath:
      */
@@ -434,7 +763,7 @@ open class FileManager : NSObject {
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
         let len = _fileSystemRepresentation(withPath: path) {
-                readlink($0, &buf, bufSize)
+            readlink($0, &buf, bufSize)
         }
         if len < 0 {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -503,6 +832,7 @@ open class FileManager : NSObject {
         let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(fileInfo.st_blksize))
         defer { buffer.deallocate() }
 
+        // Casted to Int64 because fileInfo.st_size is 64 bits long even on 32 bit platforms
         var bytesRemaining = Int64(fileInfo.st_size)
         while bytesRemaining > 0 {
             let bytesToRead = min(bytesRemaining, Int64(fileInfo.st_blksize))
@@ -534,13 +864,11 @@ open class FileManager : NSObject {
     }
 
     private func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
-        guard
-            let attrs = try? attributesOfItem(atPath: srcPath),
-            let fileType = attrs[.type] as? FileAttributeType
-            else {
+        guard let stat = try? _lstatFile(atPath: srcPath) else {
                 return
         }
 
+        let fileType = FileAttributeType(statMode: stat.st_mode)
         if fileType == .typeDirectory {
             try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
 
@@ -551,7 +879,8 @@ open class FileManager : NSObject {
             while let item = enumerator.nextObject() as? String {
                 let src = srcPath + "/" + item
                 let dst = dstPath + "/" + item
-                if let attrs = try? attributesOfItem(atPath: src), let fileType = attrs[.type] as? FileAttributeType {
+                if let stat = try? _lstatFile(atPath: src) {
+                    let fileType = FileAttributeType(statMode: stat.st_mode)
                     if fileType == .typeDirectory {
                         try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
                     } else {
@@ -696,8 +1025,7 @@ open class FileManager : NSObject {
         let length = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: length)
         getcwd(&buf, length)
-        let result = self.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
-        return result
+        return string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
     }
     
     @discardableResult
@@ -754,9 +1082,41 @@ open class FileManager : NSObject {
             access($0, X_OK) == 0
         })
     }
-    
+
+    /**
+     - parameters:
+        - path: The path to the file we are trying to determine is deletable.
+
+      - returns: `true` if the file is deletable, `false` otherwise.
+     */
     open func isDeletableFile(atPath path: String) -> Bool {
-        NSUnimplemented()
+        // Get the parent directory of supplied path
+        let parent = path._nsObject.deletingLastPathComponent
+
+        return _fileSystemRepresentation(withPath: parent, andPath: path, { parentFsRep, fsRep  in
+            // Check the parent directory is writeable, else return false.
+            guard access(parentFsRep, W_OK) == 0 else {
+                return false
+            }
+
+            // Stat the parent directory, if that fails, return false.
+            guard let parentS = try? _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep) else {
+                return false
+            }
+
+            // Check if the parent is 'sticky' if it exists.
+            if (parentS.st_mode & S_ISVTX) == S_ISVTX {
+                guard let s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
+                    return false
+                }
+
+                // If the current user owns the file, return true.
+                return s.st_uid == getuid()
+            }
+
+            // Return true as the best guess.
+            return true
+        })
     }
 
     private func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
@@ -798,8 +1158,8 @@ open class FileManager : NSObject {
 
     private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
         let bufSize = Int(size)
-        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
-        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: Int(bufSize))
+        let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
+        let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
 
         let size1 = readlink(file1Rep, buffer1, bufSize)
         let size2 = readlink(file2Rep, buffer2, bufSize)
@@ -951,17 +1311,13 @@ open class FileManager : NSObject {
     /* subpathsAtPath: returns an NSArray of all contents and subpaths recursively from the provided path. This may be very expensive to compute for deep filesystem hierarchies, and should probably be avoided.
      */
     open func subpaths(atPath path: String) -> [String]? {
-        NSUnimplemented()
+        return try? subpathsOfDirectory(atPath: path)
     }
     
     /* These methods are provided here for compatibility. The corresponding methods on NSData which return NSErrors should be regarded as the primary method of creating a file from an NSData or retrieving the contents of a file as an NSData.
      */
     open func contents(atPath path: String) -> Data? {
-        do {
-            return try Data(contentsOf: URL(fileURLWithPath: path))
-        } catch {
-            return nil
-        }
+        return try? Data(contentsOf: URL(fileURLWithPath: path))
     }
     
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
@@ -971,7 +1327,7 @@ open class FileManager : NSObject {
                 try self.setAttributes(attr, ofItemAtPath: path)
             }
             return true
-        } catch _ {
+        } catch {
             return false
         }
     }
@@ -985,9 +1341,7 @@ open class FileManager : NSObject {
             fatalError("string could not be converted")
         }
         let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        for i in 0..<len {
-            buf.advanced(by: i).initialize(to: 0)
-        }
+        buf.initialize(repeating: 0, count: len)
         if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
             buf.deinitialize(count: len)
             buf.deallocate()
@@ -1034,10 +1388,7 @@ open class FileManager : NSObject {
     }
     
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {
-        guard _pathIsSymbolicLink(path) else {
-            return nil
-        }
-        
+        // destinationOfSymbolicLink(atPath:) will fail if the path is not a symbolic link
         guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: path) else {
             return nil
         }
@@ -1052,16 +1403,6 @@ open class FileManager : NSObject {
             let temp = toPath._bridgeToObjectiveC().deletingLastPathComponent
             return temp._bridgeToObjectiveC().appendingPathComponent(dest)
         }
-    }
-    
-    internal func _pathIsSymbolicLink(_ path: String) -> Bool {
-        guard
-            let attrs = try? attributesOfItem(atPath: path),
-            let fileType = attrs[.type] as? FileAttributeType
-        else {
-            return false
-        }
-        return fileType == .typeSymbolicLink
     }
 }
 
@@ -1199,6 +1540,18 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 
     public static func ==(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {
         return lhs.rawValue == rhs.rawValue
+    }
+
+    fileprivate init(statMode: mode_t) {
+        switch statMode & S_IFMT {
+        case S_IFCHR: self = .typeCharacterSpecial
+        case S_IFDIR: self = .typeDirectory
+        case S_IFBLK: self = .typeBlockSpecial
+        case S_IFREG: self = .typeRegular
+        case S_IFLNK: self = .typeSymbolicLink
+        case S_IFSOCK: self = .typeSocket
+        default: self = .typeUnknown
+        }
     }
 
     public static let typeDirectory = FileAttributeType(rawValue: "NSFileTypeDirectory")

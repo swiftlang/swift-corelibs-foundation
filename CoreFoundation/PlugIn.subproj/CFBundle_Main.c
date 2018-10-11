@@ -1,5 +1,5 @@
 /*      CFBundle_Main.c
- Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+ Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
  Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
  Licensed under Apache License v2.0 with Runtime Library Exception
@@ -23,7 +23,7 @@
 static Boolean _initedMainBundle = false;
 static CFBundleRef _mainBundle = NULL;
 static char __CFBundleMainID__[1026] = {0};
-CF_PRIVATE char *__CFBundleMainID = __CFBundleMainID__;
+char *__CFBundleMainID = __CFBundleMainID__;
 static pthread_mutex_t _mainBundleLock = PTHREAD_MUTEX_INITIALIZER;
 
 #pragma mark -
@@ -40,7 +40,8 @@ static void _CFBundleInitializeMainBundleInfoDictionaryAlreadyLocked(CFStringRef
             if (executableName) CFRelease(executableName);
         }
 #if defined(BINARY_SUPPORT_DYLD)
-        if (_mainBundle->_binaryType == __CFBundleDYLDExecutableBinary) {
+        // We can fall into this case when the executable is sandboxed enough that it can't read its own executable file. We can still attempt to get the info dictionary from the main executable though. _CFBundleCreateInfoDictFromMainExecutable will correctly handle a case where the section does not exist.
+        if (_mainBundle->_binaryType == __CFBundleDYLDExecutableBinary || _mainBundle->_binaryType == __CFBundleUnreadableBinary) {
             if (_mainBundle->_infoDict) CFRelease(_mainBundle->_infoDict);
             _mainBundle->_infoDict = (CFDictionaryRef)_CFBundleCreateInfoDictFromMainExecutable();
         }

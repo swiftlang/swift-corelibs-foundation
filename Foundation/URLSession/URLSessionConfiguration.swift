@@ -38,7 +38,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.timeoutIntervalForResource = 604800
         self.networkServiceType = .default
         self.allowsCellularAccess = true
-        self.discretionary = false
+        self.isDiscretionary = false
         self.httpShouldUsePipelining = false
         self.httpShouldSetCookies = true
         self.httpCookieAcceptPolicy = .onlyFromMainDocumentDomain
@@ -57,7 +57,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                  timeoutIntervalForResource: TimeInterval,
                  networkServiceType: URLRequest.NetworkServiceType,
                  allowsCellularAccess: Bool,
-                 discretionary: Bool,
+                 isDiscretionary: Bool,
                  connectionProxyDictionary: [AnyHashable:Any]?,
                  httpShouldUsePipelining: Bool,
                  httpShouldSetCookies: Bool,
@@ -76,7 +76,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.timeoutIntervalForResource = timeoutIntervalForResource
         self.networkServiceType = networkServiceType
         self.allowsCellularAccess = allowsCellularAccess
-        self.discretionary = discretionary
+        self.isDiscretionary = isDiscretionary
         self.connectionProxyDictionary = connectionProxyDictionary
         self.httpShouldUsePipelining = httpShouldUsePipelining
         self.httpShouldSetCookies = httpShouldSetCookies
@@ -102,7 +102,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
             timeoutIntervalForResource: timeoutIntervalForResource,
             networkServiceType: networkServiceType,
             allowsCellularAccess: allowsCellularAccess,
-            discretionary: discretionary,
+            isDiscretionary: isDiscretionary,
             connectionProxyDictionary: connectionProxyDictionary,
             httpShouldUsePipelining: httpShouldUsePipelining,
             httpShouldSetCookies: httpShouldSetCookies,
@@ -142,7 +142,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     open var allowsCellularAccess: Bool
     
     /* allows background tasks to be scheduled at the discretion of the system for optimal performance. */
-    open var discretionary: Bool
+    open var isDiscretionary: Bool
     
     /* The identifier of the shared data container into which files in background sessions should be downloaded.
      * App extensions wishing to use background sessions *must* set this property to a valid container identifier, or

@@ -1,7 +1,7 @@
 /*	CFPlugIn_Factory.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,8 +10,7 @@
 
 #include "CFBundle_Internal.h"
 #include "CFInternal.h"
-
-static CFTypeID __kCFPFactoryTypeID = _kCFRuntimeNotATypeID;
+#include "CFRuntime_Internal.h"
 
 struct __CFPFactory {
     CFRuntimeBase _base;
@@ -31,7 +30,7 @@ struct __CFPFactory {
 
 static void _CFPFactoryDeallocate(CFTypeRef factory);
 
-static const CFRuntimeClass __CFPFactoryClass = {
+const CFRuntimeClass __CFPFactoryClass = {
     0,
     "_CFPFactory",
     NULL,	// init
@@ -43,13 +42,8 @@ static const CFRuntimeClass __CFPFactoryClass = {
     NULL,       // debug desc
 };
 
-CF_PRIVATE void __CFPFactoryInitialize(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFPFactoryTypeID = _CFRuntimeRegisterClass(&__CFPFactoryClass); });
-}
-
 static CFTypeID _CFPFactoryGetTypeID(void) {
-    return __kCFPFactoryTypeID;
+    return _kCFRuntimeIDCFPFactory;
 }
 
 static CFLock_t CFPlugInGlobalDataLock = CFLockInit;
@@ -272,18 +266,6 @@ CF_PRIVATE Boolean _CFPFactorySupportsType(_CFPFactoryRef factory, CFUUIDRef typ
     return (idx >= 0 ? true : false);
 }
 
-CF_PRIVATE CFArrayRef _CFPFactoryFindCopyForType(CFUUIDRef typeID) {
-    CFArrayRef result = NULL;
-    __CFLock(&CFPlugInGlobalDataLock);
-    if (_factoriesByTypeID) {
-        result = (CFArrayRef)CFDictionaryGetValue(_factoriesByTypeID, typeID);
-        if (result) CFRetain(result);
-    }
-    __CFUnlock(&CFPlugInGlobalDataLock);
-
-    return result;
-}
-
 /* These methods are called by CFPlugInInstance when an instance is created or destroyed.  If a factory's instance count goes to 0 and the factory has been disabled, the factory is destroyed. */
 CF_PRIVATE void _CFPFactoryAddInstance(_CFPFactoryRef factory) {
     /* MF:!!! Assert that factory is enabled. */
@@ -309,3 +291,63 @@ CF_PRIVATE void _CFPFactoryRemoveInstance(_CFPFactoryRef factory) {
     }
     CFRelease(factory);
 }
+
+#pragma mark -
+
+/* ===================== Finding factories and creating instances ===================== */
+/* For plugIn hosts. */
+/* Functions for finding factories to create specific types and actually creating instances of a type. */
+
+CF_EXPORT CFArrayRef CFPlugInFindFactoriesForPlugInType(CFUUIDRef typeID) CF_RETURNS_RETAINED {
+    __CFLock(&CFPlugInGlobalDataLock);
+    CFArrayRef array = NULL;
+    if (_factoriesByTypeID) {
+        array = (CFArrayRef)CFDictionaryGetValue(_factoriesByTypeID, typeID);
+    }
+    
+    CFMutableArrayRef result = NULL;
+    if (array) {
+        result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+        
+        CFIndex c = CFArrayGetCount(array);
+        for (CFIndex i = 0; i < c; i++) {
+            CFUUIDRef factoryId = _CFPFactoryCopyFactoryID((_CFPFactoryRef)CFArrayGetValueAtIndex(array, i));
+            if (factoryId) {
+                CFArrayAppendValue(result, factoryId);
+                CFRelease(factoryId);
+            }
+        }
+    }
+    
+    __CFUnlock(&CFPlugInGlobalDataLock);
+    return result;
+}
+
+CF_EXPORT CFArrayRef CFPlugInFindFactoriesForPlugInTypeInPlugIn(CFUUIDRef typeID, CFPlugInRef plugIn) CF_RETURNS_RETAINED {
+    __CFLock(&CFPlugInGlobalDataLock);
+    CFArrayRef array = NULL;
+    if (_factoriesByTypeID) {
+        array = (CFArrayRef)CFDictionaryGetValue(_factoriesByTypeID, typeID);
+    }
+
+    
+    CFMutableArrayRef result = NULL;
+    if (array) {
+        CFIndex c = CFArrayGetCount(array);
+        result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+        for (CFIndex i = 0; i < c; i++) {
+            _CFPFactoryRef factory = (_CFPFactoryRef)CFArrayGetValueAtIndex(array, i);
+            CFPlugInRef factoryPlugIn = _CFPFactoryCopyPlugIn(factory);
+            if (factoryPlugIn == plugIn) {
+                CFUUIDRef factoryId = _CFPFactoryCopyFactoryID(factory);
+                CFArrayAppendValue(result, factoryId);
+                CFRelease(factoryId);
+            }
+            if (factoryPlugIn) CFRelease(factoryPlugIn);
+        }
+    }
+    
+    __CFUnlock(&CFPlugInGlobalDataLock);
+    return result;
+}
+

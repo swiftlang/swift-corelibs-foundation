@@ -118,6 +118,7 @@
 
 #define TARGET_OS_WIN32        TARGET_OS_WINDOWS
 #define TARGET_OS_MAC          TARGET_OS_DARWIN
+#define TARGET_OS_OSX          TARGET_OS_DARWIN
 
 #if __x86_64__
 #define TARGET_CPU_PPC          0

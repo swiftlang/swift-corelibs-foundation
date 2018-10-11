@@ -92,6 +92,7 @@
 #include <CoreFoundation/CFSocket.h>
 #include <CoreFoundation/CFMachPort.h>
 #include <CoreFoundation/CFAttributedString.h>
+#include <CoreFoundation/CFNotificationCenter.h>
 
 #include <CoreFoundation/CFURLPriv.h>
 #include <CoreFoundation/CFURLComponents.h>

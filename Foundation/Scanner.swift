@@ -337,7 +337,7 @@ extension String {
             buf.advance()
             buf.skip(skipSet)
         }
-        if (!isADigit(buf.currentCharacter)) {
+        if (buf.currentCharacter != ds && !isADigit(buf.currentCharacter)) {
             return false
         }
         
@@ -376,6 +376,34 @@ extension String {
                 factor = factor * T(0.1)
                 buf.advance()
             } while (isADigit(buf.currentCharacter))
+        }
+
+        if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
+            var exponent = Double(0)
+            var negExponent = false
+            buf.advance()
+            if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
+                negExponent = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
+                buf.advance()
+            }
+            repeat {
+                let numeral = numericValue(buf.currentCharacter)
+                buf.advance()
+                if numeral == -1 {
+                    break
+                }
+                exponent *= 10
+                exponent += Double(numeral)
+            } while (isADigit(buf.currentCharacter))
+
+            if exponent > 0 {
+                let multiplier = pow(10, exponent)
+                if negExponent {
+                    localResult /= T(multiplier)
+                } else {
+                    localResult *= T(multiplier)
+                }
+            }
         }
         
         to(neg ? T(-1) * localResult : localResult)

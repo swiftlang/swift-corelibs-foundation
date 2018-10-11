@@ -81,3 +81,16 @@ When new source files or flags are added to the `build.py` script, the project w
 % ninja reconfigure
 % ninja
 ```
+
+It is possible to build Foundation without the use of `build-script`.  You can
+build with cmake.  It currently requires clang, swift, and libdispatch (which
+are generally built as part of the swift build).
+
+```
+cmake -G Ninja ../../../swift-corelibs-foundation                               \
+ -DCMAKE_C_COMPILER=../../llvm-linux-x86_64/bin/clang                           \
+ -DCMAKE_SWIFT_COMPILER=../../swift-linux-x86_64/bin/swiftc                     \
+ -DFOUNDATION_PATH_TO_LIBDISPATCH_SOURCE=../../../swift-corelibs-libdispatch    \
+ -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=../../libdispatch-linux-x86_64
+```
+

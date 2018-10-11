@@ -239,6 +239,10 @@ struct _NSNumberBridge {
     bool (*_Nonnull _getValue)(CFTypeRef number, void *value, CFNumberType type);
 };
 
+struct _NSDataBridge {
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -254,6 +258,7 @@ struct _CFSwiftBridge {
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
+    struct _NSDataBridge NSData;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
@@ -283,6 +288,12 @@ CF_EXPORT void _cf_uuid_unparse_lower(const _cf_uuid_t _Nonnull uu, _cf_uuid_str
 CF_EXPORT void _cf_uuid_unparse_upper(const _cf_uuid_t _Nonnull uu, _cf_uuid_string_t _Nonnull out);
 
 
+CF_PRIVATE CFStringRef _CFProcessNameString(void);
+CF_PRIVATE CFIndex __CFProcessorCount(void);
+CF_PRIVATE uint64_t __CFMemorySize(void);
+CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
+CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void);
+
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 #if !__COREFOUNDATION_FORFOUNDATIONONLY__
 typedef const struct __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
@@ -302,7 +313,7 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
-CF_EXPORT Boolean _CFIsMainThread(void);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
 CF_EXPORT pthread_t _CFMainPThread;
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
@@ -315,7 +326,7 @@ CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_t _CFThreadRef;
 
-CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *restrict _Nullable context);
+CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context);
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
@@ -324,9 +335,9 @@ CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet,
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 
-CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef stream);
+CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 
-CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef stream);
+CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef _Null_unspecified stream);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
 
@@ -353,6 +364,7 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
 
+CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFTypeRef cf);
 
 typedef struct {
     void *_Nonnull memory;
@@ -399,6 +411,16 @@ static inline _Bool _withStackOrHeapBuffer(size_t amount, void (__attribute__((n
     }
     return true;
 }
+
+#pragma mark - Character Set
+
+CF_CROSS_PLATFORM_EXPORT CFIndex __CFCharDigitValue(UniChar ch);
+
+#pragma mark - File Functions
+
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode);
+CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
+CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
