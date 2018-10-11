@@ -47,6 +47,9 @@ set(swift_optimization_flags)
 if(CMAKE_BUILD_TYPE MATCHES Release)
   set(swift_optimization_flags -O)
 endif()
+if(ENABLE_TESTING)
+  set(swift_enable_testing -enable-testing)
+endif()
 
 set(deployment_enable_libdispatch)
 set(libdispatch_cflags)
@@ -54,7 +57,7 @@ set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(deployment_enable_libdispatch -DDEPLOYMENT_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
-  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
+  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
 endif()
 
 add_swift_library(Foundation
@@ -90,6 +93,7 @@ add_swift_library(Foundation
                     Foundation/ExtraStringAPIs.swift
                     Foundation/FileHandle.swift
                     Foundation/FileManager.swift
+                    Foundation/FileManager_XDG.swift
                     Foundation/Formatter.swift
                     Foundation/FoundationErrors.swift
                     Foundation/Host.swift
@@ -196,16 +200,14 @@ add_swift_library(Foundation
                     Foundation/URLProtocol.swift
                     Foundation/URLRequest.swift
                     Foundation/URLResponse.swift
-                    # NOTE: must precede HTTPMessage.swift
+                    Foundation/URLSession/BodySource.swift
+                    Foundation/URLSession/Configuration.swift
                     Foundation/URLSession/Message.swift
                     Foundation/URLSession/http/HTTPMessage.swift
                     Foundation/URLSession/http/HTTPURLProtocol.swift
                     Foundation/URLSession/libcurl/EasyHandle.swift
                     Foundation/URLSession/libcurl/libcurlHelpers.swift
                     Foundation/URLSession/libcurl/MultiHandle.swift
-                    Foundation/URLSession/BodySource.swift
-                    Foundation/URLSession/Configuration.swift
-                    # Foundation/URLSession/Message.swift
                     Foundation/URLSession/NativeProtocol.swift
                     Foundation/URLSession/TaskRegistry.swift
                     Foundation/URLSession/TransferState.swift
@@ -239,6 +241,7 @@ add_swift_library(Foundation
                     ${deployment_enable_libdispatch}
                     -Fsystem;${install_dir}/System/Library/Frameworks
                     ${libdispatch_cflags}
+                    ${swift_enable_testing}
                     ${swift_optimization_flags})
 add_dependencies(Foundation CoreFoundation)
 
@@ -249,6 +252,7 @@ add_swift_executable(plutil
                        ${deployment_enable_libdispatch}
                      LINK_FLAGS
                        -L${CMAKE_CURRENT_BINARY_DIR}
+                       ${libdispatch_ldflags}
                        -lFoundation
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
@@ -256,15 +260,32 @@ add_swift_executable(plutil
                        -Fsystem;${install_dir}/System/Library/Frameworks
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                        ${libdispatch_cflags}
+                       ${swift_enable_testing}
                        ${swift_optimization_flags})
 add_dependencies(plutil Foundation CoreFoundation)
 
 if(ENABLE_TESTING)
+  add_swift_executable(xdgTestHelper
+                       CFLAGS
+                         ${deployment_enable_libdispatch}
+                       LINK_FLAGS
+                         ${libdispatch_ldflags}
+                         -L${CMAKE_CURRENT_BINARY_DIR}
+                         -lFoundation
+                       SOURCES
+                         TestFoundation/xdgTestHelper/main.swift
+                       SWIFT_FLAGS
+                         -Fsystem;${install_dir}/System/Library/Frameworks
+                         -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                         ${libdispatch_cflags})
+  add_dependencies(xdgTestHelper Foundation CoreFoundation)
+
   add_swift_executable(TestFoundation
                        SOURCES
                          TestFoundation/main.swift
                          TestFoundation/HTTPServer.swift
                          Foundation/ProgressFraction.swift
+                         TestFoundation/Utilities.swift
                          # Test Cases
                          TestFoundation/TestAffineTransform.swift
                          TestFoundation/TestBundle.swift
@@ -272,6 +293,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestCalendar.swift
                          TestFoundation/TestCharacterSet.swift
                          TestFoundation/TestCodable.swift
+                         TestFoundation/TestDateComponents.swift
                          TestFoundation/TestDateFormatter.swift
                          TestFoundation/TestDate.swift
                          TestFoundation/TestDecimal.swift
@@ -336,6 +358,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestUnitConverter.swift
                          TestFoundation/TestUnit.swift
                          TestFoundation/TestURLCredential.swift
+                         TestFoundation/TestURLProtectionSpace.swift
                          TestFoundation/TestURLProtocol.swift
                          TestFoundation/TestURLRequest.swift
                          TestFoundation/TestURLResponse.swift
@@ -352,6 +375,7 @@ if(ENABLE_TESTING)
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
+                         -lXCTest
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist
@@ -375,6 +399,7 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-URLTest.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-UUIDTest.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-OrderedSetTest.plist
+                         ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
                        SWIFT_FLAGS
                          ${deployment_enable_libdispatch}
                          -Fsystem;${install_dir}/System/Library/Frameworks
@@ -382,22 +407,17 @@ if(ENABLE_TESTING)
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          ${libdispatch_cflags}
                          ${swift_optimization_flags})
-  add_dependencies(TestFoundation Foundation CoreFoundation)
+  add_dependencies(TestFoundation Foundation CoreFoundation xdgTestHelper)
 
-  add_swift_executable(xdgTestHelper
-                       SOURCES
-                         TestFoundation/xdgTestHelper/main.swift
-                       CFLAGS
-                         ${deployment_enable_libdispatch}
-                       LINK_FLAGS
-                         -L${CMAKE_CURRENT_BINARY_DIR}
-                         -lFoundation
-                       SWIFT_FLAGS
-                         -Fsystem;${install_dir}/System/Library/Frameworks
-                         -I;${CMAKE_CURRENT_BINARY_DIR}/swift
-                         ${libdispatch_cflags})
-  add_dependencies(xdgTestHelper Foundation CoreFoundation)
-
+  add_custom_command(TARGET TestFoundation
+                     POST_BUILD
+                     BYPRODUCTS
+                       ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX}
+                     COMMAND
+                       ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation
+                     DEPENDS
+                       TestFoundation
+                       xdgTestHelper)
   add_test(NAME
              TestFoundation
            COMMAND
@@ -407,7 +427,9 @@ if(ENABLE_TESTING)
   set_tests_properties(TestFoundation
                        PROPERTIES
                          ENVIRONMENT
-                           LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:${FOUNDATION_PATH_TO_XCTEST_BUILD}:${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+                           LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:${FOUNDATION_PATH_TO_XCTEST_BUILD}:${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}:${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src
+                         DEPENDS
+                           ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 
 get_swift_host_arch(SWIFT_HOST_ARCH)
