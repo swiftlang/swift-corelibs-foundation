@@ -16,6 +16,8 @@ class TestNSAttributedString : XCTestCase {
             ("test_initWithAttributedString", test_initWithAttributedString),
             ("test_attributedSubstring", test_attributedSubstring),
             ("test_longestEffectiveRange", test_longestEffectiveRange),
+            ("test_addSingleAttributeWithValueOfNativeSwiftType", test_addSingleAttributeWithValueOfNativeSwiftType),
+            ("test_addMultipleAttributesWithValuesOfNativeSwiftType", test_addMultipleAttributesWithValuesOfNativeSwiftType),
             ("test_enumerateAttributeWithName", test_enumerateAttributeWithName),
             ("test_enumerateAttributes", test_enumerateAttributes),
             ("test_copy", test_copy),
@@ -68,7 +70,7 @@ class TestNSAttributedString : XCTestCase {
         let attribute = attrString.attribute(NSAttributedStringKey("attribute.placeholder.key"), at: 0, effectiveRange: &range)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, attrString.length)
-        guard let validAttribute = attribute as? NSString else {
+        guard let validAttribute = attribute as? String else {
             XCTAssert(false, "attribute not found")
             return
         }
@@ -131,6 +133,51 @@ class TestNSAttributedString : XCTestCase {
         _ = attrString.attributes(at: 0, longestEffectiveRange: &range, in: searchRange)
         XCTAssertEqual(range.location, 0)
         XCTAssertEqual(range.length, 28)
+    }
+
+    func test_addSingleAttributeWithValueOfNativeSwiftType() {
+        class DummySwiftClass {}
+
+        let attributedString = NSMutableAttributedString(string: "testing")
+
+        let attributeKey = NSAttributedStringKey("aKey")
+        let attributeValue = DummySwiftClass()
+
+        let attributeStartIndex = 0
+        attributedString.addAttribute(attributeKey, value: attributeValue, range: NSRange(location: attributeStartIndex, length: 1))
+
+        // .attribute vs. .attributes (in test below) use different paths, test both:
+        let result = attributedString.attribute(attributeKey, at: attributeStartIndex, effectiveRange: nil)
+        XCTAssertEqual(type(of: result), DummySwiftClass.self)
+        XCTAssert(result as? DummySwiftClass === attributeValue)
+    }
+
+    func test_addMultipleAttributesWithValuesOfNativeSwiftType() {
+        class DummySwiftClass1 {}
+        class DummySwiftClass2 {}
+
+        let attributedString = NSMutableAttributedString(string: "testing")
+
+        let attributeKey1 = NSAttributedStringKey("aKey")
+        let attributeKey2 = NSAttributedStringKey("anotherKey")
+        let attributeValue1 = DummySwiftClass1()
+        let attributeValue2 = DummySwiftClass2()
+
+        let attributeStartIndex = 0
+        let attributeRange = NSRange(location: attributeStartIndex, length: 1)
+
+        // addAttribute vs. addAttributes use slightly different code paths, test both:
+        attributedString.addAttribute(attributeKey1, value: attributeValue1, range: attributeRange)
+        attributedString.addAttributes([attributeKey2 : attributeValue2], range: attributeRange)
+
+        // .attributes vs. .attribute (in test above) use different paths, test both:
+        let result = attributedString.attributes(at: attributeStartIndex, effectiveRange: nil)
+
+        XCTAssertEqual(type(of: result[attributeKey1]), DummySwiftClass1.self)
+        XCTAssert(result[attributeKey1] as? DummySwiftClass1 === attributeValue1)
+
+        XCTAssertEqual(type(of: result[attributeKey2]), DummySwiftClass2.self)
+        XCTAssert(result[attributeKey2] as? DummySwiftClass2 === attributeValue2)
     }
     
     func test_enumerateAttributeWithName() {
