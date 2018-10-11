@@ -54,14 +54,17 @@ add_framework(CoreFoundation
                 Base.subproj/CFKnownLocations.h
                 Base.subproj/CFLogUtilities.h
                 Base.subproj/CFPriv.h
+                Base.subproj/CFOverflow.h
                 Base.subproj/CFRuntime.h
+                Base.subproj/CFRuntime_Internal.h
                 Base.subproj/ForFoundationOnly.h
                 Base.subproj/ForSwiftFoundationOnly.h
                 # Collections
                 Collections.subproj/CFBasicHash.h
                 Collections.subproj/CFStorage.h
+                Collections.subproj/CFCollections_Internal.h
                 # Error
-                Error.subproj//CFError_Private.h
+                Error.subproj/CFError_Private.h
                 # Locale
                 Locale.subproj/CFDateFormatter_Private.h
                 Locale.subproj/CFICULogging.h
@@ -78,15 +81,20 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_BinaryTypes.h
                 PlugIn.subproj/CFBundle_Internal.h
                 PlugIn.subproj/CFPlugIn_Factory.h
+                # RunLoop
+                RunLoop.subproj/CFMachPort_Internal.h
+                RunLoop.subproj/CFMachPort_Lifetime.h
                 # Stream
                 Stream.subproj/CFStreamAbstract.h
                 Stream.subproj/CFStreamInternal.h
                 Stream.subproj/CFStreamPriv.h
                 # String
+                String.subproj/CFAttributedStringPriv.h
                 String.subproj/CFBurstTrie.h
                 String.subproj/CFCharacterSetPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
+                String.subproj/CFString_Internal.h
                 String.subproj/CFStringDefaultEncoding.h
                 String.subproj/CFStringLocalizedFormattingInternal.h
                 # StringEncodings
@@ -117,6 +125,8 @@ add_framework(CoreFoundation
                 Stream.subproj/CFStreamPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
+                StringEncodings.subproj/CFStringEncodingConverter.h
+                StringEncodings.subproj/CFStringEncodingConverterExt.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
 
@@ -243,6 +253,8 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFPreferences.c
                 Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
+                # TODO(compnerd) make this empty on non-Mach targets
+                # RunLoop.subproj/CFMachPort_Lifetime.c
                 RunLoop.subproj/CFRunLoop.c
                 RunLoop.subproj/CFSocket.c
                 # Stream
