@@ -54,11 +54,7 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     private var __cfObject: CFType?
     private var _cfObject: CFType {
         guard let obj = __cfObject else {
-            #if os(macOS) || os(iOS)
-                let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
-            #else
-                let format = CFISO8601DateFormatOptions(self.formatOptions.rawValue)
-            #endif
+            let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
             let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)!
             CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
             __cfObject = obj
@@ -137,17 +133,10 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     }
     
     open class func string(from date: Date, timeZone: TimeZone, formatOptions: ISO8601DateFormatter.Options = []) -> String {
-        
-        #if os(macOS) || os(iOS)
-            let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
-        #else
-            let format = CFISO8601DateFormatOptions(formatOptions.rawValue)
-        #endif
-        
+        let format = CFISO8601DateFormatOptions(rawValue: formatOptions.rawValue)
         let obj = CFDateFormatterCreateISO8601Formatter(kCFAllocatorSystemDefault, format)
         CFDateFormatterSetProperty(obj, kCFDateFormatterTimeZone, timeZone._cfObject)
         return CFDateFormatterCreateStringWithDate(kCFAllocatorSystemDefault, obj, date._cfObject)._swiftObject
-        
     }
     
     private func _reset() {

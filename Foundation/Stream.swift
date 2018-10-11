@@ -9,13 +9,11 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
 internal extension UInt {
     init(_ status: CFStreamStatus) {
         self.init(status.rawValue)
     }
 }
-#endif
 
 extension Stream {
     public struct PropertyKey : RawRepresentable, Equatable, Hashable {

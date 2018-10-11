@@ -9,15 +9,13 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
-    internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
-    internal let kCFRunLoopBeforeSources = CFRunLoopActivity.beforeSources.rawValue
-    internal let kCFRunLoopBeforeWaiting = CFRunLoopActivity.beforeWaiting.rawValue
-    internal let kCFRunLoopAfterWaiting = CFRunLoopActivity.afterWaiting.rawValue
-    internal let kCFRunLoopExit = CFRunLoopActivity.exit.rawValue
-    internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
-#endif
+internal let kCFRunLoopEntry = CFRunLoopActivity.entry.rawValue
+internal let kCFRunLoopBeforeTimers = CFRunLoopActivity.beforeTimers.rawValue
+internal let kCFRunLoopBeforeSources = CFRunLoopActivity.beforeSources.rawValue
+internal let kCFRunLoopBeforeWaiting = CFRunLoopActivity.beforeWaiting.rawValue
+internal let kCFRunLoopAfterWaiting = CFRunLoopActivity.afterWaiting.rawValue
+internal let kCFRunLoopExit = CFRunLoopActivity.exit.rawValue
+internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 
 extension RunLoop {
     public struct Mode : RawRepresentable, Equatable, Hashable {

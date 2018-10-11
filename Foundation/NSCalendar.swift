@@ -9,7 +9,6 @@
 
 import CoreFoundation
 
-#if canImport(ObjectiveC) // automatic CF_OPTIONS(…) OptionSet hoisting depends on the objc_fixed_enum attribute
 internal let kCFCalendarUnitEra = CFCalendarUnit.era
 internal let kCFCalendarUnitYear = CFCalendarUnit.year
 internal let kCFCalendarUnitMonth = CFCalendarUnit.month
@@ -34,26 +33,6 @@ internal let kCFDateFormatterShortStyle = CFDateFormatterStyle.shortStyle
 internal let kCFDateFormatterMediumStyle = CFDateFormatterStyle.mediumStyle
 internal let kCFDateFormatterLongStyle = CFDateFormatterStyle.longStyle
 internal let kCFDateFormatterFullStyle = CFDateFormatterStyle.fullStyle
-#else
-internal let kCFCalendarUnitEra = CFCalendarUnit(CoreFoundation.kCFCalendarUnitEra)
-internal let kCFCalendarUnitYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitYear)
-internal let kCFCalendarUnitMonth = CFCalendarUnit(CoreFoundation.kCFCalendarUnitMonth)
-internal let kCFCalendarUnitDay = CFCalendarUnit(CoreFoundation.kCFCalendarUnitDay)
-internal let kCFCalendarUnitHour = CFCalendarUnit(CoreFoundation.kCFCalendarUnitHour)
-internal let kCFCalendarUnitMinute = CFCalendarUnit(CoreFoundation.kCFCalendarUnitMinute)
-internal let kCFCalendarUnitSecond = CFCalendarUnit(CoreFoundation.kCFCalendarUnitSecond)
-internal let kCFCalendarUnitWeekday = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekday)
-internal let kCFCalendarUnitWeekdayOrdinal = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekdayOrdinal)
-internal let kCFCalendarUnitQuarter = CFCalendarUnit(CoreFoundation.kCFCalendarUnitQuarter)
-internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekOfMonth)
-internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekOfYear)
-internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitYearForWeekOfYear)
-internal let kCFCalendarUnitNanosecond = CFCalendarUnit(CoreFoundation.kCFCalendarUnitNanosecond)
-
-internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
-    return unit
-}
-#endif
 
 extension NSCalendar {
     public struct Identifier : RawRepresentable, Equatable, Hashable, Comparable {
@@ -109,11 +88,7 @@ extension NSCalendar {
         public static let timeZone = Unit(rawValue: UInt(1 << 21))
 
         internal var _cfValue: CFCalendarUnit {
-#if os(macOS) || os(iOS)
             return CFCalendarUnit(rawValue: self.rawValue)
-#else
-            return CFCalendarUnit(self.rawValue)
-#endif
         }
     }
 

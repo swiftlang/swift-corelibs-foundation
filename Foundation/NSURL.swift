@@ -10,10 +10,8 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
-#endif
 
 #if canImport(Darwin)
 import Darwin
@@ -524,11 +522,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     open var password: String? {
         let absoluteURL = CFURLCopyAbsoluteURL(_cfObject)
-#if os(Linux) || os(Android) || os(Windows)
-        let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, kCFURLComponentPassword, nil)
-#else
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .password, nil)
-#endif
         guard passwordRange.location != kCFNotFound else {
             return nil
         }

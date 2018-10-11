@@ -10,11 +10,9 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
 internal let kCFCompareLessThan = CFComparisonResult.compareLessThan
 internal let kCFCompareEqualTo = CFComparisonResult.compareEqualTo
 internal let kCFCompareGreaterThan = CFComparisonResult.compareGreaterThan
-#endif
 
 internal enum _NSSimpleObjCType : UnicodeScalar {
     case ID = "@"
