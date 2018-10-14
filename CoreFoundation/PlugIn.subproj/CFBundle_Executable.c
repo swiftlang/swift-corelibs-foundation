@@ -15,7 +15,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     #define _CFBundleFHSExecutablesDirectorySuffix CFSTR(".executables")
     #define _CFBundleFHSDirectoryCLiteral_libexec "libexec"
 
@@ -108,7 +108,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
     
 #if !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES || FHS_BUNDLES */
     
-#if defined(DEBUG) && DEPLOYMENT_TARGET_WINDOWS
+#if defined(DEBUG) && TARGET_OS_WINDOWS
     CFStringRef executableDebugSuffix = _CFBundleFilenameDebugSuffix;
 #else
     CFStringRef executableDebugSuffix = CFSTR("");
@@ -128,7 +128,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
         CFRelease(sharedLibraryName);
     }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
     if (!executableURL) {
         // Try finding the executable using executable prefix/suffix.
         CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@%@"), _CFBundleExecutableFilenamePrefix, exeName, executableDebugSuffix, _CFBundleExecutableFilenameSuffix);
@@ -142,7 +142,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
         
         CFRelease(executableName);
     }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WINDOWS */
 
 #endif /* FREESTANDING_BUNDLES || FHS_BUNDLES */
     
@@ -184,7 +184,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             Boolean doExecSearch = true;
 #endif
             
-#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
             if (bundle && bundle->_isFHSInstalledBundle) {
                 
                 if (lookupMainExe) {
@@ -269,7 +269,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     executableURL = _CFBundleCopyExecutableURLRaw(url, executableName);
                 }
                     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
                 // Windows only: If we still haven't found the exe, look in the Executables folder.
                 // But only for the main bundle exe
                 if (lookupMainExe && !executableURL) {
@@ -277,9 +277,9 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     executableURL = _CFBundleCopyExecutableURLRaw(exeDirURL, executableName);
                     CFRelease(exeDirURL);
                 }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WINDOWS */
 
-#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
             }
 #endif /* FHS_BUNDLES */
             
@@ -342,7 +342,7 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
     
     CFURLRef url = NULL;
     
-#if !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     // TODO: FHS Bundles reverse lookup pending to be implemented.
 #endif /* FHS_BUNDLES */
     
@@ -360,21 +360,21 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
                                                                                   _CFBundleSharedLibraryFilenameSuffix);
         }
         
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
         // Check if the executable has executable-style prefix/suffix (CF.exe).
         if (!bundleName) {
             bundleName = _CFBundleCopyNameByRemovingExcutablePlatformPrefixSuffix(executableName,
                                                                                   _CFBundleExecutableFilenamePrefix,
                                                                                   _CFBundleExecutableFilenameSuffix);
         }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WINDOWS */
         
         // Otherwise, use the executable name as bundle name (CF).
         if (!bundleName) {
             bundleName = CFStringCreateCopy(kCFAllocatorSystemDefault, executableName);
         }
         
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
         // Windows: If this is a debug executable, strip the _debug suffix to find the bundle name.
         if (bundleName) {
             CFStringRef strippedName = _CFBundleCopyNameByRemovingExcutablePlatformPrefixSuffix(bundleName,
@@ -386,7 +386,7 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
                 CFRelease(strippedName);
             }
         }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WINDOWS */
         
         // Find the sibling `.resources` directory (CF.resources).
         CFURLRef parentDirectory = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, executableURL);
@@ -478,7 +478,7 @@ static CFURLRef _CFBundleCopyResolvedURLForExecutableURL(CFURLRef url) {
             str1 = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, buff, len1);
             CFIndex skipSlashCount = 1;
             
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
             // On Windows, _CFLengthAfterDeletingLastPathComponent will return a value of 3 if the path is at the root (e.g. C:\). This includes the \, which is not the case for URLs with subdirectories
             if (len1 == 3 && buff[1] == ':' && buff[2] == '\\') {
                 skipSlashCount = 0;

@@ -33,18 +33,18 @@ CF_EXTERN_C_BEGIN
 // Freestanding bundles are not supported with the Objective-C Runtime.
 // !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES */
 
-// FHS bundles are not supported on Windows and Android or with the Objective-C Runtime.
-// !(DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+// FHS bundles are not supported with the Objective-C Runtime nor on Windows or Android.
+// !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
 
 #if !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES || FHS_BUNDLES */
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".so")
-#elif TARGET_OS_MAC
+#elif TARGET_OS_DARWIN
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dylib")
-#elif TARGET_OS_WIN32
+#elif TARGET_OS_WINDOWS
     #define _CFBundleSharedLibraryFilenamePrefix CFSTR("")
     #define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dll")
     #define _CFBundleExecutableFilenamePrefix CFSTR("")
