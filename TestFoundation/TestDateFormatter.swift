@@ -24,6 +24,8 @@ class TestDateFormatter: XCTestCase {
             ("test_dateFormatString", test_dateFormatString),
             ("test_setLocaleToNil", test_setLocaleToNil),
             ("test_setTimeZoneToNil", test_setTimeZoneToNil),
+            ("test_setTimeZone", test_setTimeZone),
+            ("test_expectedTimeZone", test_expectedTimeZone),
         ]
     }
     
@@ -355,5 +357,56 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = nil
         // Time zone should go back to the system one.
         XCTAssertEqual(f.timeZone, NSTimeZone.system)
+    }
+
+    func test_setTimeZone() {
+        // Test two different time zones. Should ensure that if one
+        // happens to be TimeZone.current, we still get a valid test.
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        // Case 1: New York
+        let f = DateFormatter()
+        f.timeZone = newYork
+        XCTAssertEqual(f.timeZone, newYork)
+
+        // Case 2: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.timeZone, losAngeles)
+    }
+
+    func test_expectedTimeZone() {
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        let now = Date()
+
+        let f = DateFormatter()
+        f.dateFormat = "z"
+        f.locale = Locale(identifier: "en_US_POSIX")
+
+        // Case 1: TimeZone.current
+        // This case can catch some issues that cause TimeZone.current to be
+        // treated like GMT, but it doesn't work if TimeZone.current is GMT.
+        // If you do find an issue like this caused by this first case,
+        // it would benefit from a more specific test that fails when
+        // TimeZone.current is GMT as well.
+        // (ex. TestTimeZone.test_systemTimeZoneName)
+
+// Disabled because of: https://bugs.swift.org/browse/SR-8994
+//        f.timeZone = TimeZone.current
+//        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
+
+        // Case 2: New York
+        f.timeZone = newYork
+        XCTAssertEqual(f.string(from: now), newYork.abbreviation())
+
+        // Case 3: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.string(from: now), losAngeles.abbreviation())
     }
 }
