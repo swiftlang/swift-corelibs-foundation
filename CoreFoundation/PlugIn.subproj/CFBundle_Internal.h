@@ -92,7 +92,7 @@ struct __CFBundle {
     
     CFURLRef _url;
     
-#if !(TARGET_OS_WIN32 || TARGET_OS_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     Boolean _isFHSInstalledBundle;
 #endif
     

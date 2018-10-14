@@ -135,7 +135,7 @@ static void _CFBundleEnsureBundlesExistForImagePaths(CFArrayRef imagePaths);
 
 #pragma mark -
 
-#if !(TARGET_OS_WIN32 || TARGET_OS_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
 
 // Functions and constants for FHS bundles:
 #define _CFBundleFHSDirectory_share CFSTR("share")
@@ -163,7 +163,7 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
 #endif /* FHS_BUNDLES */
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
-#if !(TARGET_OS_WIN32 || TARGET_OS_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     return true;
 #else
     return false;
@@ -726,7 +726,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
 
     bundle->_url = newURL;
     
-#if !(TARGET_OS_WIN32 || TARGET_OS_ANDROID || DEPLOYMENT_RUNTIME_OBJC) /* FHS_BUNDLES */
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     bundle->_isFHSInstalledBundle = _CFBundleURLIsForFHSInstalledBundle(newURL);
 #endif /* FHS_BUNDLES */
 
