@@ -1,7 +1,7 @@
 /*	CFString.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -152,38 +152,46 @@ since it is the default choice with Mac OS X developer tools.
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
+
+#if TARGET_OS_MAC
+#define _CF_CONSTANT_STRING_SWIFT_CLASS $s15SwiftFoundation19_NSCFConstantStringCN
+#else
+#define _CF_CONSTANT_STRING_SWIFT_CLASS $s10Foundation19_NSCFConstantStringCN
+#endif
+
+CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
+
 struct __CFConstStr {
     struct {
         uintptr_t _cfisa;
-        uint32_t _swift_strong_rc;
-        uint32_t _swift_weak_rc;
+        uintptr_t _swift_rc;
         uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
 #if defined(__LP64__) && defined(__BIG_ENDIAN__)
     uint64_t _length;
-#else
+#else // 32-bit:
     uint32_t _length;
-#endif
+#endif // defined(__LP64__) || defined(__LLP64__)
 };
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define CONST_STRING_LITERAL_SECTION __attribute__((section(".cfstrlit.data")))
 #else
 #define CONST_STRING_LITERAL_SECTION
-#endif
+#endif // TARGET_OS_LINUX
 
 #if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
-#else
+#else // Little endian:
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
-#endif
+#endif // __BIG_ENDIAN__
 
 #else
 

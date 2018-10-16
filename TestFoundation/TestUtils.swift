@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 func ensureFiles(_ fileNames: [String]) -> Bool {
     var result = true
     let fm = FileManager.default
@@ -26,8 +18,8 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         if name.hasSuffix("/") {
             do {
                 try fm.createDirectory(atPath: name, withIntermediateDirectories: true, attributes: nil)
-            } catch let err {
-                print(err)
+            } catch {
+                print(error)
                 return false
             }
         } else {
@@ -37,8 +29,8 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
             if !fm.fileExists(atPath: dir, isDirectory: &isDir) {
                 do {
                     try fm.createDirectory(atPath: dir, withIntermediateDirectories: true, attributes: nil)
-                } catch let err {
-                    print(err)
+                } catch {
+                    print(error)
                     return false
                 }
             } else if !isDir.boolValue {
@@ -49,4 +41,17 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
         }
     }
     return result
+}
+
+func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(template)
+
+    try url.withUnsafeFileSystemRepresentation {
+        switch mkstemp(UnsafeMutablePointer(mutating: $0!)) {
+        case -1: XCTFail("Could not create temporary file")
+        case let fd:
+            defer { url.withUnsafeFileSystemRepresentation { _ = unlink($0!) } }
+            try body(FileHandle(fileDescriptor: fd, closeOnDealloc: true))
+        }
+    }
 }

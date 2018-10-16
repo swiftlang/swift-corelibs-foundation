@@ -7,20 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
 class TestRunLoop : XCTestCase {
     static var allTests : [(String, (TestRunLoop) -> () throws -> Void)] {
         return [
             ("test_constants", test_constants),
             ("test_runLoopInit", test_runLoopInit),
+            ("test_commonModes", test_commonModes),
             // these tests do not work the same as Darwin https://bugs.swift.org/browse/SR-399
 //            ("test_runLoopRunMode", test_runLoopRunMode),
 //            ("test_runLoopLimitDate", test_runLoopLimitDate),
@@ -37,9 +29,7 @@ class TestRunLoop : XCTestCase {
     
     func test_runLoopInit() {
         let mainRunLoop = RunLoop.main
-        XCTAssertNotNil(mainRunLoop)
         let currentRunLoop = RunLoop.current
-        XCTAssertNotNil(currentRunLoop)
 
         let secondAccessOfMainLoop = RunLoop.main
         XCTAssertEqual(mainRunLoop, secondAccessOfMainLoop, "fetching the main loop a second time should be equal")
@@ -89,5 +79,17 @@ class TestRunLoop : XCTestCase {
         }
         
         XCTAssertLessThan(abs(timerTickInterval - expectedTimeInterval), 0.01)
+    }
+    
+    func test_commonModes() {
+        let runLoop = RunLoop.current
+        let done = expectation(description: "The timer has fired")
+        let timer = Timer(timeInterval: 1, repeats: false) { (_) in
+            done.fulfill()
+        }
+        
+        runLoop.add(timer, forMode: .commonModes)
+        
+        waitForExpectations(timeout: 10)
     }
 }

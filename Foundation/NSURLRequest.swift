@@ -139,10 +139,17 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     }
     
     private func setValues(from source: NSURLRequest) {
-        self.allHTTPHeaderFields = source.allHTTPHeaderFields
         self.url = source.url
         self.mainDocumentURL = source.mainDocumentURL
+        self.cachePolicy = source.cachePolicy
+        self.timeoutInterval = source.timeoutInterval
         self.httpMethod = source.httpMethod
+        self.allHTTPHeaderFields = source.allHTTPHeaderFields
+        self._body = source._body
+        self.networkServiceType = source.networkServiceType
+        self.allowsCellularAccess = source.allowsCellularAccess
+        self.httpShouldHandleCookies = source.httpShouldHandleCookies
+        self.httpShouldUsePipelining = source.httpShouldUsePipelining
     }
     
     open override func mutableCopy() -> Any {
@@ -252,7 +259,18 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
                 && other.allowsCellularAccess == self.allowsCellularAccess
                 && other.httpShouldHandleCookies == self.httpShouldHandleCookies)
     }
-    
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(url)
+        hasher.combine(mainDocumentURL)
+        hasher.combine(httpMethod)
+        hasher.combine(httpBodyStream)
+        hasher.combine(allowsCellularAccess)
+        hasher.combine(httpShouldHandleCookies)
+        return hasher.finalize()
+    }
+
     /// Indicates that NSURLRequest implements the NSSecureCoding protocol.
     open class  var supportsSecureCoding: Bool { return true }
     
@@ -320,7 +338,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
             switch body {
             case .data(let data):
                 return data
-            case .stream(_):
+            case .stream:
                 return nil
             }
         }
@@ -330,7 +348,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     open var httpBodyStream: InputStream? {
         if let body = _body {
             switch body {
-            case .data(_):
+            case .data:
                 return nil
             case .stream(let stream):
                 return stream
@@ -447,11 +465,13 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func setValue(_ value: String?, forHTTPHeaderField field: String) {
+        // Store the field name capitalized to match native Foundation
+        let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
-        if let old = existingHeaderField(field, inHeaderFields: f) {
+        if let old = existingHeaderField(capitalizedFieldName, inHeaderFields: f) {
             f.removeValue(forKey: old.0)
         }
-        f[field] = value
+        f[capitalizedFieldName] = value
         allHTTPHeaderFields = f
     }
     
@@ -467,11 +487,13 @@ open class NSMutableURLRequest : NSURLRequest {
     /// - Parameter value: the header field value.
     /// - Parameter field: the header field name (case-insensitive).
     open func addValue(_ value: String, forHTTPHeaderField field: String) {
+        // Store the field name capitalized to match native Foundation
+        let capitalizedFieldName = field.capitalized
         var f: [String : String] = allHTTPHeaderFields ?? [:]
-        if let old = existingHeaderField(field, inHeaderFields: f) {
+        if let old = existingHeaderField(capitalizedFieldName, inHeaderFields: f) {
             f[old.0] = old.1 + "," + value
         } else {
-            f[field] = value
+            f[capitalizedFieldName] = value
         }
         allHTTPHeaderFields = f
     }
@@ -482,7 +504,7 @@ open class NSMutableURLRequest : NSURLRequest {
                 switch body {
                 case .data(let data):
                     return data
-                case .stream(_):
+                case .stream:
                     return nil
                 }
             }
@@ -501,7 +523,7 @@ open class NSMutableURLRequest : NSURLRequest {
         get {
             if let body = _body {
                 switch body {
-                case .data(_):
+                case .data:
                     return nil
                 case .stream(let stream):
                     return stream

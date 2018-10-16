@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestMassFormatter: XCTestCase {
     let formatter: MassFormatter = MassFormatter()
     
@@ -59,23 +51,23 @@ class TestMassFormatter: XCTestCase {
     }
     
     func test_stringFromValue() {
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: MassFormatter.Unit.kilogram),"0.002 kilograms")
-        XCTAssertEqual(formatter.string(fromValue: 0, unit:MassFormatter.Unit.stone), "0 stones")
-        XCTAssertEqual(formatter.string(fromValue: 1, unit:MassFormatter.Unit.stone), "1 stone")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: MassFormatter.Unit.stone), "2 stones, 5.6 pounds")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: .kilogram),"0.002 kilograms")
+        XCTAssertEqual(formatter.string(fromValue: 0, unit: .stone), "0 stones")
+        XCTAssertEqual(formatter.string(fromValue: 1, unit: .stone), "1 stone")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: .stone), "2 stones, 5.6 pounds")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit:MassFormatter.Unit.kilogram), "0kg")
-        XCTAssertEqual(formatter.string(fromValue: 6, unit:MassFormatter.Unit.pound), "6#")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: MassFormatter.Unit.stone), "2st 5.6#")
-        XCTAssertEqual(formatter.string(fromValue: 123456, unit: MassFormatter.Unit.stone), "123,456st")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .kilogram), "0kg")
+        XCTAssertEqual(formatter.string(fromValue: 6, unit: .pound), "6#")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: .stone), "2st 5.6#")
+        XCTAssertEqual(formatter.string(fromValue: 123456, unit: .stone), "123,456st")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit:MassFormatter.Unit.kilogram), "0 kg")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: MassFormatter.Unit.stone), "2 st, 5.6 lb")
-        XCTAssertEqual(formatter.string(fromValue: 2.0, unit: MassFormatter.Unit.stone), "2 st")
-        XCTAssertEqual(formatter.string(fromValue: 123456.78, unit: MassFormatter.Unit.stone), "123,456 st, 10.92 lb")
+        formatter.unitStyle = .medium
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .kilogram), "0 kg")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: .stone), "2 st, 5.6 lb")
+        XCTAssertEqual(formatter.string(fromValue: 2.0, unit: .stone), "2 st")
+        XCTAssertEqual(formatter.string(fromValue: 123456.78, unit: .stone), "123,456 st, 10.92 lb")
     }
     
 	func test_unitStringFromKilograms() {
@@ -83,58 +75,58 @@ class TestMassFormatter: XCTestCase {
         
         // imperial
         XCTAssertEqual(formatter.unitString(fromKilograms: -100000, usedUnit: &unit), "lb")
-        XCTAssertEqual(unit, MassFormatter.Unit.pound)
+        XCTAssertEqual(unit, .pound)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0, usedUnit: &unit), "lb")
-        XCTAssertEqual(unit, MassFormatter.Unit.pound)
+        XCTAssertEqual(unit, .pound)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0.0001, usedUnit: &unit), "oz")
-        XCTAssertEqual(unit, MassFormatter.Unit.ounce)
+        XCTAssertEqual(unit, .ounce)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0.4535, usedUnit: &unit), "oz")
-        XCTAssertEqual(unit, MassFormatter.Unit.ounce)
+        XCTAssertEqual(unit, .ounce)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0.4536, usedUnit: &unit), "lb")
-        XCTAssertEqual(unit, MassFormatter.Unit.pound)
+        XCTAssertEqual(unit, .pound)
         
         // metric
         formatter.numberFormatter.locale = Locale(identifier: "de_DE")
         XCTAssertEqual(formatter.unitString(fromKilograms: -100000, usedUnit: &unit), "kg")
-        XCTAssertEqual(unit, MassFormatter.Unit.kilogram)
+        XCTAssertEqual(unit, .kilogram)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0, usedUnit: &unit), "kg")
-        XCTAssertEqual(unit, MassFormatter.Unit.kilogram)
+        XCTAssertEqual(unit, .kilogram)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 0.0001, usedUnit: &unit), "g")
-        XCTAssertEqual(unit, MassFormatter.Unit.gram)
+        XCTAssertEqual(unit, .gram)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 1.000, usedUnit: &unit), "g")
-        XCTAssertEqual(unit, MassFormatter.Unit.gram)
+        XCTAssertEqual(unit, .gram)
         
         XCTAssertEqual(formatter.unitString(fromKilograms: 1.001, usedUnit: &unit), "kg")
-        XCTAssertEqual(unit, MassFormatter.Unit.kilogram)
+        XCTAssertEqual(unit, .kilogram)
     }
     
     func test_unitStringFromValue() {
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: MassFormatter.Unit.kilogram), "kilograms")
-        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: MassFormatter.Unit.gram), "grams")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: MassFormatter.Unit.pound), "pounds")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.ounce), "ounces")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.stone), "stone")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: .kilogram), "kilograms")
+        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: .gram), "grams")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: .pound), "pounds")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .ounce), "ounces")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .stone), "stone")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
-        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: MassFormatter.Unit.kilogram), "kg")
-        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: MassFormatter.Unit.gram), "g")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: MassFormatter.Unit.pound), "lb")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.ounce), "oz")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.stone), "st")
+        formatter.unitStyle = .medium
+        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: .kilogram), "kg")
+        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: .gram), "g")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: .pound), "lb")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .ounce), "oz")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .stone), "st")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: MassFormatter.Unit.kilogram), "kg")
-        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: MassFormatter.Unit.gram), "g")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: MassFormatter.Unit.pound), "lb")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.ounce), "oz")
-        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: MassFormatter.Unit.stone), "st")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: .kilogram), "kg")
+        XCTAssertEqual(formatter.unitString(fromValue: 0.100, unit: .gram), "g")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.000, unit: .pound), "lb")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .ounce), "oz")
+        XCTAssertEqual(formatter.unitString(fromValue: 2.002, unit: .stone), "st")
     }
 }

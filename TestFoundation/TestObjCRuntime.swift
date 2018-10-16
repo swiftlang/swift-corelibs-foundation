@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class SwiftClass {
     class InnerClass {}
 }
@@ -32,8 +24,9 @@ class TestObjCRuntime: XCTestCase {
     }
 
     func testStringFromClass() {
+        let name = testBundleName()
         XCTAssertEqual(NSStringFromClass(NSObject.self), "NSObject")
-        XCTAssertEqual(NSStringFromClass(SwiftClass.self), "TestFoundation.SwiftClass")
+        XCTAssertEqual(NSStringFromClass(SwiftClass.self), "\(name).SwiftClass")
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
         XCTAssertEqual(NSStringFromClass(XCTestCase.self), "XCTest.XCTestCase");
 #else
@@ -42,9 +35,10 @@ class TestObjCRuntime: XCTestCase {
     }
 
     func testClassFromString() {
+        let name = testBundleName()
         XCTAssertNotNil(NSClassFromString("NSObject"))
-        XCTAssertNotNil(NSClassFromString("TestFoundation.SwiftClass"))
-        XCTAssertNil(NSClassFromString("TestFoundation.SwiftClass.InnerClass"))
+        XCTAssertNotNil(NSClassFromString("\(name).SwiftClass"))
+        XCTAssertNil(NSClassFromString("\(name).SwiftClass.InnerClass"))
         XCTAssertNil(NSClassFromString("SwiftClass"))
         XCTAssertNil(NSClassFromString("MadeUpClassName"))
         XCTAssertNil(NSClassFromString("SwiftStruct"));

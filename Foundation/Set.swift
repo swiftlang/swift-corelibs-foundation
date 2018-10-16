@@ -9,13 +9,13 @@
 
 import CoreFoundation
 
-extension Set : _ObjectTypeBridgeable {
+extension Set : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSSet
     public func _bridgeToObjectiveC() -> _ObjectType {
         let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: count)
         
         for (idx, obj) in enumerated() {
-            buffer.advanced(by: idx).initialize(to: (obj as! _ObjectBridgeable)._bridgeToAnyObject())
+            buffer.advanced(by: idx).initialize(to: obj as AnyObject)
         }
         
         let set = NSSet(objects: buffer, count: count)
@@ -41,7 +41,7 @@ extension Set : _ObjectTypeBridgeable {
                     set.insert(o)
                 } else {
                     // here obj must be a swift type
-                    if let nsObject = _SwiftValue.store(obj) as? Element {
+                    if let nsObject = __SwiftValue.store(obj) as? Element {
                         set.insert(nsObject)
                     } else {
                         failedConversion = true

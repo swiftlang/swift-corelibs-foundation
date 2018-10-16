@@ -1,7 +1,7 @@
 /*	CFMachPort.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -19,7 +19,8 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include "CFInternal.h"
-#include <os/lock.h>
+#include "CFRuntime_Internal.h"
+#include "CFMachPort_Lifetime.h"
 
 
 // This queue is used for the cancel/event handler for dead name notification.
@@ -28,168 +29,9 @@ static dispatch_queue_t _CFMachPortQueue() {
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         dispatch_queue_attr_t dqattr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_BACKGROUND, 0);
-        __CFMachPortQueue = dispatch_queue_create("com.apple.CFMachPort", dispatch_queue_attr_make_with_overcommit(dqattr, true));
+        __CFMachPortQueue = dispatch_queue_create("com.apple.CFMachPort", dqattr);
     });
     return __CFMachPortQueue;
-}
-
-// NOTE: all _cfmp_ prefixed state/functions exist to orchestrate the exact time/circumstances we want to call _cfmp_mod_refs.
-CF_INLINE void _cfmp_mod_refs(const mach_port_t port, const Boolean doSend, const Boolean doReceive) {
-    // MUST deallocate the send right FIRST if necessary,
-    // then the receive right if necessary.  Don't ask me why;
-    // if it's done in the other order the port will leak.
-    if (doSend) {
-        mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, -1);
-    }
-    if (doReceive) {
-        mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_RECEIVE, -1);
-    }
-}
-
-// Records information relevant for cleaning up after a given mach port. It has states:
-//   port & invalidated         -- dispatch_source invalidated, but _CFMachPortDeallocate has yet to be called
-//   port & doSend & doReceive  -- _CFMachPortDeallocate has been called, but dispatch_source not yet invalidate
-typedef struct {
-    mach_port_t port;
-    uint8_t doSend:1;
-    uint8_t doReceive:1;
-    uint8_t invalidated:1; // flag to indicate that the source has already been invalidated and the port can be cleaned up inline during deallocation
-    uint8_t unused:5;
-} _cfmp_deallocation_record;
-// Various CFSet callbacks for _cfmp_deallocation_record
-Boolean _cfmp_equal(const void *value1, const void *value2) {
-    Boolean equal = false;
-    if (value1 && value2) {
-        if (value1 == value2) {
-            equal = true;
-        } else {
-            const _cfmp_deallocation_record R1 = *(_cfmp_deallocation_record *)value1;
-            const _cfmp_deallocation_record R2 = *(_cfmp_deallocation_record *)value2;
-            equal = R1.port == R2.port;
-        }
-    }
-    return equal;
-}
-CFHashCode _cfmp_hash(const void *value) {
-    CFHashCode hash = 0;
-    if (value) {
-        const _cfmp_deallocation_record R = *(_cfmp_deallocation_record *)value;
-        hash = _CFHashInt(R.port);
-    }
-    return hash;
-}
-void _cfmp_deallocation_record_release(CFAllocatorRef allocator, const void *value) {
-    free((_cfmp_deallocation_record *)value);
-}
-CFStringRef _cfmp_copy_description(const void *value) {
-    CFStringRef s = CFSTR("{null}");
-    if (value) {
-        const _cfmp_deallocation_record R = *(_cfmp_deallocation_record *)value;
-        s = CFStringCreateWithFormat(NULL, NULL, CFSTR("{p:%d,s:%d,r:%d,i:%d}"), R.port, R.doSend, R.doReceive, R.invalidated);
-    }
-    return s;
-}
-CF_BREAKPOINT_FUNCTION(void _CFMachPortDeallocationFailure(void));
-void _cfmp_log_failure(const char *const msg, _cfmp_deallocation_record *pr) {
-    if (pr) {
-        const _cfmp_deallocation_record R = *pr;
-        os_log(OS_LOG_DEFAULT, "*** %{public}s break on '_CFMachPortDeallocationFailure' to debug: {p:%{private}d,s:%d,r:%d,i:%d}", msg, R.port, R.doSend, R.doReceive, R.invalidated);
-    }
-    else {
-        os_log(OS_LOG_DEFAULT, "*** %{public}s break on  '_CFMachPortDeallocationFailure' to debug: {null}", msg);
-    }
-    _CFMachPortDeallocationFailure();
-}
-
-// all pending deallocates are recording in this global set, if there are every
-static os_unfair_lock _cfmp_records_lock = OS_UNFAIR_LOCK_INIT;
-CF_INLINE CFMutableSetRef _cfmp_records()  { // mutations of result GuardedBy(_cfmp_records_lock)
-    static CFSetCallBacks oCallbacks;
-    static CFMutableSetRef oRecords;
-    static dispatch_once_t oGuard;
-    dispatch_once(&oGuard, ^{
-        oCallbacks.hash = _cfmp_hash;
-        oCallbacks.equal = _cfmp_equal;
-        oCallbacks.release = _cfmp_deallocation_record_release;
-        oCallbacks.copyDescription = _cfmp_copy_description;
-        oRecords = CFSetCreateMutable(NULL, 16, &oCallbacks);
-    });
-    return oRecords;
-};
-CF_INLINE _cfmp_deallocation_record *_cfmp_find_record_for_port(CFSetRef records, const mach_port_t port) {
-    _cfmp_deallocation_record lookup = {.port = port};
-    _cfmp_deallocation_record *pr = (_cfmp_deallocation_record *)CFSetGetValue(records, &lookup);
-    return pr;
-}
-CF_INLINE void _cfmp_record_deallocation(const mach_port_t port, const Boolean doSend, const Boolean doReceive) {
-    if (port == MACH_PORT_NULL) { return; }
-    if (doSend == false && doReceive == false) { return; }
-
-    // now that we know we're not a no-op, look for an existing deallocation record
-    CFMutableSetRef records = _cfmp_records();
-    Boolean cleanupNow = false;
-    _cfmp_deallocation_record R;
-
-    os_unfair_lock_lock(&_cfmp_records_lock);
-    _cfmp_deallocation_record *pr = _cfmp_find_record_for_port(records, port);
-    if (pr) {
-        // if we have a pr it means we're expecting invalidation.  which has either happened or not.  if not, record doSend/Receive for later, otherwise get ready to handle it.
-        R = *(_cfmp_deallocation_record *)pr;
-        if (R.invalidated) {
-            cleanupNow = true;
-            R.port = port;
-            R.doSend = doSend;
-            R.doReceive = doReceive;
-            CFSetRemoveValue(records, pr);
-        } else {
-            pr->doSend = doSend;
-            pr->doReceive = doReceive;
-        }
-    } else  {
-        cleanupNow = true;
-        R.port = port;
-        R.doSend = doSend;
-        R.doReceive = doReceive;
-    }
-    os_unfair_lock_unlock(&_cfmp_records_lock);
-
-    if (cleanupNow) {
-        _cfmp_mod_refs(R.port, R.doSend, R.doReceive);
-    }
-}
-CF_INLINE void _cfmp_record_intent_to_invalidate(const mach_port_t port) {
-    CFMutableSetRef records = _cfmp_records();
-    _cfmp_deallocation_record *pr = calloc(1, sizeof(_cfmp_deallocation_record));
-    if (pr) {
-        pr->port = port;
-        os_unfair_lock_lock(&_cfmp_records_lock);
-        CFSetAddValue(records, pr);
-        os_unfair_lock_unlock(&_cfmp_records_lock);
-    }
-}
-CF_INLINE void _cfmp_source_invalidated(mach_port_t port) {
-    Boolean cleanupNow = false;
-    _cfmp_deallocation_record R;
-    
-    CFMutableSetRef records = _cfmp_records();
-    os_unfair_lock_lock(&_cfmp_records_lock);
-    _cfmp_deallocation_record *pr = _cfmp_find_record_for_port(records, port);
-    if (pr) {
-        R = *(_cfmp_deallocation_record *)pr;
-        if (!R.invalidated) {
-            cleanupNow = true;
-            CFSetRemoveValue(records, pr);            
-        } else {
-            _cfmp_log_failure("already invalidated", pr);
-        }
-    } else {
-        _cfmp_log_failure("not expecting invalidation", pr);
-    }
-    os_unfair_lock_unlock(&_cfmp_records_lock);
-    
-    if (cleanupNow) {
-        _cfmp_mod_refs(R.port, R.doSend, R.doReceive);
-    }
 }
 
 enum {
@@ -323,7 +165,7 @@ static void __CFMachPortDeallocate(CFTypeRef cf) {
     const Boolean doSend = __CFMachPortHasSend(mp), doReceive = __CFMachPortHasReceive(mp);
     __CFUnlock(&mp->_lock);
     
-    _cfmp_record_deallocation(port, doSend, doReceive);
+    _cfmp_record_deallocation(_CFMPLifetimeClientCFMachPort, port, doSend, doReceive);
     
 }
 
@@ -338,6 +180,9 @@ static Boolean __CFMachPortCheck(mach_port_t port) {
     kern_return_t ret = mach_port_type(mach_task_self(), port, &type);
     return (KERN_SUCCESS != ret || (0 == (type & MACH_PORT_TYPE_PORT_RIGHTS))) ? false : true;
 }
+
+// This function exists regardless of platform, but is only declared in headers for legacy clients.
+CF_EXPORT CFIndex CFGetRetainCount(CFTypeRef object);
 
 static void __CFMachPortChecker(Boolean fromTimer) {
     __CFLock(&__CFAllMachPortsLock); // take this lock first before any instance-specific lock
@@ -385,9 +230,7 @@ static void __CFMachPortChecker(Boolean fromTimer) {
 };
 
 
-static CFTypeID __kCFMachPortTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFMachPortClass = {
+const CFRuntimeClass __CFMachPortClass = {
     0,
     "CFMachPort",
     NULL,      // init
@@ -400,9 +243,7 @@ static const CFRuntimeClass __CFMachPortClass = {
 };
 
 CFTypeID CFMachPortGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFMachPortTypeID = _CFRuntimeRegisterClass(&__CFMachPortClass); });
-    return __kCFMachPortTypeID;
+    return _kCFRuntimeIDCFMachPort;
 }
 
 /* Note: any receive or send rights that the port contains coming in will
@@ -421,18 +262,6 @@ CFMachPortRef _CFMachPortCreateWithPort2(CFAllocatorRef allocator, mach_port_t p
         }
         return NULL;
     }
-
-#if 0
-    static dispatch_source_t timerSource = NULL;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        timerSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_INTERVAL, 60 * 1000 /* milliseconds */, 0, _CFMachPortQueue());
-        dispatch_source_set_event_handler(timerSource, ^{
-            __CFMachPortChecker(true);
-        });
-        dispatch_resume(timerSource);
-    });
-#endif
 
     CFMachPortRef mp = NULL;
     __CFLock(&__CFAllMachPortsLock);
@@ -481,11 +310,11 @@ CFMachPortRef _CFMachPortCreateWithPort2(CFAllocatorRef allocator, mach_port_t p
         if (shouldFreeInfo) *shouldFreeInfo = false;
 
         if (type & MACH_PORT_TYPE_SEND_RIGHTS) {
-            _cfmp_record_intent_to_invalidate(port);
+            _cfmp_record_intent_to_invalidate(_CFMPLifetimeClientCFMachPort, port);
             dispatch_source_t theSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_MACH_SEND, port, DISPATCH_MACH_SEND_DEAD, _CFMachPortQueue());
 	    if (theSource) {
                 dispatch_source_set_cancel_handler(theSource, ^{
-                    _cfmp_source_invalidated(port);
+                    _cfmp_source_invalidated(_CFMPLifetimeClientCFMachPort, port);
                     dispatch_release(theSource);
                 });
                 dispatch_source_set_event_handler(theSource, ^{ __CFMachPortChecker(false); });
@@ -515,12 +344,19 @@ CFMachPortRef CFMachPortCreate(CFAllocatorRef allocator, CFMachPortCallBack call
         ret = mach_port_insert_right(mach_task_self(), port, port, MACH_MSG_TYPE_MAKE_SEND);
     }
     if (KERN_SUCCESS != ret) {
-        if (MACH_PORT_NULL != port) mach_port_destroy(mach_task_self(), port);
+        if (MACH_PORT_NULL != port) {
+            // inserting the send right failed, so only decrement the receive
+            mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_RECEIVE, -1);
+        }
         return NULL;
     }
     CFMachPortRef result = _CFMachPortCreateWithPort2(allocator, port, callout, context, shouldFreeInfo, true);
     if (NULL == result) {
-        if (MACH_PORT_NULL != port) mach_port_destroy(mach_task_self(), port);
+        if (MACH_PORT_NULL != port) {
+            // both receive and send succeeded above so decrement both
+            mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_RECEIVE, -1);
+            mach_port_deallocate(mach_task_self(), port);
+        }
         return NULL;
     }
     __CFMachPortSetHasReceive(result);
@@ -699,3 +535,27 @@ CFRunLoopSourceRef CFMachPortCreateRunLoopSource(CFAllocatorRef allocator, CFMac
     return result;
 }
 
+void __CFMachMessageCheckForAndDestroyUnsentMessage(kern_return_t const kr, mach_msg_header_t *const msg) {
+    switch (kr) {
+        case MACH_SEND_TIMEOUT:
+        case MACH_SEND_INTERRUPTED: {
+            // pseudo-receive
+            mach_port_t const localPort = msg->msgh_local_port;
+            if (MACH_PORT_VALID(localPort)) {
+                // handle pseudo-receive of local_port
+                mach_msg_bits_t const mbits = MACH_MSGH_BITS_LOCAL(msg->msgh_bits);
+                if (mbits == MACH_MSG_TYPE_MOVE_SEND || mbits == MACH_MSG_TYPE_MOVE_SEND_ONCE) {
+                    mach_port_deallocate(mach_task_self(), localPort);
+                }
+                msg->msgh_bits &= ~MACH_MSGH_BITS_LOCAL_MASK;
+            }
+        } // fallthrough
+        case MACH_SEND_INVALID_HEADER:
+        case MACH_SEND_INVALID_DEST:
+        case MACH_SEND_INVALID_REPLY:
+        case MACH_SEND_INVALID_VOUCHER:
+            // destroy unsent message
+            mach_msg_destroy(msg);
+            break;
+    }
+}

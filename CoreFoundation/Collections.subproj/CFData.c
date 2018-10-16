@@ -1,7 +1,7 @@
 /*	CFData.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,6 +11,7 @@
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <string.h>
 
 
@@ -85,6 +86,9 @@ typedef enum {
     kCFFixedMutable = 0x1,	/* changeable and fixed capacity */
     kCFMutable = 0x3		/* changeable and variable capacity */
 } _CFDataMutableVariety;
+
+#define __CFGenericValidateMutability(variety) \
+    CFAssert1((variety != kCFFixedMutable && variety != kCFMutable), __kCFLogAssertion, "%s(): variety is not mutable", __PRETTY_FUNCTION__);
 
 CF_INLINE Boolean __CFDataIsMutable(CFDataRef data) {
     return __CFRuntimeGetFlag(data, __kCFMutable);
@@ -307,9 +311,7 @@ static void __CFDataDeallocate(CFTypeRef cf) {
     }
 }
 
-static CFTypeID __kCFDataTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFDataClass = {
+const CFRuntimeClass __CFDataClass = {
     _kCFRuntimeScannedObject,
     "CFData",
     NULL,	// init
@@ -322,18 +324,17 @@ static const CFRuntimeClass __CFDataClass = {
 };
 
 CFTypeID CFDataGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFDataTypeID = _CFRuntimeRegisterClass(&__CFDataClass); });
-    return __kCFDataTypeID;
+    return _kCFRuntimeIDCFData;
 }
 
 void _CFDataInit(CFMutableDataRef memory, CFOptionFlags variety, CFIndex capacity, const uint8_t *bytes, CFIndex length, Boolean noCopy) {
     Boolean isMutable = ((variety & __kCFMutableMask) != 0);
     Boolean isGrowable = ((variety & __kCFGrowableMask) != 0);
+    Boolean isDontDeallocate = ((variety & __kCFDontDeallocate) != 0);
     
     __CFDataSetNumBytesUsed(memory, 0);
     __CFDataSetLength(memory, 0);
-    __CFDataSetDontDeallocate(memory, true);
+    __CFDataSetDontDeallocate(memory, isDontDeallocate);
     
     if (isMutable && isGrowable) {
         __CFDataSetCapacity(memory, __CFDataRoundUpCapacity(1));
@@ -375,6 +376,7 @@ static Boolean __CFDataShouldUseAllocator(CFAllocatorRef allocator) {
 // that there should be no deallocator, and the bytes should be copied.
 static CFMutableDataRef __CFDataInit(CFAllocatorRef allocator, _CFDataMutableVariety variety, CFIndex capacity, const uint8_t *bytes, CFIndex length, CFAllocatorRef bytesDeallocator) CF_RETURNS_RETAINED {
     CFMutableDataRef memory;
+    __CFGenericValidateMutability(variety);
     CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFAssert3(kCFFixedMutable != variety || length <= capacity, __kCFLogAssertion, "%s(): for kCFFixedMutable type, capacity (%ld) must be greater than or equal to number of initial elements (%ld)", __PRETTY_FUNCTION__, capacity, length);
     CFAssert2(0 <= length, __kCFLogAssertion, "%s(): length (%ld) cannot be less than zero", __PRETTY_FUNCTION__, length);
@@ -459,7 +461,7 @@ CFDataRef CFDataCreateCopy(CFAllocatorRef allocator, CFDataRef data) {
     Boolean allowRetain = true;
     if (allowRetain) {
         CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (NSData *)data, copy);
-        CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSObject.copyWithZone, NULL);
+        CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSData.copy);
 
         // If the data isn't mutable...
         if (!__CFDataIsMutable(data)) {
@@ -839,6 +841,7 @@ CFRange CFDataFind(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CF
 }
 
 #undef __CFDataValidateRange
+#undef __CFGenericValidateMutability
 #undef INLINE_BYTES_THRESHOLD
 #undef CFDATA_MAX_SIZE
 #undef REVERSE_BUFFER

@@ -7,17 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
 class TestAffineTransform : XCTestCase {
     private let accuracyThreshold = 0.001
 
@@ -94,21 +83,21 @@ class TestAffineTransform : XCTestCase {
             checkPointTransformation(identityTransform, point: point, expectedPoint: point)
         }
         
-        checkIdentityPointTransformation(NSPoint())
-        checkIdentityPointTransformation(NSMakePoint(CGFloat(24.5), CGFloat(10.0)))
-        checkIdentityPointTransformation(NSMakePoint(CGFloat(-7.5), CGFloat(2.0)))
+        checkIdentityPointTransformation(NSPoint.zero)
+        checkIdentityPointTransformation(NSPoint(x: 24.5, y: 10.0))
+        checkIdentityPointTransformation(NSPoint(x: -7.5, y: 2.0))
 
         func checkIdentitySizeTransformation(_ size: NSSize) {
             checkSizeTransformation(identityTransform, size: size, expectedSize: size)
         }
 
-        checkIdentitySizeTransformation(NSSize())
-        checkIdentitySizeTransformation(NSMakeSize(CGFloat(13.0), CGFloat(12.5)))
-        checkIdentitySizeTransformation(NSMakeSize(CGFloat(100.0), CGFloat(-100.0)))
+        checkIdentitySizeTransformation(NSSize.zero)
+        checkIdentitySizeTransformation(NSSize(width: 13.0, height: 12.5))
+        checkIdentitySizeTransformation(NSSize(width: 100.0, height: -100.0))
     }
     
     func test_Translation() {
-        let point = NSPoint(x: CGFloat(0.0), y: CGFloat(0.0))
+        let point = NSPoint.zero
 
         let noop = NSAffineTransform()
         noop.translateX(by: CGFloat(), yBy: CGFloat())
@@ -116,19 +105,19 @@ class TestAffineTransform : XCTestCase {
         
         let translateH = NSAffineTransform()
         translateH.translateX(by: CGFloat(10.0), yBy: CGFloat())
-        checkPointTransformation(translateH, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat()))
+        checkPointTransformation(translateH, point: point, expectedPoint: NSPoint(x: 10.0, y: 0.0))
         
         let translateV = NSAffineTransform()
         translateV.translateX(by: CGFloat(), yBy: CGFloat(20.0))
-        checkPointTransformation(translateV, point: point, expectedPoint: NSPoint(x: CGFloat(), y: CGFloat(20.0)))
+        checkPointTransformation(translateV, point: point, expectedPoint: NSPoint(x: 0.0, y: 20.0))
         
         let translate = NSAffineTransform()
         translate.translateX(by: CGFloat(-30.0), yBy: CGFloat(40.0))
-        checkPointTransformation(translate, point: point, expectedPoint: NSPoint(x: CGFloat(-30.0), y: CGFloat(40.0)))
+        checkPointTransformation(translate, point: point, expectedPoint: NSPoint(x: -30.0, y: 40.0))
     }
     
     func test_Scale() {
-        let size = NSSize(width: CGFloat(10.0), height: CGFloat(10.0))
+        let size = NSSize(width: 10.0, height: 10.0)
         
         let noop = NSAffineTransform()
         noop.scale(by: CGFloat(1.0))
@@ -136,20 +125,20 @@ class TestAffineTransform : XCTestCase {
         
         let shrink = NSAffineTransform()
         shrink.scale(by: CGFloat(0.5))
-        checkSizeTransformation(shrink, size: size, expectedSize: NSSize(width: CGFloat(5.0), height: CGFloat(5.0)))
+        checkSizeTransformation(shrink, size: size, expectedSize: NSSize(width: 5.0, height: 5.0))
         
         let grow = NSAffineTransform()
         grow.scale(by: CGFloat(3.0))
-        checkSizeTransformation(grow, size: size, expectedSize: NSSize(width: CGFloat(30.0), height: CGFloat(30.0)))
+        checkSizeTransformation(grow, size: size, expectedSize: NSSize(width: 30.0, height: 30.0))
         
         let stretch = NSAffineTransform()
         stretch.scaleX(by: CGFloat(2.0), yBy: CGFloat(0.5))
-        checkSizeTransformation(stretch, size: size, expectedSize: NSSize(width: CGFloat(20.0), height: CGFloat(5.0)))
+        checkSizeTransformation(stretch, size: size, expectedSize: NSSize(width: 20.0, height: 5.0))
     }
     
     func test_Rotation_Degrees() {
-        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
-        
+        let point = NSPoint(x: 10.0, y: 10.0)
+
         let noop = NSAffineTransform()
         noop.rotate(byDegrees: CGFloat())
         checkPointTransformation(noop, point: point, expectedPoint: point)
@@ -160,20 +149,20 @@ class TestAffineTransform : XCTestCase {
         
         let rotateCounterClockwise = NSAffineTransform()
         rotateCounterClockwise.rotate(byDegrees: CGFloat(90.0))
-        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: -10.0, y: 10.0))
         
         let rotateClockwise = NSAffineTransform()
         rotateClockwise.rotate(byDegrees: CGFloat(-90.0))
-        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: 10.0, y: -10.0))
         
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotate(byDegrees: CGFloat(180.0))
-        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: -10.0, y: -10.0))
     }
     
     func test_Rotation_Radians() {
-        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
-        
+        let point = NSPoint(x: 10.0, y: 10.0)
+
         let noop = NSAffineTransform()
         noop.rotate(byRadians: CGFloat())
         checkPointTransformation(noop, point: point, expectedPoint: point)
@@ -184,20 +173,20 @@ class TestAffineTransform : XCTestCase {
         
         let rotateCounterClockwise = NSAffineTransform()
         rotateCounterClockwise.rotate(byRadians: .pi / 2)
-        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(10.0)))
+        checkPointTransformation(rotateCounterClockwise, point: point, expectedPoint: NSPoint(x: -10.0, y: 10.0))
         
         let rotateClockwise = NSAffineTransform()
         rotateClockwise.rotate(byRadians: -.pi / 2)
-        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: CGFloat(10.0), y: CGFloat(-10.0)))
+        checkPointTransformation(rotateClockwise, point: point, expectedPoint: NSPoint(x: 10.0, y: -10.0))
         
         let reflectAboutOrigin = NSAffineTransform()
         reflectAboutOrigin.rotate(byRadians: .pi)
-        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: CGFloat(-10.0), y: CGFloat(-10.0)))
+        checkPointTransformation(reflectAboutOrigin, point: point, expectedPoint: NSPoint(x: -10.0, y: -10.0))
     }
     
     func test_Inversion() {
-        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
-        
+        let point = NSPoint(x: 10.0, y: 10.0)
+
         var translate = AffineTransform()
         translate.translate(x: CGFloat(-30.0), y: CGFloat(40.0))
         
@@ -232,22 +221,22 @@ class TestAffineTransform : XCTestCase {
         xyPlus5.translateX(by: CGFloat(2.0), yBy: CGFloat(3.0))
         xyPlus5.translateX(by: CGFloat(3.0), yBy: CGFloat(2.0))
 
-        checkPointTransformation(xyPlus5, point: NSMakePoint(CGFloat(-2.0), CGFloat(-3.0)),
-                                  expectedPoint: NSMakePoint(CGFloat(3.0), CGFloat(2.0)))
+        checkPointTransformation(xyPlus5, point: NSPoint(x: -2.0, y: -3.0),
+                                  expectedPoint: NSPoint(x: 3.0, y: 2.0))
     }
 
     func test_Scaling() {
         let xyTimes5 = NSAffineTransform()
         xyTimes5.scale(by: CGFloat(5.0))
 
-        checkPointTransformation(xyTimes5, point: NSMakePoint(CGFloat(-2.0), CGFloat(3.0)),
-                                   expectedPoint: NSMakePoint(CGFloat(-10.0), CGFloat(15.0)))
+        checkPointTransformation(xyTimes5, point: NSPoint(x: -2.0, y: 3.0),
+                                   expectedPoint: NSPoint(x: -10.0, y: 15.0))
 
         let xTimes2YTimes3 = NSAffineTransform()
         xTimes2YTimes3.scaleX(by: CGFloat(2.0), yBy: CGFloat(-3.0))
 
-        checkPointTransformation(xTimes2YTimes3, point: NSMakePoint(CGFloat(-1.0), CGFloat(3.5)),
-                                         expectedPoint: NSMakePoint(CGFloat(-2.0), CGFloat(-10.5)))
+        checkPointTransformation(xTimes2YTimes3, point: NSPoint(x: -1.0, y: 3.5),
+                                         expectedPoint: NSPoint(x: -2.0, y: -10.5))
     }
 
     func test_TranslationScaling() {
@@ -255,8 +244,8 @@ class TestAffineTransform : XCTestCase {
         xPlus2XYTimes5.translateX(by: CGFloat(2.0), yBy: CGFloat())
         xPlus2XYTimes5.scaleX(by: CGFloat(5.0), yBy: CGFloat(-5.0))
 
-        checkPointTransformation(xPlus2XYTimes5, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
-                                         expectedPoint: NSMakePoint(CGFloat(7.0), CGFloat(-10.0)))
+        checkPointTransformation(xPlus2XYTimes5, point: NSPoint(x: 1.0, y: 2.0),
+                                         expectedPoint: NSPoint(x: 7.0, y: -10.0))
     }
 
     func test_ScalingTranslation() {
@@ -264,13 +253,13 @@ class TestAffineTransform : XCTestCase {
         xyTimes5XPlus3.scale(by: CGFloat(5.0))
         xyTimes5XPlus3.translateX(by: CGFloat(3.0), yBy: CGFloat())
 
-        checkPointTransformation(xyTimes5XPlus3, point: NSMakePoint(CGFloat(1.0), CGFloat(2.0)),
-                                         expectedPoint: NSMakePoint(CGFloat(20.0), CGFloat(10.0)))
+        checkPointTransformation(xyTimes5XPlus3, point: NSPoint(x: 1.0, y: 2.0),
+                                         expectedPoint: NSPoint(x: 20.0, y: 10.0))
     }
     
     func test_AppendTransform() {
-        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
-        
+        let point = NSPoint(x: 10.0, y: 10.0)
+
         var identityTransform = AffineTransform()
         identityTransform.append(identityTransform)
         checkPointTransformation(NSAffineTransform(transform: identityTransform), point: point, expectedPoint: point)
@@ -283,11 +272,11 @@ class TestAffineTransform : XCTestCase {
         
         let translateThenScale = NSAffineTransform(transform: translate)
         translateThenScale.append(scale)
-        checkPointTransformation(translateThenScale, point: point, expectedPoint: NSPoint(x: CGFloat(40.0), y: CGFloat(20.0)))
+        checkPointTransformation(translateThenScale, point: point, expectedPoint: NSPoint(x: 40.0, y: 20.0))
     }
     
     func test_PrependTransform() {
-        let point = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
+        let point = NSPoint(x: 10.0, y: 10.0)
         
         var identityTransform = AffineTransform()
         identityTransform.prepend(identityTransform)
@@ -301,15 +290,15 @@ class TestAffineTransform : XCTestCase {
         
         let scaleThenTranslate = NSAffineTransform(transform: translate)
         scaleThenTranslate.prepend(scale)
-        checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: CGFloat(30.0), y: CGFloat(20.0)))
+        checkPointTransformation(scaleThenTranslate, point: point, expectedPoint: NSPoint(x: 30.0, y: 20.0))
     }
     
     
     func test_TransformComposition() {
-        let origin = NSPoint(x: CGFloat(10.0), y: CGFloat(10.0))
-        let size = NSSize(width: CGFloat(40.0), height: CGFloat(20.0))
+        let origin = NSPoint(x: 10.0, y: 10.0)
+        let size = NSSize(width: 40.0, height: 20.0)
         let rect = NSRect(origin: origin, size: size)
-        let center = NSPoint(x: NSMidX(rect), y: NSMidY(rect))
+        let center = NSPoint(x: rect.midX, y: rect.midY)
         
         let rotate = NSAffineTransform()
         rotate.rotate(byDegrees: CGFloat(90.0))
@@ -361,10 +350,10 @@ class TestAffineTransform : XCTestCase {
     }
 
     func test_translation_and_rotation() {
-        let point = NSPoint(x: CGFloat(10), y: CGFloat(10))
+        let point = NSPoint(x: 10, y: 10)
         var translateThenRotate = AffineTransform(translationByX: 20, byY: -30)
         translateThenRotate.rotate(byRadians: .pi / 2)
-        checkPointTransformation(NSAffineTransform(transform: translateThenRotate), point: point, expectedPoint: NSPoint(x: CGFloat(10), y: CGFloat(-20)))
+        checkPointTransformation(NSAffineTransform(transform: translateThenRotate), point: point, expectedPoint: NSPoint(x: 10, y: -20))
     }
 
     func test_Equal() {

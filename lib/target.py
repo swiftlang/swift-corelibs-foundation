@@ -53,6 +53,7 @@ class ArchType:
     shave       = 39
     armv6       = 40
     s390x       = 41
+    i686        = 42
 # Do not assume that these are 1:1 mapping.  This should follow
 # canonical naming conventions for arm, etc. architectures.
 # See apple/swift PR #608    
@@ -110,6 +111,8 @@ class ArchType:
             return "thumbeb"
         if value == ArchType.x86:
             return "i386"
+        if value == ArchType.i686:
+            return "i686"
         if value == ArchType.x86_64:
             return "x86_64"
         if value == ArchType.xcore:
@@ -202,6 +205,8 @@ class ArchType:
             return ArchType.thumbeb
         if string == "x86":
             return ArchType.x86
+        if string == "i686":
+            return ArchType.i686
         if string == "x86_64":
             return ArchType.x86_64
         if string == "xcore":
@@ -331,14 +336,17 @@ class Target:
     dynamic_library_suffix = ".dylib"
     static_library_prefix = "lib"
     static_library_suffix = ".a"
+    linker = None
 
     def __init__(self, triple):
         if "linux" in triple:
             self.sdk = OSType.Linux
             self.dynamic_library_suffix = ".so"
+            self.linker = "gold"
         elif "freebsd" in triple:
             self.sdk = OSType.FreeBSD
             self.dynamic_library_suffix = ".so"
+            self.linker = "gold"
         elif "windows" in triple or "win32" in triple:
             self.sdk = OSType.Win32
             self.dynamic_library_suffix = ".dll"

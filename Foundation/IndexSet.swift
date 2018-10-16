@@ -82,15 +82,15 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
                     case (nil, nil):
                         startIndex = 0
                         endIndex = 0
-                    case (nil, .some(let max)):
+                    case (nil, let max?):
                         // Start is before our first range
                         startIndex = 0
                         endIndex = max + 1
-                    case (.some(let min), nil):
+                    case (let min?, nil):
                         // End is after our last range
                         startIndex = min
                         endIndex = indexSet._rangeCount
-                    case (.some(let min), .some(let max)):
+                    case (let min?, let max?):
                         startIndex = min
                         endIndex = max + 1
                     }
@@ -105,7 +105,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
             return IndexingIterator(_elements: self)
         }
         
-        public subscript(index : Index) -> CountableRange<IndexSet.Element> {
+        public subscript(index : Index) -> Range<IndexSet.Element> {
             let indexSetRange = indexSet._range(at: index)
             if let intersectingRange = intersectingRange {
                 return Swift.max(intersectingRange.lowerBound, indexSetRange.lowerBound)..<Swift.min(intersectingRange.upperBound, indexSetRange.upperBound)
@@ -150,7 +150,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     public typealias ReferenceType = NSIndexSet
     public typealias Element = Int
     
-    @_versioned
+    @usableFromInline
     internal var _handle: _MutablePairHandle<NSIndexSet, NSMutableIndexSet>
     
     /// Initialize an `IndexSet` with a range of integers.
@@ -476,16 +476,23 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     
     /// Union the `IndexSet` with `other`.
     public func union(_ other: IndexSet) -> IndexSet {
-        // This algorithm is naïve but it works. We could avoid calling insert in some cases.
-        
-        var result = IndexSet()
-        for r in self.rangeView {
-            result.insert(integersIn: r)
+        var result: IndexSet
+        var dense: IndexSet
+
+        // Prepare to make a copy of the more sparse IndexSet to prefer copy over repeated inserts
+        if self.rangeView.count > other.rangeView.count {
+            result = self
+            dense = other
+        } else {
+            result = other
+            dense = self
         }
-        
-        for r in other.rangeView {
-            result.insert(integersIn: r)
+
+        // Insert each range from the less sparse IndexSet
+        dense.rangeView.forEach {
+            result.insert(integersIn: $0)
         }
+
         return result
     }
     
@@ -662,9 +669,9 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
         // This check is done twice because: <rdar://problem/24939065> Value kept live for too long causing uniqueness check to fail
         var unique = true
         switch _handle._pointer {
-        case .Default(_):
+        case .Default:
             break
-        case .Mutable(_):
+        case .Mutable:
             unique = isKnownUniquelyReferenced(&_handle)
         }
         
@@ -712,7 +719,7 @@ extension IndexSet : CustomStringConvertible, CustomDebugStringConvertible, Cust
     public var customMirror: Mirror {
         var c: [(label: String?, value: Any)] = []
         c.append((label: "ranges", value: Array(rangeView)))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 
@@ -722,8 +729,8 @@ private struct IndexSetBoundaryIterator : IteratorProtocol {
     
     private var i1: IndexSet.RangeView.Iterator
     private var i2: IndexSet.RangeView.Iterator
-    private var i1Range: CountableRange<Element>?
-    private var i2Range: CountableRange<Element>?
+    private var i1Range: Range<Element>?
+    private var i2Range: Range<Element>?
     private var i1UsedLower: Bool
     private var i2UsedLower: Bool
     
@@ -790,13 +797,7 @@ private func _toNSRange(_ r: Range<IndexSet.Element>) -> NSRange {
     return NSRange(location: r.lowerBound, length: r.upperBound - r.lowerBound)
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias IndexSetBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias IndexSetBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension IndexSet : IndexSetBridgeType {
+extension IndexSet : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexSet.self
     }
@@ -846,7 +847,7 @@ internal enum _MutablePair<ImmutableType, MutableType> {
 /// a.k.a. Box
 internal final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject>
   where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying {
-    @_versioned
+    @usableFromInline
     internal var _pointer: _MutablePair<ImmutableType, MutableType>
     
     /// Initialize with an immutable reference instance.

@@ -19,13 +19,13 @@ extension EnergyFormatter {
         fileprivate var unitEnergy: UnitEnergy {
             switch self {
             case .joule:
-                return UnitEnergy.joules
+                return .joules
             case .kilojoule:
-                return UnitEnergy.kilojoules
+                return .kilojoules
             case .calorie:
-                return UnitEnergy.calories
+                return .calories
             case .kilocalorie:
-                return UnitEnergy.kilocalories
+                return .kilocalories
             }
         }
 
@@ -88,7 +88,7 @@ open class EnergyFormatter: Formatter {
             fatalError("Cannot format \(value) as string")
         }
         
-        let separator = unitStyle == EnergyFormatter.UnitStyle.short ? "" : " "
+        let separator = unitStyle == .short ? "" : " "
         return "\(formattedValue)\(separator)\(unitString(fromValue: value, unit: unit))"
     }
 
@@ -143,7 +143,7 @@ open class EnergyFormatter: Formatter {
         //Convert to the locale-appropriate unit
         let unitFromJoules: Unit
 
-        if numberFormatter.locale.usesCalories {
+        if self.usesCalories {
             if numberInJoules > 0 && numberInJoules <= 4184 {
                 unitFromJoules = .calorie
             } else {
@@ -177,25 +177,13 @@ open class EnergyFormatter: Formatter {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     open override func objectValue(_ string: String) throws -> Any? { return nil }
-}
-
-/// TODO: Replace calls to the below function to use Locale.regionCode
-/// Temporary workaround due to unpopulated Locale attributes
-/// See https://bugs.swift.org/browse/SR-3202
-extension Locale {
-    public var usesCalories: Bool {
-
-        switch self.identifier {
-        case "en_US": return true
-        case "en_US_POSIX": return true
-        case "haw_US": return true
-        case "es_US": return true
-        case "chr_US": return true
-        case "en_GB": return true
-        case "kw_GB": return true
-        case "cy_GB": return true
-        case "gv_GB": return true
-        default: return false
-        }
+    
+    /// Regions that use calories
+    private static let caloriesRegions: Set<String> = ["en_US", "en_US_POSIX", "haw_US", "es_US", "chr_US", "en_GB", "kw_GB", "cy_GB", "gv_GB"]
+    
+    /// Whether the region uses calories
+    private var usesCalories: Bool {
+        return EnergyFormatter.caloriesRegions.contains(numberFormatter.locale.identifier)
     }
+    
 }

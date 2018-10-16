@@ -7,16 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
 class TestProcessInfo : XCTestCase {
     
     static var allTests: [(String, (TestProcessInfo) -> () throws -> Void)] {
@@ -24,6 +14,7 @@ class TestProcessInfo : XCTestCase {
             ("test_operatingSystemVersion", test_operatingSystemVersion ),
             ("test_processName", test_processName ),
             ("test_globallyUniqueString", test_globallyUniqueString ),
+            ("test_environment", test_environment),
         ]
     }
     
@@ -33,15 +24,19 @@ class TestProcessInfo : XCTestCase {
         XCTAssertFalse(versionString.isEmpty)
         
         let version = processInfo.operatingSystemVersion
-        XCTAssertNotNil(version.majorVersion != 0)
+        XCTAssert(version.majorVersion != 0)
     }
     
     func test_processName() {
         // Assert that the original process name is "TestFoundation". This test
         // will fail if the test target ever gets renamed, so maybe it should
         // just test that the initial name is not empty or something?
-        let processInfo = ProcessInfo.processInfo
+#if DARWIN_COMPATIBILITY_TESTS
+        let targetName = "xctest"
+#else
         let targetName = "TestFoundation"
+#endif
+        let processInfo = ProcessInfo.processInfo
         let originalProcessName = processInfo.processName
         XCTAssertEqual(originalProcessName, targetName, "\"\(originalProcessName)\" not equal to \"TestFoundation\"")
         
@@ -66,5 +61,41 @@ class TestProcessInfo : XCTestCase {
         XCTAssertEqual(parts[3].utf16.count, 4)
         XCTAssertEqual(parts[4].utf16.count, 12)
     }
-    
+
+    func test_environment() {
+        let preset = ProcessInfo.processInfo.environment["test"]
+        setenv("test", "worked", 1)
+        let postset = ProcessInfo.processInfo.environment["test"]
+        XCTAssertNil(preset)
+        XCTAssertEqual(postset, "worked")
+
+        // Bad values that wont be stored
+        XCTAssertEqual(setenv("", "", 1), -1)
+        XCTAssertEqual(setenv("bad1=", "", 1), -1)
+        XCTAssertEqual(setenv("bad2=", "1", 1) ,-1)
+        XCTAssertEqual(setenv("bad3=", "=2", 1), -1)
+
+        // Good values that will be, check splitting on '='
+        XCTAssertEqual(setenv("var1", "",1 ), 0)
+        XCTAssertEqual(setenv("var2", "=", 1), 0)
+        XCTAssertEqual(setenv("var3", "=x", 1), 0)
+        XCTAssertEqual(setenv("var4", "x=", 1), 0)
+        XCTAssertEqual(setenv("var5", "=x=", 1), 0)
+
+        let env = ProcessInfo.processInfo.environment
+
+        XCTAssertNil(env[""])
+        XCTAssertNil(env["bad1"])
+        XCTAssertNil(env["bad1="])
+        XCTAssertNil(env["bad2"])
+        XCTAssertNil(env["bad2="])
+        XCTAssertNil(env["bad3"])
+        XCTAssertNil(env["bad3="])
+
+        XCTAssertEqual(env["var1"], "")
+        XCTAssertEqual(env["var2"], "=")
+        XCTAssertEqual(env["var3"], "=x")
+        XCTAssertEqual(env["var4"], "x=")
+        XCTAssertEqual(env["var5"], "=x=")
+    }
 }

@@ -1,7 +1,7 @@
 /*	CFUserNotification.c
-	Copyright (c) 2000-2017, Apple Inc.  All rights reserved.
+	Copyright (c) 2000-2018, Apple Inc.  All rights reserved.
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -14,6 +14,7 @@
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFMachPort.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -54,12 +55,12 @@ CONST_STRING_DECL(kCFUserNotificationPopUpTitlesKey, "PopUpTitles")
 CONST_STRING_DECL(kCFUserNotificationTextFieldTitlesKey, "TextFieldTitles")
 CONST_STRING_DECL(kCFUserNotificationCheckBoxTitlesKey, "CheckBoxTitles")
 CONST_STRING_DECL(kCFUserNotificationTextFieldValuesKey, "TextFieldValues")
+#if TARGET_OS_OSX
 CONST_STRING_DECL(kCFUserNotificationPopUpSelectionKey, "PopUpSelection")
+#endif
 CONST_STRING_DECL(kCFUserNotificationKeyboardTypesKey, "KeyboardTypes")
 CONST_STRING_DECL(kCFUserNotificationAlertTopMostKey, "AlertTopMost") // boolean value
 
-
-static CFTypeID __kCFUserNotificationTypeID = _kCFRuntimeNotATypeID;
 
 struct __CFUserNotification {
     CFRuntimeBase _base;
@@ -86,18 +87,13 @@ static CFStringRef __CFUserNotificationCopyDescription(CFTypeRef cf) {
 #define MAX_PORT_NAME_LENGTH 63
 #define NOTIFICATION_PORT_NAME_SUFFIX ".session."
 #define MESSAGE_TIMEOUT 100
-#if DEPLOYMENT_TARGET_MACOSX
-#define NOTIFICATION_PORT_NAME "com.apple.UNCUserNotification"
-#elif DEPLOYMENT_TARGET_EMBEDDED
-#define NOTIFICATION_PORT_NAME "com.apple.SBUserNotification"
-#else
-#error Unknown or unspecified DEPLOYMENT_TARGET
-#endif
+#define NOTIFICATION_PORT_NAME_MAC "com.apple.UNCUserNotification"
+#define NOTIFICATION_PORT_NAME_IOS "com.apple.SBUserNotification"
 
 
 static void __CFUserNotificationDeallocate(CFTypeRef cf);
 
-static const CFRuntimeClass __CFUserNotificationClass = {
+const CFRuntimeClass __CFUserNotificationClass = {
     0,
     "CFUserNotification",
     NULL,      // init
@@ -110,9 +106,7 @@ static const CFRuntimeClass __CFUserNotificationClass = {
 };
 
 CFTypeID CFUserNotificationGetTypeID(void) {
-    static dispatch_once_t initOnce = 0;
-    dispatch_once(&initOnce, ^{ __kCFUserNotificationTypeID = _CFRuntimeRegisterClass(&__CFUserNotificationClass); });
-    return __kCFUserNotificationTypeID;
+    return _kCFRuntimeIDCFUserNotification;
 }
 
 static void __CFUserNotificationDeallocate(CFTypeRef cf) {
@@ -122,7 +116,7 @@ static void __CFUserNotificationDeallocate(CFTypeRef cf) {
         CFRelease(userNotification->_machPort);
         userNotification->_machPort = NULL; // NOTE: this is still potentially racey and should probably have a CAS (for now this is just a stop-gap to reduce an already very rare crash potential) <rdar://problem/21077032>
     } else if (MACH_PORT_NULL != userNotification->_replyPort) {
-        mach_port_destroy(mach_task_self(), userNotification->_replyPort);
+        mach_port_mod_refs(mach_task_self(), userNotification->_replyPort, MACH_PORT_RIGHT_RECEIVE, -1);
     }
     if (userNotification->_sessionID) CFRelease(userNotification->_sessionID);
     if (userNotification->_responseDictionary) CFRelease(userNotification->_responseDictionary);
@@ -187,12 +181,19 @@ static SInt32 _CFUserNotificationSendRequest(CFAllocatorRef allocator, CFStringR
     mach_msg_base_t *msg = NULL;
     mach_port_t bootstrapPort = MACH_PORT_NULL, serverPort = MACH_PORT_NULL;
     CFIndex size;
-    char namebuffer[MAX_PORT_NAME_LENGTH + 1];
     
-    strlcpy(namebuffer, NOTIFICATION_PORT_NAME, sizeof(namebuffer));
+    
+#if TARGET_OS_OSX
+    const char *namebuffer = NOTIFICATION_PORT_NAME_MAC;
+    const nameLen = sizeof(NOTIFICATION_PORT_NAME_MAC);
+#else
+    const char *namebuffer = NOTIFICATION_PORT_NAME_IOS;
+    const nameLen = sizeof(NOTIFICATION_PORT_NAME_IOS);
+#endif
+    
     if (sessionID) {
         char sessionid[MAX_PORT_NAME_LENGTH + 1];
-        CFIndex len = MAX_PORT_NAME_LENGTH - sizeof(NOTIFICATION_PORT_NAME) - sizeof(NOTIFICATION_PORT_NAME_SUFFIX);
+        CFIndex len = MAX_PORT_NAME_LENGTH - nameLen - sizeof(NOTIFICATION_PORT_NAME_SUFFIX);
         CFStringGetBytes(sessionID, CFRangeMake(0, CFStringGetLength(sessionID)), kCFStringEncodingUTF8, 0, false, (uint8_t *)sessionid, len, &size);
         sessionid[len - 1] = '\0';
         strlcat(namebuffer, NOTIFICATION_PORT_NAME_SUFFIX, sizeof(namebuffer));
@@ -271,7 +272,9 @@ CFUserNotificationRef CFUserNotificationCreate(CFAllocatorRef allocator, CFTimeI
     } else {
         if (dictionary) CFUserNotificationLog(CFDictionaryGetValue(dictionary, kCFUserNotificationAlertHeaderKey), CFDictionaryGetValue(dictionary, kCFUserNotificationAlertMessageKey));
     }
-    if (ERR_SUCCESS != retval && MACH_PORT_NULL != replyPort) mach_port_destroy(mach_task_self(), replyPort);
+    if (ERR_SUCCESS != retval && MACH_PORT_NULL != replyPort) {
+        mach_port_mod_refs(mach_task_self(), replyPort, MACH_PORT_RIGHT_RECEIVE, -1);
+    }
     if (error) *error = retval;
     return userNotification;
 }
@@ -290,7 +293,7 @@ static void _CFUserNotificationMachPortCallBack(CFMachPortRef port, void *m, CFI
     CFMachPortInvalidate(userNotification->_machPort);
     CFRelease(userNotification->_machPort);
     userNotification->_machPort = NULL;
-    mach_port_destroy(mach_task_self(), userNotification->_replyPort);
+    mach_port_mod_refs(mach_task_self(), userNotification->_replyPort, MACH_PORT_RIGHT_RECEIVE, -1);
     userNotification->_replyPort = MACH_PORT_NULL;
     userNotification->_callout(userNotification, responseFlags);
 }
@@ -328,7 +331,7 @@ SInt32 CFUserNotificationReceiveResponse(CFUserNotificationRef userNotification,
                     CFRelease(userNotification->_machPort);
                     userNotification->_machPort = NULL;
                 }
-                mach_port_destroy(mach_task_self(), userNotification->_replyPort);
+                mach_port_mod_refs(mach_task_self(), userNotification->_replyPort, MACH_PORT_RIGHT_RECEIVE, -1);
                 userNotification->_replyPort = MACH_PORT_NULL;
             }
             CFAllocatorDeallocate(kCFAllocatorSystemDefault, msg);
@@ -440,7 +443,8 @@ CF_EXPORT SInt32 CFUserNotificationDisplayAlert(CFTimeInterval timeout, CFOption
 
 #undef MAX_STRING_LENGTH
 #undef MAX_STRING_COUNT
-#undef NOTIFICATION_PORT_NAME
+#undef NOTIFICATION_PORT_NAME_MAC
+#undef NOTIFICATION_PORT_NAME_IOS
 #undef MESSAGE_TIMEOUT
 #undef MAX_PORT_NAME_LENGTH
 #undef NOTIFICATION_PORT_NAME_SUFFIX

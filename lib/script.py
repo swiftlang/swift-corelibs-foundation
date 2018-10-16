@@ -124,7 +124,7 @@ TARGET_CFLAGS         = -fcolor-diagnostics -fdollars-in-identifiers -fblocks -f
         swift_flags += """
 TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """  -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.build_mode == Configuration.Debug:
-            swift_flags += "-g -Onone -enable-testing "
+            swift_flags += "-g -Onone -enable-testing -DNS_FOUNDATION_ALLOWS_TESTABLE_IMPORT "
         elif Configuration.current.build_mode == Configuration.Release:
             swift_flags += " "
         swift_flags += Configuration.current.extra_swift_flags
@@ -135,12 +135,15 @@ TARGET_SWIFTEXE_FLAGS = -I${SDKROOT}/lib/swift/""" + Configuration.current.targe
 EXTRA_LD_FLAGS       = """ + Configuration.current.extra_ld_flags
 
         ld_flags += """
-TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
+TARGET_LDFLAGS       = --target=${TARGET} ${EXTRA_LD_FLAGS} -L ${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """/${ARCH} -L${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
         if Configuration.current.system_root is not None:
             ld_flags += "--sysroot=${SYSROOT}"
 
         if Configuration.current.bootstrap_directory is not None:
             ld_flags += """ -L${TARGET_BOOTSTRAP_DIR}/usr/lib"""
+
+        if Configuration.current.build_mode == Configuration.Debug:
+            ld_flags += """  -rpath ${SDKROOT}/lib/swift/""" + Configuration.current.target.swift_sdk_name + """ """
 
         if Configuration.current.linker is not None:
             ld_flags += " -fuse-ld=" + Configuration.current.linker
@@ -223,7 +226,7 @@ rule SwiftExecutable
         script = flags + commands
 
         for product in self.products:
-            script += product.generate()
+            script += "".join([product_build_command for product_build_command in product.generate() if not isinstance(product_build_command, list)])
 
         script += """
 

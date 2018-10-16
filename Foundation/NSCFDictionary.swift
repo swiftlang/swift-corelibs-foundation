@@ -37,9 +37,9 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
     
     override func object(forKey aKey: Any) -> Any? {
-        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
+        let value = CFDictionaryGetValue(_cfObject, unsafeBitCast(__SwiftValue.store(aKey), to: UnsafeRawPointer.self))
         if value != nil {
-            return _SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
+            return __SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
         } else {
             return nil
         }
@@ -81,11 +81,11 @@ internal final class _NSCFDictionary : NSMutableDictionary {
     }
 
     override func removeObject(forKey aKey: Any) {
-        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self))
+        CFDictionaryRemoveValue(_cfMutableObject, unsafeBitCast(__SwiftValue.store(aKey), to: UnsafeRawPointer.self))
     }
     
     override func setObject(_ anObject: Any, forKey aKey: AnyHashable) {
-        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(aKey), to: UnsafeRawPointer.self), unsafeBitCast(_SwiftValue.store(anObject), to: UnsafeRawPointer.self))
+        CFDictionarySetValue(_cfMutableObject, unsafeBitCast(__SwiftValue.store(aKey), to: UnsafeRawPointer.self), unsafeBitCast(__SwiftValue.store(anObject), to: UnsafeRawPointer.self))
     }
     
     override var classForCoder: AnyClass {
@@ -117,9 +117,9 @@ internal func _CFSwiftDictionaryGetValue(_ dictionary: AnyObject, key: AnyObject
             return Unmanaged<AnyObject>.passUnretained(obj)
         }
     } else {
-        let k = _SwiftValue.fetch(nonOptional: key)
+        let k = __SwiftValue.fetch(nonOptional: key)
         let value = dict.object(forKey: k)
-        let v = _SwiftValue.store(value)
+        let v = __SwiftValue.store(value)
         dict._storage[key as! NSObject] = v
         if let obj = v {
             return Unmanaged<AnyObject>.passUnretained(obj)
@@ -178,8 +178,8 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
         }
     } else {
         dict.enumerateKeysAndObjects(options: []) { k, v, _ in
-            let key = _SwiftValue.store(k)
-            let value = _SwiftValue.store(v)
+            let key = __SwiftValue.store(k)
+            let value = __SwiftValue.store(v)
             valuebuf?[idx] = Unmanaged<AnyObject>.passUnretained(value)
             keybuf?[idx] = Unmanaged<AnyObject>.passUnretained(key)
             dict._storage[key] = value
@@ -190,7 +190,7 @@ internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valueb
 
 internal func _CFSwiftDictionaryApplyFunction(_ dictionary: AnyObject, applier: @convention(c) (AnyObject, AnyObject, UnsafeMutableRawPointer) -> Void, context: UnsafeMutableRawPointer) {
     (dictionary as! NSDictionary).enumerateKeysAndObjects(options: []) { key, value, _ in
-        applier(_SwiftValue.store(key), _SwiftValue.store(value), context)
+        applier(__SwiftValue.store(key), __SwiftValue.store(value), context)
     }
 }
 

@@ -7,29 +7,33 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 import CoreFoundation
 
 internal func testBundle() -> Bundle {
-#if DARWIN_COMPATIBILITY_TESTS
+    #if DARWIN_COMPATIBILITY_TESTS
     for bundle in Bundle.allBundles {
         if let bundleId = bundle.bundleIdentifier, bundleId == "org.swift.DarwinCompatibilityTests", bundle.resourcePath != nil {
             return bundle
         }
     }
     fatalError("Cant find test bundle")
-#else
+    #else
     return Bundle.main
-#endif
+    #endif
 }
+
+internal func testBundleName() -> String {
+    // Either 'TestFoundation' or 'DarwinCompatibilityTests'
+    return testBundle().infoDictionary!["CFBundleName"] as! String
+}
+
+internal func xdgTestHelperURL() -> URL {
+    guard let url = testBundle().url(forAuxiliaryExecutable: "xdgTestHelper") else {
+        fatalError("Cant find xdgTestHelper")
+    }
+    return url
+}
+
 
 class BundlePlayground {
     enum Layout {
@@ -58,6 +62,7 @@ class BundlePlayground {
     }
     
     let bundleName: String
+    let bundleExtension: String
     let resourceFilenames: [String]
     let resourceSubdirectory: String
     let subdirectoryResourcesFilenames: [String]
@@ -68,12 +73,14 @@ class BundlePlayground {
     private var playgroundPath: String?
     
     init?(bundleName: String,
-         resourceFilenames: [String],
-         resourceSubdirectory: String,
-         subdirectoryResourcesFilenames: [String],
-         auxiliaryExecutableName: String,
-         layout: Layout) {
+          bundleExtension: String,
+          resourceFilenames: [String],
+          resourceSubdirectory: String,
+          subdirectoryResourcesFilenames: [String],
+          auxiliaryExecutableName: String,
+          layout: Layout) {
         self.bundleName = bundleName
+        self.bundleExtension = bundleExtension
         self.resourceFilenames = resourceFilenames
         self.resourceSubdirectory = resourceSubdirectory
         self.subdirectoryResourcesFilenames = subdirectoryResourcesFilenames
@@ -88,53 +95,55 @@ class BundlePlayground {
     
     private func _create() -> Bool {
         // Make sure the directory is uniquely named
-        let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        
+        let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("TestFoundation_Playground_" + UUID().uuidString)
         
         switch (layout) {
         case .flat:
-        do {
-            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
-            
-            // Make a flat bundle in the playground
-            let bundlePath = tempDir + bundleName
-            try FileManager.default.createDirectory(atPath: bundlePath, withIntermediateDirectories: false, attributes: nil)
-            
-            // Make a main and an auxiliary executable:
-            guard FileManager.default.createFile(atPath: bundlePath + "/" + bundleName, contents: nil) else {
-                return false
-            }
-            guard FileManager.default.createFile(atPath: bundlePath + "/" + auxiliaryExecutableName, contents: nil) else {
-                return false
-            }
-            
-            // Put some resources in the bundle
-            for n in resourceFilenames {
-                guard FileManager.default.createFile(atPath: bundlePath + "/" + n, contents: nil, attributes: nil) else {
+            do {
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
+                
+                // Make a flat bundle in the playground
+                let bundleURL = temporaryDirectory.appendingPathComponent(bundleName).appendingPathExtension(self.bundleExtension)
+                try FileManager.default.createDirectory(atPath: bundleURL.path, withIntermediateDirectories: false, attributes: nil)
+                
+                // Make a main and an auxiliary executable:
+                guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(bundleName).path, contents: nil) else {
                     return false
                 }
-            }
-            // Add a resource into a subdirectory
-            let subDirPath = bundlePath + "/" + resourceSubdirectory
-            try FileManager.default.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-            for n in subdirectoryResourcesFilenames {
-                guard FileManager.default.createFile(atPath: subDirPath + "/" + n, contents: nil, attributes: nil) else {
+                guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else {
                     return false
                 }
+                
+                // Put some resources in the bundle
+                for resourceName in resourceFilenames {
+                    guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else {
+                        return false
+                    }
+                }
+                
+                // Add a resource into a subdirectory
+                let subdirectoryURL = bundleURL.appendingPathComponent(resourceSubdirectory)
+                try FileManager.default.createDirectory(atPath: subdirectoryURL.path, withIntermediateDirectories: false, attributes: nil)
+                
+                for resourceName in subdirectoryResourcesFilenames {
+                    guard FileManager.default.createFile(atPath: subdirectoryURL.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else {
+                        return false
+                    }
+                }
+                
+                self.bundlePath = bundleURL.path
+            } catch {
+                return false
             }
             
-            self.bundlePath = bundlePath
-        } catch _ {
-            return false
-        }
-        
         case .fhsInstalled:
             do {
-                let bundleName = URL(string:self.bundleName)!.deletingPathExtension().path
                 
                 // Create a FHS /usr/local-style hierarchy:
-                try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
-                try FileManager.default.createDirectory(atPath: tempDir + "/share", withIntermediateDirectories: false, attributes: nil)
-                try FileManager.default.createDirectory(atPath: tempDir + "/lib", withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("share").path, withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("lib").path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
                 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
@@ -143,29 +152,31 @@ class BundlePlayground {
                 let pathExtension = "so"
                 #endif
                 
-                guard FileManager.default.createFile(atPath: tempDir + "/lib/lib" + bundleName + ".\(pathExtension)", contents: nil) else { return false }
+                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent("lib").appendingPathComponent("lib\(bundleName).\(pathExtension)").path, contents: nil) else { return false }
                 
-                let executables = tempDir + "/libexec/" + bundleName + ".executables"
-                try FileManager.default.createDirectory(atPath: executables, withIntermediateDirectories: true, attributes: nil)
-                guard FileManager.default.createFile(atPath: executables + "/" + auxiliaryExecutableName, contents: nil) else { return false }
+                let executablesDirectory = temporaryDirectory.appendingPathComponent("libexec").appendingPathComponent("\(bundleName).executables")
+                try FileManager.default.createDirectory(atPath: executablesDirectory.path, withIntermediateDirectories: true, attributes: nil)
+                guard FileManager.default.createFile(atPath: executablesDirectory.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else { return false }
                 
                 // Make a .resources directory in …/share:
-                let resourcesPath = tempDir + "/share/" + bundleName + ".resources"
-                try FileManager.default.createDirectory(atPath: resourcesPath, withIntermediateDirectories: false, attributes: nil)
+                let resourcesDirectory = temporaryDirectory.appendingPathComponent("share").appendingPathComponent("\(bundleName).resources")
+                try FileManager.default.createDirectory(atPath: resourcesDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Put some resources in the bundle
-                for n in resourceFilenames {
-                    guard FileManager.default.createFile(atPath: resourcesPath + "/" + n, contents: nil, attributes: nil) else { return false }
-                }
-                // Add a resource into a subdirectory
-                let subDirPath = resourcesPath + "/" + resourceSubdirectory
-                try FileManager.default.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-                for n in subdirectoryResourcesFilenames {
-                    guard FileManager.default.createFile(atPath: subDirPath + "/" + n, contents: nil, attributes: nil) else { return false }
+                for resourceName in resourceFilenames {
+                    guard FileManager.default.createFile(atPath: resourcesDirectory.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else { return false }
                 }
                 
-                self.bundlePath = resourcesPath
-            } catch _ {
+                // Add a resource into a subdirectory
+                let subdirectoryURL = resourcesDirectory.appendingPathComponent(resourceSubdirectory)
+                try FileManager.default.createDirectory(atPath: subdirectoryURL.path, withIntermediateDirectories: false, attributes: nil)
+                
+                for resourceName in subdirectoryResourcesFilenames {
+                    guard FileManager.default.createFile(atPath: subdirectoryURL.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else { return false }
+                }
+                
+                self.bundlePath = resourcesDirectory.path
+            } catch {
                 return false
             }
             
@@ -173,48 +184,46 @@ class BundlePlayground {
             do {
                 let bundleName = URL(string:self.bundleName)!.deletingPathExtension().path
                 
-                try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main executable:
-                guard FileManager.default.createFile(atPath: tempDir + "/" + bundleName, contents: nil) else { return false }
+                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent(bundleName).path, contents: nil) else { return false }
                 
                 // Make a .resources directory:
-                let resourcesPath = tempDir + "/" + bundleName + ".resources"
-                try FileManager.default.createDirectory(atPath: resourcesPath, withIntermediateDirectories: false, attributes: nil)
+                let resourcesDirectory = temporaryDirectory.appendingPathComponent("\(bundleName).resources")
+                try FileManager.default.createDirectory(atPath: resourcesDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make an auxiliary executable:
-                guard FileManager.default.createFile(atPath: resourcesPath + "/" + auxiliaryExecutableName, contents: nil) else { return false }
+                guard FileManager.default.createFile(atPath: resourcesDirectory.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else { return false }
                 
                 // Put some resources in the bundle
-                for n in resourceFilenames {
-                    guard FileManager.default.createFile(atPath: resourcesPath + "/" + n, contents: nil, attributes: nil) else { return false }
-                }
-                // Add a resource into a subdirectory
-                let subDirPath = resourcesPath + "/" + resourceSubdirectory
-                try FileManager.default.createDirectory(atPath: subDirPath, withIntermediateDirectories: false, attributes: nil)
-                for n in subdirectoryResourcesFilenames {
-                    guard FileManager.default.createFile(atPath: subDirPath + "/" + n, contents: nil, attributes: nil) else { return false }
+                for resourceName in resourceFilenames {
+                    guard FileManager.default.createFile(atPath: resourcesDirectory.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else { return false }
                 }
                 
-                self.bundlePath = resourcesPath
-            } catch _ {
+                // Add a resource into a subdirectory
+                let subdirectoryURL = resourcesDirectory.appendingPathComponent(resourceSubdirectory)
+                try FileManager.default.createDirectory(atPath: subdirectoryURL.path, withIntermediateDirectories: false, attributes: nil)
+                
+                for resourceName in subdirectoryResourcesFilenames {
+                    guard FileManager.default.createFile(atPath: subdirectoryURL.appendingPathComponent(resourceName).path, contents: nil, attributes: nil) else { return false }
+                }
+                
+                self.bundlePath = resourcesDirectory.path
+            } catch {
                 return false
             }
         }
         
-        self.playgroundPath = tempDir
+        self.playgroundPath = temporaryDirectory.path
         return true
     }
     
     func destroy() {
         guard let path = self.playgroundPath else { return }
         self.playgroundPath = nil
-        
-        do {
-            try FileManager.default.removeItem(atPath: path)
-        } catch _ {
-            // ¯\_(ツ)_/¯ We did what we could.
-        }
+
+        try? FileManager.default.removeItem(atPath: path)
     }
     
     deinit {
@@ -235,40 +244,42 @@ class TestBundle : XCTestCase {
             ("test_bundleLoadWithError", test_bundleLoadWithError),
             ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
             ("test_bundlePreflight", test_bundlePreflight),
+            ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
+            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
         ]
     }
     
     func test_paths() {
         let bundle = testBundle()
-
+        
         // bundlePath
         XCTAssert(!bundle.bundlePath.isEmpty)
         XCTAssertEqual(bundle.bundleURL.path, bundle.bundlePath)
         let path = bundle.bundlePath
-
+        
         // etc
-        #if os(OSX)
+        #if os(macOS)
         XCTAssertEqual("\(path)/Contents/Resources", bundle.resourcePath)
-#if DARWIN_COMPATIBILITY_TESTS
+        #if DARWIN_COMPATIBILITY_TESTS
         XCTAssertEqual("\(path)/Contents/MacOS/DarwinCompatibilityTests", bundle.executablePath)
-#else
+        #else
         XCTAssertEqual("\(path)/Contents/MacOS/TestFoundation", bundle.executablePath)
-#endif
+        #endif
         XCTAssertEqual("\(path)/Contents/Frameworks", bundle.privateFrameworksPath)
         XCTAssertEqual("\(path)/Contents/SharedFrameworks", bundle.sharedFrameworksPath)
         XCTAssertEqual("\(path)/Contents/SharedSupport", bundle.sharedSupportPath)
         #endif
         
         XCTAssertNil(bundle.path(forAuxiliaryExecutable: "no_such_file"))
-#if !DARWIN_COMPATIBILITY_TESTS
+        #if !DARWIN_COMPATIBILITY_TESTS
         XCTAssertNil(bundle.appStoreReceiptURL)
-#endif
+        #endif
     }
     
     func test_resources() {
         let bundle = testBundle()
-
+        
         // bad resources
         XCTAssertNil(bundle.url(forResource: nil, withExtension: nil, subdirectory: nil))
         XCTAssertNil(bundle.url(forResource: "", withExtension: "", subdirectory: nil))
@@ -290,37 +301,38 @@ class TestBundle : XCTestCase {
         let bundle = testBundle()
         
         // bundleIdentifier
-#if DARWIN_COMPATIBILITY_TESTS
+        #if DARWIN_COMPATIBILITY_TESTS
         XCTAssertEqual("org.swift.DarwinCompatibilityTests", bundle.bundleIdentifier)
-#else
+        #else
         XCTAssertEqual("org.swift.TestFoundation", bundle.bundleIdentifier)
-#endif
-
+        #endif
+        
         // infoDictionary
         let info = bundle.infoDictionary
         XCTAssertNotNil(info)
-
-#if DARWIN_COMPATIBILITY_TESTS
+        
+        #if DARWIN_COMPATIBILITY_TESTS
         XCTAssert("DarwinCompatibilityTests" == info!["CFBundleName"] as! String)
         XCTAssert("org.swift.DarwinCompatibilityTests" == info!["CFBundleIdentifier"] as! String)
-#else
+        #else
         XCTAssert("TestFoundation" == info!["CFBundleName"] as! String)
         XCTAssert("org.swift.TestFoundation" == info!["CFBundleIdentifier"] as! String)
-#endif
-
+        #endif
+        
         // localizedInfoDictionary
         XCTAssertNil(bundle.localizedInfoDictionary) // FIXME: Add a localized Info.plist for testing
     }
     
     func test_localizations() {
         let bundle = testBundle()
-
+        
         XCTAssertEqual(["en"], bundle.localizations)
         XCTAssertEqual(["en"], bundle.preferredLocalizations)
         XCTAssertEqual(["en"], Bundle.preferredLocalizations(from: ["en", "pl", "es"]))
     }
     
-    private let _bundleName = "MyBundle.bundle"
+    private let _bundleName = "MyBundle"
+    private let _bundleExtension = "bundle"
     private let _bundleResourceNames = ["hello.world", "goodbye.world", "swift.org"]
     private let _subDirectory = "Sources"
     private let _main = "main"
@@ -329,6 +341,7 @@ class TestBundle : XCTestCase {
     
     private func _setupPlayground(layout: BundlePlayground.Layout) -> BundlePlayground? {
         return BundlePlayground(bundleName: _bundleName,
+                                bundleExtension: _bundleExtension,
                                 resourceFilenames: _bundleResourceNames,
                                 resourceSubdirectory: _subDirectory,
                                 subdirectoryResourcesFilenames: [ "\(_main).\(_type)" ],
@@ -346,72 +359,87 @@ class TestBundle : XCTestCase {
     }
     
     private func _cleanupPlayground(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            // Oh well
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
-
+    
     func test_URLsForResourcesWithExtension() {
         _withEachPlaygroundLayout { (playground) in
-            let bundle = Bundle(path: playground.bundlePath)
+            let bundle = Bundle(path: playground.bundlePath)!
             XCTAssertNotNil(bundle)
             
-            let worldResources = bundle?.urls(forResourcesWithExtension: "world", subdirectory: nil)
+            let worldResources = bundle.urls(forResourcesWithExtension: "world", subdirectory: nil)
             XCTAssertNotNil(worldResources)
             XCTAssertEqual(worldResources?.count, 2)
             
-            let path = bundle?.path(forResource: _main, ofType: _type, inDirectory: _subDirectory)
+            let path = bundle.path(forResource: _main, ofType: _type, inDirectory: _subDirectory)
             XCTAssertNotNil(path)
         }
     }
     
-    func test_bundleLoad(){
+    func test_bundleLoad() {
         let bundle = testBundle()
         let _ = bundle.load()
         XCTAssertTrue(bundle.isLoaded)
     }
     
-    func test_bundleLoadWithError(){
+    func test_bundleLoadWithError() {
         let bundleValid = testBundle()
-        //test valid load using loadAndReturnError
-        do{
+        
+        // Test valid load using loadAndReturnError
+        do {
             try bundleValid.loadAndReturnError()
-        }catch{
+        }
+        catch{
             XCTFail("should not fail to load")
         }
-        // executable cannot be located
+        
+        // Executable cannot be located
         try! _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)
             XCTAssertThrowsError(try bundle!.loadAndReturnError())
         }
     }
     
-    func test_bundleWithInvalidPath(){
+    func test_bundleWithInvalidPath() {
         let bundleInvalid = Bundle(path: NSTemporaryDirectory() + "test.playground")
         XCTAssertNil(bundleInvalid)
     }
     
-    func test_bundlePreflight(){
-        let bundleValid = testBundle()
-        do{
-            try bundleValid.preflight()
-        }catch{
-            XCTFail("should not fail to load")
-        }
-        // executable cannot be located ..preflight should report error
+    func test_bundlePreflight() {
+        XCTAssertNoThrow(try testBundle().preflight())
+        
         try! _withEachPlaygroundLayout { (playground) in
-            let bundle = Bundle(path: playground.bundlePath)
-            XCTAssertThrowsError(try bundle!.preflight())
+            let bundle = Bundle(path: playground.bundlePath)!
+            
+            // Must throw as the main executable is a dummy empty file.
+            XCTAssertThrowsError(try bundle.preflight())
         }
     }
     
+    func test_bundleFindExecutable() {
+        XCTAssertNotNil(testBundle().executableURL)
+        
+        _withEachPlaygroundLayout { (playground) in
+            let bundle = Bundle(path: playground.bundlePath)!
+            XCTAssertNotNil(bundle.executableURL)
+        }
+    }
+
     func test_bundleFindAuxiliaryExecutables() {
         _withEachPlaygroundLayout { (playground) in
             let bundle = Bundle(path: playground.bundlePath)!
             XCTAssertNotNil(bundle.url(forAuxiliaryExecutable: _auxiliaryExecutable))
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
         }
+    }
+
+    func test_mainBundleExecutableURL() {
+#if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
+        let maybeURL = Bundle.main.executableURL
+        XCTAssertNotNil(maybeURL)
+        guard let url = maybeURL else { return }
+        
+        XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
+#endif
     }
 }

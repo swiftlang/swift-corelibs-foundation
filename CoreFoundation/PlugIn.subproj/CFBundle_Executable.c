@@ -15,7 +15,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
     #if DEPLOYMENT_TARGET_LINUX
         #if __LP64__
@@ -48,7 +48,7 @@
         _kCFBundleFHSDirectory_lib
 #endif // DEPLOYMENT_TARGET_LINUX
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
 // This is here because on iPhoneOS with the dyld shared cache, we remove binaries from their
 // original locations on disk, so checking whether a binary's path exists is no longer sufficient.
@@ -73,7 +73,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
     CFURLRef executableURL = NULL;
     if (!urlPath || !exeName) return NULL;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLPOSIXPathStyle, false, urlPath);
         if (!_binaryLoadable(executableURL)) {
@@ -182,11 +182,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
         if (executablePath) CFRetain(executablePath);
         __CFUnlock(&bundle->_lock);
         if (executablePath) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-            executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, executablePath, kCFURLPOSIXPathStyle, false);
-#elif DEPLOYMENT_TARGET_WINDOWS
-            executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, executablePath, kCFURLWindowsPathStyle, false);
-#endif
+            executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, executablePath, PLATFORM_PATH_STYLE, false);
             if (executableURL) {
                 foundIt = true;
             }
@@ -203,17 +199,19 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             Boolean doExecSearch = true;
 #endif
             
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
             if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
                 // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
                 
-                CFURLRef prefix = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
-                
+                CFURLRef sharePath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, url);
+                CFURLRef prefixPath = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, sharePath);
+                CFRelease(sharePath);
+
                 CFStringRef directories[] = { _CFBundleFHSDirectoriesInExecutableSearchOrder };
                 size_t directoriesCount = sizeof(directories) / sizeof(directories[0]);
                 
                 for (size_t i = 0; i < directoriesCount; i++) {
-                    CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefix, directories[i], true);
+                    CFURLRef where = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, prefixPath, directories[i], true);
                     executableURL = _CFBundleCopyExecutableURLRaw(where, executableName);
                     CFRelease(where);
                     
@@ -223,15 +221,15 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     }
                 }
                 
-                CFRelease(prefix);
+                CFRelease(prefixPath);
             }
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
             
             // Now, look for the executable inside the bundle.
             if (!foundIt && doExecSearch && 0 != version) {
                 CFURLRef exeDirURL = NULL;
                 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
                 if (bundle && bundle->_isFHSInstalledBundle) {
                     CFURLRef withoutExtension = CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, url);
                     CFStringRef lastPathComponent = CFURLCopyLastPathComponent(withoutExtension);
@@ -246,7 +244,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     CFRelease(libexec);
                     CFRelease(exeDirName);
                 } else
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
                 if (1 == version) {
                     exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase1, url);
                 } else if (2 == version) {
@@ -290,11 +288,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             if (lookupMainExe && !ignoreCache && bundle && executableURL) {
                 // We found it.  Cache the path.
                 CFURLRef absURL = CFURLCopyAbsoluteURL(executableURL);
-#if DEPLOYMENT_TARGET_WINDOWS
-                executablePath = CFURLCopyFileSystemPath(absURL, kCFURLWindowsPathStyle);
-#else
-                executablePath = CFURLCopyFileSystemPath(absURL, kCFURLPOSIXPathStyle);
-#endif
+                executablePath = CFURLCopyFileSystemPath(absURL, PLATFORM_PATH_STYLE);
                 CFRelease(absURL);
                 __CFLock(&bundle->_lock);
                 bundle->_executablePath = (CFStringRef)CFRetain(executablePath);

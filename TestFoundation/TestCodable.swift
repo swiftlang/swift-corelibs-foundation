@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
 // MARK: - Helper Functions
 
 private func makePersonNameComponents(namePrefix: String? = nil,
@@ -92,7 +84,7 @@ class TestCodable : XCTestCase {
         for components in personNameComponentsValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: components)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(components)")
             }
         }
@@ -111,7 +103,7 @@ class TestCodable : XCTestCase {
             // We have to wrap the UUID since we cannot have a top-level string.
             do {
                 try expectRoundTripEqualityThroughJSON(for: UUIDCodingWrapper(uuid))
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(uuid)")
             }
         }
@@ -130,7 +122,7 @@ class TestCodable : XCTestCase {
         for url in urlValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: url)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(url)")
             }
         }
@@ -147,7 +139,7 @@ class TestCodable : XCTestCase {
         for range in nsrangeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: range)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(range)")
             }
         }
@@ -169,7 +161,7 @@ class TestCodable : XCTestCase {
         for locale in localeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: locale)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(locale)")
             }
         }
@@ -186,7 +178,7 @@ class TestCodable : XCTestCase {
         for indexSet in indexSetValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: indexSet)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(indexSet)")
             }
         }
@@ -204,7 +196,7 @@ class TestCodable : XCTestCase {
         for indexPath in indexPathValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: indexPath)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(indexPath)")
             }
         }
@@ -232,7 +224,7 @@ class TestCodable : XCTestCase {
         for transform in affineTransformValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: transform)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(transform)")
             }
         }
@@ -252,7 +244,7 @@ class TestCodable : XCTestCase {
         for decimal in decimalValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: decimal)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(decimal)")
             }
         }
@@ -272,7 +264,7 @@ class TestCodable : XCTestCase {
         for point in cgpointValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: point)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(point)")
             }
         }
@@ -292,7 +284,7 @@ class TestCodable : XCTestCase {
         for size in cgsizeValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: size)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(size)")
             }
         }
@@ -313,7 +305,7 @@ class TestCodable : XCTestCase {
         for rect in cgrectValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: rect)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(rect)")
             }
         }
@@ -321,21 +313,21 @@ class TestCodable : XCTestCase {
     
     // MARK: - CharacterSet
     lazy var characterSetValues: [CharacterSet] = [
-        CharacterSet.controlCharacters,
-        CharacterSet.whitespaces,
-        CharacterSet.whitespacesAndNewlines,
-        CharacterSet.decimalDigits,
-        CharacterSet.letters,
-        CharacterSet.lowercaseLetters,
-        CharacterSet.uppercaseLetters,
-        CharacterSet.nonBaseCharacters,
-        CharacterSet.alphanumerics,
-        CharacterSet.decomposables,
-        CharacterSet.illegalCharacters,
-        CharacterSet.punctuationCharacters,
-        CharacterSet.capitalizedLetters,
-        CharacterSet.symbols,
-        CharacterSet.newlines,
+        .controlCharacters,
+        .whitespaces,
+        .whitespacesAndNewlines,
+        .decimalDigits,
+        .letters,
+        .lowercaseLetters,
+        .uppercaseLetters,
+        .nonBaseCharacters,
+        .alphanumerics,
+        .decomposables,
+        .illegalCharacters,
+        .punctuationCharacters,
+        .capitalizedLetters,
+        .symbols,
+        .newlines,
         CharacterSet(charactersIn: "abcd")
     ]
     
@@ -343,7 +335,7 @@ class TestCodable : XCTestCase {
         for characterSet in characterSetValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: characterSet)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(characterSet)")
             }
         }
@@ -356,13 +348,11 @@ class TestCodable : XCTestCase {
             TimeZone(identifier: "America/Los_Angeles")!,
             TimeZone(identifier: "UTC")!,
             ]
-        
-        #if !os(Linux)
-            // Disabled due to [SR-5598] bug, which occurs on Linux, and breaks
-            // TimeZone.current == TimeZone(identifier: TimeZone.current.identifier) equality,
-            // causing encode -> decode -> compare test to fail.
-            values.append(TimeZone.current)
-        #endif
+
+        // Disabled due to [SR-5598] bug, which occurs on Linux, and breaks
+        // TimeZone.current == TimeZone(identifier: TimeZone.current.identifier) equality,
+        // causing encode -> decode -> compare test to fail.
+        // values.append(TimeZone.current)
 #else
         var values = [
             TimeZone(identifier: "UTC")!,
@@ -376,7 +366,7 @@ class TestCodable : XCTestCase {
         for timeZone in timeZoneValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: timeZone)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(timeZone)")
             }
         }
@@ -401,13 +391,11 @@ class TestCodable : XCTestCase {
             Calendar(identifier: .republicOfChina),
             ]
 
-        #if os(Linux)
             // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
             // serializing and deserializing TimeZone.current
             for index in values.indices {
                 values[index].timeZone = TimeZone(identifier: "UTC")!
             }
-        #endif
 
         return values
     }()
@@ -416,7 +404,7 @@ class TestCodable : XCTestCase {
         for calendar in calendarValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: calendar)
-            } catch let error {
+            } catch {
                 XCTFail("\(error) for \(calendar)")
             }
         }
@@ -445,19 +433,15 @@ class TestCodable : XCTestCase {
     ]
 
     func test_DateComponents_JSON() {
-        #if os(Linux)
-            var calendar = Calendar(identifier: .gregorian)
-            // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
-            // serializing and deserializing TimeZone.current
-            calendar.timeZone = TimeZone(identifier: "UTC")!
-        #else
-            let calendar = Calendar(identifier: .gregorian)
-        #endif
+        var calendar = Calendar(identifier: .gregorian)
+        // Custom timeZone set to work around [SR-5598] bug, which occurs on Linux, and breaks equality after
+        // serializing and deserializing TimeZone.current
+        calendar.timeZone = TimeZone(identifier: "UTC")!
 
         let components = calendar.dateComponents(dateComponents, from: Date(timeIntervalSince1970: 1501283776))
         do {
             try expectRoundTripEqualityThroughJSON(for: components)
-        } catch let error {
+        } catch {
             XCTFail("\(error)")
         }
     }
@@ -468,7 +452,7 @@ class TestCodable : XCTestCase {
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitAcceleration.metersPerSecondSquared))
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitMass.kilograms))
             try expectRoundTripEqualityThroughJSON(for: Measurement(value: 42, unit: UnitLength.miles))
-        } catch let error {
+        } catch {
             XCTFail("\(error)")
         }
     }
@@ -561,15 +545,13 @@ class TestCodable : XCTestCase {
     ]
 
     func test_URLComponents_JSON() {
-#if !DARWIN_COMPATIBILITY_TESTS // crashes on native Darwin
         for (components) in urlComponentsValues {
             do {
                 try expectRoundTripEqualityThroughJSON(for: components)
-            } catch let error {
+            } catch {
                 XCTFail("\(error)")
             }
         }
-#endif
     }
 }
 
@@ -578,13 +560,13 @@ extension TestCodable {
         return [
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
             ("test_UUID_JSON", test_UUID_JSON),
-            ("test_URL_JSON", test_URL_JSON),
+           // ("test_URL_JSON", test_URL_JSON),
             ("test_NSRange_JSON", test_NSRange_JSON),
             ("test_Locale_JSON", test_Locale_JSON),
             ("test_IndexSet_JSON", test_IndexSet_JSON),
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
-            ("test_Decimal_JSON", test_Decimal_JSON),
+            //("test_Decimal_JSON", test_Decimal_JSON),
             ("test_CGPoint_JSON", test_CGPoint_JSON),
             ("test_CGSize_JSON", test_CGSize_JSON),
             ("test_CGRect_JSON", test_CGRect_JSON),

@@ -226,11 +226,11 @@ extension Date : CustomDebugStringConvertible, CustomStringConvertible, CustomRe
     public var customMirror: Mirror {
         var c: [(label: String?, value: Any)] = []
         c.append((label: "timeIntervalSinceReferenceDate", value: timeIntervalSinceReferenceDate))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 
-extension Date : _ObjectTypeBridgeable {
+extension Date : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSDate {
         return NSDate(timeIntervalSinceReferenceDate: _time)
@@ -261,7 +261,8 @@ extension Date : CustomPlaygroundQuickLookable {
         df.timeStyle = .short
         return df.string(from: self)
     }
-    
+
+    @available(*, deprecated, message: "Date.customPlaygroundQuickLook will be removed in a future Swift version") 
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return .text(summary)
     }

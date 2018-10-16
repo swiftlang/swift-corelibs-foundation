@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc
@@ -476,7 +476,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
     }
 }
 
-extension AffineTransform : _ObjectTypeBridgeable {
+extension AffineTransform : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

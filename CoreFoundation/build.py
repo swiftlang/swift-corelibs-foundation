@@ -15,7 +15,7 @@ cf.GCC_PREFIX_HEADER = 'Base.subproj/CoreFoundation_Prefix.h'
 
 if Configuration.current.target.sdk == OSType.Linux:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CharacterSets" '
-	cf.LDFLAGS = '-Wl,@./linux.ld -Wl,-Bsymbolic '
+	cf.LDFLAGS = '-Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
@@ -110,7 +110,7 @@ module = 'Base.subproj/module.modulemap',
 public = [
 	'Stream.subproj/CFStream.h',
 	'String.subproj/CFStringEncodingExt.h',
-	'Base.subproj/SwiftRuntime/CoreFoundation.h',
+	'Base.subproj/CoreFoundation.h',
 	'Base.subproj/SwiftRuntime/TargetConditionals.h',
 	'RunLoop.subproj/CFMessagePort.h',
 	'Collections.subproj/CFBinaryHeap.h',
@@ -262,7 +262,9 @@ sources_list = [
 	'PlugIn.subproj/CFPlugIn_PlugIn.c',
 	'Preferences.subproj/CFApplicationPreferences.c',
 	'Preferences.subproj/CFPreferences.c',
-    'Preferences.subproj/CFXMLPreferencesDomain.c',
+	'Preferences.subproj/CFXMLPreferencesDomain.c',
+	'RunLoop.subproj/CFMachPort.c',
+	'RunLoop.subproj/CFMessagePort.c',
 	'RunLoop.subproj/CFRunLoop.c',
 	'RunLoop.subproj/CFSocket.c',
 	'Stream.subproj/CFConcreteStreams.c',
@@ -293,7 +295,7 @@ sources_list = [
 	'String.subproj/CFRegularExpression.c',
 	'String.subproj/CFAttributedString.c',
 	'String.subproj/CFRunArray.c',
-	'Base.subproj/CFKnownLocations.h',
+	'Base.subproj/CFKnownLocations.c',
 ]
 
 sources = CompileSources(sources_list)

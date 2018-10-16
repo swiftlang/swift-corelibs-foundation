@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestUnit: XCTestCase {
 
     static var allTests: [(String, (TestUnit) -> () throws -> Void)] {
@@ -100,4 +92,27 @@ class TestUnit: XCTestCase {
         testEquality(ofDimensionSubclass: UnitVolume.self)
     }
 
+}
+
+class TestDimension: XCTestCase {
+    static var allTests: [(String, (TestDimension) -> () throws -> Void)] {
+        return [
+            ("test_encodeDecode", test_encodeDecode),
+        ]
+    }
+
+    func test_encodeDecode() {
+        let original = Dimension(symbol: "symbol", converter: UnitConverterLinear(coefficient: 1.0))
+
+        let encodedData = NSMutableData()
+        let archiver = NSKeyedArchiver(forWritingWith: encodedData)
+        original.encode(with: archiver)
+        archiver.finishEncoding()
+
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData as Data)
+        let decoded = Dimension(coder: unarchiver)
+
+        XCTAssertNotNil(decoded)
+        XCTAssertEqual(original, decoded)
+    }
 }

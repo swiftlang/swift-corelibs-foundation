@@ -315,11 +315,11 @@ extension URLComponents : CustomStringConvertible, CustomDebugStringConvertible,
         if let p = self.port { c.append((label: "port", value: p)) }
         
         c.append((label: "path", value: self.path))
-        if #available(OSX 10.10, iOS 8.0, *) {
+        if #available(macOS 10.10, iOS 8.0, *) {
             if let qi = self.queryItems { c.append((label: "queryItems", value: qi )) }
         }
         if let f = self.fragment { c.append((label: "fragment", value: f)) }
-        let m = Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        let m = Mirror(self, children: c, displayStyle: .struct)
         return m
     }
 }
@@ -371,7 +371,7 @@ extension URLQueryItem : CustomStringConvertible, CustomDebugStringConvertible, 
         var c: [(label: String?, value: Any)] = []
         c.append((label: "name", value: name))
         c.append((label: "value", value: value as Any))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 
@@ -395,7 +395,7 @@ extension URLQueryItem : _NSBridgeable {
     internal var _nsObject: NSType { return _queryItem }
 }
 
-extension URLComponents : _ObjectTypeBridgeable {
+extension URLComponents : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSURLComponents
     
     public static func _getObjectiveCType() -> Any.Type {
@@ -425,7 +425,7 @@ extension URLComponents : _ObjectTypeBridgeable {
     }
 }
 
-extension URLQueryItem : _ObjectTypeBridgeable {
+extension URLQueryItem : _ObjectiveCBridgeable {
     public typealias _ObjectType = NSURLQueryItem
     
     public static func _getObjectiveCType() -> Any.Type {

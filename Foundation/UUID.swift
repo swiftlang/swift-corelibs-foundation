@@ -126,12 +126,12 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
 extension UUID : CustomReflectable {
     public var customMirror: Mirror {
         let c : [(label: String?, value: Any)] = []
-        let m = Mirror(self, children:c, displayStyle: Mirror.DisplayStyle.struct)
+        let m = Mirror(self, children:c, displayStyle: .struct)
         return m
     }
 }
 
-extension UUID : _ObjectTypeBridgeable {
+extension UUID : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSUUID {
         return reference

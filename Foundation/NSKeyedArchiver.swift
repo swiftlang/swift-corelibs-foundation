@@ -99,8 +99,8 @@ open class NSKeyedArchiver : NSCoder {
     /// The available formats are `xml` and `binary`.
     open var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
         willSet {
-            if outputFormat != PropertyListSerialization.PropertyListFormat.xml &&
-                outputFormat != PropertyListSerialization.PropertyListFormat.binary {
+            if outputFormat != .xml &&
+                outputFormat != .binary {
                 NSUnimplemented()
             }
         }
@@ -138,18 +138,15 @@ open class NSKeyedArchiver : NSCoder {
 
         do {
             (fd, auxFilePath) = try _NSCreateTemporaryFile(path)
-        } catch _ {
+        } catch {
             return false
         }
         
         defer {
-            do {
-                if finishedEncoding {
-                    try _NSCleanupTemporaryFile(auxFilePath, path)
-                } else {
-                    try FileManager.default.removeItem(atPath: auxFilePath)
-                }
-            } catch _ {
+            if finishedEncoding {
+                try? _NSCleanupTemporaryFile(auxFilePath, path)
+            } else {
+                try? FileManager.default.removeItem(atPath: auxFilePath)
             }
         }
 
@@ -165,7 +162,7 @@ open class NSKeyedArchiver : NSCoder {
         
         keyedArchiver.encode(rootObject, forKey: NSKeyedArchiveRootObjectKey)
         keyedArchiver.finishEncoding()
-        finishedEncoding = keyedArchiver._flags.contains(ArchiverFlags.finishedEncoding)
+        finishedEncoding = keyedArchiver._flags.contains(.finishedEncoding)
         
         return finishedEncoding
     }
@@ -231,7 +228,7 @@ open class NSKeyedArchiver : NSCoder {
     ///
     /// No more values can be encoded after this method is called. You must call this method when finished.
     open func finishEncoding() {
-        if _flags.contains(ArchiverFlags.finishedEncoding) {
+        if _flags.contains(.finishedEncoding) {
             return
         }
 
@@ -251,7 +248,7 @@ open class NSKeyedArchiver : NSCoder {
 
         let nsPlist = plist._bridgeToObjectiveC()
         
-        if self.outputFormat == PropertyListSerialization.PropertyListFormat.xml {
+        if self.outputFormat == .xml {
             success = _writeXMLData(nsPlist)
         } else {
             success = _writeBinaryData(nsPlist)
@@ -262,7 +259,7 @@ open class NSKeyedArchiver : NSCoder {
         }
 
         if success {
-            let _ = self._flags.insert(ArchiverFlags.finishedEncoding)
+            let _ = self._flags.insert(.finishedEncoding)
         }
     }
 
@@ -305,7 +302,7 @@ open class NSKeyedArchiver : NSCoder {
     }
     
     private func _validateStillEncoding() -> Bool {
-        if self._flags.contains(ArchiverFlags.finishedEncoding) {
+        if self._flags.contains(.finishedEncoding) {
             fatalError("Encoder already finished")
         }
         
@@ -352,7 +349,7 @@ open class NSKeyedArchiver : NSCoder {
             return NSKeyedArchiveNullObjectReference
         }
         
-        let value = _SwiftValue.store(objv)!
+        let value = __SwiftValue.store(objv)!
         
         uid = self._objRefMap[value]
         if uid == nil {
@@ -376,7 +373,7 @@ open class NSKeyedArchiver : NSCoder {
         if objv == nil {
             return true // always have a null reference
         } else {
-            return self._objRefMap[_SwiftValue.store(objv!)] != nil
+            return self._objRefMap[__SwiftValue.store(objv!)] != nil
         }
     }
     
@@ -448,7 +445,7 @@ open class NSKeyedArchiver : NSCoder {
             unwrappedDelegate.archiver(self, willReplace: object, with: replacement)
         }
         
-        self._replacementMap[_SwiftValue.store(object)] = replacement
+        self._replacementMap[__SwiftValue.store(object)] = replacement
     }
    
     /**
@@ -597,9 +594,7 @@ open class NSKeyedArchiver : NSCoder {
         object = _replacementObject(objv)
         
         // bridge value types
-        if let bridgedObject = object as? _ObjectBridgeable {
-            object = bridgedObject._bridgeToAnyObject()
-        }
+        object = __SwiftValue.store(object)
         
         objectRef = _referenceObject(object, conditional: conditional)
         guard let unwrappedObjectRef = objectRef else {
@@ -854,7 +849,7 @@ open class NSKeyedArchiver : NSCoder {
         objectRefs.reserveCapacity(objects.count)
         
         for object in objects {
-            let objectRef = _encodeObject(_SwiftValue.store(object))!
+            let objectRef = _encodeObject(__SwiftValue.store(object))!
 
             objectRefs.append(objectRef)
         }
@@ -868,13 +863,13 @@ open class NSKeyedArchiver : NSCoder {
     /// if you attempt to archive a class which does not conform to `NSSecureCoding`.
     open override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(ArchiverFlags.requiresSecureCoding)
+            return _flags.contains(.requiresSecureCoding)
         }
         set {
             if newValue {
-                let _ = _flags.insert(ArchiverFlags.requiresSecureCoding)
+                let _ = _flags.insert(.requiresSecureCoding)
             } else {
-                _flags.remove(ArchiverFlags.requiresSecureCoding)
+                _flags.remove(.requiresSecureCoding)
             }
         }
     }

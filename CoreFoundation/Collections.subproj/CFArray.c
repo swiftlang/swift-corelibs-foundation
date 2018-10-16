@@ -1,7 +1,7 @@
 /*	CFArray.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,6 +11,7 @@
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <string.h>
 
 #define CF_ARRAY_ALWAYS_BRIDGE 0
@@ -86,6 +87,7 @@ CF_INLINE void __CFArraySetCount(CFArrayRef array, CFIndex v) {
 CF_INLINE struct __CFArrayBucket *__CFArrayGetBucketsPtr(CFArrayRef array) {
     switch (__CFArrayGetType(array)) {
         case __kCFArrayImmutable:
+            // TODO: Refactor the following to just get the custom callbacks value directly, or refactor helper function
             return (struct __CFArrayBucket *)((uint8_t *)array + __CFArrayGetSizeOfType(__CFRuntimeGetValue(array, 6, 0)));
         case __kCFArrayDeque: {
             struct __CFArrayDeque *deque = (struct __CFArrayDeque *)array->_store;
@@ -276,9 +278,7 @@ static void __CFArrayDeallocate(CFTypeRef cf) {
     END_MUTATION(array);
 }
 
-static CFTypeID __kCFArrayTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFArrayClass = {
+const CFRuntimeClass __CFArrayClass = {
     _kCFRuntimeScannedObject,
     "CFArray",
     NULL,	// init
@@ -291,11 +291,7 @@ static const CFRuntimeClass __CFArrayClass = {
 };
 
 CFTypeID CFArrayGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        __kCFArrayTypeID = _CFRuntimeRegisterClass(&__CFArrayClass);
-    });
-    return __kCFArrayTypeID;
+    return _kCFRuntimeIDCFArray;
 }
 
 static CFArrayRef __CFArrayInit(CFAllocatorRef allocator, UInt32 flags, CFIndex capacity, const CFArrayCallBacks *callBacks) {
@@ -628,7 +624,7 @@ void CFArrayAppendValue(CFMutableArrayRef array, const void *value) {
 }
 
 void CFArraySetValueAtIndex(CFMutableArrayRef array, CFIndex idx, const void *value) {
-    CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.setObject, idx, value);
+    CF_SWIFT_FUNCDISPATCHV(CFArrayGetTypeID(), void, (CFSwiftRef)array, NSMutableArray.setObject, value, idx);
     CF_OBJC_FUNCDISPATCHV(CFArrayGetTypeID(), void, (NSMutableArray *)array, setObject:(id)value atIndex:(NSUInteger)idx);
     __CFGenericValidateType(array, CFArrayGetTypeID());
     CFAssert1(__CFArrayGetType(array) != __kCFArrayImmutable, __kCFLogAssertion, "%s(): array is immutable", __PRETTY_FUNCTION__);

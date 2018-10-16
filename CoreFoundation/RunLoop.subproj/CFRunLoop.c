@@ -1,11 +1,11 @@
 /*	CFRunLoop.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
-	Responsibility: Tony Parker
+	Responsibility: Michael LeHew
 */
 
 #include <CoreFoundation/CFRunLoop.h>
@@ -14,6 +14,8 @@
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
+#include "CFMachPort_Internal.h"
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
@@ -21,8 +23,8 @@
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif
-#define cf_trace(...)
 
+extern void objc_terminate(void);
 
 
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -50,9 +52,10 @@ CF_INLINE uint64_t check_uint64_add(uint64_t x, uint64_t y, int32_t* err) {
 extern dispatch_queue_t _dispatch_runloop_root_queue_create_4CF(const char *_Nullable label, unsigned long flags);
 extern mach_port_t _dispatch_runloop_root_queue_get_port_4CF(dispatch_queue_t queue);
 extern void _dispatch_source_set_runloop_timer_4CF(dispatch_source_t source, dispatch_time_t start, uint64_t interval, uint64_t leeway);
+extern bool _dispatch_runloop_root_queue_perform_4CF(dispatch_queue_t queue);
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_SIMULATOR
 #include <sys/param.h>
 #include <CoreFoundation/CFUserNotification.h>
 #include <mach/mach.h>
@@ -60,6 +63,8 @@ extern void _dispatch_source_set_runloop_timer_4CF(dispatch_source_t source, dis
 #include <mach/clock.h>
 #include <unistd.h>
 #include <dlfcn.h>
+
+extern void _dispatch_main_queue_callback_4CF(void *);
 
 extern pthread_t pthread_main_thread_np(void);
 typedef struct voucher_s *voucher_t;
@@ -69,7 +74,7 @@ extern void os_release(void *object);
 
 extern mach_port_t _dispatch_get_main_queue_port_4CF(void);
 
-#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
+#elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
 #include <process.h>
 DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);
 DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
@@ -83,6 +88,7 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 #define AbsoluteTime LARGE_INTEGER 
 
 #elif DEPLOYMENT_TARGET_LINUX
+
 #include <dlfcn.h>
 #include <poll.h>
 #include <sys/epoll.h>
@@ -96,7 +102,7 @@ extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 #define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF(x)
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_IPHONESIMULATOR || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
@@ -116,6 +122,10 @@ CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #define USE_MK_TIMER_TOO 1
 #endif
 
+// Open source CF may not have this defined.
+#ifndef cf_trace
+#define cf_trace(...) do {} while (0)
+#endif
 
 static int _LogCFRunLoop = 0;
 static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueBlock);
@@ -130,21 +140,21 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static pthread_t kNilPthreadT = { nil, nil };
+static pthread_t const kNilPthreadT = { nil, nil };
 #define pthreadPointer(a) a.p
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
 #elif DEPLOYMENT_TARGET_LINUX
 
-static pthread_t kNilPthreadT = (pthread_t)0;
+static pthread_t const kNilPthreadT = (pthread_t)0;
 #define pthreadPointer(a) ((void*)a)
 typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 #else
 
-static pthread_t kNilPthreadT = (pthread_t)0;
+static pthread_t const kNilPthreadT = (pthread_t)0;
 #define pthreadPointer(a) a
 #define lockCount(a) a
 #endif
@@ -249,7 +259,7 @@ CF_PRIVATE void __CFRestartAllThreads(CFArrayRef threads) {
 
 static uint32_t __CF_last_warned_port_count = 0;
 
-static void foo() __attribute__((unused));
+static void foo(void) __attribute__((unused));
 static void foo() {
     uint32_t pcnt = __CFGetProcessPortCount();
     if (__CF_last_warned_port_count + 1000 < pcnt) {
@@ -285,9 +295,16 @@ typedef mach_port_t __CFPortSet;
 static void __THE_SYSTEM_HAS_NO_PORTS_AVAILABLE__(kern_return_t ret) __attribute__((noinline));
 static void __THE_SYSTEM_HAS_NO_PORTS_AVAILABLE__(kern_return_t ret) { HALT; };
 
-static __CFPort __CFPortAllocate(void) {
+static __CFPort __CFPortAllocate(uintptr_t guard) {
     __CFPort result = CFPORT_NULL;
-    kern_return_t ret = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &result);
+
+    mach_port_options_t options = {
+        .flags = MPO_CONTEXT_AS_GUARD | MPO_QLIMIT | MPO_INSERT_SEND_RIGHT | MPO_STRICT,
+        .mpl.mpl_qlimit = 1,
+    };
+
+    kern_return_t const ret = mach_port_construct(mach_task_self(), &options, (mach_port_context_t)guard, &result);
+
     if (KERN_SUCCESS != ret) {
         char msg[256];
         snprintf(msg, 256, "*** The system has no mach ports available. You may be able to diagnose which application(s) are using ports by using 'top' or Activity Monitor. (%d) ***", ret);
@@ -296,20 +313,18 @@ static __CFPort __CFPortAllocate(void) {
         return CFPORT_NULL;
     }
 
-    ret = mach_port_insert_right(mach_task_self(), result, result, MACH_MSG_TYPE_MAKE_SEND);
-    if (KERN_SUCCESS != ret) CRASH("*** Unable to set send right on mach port. (%d) ***", ret);
-
-
-    mach_port_limits_t limits;
-    limits.mpl_qlimit = 1;
-    ret = mach_port_set_attributes(mach_task_self(), result, MACH_PORT_LIMITS_INFO, (mach_port_info_t)&limits, MACH_PORT_LIMITS_INFO_COUNT);
-    if (KERN_SUCCESS != ret) CRASH("*** Unable to set attributes on mach port. (%d) ***", ret);
-    
     return result;
 }
 
-CF_INLINE void __CFPortFree(__CFPort port) {
-    mach_port_destroy(mach_task_self(), port);
+CF_INLINE void __CFPortFree(__CFPort port, uintptr_t guard) {
+    kern_return_t const ret = mach_port_destruct(mach_task_self(), port, -1, (mach_port_context_t)guard);
+    if (KERN_SUCCESS != ret) {
+        
+        char msg[256];
+        snprintf(msg, 256, "*** Unable to destruct port. (0x%x, %d, %p) ***", port, ret, (void *)guard);
+        CRSetCrashLogMessage(msg);
+        HALT;
+    }
 }
 
 static void __NO_SPACE__(kern_return_t ret) __attribute__((noinline));
@@ -372,11 +387,11 @@ typedef struct ___CFPortSet {
     CFLock_t lock;		// insert and remove must be thread safe, like the Mach calls
 } *__CFPortSet;
 
-CF_INLINE __CFPort __CFPortAllocate(void) {
+CF_INLINE __CFPort __CFPortAllocate(__unused uintptr_t guard) {
     return CreateEventA(NULL, true, false, NULL);
 }
 
-CF_INLINE void __CFPortFree(__CFPort port) {
+CF_INLINE void __CFPortFree(__CFPort port, __unused uintptr_t guard) {
     CloseHandle(port);
 }
 
@@ -460,11 +475,19 @@ typedef int __CFPort;
 typedef int __CFPortSet;
 #define CFPORTSET_NULL -1
 
-static __CFPort __CFPortAllocate(void) {
+#ifndef __unused
+    #if __has_attribute(unused)
+        #define __unused __attribute__((unused))
+    #else
+        #define __unused
+    #endif
+#endif // !defined(__unused)
+
+static __CFPort __CFPortAllocate(__unused uintptr_t guard) {
     return eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
 }
 
-CF_INLINE void __CFPortFree(__CFPort port) {
+CF_INLINE void __CFPortFree(__CFPort port, __unused uintptr_t guard) {
     close(port);
 }
 
@@ -523,18 +546,17 @@ extern kern_return_t mk_timer_arm(mach_port_name_t name, uint64_t expire_time);
 #endif
 
 static uint32_t __CFSendTrivialMachMessage(mach_port_t port, uint32_t msg_id, CFOptionFlags options, uint32_t timeout) {
-    kern_return_t result;
     mach_msg_header_t header;
     header.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
     header.msgh_size = sizeof(mach_msg_header_t);
     header.msgh_remote_port = port;
     header.msgh_local_port = MACH_PORT_NULL;
     header.msgh_id = msg_id;
-    result = mach_msg(&header, MACH_SEND_MSG|options, header.msgh_size, 0, MACH_PORT_NULL, timeout, MACH_PORT_NULL);
-    if (result == MACH_SEND_TIMED_OUT) mach_msg_destroy(&header);
+    kern_return_t const result = mach_msg(&header, MACH_SEND_MSG|options, header.msgh_size, 0, MACH_PORT_NULL, timeout, MACH_PORT_NULL);
+    __CFMachMessageCheckForAndDestroyUnsentMessage(result, &header);
     return result;
 }
-#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
+#elif DEPLOYMENT_TARGET_LINUX
 
 static int mk_timer_create(void) {
     return timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC);
@@ -564,7 +586,7 @@ CF_INLINE int64_t __CFUInt64ToAbsoluteTime(int64_t x) {
     return x;
 }
 
-#elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
+#elif DEPLOYMENT_TARGET_WINDOWS
 
 static HANDLE mk_timer_create(void) {
     return CreateWaitableTimer(NULL, FALSE, NULL);
@@ -612,7 +634,6 @@ static kern_return_t mk_timer_cancel(HANDLE name, LARGE_INTEGER *result_time) {
 #endif
 
 
-CF_EXPORT Boolean __CFMainThreadHasExited;
 CF_BREAKPOINT_FUNCTION(void _CFRunLoopError_MainThreadHasExited(void));
 
 #pragma mark -
@@ -622,12 +643,6 @@ CF_BREAKPOINT_FUNCTION(void _CFRunLoopError_MainThreadHasExited(void));
 /* never try to take the run loop lock with a mode locked */
 /* be very careful of common subexpression elimination and compacting code, particular across locks and unlocks! */
 /* run loop mode structures should never be deallocated, even if they become empty */
-
-static CFTypeID __kCFRunLoopModeTypeID = _kCFRuntimeNotATypeID;
-static CFTypeID __kCFRunLoopTypeID = _kCFRuntimeNotATypeID;
-static CFTypeID __kCFRunLoopSourceTypeID = _kCFRuntimeNotATypeID;
-static CFTypeID __kCFRunLoopObserverTypeID = _kCFRuntimeNotATypeID;
-static CFTypeID __kCFRunLoopTimerTypeID = _kCFRuntimeNotATypeID;
 
 typedef struct __CFRunLoopMode *CFRunLoopModeRef;
 
@@ -873,7 +888,7 @@ static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeNam
     CFRunLoopModeRef rlm;
     struct __CFRunLoopMode srlm;
     memset(&srlm, 0, sizeof(srlm));
-    _CFRuntimeSetInstanceTypeIDAndIsa(&srlm, __kCFRunLoopModeTypeID);
+    _CFRuntimeSetInstanceTypeIDAndIsa(&srlm, _kCFRuntimeIDCFRunLoopMode);
     srlm._name = modeName;
     rlm = (CFRunLoopModeRef)CFSetGetValue(rl->_modes, &srlm);
     if (NULL != rlm) {
@@ -883,7 +898,7 @@ static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeNam
     if (!create) {
 	return NULL;
     }
-    rlm = (CFRunLoopModeRef)_CFRuntimeCreateInstance(kCFAllocatorSystemDefault, __kCFRunLoopModeTypeID, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase), NULL);
+    rlm = (CFRunLoopModeRef)_CFRuntimeCreateInstance(kCFAllocatorSystemDefault, _kCFRuntimeIDCFRunLoopMode, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase), NULL);
     if (NULL == rlm) {
 	return NULL;
     }
@@ -1386,7 +1401,7 @@ static void __CFRunLoopDeallocate(CFTypeRef cf) {
     if (NULL != rl->_modes) {
 	CFRelease(rl->_modes);
     }
-    __CFPortFree(rl->_wakeUpPort);
+    __CFPortFree(rl->_wakeUpPort, (uintptr_t)rl);
     rl->_wakeUpPort = CFPORT_NULL;
     __CFRunLoopPopPerRunData(rl, NULL);
     __CFRunLoopUnlock(rl);
@@ -1394,7 +1409,7 @@ static void __CFRunLoopDeallocate(CFTypeRef cf) {
     memset((char *)cf + sizeof(CFRuntimeBase), 0x8C, sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase));
 }
 
-static const CFRuntimeClass __CFRunLoopModeClass = {
+const CFRuntimeClass __CFRunLoopModeClass = {
     0,
     "CFRunLoopMode",
     NULL,      // init
@@ -1406,7 +1421,7 @@ static const CFRuntimeClass __CFRunLoopModeClass = {
     __CFRunLoopModeCopyDescription
 };
 
-static const CFRuntimeClass __CFRunLoopClass = {
+const CFRuntimeClass __CFRunLoopClass = {
     0,
     "CFRunLoop",
     NULL,      // init
@@ -1421,9 +1436,7 @@ static const CFRuntimeClass __CFRunLoopClass = {
 CF_PRIVATE void __CFFinalizeRunLoop(uintptr_t data);
 
 CFTypeID CFRunLoopGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFRunLoopTypeID = _CFRuntimeRegisterClass(&__CFRunLoopClass); __kCFRunLoopModeTypeID = _CFRuntimeRegisterClass(&__CFRunLoopModeClass); });
-    return __kCFRunLoopTypeID;
+    return _kCFRuntimeIDCFRunLoop;
 }
 
 static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
@@ -1436,7 +1449,7 @@ static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
     }
     (void)__CFRunLoopPushPerRunData(loop);
     __CFRunLoopLockInit(&loop->_lock);
-    loop->_wakeUpPort = __CFPortAllocate();
+    loop->_wakeUpPort = __CFPortAllocate((uintptr_t)loop);
     if (CFPORT_NULL == loop->_wakeUpPort) HALT;
     __CFRunLoopSetIgnoreWakeUps(loop);
     loop->_commonModes = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
@@ -1751,7 +1764,7 @@ void CFRunLoopAddCommonMode(CFRunLoopRef rl, CFStringRef modeName) {
 
 #if __HAS_DISPATCH__
 
-static void __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(void *msg) __attribute__((noinline));
 static void __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(void *msg) {
     _dispatch_main_queue_callback_4CF(msg);
     __asm __volatile__(""); // thwart tail-call optimization
@@ -1759,7 +1772,7 @@ static void __CFRUNLOOP_IS_SERVICING_THE_MAIN_DISPATCH_QUEUE__(void *msg) {
 
 #endif
 
-static void __CFRUNLOOP_IS_CALLING_OUT_TO_AN_OBSERVER_CALLBACK_FUNCTION__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_CALLING_OUT_TO_AN_OBSERVER_CALLBACK_FUNCTION__(CFRunLoopObserverCallBack func, CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) __attribute__((noinline));
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_AN_OBSERVER_CALLBACK_FUNCTION__(CFRunLoopObserverCallBack func, CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) {
     if (func) {
         func(observer, activity, info);
@@ -1767,7 +1780,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_AN_OBSERVER_CALLBACK_FUNCTION__(CFRunL
     __asm __volatile__(""); // thwart tail-call optimization
 }
 
-static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__(CFRunLoopTimerCallBack func, CFRunLoopTimerRef timer, void *info) __attribute__((noinline));
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__(CFRunLoopTimerCallBack func, CFRunLoopTimerRef timer, void *info) {
     if (func) {
         func(timer, info);
@@ -1775,7 +1788,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_TIMER_CALLBACK_FUNCTION__(CFRunLoopT
     __asm __volatile__(""); // thwart tail-call optimization
 }
 
-static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__(void (^block)(void)) __attribute__((noinline));
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__(void (^block)(void)) {
     if (block) {
         block();
@@ -1840,7 +1853,7 @@ static Boolean __CFRunLoopDoBlocks(CFRunLoopRef rl, CFRunLoopModeRef rlm) { // C
 }
 
 /* rl is locked, rlm is locked on entrance and exit */
-static void __CFRunLoopDoObservers() __attribute__((noinline));
+static void __CFRunLoopDoObservers(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopActivity activity) __attribute__((noinline));
 static void __CFRunLoopDoObservers(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopActivity activity) {	/* DOES CALLOUT */
     
     cf_trace(KDEBUG_EVENT_CFRL_IS_DOING_OBSERVERS | DBG_FUNC_START, rl, rlm, activity, 0);
@@ -1917,7 +1930,7 @@ static void __CFRunLoopCollectSources0(const void *value, void *context) {
     }
 }
 
-static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__(void (*perform)(void *), void *info) __attribute__((noinline));
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__(void (*perform)(void *), void *info) {
     if (perform) {
         perform(info);
@@ -1925,7 +1938,15 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__(void (*pe
     __asm __volatile__(""); // thwart tail-call optimization
 }
 
-static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__() __attribute__((noinline));
+static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+        void *(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info),
+        mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply,
+#else
+        void (*perform)(void *),
+#endif
+        void *info) __attribute__((noinline));
+
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         void *(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info),
@@ -2020,9 +2041,9 @@ CF_INLINE void __CFRunLoopDebugInfoForRunLoopSource(CFRunLoopSourceRef rls) {
 }
 
 // msg, size and reply are unused on Windows
-static Boolean __CFRunLoopDoSource1() __attribute__((noinline));
-
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopSourceRef rls, mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply) __attribute__((noinline));
+
 static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopSourceRef rls, mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply)
 #else
 static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopSourceRef rls)
@@ -2812,7 +2833,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 #elif DEPLOYMENT_TARGET_WINDOWS
         // Here, use the app-supplied message queue mask. They will set this if they are interested in having this run loop receive windows messages.
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, poll ? 0 : TIMEOUT_INFINITY, rlm->_msgQMask, &livePort, &windowsMessageReceived);
-#elif DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN
+#elif DEPLOYMENT_TARGET_LINUX
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, TIMEOUT_INFINITY, &livePort);
 #endif
         
@@ -3069,7 +3090,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            os_log_error(_CFOSLog(), "Attempting to wake up main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
+            os_log_error(_CFOSLog(), "Attempting to wake up main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug.");
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3219,6 +3240,8 @@ Boolean CFRunLoopContainsSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStrin
     return hasValue;
 }
 
+CF_BREAKPOINT_FUNCTION(void __CFRunLoopError_AddingSourceLackingReceiveRight(void));
+
 void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef modeName) {	/* DOES CALLOUT */
     CHECK_FOR_FORK();
     if (__CFRunLoopIsDeallocating(rl)) return;
@@ -3230,6 +3253,22 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
         _CFRunLoopError_MainThreadHasExited();
         return;
     }
+    
+#if TARGET_OS_MAC
+    // Preflight Version-1 ports to make sure their mach port has a RECV right. 
+    if (rls->_context.version0.version == 1) {
+        mach_port_t const mp = rls->_context.version1.getPort(rls->_context.version1.info);
+        mach_port_type_t type = MACH_PORT_TYPE_NONE;
+        kern_return_t const ret = mach_port_type(mach_task_self(), mp, &type);
+        if (ret == KERN_SUCCESS && (type & MACH_PORT_TYPE_RECEIVE) == 0) {
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                CFLog(kCFLogLevelError, CFSTR("Attempting to add a runloop source %p to runloop %p in mode '%@', but the port associated with this source does not have a receive right. This means your source will never be signalled and is likely an error. Break on __CFRunLoopError_AddingSourceLackingReceiveRight to debug. This message will only appear once per execution."), rls, rl, modeName);
+            });
+            __CFRunLoopError_AddingSourceLackingReceiveRight();
+        }
+    }
+#endif
     
     if (!__CFIsValid(rls)) return;
     Boolean doVer0Callout = false;
@@ -3532,7 +3571,7 @@ void CFRunLoopAddTimer(CFRunLoopRef rl, CFRunLoopTimerRef rlt, CFStringRef modeN
     if (__CFMainThreadHasExited && rl == CFRunLoopGetMain()) {
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
-            CFLog(kCFLogLevelError, CFSTR("Attempting to add timer to main runloop, but the main thread has exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
+            CFLog(kCFLogLevelError, CFSTR("Attempting to add timer to main runloop, but the main thread as exited. This message will only log once. Break on _CFRunLoopError_MainThreadHasExited to debug."));
         });
         _CFRunLoopError_MainThreadHasExited();
         return;
@@ -3691,7 +3730,7 @@ static void __CFRunLoopSourceDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     memset((char *)cf + sizeof(CFRuntimeBase), 0, sizeof(struct __CFRunLoopSource) - sizeof(CFRuntimeBase));
 }
 
-static const CFRuntimeClass __CFRunLoopSourceClass = {
+const CFRuntimeClass __CFRunLoopSourceClass = {
     _kCFRuntimeScannedObject,
     "CFRunLoopSource",
     NULL,      // init
@@ -3704,9 +3743,7 @@ static const CFRuntimeClass __CFRunLoopSourceClass = {
 };
 
 CFTypeID CFRunLoopSourceGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFRunLoopSourceTypeID = _CFRuntimeRegisterClass(&__CFRunLoopSourceClass); });
-    return __kCFRunLoopSourceTypeID;
+    return _kCFRuntimeIDCFRunLoopSource;
 }
 
 CFRunLoopSourceRef CFRunLoopSourceCreate(CFAllocatorRef allocator, CFIndex order, CFRunLoopSourceContext *context) {
@@ -3883,7 +3920,7 @@ static void __CFRunLoopObserverDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     pthread_mutex_destroy(&rlo->_lock);
 }
 
-static const CFRuntimeClass __CFRunLoopObserverClass = {
+const CFRuntimeClass __CFRunLoopObserverClass = {
     0,
     "CFRunLoopObserver",
     NULL,      // init
@@ -3896,9 +3933,7 @@ static const CFRuntimeClass __CFRunLoopObserverClass = {
 };
 
 CFTypeID CFRunLoopObserverGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFRunLoopObserverTypeID = _CFRuntimeRegisterClass(&__CFRunLoopObserverClass); });
-    return __kCFRunLoopObserverTypeID;
+    return _kCFRuntimeIDCFRunLoopObserver;
 }
 
 CFRunLoopObserverRef CFRunLoopObserverCreate(CFAllocatorRef allocator, CFOptionFlags activities, Boolean repeats, CFIndex order, CFRunLoopObserverCallBack callout, CFRunLoopObserverContext *context) {
@@ -4076,7 +4111,7 @@ static void __CFRunLoopTimerDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     pthread_mutex_destroy(&rlt->_lock);
 }
 
-static const CFRuntimeClass __CFRunLoopTimerClass = {
+const CFRuntimeClass __CFRunLoopTimerClass = {
     0,
     "CFRunLoopTimer",
     NULL,      // init
@@ -4089,9 +4124,7 @@ static const CFRuntimeClass __CFRunLoopTimerClass = {
 };
 
 CFTypeID CFRunLoopTimerGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFRunLoopTimerTypeID = _CFRuntimeRegisterClass(&__CFRunLoopTimerClass); });
-    return __kCFRunLoopTimerTypeID;
+    return _kCFRuntimeIDCFRunLoopTimer;
 }
 
 CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime fireDate, CFTimeInterval interval, CFOptionFlags flags, CFIndex order, CFRunLoopTimerCallBack callout, CFRunLoopTimerContext *context) {

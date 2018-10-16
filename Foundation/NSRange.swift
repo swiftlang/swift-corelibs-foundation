@@ -251,7 +251,7 @@ extension NSRange {
 
 extension NSRange {
     public init<R: RangeExpression>(_ region: R)
-        where R.Bound: FixedWidthInteger, R.Bound.Stride : SignedInteger {
+        where R.Bound: FixedWidthInteger {
             let r = region.relative(to: 0..<R.Bound.max)
             location = numericCast(r.lowerBound)
             length = numericCast(r.count)
@@ -310,6 +310,7 @@ extension NSRange : CustomReflectable {
 }
 
 extension NSRange : CustomPlaygroundQuickLookable {
+    @available(*, deprecated, message: "NSRange.customPlaygroundQuickLook will be removed in a future Swift version")
     public var customPlaygroundQuickLook: PlaygroundQuickLook {
         return .range(Int64(location), Int64(length))
     }
@@ -351,11 +352,6 @@ extension NSRange {
     public init(_ x: Range<Int>) {
         location = x.lowerBound
         length = x.count
-    }
-    
-    internal func toCountableRange() -> CountableRange<Int>? {
-        if location == NSNotFound { return nil }
-        return location..<(location+length)
     }
 }
     

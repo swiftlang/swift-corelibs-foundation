@@ -7,15 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestURLCredential : XCTestCase {
     
     static var allTests: [(String, (TestURLCredential) -> () throws -> Void)] {
@@ -28,7 +19,6 @@ class TestURLCredential : XCTestCase {
     
     func test_construction() {
         let credential = URLCredential(user: "swiftUser", password: "swiftPassword", persistence: .forSession)
-        XCTAssertNotNil(credential)
         XCTAssertEqual(credential.user, "swiftUser")
         XCTAssertEqual(credential.password, "swiftPassword")
         XCTAssertEqual(credential.persistence, URLCredential.Persistence.forSession)

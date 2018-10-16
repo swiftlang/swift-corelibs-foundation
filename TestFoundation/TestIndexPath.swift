@@ -1,21 +1,11 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 
 class TestIndexPath: XCTestCase {
     
@@ -69,12 +59,19 @@ class TestIndexPath: XCTestCase {
             ("test_AnyHashableCreatedFromNSIndexPath", test_AnyHashableCreatedFromNSIndexPath),
             ("test_unconditionallyBridgeFromObjectiveC", test_unconditionallyBridgeFromObjectiveC),
             ("test_slice_1ary", test_slice_1ary),
+            ("test_copy", test_copy),
         ]
     }
 
     func testEmpty() {
         let ip = IndexPath()
         XCTAssertEqual(ip.count, 0)
+
+        // Darwin allows nil if length is 0
+        let nsip = NSIndexPath(indexes: nil, length: 0)
+        XCTAssertEqual(nsip.length, 0)
+        let newIp = nsip.adding(1)
+        XCTAssertEqual(newIp.count, 1)
     }
     
     func testSingleIndex() {
@@ -193,83 +190,83 @@ class TestIndexPath: XCTestCase {
         let ip4: IndexPath = [1, 1, 1]
         let ip5: IndexPath = [1, 1, 9]
         
-        XCTAssertEqual(ip1.compare(ip1), ComparisonResult.orderedSame)
+        XCTAssertEqual(ip1.compare(ip1), .orderedSame)
         XCTAssertEqual(ip1 < ip1, false)
         XCTAssertEqual(ip1 <= ip1, true)
         XCTAssertEqual(ip1 == ip1, true)
         XCTAssertEqual(ip1 >= ip1, true)
         XCTAssertEqual(ip1 > ip1, false)
         
-        XCTAssertEqual(ip1.compare(ip2), ComparisonResult.orderedAscending)
+        XCTAssertEqual(ip1.compare(ip2), .orderedAscending)
         XCTAssertEqual(ip1 < ip2, true)
         XCTAssertEqual(ip1 <= ip2, true)
         XCTAssertEqual(ip1 == ip2, false)
         XCTAssertEqual(ip1 >= ip2, false)
         XCTAssertEqual(ip1 > ip2, false)
         
-        XCTAssertEqual(ip1.compare(ip3), ComparisonResult.orderedAscending)
+        XCTAssertEqual(ip1.compare(ip3), .orderedAscending)
         XCTAssertEqual(ip1 < ip3, true)
         XCTAssertEqual(ip1 <= ip3, true)
         XCTAssertEqual(ip1 == ip3, false)
         XCTAssertEqual(ip1 >= ip3, false)
         XCTAssertEqual(ip1 > ip3, false)
         
-        XCTAssertEqual(ip1.compare(ip4), ComparisonResult.orderedDescending)
+        XCTAssertEqual(ip1.compare(ip4), .orderedDescending)
         XCTAssertEqual(ip1 < ip4, false)
         XCTAssertEqual(ip1 <= ip4, false)
         XCTAssertEqual(ip1 == ip4, false)
         XCTAssertEqual(ip1 >= ip4, true)
         XCTAssertEqual(ip1 > ip4, true)
         
-        XCTAssertEqual(ip1.compare(ip5), ComparisonResult.orderedDescending)
+        XCTAssertEqual(ip1.compare(ip5), .orderedDescending)
         XCTAssertEqual(ip1 < ip5, false)
         XCTAssertEqual(ip1 <= ip5, false)
         XCTAssertEqual(ip1 == ip5, false)
         XCTAssertEqual(ip1 >= ip5, true)
         XCTAssertEqual(ip1 > ip5, true)
         
-        XCTAssertEqual(ip2.compare(ip1), ComparisonResult.orderedDescending)
+        XCTAssertEqual(ip2.compare(ip1), .orderedDescending)
         XCTAssertEqual(ip2 < ip1, false)
         XCTAssertEqual(ip2 <= ip1, false)
         XCTAssertEqual(ip2 == ip1, false)
         XCTAssertEqual(ip2 >= ip1, true)
         XCTAssertEqual(ip2 > ip1, true)
         
-        XCTAssertEqual(ip2.compare(ip2), ComparisonResult.orderedSame)
+        XCTAssertEqual(ip2.compare(ip2), .orderedSame)
         XCTAssertEqual(ip2 < ip2, false)
         XCTAssertEqual(ip2 <= ip2, true)
         XCTAssertEqual(ip2 == ip2, true)
         XCTAssertEqual(ip2 >= ip2, true)
         XCTAssertEqual(ip2 > ip2, false)
         
-        XCTAssertEqual(ip2.compare(ip3), ComparisonResult.orderedAscending)
+        XCTAssertEqual(ip2.compare(ip3), .orderedAscending)
         XCTAssertEqual(ip2 < ip3, true)
         XCTAssertEqual(ip2 <= ip3, true)
         XCTAssertEqual(ip2 == ip3, false)
         XCTAssertEqual(ip2 >= ip3, false)
         XCTAssertEqual(ip2 > ip3, false)
         
-        XCTAssertEqual(ip2.compare(ip4), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip2.compare(ip5), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip3.compare(ip1), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip3.compare(ip2), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip3.compare(ip3), ComparisonResult.orderedSame)
-        XCTAssertEqual(ip3.compare(ip4), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip3.compare(ip5), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip4.compare(ip1), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip4.compare(ip2), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip4.compare(ip3), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip4.compare(ip4), ComparisonResult.orderedSame)
-        XCTAssertEqual(ip4.compare(ip5), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip5.compare(ip1), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip5.compare(ip2), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip5.compare(ip3), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip5.compare(ip4), ComparisonResult.orderedDescending)
-        XCTAssertEqual(ip5.compare(ip5), ComparisonResult.orderedSame)
+        XCTAssertEqual(ip2.compare(ip4), .orderedDescending)
+        XCTAssertEqual(ip2.compare(ip5), .orderedDescending)
+        XCTAssertEqual(ip3.compare(ip1), .orderedDescending)
+        XCTAssertEqual(ip3.compare(ip2), .orderedDescending)
+        XCTAssertEqual(ip3.compare(ip3), .orderedSame)
+        XCTAssertEqual(ip3.compare(ip4), .orderedDescending)
+        XCTAssertEqual(ip3.compare(ip5), .orderedDescending)
+        XCTAssertEqual(ip4.compare(ip1), .orderedAscending)
+        XCTAssertEqual(ip4.compare(ip2), .orderedAscending)
+        XCTAssertEqual(ip4.compare(ip3), .orderedAscending)
+        XCTAssertEqual(ip4.compare(ip4), .orderedSame)
+        XCTAssertEqual(ip4.compare(ip5), .orderedAscending)
+        XCTAssertEqual(ip5.compare(ip1), .orderedAscending)
+        XCTAssertEqual(ip5.compare(ip2), .orderedAscending)
+        XCTAssertEqual(ip5.compare(ip3), .orderedAscending)
+        XCTAssertEqual(ip5.compare(ip4), .orderedDescending)
+        XCTAssertEqual(ip5.compare(ip5), .orderedSame)
         
         let ip6: IndexPath = [1, 1]
-        XCTAssertEqual(ip6.compare(ip5), ComparisonResult.orderedAscending)
-        XCTAssertEqual(ip5.compare(ip6), ComparisonResult.orderedDescending)
+        XCTAssertEqual(ip6.compare(ip5), .orderedAscending)
+        XCTAssertEqual(ip5.compare(ip6), .orderedDescending)
     }
     
     func testHashing() {
@@ -636,25 +633,25 @@ class TestIndexPath: XCTestCase {
             return NSIndexPath(indexes: buffer.baseAddress, length: buffer.count)
         }
         
-        var ip1: IndexPath? = IndexPath()
+        var ip1: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip1, result: &ip1)
         XCTAssertNotNil(ip1)
         XCTAssertEqual(ip1!.count, 0)
         
-        var ip2: IndexPath? = IndexPath()
+        var ip2: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip2, result: &ip2)
         XCTAssertNotNil(ip2)
         XCTAssertEqual(ip2!.count, 1)
         XCTAssertEqual(ip2![0], 1)
         
-        var ip3: IndexPath? = IndexPath()
+        var ip3: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip3, result: &ip3)
         XCTAssertNotNil(ip3)
         XCTAssertEqual(ip3!.count, 2)
         XCTAssertEqual(ip3![0], 1)
         XCTAssertEqual(ip3![1], 2)
         
-        var ip4: IndexPath? = IndexPath()
+        var ip4: IndexPath?
         IndexPath._forceBridgeFromObjectiveC(nsip4, result: &ip4)
         XCTAssertNotNil(ip4)
         XCTAssertEqual(ip4!.count, 3)
@@ -673,25 +670,25 @@ class TestIndexPath: XCTestCase {
             return NSIndexPath(indexes: buffer.baseAddress, length: buffer.count)
         }
         
-        var ip1: IndexPath? = IndexPath()
+        var ip1: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip1, result: &ip1))
         XCTAssertNotNil(ip1)
         XCTAssertEqual(ip1!.count, 0)
         
-        var ip2: IndexPath? = IndexPath()
+        var ip2: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip2, result: &ip2))
         XCTAssertNotNil(ip2)
         XCTAssertEqual(ip2!.count, 1)
         XCTAssertEqual(ip2![0], 1)
         
-        var ip3: IndexPath? = IndexPath()
+        var ip3: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip3, result: &ip3))
         XCTAssertNotNil(ip3)
         XCTAssertEqual(ip3!.count, 2)
         XCTAssertEqual(ip3![0], 1)
         XCTAssertEqual(ip3![1], 2)
         
-        var ip4: IndexPath? = IndexPath()
+        var ip4: IndexPath?
         XCTAssertTrue(IndexPath._conditionallyBridgeFromObjectiveC(nsip4, result: &ip4))
         XCTAssertNotNil(ip4)
         XCTAssertEqual(ip4!.count, 3)
@@ -774,4 +771,12 @@ class TestIndexPath: XCTestCase {
         XCTAssertEqual(0, slice.count)
     }
 
+    func test_copy() {
+        var indexes = [1, 2, 3]
+        let nip1 = NSIndexPath(indexes: &indexes, length: 3)
+        let nip2 = nip1
+        XCTAssertEqual(nip1.length, 3)
+        XCTAssertEqual(nip2.length, 3)
+        XCTAssertEqual(nip1, nip2)
+    }
 }

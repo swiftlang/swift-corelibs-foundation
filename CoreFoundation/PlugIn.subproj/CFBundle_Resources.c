@@ -1,7 +1,7 @@
 /*      CFBundle_Resources.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -300,7 +300,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-     return CFSTR("Linux");
+    return CFSTR("Linux");
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return CFSTR("FreeBSD");
@@ -322,7 +322,7 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-     return CFSTR("Linux");
+    return CFSTR("Linux");
 #endif
 #elif DEPLOYMENT_TARGET_FREEBSD
     return CFSTR("FreeBSD");
@@ -1234,7 +1234,6 @@ CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef bundle, CFURLRef bund
     return returnValue;
 }
 
-// for foundation use only!
 // Note: content must be on disk and pinned before invoking this method
 CF_EXPORT Boolean _CFBundleAddResourceURL(CFBundleRef bundle, CFURLRef url) {
     CFBundleRef resourceBundle = CFBundleCreate(kCFAllocatorSystemDefault, url);
@@ -1255,7 +1254,6 @@ CF_EXPORT Boolean _CFBundleAddResourceURL(CFBundleRef bundle, CFURLRef url) {
     return true;
 }
 
-// for foundation use only!
 // Note: Content must not be unpinned until this method returns
 CF_EXPORT Boolean _CFBundleRemoveResourceURL(CFBundleRef bundle, CFURLRef url) {
     Boolean result = false;

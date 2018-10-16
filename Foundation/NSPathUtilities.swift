@@ -9,14 +9,14 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
 public func NSTemporaryDirectory() -> String {
-    #if os(OSX) || os(iOS)
+    #if os(macOS) || os(iOS)
     var buf = [Int8](repeating: 0, count: 100)
     let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
     if r != 0 && r < buf.count {
@@ -33,7 +33,7 @@ public func NSTemporaryDirectory() -> String {
     return "/tmp/"
 }
 
-internal extension String {
+extension String {
     
     internal var _startOfLastPathComponent : String.Index {
         precondition(!hasSuffix("/") && length > 1)
@@ -153,7 +153,7 @@ internal extension String {
     }
 }
 
-public extension NSString {
+extension NSString {
     
     public var isAbsolutePath: Bool {
         return hasPrefix("~") || hasPrefix("/")
@@ -317,7 +317,7 @@ public extension NSString {
         }
         
         // TODO: pathComponents keeps final path separator if any. Check that logic.
-        if components.last == "/" {
+        if components.last == "/" && components.count > 1 {
             components.removeLast()
         }
         
@@ -562,7 +562,29 @@ extension FileManager {
 }
 
 public func NSSearchPathForDirectoriesInDomains(_ directory: FileManager.SearchPathDirectory, _ domainMask: FileManager.SearchPathDomainMask, _ expandTilde: Bool) -> [String] {
-    NSUnimplemented()
+    let knownDomains: [FileManager.SearchPathDomainMask] = [
+        .userDomainMask,
+        .networkDomainMask,
+        .localDomainMask,
+        .systemDomainMask,
+    ]
+    
+    var result: [URL] = []
+    
+    for domain in knownDomains {
+        if domainMask.contains(domain) {
+            result.append(contentsOf: FileManager.default.urls(for: directory, in: domain))
+        }
+    }
+    
+    return result.map { (url) in
+        var path = url.absoluteURL.path
+        if expandTilde {
+            path = NSString(string: path).expandingTildeInPath
+        }
+        
+        return path
+    }
 }
 
 public func NSHomeDirectory() -> String {
@@ -585,12 +607,12 @@ public func NSUserName() -> String {
 }
 
 public func NSFullUserName() -> String {
-    let userName = CFCopyFullUserName().takeRetainedValue()
+    let userName = CFCopyFullUserName()
     return userName._swiftObject
 }
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
-    let template = "." + filePath + ".tmp.XXXXXX"
+    let template = filePath + ".tmp.XXXXXX"
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
     let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
@@ -603,11 +625,10 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
-    if rename(auxFilePath, filePath) != 0 {
-        do {
-            try FileManager.default.removeItem(atPath: auxFilePath)
-        } catch _ {
+    try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
+        if rename($0, $1) != 0 {
+            try? FileManager.default.removeItem(atPath: auxFilePath)
+            throw _NSErrorWithErrno(errno, reading: false, path: filePath)
         }
-        throw _NSErrorWithErrno(errno, reading: false, path: filePath)
-    }
+    })
 }

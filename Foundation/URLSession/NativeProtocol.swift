@@ -36,14 +36,14 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }()
 
     public required init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
-        self.internalState = _InternalState.initial
+        self.internalState = .initial
         super.init(request: task.originalRequest!, cachedResponse: cachedResponse, client: client)
         self.task = task
         self.easyHandle = _EasyHandle(delegate: self)
     }
 
     public required init(request: URLRequest, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
-        self.internalState = _InternalState.initial
+        self.internalState = .initial
         super.init(request: request, cachedResponse: cachedResponse, client: client)
         self.easyHandle = _EasyHandle(delegate: self)
     }
@@ -329,7 +329,11 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
         }
 
         self.internalState = .transferReady(createTransferState(url: url, workQueue: t.workQueue))
-        configureEasyHandle(for: request)
+        if let authRequest = task?.authRequest {
+            configureEasyHandle(for: authRequest)
+        } else {
+            configureEasyHandle(for: request)
+        }
         if (t.suspendCount) < 1 {
             resume()
         }

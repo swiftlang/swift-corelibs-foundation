@@ -7,17 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
-
+import CoreFoundation
 
 class TestNSArray : XCTestCase {
     
@@ -54,6 +44,7 @@ class TestNSArray : XCTestCase {
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
+            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
         ]
     }
     
@@ -722,7 +713,7 @@ class TestNSArray : XCTestCase {
             let url = URL(fileURLWithPath: testFile)
             let data2: NSArray
 #if DARWIN_COMPATIBILITY_TESTS
-            if #available(OSX 10.13, *) {
+            if #available(macOS 10.13, *) {
                 try data.write(to: url)
                 data2 = try NSArray(contentsOf: url, error: ())
             } else {
@@ -737,8 +728,8 @@ class TestNSArray : XCTestCase {
 #endif
             XCTAssertEqual(data, data2)
             removeTestFile(testFile)
-        } catch let e {
-            XCTFail("Failed to write to file: \(e)")
+        } catch {
+            XCTFail("Failed to write to file: \(error)")
         }
     }
 
@@ -806,6 +797,14 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(match5, [])
     }
 
+    func test_arrayUsedAsCFArrayInvokesArrayMethods() {
+        let number = 789 as NSNumber
+        let array = NSMutableArray(array: [123, 456])
+        CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
+        XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
+        XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
+    }
+
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
@@ -815,16 +814,12 @@ class TestNSArray : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 }

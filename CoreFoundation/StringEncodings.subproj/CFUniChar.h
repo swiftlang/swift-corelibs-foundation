@@ -1,7 +1,7 @@
 /*	CFUniChar.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -28,7 +28,7 @@ CF_INLINE bool CFUniCharIsSurrogateLowCharacter(UniChar character) {
 }
 
 CF_INLINE UTF32Char CFUniCharGetLongCharacterForSurrogatePair(UniChar surrogateHigh, UniChar surrogateLow) {
-    return ((surrogateHigh - 0xD800UL) << 10) + (surrogateLow - 0xDC00UL) + 0x0010000UL;
+    return (UTF32Char)((((UTF32Char)surrogateHigh - 0xD800UL) << 10) + ((UTF32Char)surrogateLow - 0xDC00UL) + 0x0010000UL);
 }
 
 // The following values coinside TextEncodingFormat format defines in TextCommon.h
@@ -92,10 +92,6 @@ enum {
     kCFUniCharBitmapAll = (uint8_t)1
 };
 
-CF_EXPORT uint8_t CFUniCharGetBitmapForPlane(uint32_t charset, uint32_t plane, void *bitmap, bool isInverted);
-
-CF_EXPORT uint32_t CFUniCharGetNumberOfPlanes(uint32_t charset);
-
 enum {
     kCFUniCharToLowercase = 0,
     kCFUniCharToUppercase,
@@ -112,8 +108,6 @@ enum {
 };
 
 CF_EXPORT CFIndex CFUniCharMapCaseTo(UTF32Char theChar, UTF16Char *convertedChar, CFIndex maxLength, uint32_t ctype, uint32_t flags, const uint8_t *langCode);
-
-CF_EXPORT uint32_t CFUniCharGetConditionalCaseMappingFlags(UTF32Char theChar, UTF16Char *buffer, CFIndex currentIndex, CFIndex length, uint32_t type, const uint8_t *langCode, uint32_t lastFlags);
 
 enum {
     kCFUniCharBiDiPropertyON = 0,
@@ -170,8 +164,6 @@ CF_INLINE uint8_t CFUniCharGetCombiningPropertyForCharacter(UTF16Char character,
 }
 
 CF_EXPORT const void *CFUniCharGetUnicodePropertyDataForPlane(uint32_t propertyType, uint32_t plane);
-CF_EXPORT uint32_t CFUniCharGetNumberOfPlanesForUnicodePropertyData(uint32_t propertyType);
-CF_EXPORT uint32_t CFUniCharGetUnicodeProperty(UTF32Char character, uint32_t propertyType);
 
 CF_EXPORT bool CFUniCharFillDestinationBuffer(const UTF32Char *src, CFIndex srcLength, void **dst, CFIndex dstLength, CFIndex *filledLength, uint32_t dstFormat);
 

@@ -19,9 +19,7 @@ import Foundation
 
 public typealias unichar = UInt16
 
-extension unichar : ExpressibleByUnicodeScalarLiteral {
-    public typealias UnicodeScalarLiteralType = UnicodeScalar
-
+extension unichar {
     public init(unicodeScalarLiteral scalar: UnicodeScalar) {
         self.init(scalar.value)
     }
@@ -50,7 +48,7 @@ extension Thread {
 extension Scanner {
     public func scanString(_ searchString: String) -> String? {
         var result: NSString? = nil
-        if scanString(string, into: &result), let str = result {
+        if scanString(searchString, into: &result), let str = result {
             return str as String
         }
         return nil

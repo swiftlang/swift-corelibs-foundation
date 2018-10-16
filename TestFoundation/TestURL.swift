@@ -7,16 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
-
 let kURLTestParsingTestsKey = "ParsingTests"
 
 let kURLTestTitleKey = "In-Title"
@@ -71,12 +61,10 @@ class TestURL : XCTestCase {
     
     func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
-        XCTAssertNotNil(homeDirectory, "Failed to find home directory")
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
-        XCTAssertNotNil(homeURL, "fileURLWithPath:isDirectory: failed")
         XCTAssertEqual(homeDirectory, homeURL.path)
 
-        #if os(OSX)
+        #if os(macOS)
         let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
         let relativePath = "Documents"
         #elseif os(Android)
@@ -88,14 +76,11 @@ class TestURL : XCTestCase {
         #endif
         // we're telling fileURLWithPath:isDirectory:relativeTo: Documents is a directory
         let url1 = URL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeTo: baseURL)
-        XCTAssertNotNil(url1, "fileURLWithPath:isDirectory:relativeTo: failed")
         // we're letting fileURLWithPath:relativeTo: determine Documents is a directory with I/O
         let url2 = URL(fileURLWithPath: relativePath, relativeTo: baseURL)
-        XCTAssertNotNil(url2, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url2, "\(url1) was not equal to \(url2)")
         // we're telling fileURLWithPath:relativeTo: Documents is a directory with a trailing slash
         let url3 = URL(fileURLWithPath: relativePath + "/", relativeTo: baseURL)
-        XCTAssertNotNil(url3, "fileURLWithPath:relativeTo: failed")
         XCTAssertEqual(url1, url3, "\(url1) was not equal to \(url3)")
     }
     
@@ -411,8 +396,8 @@ class TestURL : XCTestCase {
             XCTAssertEqual(result, expected)
         }
 
-        // tmp is symlinked on OS X only
-        #if os(OSX)
+        // tmp is symlinked on macOS only
+        #if os(macOS)
         do {
             let url = URL(fileURLWithPath: "/tmp/..")
             let result = url.resolvingSymlinksInPath().absoluteString
@@ -447,7 +432,7 @@ class TestURL : XCTestCase {
             XCTFail()
         } catch let error as NSError {
             XCTAssertEqual(NSCocoaErrorDomain, error.domain)
-            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+            XCTAssertEqual(CocoaError.Code.fileReadUnsupportedScheme.rawValue, error.code)
         } catch {
             XCTFail()
         }
@@ -476,7 +461,7 @@ class TestURL : XCTestCase {
             XCTFail()
         } catch let error as NSError {
             XCTAssertEqual(NSCocoaErrorDomain, error.domain)
-            XCTAssertEqual(CocoaError.Code.fileNoSuchFile.rawValue, error.code)
+            XCTAssertEqual(CocoaError.Code.fileReadUnsupportedScheme.rawValue, error.code)
         } catch {
             XCTFail()
         }
@@ -519,6 +504,12 @@ class TestURL : XCTestCase {
    func test_description() {
         let url = URL(string: "http://amazon.in")!
         XCTAssertEqual(url.description, "http://amazon.in")
+        var urlComponents = URLComponents()
+        urlComponents.port = 8080
+        urlComponents.host = "amazon.in"
+        urlComponents.password = "abcd"
+        let relativeURL = urlComponents.url(relativeTo: url)
+        XCTAssertEqual(relativeURL?.description, "//:abcd@amazon.in:8080 -- http://amazon.in")
     }
 }
     
@@ -530,6 +521,7 @@ class TestURLComponents : XCTestCase {
             ("test_port", test_portSetter),
             ("test_url", test_url),
             ("test_copy", test_copy),
+            ("test_hash", test_hash),
             ("test_createURLWithComponents", test_createURLWithComponents),
             ("test_path", test_path),
             ("test_percentEncodedPath", test_percentEncodedPath),
@@ -574,24 +566,25 @@ class TestURLComponents : XCTestCase {
         let baseURL = URL(string: "https://www.example.com")
 
         /* test NSURLComponents without authority */
-        var compWithAuthority = URLComponents(string: "https://www.swift.org")
-        compWithAuthority!.path = "/path/to/file with space.html"
-        compWithAuthority!.query = "id=23&search=Foo Bar"
+        guard var compWithAuthority = URLComponents(string: "https://www.swift.org") else {
+            XCTFail("Failed to create URLComponents using 'https://www.swift.org'")
+            return
+        }
+        compWithAuthority.path = "/path/to/file with space.html"
+        compWithAuthority.query = "id=23&search=Foo Bar"
         var expectedString = "https://www.swift.org/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(compWithAuthority!.string, expectedString, "expected \(expectedString) but received \(compWithAuthority!.string as Optional)")
+        XCTAssertEqual(compWithAuthority.string, expectedString, "expected \(expectedString) but received \(compWithAuthority.string as Optional)")
 
-        var aURL = compWithAuthority!.url(relativeTo: baseURL)
-        XCTAssertNotNil(aURL)
-        XCTAssertNil(aURL!.baseURL)
-        XCTAssertEqual(aURL!.absoluteString, expectedString, "expected \(expectedString) but received \(aURL!.absoluteString)")
+        guard let urlA = compWithAuthority.url(relativeTo: baseURL) else {
+            XCTFail("URLComponents with authority failed to create relative URL to '\(baseURL)'")
+            return
+        }
+        XCTAssertNil(urlA.baseURL)
+        XCTAssertEqual(urlA.absoluteString, expectedString, "expected \(expectedString) but received \(urlA.absoluteString)")
 
-        compWithAuthority!.path = "path/to/file with space.html" //must start with /
-        XCTAssertNil(compWithAuthority!.string) // must be nil
-
-        aURL = compWithAuthority!.url(relativeTo: baseURL)
-        XCTAssertNil(aURL) //must be nil
-
-
+        compWithAuthority.path = "path/to/file with space.html" //must start with /
+        XCTAssertNil(compWithAuthority.string) // must be nil
+        XCTAssertNil(compWithAuthority.url(relativeTo: baseURL)) //must be nil
 
         /* test NSURLComponents without authority */
         var compWithoutAuthority = URLComponents()
@@ -600,16 +593,16 @@ class TestURLComponents : XCTestCase {
         expectedString = "path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
         XCTAssertEqual(compWithoutAuthority.string, expectedString, "expected \(expectedString) but received \(compWithoutAuthority.string as Optional)")
 
-        aURL = compWithoutAuthority.url(relativeTo: baseURL)
-        XCTAssertNotNil(aURL)
+        guard let urlB = compWithoutAuthority.url(relativeTo: baseURL) else {
+            XCTFail("URLComponents without authority failed to create relative URL to '\(baseURL)'")
+            return
+        }
         expectedString = "https://www.example.com/path/to/file%20with%20space.html?id=23&search=Foo%20Bar"
-        XCTAssertEqual(aURL!.absoluteString, expectedString, "expected \(expectedString) but received \(aURL!.absoluteString)")
+        XCTAssertEqual(urlB.absoluteString, expectedString, "expected \(expectedString) but received \(urlB.absoluteString)")
 
         compWithoutAuthority.path = "//path/to/file with space.html" //shouldn't start with //
         XCTAssertNil(compWithoutAuthority.string) // must be nil
-
-        aURL = compWithoutAuthority.url(relativeTo: baseURL)
-        XCTAssertNil(aURL) //must be nil
+        XCTAssertNil(compWithoutAuthority.url(relativeTo: baseURL)) //must be nil
     }
 
     func test_copy() {
@@ -623,7 +616,82 @@ class TestURLComponents : XCTestCase {
         /* Assert that NSURLComponents.copy is actually a copy of NSURLComponents */ 
         XCTAssertTrue(copy.isEqual(urlComponent))
     }
-    
+
+    func test_hash() {
+        let c1 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+        let c2 = URLComponents(string: "https://www.swift.org/path/to/file.html?id=name")!
+
+        XCTAssertEqual(c1, c2)
+        XCTAssertEqual(c1.hashValue, c2.hashValue)
+
+        let strings: [String?] = (0..<20).map { "s\($0)" as String? }
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.scheme,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.user,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.password,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.host,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.port,
+            throughValues: (0..<20).map { $0 as Int? })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.path,
+            throughValues: strings.compactMap { $0 })
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.query,
+            throughValues: strings)
+        checkHashing_ValueType(
+            initialValue: URLComponents(),
+            byMutating: \URLComponents.fragment,
+            throughValues: strings)
+
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.scheme,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.user,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.password,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.host,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.port,
+            throughValues: (0..<20).map { $0 as NSNumber? })
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.path,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.query,
+            throughValues: strings)
+        checkHashing_NSCopying(
+            initialValue: NSURLComponents(),
+            byMutating: \NSURLComponents.fragment,
+            throughValues: strings)
+    }
+
     func test_createURLWithComponents() {
         let urlComponents = NSURLComponents()
         urlComponents.scheme = "https";

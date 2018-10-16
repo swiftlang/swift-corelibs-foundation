@@ -7,15 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 struct SwiftCustomNSError: Error, CustomNSError {
 }
 
@@ -25,6 +16,7 @@ class TestNSError : XCTestCase {
         return [
             ("test_LocalizedError_errorDescription", test_LocalizedError_errorDescription),
             ("test_NSErrorAsError_localizedDescription", test_NSErrorAsError_localizedDescription),
+            ("test_NSError_inDictionary", test_NSError_inDictionary),
             ("test_CustomNSError_domain", test_CustomNSError_domain),
             ("test_CustomNSError_userInfo", test_CustomNSError_userInfo),
             ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
@@ -48,9 +40,18 @@ class TestNSError : XCTestCase {
         let error = nsError as Error
         XCTAssertEqual(error.localizedDescription, "Localized!")
     }
+    
+    func test_NSError_inDictionary() {
+        let error = NSError(domain: "domain", code: 42, userInfo: nil)
+        let nsdictionary = ["error": error] as NSDictionary
+        let dictionary = nsdictionary as? Dictionary<String, Error>
+        XCTAssertNotNil(dictionary)
+        XCTAssertEqual(error, dictionary?["error"] as? NSError)
+    }
 
     func test_CustomNSError_domain() {
-        XCTAssertEqual(SwiftCustomNSError.errorDomain, "TestFoundation.SwiftCustomNSError")
+        let name = testBundleName()
+        XCTAssertEqual(SwiftCustomNSError.errorDomain, "\(name).SwiftCustomNSError")
     }
 
     func test_CustomNSError_userInfo() {

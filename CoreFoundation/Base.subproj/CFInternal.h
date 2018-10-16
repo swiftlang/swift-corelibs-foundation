@@ -1,7 +1,7 @@
 /*	CFInternal.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -94,18 +94,19 @@ CF_EXTERN_C_BEGIN
 #include <limits.h>
 #include <stdatomic.h>
 #include <Block.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-#if TARGET_OS_CYGWIN
-#else
-#if !defined(__linux__)
+
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+
+#if !TARGET_OS_CYGWIN && !defined(__linux__)
 #include <xlocale.h>
-#endif
-#endif
+#endif // !TARGET_OS_CYGWIN && !defined(__linux__)
+
 #include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
-#endif
+#endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
+
 #include <pthread.h>
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
@@ -117,6 +118,13 @@ typedef struct os_log_s *os_log_t;
 #define os_log_debug(...) do { } while (0)
 #define os_log_error(...) do { } while (0)
 #define os_log_create(...) (NULL)
+#endif
+
+// We want to eventually note that some objects are immortal to the Swift runtime, but this stopgap lets things work while we work to make an ABI for them.
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define _CF_CONSTANT_OBJECT_BACKING // We don't support this on Swift
+#else
+#define _CF_CONSTANT_OBJECT_BACKING const
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT
@@ -142,10 +150,11 @@ typedef struct os_log_s *os_log_t;
 #include <CoreFoundation/ForFoundationOnly.h>
 #if DEPLOYMENT_RUNTIME_SWIFT
 #include <CoreFoundation/ForSwiftFoundationOnly.h>
+#include <CoreFoundation/CFString.h>
 #endif
 
 CF_EXPORT const char *_CFProcessName(void);
-CF_EXPORT CFStringRef _CFProcessNameString(void);
+CF_PRIVATE CFStringRef _CFProcessNameString(void);
 
 CF_EXPORT Boolean _CFGetCurrentDirectory(char *path, int maxlen);
 
@@ -179,11 +188,11 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 #define HALT_MSG(str) do { CRSetCrashLogMessage(str); HALT; } while (0)
 
 #if defined(DEBUG)
-    #define CFAssert(cond, prio, desc) do { if (!(cond)) { CFLog(prio, CFSTR(desc)); HALT; } } while (0)
-    #define CFAssert1(cond, prio, desc, a1) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1); HALT; } } while (0)
-    #define CFAssert2(cond, prio, desc, a1, a2) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2); HALT; } } while (0)
-    #define CFAssert3(cond, prio, desc, a1, a2, a3) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3); HALT; } } while (0)
-    #define CFAssert4(cond, prio, desc, a1, a2, a3, a4) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3, a4); HALT; } } while (0)
+    #define CFAssert(cond, prio, desc) do { if (!(cond)) { CFLog(prio, CFSTR(desc)); /* HALT; */ } } while (0)
+    #define CFAssert1(cond, prio, desc, a1) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1); /* HALT; */ } } while (0)
+    #define CFAssert2(cond, prio, desc, a1, a2) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2); /* HALT; */ } } while (0)
+    #define CFAssert3(cond, prio, desc, a1, a2, a3) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3); /* HALT; */ } } while (0)
+    #define CFAssert4(cond, prio, desc, a1, a2, a3, a4) do { if (!(cond)) { CFLog(prio, CFSTR(desc), a1, a2, a3, a4); /* HALT; */ } } while (0)
 #else
     #define CFAssert(cond, prio, desc) do {} while (0)
     #define CFAssert1(cond, prio, desc, a1) do {} while (0)
@@ -216,7 +225,7 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if __LP64__
+#if __LP64__ || DEPLOYMENT_TARGET_ANDROID
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else
@@ -268,6 +277,24 @@ static inline void __CFRuntimeSetFlag(CFTypeRef cf, uint8_t n, Boolean flag) {
 CF_PRIVATE Boolean __CFRuntimeIsConstant(CFTypeRef cf);
 CF_PRIVATE void __CFRuntimeSetRC(CFTypeRef cf, uint32_t rc);
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT ._swift_rc = _CF_CONSTANT_OBJECT_STRONG_RC
+#else
+#define _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT
+#endif
+
+// A note on these macros.
+// On systems where we have ObjC support (DEPLOYMENT_RUNTIME_OBJC), STATIC_CLASS_REF(…) can statically produce a reference to the ObjC class symbol that ties into this particular type.
+// When compiling for Swift Foundation, STATIC_CLASS_REF returns a Swift class. There's a mapping of ObjC name classes to Swift symbols in the header that defines it that should be kept up to date if more constant objects are defined.
+// On all other platforms, it returns NULL, which is okay; we only need the type ID if CF is to be used by itself.
+#if __LP64__
+    #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
+    #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
+#else // if !__LP64__
+    #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) { ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x00000080UL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
+    #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS), ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
+#endif // __LP64__
+
 #define __CFBitIsSet(V, N)  (((V) & (1UL << (N))) != 0)
 #define __CFBitSet(V, N)  ((V) |= (1UL << (N)))
 #define __CFBitClear(V, N)  ((V) &= ~(1UL << (N)))
@@ -296,8 +323,6 @@ enum {
 	__CFTSDKeyExceptionData = 63,
 
 };
-
-#define __kCFAllocatorTypeID_CONST	2
 
 CF_INLINE CFAllocatorRef __CFGetDefaultAllocator(void) {
     CFAllocatorRef allocator = (CFAllocatorRef)_CFGetTSD(__CFTSDKeyAllocator);
@@ -377,7 +402,6 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #define STACK_BUFFER_DECL(T, N, C) T N[C]
 #endif
 
-#define SAFE_STACK_BUFFER_DEFINE(Type, Name) Type *Name = NULL; BOOL __ ## Name ## WasMallocd = NO;
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
@@ -387,23 +411,17 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? alloca((Count) * sizeof(Type)) : NULL
 
 // Allocate a pre-named stack buffer. Max is the max size (in bytes) before falling over to malloc.
+#define SAFE_STACK_BUFFER_DEFINE(Type, Name) Type *Name = NULL; BOOL __ ## Name ## WasMallocd = NO;
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? alloca((Count) * sizeof(Type)) : NULL
-#endif // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 
 // Be sure to call this before your SAFE_STACK_BUFFER exits scope.
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
+#endif // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-
-#if TARGET_OS_MAC
-#define __CFConstantStringClassReference $S15SwiftFoundation19_NSCFConstantStringCN
-#else
-#define __CFConstantStringClassReference $S10Foundation19_NSCFConstantStringCN
-#endif
-
-CF_EXPORT void *__CFConstantStringClassReference[];
 
 #if DEPLOYMENT_TARGET_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
@@ -411,18 +429,30 @@ CF_EXPORT void *__CFConstantStringClassReference[];
 #define CONST_STRING_SECTION
 #endif
 
+#if __BIG_ENDIAN__
+#define _CF_CONST_STR_CFINFOA 0x00000000C8070000
+#else // Little endian:
+#define _CF_CONST_STR_CFINFOA 0x07C8
+#endif // __BIG_ENDIAN__
+
+#define _CF_CONST_STR_CONTENTS(cStr) {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, _CF_CONST_STR_CFINFOA}, (uint8_t *)(cStr), sizeof(cStr) - 1}
+
 #define CONST_STRING_DECL(S, V) \
-const struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x000007c8U}, (uint8_t *)(V), sizeof(V) - 1}; \
+_CF_CONSTANT_OBJECT_BACKING struct __CFConstStr __##S CONST_STRING_SECTION = _CF_CONST_STR_CONTENTS(V); \
 const CFStringRef S = (CFStringRef)&__##S;
 
-#define PE_CONST_STRING_DECL(S, V) \
-const static struct __CFConstStr __##S CONST_STRING_SECTION = {{(uintptr_t)&__CFConstantStringClassReference, _CF_CONSTANT_OBJECT_STRONG_RC, 0, 0x000007c8U}, (uint8_t *)(V), sizeof(V) - 1}; \
-CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
+#define STATIC_CONST_STRING_DECL(S, V) \
+static _CF_CONSTANT_OBJECT_BACKING struct __CFConstStr __##S CONST_STRING_SECTION = _CF_CONST_STR_CONTENTS(V); \
+static const CFStringRef S = (CFStringRef)&__##S;
 
+#define PE_CONST_STRING_DECL(S, V) \
+static _CF_CONSTANT_OBJECT_BACKING struct __CFConstStr __##S CONST_STRING_SECTION = _CF_CONST_STR_CONTENTS(V); \
+CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
 
 #elif defined(__CONSTANT_CFSTRINGS__)
 
 #define CONST_STRING_DECL(S, V) const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
+#define STATIC_CONST_STRING_DECL(S, V) static const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
 #define PE_CONST_STRING_DECL(S, V) CF_PRIVATE const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
 
 #else
@@ -468,43 +498,24 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-CF_EXPORT CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
 
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_MAC
 
 typedef pthread_mutex_t CFLock_t;
 
 #define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
+#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
 
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
+#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
 
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
-
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-
-typedef pthread_mutex_t CFLock_t;
-
-#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-#define __CFLock(LP) ({ \
-    (void)pthread_mutex_lock(LP); })
-
-#define __CFUnlock(LP) ({ \
-    (void)pthread_mutex_unlock(LP); })
-
-#define __CFLockTry(LP) ({ \
-    pthread_mutex_trylock(LP) == 0; })
+#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
 
 #elif DEPLOYMENT_TARGET_WINDOWS
 
@@ -569,30 +580,7 @@ typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
 static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
 static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
-#endif
-
-#if __has_include(<os/overflow.h>)
-#include <os/overflow.h>
-#else
-
-static _Bool __os_warn_unused(_Bool x) __attribute__((__warn_unused_result__));
-static _Bool __os_warn_unused(_Bool x) { return x; }
-
-#if __has_builtin(__builtin_add_overflow) && \
-    __has_builtin(__builtin_sub_overflow) && \
-    __has_builtin(__builtin_mul_overflow)
-
-#define os_add_overflow(a, b, res) __os_warn_unused(__builtin_add_overflow((a), (b), (res)))
-#define os_sub_overflow(a, b, res) __os_warn_unused(__builtin_sub_overflow((a), (b), (res)))
-#define os_mul_overflow(a, b, res) __os_warn_unused(__builtin_mul_overflow((a), (b), (res)))
-
-#else
-
-#error Missing compiler support for overflow checking
-
-#endif
-
-#endif
+#endif // __has_include(<os/lock.h>)
 
 #if !__HAS_DISPATCH__
 
@@ -603,8 +591,8 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-extern _Atomic(uint8_t) __CF120293;
-extern _Atomic(uint8_t) __CF120290;
+CF_PRIVATE _Atomic(uint8_t) __CF120293;
+CF_PRIVATE _Atomic(uint8_t) __CF120290;
 extern void __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(void);
 #define CHECK_FOR_FORK() do { __CF120290 = true; if (__CF120293) __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(); } while (0)
 #define CHECK_FOR_FORK_RET(...) do { CHECK_FOR_FORK(); if (__CF120293) return __VA_ARGS__; } while (0)
@@ -724,7 +712,20 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define CF_SWIFT_CALLV(obj, fn, ...) (0)
 #endif
 
-extern uintptr_t __CFRuntimeObjCClassTable[];
+#ifndef __has_attribute
+#define __has_attribute(...) 0
+#endif
+
+#if DEPLOYMENT_TARGET_WINDOWS
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
+#elif __has_attribute(visibility)
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE __attribute__((visibility("hidden")))
+#else
+#define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
+#endif
+
+// an undeclared array length is only valid with extern, but CF_PRIVATE may or may not include extern as part of its expansion. Redefine the visibility attribute so we can explicitly make it an extern declaration.
+extern _CF_VISIBILITY_HIDDEN_ATTRIBUTE uintptr_t __CFRuntimeObjCClassTable[];
 
 CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
     return (typeID < __CFRuntimeClassTableSize) ? __CFRuntimeObjCClassTable[typeID] : 0;
@@ -1003,6 +1004,15 @@ extern void __CFRecordAllocationEvent(int eventnum, void *ptr, int64_t size, uin
 enum {
     __kCFZombieMessagedEvent = 21,
 };
+
+#pragma mark - CF Private Globals
+
+CF_PRIVATE void *__CFAppleLanguages;
+CF_PRIVATE uint8_t __CFZombieEnabled;
+CF_PRIVATE uint8_t __CFDeallocateZombies;
+CF_PRIVATE Boolean __CFInitialized;
+CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
+CF_PRIVATE const CFStringRef __kCFLocaleCollatorID;
 
 CF_EXTERN_C_END
 

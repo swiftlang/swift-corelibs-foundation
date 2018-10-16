@@ -7,16 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-#if !(os(OSX) || os(iOS))
+#if !(os(macOS) || os(iOS))
     import CoreFoundation
 #endif
 
@@ -39,8 +30,6 @@ class TestThread : XCTestCase {
     func test_currentThread() {
         let thread1 = Thread.current
         let thread2 = Thread.current
-        XCTAssertNotNil(thread1)
-        XCTAssertNotNil(thread2)
         XCTAssertEqual(thread1, thread2)
         XCTAssertEqual(thread1, Thread.mainThread)
     }
@@ -56,7 +45,7 @@ class TestThread : XCTestCase {
         }
         thread.start()
 
-        let ok = condition.wait(until: Date(timeIntervalSinceNow: 10))
+        let ok = condition.wait(until: Date(timeIntervalSinceNow: 2))
         condition.unlock()
         XCTAssertTrue(ok, "NSCondition wait timed out")
     }
@@ -66,7 +55,7 @@ class TestThread : XCTestCase {
         // Compare the name set in pthreads()
         func compareThreadName(to name: String) {
             var buf = [Int8](repeating: 0, count: 128)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
             // Dont use _CF functions on macOS as it will break testing with Darwin's native Foundation.
             let r = pthread_getname_np(pthread_self(), &buf, buf.count)
 #else
@@ -103,7 +92,7 @@ class TestThread : XCTestCase {
 
             Thread.current.name = "12345678901234567890"
             XCTAssertEqual(Thread.current.name, "12345678901234567890")
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
             compareThreadName(to: "12345678901234567890")
 #elseif os(Linux)
             // pthread_setname_np() only allows 15 characters on Linux, so setting it fails

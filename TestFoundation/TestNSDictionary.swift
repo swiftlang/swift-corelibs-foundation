@@ -7,18 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
-
-
 class TestNSDictionary : XCTestCase {
     
     static var allTests: [(String, (TestNSDictionary) -> () throws -> Void)] {
@@ -32,6 +20,9 @@ class TestNSDictionary : XCTestCase {
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_settingWithStringKey", test_settingWithStringKey),
+            ("test_valueForKey", test_valueForKey),
+            ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
         ]
     }
         
@@ -45,7 +36,8 @@ class TestNSDictionary : XCTestCase {
 
     func test_description() {
         let d1: NSDictionary = [ "foo": "bar", "baz": "qux"]
-        XCTAssertEqual(d1.description, "{\n    baz = qux;\n    foo = bar;\n}")
+        XCTAssertTrue(d1.description == "{\n    baz = qux;\n    foo = bar;\n}" ||
+                      d1.description == "{\n    foo = bar;\n    baz = qux;\n}")
         let d2: NSDictionary = ["1" : ["1" : ["1" : "1"]]]
         XCTAssertEqual(d2.description, "{\n    1 =     {\n        1 =         {\n            1 = 1;\n        };\n    };\n}")
     }
@@ -222,6 +214,25 @@ class TestNSDictionary : XCTestCase {
         }
     }
 
+    func test_settingWithStringKey() {
+        let dict = NSMutableDictionary()
+        // has crashed in the past
+        dict["stringKey"] = "value"
+    }
+    
+    func test_valueForKey() {
+        let dict: NSDictionary = ["foo": "bar"]
+        let result = dict.value(forKey: "foo")
+        XCTAssertEqual(result as? String, "bar")
+    }
+    
+    func test_valueForKeyWithNestedDict() {
+        let dict: NSDictionary = ["foo": ["bar": "baz"]]
+        let result = dict.value(forKey: "foo")
+        let expectedResult: NSDictionary = ["bar": "baz"]
+        XCTAssertEqual(result as? NSDictionary, expectedResult)
+    }
+
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
@@ -232,17 +243,13 @@ class TestNSDictionary : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 
 }

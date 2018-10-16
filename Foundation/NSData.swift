@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
@@ -69,11 +69,10 @@ private final class _NSDataDeallocator {
 
 private let __kCFMutable: CFOptionFlags = 0x01
 private let __kCFGrowable: CFOptionFlags = 0x02
-private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
-private let __kCFBytesInline: CFOptionFlags = 0x04
-private let __kCFUseAllocator: CFOptionFlags = 0x08
-private let __kCFDontDeallocate: CFOptionFlags = 0x10
-private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
+
+private let __kCFBytesInline: CFOptionFlags = 2
+private let __kCFUseAllocator: CFOptionFlags = 3
+private let __kCFDontDeallocate: CFOptionFlags = 4
 
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
@@ -186,41 +185,58 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the data from the location specified by a given URL.
     public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
-        try _contentsOf(url: url, options: readOptionsMask)
+        let (data, _) = try NSData.contentsOf(url: url, options: readOptionsMask)
+        _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
     public init?(contentsOf url: URL) {
         super.init()
         do {
-            try _contentsOf(url: url)
+            let (data, _) = try NSData.contentsOf(url: url)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
         } catch {
             return nil
         }
     }
 
-    /// Initializes a data object with the data from the location specified by a given URL.
-    private func _contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws {
+    internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (NSData, URLResponse?) {
+        let readResult: NSData
+        var urlResponse: URLResponse?
+
         if url.isFileURL {
-            let readResult = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
-            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            let data = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
+            readResult = NSData(bytesNoCopy: data.bytes, length: data.length, deallocator: data.deallocator)
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
+            cond.lock()
+
             var resError: Error?
             var resData: Data?
+            var taskFinished = false
             let task = session.dataTask(with: url, completionHandler: { data, response, error in
+                cond.lock()
                 resData = data
+                urlResponse = response
                 resError = error
-                cond.broadcast()
+                taskFinished = true
+                cond.signal()
+                cond.unlock()
             })
+
             task.resume()
-            cond.wait()
+            while taskFinished == false {
+                cond.wait()
+            }
+            cond.unlock()
+
             guard let data = resData else {
                 throw resError!
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
+            readResult = NSData(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count)
         }
+        return (readResult, urlResponse)
     }
 
     /// Initializes a data object with the given Base64 encoded string.
@@ -272,7 +288,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: _CFNonObjCHash(_cfObject))
     }
 
     /// Returns a Boolean value indicating whether this data object is the same as another.
@@ -508,7 +524,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                #if os(OSX) || os(iOS)
+                #if os(macOS) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #elseif os(Linux) || os(Android) || CYGWIN
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
@@ -524,64 +540,65 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
-        var fd : Int32
-        var mode : mode_t? = nil
-        let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
-        var auxFilePath : String? = nil
-        if useAuxiliaryFile {
-            // Preserve permissions.
-            var info = stat()
-            if lstat(path, &info) == 0 {
-                mode = mode_t(info.st_mode)
-            } else if errno != ENOENT && errno != ENAMETOOLONG {
+        let fm = FileManager.default
+        try fm._fileSystemRepresentation(withPath: path, { pathFsRep in
+            var fd : Int32
+            var mode : mode_t? = nil
+            let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
+            var auxFilePath : String? = nil
+            if useAuxiliaryFile {
+                // Preserve permissions.
+                var info = stat()
+                if lstat(pathFsRep, &info) == 0 {
+                    let mode = mode_t(info.st_mode)
+                } else if errno != ENOENT && errno != ENAMETOOLONG {
+                    throw _NSErrorWithErrno(errno, reading: false, path: path)
+                }
+                let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
+                fd = newFD
+                auxFilePath = path
+                fchmod(fd, 0o666)
+            } else {
+                var flags = O_WRONLY | O_CREAT | O_TRUNC
+                if writeOptionsMask.contains(.withoutOverwriting) {
+                    flags |= O_EXCL
+                }
+                fd = _CFOpenFileWithMode(path, flags, 0o666)
+            }
+            if fd == -1 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-            let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
-            fd = newFD
-            auxFilePath = path
-            fchmod(fd, 0o666)
-        } else {
-            var flags = O_WRONLY | O_CREAT | O_TRUNC
-            if writeOptionsMask.contains(.withoutOverwriting) {
-                flags |= O_EXCL
+            defer {
+                close(fd)
             }
-            fd = _CFOpenFileWithMode(path, flags, 0o666)
-        }
-        if fd == -1 {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        }
-        defer {
-            close(fd)
-        }
 
-        try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
-            if range.length > 0 {
-                do {
-                    try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
-                    if fsync(fd) < 0 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+            try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
+                if range.length > 0 {
+                    do {
+                        try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
+                        if fsync(fd) < 0 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        }
+                    } catch {
+                        if let auxFilePath = auxFilePath {
+                            try? FileManager.default.removeItem(atPath: auxFilePath)
+                        }
+                        throw error
                     }
-                } catch let err {
-                    if let auxFilePath = auxFilePath {
-                        do {
-                            try FileManager.default.removeItem(atPath: auxFilePath)
-                        } catch _ {}
-                    }
-                    throw err
                 }
             }
-        }
-        if let auxFilePath = auxFilePath {
-            if rename(auxFilePath, path) != 0 {
-                do {
-                    try FileManager.default.removeItem(atPath: auxFilePath)
-                } catch _ {}
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            if let auxFilePath = auxFilePath {
+                try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
+                    if rename(auxFilePathFsRep, pathFsRep) != 0 {
+                        try? FileManager.default.removeItem(atPath: auxFilePath)
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
+                    if let mode = mode {
+                        chmod(pathFsRep, mode)
+                    }
+                })
             }
-            if let mode = mode {
-                chmod(path, mode)
-            }
-        }
+        })
     }
 
     /// Writes the data object's bytes to the file specified by a given path.
@@ -684,8 +701,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
-            } catch let e {
-                err = e
+            } catch {
+                err = error
             }
         }
         if let err = err {
@@ -1116,4 +1133,8 @@ extension NSData : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Data {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
+}
+
+internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
 }

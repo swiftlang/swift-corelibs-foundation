@@ -1,8 +1,8 @@
 # Archiving Notes
 
-There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver which should be compatible with the OS X version.
+There is a preliminary implementation of NSKeyedArchiver and NSKeyedUnarchiver which should be compatible with the macOS version.
 
-* NSKeyedUnarchiver reads the entire plist into memory before constructing the object graph, it should construct it incrementally as does Foundation on OS X
+* NSKeyedUnarchiver reads the entire plist into memory before constructing the object graph, it should construct it incrementally as does Foundation on macOS
 
 * Paths that raise errors vs. calling _fatalError() need to be reviewed carefully
 

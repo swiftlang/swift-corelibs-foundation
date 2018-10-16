@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,11 +11,11 @@
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <io.h>
@@ -1075,6 +1075,23 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
         while ((dent = readdir(dirp))) {
 #if DEPLOYMENT_TARGET_LINUX
             CFIndex nameLen = strlen(dent->d_name);
+            if (dent->d_type == DT_UNKNOWN) {
+                // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
+                struct stat statBuf;
+                char pathToStat[sizeof(dent->d_name)];
+                strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
+                strlcat(pathToStat, "/", sizeof(pathToStat));
+                strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                if (stat(pathToStat, &statBuf) == 0) {
+                    if (S_ISDIR(statBuf.st_mode)) {
+                        dent->d_type = DT_DIR;
+                    } else if (S_ISREG(statBuf.st_mode)) {
+                        dent->d_type = DT_REG;
+                    } else if (S_ISLNK(statBuf.st_mode)) {
+                        dent->d_type = DT_LNK;
+                    }
+                }
+            }
 #else
             CFIndex nameLen = dent->d_namlen;
 #endif
@@ -1177,7 +1194,6 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     }
 #endif
 }
-
 
 #if !DEPLOYMENT_RUNTIME_OBJC
 
@@ -1357,4 +1373,3 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 }
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC
-

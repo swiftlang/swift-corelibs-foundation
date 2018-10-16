@@ -1,7 +1,7 @@
 /*	CFStringEncodings.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -9,11 +9,13 @@
 */
 
 #include "CFInternal.h"
+#include "CFString_Internal.h"
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFPriv.h>
 #include <string.h>
 #include <CoreFoundation/CFStringEncodingConverterExt.h>
+#include "CFStringEncodingConverterPriv.h"
 #include <CoreFoundation/CFUniChar.h>
 #include <CoreFoundation/CFUnicodeDecomposition.h>
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
@@ -35,11 +37,11 @@ void _CFStringEncodingSetForceASCIICompatibility(Boolean flag) {
     __CFWantsToUseASCIICompatibleConversion = (flag ? (UInt32)true : (UInt32)false);
 }
 
-Boolean (*__CFCharToUniCharFunc)(UInt32 flags, uint8_t ch, UniChar *unicodeChar) = NULL;
+CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc = NULL;
 
 // To avoid early initialization issues, we just initialize this here
 // This should not be const as it is changed
-CF_PRIVATE UniChar __CFCharToUniCharTable[256] = {
+UniChar __CFCharToUniCharTable[256] = {
   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,  15,
  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,
  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
@@ -58,7 +60,7 @@ CF_PRIVATE UniChar __CFCharToUniCharTable[256] = {
 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
 };    
 
-CF_PRIVATE void __CFSetCharToUniCharFunc(Boolean (*func)(UInt32 flags, UInt8 ch, UniChar *unicodeChar)) {
+CF_PRIVATE void __CFSetCharToUniCharFunc(CFStringEncodingCheapEightBitToUnicodeProc _Nullable func) {
     if (__CFCharToUniCharFunc != func) {
         int ch;
         __CFCharToUniCharFunc = func;
@@ -303,7 +305,7 @@ Boolean __CFStringDecodeByteStream3(const uint8_t *bytes, CFIndex len, CFStringE
             
             if (!__CFFromUTF8) {
                 const CFStringEncodingConverter *converter = CFStringEncodingGetConverter(kCFStringEncodingUTF8);
-                __CFFromUTF8 = (CFStringEncodingToUnicodeProc)converter->toUnicode;
+                __CFFromUTF8 = converter->toUnicode.standard;
             }
             
             buffer->shouldFreeChars = !buffer->chars.unicode && (len <= MAX_LOCAL_UNICHARS) ? false : true;
@@ -429,7 +431,7 @@ Boolean __CFStringDecodeByteStream3(const uint8_t *bytes, CFIndex len, CFStringE
                     for (idx = 0; idx < len; idx++) {
                         if (chars[idx] < 0x80 && isASCIISuperset) {
                             buffer->chars.unicode[idx] = (UniChar)chars[idx];
-                        } else if (!((CFStringEncodingCheapEightBitToUnicodeProc)converter->toUnicode)(0, chars[idx], buffer->chars.unicode + idx)) {
+                        } else if (!converter->toUnicode.cheapEightBit(0, chars[idx], buffer->chars.unicode + idx)) {
                             result = FALSE;
                             break;
                         }
@@ -493,7 +495,7 @@ CFIndex __CFStringEncodeByteStream(CFStringRef string, CFIndex rangeLoc, CFIndex
 
         if (!__CFToUTF8) {
             const CFStringEncodingConverter *utf8Converter = CFStringEncodingGetConverter(kCFStringEncodingUTF8);
-            __CFToUTF8 = (CFStringEncodingToBytesProc)utf8Converter->toBytes;
+            __CFToUTF8 = utf8Converter->toBytes.standard;
         }
         numCharsProcessed = __CFToUTF8((generatingExternalFile ? kCFStringEncodingPrependBOM : 0), unichars + rangeLoc, rangeLen, buffer, (buffer ? max : 0), &totalBytesWritten);
 

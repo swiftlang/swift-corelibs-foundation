@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 import SwiftFoundation
 #elseif os(Linux)
@@ -367,8 +367,8 @@ func main() -> Int32 {
             case .help:
                 return help()
         }
-    } catch let err {
-        switch err as! OptionParseError {
+    } catch {
+        switch error as! OptionParseError {
             case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc
@@ -119,7 +119,7 @@ public struct CGSize {
 
 extension CGSize {
     public static var zero: CGSize {
-        return CGSize(width: CGFloat(0), height: CGFloat(0))
+        return CGSize(width: 0, height: 0)
     }
     
     public init(width: Int, height: Int) {
@@ -682,16 +682,16 @@ public func NSEdgeInsetsEqual(_ aInsets: NSEdgeInsets, _ bInsets: NSEdgeInsets) 
 }
 
 public func NSInsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
-    let x = CGFloat(aRect.origin.x.native + dX.native)
-    let y = CGFloat(aRect.origin.y.native + dY.native)
-    let w = CGFloat(aRect.size.width.native - (dX.native * 2))
-    let h = CGFloat(aRect.size.height.native - (dY.native * 2))
-    return NSMakeRect(x, y, w, h)
+    let x = aRect.origin.x.native + dX.native
+    let y = aRect.origin.y.native + dY.native
+    let w = aRect.size.width.native - (dX.native * 2)
+    let h = aRect.size.height.native - (dY.native * 2)
+    return NSRect(x: x, y: y, width: w, height: h)
 }
 
 public func NSIntegralRect(_ aRect: NSRect) -> NSRect {
     if aRect.size.height.native <= 0 || aRect.size.width.native <= 0 {
-        return NSZeroRect
+        return .zero
     }
     
     return NSIntegralRectWithOptions(aRect, [.alignMinXOutward, .alignMaxXOutward, .alignMinYOutward, .alignMaxYOutward])
@@ -840,7 +840,7 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: AlignmentOptions)
         fatalError(listOfOptionsIsInconsistentErrorMessage)
     }
     
-    var result = NSZeroRect
+    var result = NSRect.zero
     result.origin.x.native = resultOriginX
     result.origin.y.native = resultOriginY
     result.size.width.native = resultWidth
@@ -850,31 +850,31 @@ public func NSIntegralRectWithOptions(_ aRect: NSRect, _ opts: AlignmentOptions)
 }
 
 public func NSUnionRect(_ aRect: NSRect, _ bRect: NSRect) -> NSRect {
-    let isEmptyFirstRect = NSIsEmptyRect(aRect)
-    let isEmptySecondRect = NSIsEmptyRect(bRect)
+    let isEmptyFirstRect = aRect.isEmpty
+    let isEmptySecondRect = bRect.isEmpty
     if isEmptyFirstRect && isEmptySecondRect {
-        return NSZeroRect
+        return .zero
     } else if isEmptyFirstRect {
         return bRect
     } else if isEmptySecondRect {
         return aRect
     }
-    let x = min(NSMinX(aRect), NSMinX(bRect))
-    let y = min(NSMinY(aRect), NSMinY(bRect))
-    let width = max(NSMaxX(aRect), NSMaxX(bRect)) - x
-    let height = max(NSMaxY(aRect), NSMaxY(bRect)) - y
-    return NSMakeRect(x, y, width, height)
+    let x = min(aRect.minX, bRect.minX)
+    let y = min(aRect.minY, bRect.minY)
+    let width = max(aRect.maxX, bRect.maxX) - x
+    let height = max(aRect.maxY, bRect.maxY) - y
+    return NSRect(x: x, y: y, width: width, height: height)
 }
 
 public func NSIntersectionRect(_ aRect: NSRect, _ bRect: NSRect) -> NSRect {
-    if NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect) {
-        return NSZeroRect
+    if aRect.maxX <= bRect.minX || bRect.maxX <= aRect.minX || aRect.maxY <= bRect.minY || bRect.maxY <= aRect.minY {
+        return .zero
     }
-    let x = max(NSMinX(aRect), NSMinX(bRect))
-    let y = max(NSMinY(aRect), NSMinY(bRect))
-    let width = min(NSMaxX(aRect), NSMaxX(bRect)) - x
-    let height = min(NSMaxY(aRect), NSMaxY(bRect)) - y
-    return NSMakeRect(x, y, width, height)
+    let x = max(aRect.minX, bRect.minX)
+    let y = max(aRect.minY, bRect.minY)
+    let width = min(aRect.maxX, bRect.maxX) - x
+    let height = min(aRect.maxY, bRect.maxY) - y
+    return NSRect(x: x, y: y, width: width, height: height)
 }
 
 public func NSOffsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect {
@@ -885,47 +885,47 @@ public func NSOffsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRec
 }
 
 public func NSDivideRect(_ inRect: NSRect, _ slice: UnsafeMutablePointer<NSRect>, _ rem: UnsafeMutablePointer<NSRect>, _ amount: CGFloat, _ edge: NSRectEdge) {
-    if NSIsEmptyRect(inRect) {
-        slice.pointee = NSZeroRect
-        rem.pointee = NSZeroRect
+    if inRect.isEmpty {
+        slice.pointee = .zero
+        rem.pointee = .zero
         return
     }
 
-    let width = NSWidth(inRect)
-    let height = NSHeight(inRect)
+    let width = inRect.width
+    let height = inRect.height
 
     switch (edge, amount) {
     case (.minX, let amount) where amount > width:
         slice.pointee = inRect
-        rem.pointee = NSMakeRect(NSMaxX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+        rem.pointee = NSRect(x: inRect.maxX, y: inRect.minY, width: CGFloat(0.0), height: height)
 
     case (.minX, _):
-        slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), amount, height)
-        rem.pointee = NSMakeRect(NSMaxX(slice.pointee), NSMinY(inRect), NSMaxX(inRect) - NSMaxX(slice.pointee), height)
+        slice.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: amount, height: height)
+        rem.pointee = NSRect(x: NSMaxX(slice.pointee), y: inRect.minY, width: inRect.maxX - NSMaxX(slice.pointee), height: height)
 
     case (.minY, let amount) where amount > height:
         slice.pointee = inRect
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect), width, CGFloat(0.0))
+        rem.pointee = NSRect(x: inRect.minX, y: inRect.maxY, width: width, height: CGFloat(0.0))
 
     case (.minY, _):
-        slice.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, amount)
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(slice.pointee), width, NSMaxY(inRect) - NSMaxY(slice.pointee))
+        slice.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: width, height: amount)
+        rem.pointee = NSRect(x: inRect.minX, y: NSMaxY(slice.pointee), width: width, height: inRect.maxY - NSMaxY(slice.pointee))
 
     case (.maxX, let amount) where amount > width:
         slice.pointee = inRect
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), CGFloat(0.0), height)
+        rem.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: CGFloat(0.0), height: height)
 
     case (.maxX, _):
-        slice.pointee = NSMakeRect(NSMaxX(inRect) - amount, NSMinY(inRect), amount, height)
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), NSMinX(slice.pointee) - NSMinX(inRect), height)
+        slice.pointee = NSRect(x: inRect.maxX - amount, y: inRect.minY, width: amount, height: height)
+        rem.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: NSMinX(slice.pointee) - inRect.minX, height: height)
 
     case (.maxY, let amount) where amount > height:
         slice.pointee = inRect
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, CGFloat(0.0))
+        rem.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: width, height: CGFloat(0.0))
 
     case (.maxY, _):
-        slice.pointee = NSMakeRect(NSMinX(inRect), NSMaxY(inRect) - amount, width, amount)
-        rem.pointee = NSMakeRect(NSMinX(inRect), NSMinY(inRect), width, NSMinY(slice.pointee) - NSMinY(inRect))
+        slice.pointee = NSRect(x: inRect.minX, y: inRect.maxY - amount, width: width, height: amount)
+        rem.pointee = NSRect(x: inRect.minX, y: inRect.minY, width: width, height: NSMinY(slice.pointee) - inRect.minY)
     }
 }
 
@@ -935,19 +935,19 @@ public func NSPointInRect(_ aPoint: NSPoint, _ aRect: NSRect) -> Bool {
 
 public func NSMouseInRect(_ aPoint: NSPoint, _ aRect: NSRect, _ flipped: Bool) -> Bool {
     if flipped {
-        return aPoint.x >= NSMinX(aRect) && aPoint.y >= NSMinX(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y < NSMaxY(aRect)
+        return aPoint.x >= aRect.minX && aPoint.y >= aRect.minX && aPoint.x < aRect.maxX && aPoint.y < aRect.maxY
     }
-    return aPoint.x >= NSMinX(aRect) && aPoint.y > NSMinY(aRect) && aPoint.x < NSMaxX(aRect) && aPoint.y <= NSMaxY(aRect)
+    return aPoint.x >= aRect.minX && aPoint.y > aRect.minY && aPoint.x < aRect.maxX && aPoint.y <= aRect.maxY
 }
 
 public func NSContainsRect(_ aRect: NSRect, _ bRect: NSRect) -> Bool {
-    return !NSIsEmptyRect(bRect) && NSMaxX(bRect) <= NSMaxX(aRect) && NSMinX(bRect) >= NSMinX(aRect) &&
-        NSMaxY(bRect) <= NSMaxY(aRect) && NSMinY(bRect) >= NSMinY(aRect)
+    return !bRect.isEmpty && bRect.maxX <= aRect.maxX && bRect.minX >= aRect.minX &&
+        bRect.maxY <= aRect.maxY && bRect.minY >= aRect.minY
 }
 
 public func NSIntersectsRect(_ aRect: NSRect, _ bRect: NSRect) -> Bool {
-    return !(NSIsEmptyRect(aRect) || NSIsEmptyRect(bRect) ||
-        NSMaxX(aRect) <= NSMinX(bRect) || NSMaxX(bRect) <= NSMinX(aRect) || NSMaxY(aRect) <= NSMinY(bRect) || NSMaxY(bRect) <= NSMinY(aRect))
+    return !(aRect.isEmpty || bRect.isEmpty ||
+        aRect.maxX <= bRect.minX || bRect.maxX <= aRect.minX || aRect.maxY <= bRect.minY || bRect.maxY <= aRect.minY)
 }
 
 public func NSStringFromPoint(_ aPoint: NSPoint) -> String {
@@ -986,46 +986,36 @@ private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] 
 
 public func NSPointFromString(_ aString: String) -> NSPoint {
     if aString.isEmpty {
-        return NSZeroPoint
+        return .zero
     }
 
     let parsedNumbers = _scanDoublesFromString(aString, number: 2)
-    
     let x = parsedNumbers[0]
     let y = parsedNumbers[1]
-    let result = NSMakePoint(CGFloat(x), CGFloat(y))
-    
-    return result
+    return NSPoint(x: x, y: y)
 }
 
 public func NSSizeFromString(_ aString: String) -> NSSize {
     if aString.isEmpty {
-        return NSZeroSize
+        return .zero
     }
     let parsedNumbers = _scanDoublesFromString(aString, number: 2)
-    
     let w = parsedNumbers[0]
     let h = parsedNumbers[1]
-    let result = NSMakeSize(CGFloat(w), CGFloat(h))
-    
-    return result
+    return NSSize(width: w, height: h)
 }
 
 public func NSRectFromString(_ aString: String) -> NSRect {
     if aString.isEmpty {
-        return NSZeroRect
+        return .zero
     }
     
     let parsedNumbers = _scanDoublesFromString(aString, number: 4)
-    
     let x = parsedNumbers[0]
     let y = parsedNumbers[1]
     let w = parsedNumbers[2]
     let h = parsedNumbers[3]
-    
-    let result = NSMakeRect(CGFloat(x), CGFloat(y), CGFloat(w), CGFloat(h))
-    
-    return result
+    return NSRect(x: x, y: y, width: w, height: h)
 }
 
 extension NSValue {

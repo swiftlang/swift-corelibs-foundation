@@ -12,6 +12,7 @@
  */
 
 #include <CoreFoundation/CFRuntime.h>
+#include <CoreFoundation/CFInternal.h>
 #include <libxml/globals.h>
 #include <libxml/xmlerror.h>
 #include <libxml/parser.h>
@@ -22,7 +23,7 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 #include <libxml/dict.h>
-#include "CFInternal.h"
+#include "CFXMLInterface.h"
 
 /*
  libxml2 does not have nullability annotations and does not import well into swift when given potentially differing versions of the library that might be installed on the host operating system. This is a simple C wrapper to simplify some of that interface layer to libxml2.
@@ -110,6 +111,7 @@ typedef struct {
     xmlNotationPtr notation;
 } _cfxmlNotation;
 
+#if DEPLOYMENT_RUNTIME_SWIFT
 static xmlExternalEntityLoader __originalLoader = NULL;
 
 static xmlParserInputPtr _xmlExternalEntityLoader(const char *urlStr, const char * ID, xmlParserCtxtPtr context) {
@@ -119,8 +121,10 @@ static xmlParserInputPtr _xmlExternalEntityLoader(const char *urlStr, const char
     }
     return __originalLoader(urlStr, ID, context);
 }
+#endif // DEPLOYMENT_RUNTIME_SWIFT
 
 void _CFSetupXMLInterface(void) {
+#if DEPLOYMENT_RUNTIME_SWIFT
     static dispatch_once_t xmlInitGuard;
     dispatch_once(&xmlInitGuard, ^{
         xmlInitParser();
@@ -128,21 +132,25 @@ void _CFSetupXMLInterface(void) {
         __originalLoader = xmlGetExternalEntityLoader();
         xmlSetExternalEntityLoader(_xmlExternalEntityLoader);
     });
+#endif // DEPLOYMENT_RUNTIME_SWIFT
 }
 
 _CFXMLInterfaceParserInput _CFXMLInterfaceNoNetExternalEntityLoader(const char *URL, const char *ID, _CFXMLInterfaceParserContext ctxt) {
     return xmlNoNetExternalEntityLoader(URL, ID, ctxt);
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
 static void _errorCallback(void *ctx, const char *msg, ...) {
     xmlParserCtxtPtr context = __CFSwiftBridge.NSXMLParser.getContext((_CFXMLInterface)ctx);
     xmlErrorPtr error = xmlCtxtGetLastError(context);
 // TODO: reporting
 //    _reportError(error, (_CFXMLInterface)ctx);
 }
+#endif // DEPLOYMENT_RUNTIME_SWIFT
 
 _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     _CFXMLInterfaceSAXHandler saxHandler = (_CFXMLInterfaceSAXHandler)calloc(1, sizeof(struct _xmlSAXHandler));
+#if DEPLOYMENT_RUNTIME_SWIFT
     saxHandler->internalSubset = (internalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.internalSubset;
     saxHandler->isStandalone = (isStandaloneSAXFunc)__CFSwiftBridge.NSXMLParser.isStandalone;
     
@@ -168,6 +176,7 @@ _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     saxHandler->externalSubset = (externalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.externalSubset;
     
     saxHandler->initialized = XML_SAX2_MAGIC; // make sure start/endElementNS are used
+#endif //if DEPLOYMENT_RUNTIME_SWIFT
     return saxHandler;
 }
 
@@ -909,7 +918,7 @@ _CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName) {
     return xmlHasProp(node, (const xmlChar*)propertyName);
 }
 
-_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options) {
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int options) {
     uint32_t xmlOptions = 0;
 
     if ((options & _kCFXMLNodePreserveWhitespace) == 0) {

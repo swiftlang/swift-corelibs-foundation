@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestNSCache : XCTestCase {
     
     static var allTests: [(String, (TestNSCache) -> () throws -> Void)] {
@@ -72,9 +64,21 @@ class TestNSCache : XCTestCase {
         XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value) when using second key")
         
         key1.append("1")
-        
-        XCTAssertEqual(cache.object(forKey: key1), value, "should be equal to \(value) when using first key")
+
+        // Mutating the key probably changes the hash value, which often makes
+        // the value inaccessible by sorting the key into a different bucket.
+        // On the other hand, the bucket may remain the same by coincidence.
+        // Therefore, `cache.object(forKey: key1)` may or may not be nil at 
+        // this point -- no useful check can be made.
+        // The object can definitely not be reached via the original key,
+        // though.
         XCTAssertNil(cache.object(forKey: key2), "should be nil")
+
+		// Restoring key1 to the original string will make the value 
+		// accessible again.
+        key1.setString("key")
+        XCTAssertEqual(cache.object(forKey: key1), value, "should be equal to \(value) when using first key")
+        XCTAssertEqual(cache.object(forKey: key2), value, "should be equal to \(value) when using second key")        
     }
     
     func test_costLimit() {

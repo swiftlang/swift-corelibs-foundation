@@ -38,8 +38,8 @@ enum {
 
 #define BLOCK_DESCRIPTOR_1 1
 struct Block_descriptor_1 {
-    uintptr_t reserved;
-    uintptr_t size;
+    unsigned long int reserved;
+    unsigned long int size;
 };
 
 #define BLOCK_DESCRIPTOR_2 1

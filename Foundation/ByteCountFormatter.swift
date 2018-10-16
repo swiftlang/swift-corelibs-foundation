@@ -126,55 +126,28 @@ open class ByteCountFormatter : Formatter {
     private func convertValue(fromByteCount byteCount: Int64, for byteSize: [Unit: Double]) -> String {
         let byte = Double(byteCount)
         if byte == 0, allowsNonnumericFormatting, allowedUnits == [], includesUnit, includesCount {
-            return partsToIncludeFor(value: "Zero", unit: Unit.KB)
-        } else if byte == 1 || byte == -1 {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
-                return formatNumberFor(bytes: byte, unit: Unit.byte)
-            } else {
-                return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            }
-        } else if  byte < byteSize[Unit.KB]! && byte > -byteSize[Unit.KB]!{
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
-                return formatNumberFor(bytes: byte, unit: Unit.bytes)
-            } else {
-                return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            }
-        } else if byte < byteSize[Unit.MB]! && byte > -byteSize[Unit.MB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            return partsToIncludeFor(value: "Zero", unit: .KB)
+        } else if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            if byte == 1 || byte == -1 {
+                return formatNumberFor(bytes: byte, unit: .byte)
+            } else if byte < byteSize[.KB]! && byte > -byteSize[.KB]! {
+                return formatNumberFor(bytes: byte, unit: .bytes)
+            } else if byte < byteSize[.MB]! && byte > -byteSize[.MB]! {
                 return divide(byte, by: byteSize, for: .KB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[Unit.GB]! && byte > -byteSize[Unit.GB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.GB]! && byte > -byteSize[.GB]! {
                 return divide(byte, by: byteSize, for: .MB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[Unit.TB]! && byte > -byteSize[Unit.TB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.TB]! && byte > -byteSize[.TB]! {
                 return divide(byte, by: byteSize, for: .GB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[Unit.PB]! && byte > -byteSize[Unit.PB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.PB]! && byte > -byteSize[.PB]! {
                 return divide(byte, by: byteSize, for: .TB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else if byte < byteSize[Unit.EB]! && byte > -byteSize[Unit.EB]! {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else if byte < byteSize[.EB]! && byte > -byteSize[.EB]! {
                 return divide(byte, by: byteSize, for: .PB)
-            }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
-            
-        } else {
-            if allowedUnits.contains(.useAll) || allowedUnits == [] {
+            } else {
                 return divide(byte, by: byteSize, for: .EB)
             }
-            return valueToUseFor(byteCount: byte, unit: allowedUnits)
         }
+
+        return valueToUseFor(byteCount: byte, unit: allowedUnits)
     }
     
     /*
@@ -191,19 +164,19 @@ open class ByteCountFormatter : Formatter {
             byteSize = binaryByteSize
         }
         if byteCount == 0,  allowsNonnumericFormatting, includesCount, includesUnit {
-            return partsToIncludeFor(value: "Zero", unit: Unit.KB)
+            return partsToIncludeFor(value: "Zero", unit: .KB)
         }
         //Handles the cases where allowedUnits is set to a specific individual value. e.g. allowedUnits = .useTB
         switch allowedUnits {
-        case Units.useBytes: return partsToIncludeFor(value: actualBytes, unit: Unit.bytes)
-        case Units.useKB: return divide(byteCount, by: byteSize, for: .KB)
-        case Units.useMB: return divide(byteCount, by: byteSize, for: .MB)
-        case Units.useGB: return divide(byteCount, by: byteSize, for: .GB)
-        case Units.useTB: return divide(byteCount, by: byteSize, for: .TB)
-        case Units.usePB: return divide(byteCount, by: byteSize, for: .PB)
-        case Units.useEB: return divide(byteCount, by: byteSize, for: .EB)
-        case Units.useZB: return divide(byteCount, by: byteSize, for: .ZB)
-        case Units.useYBOrHigher: return divide(byteCount, by: byteSize, for: .YB)
+        case .useBytes: return partsToIncludeFor(value: actualBytes, unit: .bytes)
+        case .useKB: return divide(byteCount, by: byteSize, for: .KB)
+        case .useMB: return divide(byteCount, by: byteSize, for: .MB)
+        case .useGB: return divide(byteCount, by: byteSize, for: .GB)
+        case .useTB: return divide(byteCount, by: byteSize, for: .TB)
+        case .usePB: return divide(byteCount, by: byteSize, for: .PB)
+        case .useEB: return divide(byteCount, by: byteSize, for: .EB)
+        case .useZB: return divide(byteCount, by: byteSize, for: .ZB)
+        case .useYBOrHigher: return divide(byteCount, by: byteSize, for: .YB)
         default: break
         }
         
@@ -353,15 +326,17 @@ open class ByteCountFormatter : Formatter {
     
     // A helper method to return the length of an int
     private func lengthOfInt(number: Int) -> Int {
+        guard number != 0 else {
+            return 1
+        }
         var num = abs(number)
-        var length: [Int] = []
+        var length = 0
         
         while num > 0 {
-            let remainder = num % 10
-            length.append(remainder)
+            length += 1
             num /= 10
         }
-        return length.count
+        return length
     }
     
     // Returns the correct string based on the includesValue and includesUnit properties

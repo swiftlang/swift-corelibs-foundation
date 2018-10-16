@@ -57,6 +57,8 @@ internal final class _EasyHandle {
     fileprivate var pauseState: _PauseState = []
     internal var timeoutTimer: _TimeoutSource!
     internal lazy var errorBuffer = [UInt8](repeating: 0, count: Int(CFURLSessionEasyErrorSize))
+    internal var _config: URLSession._Configuration? = nil
+    internal var _url: URL? = nil
 
     init(delegate: _EasyHandleDelegate) {
         self.delegate = delegate
@@ -154,10 +156,16 @@ extension _EasyHandle {
     /// URL to use in the request
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_URL.html
     func set(url: URL) {
+        _url = url
         url.absoluteString.withCString {
             try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionURL, UnsafeMutablePointer(mutating: $0)).asError()
         }
     }
+
+    func set(sessionConfig config: URLSession._Configuration) {
+        _config = config
+    }
+
     /// Set allowed protocols
     ///
     /// - Note: This has security implications. Not limiting this, someone could
@@ -400,7 +408,7 @@ extension _EasyHandle {
         var p: UnsafeMutablePointer<Int8>? = nil
         try! CFURLSession_easy_getinfo_charp(rawHandle, CFURLSessionInfoREDIRECT_URL, &p).asError()
         guard let cstring = p else { return nil }
-        guard let s = String(cString: cstring, encoding: String.Encoding.utf8) else { return nil }
+        guard let s = String(cString: cstring, encoding: .utf8) else { return nil }
         return URL(string: s)
     }
 }
@@ -495,12 +503,12 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate?.didReceive(data: buffer) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
@@ -512,21 +520,42 @@ fileprivate extension _EasyHandle {
     ///
     /// - SeeAlso: <https://curl.haxx.se/libcurl/c/CURLOPT_HEADERFUNCTION.html>
     func didReceive(headerData data: UnsafeMutablePointer<Int8>, size: Int, nmemb: Int, contentLength: Double) -> Int {
+        let buffer = Data(bytes: data, count: size*nmemb)
         let d: Int = {
-            let buffer = Data(bytes: data, count: size*nmemb)
             switch delegate?.didReceive(headerData: buffer, contentLength: Int64(contentLength)) {
-            case .some(.proceed): return size * nmemb
-            case .some(.abort): return 0
-            case .some(.pause):
+            case .proceed?: return size * nmemb
+            case .abort?: return 0
+            case .pause?:
                 pauseState.insert(.receivePaused)
                 return Int(CFURLSessionWriteFuncPause)
-            case .none:
+            case nil:
                 /* the delegate disappeared */
                 return 0
             }
         }()
+        setCookies(headerData: buffer)
         return d
     }
+
+    func setCookies(headerData data: Data) {
+        guard let config = _config, config.httpCookieAcceptPolicy !=  HTTPCookie.AcceptPolicy.never else { return }
+        guard let headerData = String(data: data, encoding: String.Encoding.utf8) else { return }
+        // Convert headerData from a string to a dictionary.
+        // Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
+        // Value can have colons (ie, date), so only split at the first one, ie header:value
+        let headerComponents = headerData.split(separator: ":", maxSplits: 1)
+        var headers: [String: String] = [:]
+        //Trim the leading and trailing whitespaces (if any) before adding the header information to the dictionary.
+        if headerComponents.count > 1 {
+            headers[String(headerComponents[0].trimmingCharacters(in: .whitespacesAndNewlines))] = headerComponents[1].trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: _url!)
+        guard cookies.count > 0 else { return }
+        if let cookieStorage = config.httpCookieStorage {
+            cookieStorage.setCookies(cookies, for: _url, mainDocumentURL: nil)
+        }
+    }
+
     /// This callback function gets called by libcurl when it wants to send data
     /// it to the network.
     ///
@@ -535,14 +564,14 @@ fileprivate extension _EasyHandle {
         let d: Int = {
             let buffer = UnsafeMutableBufferPointer(start: data, count: size * nmemb)
             switch delegate?.fill(writeBuffer: buffer) {
-            case .some(.pause):
+            case .pause?:
                 pauseState.insert(.sendPaused)
                 return Int(CFURLSessionReadFuncPause)
-            case .some(.abort):
+            case .abort?:
                 return Int(CFURLSessionReadFuncAbort)
-            case .some(.bytes(let length)):
-                return length 
-            case .none:
+            case .bytes(let length)?:
+                return length
+            case nil:
                 /* the delegate disappeared */
                 return Int(CFURLSessionReadFuncAbort)
             }

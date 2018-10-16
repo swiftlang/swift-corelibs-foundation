@@ -1,21 +1,13 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-class TestNSData: XCTestCase {
+class TestNSData: LoopbackServerTest {
     
     class AllOnesImmutableData : NSData {
         private var _length : Int
@@ -70,14 +62,6 @@ class TestNSData: XCTestCase {
                 // A more efficient implementation of getBytes in the case where no one has asked for our backing bytes
                 memset(buffer, 1, length)
             }
-        }
-        
-        override func copy(with zone: NSZone? = nil) -> Any {
-            return self
-        }
-        
-        override func mutableCopy(with zone: NSZone? = nil) -> Any {
-            return AllOnesData(length: _length)
         }
     }
     
@@ -201,6 +185,7 @@ class TestNSData: XCTestCase {
             ("test_openingNonExistentFile", test_openingNonExistentFile),
             ("test_contentsOfFile", test_contentsOfFile),
             ("test_contentsOfZeroFile", test_contentsOfZeroFile),
+            ("test_contentsOfURL", test_contentsOfURL),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
             ("test_dataHash", test_dataHash),
@@ -275,7 +260,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_appendContentsOf", test_validateMutation_appendContentsOf),
             ("test_validateMutation_resetBytes", test_validateMutation_resetBytes),
             ("test_validateMutation_replaceSubrange", test_validateMutation_replaceSubrange),
-            ("test_validateMutation_replaceSubrangeCountableRange", test_validateMutation_replaceSubrangeCountableRange),
+            ("test_validateMutation_replaceSubrangeRange", test_validateMutation_replaceSubrangeRange),
             ("test_validateMutation_replaceSubrangeWithBuffer", test_validateMutation_replaceSubrangeWithBuffer),
             ("test_validateMutation_replaceSubrangeWithCollection", test_validateMutation_replaceSubrangeWithCollection),
             ("test_validateMutation_replaceSubrangeWithBytes", test_validateMutation_replaceSubrangeWithBytes),
@@ -287,7 +272,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_appendContentsOf", test_validateMutation_slice_appendContentsOf),
             ("test_validateMutation_slice_resetBytes", test_validateMutation_slice_resetBytes),
             ("test_validateMutation_slice_replaceSubrange", test_validateMutation_slice_replaceSubrange),
-            ("test_validateMutation_slice_replaceSubrangeCountableRange", test_validateMutation_slice_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_replaceSubrangeRange", test_validateMutation_slice_replaceSubrangeRange),
             ("test_validateMutation_slice_replaceSubrangeWithBuffer", test_validateMutation_slice_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_replaceSubrangeWithCollection", test_validateMutation_slice_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_replaceSubrangeWithBytes", test_validateMutation_slice_replaceSubrangeWithBytes),
@@ -299,7 +284,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_cow_appendContentsOf", test_validateMutation_cow_appendContentsOf),
             ("test_validateMutation_cow_resetBytes", test_validateMutation_cow_resetBytes),
             ("test_validateMutation_cow_replaceSubrange", test_validateMutation_cow_replaceSubrange),
-            ("test_validateMutation_cow_replaceSubrangeCountableRange", test_validateMutation_cow_replaceSubrangeCountableRange),
+            ("test_validateMutation_cow_replaceSubrangeRange", test_validateMutation_cow_replaceSubrangeRange),
             ("test_validateMutation_cow_replaceSubrangeWithBuffer", test_validateMutation_cow_replaceSubrangeWithBuffer),
             ("test_validateMutation_cow_replaceSubrangeWithCollection", test_validateMutation_cow_replaceSubrangeWithCollection),
             ("test_validateMutation_cow_replaceSubrangeWithBytes", test_validateMutation_cow_replaceSubrangeWithBytes),
@@ -311,7 +296,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_cow_appendContentsOf", test_validateMutation_slice_cow_appendContentsOf),
             ("test_validateMutation_slice_cow_resetBytes", test_validateMutation_slice_cow_resetBytes),
             ("test_validateMutation_slice_cow_replaceSubrange", test_validateMutation_slice_cow_replaceSubrange),
-            ("test_validateMutation_slice_cow_replaceSubrangeCountableRange", test_validateMutation_slice_cow_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_cow_replaceSubrangeRange", test_validateMutation_slice_cow_replaceSubrangeRange),
             ("test_validateMutation_slice_cow_replaceSubrangeWithBuffer", test_validateMutation_slice_cow_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_cow_replaceSubrangeWithCollection", test_validateMutation_slice_cow_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_cow_replaceSubrangeWithBytes", test_validateMutation_slice_cow_replaceSubrangeWithBytes),
@@ -323,7 +308,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_immutableBacking_appendContentsOf", test_validateMutation_immutableBacking_appendContentsOf),
             ("test_validateMutation_immutableBacking_resetBytes", test_validateMutation_immutableBacking_resetBytes),
             ("test_validateMutation_immutableBacking_replaceSubrange", test_validateMutation_immutableBacking_replaceSubrange),
-            ("test_validateMutation_immutableBacking_replaceSubrangeCountableRange", test_validateMutation_immutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_immutableBacking_replaceSubrangeRange", test_validateMutation_immutableBacking_replaceSubrangeRange),
             ("test_validateMutation_immutableBacking_replaceSubrangeWithBuffer", test_validateMutation_immutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_immutableBacking_replaceSubrangeWithCollection", test_validateMutation_immutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_immutableBacking_replaceSubrangeWithBytes", test_validateMutation_immutableBacking_replaceSubrangeWithBytes),
@@ -335,7 +320,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_immutableBacking_appendContentsOf", test_validateMutation_slice_immutableBacking_appendContentsOf),
             ("test_validateMutation_slice_immutableBacking_resetBytes", test_validateMutation_slice_immutableBacking_resetBytes),
             ("test_validateMutation_slice_immutableBacking_replaceSubrange", test_validateMutation_slice_immutableBacking_replaceSubrange),
-            ("test_validateMutation_slice_immutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_immutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_immutableBacking_replaceSubrangeRange", test_validateMutation_slice_immutableBacking_replaceSubrangeRange),
             ("test_validateMutation_slice_immutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_immutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_immutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_immutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_immutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_immutableBacking_replaceSubrangeWithBytes),
@@ -347,7 +332,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_cow_immutableBacking_appendContentsOf", test_validateMutation_cow_immutableBacking_appendContentsOf),
             ("test_validateMutation_cow_immutableBacking_resetBytes", test_validateMutation_cow_immutableBacking_resetBytes),
             ("test_validateMutation_cow_immutableBacking_replaceSubrange", test_validateMutation_cow_immutableBacking_replaceSubrange),
-            ("test_validateMutation_cow_immutableBacking_replaceSubrangeCountableRange", test_validateMutation_cow_immutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_cow_immutableBacking_replaceSubrangeRange", test_validateMutation_cow_immutableBacking_replaceSubrangeRange),
             ("test_validateMutation_cow_immutableBacking_replaceSubrangeWithBuffer", test_validateMutation_cow_immutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_cow_immutableBacking_replaceSubrangeWithCollection", test_validateMutation_cow_immutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_cow_immutableBacking_replaceSubrangeWithBytes", test_validateMutation_cow_immutableBacking_replaceSubrangeWithBytes),
@@ -359,7 +344,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_cow_immutableBacking_appendContentsOf", test_validateMutation_slice_cow_immutableBacking_appendContentsOf),
             ("test_validateMutation_slice_cow_immutableBacking_resetBytes", test_validateMutation_slice_cow_immutableBacking_resetBytes),
             ("test_validateMutation_slice_cow_immutableBacking_replaceSubrange", test_validateMutation_slice_cow_immutableBacking_replaceSubrange),
-            ("test_validateMutation_slice_cow_immutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_cow_immutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_cow_immutableBacking_replaceSubrangeRange", test_validateMutation_slice_cow_immutableBacking_replaceSubrangeRange),
             ("test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_cow_immutableBacking_replaceSubrangeWithBytes),
@@ -371,7 +356,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_mutableBacking_appendContentsOf", test_validateMutation_mutableBacking_appendContentsOf),
             ("test_validateMutation_mutableBacking_resetBytes", test_validateMutation_mutableBacking_resetBytes),
             ("test_validateMutation_mutableBacking_replaceSubrange", test_validateMutation_mutableBacking_replaceSubrange),
-            ("test_validateMutation_mutableBacking_replaceSubrangeCountableRange", test_validateMutation_mutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_mutableBacking_replaceSubrangeRange", test_validateMutation_mutableBacking_replaceSubrangeRange),
             ("test_validateMutation_mutableBacking_replaceSubrangeWithBuffer", test_validateMutation_mutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_mutableBacking_replaceSubrangeWithCollection", test_validateMutation_mutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_mutableBacking_replaceSubrangeWithBytes", test_validateMutation_mutableBacking_replaceSubrangeWithBytes),
@@ -383,7 +368,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_mutableBacking_appendContentsOf", test_validateMutation_slice_mutableBacking_appendContentsOf),
             ("test_validateMutation_slice_mutableBacking_resetBytes", test_validateMutation_slice_mutableBacking_resetBytes),
             ("test_validateMutation_slice_mutableBacking_replaceSubrange", test_validateMutation_slice_mutableBacking_replaceSubrange),
-            ("test_validateMutation_slice_mutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_mutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_mutableBacking_replaceSubrangeRange", test_validateMutation_slice_mutableBacking_replaceSubrangeRange),
             ("test_validateMutation_slice_mutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_mutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_mutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_mutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_mutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_mutableBacking_replaceSubrangeWithBytes),
@@ -395,7 +380,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_cow_mutableBacking_appendContentsOf", test_validateMutation_cow_mutableBacking_appendContentsOf),
             ("test_validateMutation_cow_mutableBacking_resetBytes", test_validateMutation_cow_mutableBacking_resetBytes),
             ("test_validateMutation_cow_mutableBacking_replaceSubrange", test_validateMutation_cow_mutableBacking_replaceSubrange),
-            ("test_validateMutation_cow_mutableBacking_replaceSubrangeCountableRange", test_validateMutation_cow_mutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_cow_mutableBacking_replaceSubrangeRange", test_validateMutation_cow_mutableBacking_replaceSubrangeRange),
             ("test_validateMutation_cow_mutableBacking_replaceSubrangeWithBuffer", test_validateMutation_cow_mutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_cow_mutableBacking_replaceSubrangeWithCollection", test_validateMutation_cow_mutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_cow_mutableBacking_replaceSubrangeWithBytes", test_validateMutation_cow_mutableBacking_replaceSubrangeWithBytes),
@@ -407,7 +392,7 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_cow_mutableBacking_appendContentsOf", test_validateMutation_slice_cow_mutableBacking_appendContentsOf),
             ("test_validateMutation_slice_cow_mutableBacking_resetBytes", test_validateMutation_slice_cow_mutableBacking_resetBytes),
             ("test_validateMutation_slice_cow_mutableBacking_replaceSubrange", test_validateMutation_slice_cow_mutableBacking_replaceSubrange),
-            ("test_validateMutation_slice_cow_mutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_cow_mutableBacking_replaceSubrangeCountableRange),
+            ("test_validateMutation_slice_cow_mutableBacking_replaceSubrangeRange", test_validateMutation_slice_cow_mutableBacking_replaceSubrangeRange),
             ("test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithBuffer),
             ("test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithCollection),
             ("test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_cow_mutableBacking_replaceSubrangeWithBytes),
@@ -419,7 +404,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_customBacking_appendContentsOf", test_validateMutation_customBacking_appendContentsOf),
 //            ("test_validateMutation_customBacking_resetBytes", test_validateMutation_customBacking_resetBytes),
 //            ("test_validateMutation_customBacking_replaceSubrange", test_validateMutation_customBacking_replaceSubrange),
-//            ("test_validateMutation_customBacking_replaceSubrangeCountableRange", test_validateMutation_customBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_customBacking_replaceSubrangeRange", test_validateMutation_customBacking_replaceSubrangeRange),
 //            ("test_validateMutation_customBacking_replaceSubrangeWithBuffer", test_validateMutation_customBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_customBacking_replaceSubrangeWithCollection", test_validateMutation_customBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_customBacking_replaceSubrangeWithBytes", test_validateMutation_customBacking_replaceSubrangeWithBytes),
@@ -431,7 +416,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_slice_customBacking_appendContentsOf", test_validateMutation_slice_customBacking_appendContentsOf),
 //            ("test_validateMutation_slice_customBacking_resetBytes", test_validateMutation_slice_customBacking_resetBytes),
 //            ("test_validateMutation_slice_customBacking_replaceSubrange", test_validateMutation_slice_customBacking_replaceSubrange),
-//            ("test_validateMutation_slice_customBacking_replaceSubrangeCountableRange", test_validateMutation_slice_customBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_slice_customBacking_replaceSubrangeRange", test_validateMutation_slice_customBacking_replaceSubrangeRange),
 //            ("test_validateMutation_slice_customBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_customBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_slice_customBacking_replaceSubrangeWithCollection", test_validateMutation_slice_customBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_slice_customBacking_replaceSubrangeWithBytes", test_validateMutation_slice_customBacking_replaceSubrangeWithBytes),
@@ -443,7 +428,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_cow_customBacking_appendContentsOf", test_validateMutation_cow_customBacking_appendContentsOf),
 //            ("test_validateMutation_cow_customBacking_resetBytes", test_validateMutation_cow_customBacking_resetBytes),
 //            ("test_validateMutation_cow_customBacking_replaceSubrange", test_validateMutation_cow_customBacking_replaceSubrange),
-//            ("test_validateMutation_cow_customBacking_replaceSubrangeCountableRange", test_validateMutation_cow_customBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_cow_customBacking_replaceSubrangeRange", test_validateMutation_cow_customBacking_replaceSubrangeRange),
 //            ("test_validateMutation_cow_customBacking_replaceSubrangeWithBuffer", test_validateMutation_cow_customBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_cow_customBacking_replaceSubrangeWithCollection", test_validateMutation_cow_customBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_cow_customBacking_replaceSubrangeWithBytes", test_validateMutation_cow_customBacking_replaceSubrangeWithBytes),
@@ -455,7 +440,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_slice_cow_customBacking_appendContentsOf", test_validateMutation_slice_cow_customBacking_appendContentsOf),
 //            ("test_validateMutation_slice_cow_customBacking_resetBytes", test_validateMutation_slice_cow_customBacking_resetBytes),
 //            ("test_validateMutation_slice_cow_customBacking_replaceSubrange", test_validateMutation_slice_cow_customBacking_replaceSubrange),
-//            ("test_validateMutation_slice_cow_customBacking_replaceSubrangeCountableRange", test_validateMutation_slice_cow_customBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_slice_cow_customBacking_replaceSubrangeRange", test_validateMutation_slice_cow_customBacking_replaceSubrangeRange),
 //            ("test_validateMutation_slice_cow_customBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_cow_customBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_slice_cow_customBacking_replaceSubrangeWithCollection", test_validateMutation_slice_cow_customBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_slice_cow_customBacking_replaceSubrangeWithBytes", test_validateMutation_slice_cow_customBacking_replaceSubrangeWithBytes),
@@ -467,7 +452,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_customMutableBacking_appendContentsOf", test_validateMutation_customMutableBacking_appendContentsOf),
 //            ("test_validateMutation_customMutableBacking_resetBytes", test_validateMutation_customMutableBacking_resetBytes),
 //            ("test_validateMutation_customMutableBacking_replaceSubrange", test_validateMutation_customMutableBacking_replaceSubrange),
-//            ("test_validateMutation_customMutableBacking_replaceSubrangeCountableRange", test_validateMutation_customMutableBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_customMutableBacking_replaceSubrangeRange", test_validateMutation_customMutableBacking_replaceSubrangeRange),
 //            ("test_validateMutation_customMutableBacking_replaceSubrangeWithBuffer", test_validateMutation_customMutableBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_customMutableBacking_replaceSubrangeWithCollection", test_validateMutation_customMutableBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_customMutableBacking_replaceSubrangeWithBytes", test_validateMutation_customMutableBacking_replaceSubrangeWithBytes),
@@ -479,7 +464,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_slice_customMutableBacking_appendContentsOf", test_validateMutation_slice_customMutableBacking_appendContentsOf),
 //            ("test_validateMutation_slice_customMutableBacking_resetBytes", test_validateMutation_slice_customMutableBacking_resetBytes),
 //            ("test_validateMutation_slice_customMutableBacking_replaceSubrange", test_validateMutation_slice_customMutableBacking_replaceSubrange),
-//            ("test_validateMutation_slice_customMutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_customMutableBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_slice_customMutableBacking_replaceSubrangeRange", test_validateMutation_slice_customMutableBacking_replaceSubrangeRange),
 //            ("test_validateMutation_slice_customMutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_customMutableBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_slice_customMutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_customMutableBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_slice_customMutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_customMutableBacking_replaceSubrangeWithBytes),
@@ -491,7 +476,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_cow_customMutableBacking_appendContentsOf", test_validateMutation_cow_customMutableBacking_appendContentsOf),
 //            ("test_validateMutation_cow_customMutableBacking_resetBytes", test_validateMutation_cow_customMutableBacking_resetBytes),
 //            ("test_validateMutation_cow_customMutableBacking_replaceSubrange", test_validateMutation_cow_customMutableBacking_replaceSubrange),
-//            ("test_validateMutation_cow_customMutableBacking_replaceSubrangeCountableRange", test_validateMutation_cow_customMutableBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_cow_customMutableBacking_replaceSubrangeRange", test_validateMutation_cow_customMutableBacking_replaceSubrangeRange),
 //            ("test_validateMutation_cow_customMutableBacking_replaceSubrangeWithBuffer", test_validateMutation_cow_customMutableBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_cow_customMutableBacking_replaceSubrangeWithCollection", test_validateMutation_cow_customMutableBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_cow_customMutableBacking_replaceSubrangeWithBytes", test_validateMutation_cow_customMutableBacking_replaceSubrangeWithBytes),
@@ -503,7 +488,7 @@ class TestNSData: XCTestCase {
 //            ("test_validateMutation_slice_cow_customMutableBacking_appendContentsOf", test_validateMutation_slice_cow_customMutableBacking_appendContentsOf),
 //            ("test_validateMutation_slice_cow_customMutableBacking_resetBytes", test_validateMutation_slice_cow_customMutableBacking_resetBytes),
 //            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrange", test_validateMutation_slice_cow_customMutableBacking_replaceSubrange),
-//            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeCountableRange", test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeCountableRange),
+//            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeRange", test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeRange),
 //            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithBuffer", test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithBuffer),
 //            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithCollection", test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithCollection),
 //            ("test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithBytes", test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeWithBytes),
@@ -519,6 +504,27 @@ class TestNSData: XCTestCase {
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_nskeyedarchiving", test_nskeyedarchiving),
+            ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
+            ("testBridgingCustom", testBridgingCustom),
+            ("testCustomData", testCustomData),
+            ("test_doubleDeallocation", test_doubleDeallocation),
+            ("test_rangeZoo", test_rangeZoo),
+            ("test_sliceIndexing", test_sliceIndexing),
+            ("test_sliceEquality", test_sliceEquality),
+            ("test_sliceEquality2", test_sliceEquality2),
+            ("test_splittingHttp", test_splittingHttp),
+            ("test_map", test_map),
+            ("test_dropFirst", test_dropFirst),
+            ("test_dropFirst2", test_dropFirst2),
+            ("test_copyBytes1", test_copyBytes1),
+            ("test_copyBytes2", test_copyBytes2),
+            ("test_sliceOfSliceViaRangeExpression", test_sliceOfSliceViaRangeExpression),
+            ("test_appendingSlices", test_appendingSlices),
+            ("test_sequenceInitializers", test_sequenceInitializers),
+            ("test_reversedDataInit", test_reversedDataInit),
+            ("test_replaceSubrangeReferencingMutable", test_replaceSubrangeReferencingMutable),
+            ("test_replaceSubrangeReferencingImmutable", test_replaceSubrangeReferencingImmutable),
+            ("test_rangeOfSlice", test_rangeOfSlice),
         ]
     }
     
@@ -530,7 +536,7 @@ class TestNSData: XCTestCase {
             let fileManager = FileManager.default
             XCTAssertTrue(fileManager.fileExists(atPath: savePath.path))
             try! fileManager.removeItem(atPath: savePath.path)
-        } catch _ {
+        } catch {
             XCTFail()
         }
     }
@@ -595,10 +601,15 @@ class TestNSData: XCTestCase {
 
     func test_edgeNoCopyDescription() {
         let expected = "<ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ... ffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ff>"
-        let bytes = [UInt8](repeating: 0xff, count: 1025)
-        let data = NSData(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), length: bytes.count, freeWhenDone: false)
-        XCTAssertEqual(data.debugDescription, expected)
-        XCTAssertEqual(data.bytes, bytes)
+        var bytes = [UInt8](repeating: 0xff, count: 1025)
+
+        bytes.withUnsafeMutableBufferPointer {
+            let baseAddress = $0.baseAddress!
+            let count = $0.count
+            let data = NSData(bytesNoCopy: UnsafeMutableRawPointer(baseAddress), length: count, freeWhenDone: false)
+            XCTAssertEqual(data.debugDescription, expected)
+            XCTAssertEqual(data.bytes, UnsafeRawPointer(baseAddress))
+        }
     }
 
     func test_initializeWithBase64EncodedDataGetsDecodedData() {
@@ -669,12 +680,12 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataGetsEncodedText() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData()
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -684,12 +695,12 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertLineFeedsContainsLineFeed() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1\naXQgYEFjaGF0ZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVu\nYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength64Characters, .endLineWithLineFeed])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -699,12 +710,12 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnContainsCarriageReturn() {
         let plainText = "Constitit, et lacrimans, `Quis iam locus’ inquit `Achate,\nquae regio in terris nostri non plena laboris?`"
         let encodedText = "Q29uc3RpdGl0LCBldCBsYWNyaW1hbnMsIGBRdWlzIGlhbSBsb2N1c+KAmSBpbnF1aXQgYEFjaGF0\rZSwKcXVhZSByZWdpbyBpbiB0ZXJyaXMgbm9zdHJpIG5vbiBwbGVuYSBsYWJvcmlzP2A="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength76Characters, .endLineWithCarriageReturn])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -714,12 +725,12 @@ class TestNSData: XCTestCase {
     func test_base64EncodedDataWithOptionToInsertCarriageReturnAndLineFeedContainsBoth() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhh\r\nZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
         let encodedData = data.base64EncodedData(options: [.lineLength76Characters, .endLineWithCarriageReturn, .endLineWithLineFeed])
-        guard let encodedTextResult = String(data: encodedData, encoding: String.Encoding.ascii) else {
+        guard let encodedTextResult = String(data: encodedData, encoding: .ascii) else {
             XCTFail("Could not convert encoded data to an ASCII String")
             return
         }
@@ -729,7 +740,7 @@ class TestNSData: XCTestCase {
     func test_base64EncodedStringGetsEncodedText() {
         let plainText = "Revocate animos, maestumque timorem mittite: forsan et haec olim meminisse iuvabit."
         let encodedText = "UmV2b2NhdGUgYW5pbW9zLCBtYWVzdHVtcXVlIHRpbW9yZW0gbWl0dGl0ZTogZm9yc2FuIGV0IGhhZWMgb2xpbSBtZW1pbmlzc2UgaXV2YWJpdC4="
-        guard let data = plainText.data(using: String.Encoding.utf8) else {
+        guard let data = plainText.data(using: .utf8) else {
             XCTFail("Could not encode UTF-8 string")
             return
         }
@@ -820,7 +831,6 @@ class TestNSData: XCTestCase {
     // Check all of the NSMutableData constructors are available.
     func test_initNSMutableData() {
         let mData = NSMutableData()
-        XCTAssertNotNil(mData)
         XCTAssertEqual(mData.length, 0)
     }
 
@@ -1413,7 +1423,16 @@ extension TestNSData {
         let dataStruct = "Hello World".data(using: .utf8)!
         let dataObj = dataStruct._bridgeToObjectiveC()
         XCTAssertEqual(dataObj.hashValue, dataStruct.hashValue, "Data and NSData should have the same hash value")
-    }
+
+        XCTAssertEqual(NSData().hash, 0)
+        XCTAssertEqual(NSMutableData().hash, 0)
+
+        let data = Data([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        let d1 = NSData(data: data)
+        let md1 = NSMutableData(data: data)
+        XCTAssertEqual(d1.hash, 72772266)
+        XCTAssertEqual(md1.hash, 72772266)
+   }
     
     func test_base64Data_medium() {
         let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut at tincidunt arcu. Suspendisse nec sodales erat, sit amet imperdiet ipsum. Etiam sed ornare felis. Nunc mauris turpis, bibendum non lectus quis, malesuada placerat turpis. Nam adipiscing non massa et semper. Nulla convallis semper bibendum. Aliquam dictum nulla cursus mi ultricies, at tincidunt mi sagittis. Nulla faucibus at dui quis sodales. Morbi rutrum, dui id ultrices venenatis, arcu urna egestas felis, vel suscipit mauris arcu quis risus. Nunc venenatis ligula at orci tristique, et mattis purus pulvinar. Etiam ultricies est odio. Nunc eleifend malesuada justo, nec euismod sem ultrices quis. Etiam nec nibh sit amet lorem faucibus dapibus quis nec leo. Praesent sit amet mauris vel lacus hendrerit porta mollis consectetur mi. Donec eget tortor dui. Morbi imperdiet, arcu sit amet elementum interdum, quam nisl tempor quam, vitae feugiat augue purus sed lacus. In ac urna adipiscing purus venenatis volutpat vel et metus. Nullam nec auctor quam. Phasellus porttitor felis ac nibh gravida suscipit tempus at ante. Nunc pellentesque iaculis sapien a mattis. Aenean eleifend dolor non nunc laoreet, non dictum massa aliquam. Aenean quis turpis augue. Praesent augue lectus, mollis nec elementum eu, dignissim at velit. Ut congue neque id ullamcorper pellentesque. Maecenas euismod in elit eu vehicula. Nullam tristique dui nulla, nec convallis metus suscipit eget. Cras semper augue nec cursus blandit. Nulla rhoncus et odio quis blandit. Praesent lobortis dignissim velit ut pulvinar. Duis interdum quam adipiscing dolor semper semper. Nunc bibendum convallis dui, eget mollis magna hendrerit et. Morbi facilisis, augue eu fringilla convallis, mauris est cursus dolor, eu posuere odio nunc quis orci. Ut eu justo sem. Phasellus ut erat rhoncus, faucibus arcu vitae, vulputate erat. Aliquam nec magna viverra, interdum est vitae, rhoncus sapien. Duis tincidunt tempor ipsum ut dapibus. Nullam commodo varius metus, sed sollicitudin eros. Etiam nec odio et dui tempor blandit posuere.".data(using: .utf8)!
@@ -1457,11 +1476,12 @@ extension TestNSData {
         if let contents = contents {
             XCTAssertTrue(contents.length > 0)
             let ptr = UnsafeMutableRawPointer(mutating: contents.bytes)
-            let str = String(bytesNoCopy: ptr, length: contents.length,
-                             encoding: .ascii, freeWhenDone: false)
-            XCTAssertNotNil(str)
-            if let str = str {
+            var zeroIdx = contents.range(of: Data([0]), in: NSMakeRange(0, contents.length)).location
+            if zeroIdx == NSNotFound { zeroIdx = contents.length }
+            if let str = String(bytesNoCopy: ptr, length: zeroIdx, encoding: .ascii, freeWhenDone: false) {
                 XCTAssertTrue(str.hasSuffix("TestFoundation"))
+            } else {
+                XCTFail("Cant create String")
             }
         }
 
@@ -1472,6 +1492,16 @@ extension TestNSData {
             XCTFail("Cannot read /proc/self/maps: \(String(describing: error))")
         }
 #endif
+    }
+
+    func test_contentsOfURL() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let url = URL(string: urlString)!
+        let contents = NSData(contentsOf: url)
+        XCTAssertNotNil(contents)
+        if let contents = contents {
+            XCTAssertTrue(contents.length > 0)
+        }
     }
 
     func test_basicReadWrite() {
@@ -1488,11 +1518,7 @@ extension TestNSData {
             XCTFail("Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_writeFailure() {
@@ -1517,13 +1543,8 @@ extension TestNSData {
             XCTFail("unexpected error")
         }
         
-        
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
-        
+        try? FileManager.default.removeItem(at: url)
+
         // Make sure clearing the error condition allows the write to succeed
         do {
             try data.write(to: url, options: [.withoutOverwriting])
@@ -1531,11 +1552,7 @@ extension TestNSData {
             XCTAssertTrue(false, "Should not have thrown")
         }
         
-        do {
-            try FileManager.default.removeItem(at: url)
-        } catch {
-            // ignore
-        }
+        try? FileManager.default.removeItem(at: url)
     }
     
     func test_genericBuffers() {
@@ -1748,9 +1765,9 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
-    func test_validateMutation_replaceSubrangeCountableRange() {
+    func test_validateMutation_replaceSubrangeRange() {
         var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let replacement = Data(bytes: [0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
         XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
@@ -1841,9 +1858,9 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
     }
     
-    func test_validateMutation_slice_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_replaceSubrangeRange() {
         var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let replacement = Data(bytes: [0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
         XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
@@ -1954,10 +1971,10 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_cow_replaceSubrangeCountableRange() {
+    func test_validateMutation_cow_replaceSubrangeRange() {
         var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let replacement = Data(bytes: [0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
             XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
@@ -2071,10 +2088,10 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_slice_cow_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_cow_replaceSubrangeRange() {
         var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let replacement = Data(bytes: [0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
             XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
@@ -2176,9 +2193,9 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
-    func test_validateMutation_immutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_immutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let replacement = Data(bytes: [0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
         XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
@@ -2284,12 +2301,12 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
     }
     
-    func test_validateMutation_slice_immutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_immutableBacking_replaceSubrangeRange() {
         let base: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         var data = base.withUnsafeBufferPointer {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
     }
@@ -2408,10 +2425,10 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_cow_immutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_cow_immutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let replacement = Data(bytes: [0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
             XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64]))
@@ -2541,13 +2558,13 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_slice_cow_immutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_cow_immutableBacking_replaceSubrangeRange() {
         let baseBytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         var data = baseBytes.withUnsafeBufferPointer {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
         }
@@ -2678,13 +2695,13 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
     }
     
-    func test_validateMutation_mutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_mutableBacking_replaceSubrangeRange() {
         let baseBytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6]
         var data = baseBytes.withUnsafeBufferPointer {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))
         }
         data.append(contentsOf: [7, 8, 9])
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let replacement = Data(bytes: [0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
         XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
@@ -2809,11 +2826,11 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
     }
     
-    func test_validateMutation_slice_mutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_mutableBacking_replaceSubrangeRange() {
         var base = Data(referencing: NSData(bytes: "hello world", length: 11))
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<9]
-        let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
     }
@@ -2936,11 +2953,11 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_cow_mutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_cow_mutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let replacement = Data(bytes: [0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
             XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
@@ -3094,7 +3111,7 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_slice_cow_mutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_cow_mutableBacking_replaceSubrangeRange() {
         let baseBytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6]
         var base = baseBytes.withUnsafeBufferPointer {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))
@@ -3102,7 +3119,7 @@ extension TestNSData {
         base.append(contentsOf: [7, 8, 9])
         var data = base[4..<9]
         holdReference(data) {
-            let range: CountableRange<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
         }
@@ -3210,9 +3227,9 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1, 1, 1, 1, 1, 1]))
     }
     
-    func test_validateMutation_customBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_customBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))
-        let range: CountableRange<Int> = 1..<4
+        let range: Range<Int> = 1..<4
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1, 1, 1, 1, 1, 1]))
     }
@@ -3302,9 +3319,9 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1]))
     }
     
-    func test_validateMutation_slice_customBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_customBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<9]
-        let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1]))
     }
@@ -3407,10 +3424,10 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_cow_customBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_cow_customBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))
         holdReference(data) {
-            let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1]))
         }
@@ -3518,10 +3535,10 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_slice_cow_customBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_cow_customBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<9]
         holdReference(data) {
-            let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 1]))
         }
@@ -3623,10 +3640,10 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 0]))
     }
     
-    func test_validateMutation_customMutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_customMutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesData(length: 1))
         data.count = 10
-        let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 0]))
     }
@@ -3730,11 +3747,11 @@ extension TestNSData {
         XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 0]))
     }
     
-    func test_validateMutation_slice_customMutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_customMutableBacking_replaceSubrangeRange() {
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<9]
-        let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+        let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
         XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 0]))
     }
@@ -3848,11 +3865,11 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_cow_customMutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_cow_customMutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: AllOnesData(length: 1))
         data.count = 10
         holdReference(data) {
-            let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [1, 0xFF, 0xFF, 0])) 
         }
@@ -3977,12 +3994,12 @@ extension TestNSData {
         }
     }
     
-    func test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeCountableRange() {
+    func test_validateMutation_slice_cow_customMutableBacking_replaceSubrangeRange() {
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<9]
         holdReference(data) {
-            let range: CountableRange<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
+            let range: Range<Int> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
             XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 0]))
         }
@@ -4111,7 +4128,6 @@ extension TestNSData {
     }
 
     func test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
-#if !DARWIN_COMPATIBILITY_TESTS // Crashes on native Darwin
         var base = Data(referencing: NSData(bytes: "hello world", length: 11))
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<6]
@@ -4119,7 +4135,6 @@ extension TestNSData {
             ptr.advanced(by: 1).pointee = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
-#endif
     }
 
     func test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
@@ -4131,7 +4146,6 @@ extension TestNSData {
     }
 
     func test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
-#if !DARWIN_COMPATIBILITY_TESTS // Crashes on native Darwin
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<6]
@@ -4139,7 +4153,305 @@ extension TestNSData {
             ptr.advanced(by: 1).pointee = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
-#endif
+    }
+
+    func testCustomData() {
+        let length = 5
+        let allOnesData = Data(referencing: AllOnesData(length: length))
+        XCTAssertEqual(1, allOnesData[0], "First byte of all 1s data should be 1")
+
+        // Double the length
+        var allOnesCopyToMutate = allOnesData
+        allOnesCopyToMutate.count = allOnesData.count * 2
+
+        XCTAssertEqual(allOnesData.count, length, "The length of the initial data should not have changed")
+        XCTAssertEqual(allOnesCopyToMutate.count, length * 2, "The length should have changed")
+
+        // Force the second data to create its storage
+        allOnesCopyToMutate.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
+            XCTAssertEqual(bytes.pointee, 1, "First byte should be 1")
+
+            // Mutate the second data
+            bytes.pointee = 0
+            XCTAssertEqual(bytes.pointee, 0, "First byte should be 0")
+
+        }
+        XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
+
+        // Verify that the first data is still 1
+        XCTAssertEqual(allOnesData[0], 1, "The first byte should still be 1")
+    }
+ 
+    func testBridgingCustom() {
+        // Let's use an AllOnesData with some Objective-C code
+        let allOnes = AllOnesData(length: 64)
+
+        // Type-erased
+        let data = Data(referencing: allOnes)
+
+        // Create a home for our test data
+        let dirPath = FileManager.default.temporaryDirectory.appendingPathComponent("TestFoundation_Playground_" + UUID().uuidString)
+        try! FileManager.default.createDirectory(atPath: dirPath.path, withIntermediateDirectories: true, attributes: nil)
+        let filePath = dirPath.appendingPathComponent("temp_file")
+        guard FileManager.default.createFile(atPath: filePath.path, contents: nil, attributes: nil) else { XCTAssertTrue(false, "Unable to create temporary file"); return}
+        guard let fh = FileHandle(forWritingAtPath: filePath.path) else { XCTAssertTrue(false, "Unable to open temporary file"); return }
+        defer { try! FileManager.default.removeItem(atPath: dirPath.path) }
+        
+        // Now use this data with some Objective-C code that takes NSData arguments
+        fh.write(data)
+        
+        // Get the data back
+        do {
+            let url = URL(fileURLWithPath: filePath.path)
+            let readData = try Data.init(contentsOf: url)
+            XCTAssertEqual(data.count, readData.count, "The length of the data is not the same")
+        } catch {
+            XCTAssertTrue(false, "Unable to read back data")
+            return
+        }
+    }
+
+    func test_discontiguousEnumerateBytes() {
+        let dataToEncode = "Hello World".data(using: .utf8)!
+
+        let subdata1 = dataToEncode.withUnsafeBytes { bytes in
+            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+        }
+        let subdata2 = dataToEncode.withUnsafeBytes { bytes in
+            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+        }
+        var data = subdata1
+        data.append(subdata2)
+
+        var numChunks = 0
+        var offsets = [Int]()
+        data.enumerateBytes() { buffer, offset, stop in
+            numChunks += 1
+            offsets.append(offset)
+        }
+
+        XCTAssertEqual(2, numChunks, "composing two dispatch_data should enumerate as structural data as 2 chunks")
+        XCTAssertEqual(0, offsets[0], "composing two dispatch_data should enumerate as structural data with the first offset as the location of the region")
+        XCTAssertEqual(dataToEncode.count, offsets[1], "composing two dispatch_data should enumerate as structural data with the first offset as the location of the region")
+    }
+
+    func test_doubleDeallocation() {
+        let data = "12345679".data(using: .utf8)!
+        let len = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Int in
+            let slice = Data(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), count: 1, deallocator: .none)
+            return slice.count
+        }
+        XCTAssertEqual(len, 1)
+    }
+
+    func test_rangeZoo() {
+        let r1: Range = 0..<1
+        let r2: Range = 0..<1
+        let r3 = ClosedRange(0..<1)
+        let r4 = ClosedRange(0..<1)
+
+        let data = Data(bytes: [8, 1, 2, 3, 4])
+        let slice1: Data = data[r1]
+        let slice2: Data = data[r2]
+        let slice3: Data = data[r3]
+        let slice4: Data = data[r4]
+        XCTAssertEqual(slice1[0], 8)
+        XCTAssertEqual(slice2[0], 8)
+        XCTAssertEqual(slice3[0], 8)
+        XCTAssertEqual(slice4[0], 8)
+    }
+
+    func test_sliceIndexing() {
+        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice = d[5..<10]
+        XCTAssertEqual(slice[5], d[5])
+    }
+
+    func test_sliceEquality() {
+        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice = d[5..<7]
+        let expected = Data(bytes: [5, 6])
+        XCTAssertEqual(expected, slice)
+    }
+
+    func test_sliceEquality2() {
+        let d = Data(bytes: [5, 6, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let slice1 = d[0..<2]
+        let slice2 = d[5..<7]
+        XCTAssertEqual(slice1, slice2)
+    }
+
+    func test_splittingHttp() {
+        func split(_ data: Data, on delimiter: String) -> [Data] {
+            let dataDelimiter = delimiter.data(using: .utf8)!
+            var found = [Data]()
+            let start = data.startIndex
+            let end = data.endIndex.advanced(by: -dataDelimiter.count)
+            guard end >= start else { return [data] }
+            var index = start
+            var previousIndex = index
+            while index < end {
+                let slice = data[index..<index.advanced(by: dataDelimiter.count)]
+
+                if slice == dataDelimiter {
+                    found.append(data[previousIndex..<index])
+                    previousIndex = index + dataDelimiter.count
+                }
+
+                index = index.advanced(by: 1)
+            }
+            if index < data.endIndex { found.append(data[index..<index]) }
+            return found
+        }
+        let data = "GET /index.html HTTP/1.1\r\nHost: www.example.com\r\n\r\n".data(using: .ascii)!
+        let fields = split(data, on: "\r\n")
+        let splitFields = fields.map { String(data:$0, encoding: .utf8)! }
+        XCTAssertEqual([
+            "GET /index.html HTTP/1.1",
+            "Host: www.example.com",
+            ""
+            ], splitFields)
+    }
+
+    func test_map() {
+        let d1 = Data(bytes: [81, 0, 0, 0, 14])
+        let d2 = d1[1...4]
+        XCTAssertEqual(4, d2.count)
+        let expected: [UInt8] = [0, 0, 0, 14]
+        let actual = d2.map { $0 }
+        XCTAssertEqual(expected, actual)
+    }
+
+    func test_dropFirst() {
+        var data = Data([0, 1, 2, 3, 4, 5])
+        let sliced = data.dropFirst()
+        XCTAssertEqual(data.count - 1, sliced.count)
+        XCTAssertEqual(UInt8(1), sliced[1])
+        XCTAssertEqual(UInt8(2), sliced[2])
+        XCTAssertEqual(UInt8(3), sliced[3])
+        XCTAssertEqual(UInt8(4), sliced[4])
+        XCTAssertEqual(UInt8(5), sliced[5])
+    }
+
+    func test_dropFirst2() {
+        var data = Data([0, 1, 2, 3, 4, 5])
+        let sliced = data.dropFirst(2)
+        XCTAssertEqual(data.count - 2, sliced.count)
+        XCTAssertEqual(UInt8(2), sliced[2])
+        XCTAssertEqual(UInt8(3), sliced[3])
+        XCTAssertEqual(UInt8(4), sliced[4])
+        XCTAssertEqual(UInt8(5), sliced[5])
+    }
+
+    func test_copyBytes1() {
+        var array: [UInt8] = [0, 1, 2, 3]
+        var data = Data(bytes: array)
+
+        array.withUnsafeMutableBufferPointer {
+            data[1..<3].copyBytes(to: $0.baseAddress!, from: 1..<3)
+        }
+        XCTAssertEqual([UInt8(1), UInt8(2), UInt8(2), UInt8(3)], array)
+    }
+
+    func test_copyBytes2() {
+        let array: [UInt8] = [0, 1, 2, 3]
+        var data = Data(bytes: array)
+
+        let expectedSlice = array[1..<3]
+
+        let start = data.index(after: data.startIndex)
+        let end = data.index(before: data.endIndex)
+        let slice = data[start..<end]
+        XCTAssertEqual(expectedSlice[expectedSlice.startIndex], slice[slice.startIndex])
+    }
+
+    func test_sliceOfSliceViaRangeExpression() {
+        let data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+        let slice = data[2..<7]
+
+        let sliceOfSlice1 = slice[..<(slice.startIndex + 2)] // this triggers the range expression
+        let sliceOfSlice2 = slice[(slice.startIndex + 2)...] // also triggers range expression
+        XCTAssertEqual(Data(bytes: [2, 3]), sliceOfSlice1)
+        XCTAssertEqual(Data(bytes: [4, 5, 6]), sliceOfSlice2)
+    }
+
+    func test_appendingSlices() {
+        let d1 = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let slice = d1[1..<2]
+        var d2 = Data()
+        d2.append(slice)
+        XCTAssertEqual(Data(bytes: [1]), slice)
+    }
+
+    func test_sequenceInitializers() {
+        let seq = repeatElement(UInt8(0x02), count: 3) // ensure we fall into the sequence case
+
+        let dataFromSeq = Data(seq)
+        XCTAssertEqual(3, dataFromSeq.count)
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[0])
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[1])
+        XCTAssertEqual(UInt8(0x02), dataFromSeq[2])
+
+        let array: [UInt8] = [0, 1, 2, 3, 4, 5, 6]
+
+        let dataFromArray = Data(array)
+        XCTAssertEqual(array.count, dataFromArray.count)
+        XCTAssertEqual(array[0], dataFromArray[0])
+        XCTAssertEqual(array[1], dataFromArray[1])
+        XCTAssertEqual(array[2], dataFromArray[2])
+        XCTAssertEqual(array[3], dataFromArray[3])
+
+        let slice = array[1..<4]
+
+        let dataFromSlice = Data(slice)
+        XCTAssertEqual(slice.count, dataFromSlice.count)
+        XCTAssertEqual(slice.first, dataFromSlice.first)
+        XCTAssertEqual(slice.last, dataFromSlice.last)
+
+        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+        let dataFromData = Data(data)
+        XCTAssertEqual(data, dataFromData)
+
+        let sliceOfData = data[1..<3]
+
+        let dataFromSliceOfData = Data(sliceOfData)
+        XCTAssertEqual(sliceOfData, dataFromSliceOfData)
+    }
+
+    func test_reversedDataInit() {
+        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let reversedData = Data(data.reversed())
+        let expected = Data(bytes: [9, 8, 7, 6, 5, 4, 3, 2, 1])
+        XCTAssertEqual(expected, reversedData)
+    }
+
+    func test_replaceSubrangeReferencingMutable() {
+        let mdataObj = NSMutableData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
+        var data = Data(referencing: mdataObj)
+        let expected = data.count
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+    }
+
+    func test_replaceSubrangeReferencingImmutable() {
+        let dataObj = NSData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
+        var data = Data(referencing: dataObj)
+        let expected = data.count
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        XCTAssertEqual(expected, data.count)
+    }
+
+    func test_rangeOfSlice() {
+        let data = "FooBar".data(using: .ascii)!
+        let slice = data[3...] // Bar
+        let range = slice.range(of: "a".data(using: .ascii)!)
+        XCTAssertEqual(range, Range<Data.Index>(4..<5))
     }
 
     func test_nskeyedarchiving() {
