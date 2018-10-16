@@ -169,6 +169,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
 
         super.init()
         
+        // TODO: Fixing [SR-9004](https://bugs.swift.org/browse/SR-9004)
         if let encodedURL = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
             self.url = encodedURL._swiftObject
         }

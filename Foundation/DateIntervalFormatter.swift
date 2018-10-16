@@ -37,9 +37,12 @@ open class DateIntervalFormatter : Formatter {
         self.timeStyle = Style(rawValue: UInt(aDecoder.decodeInt64(forKey: "NS.timeStyle"))) ?? .noStyle
         super.init(coder: aDecoder)
         self.dateTemplate = aDecoder.decodeObject(of: NSString.self, forKey: "NS.dateTemplate") as String? ?? ""
-        /*self.dateTemplateFromStyles = aDecoder.decodeObject(of: NSString.self, forKey: "NS.dateTemplateFromStyles") as String?
+        #if NS_IMPLEMENTS_DECODING_FOR_SR_9004
+        // These keys are encoded by Darwin version. Enable these lines after implementing this class.
+        self.dateTemplateFromStyles = aDecoder.decodeObject(of: NSString.self, forKey: "NS.dateTemplateFromStyles") as String?
         self.modified = aDecoder.decodeBool(forKey: "NS.modified")
-        self.useTemplate = aDecoder.decodeBool(forKey: "NS.useTemplate")*/
+        self.useTemplate = aDecoder.decodeBool(forKey: "NS.useTemplate")
+        #endif
         self.locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale")?._swiftObject
         self.calendar = (aDecoder.decodeObject(forKey: "NS.calendar") as? NSCalendar)?._swiftObject
         self.timeZone = (aDecoder.decodeObject(forKey: "NS.timeZone") as? NSTimeZone)?._swiftObject
@@ -54,9 +57,12 @@ open class DateIntervalFormatter : Formatter {
         aCoder.encode(Int64(dateStyle.rawValue), forKey: "NS.dateStyle")
         aCoder.encode(Int64(timeStyle.rawValue), forKey: "NS.timeStyle")
         aCoder.encode(dateTemplate ?? "", forKey: "NS.dateTemplate")
-        /*aCoder.encode(dateTemplateFromStyles, forKey: "NS.dateTemplateFromStyles")
+        #if NS_IMPLEMENTS_DECODING_FOR_SR_9004
+        // These keys are encoded by Darwin version. Enable these lines after implementing this class.
+        /Coder.encode(dateTemplateFromStyles, forKey: "NS.dateTemplateFromStyles")
         aCoder.encode(modified, forKey: "NS.modified")
-        aCoder.encode(useTemplate, forKey: "NS.useTemplate")*/
+        aCoder.encode(useTemplate, forKey: "NS.useTemplate")
+        #endif
         aCoder.encode(locale?._bridgeToObjectiveC(), forKey: "NS.locale")
         aCoder.encode(calendar?._nsObject, forKey: "NS.calendar")
         aCoder.encode(timeZone?._nsObject, forKey: "NS.timeZone")

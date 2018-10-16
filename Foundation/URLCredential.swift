@@ -73,6 +73,7 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
             return String._unconditionallyBridgeFromObjectiveC(value)
         }
         
+        // TODO: Fixing [SR-9004](https://bugs.swift.org/browse/SR-9004)
         let encodedUser = aDecoder.decodeObject(forKey: "NS._user") as! NSString
         self._user = bridgeString(encodedUser)!
         

@@ -27,6 +27,7 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
+        // TODO: Fixing [SR-9004](https://bugs.swift.org/browse/SR-9004)
         if let encodedUrl = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
             self.url = encodedUrl._swiftObject
         }
