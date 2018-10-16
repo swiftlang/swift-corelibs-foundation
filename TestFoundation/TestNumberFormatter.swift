@@ -59,15 +59,12 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_currencyCode() {
-        // Disabled due to [SR-250]
-        /*
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .CurrencyStyle
+        numberFormatter.numberStyle = .currency
         numberFormatter.currencyCode = "T"
         numberFormatter.currencyDecimalSeparator = "_"
-        let formattedString = numberFormatter.stringFromNumber(42)
-        XCTAssertEqual(formattedString, "T 42_00")
-         */
+        let formattedString = numberFormatter.string(from: 42)
+        XCTAssertEqual(formattedString, "T42_00")
     }
 
     func test_decimalSeparator() {
@@ -83,15 +80,12 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_currencyDecimalSeparator() {
-        // Disabled due to [SR-250]
-        /*
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .CurrencyStyle
+        numberFormatter.numberStyle = .currency
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"
-        let formattedString = numberFormatter.stringFromNumber(42.42)
-        XCTAssertEqual(formattedString, "T 42-42")
-        */
+        let formattedString = numberFormatter.string(from: 42.42)
+        XCTAssertEqual(formattedString, "T42-42")
     }
     
     func test_alwaysShowDecimalSeparator() {
@@ -191,15 +185,12 @@ class TestNumberFormatter: XCTestCase {
     }
 
     func test_currencySymbol() {
-        // Disabled due to [SR-250]
-        /*
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .CurrencyStyle
+        numberFormatter.numberStyle = .currency
         numberFormatter.currencySymbol = "🍯"
         numberFormatter.currencyDecimalSeparator = "_"
-        let formattedString = numberFormatter.stringFromNumber(42)
-        XCTAssertEqual(formattedString, "🍯 42_00")
-        */
+        let formattedString = numberFormatter.string(from: 42)
+        XCTAssertEqual(formattedString, "🍯42_00")
     }
     
     func test_exponentSymbol() {
@@ -527,28 +518,26 @@ class TestNumberFormatter: XCTestCase {
     }
     
     func test_internationalCurrencySymbol() {
-        // Disabled due to [SR-250]
-        /*
+        // What does internationalCurrencySymbol actually do?
+#if false
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .CurrencyPluralStyle
+        numberFormatter.numberStyle = .currencyPlural
         numberFormatter.internationalCurrencySymbol = "💵"
         numberFormatter.currencyDecimalSeparator = "_"
-        let formattedString = numberFormatter.stringFromNumber(42)
-        XCTAssertEqual(formattedString, "💵 42_00")
-        */
+        let formattedString = numberFormatter.string(from: 42)
+        XCTAssertEqual(formattedString, "💵42_00")
+#endif
     }
     
     func test_currencyGroupingSeparator() {
-        // Disabled due to [SR-250]
-        /*
         let numberFormatter = NumberFormatter()
-        numberFormatter.numberStyle = .CurrencyStyle
+        numberFormatter.numberStyle = .currency
         numberFormatter.currencyGroupingSeparator = "_"
         numberFormatter.currencyCode = "T"
         numberFormatter.currencyDecimalSeparator = "/"
-        let formattedString = numberFormatter.stringFromNumber(42_000)
-        XCTAssertEqual(formattedString, "T 42_000/00")
-        */
+        let formattedString = numberFormatter.string(from: 42_000)
+        XCTAssertEqual(formattedString, "T42_000/00")
+
     }
 
     func test_lenient() {
@@ -569,13 +558,14 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(number, 2.22)
 
         // TODO: Add some tests with currency after [SR-250] resolved
-//        numberFormatter.numberStyle = .currency
-//        let nilNumberBeforeLenient = numberFormatter.number(from: "42")
-//
-//        XCTAssertNil(nilNumberBeforeLenient)
-//        numberFormatter.isLenient = true
-//        let numberAfterLenient = numberFormatter.number(from: "42.42")
-//        XCTAssertEqual(numberAfterLenient, 42.42)
+        numberFormatter.numberStyle = .currency
+        numberFormatter.isLenient = false
+        let nilNumberBeforeLenient = numberFormatter.number(from: "42")
+
+        XCTAssertNil(nilNumberBeforeLenient)
+        numberFormatter.isLenient = true
+        let numberAfterLenient = numberFormatter.number(from: "42.42")
+        XCTAssertEqual(numberAfterLenient, 42.42)
     }
     
     func test_minimumSignificantDigits() {
@@ -683,4 +673,3 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.paddingCharacter, " ")
     }
 }
-
