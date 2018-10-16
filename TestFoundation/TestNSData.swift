@@ -503,6 +503,7 @@ class TestNSData: LoopbackServerTest {
             ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_nskeyedarchiving", test_nskeyedarchiving),
             ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
             ("testBridgingCustom", testBridgingCustom),
             ("testCustomData", testCustomData),
@@ -4451,6 +4452,19 @@ extension TestNSData {
         let slice = data[3...] // Bar
         let range = slice.range(of: "a".data(using: .ascii)!)
         XCTAssertEqual(range, Range<Data.Index>(4..<5))
+    }
+
+    func test_nskeyedarchiving() {
+        let bytes: [UInt8] = [0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf]
+        let data = NSData(bytes: bytes, length: bytes.count)
+
+        let archiver = NSKeyedArchiver()
+        data.encode(with: archiver)
+        let encodedData = archiver.encodedData
+
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData)
+        let decodedData = NSData(coder: unarchiver)
+        XCTAssertEqual(data, decodedData)
     }
 }
 
