@@ -376,7 +376,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = aDecoder._decodePropertyListForKey("NS.data") as? NSData else {
                 return nil
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.length, copy: true)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
         } else {
             let result : Data? = aDecoder.withDecodedUnsafeBufferPointer(forKey: "NS.bytes") {
                 guard let buffer = $0 else { return nil }
