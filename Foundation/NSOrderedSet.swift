@@ -41,7 +41,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        for idx in 0..<self.count {
+        for idx in _indices {
             aCoder.encode(__SwiftValue.store(self.object(at: idx)), forKey:"NS.object.\(idx)")
         }
     }
@@ -67,6 +67,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open func object(at idx: Int) -> Any {
+        _validateSubscript(idx)
         return __SwiftValue.fetch(nonOptional: _orderedStorage[idx])
     }
 
@@ -120,10 +121,20 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
             return _orderedStorage.map { __SwiftValue.fetch(nonOptional: $0) }
         } else {
-            return (0..<count).map { idx in
+            return _indices.map { idx in
                 return self[idx]
             }
         }
+    }
+    
+    /// The range of indices that are valid for subscripting the ordered set.
+    internal var _indices: Range<Int> {
+        return 0..<count
+    }
+    
+    /// Checks that an index is valid for subscripting: 0 ≤ `index` < `count`.
+    internal func _validateSubscript(_ index: Int, file: StaticString = #file, line: UInt = #line) {
+        precondition(_indices.contains(index), "\(self): Index out of bounds", file: file, line: line)
     }
 }
 
@@ -148,9 +159,6 @@ extension NSOrderedSet {
     open func objects(at indexes: IndexSet) -> [Any] {
         var entries = [Any]()
         for idx in indexes {
-            guard idx < count && idx >= 0 else {
-                fatalError("\(self): Index out of bounds")
-            }
             entries.append(object(at: idx))
         }
         return entries
@@ -177,7 +185,7 @@ extension NSOrderedSet {
             return false
         }
         
-        for idx in 0..<count {
+        for idx in _indices {
             if let value1 = object(at: idx) as? AnyHashable,
                let value2 = other.object(at: idx) as? AnyHashable {
                 if value1 != value2 {
@@ -338,9 +346,7 @@ extension NSOrderedSet {
 open class NSMutableOrderedSet : NSOrderedSet {
     
     open func insert(_ object: Any, at idx: Int) {
-        guard idx <= count && idx >= 0 else {
-            fatalError("\(self): Index out of bounds")
-        }
+        precondition(idx <= count && idx >= 0, "\(self): Index out of bounds")
 
         let value = __SwiftValue.store(object)
 
@@ -353,15 +359,12 @@ open class NSMutableOrderedSet : NSOrderedSet {
     }
 
     open func removeObject(at idx: Int) {
+        _validateSubscript(idx)
         _storage.remove(_orderedStorage[idx])
         _orderedStorage.remove(at: idx)
     }
 
     open func replaceObject(at idx: Int, with obj: Any) {
-        guard idx < count && idx >= 0 else {
-            fatalError("\(self): Index out of bounds")
-        }
-        
         let value = __SwiftValue.store(obj)
         let objectToReplace = __SwiftValue.store(object(at: idx))
         _orderedStorage[idx] = value
@@ -420,10 +423,6 @@ extension NSMutableOrderedSet {
     }
     
     open func exchangeObject(at idx1: Int, withObjectAt idx2: Int) {
-        guard idx1 < count && idx1 >= 0 && idx2 < count && idx2 >= 0 else {
-            fatalError("\(self): Index out of bounds")
-        }
-
         let object1 = self.object(at: idx1)
         let object2 = self.object(at: idx2)
         _orderedStorage[idx1] = __SwiftValue.store(object2)
@@ -450,13 +449,18 @@ extension NSMutableOrderedSet {
         }
     }
     
+    /// Sets the object at the specified index of the mutable ordered set.
+    ///
+    /// - Parameters:
+    ///   - obj: The object to be set.
+    ///   - idx: The index. If the index is equal to `count`, then it appends
+    ///   the object. Otherwise it replaces the object at the index with the
+    ///   given object.
     open func setObject(_ obj: Any, at idx: Int) {
-        let object = __SwiftValue.store(obj)
-        _storage.insert(object)
-        if idx == _orderedStorage.count {
-            _orderedStorage.append(object)
+        if idx == count {
+            insert(obj, at: idx)
         } else {
-            _orderedStorage[idx] = object
+            replaceObject(at: idx, with: obj)
         }
     }
     
