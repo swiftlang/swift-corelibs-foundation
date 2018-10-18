@@ -62,7 +62,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     /// Returns a string created from the UUID, such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     public var uuidString: String {
         var bytes: uuid_string_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        return withUnsafePointer(to: uuid) {
+        return withUnsafePointer(to: uuid) { valPtr in
             valPtr.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<uuid_t>.size) { val in
                 withUnsafeMutablePointer(to: &bytes) { strPtr in
                     strPtr.withMemoryRebound(to: CChar.self, capacity: MemoryLayout<uuid_string_t>.size) { str in
