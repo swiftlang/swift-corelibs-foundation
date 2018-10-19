@@ -185,6 +185,7 @@ class TestNSData: LoopbackServerTest {
             ("test_openingNonExistentFile", test_openingNonExistentFile),
             ("test_contentsOfFile", test_contentsOfFile),
             ("test_contentsOfZeroFile", test_contentsOfZeroFile),
+            ("test_wrongSizedFile", test_wrongSizedFile),
             ("test_contentsOfURL", test_contentsOfURL),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
@@ -1491,6 +1492,17 @@ extension TestNSData {
         } catch {
             XCTFail("Cannot read /proc/self/maps: \(String(describing: error))")
         }
+#endif
+    }
+
+    func test_wrongSizedFile() {
+#if os(Linux)
+        // Some files in /sys report a non-zero st_size often bigger than the contents
+        guard let data = NSData.init(contentsOfFile: "/sys/kernel/profiling") else {
+            XCTFail("Cant read /sys/kernel/profiling")
+            return
+        }
+        XCTAssert(data.length > 0)
 #endif
     }
 

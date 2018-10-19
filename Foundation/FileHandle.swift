@@ -31,7 +31,12 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     open var availableData: Data {
-        return _readDataOfLength(Int.max, untilEOF: false)
+        do {
+            let readResult = try _readDataOfLength(Int.max, untilEOF: false)
+            return readResult.toData()
+        } catch {
+            return Data()
+        }
     }
     
     open func readDataToEndOfFile() -> Data {
@@ -39,94 +44,82 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     open func readData(ofLength length: Int) -> Data {
-        return _readDataOfLength(length, untilEOF: true)
+        do {
+            let readResult = try _readDataOfLength(length, untilEOF: true)
+            return readResult.toData()
+        } catch {
+            return Data()
+        }
     }
 
-    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> Data {
+    internal func _readDataOfLength(_ length: Int, untilEOF: Bool, options: NSData.ReadingOptions = []) throws -> NSData.NSDataReadResult {
         precondition(_fd >= 0, "Bad file descriptor")
-        var statbuf = stat()
-        var dynamicBuffer: UnsafeMutableRawPointer? = nil
-        var total = 0
-        if fstat(_fd, &statbuf) < 0 {
-            fatalError("Unable to read file")
+        if length == 0 && !untilEOF {
+            // Nothing requested, return empty response
+            return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
-        if statbuf.st_mode & S_IFMT != S_IFREG {
-            /* We get here on sockets, character special files, FIFOs ... */
-            var currentAllocationSize: size_t = 1024 * 8
-            dynamicBuffer = malloc(currentAllocationSize)
-            var remaining = length
-            while remaining > 0 {
-                let amountToRead = min(1024 * 8, remaining)
-                // Make sure there is always at least amountToRead bytes available in the buffer.
-                if (currentAllocationSize - total) < amountToRead {
-                    currentAllocationSize *= 2
-                    dynamicBuffer = _CFReallocf(dynamicBuffer!, currentAllocationSize)
-                    if dynamicBuffer == nil {
-                        fatalError("unable to allocate backing buffer")
+
+        var statbuf = stat()
+        if fstat(_fd, &statbuf) < 0 {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+        }
+
+        let readBlockSize: Int
+        if statbuf.st_mode & S_IFMT == S_IFREG {
+            // TODO: Should files over a certain size always be mmap()'d?
+            if options.contains(.alwaysMapped) {
+                // Filesizes are often 64bit even on 32bit systems
+                let mapSize = min(length, Int(clamping: statbuf.st_size))
+                let data = mmap(nil, mapSize, PROT_READ, MAP_PRIVATE, _fd, 0)
+                // Swift does not currently expose MAP_FAILURE
+                if data != UnsafeMutableRawPointer(bitPattern: -1) {
+                    return NSData.NSDataReadResult(bytes: data!, length: mapSize) { buffer, length in
+                        munmap(buffer, length)
                     }
                 }
-                let amtRead = read(_fd, dynamicBuffer!.advanced(by: total), amountToRead)
-                if 0 > amtRead {
-                    free(dynamicBuffer)
-                    fatalError("read failure")
-                }
-                if 0 == amtRead {
-                    break // EOF
-                }
-                
-                total += amtRead
-                remaining -= amtRead
-                
-                if total == length || !untilEOF {
-                    break // We read everything the client asked for.
-                }
+            }
+
+            if statbuf.st_blksize > 0 {
+                readBlockSize = Int(clamping: statbuf.st_blksize)
+            } else {
+                readBlockSize = 1024 * 8
             }
         } else {
-            let offset = lseek(_fd, 0, SEEK_CUR)
-            if offset < 0 {
-                fatalError("Unable to fetch current file offset")
+            /* We get here on sockets, character special files, FIFOs ... */
+            readBlockSize = 1024 * 8
+        }
+        var currentAllocationSize = readBlockSize
+        var dynamicBuffer = malloc(currentAllocationSize)!
+        var total = 0
+
+        while total < length {
+            let remaining = length - total
+            let amountToRead = min(readBlockSize, remaining)
+            // Make sure there is always at least amountToRead bytes available in the buffer.
+            if (currentAllocationSize - total) < amountToRead {
+                currentAllocationSize *= 2
+                dynamicBuffer = _CFReallocf(dynamicBuffer, currentAllocationSize)
             }
-            if off_t(statbuf.st_size) > offset {
-                var remaining = size_t(off_t(statbuf.st_size) - offset)
-                remaining = min(remaining, size_t(length))
-                
-                dynamicBuffer = malloc(remaining)
-                if dynamicBuffer == nil {
-                    fatalError("Malloc failure")
-                }
-                
-                while remaining > 0 {
-                    let count = read(_fd, dynamicBuffer!.advanced(by: total), remaining)
-                    if count < 0 {
-                        free(dynamicBuffer)
-                        fatalError("Unable to read from fd")
-                    }
-                    if count == 0 {
-                        break
-                    }
-                    total += count
-                    remaining -= count
-                }
+            let amtRead = read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
+            if amtRead < 0 {
+                free(dynamicBuffer)
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+            }
+            total += amtRead
+            if amtRead == 0 || !untilEOF { // If there is nothing more to read or we shouldnt keep reading then exit
+                break
             }
         }
 
-        if length == Int.max && total > 0 {
-            dynamicBuffer = _CFReallocf(dynamicBuffer!, total)
-        }
-        
         if total == 0 {
             free(dynamicBuffer)
+            return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
-        else if total > 0 {
-            let bytePtr = dynamicBuffer!.bindMemory(to: UInt8.self, capacity: total)
-            return Data(bytesNoCopy: bytePtr, count: total, deallocator: .free)
+        dynamicBuffer = _CFReallocf(dynamicBuffer, total)
+        let bytePtr = dynamicBuffer.bindMemory(to: UInt8.self, capacity: total)
+        return NSData.NSDataReadResult(bytes: bytePtr, length: total) { buffer, length in
+            free(buffer)
         }
-        else {
-            assertionFailure("The total number of read bytes must not be negative")
-            free(dynamicBuffer)
-        }
-        
-        return Data()
     }
     
     open func write(_ data: Data) {
