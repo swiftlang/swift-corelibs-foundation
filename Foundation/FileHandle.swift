@@ -35,7 +35,7 @@ open class FileHandle : NSObject, NSSecureCoding {
             let readResult = try _readDataOfLength(Int.max, untilEOF: false)
             return readResult.toData()
         } catch {
-            return Data()
+            fatalError("\(error)")
         }
     }
     
@@ -48,7 +48,7 @@ open class FileHandle : NSObject, NSSecureCoding {
             let readResult = try _readDataOfLength(length, untilEOF: true)
             return readResult.toData()
         } catch {
-            return Data()
+            fatalError("\(error)")
         }
     }
 
