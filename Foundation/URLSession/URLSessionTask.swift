@@ -57,7 +57,7 @@ open class URLSessionTask : NSObject, NSCopying {
     internal convenience init(session: URLSession, request: URLRequest, taskIdentifier: Int) {
         if let bodyData = request.httpBody {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.data(createDispatchData(bodyData)))
-        }else if let bodyStream = request.httpBodyStream {
+        } else if let bodyStream = request.httpBodyStream {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: _Body.stream(bodyStream))
         } else {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
