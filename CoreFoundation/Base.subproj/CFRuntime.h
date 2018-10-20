@@ -1,7 +1,7 @@
 /*	CFRuntime.h
-	Copyright (c) 1999-2017, Apple Inc. All rights reserved.
+	Copyright (c) 1999-2018, Apple Inc. All rights reserved.
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -194,19 +194,11 @@ typedef struct __CFRuntimeBase {
     // This matches the isa and retain count storage in Swift
     uintptr_t _cfisa;
     uintptr_t _swift_rc;
-    // This is for CF's use, and must match _NSCFType layout
-#if defined(__LP64__) || defined(__LLP64__)
+    // This is for CF's use, and must match __NSCFType/_CFInfo layout
     _Atomic(uint64_t) _cfinfoa;
-#else
-    _Atomic(uint32_t) _cfinfoa;
-#endif
 } CFRuntimeBase;
 
-#if defined(__LP64__) || defined(__LLP64__)
 #define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x0000000000000080ULL}
-#else
-#define INIT_CFRUNTIME_BASE(...) {0, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000080UL}
-#endif
 
 #else
 

@@ -1,7 +1,7 @@
 /*      CFPlugIn.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -16,55 +16,6 @@ CONST_STRING_DECL(kCFPlugInDynamicRegisterFunctionKey, "CFPlugInDynamicRegisterF
 CONST_STRING_DECL(kCFPlugInUnloadFunctionKey, "CFPlugInUnloadFunction")
 CONST_STRING_DECL(kCFPlugInFactoriesKey, "CFPlugInFactories")
 CONST_STRING_DECL(kCFPlugInTypesKey, "CFPlugInTypes")
-
-CF_PRIVATE void __CFPlugInInitialize(void) {
-}
-
-/* ===================== Finding factories and creating instances ===================== */
-/* For plugIn hosts. */
-/* Functions for finding factories to create specific types and actually creating instances of a type. */
-
-CF_EXPORT CFArrayRef CFPlugInFindFactoriesForPlugInType(CFUUIDRef typeID) {
-    CFArrayRef array = _CFPFactoryFindCopyForType(typeID);
-    CFMutableArrayRef result = NULL;
-    
-    if (array) {
-        SInt32 i, c = CFArrayGetCount(array);
-        result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
-        for (i = 0; i < c; i++) {
-            CFUUIDRef factoryId = _CFPFactoryCopyFactoryID((_CFPFactoryRef)CFArrayGetValueAtIndex(array, i));
-            if (factoryId) {
-                CFArrayAppendValue(result, factoryId);
-                CFRelease(factoryId);
-            }
-        }
-        CFRelease(array);
-    }
-    return result;
-}
-
-CF_EXPORT CFArrayRef CFPlugInFindFactoriesForPlugInTypeInPlugIn(CFUUIDRef typeID, CFPlugInRef plugIn) {
-    CFArrayRef array = _CFPFactoryFindCopyForType(typeID);
-    CFMutableArrayRef result = NULL;
-
-    if (array) {
-        SInt32 i, c = CFArrayGetCount(array);
-        _CFPFactoryRef factory;
-        result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
-        for (i = 0; i < c; i++) {
-            factory = (_CFPFactoryRef )CFArrayGetValueAtIndex(array, i);
-            CFPlugInRef factoryPlugIn = _CFPFactoryCopyPlugIn(factory);
-            if (factoryPlugIn == plugIn) {
-                CFUUIDRef factoryId = _CFPFactoryCopyFactoryID(factory);
-                CFArrayAppendValue(result, factoryId);
-                CFRelease(factoryId);
-            }
-            if (factoryPlugIn) CFRelease(factoryPlugIn);
-        }
-        CFRelease(array);
-    }
-    return result;
-}
 
 CF_EXPORT void *CFPlugInInstanceCreate(CFAllocatorRef allocator, CFUUIDRef factoryID, CFUUIDRef typeID) {
     _CFPFactoryRef factory = _CFPFactoryFind(factoryID, true);

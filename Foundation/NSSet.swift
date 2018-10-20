@@ -25,7 +25,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        let value = _SwiftValue.store(object)
+        let value = __SwiftValue.store(object)
         guard let idx = _storage.index(of: value) else { return nil }
         return _storage[idx]
     }
@@ -34,7 +34,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         guard type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self || type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        return NSGeneratorEnumerator(_storage.map { _SwiftValue.fetch(nonOptional: $0) }.makeIterator())
+        return NSGeneratorEnumerator(_storage.map { __SwiftValue.fetch(nonOptional: $0) }.makeIterator())
     }
 
     public convenience override init() {
@@ -46,7 +46,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         super.init()
         let buffer = UnsafeBufferPointer(start: objects, count: cnt)
         for obj in buffer {
-            _storage.insert(_SwiftValue.store(obj))
+            _storage.insert(__SwiftValue.store(obj))
         }
     }
     
@@ -134,7 +134,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
     public convenience init(array: [Any]) {
         let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
         for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(to: _SwiftValue.store(element))
+            buffer.advanced(by: idx).initialize(to: __SwiftValue.store(element))
         }
         self.init(objects: buffer, count: array.count)
         buffer.deinitialize(count: array.count)
@@ -171,7 +171,7 @@ extension NSSet {
     
     open var allObjects: [Any] {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            return _storage.map { _SwiftValue.fetch(nonOptional: $0) }
+            return _storage.map { __SwiftValue.fetch(nonOptional: $0) }
         } else {
             let enumerator = objectEnumerator()
             var items = [Any]()
@@ -224,7 +224,7 @@ extension NSSet {
     open func addingObjects(from other: Set<AnyHashable>) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: Swift.max(count, other.count))
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage.map { _SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
+            result.formUnion(_storage.map { __SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
         } else {
             for case let obj as NSObject in self {
                 _ = result.insert(obj)
@@ -236,7 +236,7 @@ extension NSSet {
     open func addingObjects(from other: [Any]) -> Set<AnyHashable> {
         var result = Set<AnyHashable>(minimumCapacity: count)
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
-            result.formUnion(_storage.map { _SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
+            result.formUnion(_storage.map { __SwiftValue.fetch(nonOptional: $0) as! AnyHashable })
         } else {
             for case let obj as AnyHashable in self {
                 result.insert(obj)
@@ -315,7 +315,7 @@ open class NSMutableSet : NSSet {
         guard type(of: self) === NSMutableSet.self else {
             NSRequiresConcreteImplementation()
         }
-        _storage.insert(_SwiftValue.store(object))
+        _storage.insert(__SwiftValue.store(object))
     }
     
     open func remove(_ object: Any) {
@@ -323,7 +323,7 @@ open class NSMutableSet : NSSet {
             NSRequiresConcreteImplementation()
         }
 
-        _storage.remove(_SwiftValue.store(object))
+        _storage.remove(__SwiftValue.store(object))
     }
     
     override public init(objects: UnsafePointer<AnyObject>!, count cnt: Int) {
@@ -345,7 +345,7 @@ open class NSMutableSet : NSSet {
     open func addObjects(from array: [Any]) {
         if type(of: self) === NSMutableSet.self {
             for case let obj in array {
-                _storage.insert(_SwiftValue.store(obj))
+                _storage.insert(__SwiftValue.store(obj))
             }
         } else {
             array.forEach(add)
@@ -354,7 +354,7 @@ open class NSMutableSet : NSSet {
     
     open func intersect(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.formIntersection(otherSet.map { _SwiftValue.store($0) })
+            _storage.formIntersection(otherSet.map { __SwiftValue.store($0) })
         } else {
             for obj in self {
                 if !otherSet.contains(obj as! AnyHashable) {
@@ -366,7 +366,7 @@ open class NSMutableSet : NSSet {
     
     open func minus(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.subtract(otherSet.map { _SwiftValue.store($0) })
+            _storage.subtract(otherSet.map { __SwiftValue.store($0) })
         } else {
             otherSet.forEach(remove)
         }
@@ -382,7 +382,7 @@ open class NSMutableSet : NSSet {
     
     open func union(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage.formUnion(otherSet.map { _SwiftValue.store($0) })
+            _storage.formUnion(otherSet.map { __SwiftValue.store($0) })
         } else {
             otherSet.forEach(add)
         }
@@ -390,7 +390,7 @@ open class NSMutableSet : NSSet {
     
     open func setSet(_ otherSet: Set<AnyHashable>) {
         if type(of: self) === NSMutableSet.self {
-            _storage = Set(otherSet.map { _SwiftValue.store($0) })
+            _storage = Set(otherSet.map { __SwiftValue.store($0) })
         } else {
             removeAllObjects()
             union(otherSet)
@@ -415,7 +415,7 @@ open class NSCountedSet : NSMutableSet {
     public convenience init(array: [Any]) {
         self.init(capacity: array.count)
         for object in array {
-            let value = _SwiftValue.store(object)
+            let value = __SwiftValue.store(object)
             if let count = _table[value] {
                 _table[value] = count + 1
             } else {
@@ -455,7 +455,7 @@ open class NSCountedSet : NSMutableSet {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        let value = _SwiftValue.store(object)
+        let value = __SwiftValue.store(object)
         guard let count = _table[value] else {
             return 0
         }
@@ -466,7 +466,7 @@ open class NSCountedSet : NSMutableSet {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        let value = _SwiftValue.store(object)
+        let value = __SwiftValue.store(object)
         if let count = _table[value] {
             _table[value] = count + 1
         } else {
@@ -479,7 +479,7 @@ open class NSCountedSet : NSMutableSet {
         guard type(of: self) === NSCountedSet.self else {
             NSRequiresConcreteImplementation()
         }
-        let value = _SwiftValue.store(object)
+        let value = __SwiftValue.store(object)
         guard let count = _table[value] else {
             return
         }

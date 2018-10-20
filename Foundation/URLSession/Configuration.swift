@@ -111,7 +111,7 @@ internal extension URLSession._Configuration {
             if let cookieStorage = self.httpCookieStorage, let url = request.url, let cookies = cookieStorage.cookies(for: url) {
                 let cookiesHeaderFields =  HTTPCookie.requestHeaderFields(with: cookies)
                 if let cookieValue = cookiesHeaderFields["Cookie"], cookieValue != "" {
-                    request.addValue(cookieValue, forHTTPHeaderField: "Cookie")
+                    request.setValue(cookieValue, forHTTPHeaderField: "Cookie")
                 }
             }
         }

@@ -30,6 +30,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_timeoutInterval", test_timeoutInterval),
             ("test_httpRedirectionWithCompleteRelativePath", test_httpRedirectionWithCompleteRelativePath),
             ("test_httpRedirectionWithInCompleteRelativePath", test_httpRedirectionWithInCompleteRelativePath),
+            ("test_httpRedirectionWithDefaultPort", test_httpRedirectionWithDefaultPort),
             ("test_httpRedirectionTimeout", test_httpRedirectionTimeout),
             ("test_http0_9SimpleResponses", test_http0_9SimpleResponses),
             ("test_outOfRangeButCorrectlyFormattedHTTPCode", test_outOfRangeButCorrectlyFormattedHTTPCode),
@@ -43,6 +44,8 @@ class TestURLSession : LoopbackServerTest {
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
             ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
+            ("test_basicAuthRequest", test_basicAuthRequest),
+            ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
         ]
     }
     
@@ -395,6 +398,14 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 12)
     }
 
+    func test_httpRedirectionWithDefaultPort() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirect-with-default-port"
+        let url = URL(string: urlString)!
+        let d = HTTPRedirectionDataTask(with: expectation(description: "GET \(urlString): with HTTP redirection"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+    }
+
      // temporarily disabled (https://bugs.swift.org/browse/SR-5751)
     func test_httpRedirectionTimeout() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/UnitedStates"
@@ -620,6 +631,31 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(cookies?.count, 1)
     }
 
+    func test_redirectionWithSetCookies() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        if let storage = config.httpCookieStorage, let cookies = storage.cookies {
+            for cookie in cookies {
+                storage.deleteCookie(cookie)
+            }
+        }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/redirectSetCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let data = data else { return }
+            let headers = String(data: data, encoding: String.Encoding.utf8) ?? ""
+            print("headers here = \(headers)")
+            XCTAssertNotNil(headers.range(of: "Cookie: redirect=true"))
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+    }
+
     func test_setCookies() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 5
@@ -693,6 +729,14 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(config.urlCredentialStorage, nil)
         XCTAssertEqual(config.urlCache, nil)
         XCTAssertEqual(config.shouldUseExtendedBackgroundIdleMode, true)
+   }
+
+   func test_basicAuthRequest() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/auth/basic"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): with a delegate"))
+        d.run(with: url)
+        waitForExpectations(timeout: 60)
     }
 }
 
@@ -842,6 +886,12 @@ extension DataTask : URLSessionTaskDelegate {
         }
         self.error = true
     }
+
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge:
+        URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition,
+        URLCredential?) -> Void) {
+        completionHandler(.useCredential, URLCredential(user: "user", password: "passwd", persistence: .none))
+    }
 }
 
 class DownloadTask : NSObject {
@@ -951,6 +1001,11 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         XCTAssertNotNil(response)
         XCTAssertEqual(302, response.statusCode, "HTTP response code is not 302")
+        if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
+            XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")
+            // Dont follow the redirect as the test server is not running on port 80
+            return
+        }
         completionHandler(request)
     }
 }

@@ -1,7 +1,7 @@
 /*	CFUUID.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,24 +10,22 @@
 
 #include <CoreFoundation/CFUUID.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
-#if __HAS_DISPATCH__
-#include <dispatch/dispatch.h>
+#if __has_include(<os/lock_private.h>)
+#include <os/lock_private.h>
 
 static CFMutableDictionaryRef _uniquedUUIDs = NULL;
+static os_unfair_lock _uniquedUUIDsLock = OS_UNFAIR_LOCK_INIT;
+
 CF_INLINE void LOCKED(dispatch_block_t work) {
-    static dispatch_once_t guard;
-    static dispatch_queue_t CFUUIDGlobalDataLock;
-    dispatch_once(&guard, ^{
-        dispatch_queue_attr_t dqattr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, qos_class_main(), 0);
-        CFUUIDGlobalDataLock = dispatch_queue_create("com.apple.CFUUID", dqattr);
-    });
-    dispatch_sync(CFUUIDGlobalDataLock, work);
+    os_unfair_lock_lock_with_options(&_uniquedUUIDsLock, OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION);
+    work();
+    os_unfair_lock_unlock(&_uniquedUUIDsLock);
 }
 
 #else
-// Platforms without dispatch
-
+// Platforms without unfair lock
 static CFMutableDictionaryRef _uniquedUUIDs = NULL;
 static CFLock_t _uniquedUUIDsLock = CFLockInit;
 
@@ -95,9 +93,7 @@ static CFStringRef __CFUUIDCopyFormattingDescription(CFTypeRef cf, CFDictionaryR
     return CFUUIDCreateString(CFGetAllocator(cf), (CFUUIDRef)cf);
 }
 
-static CFTypeID __kCFUUIDTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFUUIDClass = {
+const CFRuntimeClass __CFUUIDClass = {
     0,
     "CFUUID",
     NULL,	// init
@@ -110,9 +106,7 @@ static const CFRuntimeClass __CFUUIDClass = {
 };
 
 CFTypeID CFUUIDGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFUUIDTypeID = _CFRuntimeRegisterClass(&__CFUUIDClass); });
-    return __kCFUUIDTypeID;
+    return _kCFRuntimeIDCFUUID;
 }
 
 static CFUUIDRef __CFUUIDCreateWithBytesPrimitive(CFAllocatorRef allocator, CFUUIDBytes bytes, Boolean isConst) {

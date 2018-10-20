@@ -28,7 +28,7 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
     }
     
     open func object(forKey key: NSLocale.Key) -> Any? {
-        return _SwiftValue.fetch(CFLocaleGetValue(_cfObject, key.rawValue._cfObject))
+        return __SwiftValue.fetch(CFLocaleGetValue(_cfObject, key.rawValue._cfObject))
     }
     
     open func displayName(forKey key: Key, value: String) -> String? {
@@ -69,7 +69,11 @@ open class NSLocale: NSObject, NSCopying, NSSecureCoding {
         
         return locale.localeIdentifier == localeIdentifier
     }
-    
+
+    override open var hash: Int {
+        return localeIdentifier.hash
+    }
+
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -99,31 +103,31 @@ extension NSLocale {
     }
     
     open class var availableLocaleIdentifiers: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyAvailableLocaleIdentifiers()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyAvailableLocaleIdentifiers()) as? [String] ?? []
     }
     
     open class var isoLanguageCodes: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyISOLanguageCodes()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyISOLanguageCodes()) as? [String] ?? []
     }
     
     open class var isoCountryCodes: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyISOCountryCodes()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyISOCountryCodes()) as? [String] ?? []
     }
     
     open class var isoCurrencyCodes: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyISOCurrencyCodes()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyISOCurrencyCodes()) as? [String] ?? []
     }
     
     open class var commonISOCurrencyCodes: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyCommonISOCurrencyCodes()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyCommonISOCurrencyCodes()) as? [String] ?? []
     }
     
     open class var preferredLanguages: [String] {
-        return _SwiftValue.fetch(CFLocaleCopyPreferredLanguages()) as? [String] ?? []
+        return __SwiftValue.fetch(CFLocaleCopyPreferredLanguages()) as? [String] ?? []
     }
     
     open class func components(fromLocaleIdentifier string: String) -> [String : String] {
-        return _SwiftValue.fetch(CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)) as? [String : String] ?? [:] 
+        return __SwiftValue.fetch(CFLocaleCreateComponentsFromLocaleIdentifier(kCFAllocatorSystemDefault, string._cfObject)) as? [String : String] ?? [:] 
     }
     
     open class func localeIdentifier(fromComponents dict: [String : String]) -> String {
@@ -216,7 +220,7 @@ extension NSLocale.Key {
 }
 
 
-public extension NSLocale {
+extension NSLocale {
     public static let currentLocaleDidChangeNotification = NSNotification.Name(rawValue: "kCFLocaleCurrentLocaleDidChangeNotification")
 }
 

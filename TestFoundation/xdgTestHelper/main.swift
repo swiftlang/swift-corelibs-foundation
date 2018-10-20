@@ -55,6 +55,8 @@ class XDGCheck {
     }
 }
 
+// -----
+
 // Used by TestProcess: test_interrupt(), test_suspend_resume()
 func signalTest() {
 
@@ -102,6 +104,63 @@ func signalTest() {
     }
 }
 
+// -----
+
+#if !DEPLOYMENT_RUNTIME_OBJC
+struct NSURLForPrintTest {
+    enum Method: String {
+        case NSSearchPath
+        case FileManagerDotURLFor
+        case FileManagerDotURLsFor
+    }
+    
+    enum Identifier: String {
+        case desktop
+        case download
+        case publicShare
+        case documents
+        case music
+        case pictures
+        case videos
+    }
+    
+    let method: Method
+    let identifier: Identifier
+    
+    func run() {
+        let directory: FileManager.SearchPathDirectory
+        
+        switch identifier {
+        case .desktop:
+            directory = .desktopDirectory
+        case .download:
+            directory = .downloadsDirectory
+        case .publicShare:
+            directory = .sharedPublicDirectory
+        case .documents:
+            directory = .documentDirectory
+        case .music:
+            directory = .musicDirectory
+        case .pictures:
+            directory = .picturesDirectory
+        case .videos:
+            directory = .moviesDirectory
+        }
+        
+        switch method {
+        case .NSSearchPath:
+            print(NSSearchPathForDirectoriesInDomains(directory, .userDomainMask, true).first!)
+        case .FileManagerDotURLFor:
+            print(try! FileManager.default.url(for: directory, in: .userDomainMask, appropriateFor: nil, create: false).path)
+        case .FileManagerDotURLsFor:
+            print(FileManager.default.urls(for: directory, in: .userDomainMask).first!.path)
+        }
+    }
+}
+#endif
+
+// -----
+
 var arguments = ProcessInfo.processInfo.arguments.dropFirst().makeIterator()
 
 guard let arg = arguments.next() else {
@@ -111,16 +170,30 @@ guard let arg = arguments.next() else {
 switch arg {
 case "--xdgcheck":
     XDGCheck.run()
-
+    
 case "--getcwd":
     print(FileManager.default.currentDirectoryPath)
 
 case "--echo-PWD":
     print(ProcessInfo.processInfo.environment["PWD"] ?? "")
+    
+#if !DEPLOYMENT_RUNTIME_OBJC
+case "--nspathfor":
+    guard let methodString = arguments.next(),
+        let method = NSURLForPrintTest.Method(rawValue: methodString),
+        let identifierString = arguments.next(),
+        let identifier = NSURLForPrintTest.Identifier(rawValue: identifierString) else {
+        fatalError("Usage: --nspathfor <METHOD> <DIRECTORY NAME>")
+    }
+    
+    let test = NSURLForPrintTest(method: method, identifier: identifier)
+    test.run()
+#endif
 
 case "--signal-test":
     signalTest()
-
+    
 default:
     fatalError("These arguments are not recognized. Only run this from a unit test.")
 }
+

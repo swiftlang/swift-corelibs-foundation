@@ -1,7 +1,7 @@
 /*	CFStringEncodingConverterExt.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -45,8 +45,21 @@ typedef CFIndex (*CFStringEncodingToBytesPrecomposeProc)(uint32_t flags, const U
 typedef bool (*CFStringEncodingIsValidCombiningCharacterProc)(UniChar character);
 
 typedef struct {
-    void *toBytes;
-    void *toUnicode;
+    // These conversion functions should be accessed and called as dictated by .encodingClass.
+    // An encoding class of kCFStringEncodingConverterStandard corresponds to .standard; kCFStringEncodingConverterCheapEightBit corresponds to .cheapEightBit; etc.
+    union {
+        CFStringEncodingToBytesProc standard;
+        CFStringEncodingCheapEightBitToBytesProc cheapEightBit;
+        CFStringEncodingStandardEightBitToBytesProc standardEightBit;
+        CFStringEncodingCheapMultiByteToBytesProc cheapMultibyte;
+    } toBytes;
+    union {
+        CFStringEncodingToUnicodeProc standard;
+        CFStringEncodingCheapEightBitToUnicodeProc cheapEightBit;
+        CFStringEncodingStandardEightBitToUnicodeProc standardEightBit;
+        CFStringEncodingCheapMultiByteToUnicodeProc cheapMultibyte;
+    } toUnicode;
+
     uint16_t maxBytesPerChar;
     uint16_t maxDecomposedCharLen;
     uint8_t encodingClass;
@@ -59,8 +72,6 @@ typedef struct {
     CFStringEncodingIsValidCombiningCharacterProc isValidCombiningChar;
 } CFStringEncodingConverter;
 
-extern const CFStringEncodingConverter *CFStringEncodingGetConverter(uint32_t encoding);
-
 enum {
     kCFStringEncodingGetConverterSelector = 0,
     kCFStringEncodingIsDecomposableCharacterSelector = 1,
@@ -68,8 +79,6 @@ enum {
     kCFStringEncodingIsValidLatin1CombiningCharacterSelector = 3,
     kCFStringEncodingPrecomposeLatin1CharacterSelector = 4
 };
-
-extern const void *CFStringEncodingGetAddressForSelector(uint32_t selector);
 
 #define BOOTSTRAPFUNC_NAME	CFStringEncodingBootstrap
 typedef const CFStringEncodingConverter* (*CFStringEncodingBootstrapProc)(uint32_t encoding, const void *getSelector);

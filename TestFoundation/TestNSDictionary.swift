@@ -21,6 +21,8 @@ class TestNSDictionary : XCTestCase {
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
             ("test_settingWithStringKey", test_settingWithStringKey),
+            ("test_valueForKey", test_valueForKey),
+            ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
         ]
     }
         
@@ -217,6 +219,19 @@ class TestNSDictionary : XCTestCase {
         // has crashed in the past
         dict["stringKey"] = "value"
     }
+    
+    func test_valueForKey() {
+        let dict: NSDictionary = ["foo": "bar"]
+        let result = dict.value(forKey: "foo")
+        XCTAssertEqual(result as? String, "bar")
+    }
+    
+    func test_valueForKeyWithNestedDict() {
+        let dict: NSDictionary = ["foo": ["bar": "baz"]]
+        let result = dict.value(forKey: "foo")
+        let expectedResult: NSDictionary = ["bar": "baz"]
+        XCTAssertEqual(result as? NSDictionary, expectedResult)
+    }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
@@ -228,17 +243,13 @@ class TestNSDictionary : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 
 }

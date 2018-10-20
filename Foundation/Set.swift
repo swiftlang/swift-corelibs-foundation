@@ -41,7 +41,7 @@ extension Set : _ObjectiveCBridgeable {
                     set.insert(o)
                 } else {
                     // here obj must be a swift type
-                    if let nsObject = _SwiftValue.store(obj) as? Element {
+                    if let nsObject = __SwiftValue.store(obj) as? Element {
                         set.insert(nsObject)
                     } else {
                         failedConversion = true

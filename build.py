@@ -30,7 +30,8 @@ elif Configuration.current.target.sdk == OSType.Win32 and Configuration.current.
 	swift_cflags += ['-DCYGWIN']
 
 if Configuration.current.build_mode == Configuration.Debug:
-        foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+    foundation.LDFLAGS += ' -lswiftSwiftOnoneSupport '
+    swift_cflags += ['-enable-testing']
 
 foundation.ASFLAGS = " ".join([
         '-DCF_CHARACTERSET_BITMAP=\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\"',
@@ -65,7 +66,7 @@ foundation.CFLAGS += " ".join([
 ])
 
 swift_cflags += [
-	'-I${BUILD_DIR}/Foundation/usr/lib/swift',
+	'-I${BUILD_DIR}/Foundation/${PREFIX}/lib/swift',
 ]
 
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
@@ -116,6 +117,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 	foundation.CFLAGS += " "+" ".join([
 		'-DDEPLOYMENT_ENABLE_LIBDISPATCH',
 		'-I'+Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"],
+		'-I' + os.path.join(Configuration.current.variables["LIBDISPATCH_SOURCE_DIR"], 'src', 'BlocksRuntime'),
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/tests'  # for include of dispatch/private.h in CF
 	])
 	swift_cflags += ([
@@ -125,6 +127,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-Xcc -fblocks'
 	])
 	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
+	foundation.LDFLAGS += '-L' + Configuration.current.variables['LIBDISPATCH_BUILD_DIR'] + ' -lBlocksRuntime '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
 
@@ -225,6 +228,13 @@ private = [
 	'CoreFoundation/Locale.subproj/CFLocale_Private.h',
 	'CoreFoundation/Parsing.subproj/CFPropertyList_Private.h',
 	'CoreFoundation/Base.subproj/CFKnownLocations.h',
+    'CoreFoundation/Base.subproj/CFOverflow.h',
+	'CoreFoundation/Base.subproj/CFRuntime_Internal.h',
+	'CoreFoundation/Collections.subproj/CFCollections_Internal.h',
+	'CoreFoundation/RunLoop.subproj/CFMachPort_Internal.h',
+	'CoreFoundation/RunLoop.subproj/CFMachPort_Lifetime.h',
+	'CoreFoundation/String.subproj/CFAttributedStringPriv.h',
+	'CoreFoundation/String.subproj/CFString_Internal.h',
 ],
 project = [
 ])
@@ -291,6 +301,7 @@ sources = CompileSources([
     'CoreFoundation/Preferences.subproj/CFXMLPreferencesDomain.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMachPort.c',
 	# 'CoreFoundation/RunLoop.subproj/CFMessagePort.c',
+    # 'CoreFoundation/RunLoop.subproj/CFMachPort_Lifetime.c',
 	'CoreFoundation/RunLoop.subproj/CFRunLoop.c',
 	'CoreFoundation/RunLoop.subproj/CFSocket.c',
 	'CoreFoundation/Stream.subproj/CFConcreteStreams.c',
@@ -367,6 +378,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/NSExpression.swift',
 	'Foundation/FileHandle.swift',
 	'Foundation/FileManager.swift',
+	'Foundation/FileManager_XDG.swift',
 	'Foundation/Formatter.swift',
 	'Foundation/NSGeometry.swift',
 	'Foundation/Host.swift',
@@ -489,6 +501,9 @@ swift_sources = CompileSwiftSources([
 	'Foundation/JSONEncoder.swift',
 ])
 
+if Configuration.current.build_mode == Configuration.Debug:
+    swift_sources.enable_testable_import = True
+
 swift_sources.add_dependency(headers)
 foundation.add_phase(swift_sources)
 
@@ -515,6 +530,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
     'TestFoundation/Resources/NSKeyedUnarchiver-URLTest.plist',
     'TestFoundation/Resources/NSKeyedUnarchiver-UUIDTest.plist',
     'TestFoundation/Resources/NSKeyedUnarchiver-OrderedSetTest.plist',
+    'TestFoundation/Resources/TestFileWithZeros.txt',
 ])
 
 # TODO: Probably this should be another 'product', but for now it's simply a phase
@@ -522,6 +538,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
         'TestFoundation/HTTPServer.swift',
         'Foundation/ProgressFraction.swift',
+        'TestFoundation/Utilities.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
 Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'

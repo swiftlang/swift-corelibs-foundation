@@ -97,7 +97,7 @@ open class UnitConverterLinear : UnitConverter, NSSecureCoding {
 private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
     
     
-    private private(set) var reciprocal: Double
+    private var reciprocal: Double
     
     
     fileprivate init(reciprocal: Double) {
@@ -232,7 +232,7 @@ open class Dimension : Unit {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        aCoder.encode(self.converter, forKey:"converter")
+        aCoder.encode(self.converter, forKey:"NS.converter")
     }
     
     open override func isEqual(_ object: Any?) -> Bool {

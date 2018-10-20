@@ -1,5 +1,5 @@
 /*	CFXMLParser.c
-	Copyright (c) 1999-2017, Apple Inc. All rights reserved.
+	Copyright (c) 1999-2018, Apple Inc. All rights reserved.
 	Responsibility: David Smith
 */
 
@@ -8,6 +8,7 @@
 #include "CFXMLInputStream.h"
 #include "CFUniChar.h" 
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -52,9 +53,7 @@ static void __CFXMLParserDeallocate(CFTypeRef cf) {
     }
 }
 
-static CFTypeID __kCFXMLParserTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFXMLParserClass = {
+const CFRuntimeClass __CFXMLParserClass = {
     0,
     "CFXMLParser",
     NULL,      // init
@@ -67,9 +66,7 @@ static const CFRuntimeClass __CFXMLParserClass = {
 };
 
 CFTypeID CFXMLParserGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFXMLParserTypeID = _CFRuntimeRegisterClass(&__CFXMLParserClass); });
-    return __kCFXMLParserTypeID;
+    return _kCFRuntimeIDCFXMLParser;
 }
 
 void CFXMLParserGetContext(CFXMLParserRef parser, CFXMLParserContext *context) {
@@ -771,7 +768,7 @@ static Boolean parseExternalID(CFXMLParserRef parser, Boolean alsoAcceptPublicID
  [82] NotationDecl ::= '<!NOTATION' S Name S (ExternalID |  PublicID) S? '>'
 */
 static Boolean parseNotationDeclaration(CFXMLParserRef parser) {
-    static UniChar notationString[8] = {'N', 'O', 'T', 'A', 'T', 'I', 'O', 'N'};
+    static UniChar const notationString[8] = {'N', 'O', 'T', 'A', 'T', 'I', 'O', 'N'};
     Boolean report = *(parser->top) && !(parser->options & kCFXMLParserSkipMetaData);
     CFXMLNotationInfo notationData = {{NULL, NULL}};
     CFStringRef name;

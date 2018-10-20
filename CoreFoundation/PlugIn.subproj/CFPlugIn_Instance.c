@@ -1,7 +1,7 @@
 /*	CFPlugIn_Instance.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,8 +10,7 @@
 
 #include "CFBundle_Internal.h"
 #include "CFInternal.h"
-
-static CFTypeID __kCFPlugInInstanceTypeID = _kCFRuntimeNotATypeID;
+#include "CFRuntime_Internal.h"
 
 struct __CFPlugInInstance {
     CFRuntimeBase _base;
@@ -49,7 +48,7 @@ static void __CFPlugInInstanceDeallocate(CFTypeRef cf) {
     if (instance->factory) _CFPFactoryRemoveInstance(instance->factory);
 }
 
-static const CFRuntimeClass __CFPlugInInstanceClass = {
+const CFRuntimeClass __CFPlugInInstanceClass = {
     0,
     "CFPlugInInstance",
     NULL,      // init
@@ -62,9 +61,7 @@ static const CFRuntimeClass __CFPlugInInstanceClass = {
 };
 
 CFTypeID CFPlugInInstanceGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFPlugInInstanceTypeID = _CFRuntimeRegisterClass(&__CFPlugInInstanceClass); });
-    return __kCFPlugInInstanceTypeID;
+    return _kCFRuntimeIDCFPlugInInstance;
 }
 
 CF_EXPORT CFPlugInInstanceRef CFPlugInInstanceCreateWithInstanceDataSize(CFAllocatorRef allocator, CFIndex instanceDataSize, CFPlugInInstanceDeallocateInstanceDataFunction deallocateInstanceFunction, CFStringRef factoryName, CFPlugInInstanceGetInterfaceFunction getInterfaceFunction) {

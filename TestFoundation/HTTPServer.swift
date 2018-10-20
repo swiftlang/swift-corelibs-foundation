@@ -183,6 +183,7 @@ class _TCPSocket {
 class _HTTPServer {
 
     let socket: _TCPSocket
+    var willReadAgain = false
     var port: UInt16 {
         get {
             return self.socket.port
@@ -202,8 +203,10 @@ class _HTTPServer {
     }
 
     public func stop() {
-        socket.closeClient()
-        socket.shutdownListener()
+        if !willReadAgain {
+            socket.closeClient()
+            socket.shutdownListener()
+	}
     }
    
     public func request() throws -> _HTTPRequest {
@@ -304,6 +307,34 @@ class _HTTPServer {
         }
         try self.socket.writeRawData(responseData)
     }
+
+    func respondWithAuthResponse(uri: String, firstRead: Bool) throws {
+        let responseData: Data
+        if firstRead {
+            responseData = ("HTTP/1.1 401 UNAUTHORIZED \r\n" +
+                        "Content-Length: 0\r\n" +
+                        "WWW-Authenticate: Basic realm=\"Fake Relam\"\r\n" +
+                        "Access-Control-Allow-Origin: *\r\n" +
+                        "Access-Control-Allow-Credentials: true\r\n" +
+                        "Via: 1.1 vegur\r\n" +
+                        "Cache-Control: proxy-revalidate\r\n" +
+                        "Connection: keep-Alive\r\n" +
+                        "\r\n").data(using: .utf8)!
+        } else {
+            responseData = ("HTTP/1.1 200 OK \r\n" +
+                "Content-Length: 37\r\n" +
+                "Content-Type: application/json\r\n" +
+                "Access-Control-Allow-Origin: *\r\n" +
+                "Access-Control-Allow-Credentials: true\r\n" +
+                "Via: 1.1 vegur\r\n" +
+                "Cache-Control: proxy-revalidate\r\n" +
+                "Connection: keep-Alive\r\n" +
+                "\r\n" +
+                "{\"authenticated\":true,\"user\":\"user\"}\n").data(using: .utf8)!
+        }
+        try self.socket.writeRawData(responseData)
+    }
+
 
 }
 
@@ -419,9 +450,20 @@ public class TestURLSessionServer {
             } else {
                 try httpServer.respond(with: _HTTPResponse(response: .NOTFOUND, body: "Not Found"))
             }
+        } else if req.uri.hasPrefix("/auth") {
+            httpServer.willReadAgain = true
+            try httpServer.respondWithAuthResponse(uri: req.uri, firstRead: true)
         } else {
             try httpServer.respond(with: process(request: req), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
         }
+    }
+
+    public func readAndRespondAgain() throws {
+        let req = try httpServer.request()
+        if req.uri.hasPrefix("/auth/") {
+            try httpServer.respondWithAuthResponse(uri: req.uri, firstRead: false)
+        }
+        httpServer.willReadAgain = false
     }
 
     func process(request: _HTTPRequest) -> _HTTPResponse {
@@ -458,6 +500,10 @@ public class TestURLSessionServer {
         if uri == "/setCookies" {
             let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
+        }
+        
+        if uri == "/redirectSetCookies" {
+            return _HTTPResponse(response: .REDIRECT, headers: "Location: /setCookies\r\nSet-Cookie: redirect=true; Max-Age=7776000; path=/", body: "")
         }
 
         if uri == "/UnitedStates" {
@@ -507,6 +553,15 @@ public class TestURLSessionServer {
         
         if uri == "/echo" {
             return _HTTPResponse(response: .OK, body: request.messageBody ?? request.body)
+        }
+        
+        if uri == "/redirect-with-default-port" {
+            let text = request.getCommaSeparatedHeaders()
+            let host = request.headers[1].components(separatedBy: " ")[1]
+            let ip = host.components(separatedBy: ":")[0]
+            let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
+            return httpResponse
+
         }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
@@ -587,12 +642,15 @@ class LoopbackServerTest : XCTestCase {
                 do {
                     try server.httpServer.listen(notify: condition)
                     try server.readAndRespond()
+                    if server.httpServer.willReadAgain {
+                        try server.httpServer.listen(notify: condition)
+                        try server.readAndRespondAgain()
+                    }
                     server.httpServer.socket.closeClient()
                 } catch {
                 }
             }
             serverPort = -2
-
         }
 
         globalDispatchQueue.async {

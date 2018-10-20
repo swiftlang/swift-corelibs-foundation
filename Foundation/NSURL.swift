@@ -958,14 +958,8 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
 }
 
 open class NSURLComponents: NSObject, NSCopying {
-    private let _components : CFURLComponentsRef!
+    private let _components : CFURLComponents!
     
-     deinit {
-        if let component = _components {
-            __CFURLComponentsDeallocate(component)
-        }
-    }
-
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -981,6 +975,19 @@ open class NSURLComponents: NSObject, NSCopying {
                 && path == other.path
                 && query == other.query
                 && fragment == other.fragment)
+    }
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(scheme)
+        hasher.combine(user)
+        hasher.combine(password)
+        hasher.combine(host)
+        hasher.combine(port)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+        return hasher.finalize()
     }
 
     open func copy(with zone: NSZone? = nil) -> Any {

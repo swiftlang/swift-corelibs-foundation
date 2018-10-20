@@ -98,7 +98,7 @@ extension URLCredentialStorage {
     public func setDefaultCredential(_ credential: URLCredential, for protectionSpace: URLProtectionSpace, task: URLSessionTask) { NSUnimplemented() }
 }
 
-public extension Notification.Name {
+extension Notification.Name {
     /*!
         @const NSURLCredentialStorageChangedNotification
         @abstract This notification is sent on the main thread whenever

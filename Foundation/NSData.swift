@@ -288,7 +288,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: _CFNonObjCHash(_cfObject))
     }
 
     /// Returns a Boolean value indicating whether this data object is the same as another.
@@ -579,22 +579,18 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                         if fsync(fd) < 0 {
                             throw _NSErrorWithErrno(errno, reading: false, path: path)
                         }
-                    } catch let err {
+                    } catch {
                         if let auxFilePath = auxFilePath {
-                            do {
-                                try FileManager.default.removeItem(atPath: auxFilePath)
-                            } catch _ {}
+                            try? FileManager.default.removeItem(atPath: auxFilePath)
                         }
-                        throw err
+                        throw error
                     }
                 }
             }
             if let auxFilePath = auxFilePath {
                 try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
                     if rename(auxFilePathFsRep, pathFsRep) != 0 {
-                        do {
-                            try FileManager.default.removeItem(atPath: auxFilePath)
-                        } catch _ {}
+                        try? FileManager.default.removeItem(atPath: auxFilePath)
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                     if let mode = mode {
@@ -705,8 +701,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
-            } catch let e {
-                err = e
+            } catch {
+                err = error
             }
         }
         if let err = err {
@@ -1137,4 +1133,8 @@ extension NSData : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Data {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
+}
+
+internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
 }

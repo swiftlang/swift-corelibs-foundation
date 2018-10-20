@@ -537,12 +537,13 @@ fileprivate extension _EasyHandle {
         return d
     }
 
-    fileprivate func setCookies(headerData data: Data) {
+    func setCookies(headerData data: Data) {
         guard let config = _config, config.httpCookieAcceptPolicy !=  HTTPCookie.AcceptPolicy.never else { return }
         guard let headerData = String(data: data, encoding: String.Encoding.utf8) else { return }
-        //Convert headerData from a string to a dictionary.
-        //Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
-        let headerComponents = headerData.split { $0 == ":" }
+        // Convert headerData from a string to a dictionary.
+        // Ignore headers like 'HTTP/1.1 200 OK\r\n' which do not have a key value pair.
+        // Value can have colons (ie, date), so only split at the first one, ie header:value
+        let headerComponents = headerData.split(separator: ":", maxSplits: 1)
         var headers: [String: String] = [:]
         //Trim the leading and trailing whitespaces (if any) before adding the header information to the dictionary.
         if headerComponents.count > 1 {

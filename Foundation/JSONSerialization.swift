@@ -17,17 +17,16 @@ import CoreFoundation
 
 extension JSONSerialization {
     public struct ReadingOptions : OptionSet {
-        public let rawValue : UInt
+        public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let allowFragments = ReadingOptions(rawValue: 1 << 2)
-        internal static let useReferenceNumericTypes = ReadingOptions(rawValue: 1 << 15)
     }
 
     public struct WritingOptions : OptionSet {
-        public let rawValue : UInt
+        public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)
@@ -105,7 +104,7 @@ open class JSONSerialization : NSObject {
 
             // object is NSNumber and is not NaN or infinity
             // For better performance, this (most expensive) test should be last.
-            if let number = _SwiftValue.store(obj) as? NSNumber {
+            if let number = __SwiftValue.store(obj) as? NSNumber {
                 if CFNumberIsFloatType(number._cfObject) {
                     let dv = number.doubleValue
                     let invalid = dv.isInfinite || dv.isNaN
@@ -302,14 +301,6 @@ private struct JSONWriter {
     let pretty: Bool
     let sortedKeys: Bool
     let writer: (String?) -> Void
-    
-    private lazy var _numberformatter: CFNumberFormatter = {
-        let formatter: CFNumberFormatter
-        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, NSNumber(value: 15))
-        CFNumberFormatterSetFormat(formatter, "0.###############"._cfObject)
-        return formatter
-    }()
 
     init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
         self.pretty = pretty
@@ -335,73 +326,47 @@ private struct JSONWriter {
         case let str as String:
             try serializeString(str)
         case let boolValue as Bool:
-            serializeBool(boolValue)
+            writer(boolValue.description)
         case let num as Int:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int8:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int16:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int32:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as Int64:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt8:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt16:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt32:
-            serializeInteger(value: num)
+            writer(num.description)
         case let num as UInt64:
-            serializeInteger(value: num)
+            writer(num.description)
         case let array as Array<Any?>:
             try serializeArray(array)
         case let dict as Dictionary<AnyHashable, Any?>:
             try serializeDictionary(dict)
         case let num as Float:
-            try serializeNumber(NSNumber(value: num))
+            try serializeFloat(num)
         case let num as Double:
-            try serializeNumber(NSNumber(value: num))
+            try serializeFloat(num)
         case let num as Decimal:
             writer(num.description)
         case let num as NSDecimalNumber:
             writer(num.description)
         case is NSNull:
             try serializeNull()
-        case _ where _SwiftValue.store(obj) is NSNumber:
-            try serializeNumber(_SwiftValue.store(obj) as! NSNumber)
+        case _ where __SwiftValue.store(obj) is NSNumber:
+            let num = __SwiftValue.store(obj) as! NSNumber
+            writer(num.description)
         default:
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
         }
-    }
-
-    private func serializeInteger<T: UnsignedInteger>(value: T, isNegative: Bool = false) {
-        let maxIntLength = 22   // 20 digits in UInt64 + optional sign + trailing '\0'
-        let asciiZero: CChar = 0x30  // ASCII '0' == 0x30
-        let asciiMinus: CChar = 0x2d // ASCII '-' == 0x2d
-
-        var number = UInt64(value)
-        var buffer = Array<CChar>(repeating: 0, count: maxIntLength)
-        var pos = maxIntLength - 1
-
-        repeat {
-            pos -= 1
-            buffer[pos] = asciiZero + CChar(number % 10)
-            number /= 10
-        } while number != 0
-
-        if isNegative {
-            pos -= 1
-            buffer[pos] = asciiMinus
-        }
-        let output = String(cString: Array(buffer.suffix(from: pos)))
-        writer(output)
-    }
-
-    private func serializeInteger<T: SignedInteger>(value: T) {
-        serializeInteger(value: UInt64(value.magnitude), isNegative: value < 0)
     }
 
     func serializeString(_ str: String) throws {
@@ -435,37 +400,24 @@ private struct JSONWriter {
         writer("\"")
     }
 
-    func serializeBool(_ bool: Bool) {
-        switch bool {
-        case true:
-            writer("true")
-        case false:
-            writer("false")
+    private func serializeFloat<T: FloatingPoint & LosslessStringConvertible>(_ num: T) throws {
+        guard num.isFinite else {
+             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(num)) in JSON write"])
         }
+        var str = num.description
+        if str.hasSuffix(".0") {
+            str.removeLast(2)
+        }
+        writer(str)
     }
 
     mutating func serializeNumber(_ num: NSNumber) throws {
         if CFNumberIsFloatType(num._cfObject) {
-            let dv = num.doubleValue
-            if !dv.isFinite {
-                let value: String
-                if dv.isNaN {
-                    value = "NaN"
-                } else if dv.isInfinite {
-                    value = "infinite"
-                } else {
-                    value = String(dv)
-                }
-
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(value)) in JSON write"])
-            }
-
-            let string = CFNumberFormatterCreateStringWithNumber(nil, _numberformatter, num._cfObject)._swiftObject
-            writer(string)
+            try serializeFloat(num.doubleValue)
         } else {
             switch num._cfTypeID {
             case CFBooleanGetTypeID():
-                serializeBool(num.boolValue)
+                writer(num.boolValue.description)
             default:
                 writer(num.stringValue)
             }
@@ -806,6 +758,7 @@ private struct JSONReader {
             || (byte >= 0x41 && byte <= 0x46)
             || (byte >= 0x61 && byte <= 0x66)
     }
+
     func parseCodeUnit(_ input: Index) -> (UTF16.CodeUnit, Index)? {
         let hexParser = takeMatching(isHexChr)
         guard let (result, index) = hexParser([], input).flatMap(hexParser).flatMap(hexParser).flatMap(hexParser),
@@ -820,6 +773,7 @@ private struct JSONReader {
         0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, // 0...9
         0x2E, 0x2D, 0x2B, 0x45, 0x65, // . - + E e
     ]
+
     func parseNumber(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (Any, Index)? {
         func parseTypedNumber(_ address: UnsafePointer<UInt8>, count: Int) -> (Any, IndexDistance)? {
             let temp_buffer_size = 64
@@ -837,32 +791,15 @@ private struct JSONReader {
                 let doubleResult = strtod(startPointer, doubleEndPointer)
                 let doubleDistance = startPointer.distance(to: doubleEndPointer[0]!)
 
-                guard intDistance > 0 || doubleDistance > 0 else {
-                    return nil
-                }
-
-                let shouldUseReferenceType = opt.contains(.useReferenceNumericTypes)
-
+                guard doubleDistance > 0 else { return nil }
                 if intDistance == doubleDistance {
-                    return (shouldUseReferenceType ? NSNumber(value: intResult) : intResult,
-                            intDistance)
+                    return (NSNumber(value: intResult), intDistance)
                 }
-                guard doubleDistance > 0 else {
-                    return nil
-                }
-
-                if doubleResult == doubleResult.rounded() {
-                    return (shouldUseReferenceType ? NSNumber(value: Int(doubleResult)) : Int(doubleResult),
-                            doubleDistance)
-                }
-
-                return (shouldUseReferenceType ? NSNumber(value: doubleResult) : doubleResult,
-                        doubleDistance)
+                return (NSNumber(value: doubleResult), doubleDistance)
             }
         }
         
         if source.encoding == .utf8 {
-            
             return parseTypedNumber(source.buffer.baseAddress!.advanced(by: input), count: source.buffer.count - input).map { return ($0.0, input + $0.1) }
         }
         else {
@@ -872,7 +809,6 @@ private struct JSONReader {
                 numberCharacters.append(ascii)
                 index = nextIndex
             }
-            
             numberCharacters.append(0)
             
             return numberCharacters.withUnsafeBufferPointer {
@@ -887,12 +823,10 @@ private struct JSONReader {
             return (value, parser)
         }
         else if let parser = try consumeASCIISequence("true", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: true) : true
-            return (result, parser)
+            return (NSNumber(value: true), parser)
         }
         else if let parser = try consumeASCIISequence("false", input: input) {
-            let result: Any = opt.contains(.useReferenceNumericTypes) ? NSNumber(value: false) : false
-            return (result, parser)
+            return (NSNumber(value: false), parser)
         }
         else if let parser = try consumeASCIISequence("null", input: input) {
             return (NSNull(), parser)

@@ -1,7 +1,7 @@
 /*	CFApplicationPreferences.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -17,7 +17,7 @@
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFDateFormatter.h>
 #include <sys/types.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <unistd.h>
 #endif
 
@@ -25,8 +25,24 @@ static Boolean _CFApplicationPreferencesSynchronizeNoLock(_CFApplicationPreferen
 void _CFPreferencesDomainSetMultiple(CFPreferencesDomainRef domain, CFDictionaryRef dict);
 static void updateDictRep(_CFApplicationPreferences *self);
 static void _CFApplicationPreferencesSetSearchList(_CFApplicationPreferences *self, CFArrayRef newSearchList);
+void _CFApplicationPreferencesSet(_CFApplicationPreferences *self, CFStringRef defaultName, CFTypeRef value);
+void _CFApplicationPreferencesRemove(_CFApplicationPreferences *self, CFStringRef defaultName);
+void _CFDeallocateApplicationPreferences(_CFApplicationPreferences *self);
+Boolean _CFApplicationPreferencesSynchronize(_CFApplicationPreferences *self);
 Boolean _CFApplicationPreferencesContainsDomainNoLock(_CFApplicationPreferences *self, CFPreferencesDomainRef domain);
+void _CFApplicationPreferencesAddSuitePreferences(_CFApplicationPreferences *appPrefs, CFStringRef suiteName);
+void _CFApplicationPreferencesRemoveSuitePreferences(_CFApplicationPreferences *appPrefs, CFStringRef suiteName);
 static CFTypeRef _CFApplicationPreferencesCreateValueForKey2(_CFApplicationPreferences *self, CFStringRef defaultName);
+void _CFApplicationPreferencesRemoveDomain(_CFApplicationPreferences *self, CFPreferencesDomainRef domain);
+
+CF_PRIVATE void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef key, CFTypeRef _Nullable value);
+CF_PRIVATE CFDictionaryRef _CFPreferencesDomainDeepCopyDictionary(CFPreferencesDomainRef domain);
+CF_PRIVATE void _CFPreferencesPurgeDomainCache(void);
+CF_PRIVATE CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef domainName, CFStringRef userName, CFStringRef hostName);
+CF_PRIVATE Boolean _CFSynchronizeDomainCache(void);
+CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void);
+CF_PRIVATE _CFApplicationPreferences *_CFStandardApplicationPreferences(CFStringRef appName);
+
 
 // Right now, nothing is getting destroyed pretty much ever.  We probably don't want this to be the case, but it's very tricky - domains live in the cache as well as a given application's preferences, and since they're not CFTypes, there's no reference count.  Also, it's not clear we ever want domains destroyed.  When they're synchronized, they clear their internal state (to force reading from the disk again), so they're not very big.... REW, 12/17/98
 

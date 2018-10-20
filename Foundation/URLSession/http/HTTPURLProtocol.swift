@@ -120,7 +120,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             httpHeaders = hh
         }
 
-        if let hh = self.task?.originalRequest?.allHTTPHeaderFields {
+        if let hh = request.allHTTPHeaderFields {
             if httpHeaders == nil {
                 httpHeaders = hh
             } else {
@@ -219,8 +219,9 @@ internal class _HTTPURLProtocol: _NativeProtocol {
                 }
             }
         case .noDelegate, .dataCompletionHandler, .downloadCompletionHandler:
-            // Follow the redirect.
-            startNewTransfer(with: request)
+            // Follow the redirect. Need to configure new request with cookies, etc.
+            let configuredRequest = session._configuration.configure(request: request)
+            startNewTransfer(with: configuredRequest)
         }
     }
 
@@ -414,7 +415,12 @@ internal extension _HTTPURLProtocol {
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
-        components.port = port
+        // Use the original port if the new URL does not contain a host
+        // ie Location: /foo => <original host>:<original port>/Foo
+        // but Location: newhost/foo  will ignore the original port
+        if targetURL.host == nil {
+          components.port = port
+        }
         //The path must either begin with "/" or be an empty string.
         if targetURL.relativeString.first != "/" {
             components.path = "/" + targetURL.relativeString

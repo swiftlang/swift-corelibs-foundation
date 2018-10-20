@@ -1,7 +1,7 @@
 /*	CFError.c
-	Copyright (c) 2006-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2006-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,11 +11,13 @@
 #include <CoreFoundation/CFError.h>
 #include <CoreFoundation/CFError_Private.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <mach/mach_error.h>
 #endif
+
 
 
 
@@ -142,10 +144,7 @@ static void __CFErrorDeallocate(CFTypeRef cf) {
     CFRelease(err->userInfo);
 }
 
-
-static CFTypeID __kCFErrorTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFErrorClass = {
+const CFRuntimeClass __CFErrorClass = {
     0,
     "CFError",
     NULL,      // init
@@ -158,9 +157,7 @@ static const CFRuntimeClass __CFErrorClass = {
 };
 
 CFTypeID CFErrorGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFErrorTypeID = _CFRuntimeRegisterClass(&__CFErrorClass); });
-    return __kCFErrorTypeID;
+    return _kCFRuntimeIDCFError;
 }
 
 
@@ -241,7 +238,13 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
         if (localizedDesc) return localizedDesc;
     
         // If a we have kCFErrorLocalizedFailureKey, use it, in conjunction with kCFErrorLocalizedFailureReasonKey if we have that, otherwise by itself
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+        
         CFStringRef failure = (keyLookupFunc)(err, kCFErrorLocalizedFailureKey);
+        
+#pragma clang diagnostic pop
+        
         if (failure) {
             CFStringRef reason = _CFErrorCopyUserInfoKey(err, kCFErrorLocalizedFailureReasonKey);    // This can come from userInfo or callback
             if (reason) {
@@ -340,7 +343,8 @@ static void userInfoKeyValueShow(const void *key, const void *value, void *ctxt)
         CFStringAppendFormat(context->result, NULL, CFSTR("%@=%p {"), key, value);
         _CFErrorFormatDebugDescriptionAux((CFErrorRef)value, context);
         CFStringAppend(context->result, CFSTR("}, "));
-    } else {
+    }
+    else {
 	CFStringAppendFormat(context->result, NULL, CFSTR("%@=%@, "), key, value);
     }
 }
@@ -387,6 +391,7 @@ CFStringRef _CFErrorCreateDebugDescription(CFErrorRef err) {
     _CFErrorFormatDebugDescriptionAux(err, &context);
     return context.result;
 }
+
 
 
 
@@ -614,4 +619,27 @@ static void __CFErrorSetCallBackForDomainNoLock(CFStringRef domainName, CFErrorU
         CFDictionaryRemoveValue(_CFErrorCallBackTable, domainName);
     }
 }
+
+// !!! This function can go away after 10.13/iOS 11
+void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack callBack) {
+    // Since we have replaced the callback functionality with a callback block functionality, we now register (legacy) callback functions embedded in a block which autoreleases the result
+    CFErrorUserInfoKeyCallBackBlock block = (!callBack) ? NULL : ^(CFErrorRef err, CFStringRef key){
+        CFTypeRef result = callBack(err, key);
+#if !DEPLOYMENT_RUNTIME_SWIFT
+        if (result) CFAutorelease(result);
+#endif
+        return result;
+    };
+    CFErrorSetCallBackBlockForDomain(domainName, block);
+}
+
+// !!! This function can go away after 10.13/iOS 11
+CFErrorUserInfoKeyCallBack CFErrorGetCallBackForDomain(CFStringRef domainName) {
+    // Since there were no callers other than CF, removed as of 10.11/iOS9
+    // Otherwise would have had to have separate tables for callback functions and blocks
+    return NULL;
+}
+
+
+
 

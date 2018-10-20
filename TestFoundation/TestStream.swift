@@ -36,8 +36,8 @@ class TestStream : XCTestCase {
             let result: Int = dataStream.read(&buffer, maxLength: buffer.count)
             dataStream.close()
             XCTAssertEqual(.closed, dataStream.streamStatus)
-            if(result > 0){
-                let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
+            if(result > 0) {
+                let output = NSString(bytes: &buffer, length: buffer.firstIndex(of: 0) ?? buffer.count, encoding: String.Encoding.utf8.rawValue)
                 XCTAssertEqual(message, output!)
             }
         }
@@ -64,7 +64,7 @@ class TestStream : XCTestCase {
             XCTAssertEqual(.closed, urlStream.streamStatus)
             XCTAssertEqual(messageData.count, result)
             if(result > 0) {
-                let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
+                let output = NSString(bytes: &buffer, length: buffer.firstIndex(of: 0) ?? buffer.count, encoding: String.Encoding.utf8.rawValue)
                 XCTAssertEqual(message, output!)
             }
         }
@@ -90,8 +90,8 @@ class TestStream : XCTestCase {
             fileStream.close()
             XCTAssertEqual(.closed, fileStream.streamStatus)
             XCTAssertEqual(messageData.count, result)
-            if(result > 0){
-                let output = NSString(bytes: &buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue)
+            if(result > 0) {
+                let output = NSString(bytes: &buffer, length: buffer.firstIndex(of: 0) ?? buffer.count, encoding: String.Encoding.utf8.rawValue)
                 XCTAssertEqual(message, output!)
             }
         }
@@ -218,17 +218,13 @@ class TestStream : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 }
 
