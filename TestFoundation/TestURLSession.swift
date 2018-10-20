@@ -125,28 +125,19 @@ class TestURLSession : LoopbackServerTest {
     }
     
     func test_dataTaskWithHttpInputStream() {
-        func randomString(length: Int) -> String {
-            let letters = Array("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-            let len = letters.count
-            
-            var randomString = ""
-            
-            for _ in 0 ..< length {
-                let rand = Int.random(in: 0..<len)
-                let nextChar = letters[rand]
-                randomString += String(nextChar)
-            }
-            return randomString
-        }
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/echo"
         
-        let delegate = HTTPBinResponseDelegateJSON<HTTPBinResponse>()
+        let dataString = """
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex.
 
-        let dataString = randomString(length: 65537)
+            Suspendisse ante eros, scelerisque ut molestie vitae, lacinia nec metus. Sed in feugiat sem. Nullam sed congue nulla, id vehicula mauris. Aliquam ultrices ultricies pellentesque. Etiam blandit ultrices quam in egestas. Donec a vulputate est, ut ultricies dui. In non maximus velit.
+
+            Vivamus vehicula faucibus odio vel maximus. Vivamus elementum, quam at accumsan rhoncus, ex ligula maximus sem, sed pretium urna enim ut urna. Donec semper porta augue at faucibus. Quisque vel congue purus. Morbi vitae elit pellentesque, finibus lectus quis, laoreet nulla. Praesent in fermentum felis. Aenean vestibulum dictum lorem quis egestas. Sed dictum elementum est laoreet volutpat.
+        """
         
-        let urlString = "http://httpbin.org/post"
         let url = URL(string: urlString)!
-        let urlSession = URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
-
+        let urlSession = URLSession(configuration: URLSessionConfiguration.default)
+        
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         
@@ -154,24 +145,33 @@ class TestURLSession : LoopbackServerTest {
             XCTFail()
             return
         }
-
+        
         let inputStream = InputStream(data: data)
         inputStream.open()
-
+        
         urlRequest.httpBodyStream = inputStream
         
         urlRequest.setValue("en-us", forHTTPHeaderField: "Accept-Language")
         urlRequest.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
         urlRequest.setValue("chunked", forHTTPHeaderField: "Transfer-Encoding")
-
-        let urlTask = urlSession.dataTask(with: urlRequest)
-        urlTask.resume()
-
-        delegate.semaphore.wait()
-
-        XCTAssertTrue(urlTask.response != nil)
-        XCTAssertTrue(delegate.response != nil)
-        XCTAssertTrue(delegate.response?.data == dataString)
+        
+        let expect = expectation(description: "POST \(urlString): with HTTP Body as InputStream")
+        let task = urlSession.dataTask(with: urlRequest) { respData, response, error in
+            XCTAssertNotNil(respData)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+            
+            defer { expect.fulfill() }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            
+            XCTAssertEqual(data, respData!, "Response Data and Data is not equal")
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
     }
     
     func test_downloadTaskWithURL() {
@@ -998,51 +998,6 @@ class HTTPRedirectionDataTask : NSObject {
     func cancel() {
         task.cancel()
     }
-}
-
-
-class HTTPBinResponseDelegate<T>: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
-    let semaphore = DispatchSemaphore(value: 0)
-    let outputStream = OutputStream.toMemory()
-    var response: T?
-    
-    override init() {
-        outputStream.open()
-    }
-    
-    deinit {
-        outputStream.close()
-    }
-    
-    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        _ = data.withUnsafeBytes({ (bytes: UnsafePointer<UInt8>) in
-            outputStream.write(bytes, maxLength: data.count)
-        })
-    }
-    
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        if let data = outputStream.property(forKey: .dataWrittenToMemoryStreamKey) as? NSData {
-            response = parseResposne(data: data._bridgeToSwift())
-        }
-        semaphore.signal()
-    }
-    
-    public func parseResposne(data: Data) -> T? {
-        fatalError("")
-    }
-}
-
-class HTTPBinResponseDelegateJSON<T: Codable>: HTTPBinResponseDelegate<T> {
-    override func parseResposne(data: Data) -> T? {
-        return try? JSONDecoder().decode(T.self, from: data)
-    }
-}
-
-struct HTTPBinResponse: Codable {
-    let data: String
-    let headers: [String: String]
-    let origin: String
-    let url: String
 }
 
 extension HTTPRedirectionDataTask : URLSessionDataDelegate {

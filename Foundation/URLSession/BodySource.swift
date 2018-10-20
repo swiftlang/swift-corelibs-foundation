@@ -65,25 +65,25 @@ internal final class _BodyStreamSource {
 
 extension _BodyStreamSource : _BodySource {
     func getNextChunk(withLength length: Int) -> _BodySourceDataChunk {
-        if inputStream.hasBytesAvailable {
-            let buffer = UnsafeMutableRawBufferPointer.allocate(count: length)
-            guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                return .error
-            }
-            let readBytes = self.inputStream.read(pointer, maxLength: length)
-            if readBytes > 0 {
-                let dispatchData = DispatchData(bytes: UnsafeRawBufferPointer(buffer))
-                return .data(dispatchData.subdata(in: 0 ..< readBytes))
-            }
-            else if readBytes == 0 {
-                return .done
-            }
-            else {
-                return .error
-            }
+        guard inputStream.hasBytesAvailable else {
+            return .done
+        }
+        
+
+        let buffer = UnsafeMutableRawBufferPointer.allocate(count: length)
+        guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            return .error
+        }
+        let readBytes = self.inputStream.read(pointer, maxLength: length)
+        if readBytes > 0 {
+            let dispatchData = DispatchData(bytes: UnsafeRawBufferPointer(buffer))
+            return .data(dispatchData.subdata(in: 0 ..< readBytes))
+        }
+        else if readBytes == 0 {
+            return .done
         }
         else {
-            return .done
+            return .error
         }
     }
 }
