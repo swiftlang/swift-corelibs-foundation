@@ -260,7 +260,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     }
 
     func seekInputStream(to position: UInt64) throws {
-        // We will reset the body sourse and seek forward.
+        // We will reset the body source and seek forward.
         guard let session = task?.session as? URLSession else { fatalError() }
         if let delegate = session.delegate as? URLSessionTaskDelegate {
             delegate.urlSession(session, task: task!, needNewBodyStream: { [weak self] inputStream in
