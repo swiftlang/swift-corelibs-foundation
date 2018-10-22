@@ -126,7 +126,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/swift',
 		'-Xcc -fblocks'
 	])
-	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs -rpath \$$ORIGIN '
+	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src -rpath \$$ORIGIN '
 	foundation.LDFLAGS += '-L' + Configuration.current.variables['LIBDISPATCH_BUILD_DIR'] + ' -lBlocksRuntime '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
@@ -541,7 +541,7 @@ foundation_tests = SwiftExecutable('TestFoundation', [
         'TestFoundation/Utilities.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
 
-Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/.libs'
+Configuration.current.extra_ld_flags += ' -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src'
 
 foundation_tests.add_dependency(foundation_tests_resources)
 xdgTestHelper = SwiftExecutable('xdgTestHelper',
@@ -561,7 +561,7 @@ LIBS_DIRS = Configuration.current.build_directory.absolute()+"/Foundation/:"
 if "XCTEST_BUILD_DIR" in Configuration.current.variables:
     LIBS_DIRS += "${XCTEST_BUILD_DIR}:"
 if "LIBDISPATCH_BUILD_DIR" in Configuration.current.variables:
-    LIBS_DIRS += Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+"/src/.libs:"
+    LIBS_DIRS += Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+"/src:"
 
 Configuration.current.variables["LIBS_DIRS"] = LIBS_DIRS
 
