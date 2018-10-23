@@ -126,7 +126,7 @@ if "LIBDISPATCH_SOURCE_DIR" in Configuration.current.variables:
 		'-I'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src/swift',
 		'-Xcc -fblocks'
 	])
-	foundation.LDFLAGS += '-ldispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src -rpath \$$ORIGIN '
+	foundation.LDFLAGS += '-ldispatch -lswiftDispatch -L'+Configuration.current.variables["LIBDISPATCH_BUILD_DIR"]+'/src -rpath \$$ORIGIN '
 	foundation.LDFLAGS += '-L' + Configuration.current.variables['LIBDISPATCH_BUILD_DIR'] + ' -lBlocksRuntime '
 
 foundation.SWIFTCFLAGS = " ".join(swift_cflags)
