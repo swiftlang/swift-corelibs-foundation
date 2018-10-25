@@ -152,14 +152,16 @@ since it is the default choice with Mac OS X developer tools.
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
-
-#if TARGET_OS_MAC
-#define _CF_CONSTANT_STRING_SWIFT_CLASS $s15SwiftFoundation19_NSCFConstantStringCN
-#else
-#define _CF_CONSTANT_STRING_SWIFT_CLASS $s10Foundation19_NSCFConstantStringCN
-#endif
+    #if TARGET_OS_MAC
+        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s15SwiftFoundation19_NSCFConstantStringCN
+    #else
+        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s10Foundation19_NSCFConstantStringCN
+    #endif
 
 CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
+#endif
+
+#if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
 struct __CFConstStr {
     struct {
@@ -175,20 +177,14 @@ struct __CFConstStr {
 #endif // defined(__LP64__) || defined(__LLP64__)
 };
 
-#if TARGET_OS_LINUX
-#define CONST_STRING_LITERAL_SECTION __attribute__((section(".cfstrlit.data")))
-#else
-#define CONST_STRING_LITERAL_SECTION
-#endif // TARGET_OS_LINUX
-
 #if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
 #else // Little endian:
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str CONST_STRING_LITERAL_SECTION = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
     (CFStringRef)&str; \
 })
 #endif // __BIG_ENDIAN__
