@@ -363,6 +363,12 @@ target_compile_options(CoreFoundation
                          -fconstant-cfstrings
                          -fdollars-in-identifiers
                          -fexceptions)
+if(CF_DEPLOYMENT_SWIFT)
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fcf-runtime-abi=swift)
+endif()
+
 target_compile_options(CoreFoundation
                        PRIVATE
                          -Wno-shorten-64-to-32
