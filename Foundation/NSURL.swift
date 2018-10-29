@@ -670,30 +670,34 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         let pInfo = UnsafeMutablePointer<NSMutableArray>.allocate(capacity: 1)
         pInfo.initialize(to: NSMutableArray())
         _CFSwiftRetain(UnsafeMutableRawPointer(pInfo)) // Balanced with resourceInfo release in _CFURLDeallocate()
-        pInfo.pointee.add(NSLock())
         pInfo.pointee.add(NSMutableDictionary())
+        pInfo.pointee.add(NSLock())
         __CFURLSetResourceInfoPtr(_cfObject, UnsafeMutableRawPointer(pInfo))
     }
+    
+    private static let resourceInfoInitLock = NSLock()
     
     private func _accessResourceDictionary<T>(_ handler: (_ resourcesCache: NSMutableDictionary) -> T) -> T? {
         // Resource values are only accessible for file urls.
         guard _CFURLIsFileURL(_cfObject) else {
             return nil
         }
+        
+        // We don't have a lock for the instance's resourceInfo yet, and we don't want to initialize it twice!
+        NSURL.resourceInfoInitLock.lock()
         if __CFURLResourceInfoPtr(_cfObject) == nil {
             _initResourceInfo()
         }
-        guard let resourceInfoPtr = __CFURLResourceInfoPtr(_cfObject)?.assumingMemoryBound(to: NSMutableArray.self),
-            let lock = resourceInfoPtr.pointee.object(at: 0) as? NSLock,
-            let resourcesCache = resourceInfoPtr.pointee.object(at: 1) as? NSMutableDictionary else {
-            return nil
-        }
+        NSURL.resourceInfoInitLock.unlock()
+        let resourceInfoPtr = __CFURLResourceInfoPtr(_cfObject)!.assumingMemoryBound(to: NSMutableArray.self)
+        let resourcesCache = resourceInfoPtr.pointee.object(at: 0) as! NSMutableDictionary
+        let lock = resourceInfoPtr.pointee.object(at: 1) as! NSLock
+        
         lock.lock()
         defer {
             lock.unlock()
         }
         return handler(resourcesCache)
-        
     }
     
     open func removeAllCachedResourceValues() {
@@ -715,20 +719,17 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             let stat = try FileManager.default._lstatFile(atPath: path)
             return stat.st_flags & UInt32(flag) != 0
             #elseif canImport(Glibc)
-            let fd = open(path, O_RDWR)
-            if fd >= 0 {
-                var attr: Int32 = 0
-                ioctl(fd, FS_IOC_GETFLAGS, &attr)
-                close(fd)
-                return attrs & flag != 0
-            } else {
-                throw CocoaError.error(.fileNoSuchFile)
+            let fh = try FileHandle(forUpdating: self._swiftObject)
+            var attrs: Int32 = 0
+            if ioctl(fh.fileDescriptor, FS_IOC_GETFLAGS, &attrs) != 0 {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
+            return attrs & flag != 0
             #elseif os(Windows)
             // GetFileAttributesEx()
             NSUnimplemented()
             #else
-            NSUnimplemented()
+            NSUnsupported()
             #endif
         }
         
@@ -864,19 +865,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                 #endif
                 
             case .isReadableKey:
-                newValues[.isReadableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
-                    access($0, R_OK) == 0
-                }
+                newValues[.isReadableKey] = FileManager.default.isReadableFile(atPath: path)
                 
             case .isWritableKey:
-                newValues[.isWritableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
-                    access($0, W_OK) == 0
-                }
+                newValues[.isWritableKey] = FileManager.default.isWritableFile(atPath: path)
                 
             case .isExecutableKey:
-                newValues[.isExecutableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
-                    access($0, X_OK) == 0
-                }
+                newValues[.isExecutableKey] = FileManager.default.isExecutableFile(atPath: path)
                 
             case .generationIdentifierKey, .documentIdentifierKey:
                 fallthrough
@@ -975,27 +970,30 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         func setFlag(path: String, set: Bool, flag: Int32) throws {
             #if canImport(Darwin) || os(FreeBSD)
             let stat = try FileManager.default._lstatFile(atPath: path)
-            FileManager.default._fileSystemRepresentation(withPath: path) {
+            try FileManager.default._fileSystemRepresentation(withPath: path) {
                 if set {
-                    chflags($0, stat.st_flags | UInt32(flag))
+                    if chflags($0, stat.st_flags | UInt32(flag)) != 0 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
                 } else {
-                    chflags($0, stat.st_flags & ~UInt32(flag))
+                    if chflags($0, stat.st_flags & ~UInt32(flag)) != 0 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
                 }
             }
             #elseif canImport(Glibc)
-            let fd = open(path, O_RDWR)
-            if fd >= 0 {
-                var attr: Int32 = 0
-                ioctl(fd, FS_IOC_GETFLAGS, &attr)
-                if set {
-                    attr = attr | flag
-                } else {
-                    attr = attr & ~flag
-                }
-                ioctl(fd, FS_IOC_SETFLAGS, &attr)
-                close(fd)
+            let fh = try FileHandle(forUpdating: self._swiftObject)
+            var attrs: Int32 = 0
+            if ioctl(fh.fileDescriptor, FS_IOC_GETFLAGS, &attrs) != 0 {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            }
+            if set {
+                attrs = attrs | flag
             } else {
-                throw CocoaError.error(.fileNoSuchFile)
+                attrs = attrs & ~flag
+            }
+            if ioctl(fh.fileDescriptor, FS_IOC_SETFLAGS, &attrs) != 0 {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
             #elseif os(Windows)
             // SetFileAttributesEx()

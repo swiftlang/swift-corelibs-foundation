@@ -625,9 +625,9 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                 let modeT = number.uint32Value
                 #endif
-                _fileSystemRepresentation(withPath: path, {
+                try _fileSystemRepresentation(withPath: path, {
                     if chmod($0, mode_t(modeT)) != 0 {
-                        fatalError("errno \(errno)")
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 })
                 
@@ -635,17 +635,21 @@ open class FileManager : NSObject {
                 guard let id = value as? NSNumber else {
                     fatalError("Can't set file owner to \(value as Any?)")
                 }
-                _ = self._fileSystemRepresentation(withPath: path) {
-                    chown($0, uid_t(id.uint32Value), 0 &- 1)
+                try self._fileSystemRepresentation(withPath: path) {
+                    if chown($0, uid_t(id.uint32Value), 0 &- 1) != 0 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
                 }
                 
             case .ownerAccountName:
                 guard let name = value as? String else {
                     fatalError("Can't set file owner name to \(value as Any?)")
                 }
-                _ = self._fileSystemRepresentation(withPath: path) {
+                try self._fileSystemRepresentation(withPath: path) {
                     if let id = getpwnam(name)?.pointee.pw_uid {
-                        chown($0, id, 0 &- 1)
+                        if chown($0, id, 0 &- 1) != 0 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        }
                     }
                 }
                 
@@ -653,17 +657,21 @@ open class FileManager : NSObject {
                 guard let id = value as? NSNumber else {
                     fatalError("Can't set file group owner to \(value as Any?)")
                 }
-                _ = self._fileSystemRepresentation(withPath: path) {
-                    chown($0, 0 &- 1, uid_t(id.uint32Value))
+                try self._fileSystemRepresentation(withPath: path) {
+                    if chown($0, 0 &- 1, uid_t(id.uint32Value)) != 0 {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
                 }
                 
             case .groupOwnerAccountName:
                 guard let name = value as? String else {
                     fatalError("Can't set file group owner name to \(value as Any?)")
                 }
-                _ = self._fileSystemRepresentation(withPath: path) {
+                try self._fileSystemRepresentation(withPath: path) {
                     if let id = getgrnam(name)?.pointee.gr_gid {
-                        chown($0, 0 &- 1, id)
+                        if chown($0, 0 &- 1, id) != 0 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        }
                     }
                 }
                 
