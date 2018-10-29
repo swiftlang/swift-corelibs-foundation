@@ -12,7 +12,7 @@
 #define __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ 1
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
 #endif
 
 #include <CoreFoundation/CFBase.h>
