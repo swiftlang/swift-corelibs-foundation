@@ -22,14 +22,14 @@ typedef CF_ENUM(CFIndex, _CFLocaleCalendarDirection) {
 
 CF_EXPORT _CFLocaleCalendarDirection _CFLocaleGetCalendarDirection(void) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
-CF_EXPORT const CFLocaleKey kCFLocaleMeasurementSystem API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-CF_EXPORT const CFStringRef kCFLocaleMeasurementSystemMetric API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-CF_EXPORT const CFStringRef kCFLocaleMeasurementSystemUS API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
-CF_EXPORT const CFStringRef kCFLocaleMeasurementSystemUK API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleMeasurementSystem API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef kCFLocaleMeasurementSystemMetric API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef kCFLocaleMeasurementSystemUS API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef kCFLocaleMeasurementSystemUK API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
 
-CF_EXPORT const CFLocaleKey kCFLocaleTemperatureUnit API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT const CFStringRef kCFLocaleTemperatureUnitCelsius API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
-CF_EXPORT const CFStringRef kCFLocaleTemperatureUnitFahrenheit API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleTemperatureUnit API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT extern const CFStringRef kCFLocaleTemperatureUnitCelsius API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT extern const CFStringRef kCFLocaleTemperatureUnitFahrenheit API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
 
 #endif /* __COREFOUNDATION_CFLOCALE_PRIVATE__ */

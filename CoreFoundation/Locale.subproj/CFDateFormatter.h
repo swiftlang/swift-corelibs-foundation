@@ -143,35 +143,35 @@ CFTypeRef CFDateFormatterCopyProperty(CFDateFormatterRef formatter, CFDateFormat
 	// Set and get various properties of the date formatter, the set of
 	// which may be expanded in the future.
 
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterIsLenient;	// CFBoolean
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterTimeZone;		// CFTimeZone
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterCalendarName;	// CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterDefaultFormat;	// CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterTwoDigitStartDate; // CFDate
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterDefaultDate;	// CFDate
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterCalendar;		// CFCalendar
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterEraSymbols;	// CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterMonthSymbols;	// CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortMonthSymbols; // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterWeekdaySymbols;	// CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortWeekdaySymbols; // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterAMSymbol;		// CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterPMSymbol;		// CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterLongEraSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));   // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterVeryShortMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterVeryShortStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterVeryShortWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterVeryShortStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); 	// CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterStandaloneQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterShortStandaloneQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterGregorianStartDate API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFDate
-CF_EXPORT const CFDateFormatterKey kCFDateFormatterDoesRelativeDateFormattingKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0)); // CFBoolean
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterIsLenient;	// CFBoolean
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterTimeZone;		// CFTimeZone
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterCalendarName;	// CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterDefaultFormat;	// CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterTwoDigitStartDate; // CFDate
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterDefaultDate;	// CFDate
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterCalendar;		// CFCalendar
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterEraSymbols;	// CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterMonthSymbols;	// CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortMonthSymbols; // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterWeekdaySymbols;	// CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortWeekdaySymbols; // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterAMSymbol;		// CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterPMSymbol;		// CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterLongEraSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));   // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterVeryShortMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterVeryShortStandaloneMonthSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterVeryShortWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterVeryShortStandaloneWeekdaySymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); 	// CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterStandaloneQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterShortStandaloneQuarterSymbols API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFArray of CFString
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterGregorianStartDate API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0)); // CFDate
+CF_EXPORT extern const CFDateFormatterKey kCFDateFormatterDoesRelativeDateFormattingKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0)); // CFBoolean
 
 // See CFLocale.h for these calendar constants:
 //	const CFStringRef kCFGregorianCalendar;

@@ -21,83 +21,83 @@ CF_EXTERN_C_BEGIN
 
 /* Finder stuff */
 CF_EXPORT
-const CFStringRef _kCFBundlePackageTypeKey;
+extern const CFStringRef _kCFBundlePackageTypeKey;
 CF_EXPORT
-const CFStringRef _kCFBundleSignatureKey;
+extern const CFStringRef _kCFBundleSignatureKey;
 CF_EXPORT
-const CFStringRef _kCFBundleIconFileKey;
+extern const CFStringRef _kCFBundleIconFileKey;
 CF_EXPORT
-const CFStringRef _kCFBundleDocumentTypesKey;
+extern const CFStringRef _kCFBundleDocumentTypesKey;
 CF_EXPORT
-const CFStringRef _kCFBundleURLTypesKey;
+extern const CFStringRef _kCFBundleURLTypesKey;
 
 /* Localizable Finder stuff */
 CF_EXPORT
-const CFStringRef _kCFBundleDisplayNameKey;
+extern const CFStringRef _kCFBundleDisplayNameKey;
 CF_EXPORT
-const CFStringRef _kCFBundleShortVersionStringKey;
+extern const CFStringRef _kCFBundleShortVersionStringKey;
 CF_EXPORT
-const CFStringRef _kCFBundleGetInfoStringKey;
+extern const CFStringRef _kCFBundleGetInfoStringKey;
 CF_EXPORT
-const CFStringRef _kCFBundleGetInfoHTMLKey;
+extern const CFStringRef _kCFBundleGetInfoHTMLKey;
 
 /* Sub-keys for CFBundleDocumentTypes dictionaries */
 CF_EXPORT
-const CFStringRef _kCFBundleTypeNameKey;
+extern const CFStringRef _kCFBundleTypeNameKey;
 CF_EXPORT
-const CFStringRef _kCFBundleTypeRoleKey;
+extern const CFStringRef _kCFBundleTypeRoleKey;
 CF_EXPORT
-const CFStringRef _kCFBundleTypeIconFileKey;
+extern const CFStringRef _kCFBundleTypeIconFileKey;
 CF_EXPORT
-const CFStringRef _kCFBundleTypeOSTypesKey;
+extern const CFStringRef _kCFBundleTypeOSTypesKey;
 CF_EXPORT
-const CFStringRef _kCFBundleTypeExtensionsKey;
+extern const CFStringRef _kCFBundleTypeExtensionsKey;
 CF_EXPORT
-const CFStringRef _kCFBundleTypeMIMETypesKey;
+extern const CFStringRef _kCFBundleTypeMIMETypesKey;
 
 /* Sub-keys for CFBundleURLTypes dictionaries */
 CF_EXPORT
-const CFStringRef _kCFBundleURLNameKey;
+extern const CFStringRef _kCFBundleURLNameKey;
 CF_EXPORT
-const CFStringRef _kCFBundleURLIconFileKey;
+extern const CFStringRef _kCFBundleURLIconFileKey;
 CF_EXPORT
-const CFStringRef _kCFBundleURLSchemesKey;
+extern const CFStringRef _kCFBundleURLSchemesKey;
 
 /* Compatibility key names */
 CF_EXPORT
-const CFStringRef _kCFBundleOldExecutableKey;
+extern const CFStringRef _kCFBundleOldExecutableKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldInfoDictionaryVersionKey;
+extern const CFStringRef _kCFBundleOldInfoDictionaryVersionKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldNameKey;
+extern const CFStringRef _kCFBundleOldNameKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldIconFileKey;
+extern const CFStringRef _kCFBundleOldIconFileKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldDocumentTypesKey;
+extern const CFStringRef _kCFBundleOldDocumentTypesKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldShortVersionStringKey;
+extern const CFStringRef _kCFBundleOldShortVersionStringKey;
 
 /* Compatibility CFBundleDocumentTypes key names */
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeNameKey;
+extern const CFStringRef _kCFBundleOldTypeNameKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeRoleKey;
+extern const CFStringRef _kCFBundleOldTypeRoleKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeIconFileKey;
+extern const CFStringRef _kCFBundleOldTypeIconFileKey;
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeExtensions1Key;
+extern const CFStringRef _kCFBundleOldTypeExtensions1Key;
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeExtensions2Key;
+extern const CFStringRef _kCFBundleOldTypeExtensions2Key;
 CF_EXPORT
-const CFStringRef _kCFBundleOldTypeOSTypesKey;
+extern const CFStringRef _kCFBundleOldTypeOSTypesKey;
 
 /* For platform specification */
 CF_EXPORT
-const CFStringRef _kCFBundleSupportedPlatformsKey;
+extern const CFStringRef _kCFBundleSupportedPlatformsKey;
 
 /* For Code Signing */
 CF_EXPORT
-const CFStringRef _kCFBundleResourceSpecificationKey;
+extern const CFStringRef _kCFBundleResourceSpecificationKey;
 
 
 /* Functions for examining directories that may "look like" bundles */

@@ -19,17 +19,17 @@ CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
 CF_EXPORT
-const CFStringRef kCFPreferencesAnyApplication;
+extern const CFStringRef kCFPreferencesAnyApplication;
 CF_EXPORT
-const CFStringRef kCFPreferencesCurrentApplication;
+extern const CFStringRef kCFPreferencesCurrentApplication;
 CF_EXPORT
-const CFStringRef kCFPreferencesAnyHost;
+extern const CFStringRef kCFPreferencesAnyHost;
 CF_EXPORT
-const CFStringRef kCFPreferencesCurrentHost;
+extern const CFStringRef kCFPreferencesCurrentHost;
 CF_EXPORT
-const CFStringRef kCFPreferencesAnyUser;
+extern const CFStringRef kCFPreferencesAnyUser;
 CF_EXPORT
-const CFStringRef kCFPreferencesCurrentUser;
+extern const CFStringRef kCFPreferencesCurrentUser;
 
 /* NOTE: All CFPropertyListRef values returned from
          CFPreferences API should be assumed to be immutable.

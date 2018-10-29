@@ -13,12 +13,12 @@
 #include <CoreFoundation/CFBase.h>
 #include "CFStringEncodingConverterExt.h"
 
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterASCII;
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterISOLatin1;
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterMacRoman;
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterWinLatin1;
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterNextStepLatin;
-CF_PRIVATE  const CFStringEncodingConverter __CFConverterUTF8;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterASCII;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterISOLatin1;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterMacRoman;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterWinLatin1;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterNextStepLatin;
+CF_PRIVATE extern const CFStringEncodingConverter __CFConverterUTF8;
 
 CF_PRIVATE  CFStringEncoding *__CFStringEncodingCreateListOfAvailablePlatformConverters(CFAllocatorRef allocator, CFIndex *numberOfConverters);
 CF_PRIVATE  const CFStringEncodingConverter *__CFStringEncodingGetExternalConverter(uint32_t encoding);

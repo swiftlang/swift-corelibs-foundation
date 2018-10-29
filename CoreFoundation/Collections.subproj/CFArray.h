@@ -89,7 +89,7 @@ typedef struct {
 	appropriate for use when the values in a CFArray are all CFTypes.
 */
 CF_EXPORT
-const CFArrayCallBacks kCFTypeArrayCallBacks;
+extern const CFArrayCallBacks kCFTypeArrayCallBacks;
 
 /*!
 	@typedef CFArrayApplierFunction

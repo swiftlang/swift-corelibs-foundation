@@ -50,8 +50,8 @@ typedef CF_OPTIONS(CFOptionFlags, CFRunLoopActivity) {
     kCFRunLoopAllActivities = 0x0FFFFFFFU
 };
 
-CF_EXPORT const CFRunLoopMode kCFRunLoopDefaultMode;
-CF_EXPORT const CFRunLoopMode kCFRunLoopCommonModes;
+CF_EXPORT extern const CFRunLoopMode kCFRunLoopDefaultMode;
+CF_EXPORT extern const CFRunLoopMode kCFRunLoopCommonModes;
 
 CF_EXPORT CFTypeID CFRunLoopGetTypeID(void);
 

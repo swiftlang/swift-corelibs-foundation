@@ -115,7 +115,7 @@ typedef struct {
 	CFDictionary are all CFTypes.
 */
 CF_EXPORT
-const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
+extern const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
 
 /*!
 	@constant kCFCopyStringDictionaryKeyCallBacks
@@ -126,7 +126,7 @@ const CFDictionaryKeyCallBacks kCFTypeDictionaryKeyCallBacks;
 	the values in the dictionary.
 */
 CF_EXPORT
-const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
+extern const CFDictionaryKeyCallBacks kCFCopyStringDictionaryKeyCallBacks;
 
 /*!
 	@typedef CFDictionaryValueCallBacks
@@ -166,7 +166,7 @@ typedef struct {
 	are all CFTypes.
 */
 CF_EXPORT
-const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
+extern const CFDictionaryValueCallBacks kCFTypeDictionaryValueCallBacks;
 
 /*!
 	@typedef CFDictionaryApplierFunction

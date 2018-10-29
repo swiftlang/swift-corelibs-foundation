@@ -158,7 +158,7 @@ since it is the default choice with Mac OS X developer tools.
         #define _CF_CONSTANT_STRING_SWIFT_CLASS $s10Foundation19_NSCFConstantStringCN
     #endif
 
-CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
+CF_EXPORT extern void *_CF_CONSTANT_STRING_SWIFT_CLASS[];
 #endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
@@ -743,22 +743,22 @@ Boolean CFStringTransform(CFMutableStringRef string, CFRange *range, CFStringRef
 
 /* Transform identifiers for CFStringTransform()
 */
-CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
-CF_EXPORT const CFStringRef kCFStringTransformToLatin;
-CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
-CF_EXPORT const CFStringRef kCFStringTransformLatinKatakana;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHiragana;
-CF_EXPORT const CFStringRef kCFStringTransformHiraganaKatakana;
-CF_EXPORT const CFStringRef kCFStringTransformMandarinLatin;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHangul;
-CF_EXPORT const CFStringRef kCFStringTransformLatinArabic;
-CF_EXPORT const CFStringRef kCFStringTransformLatinHebrew;
-CF_EXPORT const CFStringRef kCFStringTransformLatinThai;
-CF_EXPORT const CFStringRef kCFStringTransformLatinCyrillic;
-CF_EXPORT const CFStringRef kCFStringTransformLatinGreek;
-CF_EXPORT const CFStringRef kCFStringTransformToXMLHex;
-CF_EXPORT const CFStringRef kCFStringTransformToUnicodeName;
-CF_EXPORT const CFStringRef kCFStringTransformStripDiacritics API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFStringTransformStripCombiningMarks;
+CF_EXPORT extern const CFStringRef kCFStringTransformToLatin;
+CF_EXPORT extern const CFStringRef kCFStringTransformFullwidthHalfwidth;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinKatakana;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinHiragana;
+CF_EXPORT extern const CFStringRef kCFStringTransformHiraganaKatakana;
+CF_EXPORT extern const CFStringRef kCFStringTransformMandarinLatin;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinHangul;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinArabic;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinHebrew;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinThai;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinCyrillic;
+CF_EXPORT extern const CFStringRef kCFStringTransformLatinGreek;
+CF_EXPORT extern const CFStringRef kCFStringTransformToXMLHex;
+CF_EXPORT extern const CFStringRef kCFStringTransformToUnicodeName;
+CF_EXPORT extern const CFStringRef kCFStringTransformStripDiacritics API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 
 /*** General encoding related functionality ***/

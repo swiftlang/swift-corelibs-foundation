@@ -154,48 +154,48 @@ CFStringRef CFLocaleCopyDisplayNameForPropertyValue(CFLocaleRef displayLocale, C
 	// not all locale property keys have values with display name values.
 
 
-CF_EXPORT const CFNotificationName kCFLocaleCurrentLocaleDidChangeNotification API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFNotificationName kCFLocaleCurrentLocaleDidChangeNotification API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 
 // Locale Keys
-CF_EXPORT const CFLocaleKey kCFLocaleIdentifier;
-CF_EXPORT const CFLocaleKey kCFLocaleLanguageCode;
-CF_EXPORT const CFLocaleKey kCFLocaleCountryCode;
-CF_EXPORT const CFLocaleKey kCFLocaleScriptCode;
-CF_EXPORT const CFLocaleKey kCFLocaleVariantCode;
+CF_EXPORT extern const CFLocaleKey kCFLocaleIdentifier;
+CF_EXPORT extern const CFLocaleKey kCFLocaleLanguageCode;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCountryCode;
+CF_EXPORT extern const CFLocaleKey kCFLocaleScriptCode;
+CF_EXPORT extern const CFLocaleKey kCFLocaleVariantCode;
 
-CF_EXPORT const CFLocaleKey kCFLocaleExemplarCharacterSet;
-CF_EXPORT const CFLocaleKey kCFLocaleCalendarIdentifier;
-CF_EXPORT const CFLocaleKey kCFLocaleCalendar;
-CF_EXPORT const CFLocaleKey kCFLocaleCollationIdentifier;
-CF_EXPORT const CFLocaleKey kCFLocaleUsesMetricSystem;
-CF_EXPORT const CFLocaleKey kCFLocaleMeasurementSystem; // "Metric", "U.S." or "U.K."
-CF_EXPORT const CFLocaleKey kCFLocaleDecimalSeparator;
-CF_EXPORT const CFLocaleKey kCFLocaleGroupingSeparator;
-CF_EXPORT const CFLocaleKey kCFLocaleCurrencySymbol;
-CF_EXPORT const CFLocaleKey kCFLocaleCurrencyCode; // ISO 3-letter currency code
-CF_EXPORT const CFLocaleKey kCFLocaleCollatorIdentifier API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFLocaleKey kCFLocaleQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFLocaleKey kCFLocaleQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFLocaleKey kCFLocaleAlternateQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleExemplarCharacterSet;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCalendarIdentifier;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCalendar;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCollationIdentifier;
+CF_EXPORT extern const CFLocaleKey kCFLocaleUsesMetricSystem;
+CF_EXPORT extern const CFLocaleKey kCFLocaleMeasurementSystem; // "Metric", "U.S." or "U.K."
+CF_EXPORT extern const CFLocaleKey kCFLocaleDecimalSeparator;
+CF_EXPORT extern const CFLocaleKey kCFLocaleGroupingSeparator;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCurrencySymbol;
+CF_EXPORT extern const CFLocaleKey kCFLocaleCurrencyCode; // ISO 3-letter currency code
+CF_EXPORT extern const CFLocaleKey kCFLocaleCollatorIdentifier API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleAlternateQuotationBeginDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFLocaleKey kCFLocaleAlternateQuotationEndDelimiterKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
 // Values for kCFLocaleCalendarIdentifier
 typedef CFStringRef CFCalendarIdentifier CF_STRING_ENUM;
 
-CF_EXPORT const CFCalendarIdentifier kCFGregorianCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFBuddhistCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFChineseCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFHebrewCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFIslamicCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFIslamicCivilCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFJapaneseCalendar;
-CF_EXPORT const CFCalendarIdentifier kCFRepublicOfChinaCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFCalendarIdentifier kCFPersianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFCalendarIdentifier kCFIndianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFCalendarIdentifier kCFISO8601Calendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFCalendarIdentifier kCFIslamicTabularCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFCalendarIdentifier kCFIslamicUmmAlQuraCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFGregorianCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFBuddhistCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFChineseCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFHebrewCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFIslamicCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFIslamicCivilCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFJapaneseCalendar;
+CF_EXPORT extern const CFCalendarIdentifier kCFRepublicOfChinaCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFPersianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFIndianCalendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFISO8601Calendar API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFIslamicTabularCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFCalendarIdentifier kCFIslamicUmmAlQuraCalendar API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

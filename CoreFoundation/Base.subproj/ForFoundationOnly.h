@@ -74,13 +74,13 @@ CF_EXPORT void *_Nonnull __CFSafelyReallocateWithAllocator(CFAllocatorRef _Nulla
 
 _CF_EXPORT_SCOPE_BEGIN
 
-CF_EXPORT const CFStringRef _kCFBundleExecutablePathKey;
-CF_EXPORT const CFStringRef _kCFBundleInfoPlistURLKey;
-CF_EXPORT const CFStringRef _kCFBundleRawInfoPlistURLKey;
-CF_EXPORT const CFStringRef _kCFBundleNumericVersionKey;
-CF_EXPORT const CFStringRef _kCFBundleResourcesFileMappedKey;
-CF_EXPORT const CFStringRef _kCFBundleAllowMixedLocalizationsKey;
-CF_EXPORT const CFStringRef _kCFBundlePrincipalClassKey;
+CF_EXPORT extern const CFStringRef _kCFBundleExecutablePathKey;
+CF_EXPORT extern const CFStringRef _kCFBundleInfoPlistURLKey;
+CF_EXPORT extern const CFStringRef _kCFBundleRawInfoPlistURLKey;
+CF_EXPORT extern const CFStringRef _kCFBundleNumericVersionKey;
+CF_EXPORT extern const CFStringRef _kCFBundleResourcesFileMappedKey;
+CF_EXPORT extern const CFStringRef _kCFBundleAllowMixedLocalizationsKey;
+CF_EXPORT extern const CFStringRef _kCFBundlePrincipalClassKey;
 
 #if __BLOCKS__
 CF_EXPORT CFTypeRef _CFBundleCopyFindResources(CFBundleRef _Nullable bundle, CFURLRef _Nullable bundleURL, CFArrayRef _Nullable _unused_pass_null_, CFStringRef _Nullable resourceName, CFStringRef _Nullable resourceType, CFStringRef _Nullable subPath, CFStringRef _Nullable lproj, Boolean returnArray, Boolean localized, Boolean (^_Nullable predicate)(CFStringRef filename, Boolean *_Nullable stop));
@@ -221,7 +221,7 @@ CF_INLINE Boolean __CFStringEncodingIsSupersetOfASCII(CFStringEncoding encoding)
 
 
 /* Desperately using extern here */
-CF_EXPORT CFStringEncoding __CFDefaultEightBitStringEncoding;
+CF_EXPORT extern CFStringEncoding __CFDefaultEightBitStringEncoding;
 CF_EXPORT CFStringEncoding __CFStringComputeEightBitStringEncoding(void);
 
 CF_INLINE CFStringEncoding __CFStringGetEightBitStringEncoding(void) {
@@ -258,7 +258,7 @@ CF_EXPORT Boolean __CFStringDecodeByteStream3(const UInt8 *bytes, CFIndex len, C
 
 /* Convert single byte to Unicode; assumes one-to-one correspondence (that is, can only be used with 1-byte encodings). You can use the function if it's not NULL.
 */
-CF_EXPORT CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc;
+CF_EXPORT extern CFStringEncodingCheapEightBitToUnicodeProc __CFCharToUniCharFunc;
 
 /* Character class functions UnicodeData-2_1_5.txt
 */
@@ -628,10 +628,10 @@ CF_EXPORT CFTypeRef _CFNonObjCRetain(CFTypeRef cf);
 CF_EXPORT void _CFNonObjCRelease(CFTypeRef cf);
 CF_EXPORT CFHashCode _CFNonObjCHash(CFTypeRef cf);
 
-CF_EXPORT void *__CFTSANTagMutableArray;
-CF_EXPORT void *__CFTSANTagMutableDictionary;
-CF_EXPORT void *__CFTSANTagMutableSet;
-CF_EXPORT void *__CFTSANTagMutableOrderedSet;
+CF_EXPORT extern void *__CFTSANTagMutableArray;
+CF_EXPORT extern void *__CFTSANTagMutableDictionary;
+CF_EXPORT extern void *__CFTSANTagMutableSet;
+CF_EXPORT extern void *__CFTSANTagMutableOrderedSet;
 
 CF_EXPORT void *_CFRegisterThreadSanitizerTag(char *name);
 CF_EXPORT void _CFAssignThreadSanitizerTag(void *const _Nonnull ptr, void *const tag);
@@ -643,7 +643,7 @@ CF_EXPORT void (*__cf_tsanReadFunction)(void *, void *, void *);
   }\
 } while(0)
 
-CF_EXPORT void (*__cf_tsanWriteFunction)(void *, void *, void *);
+CF_EXPORT extern void (*__cf_tsanWriteFunction)(void *, void *, void *);
 #define _CFRecordWriteForDataOwnedBy(P, T) do {\
   if (__builtin_expect(__cf_tsanWriteFunction != NULL, false) && (P) && (T)) {\
     __cf_tsanWriteFunction((P), __builtin_return_address(0), (T));\

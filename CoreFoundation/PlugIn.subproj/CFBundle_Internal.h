@@ -52,7 +52,7 @@ CF_EXTERN_C_BEGIN
 #define CFBundleExecutableLoadError                 3587
 #define CFBundleExecutableLinkError                 3588
 
-CF_PRIVATE char *__CFBundleMainID;
+CF_PRIVATE extern char *__CFBundleMainID;
 
 
 CF_INLINE uint32_t _CFBundleSwapInt32Conditional(uint32_t arg, Boolean swap) {return swap ? CFSwapInt32(arg) : arg;}

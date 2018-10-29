@@ -24,9 +24,9 @@ CF_EXPORT
 CFAbsoluteTime CFAbsoluteTimeGetCurrent(void);
 
 CF_EXPORT
-const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
+extern const CFTimeInterval kCFAbsoluteTimeIntervalSince1970;
 CF_EXPORT
-const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
+extern const CFTimeInterval kCFAbsoluteTimeIntervalSince1904;
 
 typedef const struct CF_BRIDGED_TYPE(NSDate) __CFDate * CFDateRef;
 

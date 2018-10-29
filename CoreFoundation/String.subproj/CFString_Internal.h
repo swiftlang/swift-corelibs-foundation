@@ -14,7 +14,7 @@
 CF_ASSUME_NONNULL_BEGIN
 
 CF_PRIVATE void __CFSetCharToUniCharFunc(CFStringEncodingCheapEightBitToUnicodeProc _Nullable func);
-CF_PRIVATE UniChar __CFCharToUniCharTable[256];
+CF_PRIVATE extern UniChar __CFCharToUniCharTable[256];
 CF_PRIVATE CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength);
 
 

@@ -205,13 +205,13 @@ CF_EXPORT void		CFSocketSetDefaultNameRegistryPortNumber(UInt16 port);
 CF_EXPORT UInt16	CFSocketGetDefaultNameRegistryPortNumber(void);
 
 /* Constants used in name registry server communications */
-CF_EXPORT const CFStringRef kCFSocketCommandKey;
-CF_EXPORT const CFStringRef kCFSocketNameKey;
-CF_EXPORT const CFStringRef kCFSocketValueKey;
-CF_EXPORT const CFStringRef kCFSocketResultKey;
-CF_EXPORT const CFStringRef kCFSocketErrorKey;
-CF_EXPORT const CFStringRef kCFSocketRegisterCommand;
-CF_EXPORT const CFStringRef kCFSocketRetrieveCommand;
+CF_EXPORT extern const CFStringRef kCFSocketCommandKey;
+CF_EXPORT extern const CFStringRef kCFSocketNameKey;
+CF_EXPORT extern const CFStringRef kCFSocketValueKey;
+CF_EXPORT extern const CFStringRef kCFSocketResultKey;
+CF_EXPORT extern const CFStringRef kCFSocketErrorKey;
+CF_EXPORT extern const CFStringRef kCFSocketRegisterCommand;
+CF_EXPORT extern const CFStringRef kCFSocketRetrieveCommand;
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

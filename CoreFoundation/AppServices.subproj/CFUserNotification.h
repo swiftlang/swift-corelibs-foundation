@@ -131,53 +131,53 @@ CF_INLINE CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n) {return ((CF
 /* Keys */
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationIconURLKey;
+extern const CFStringRef kCFUserNotificationIconURLKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationSoundURLKey;
+extern const CFStringRef kCFUserNotificationSoundURLKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationLocalizationURLKey;
+extern const CFStringRef kCFUserNotificationLocalizationURLKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertHeaderKey;
+extern const CFStringRef kCFUserNotificationAlertHeaderKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertMessageKey;
+extern const CFStringRef kCFUserNotificationAlertMessageKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationDefaultButtonTitleKey;
+extern const CFStringRef kCFUserNotificationDefaultButtonTitleKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlternateButtonTitleKey;
+extern const CFStringRef kCFUserNotificationAlternateButtonTitleKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationOtherButtonTitleKey;
+extern const CFStringRef kCFUserNotificationOtherButtonTitleKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationProgressIndicatorValueKey;
+extern const CFStringRef kCFUserNotificationProgressIndicatorValueKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationPopUpTitlesKey;
+extern const CFStringRef kCFUserNotificationPopUpTitlesKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationTextFieldTitlesKey;
+extern const CFStringRef kCFUserNotificationTextFieldTitlesKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationCheckBoxTitlesKey;
+extern const CFStringRef kCFUserNotificationCheckBoxTitlesKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationTextFieldValuesKey;
+extern const CFStringRef kCFUserNotificationTextFieldValuesKey;
 
 CF_EXPORT
-const CFStringRef kCFUserNotificationPopUpSelectionKey	API_AVAILABLE(macos(10.3)) API_UNAVAILABLE(ios, watchos, tvos);
+extern const CFStringRef kCFUserNotificationPopUpSelectionKey	API_AVAILABLE(macos(10.3)) API_UNAVAILABLE(ios, watchos, tvos);
 
 #if (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 CF_EXPORT
-const CFStringRef kCFUserNotificationAlertTopMostKey;
-        
+extern const CFStringRef kCFUserNotificationAlertTopMostKey;
+
 CF_EXPORT
-const CFStringRef kCFUserNotificationKeyboardTypesKey;
+extern const CFStringRef kCFUserNotificationKeyboardTypesKey;
 #endif
 
 CF_EXTERN_C_END

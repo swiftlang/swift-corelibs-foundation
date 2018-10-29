@@ -18,9 +18,9 @@ CF_EXTERN_C_BEGIN
 typedef const struct CF_BRIDGED_TYPE(NSNumber) __CFBoolean * CFBooleanRef;
 
 CF_EXPORT
-const CFBooleanRef kCFBooleanTrue;
+extern const CFBooleanRef kCFBooleanTrue;
 CF_EXPORT
-const CFBooleanRef kCFBooleanFalse;
+extern const CFBooleanRef kCFBooleanFalse;
 
 CF_EXPORT
 CFTypeID CFBooleanGetTypeID(void);
@@ -54,11 +54,11 @@ typedef CF_ENUM(CFIndex, CFNumberType) {
 typedef const struct CF_BRIDGED_TYPE(NSNumber) __CFNumber * CFNumberRef;
 
 CF_EXPORT
-const CFNumberRef kCFNumberPositiveInfinity;
+extern const CFNumberRef kCFNumberPositiveInfinity;
 CF_EXPORT
-const CFNumberRef kCFNumberNegativeInfinity;
+extern const CFNumberRef kCFNumberNegativeInfinity;
 CF_EXPORT
-const CFNumberRef kCFNumberNaN;
+extern const CFNumberRef kCFNumberNaN;
 
 CF_EXPORT
 CFTypeID CFNumberGetTypeID(void);

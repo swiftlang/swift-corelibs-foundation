@@ -95,8 +95,8 @@ CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLQueryAllowedCharacterSet();
 CF_EXPORT CFCharacterSetRef _CFURLComponentsGetURLFragmentAllowedCharacterSet();
 
 // keys for dictionaries returned by _CFURLComponentsCopyQueryItems
-CF_EXPORT const CFStringRef _kCFURLComponentsNameKey;
-CF_EXPORT const CFStringRef _kCFURLComponentsValueKey;
+CF_EXPORT extern const CFStringRef _kCFURLComponentsNameKey;
+CF_EXPORT extern const CFStringRef _kCFURLComponentsValueKey;
 
 CF_EXPORT _Nullable CFArrayRef _CFURLComponentsCopyQueryItems(CFURLComponentsRef components);
 CF_EXPORT void _CFURLComponentsSetQueryItems(CFURLComponentsRef components, CFArrayRef names, CFArrayRef values);

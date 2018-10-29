@@ -19,7 +19,7 @@ CF_EXTERN_C_BEGIN
 
 /* A key for "true" debugging descriptions which should never be shown to the user. It's only used when the CFError is shown to the console, and nothing else is available. For instance the rather terse and techie OSStatus descriptions are in this boat.
 */
-CF_EXPORT const CFStringRef kCFErrorDebugDescriptionKey API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFErrorDebugDescriptionKey API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 

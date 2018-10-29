@@ -26,11 +26,11 @@ CF_EXTERN_C_BEGIN
 
 /* ================ Standard Info.plist keys for plugIns ================ */
 
-CF_EXPORT const CFStringRef kCFPlugInDynamicRegistrationKey;
-CF_EXPORT const CFStringRef kCFPlugInDynamicRegisterFunctionKey;
-CF_EXPORT const CFStringRef kCFPlugInUnloadFunctionKey;
-CF_EXPORT const CFStringRef kCFPlugInFactoriesKey;
-CF_EXPORT const CFStringRef kCFPlugInTypesKey;
+CF_EXPORT extern const CFStringRef kCFPlugInDynamicRegistrationKey;
+CF_EXPORT extern const CFStringRef kCFPlugInDynamicRegisterFunctionKey;
+CF_EXPORT extern const CFStringRef kCFPlugInUnloadFunctionKey;
+CF_EXPORT extern const CFStringRef kCFPlugInFactoriesKey;
+CF_EXPORT extern const CFStringRef kCFPlugInTypesKey;
 
 /* ================= Function prototypes for various callbacks ================= */
 /* Function types that plugIn authors can implement for various purposes. */

@@ -114,7 +114,7 @@ void __CFSocketSetSocketReadBufferAttrs(CFSocketRef s, CFTimeInterval timeout, C
  *    structure.
  *
  */
-CF_EXPORT const CFStringRef kCFStreamPropertySocketSSLContext;
+CF_EXPORT extern const CFStringRef kCFStreamPropertySocketSSLContext;
 
 CF_EXTERN_C_END
 
@@ -125,7 +125,7 @@ CF_EXTERN_C_END
  * file.  If the underlying file descriptor is not open, the property
  * value will be NULL (as opposed to containing ((int) -1)).
  */
-CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle API_AVAILABLE(macosx(10.12.4), ios(5.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFStreamPropertyFileNativeHandle API_AVAILABLE(macosx(10.12.4), ios(5.0), watchos(2.0), tvos(9.0));
 
 /*
  * SPI: The _kCFStreamPropertyHTTPTrailer property is a dictionary of HTTP headers & values that the caller
@@ -133,7 +133,7 @@ CF_EXPORT const CFStringRef _kCFStreamPropertyFileNativeHandle API_AVAILABLE(mac
  *		for setting this property BEFORE the stream event NSStreamEventEndEncountered is signaled to the reader of the
  *		stream on which this property is set.
  */
-CF_EXPORT const CFStringRef _kCFStreamPropertyHTTPTrailer API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT extern const CFStringRef _kCFStreamPropertyHTTPTrailer API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
 #endif /* ! __COREFOUNDATION_CFSTREAMPRIV__ */
 

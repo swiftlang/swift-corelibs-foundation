@@ -89,7 +89,7 @@ CF_EXPORT
 CFStringRef CFTimeZoneCopyLocalizedName(CFTimeZoneRef tz, CFTimeZoneNameStyle style, CFLocaleRef locale) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 CF_EXPORT
-const CFNotificationName kCFTimeZoneSystemTimeZoneDidChangeNotification API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
+extern const CFNotificationName kCFTimeZoneSystemTimeZoneDidChangeNotification API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

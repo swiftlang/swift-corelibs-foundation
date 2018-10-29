@@ -255,16 +255,16 @@ CF_EXPORT
 CFStringRef CFXMLCreateStringByUnescapingEntities(CFAllocatorRef allocator, CFStringRef string, CFDictionaryRef entitiesDictionary);
 
 /* CFXMLTreeCreateFromDataWithError error dictionary key constants. */
-CF_EXPORT const CFStringRef kCFXMLTreeErrorDescription;
+CF_EXPORT extern const CFStringRef kCFXMLTreeErrorDescription;
     /* value is a CFString containing the readable error string. */
 
-CF_EXPORT const CFStringRef kCFXMLTreeErrorLineNumber;
+CF_EXPORT extern const CFStringRef kCFXMLTreeErrorLineNumber;
     /* value is a CFNumber containing the line on which the error appears. */
 
-CF_EXPORT const CFStringRef kCFXMLTreeErrorLocation;
+CF_EXPORT extern const CFStringRef kCFXMLTreeErrorLocation;
     /* value is a CFNumber containing the byte location at which the error occurred. */
 
-CF_EXPORT const CFStringRef kCFXMLTreeErrorStatusCode;
+CF_EXPORT extern const CFStringRef kCFXMLTreeErrorStatusCode;
     /* value is a CFNumber containing the error status code. */
 
 CF_EXTERN_C_END

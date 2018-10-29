@@ -72,7 +72,7 @@ CFTypeID CFWriteStreamGetTypeID(void);
 
 /* Value will be a CFData containing all bytes thusfar written; used to recover the data written to a memory write stream. */
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyDataWritten;
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyDataWritten;
 
 /* Pass kCFAllocatorNull for bytesDeallocator to prevent CFReadStream from deallocating bytes; otherwise, CFReadStream will deallocate bytes when the stream is destroyed */
 CF_EXPORT
@@ -98,25 +98,25 @@ CF_IMPLICIT_BRIDGING_ENABLED
 
 /* Property for file write streams; value should be a CFBoolean.  Set to TRUE to append to a file, rather than to replace its contents */
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyAppendToFile;
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyAppendToFile;
 
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyFileCurrentOffset;   // Value is a CFNumber
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertyFileCurrentOffset;   // Value is a CFNumber
 
 
 /* Socket stream properties */
 
 /* Value will be a CFData containing the native handle */
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketNativeHandle;
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketNativeHandle;
 
 /* Value will be a CFString, or NULL if unknown */
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketRemoteHostName;
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketRemoteHostName;
 
 /* Value will be a CFNumber, or NULL if unknown */
 CF_EXPORT
-const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketRemotePortNumber;
+extern const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketRemotePortNumber;
 /*
  *  kCFStreamErrorDomainSOCKS
  *
@@ -124,7 +124,7 @@ const CFStreamPropertyKey _Null_unspecified kCFStreamPropertySocketRemotePortNum
  *    SOCKS proxy error domain.  Errors formulated using inlines below.
  *
  */
-CF_EXPORT const int kCFStreamErrorDomainSOCKS CF_AVAILABLE(10_0, 2_0);
+CF_EXPORT extern const int kCFStreamErrorDomainSOCKS CF_AVAILABLE(10_0, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSProxy
@@ -140,7 +140,7 @@ CF_EXPORT const int kCFStreamErrorDomainSOCKS CF_AVAILABLE(10_0, 2_0);
  *    alteration.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxy CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSProxy CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSProxyHost
@@ -152,7 +152,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxy CF_AVAILABLE(10
  *    kSCPropNetProxiesSOCKSProxy
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyHost CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyHost CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSProxyPort
@@ -165,7 +165,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyHost CF_AVAILABL
  *    match kSCPropNetProxiesSOCKSPort
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyPort CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyPort CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSVersion
@@ -178,7 +178,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSProxyPort CF_AVAILABL
  *    set SOCKS4 or SOCKS5, respectively.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSVersion CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSVersion CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamSocketSOCKSVersion4
@@ -188,7 +188,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSVersion CF_AVAILABLE(
  *    SOCKS will or is using version 4 of the SOCKS protocol.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion4 CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion4 CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamSocketSOCKSVersion5
@@ -198,7 +198,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion4 CF_AVAILABLE(1
  *    SOCKS will or is using version 5 of the SOCKS protocol.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion5 CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion5 CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSUser
@@ -212,7 +212,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSOCKSVersion5 CF_AVAILABLE(1
  *    CFStringRef, respectively.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSUser CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSUser CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySOCKSPassword
@@ -226,7 +226,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSUser CF_AVAILABLE(10_
  *    CFStringRef, respectively.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSPassword CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySOCKSPassword CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamErrorDomainSSL
@@ -235,7 +235,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySOCKSPassword CF_AVAILABLE
  *    Errors located in Security/SecureTransport.h
  *
  */
-CF_EXPORT const int kCFStreamErrorDomainSSL CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const int kCFStreamErrorDomainSSL CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertySocketSecurityLevel
@@ -249,7 +249,7 @@ CF_EXPORT const int kCFStreamErrorDomainSSL CF_AVAILABLE(10_2, 2_0);
  *    open in order to allow on-the-fly securing of a stream.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySocketSecurityLevel CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertySocketSecurityLevel CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamSocketSecurityLevelNone
@@ -259,7 +259,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertySocketSecurityLevel CF_AVA
  *    Indicates to use no security (default setting).
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNone CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNone CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamSocketSecurityLevelSSLv2
@@ -271,7 +271,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNone CF_AVAILAB
  *    Indicates to use SSLv2 security.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv2 CF_DEPRECATED(10_2, 10_12, 2_0, 10_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv2 CF_DEPRECATED(10_2, 10_12, 2_0, 10_0);
 
 /*
  *  kCFStreamSocketSecurityLevelSSLv3
@@ -283,7 +283,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv2 CF_DEPREC
  *    Indicates to use SSLv3 security.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv3 CF_DEPRECATED(10_2, 10_12, 2_0, 10_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv3 CF_DEPRECATED(10_2, 10_12, 2_0, 10_0);
 
 /*
  *  kCFStreamSocketSecurityLevelTLSv1
@@ -293,7 +293,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelSSLv3 CF_DEPREC
  *    Indicates to use TLSv1 security.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelTLSv1 CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSecurityLevelTLSv1 CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamSocketSecurityLevelNegotiatedSSL
@@ -304,7 +304,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelTLSv1 CF_AVAILA
  *    is what HTTPS does, for instance.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNegotiatedSSL CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNegotiatedSSL CF_AVAILABLE(10_2, 2_0);
 
 /*
  *  kCFStreamPropertyShouldCloseNativeSocket
@@ -322,7 +322,7 @@ CF_EXPORT const CFStringRef _Nonnull kCFStreamSocketSecurityLevelNegotiatedSSL C
  *    CFWriteStreamCopyProperty.
  *
  */
-CF_EXPORT const CFStringRef _Nonnull kCFStreamPropertyShouldCloseNativeSocket CF_AVAILABLE(10_2, 2_0);
+CF_EXPORT extern const CFStringRef _Nonnull kCFStreamPropertyShouldCloseNativeSocket CF_AVAILABLE(10_2, 2_0);
 
 CF_IMPLICIT_BRIDGING_DISABLED
 /* Socket streams; the returned streams are paired such that they use the same socket; pass NULL if you want only the read stream or the write stream */

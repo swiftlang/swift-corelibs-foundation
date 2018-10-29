@@ -19,8 +19,8 @@ CF_EXTERN_C_BEGIN
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) && !__x86_64h__)
 
 // Although we no longer support GC, we leave exported symbols in place for now to avoid any lockstep dependency issues.
-CF_EXPORT bool kCFUseCollectableAllocator;
-CF_EXPORT bool (*__CFObjCIsCollectable)(void *);
+CF_EXPORT extern bool kCFUseCollectableAllocator;
+CF_EXPORT extern bool (*__CFObjCIsCollectable)(void *);
 
 #else
 

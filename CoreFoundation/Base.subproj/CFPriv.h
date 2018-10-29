@@ -225,27 +225,27 @@ CFArrayRef CFCopySearchPathForDirectoriesInDomains(CFSearchPathDirectory directo
 
 
 /* Obsolete keys */
-CF_EXPORT const CFStringRef kCFFileURLExists;
-CF_EXPORT const CFStringRef kCFFileURLPOSIXMode;
-CF_EXPORT const CFStringRef kCFFileURLSize;
-CF_EXPORT const CFStringRef kCFFileURLDirectoryContents;
-CF_EXPORT const CFStringRef kCFFileURLLastModificationTime;
-CF_EXPORT const CFStringRef kCFHTTPURLStatusCode;
-CF_EXPORT const CFStringRef kCFHTTPURLStatusLine;
+CF_EXPORT extern const CFStringRef kCFFileURLExists;
+CF_EXPORT extern const CFStringRef kCFFileURLPOSIXMode;
+CF_EXPORT extern const CFStringRef kCFFileURLSize;
+CF_EXPORT extern const CFStringRef kCFFileURLDirectoryContents;
+CF_EXPORT extern const CFStringRef kCFFileURLLastModificationTime;
+CF_EXPORT extern const CFStringRef kCFHTTPURLStatusCode;
+CF_EXPORT extern const CFStringRef kCFHTTPURLStatusLine;
 
 
 /* System Version file access */
 CF_EXPORT CFStringRef CFCopySystemVersionString(void);			// Human-readable string containing both marketing and build version
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
 CF_EXPORT CFDictionaryRef _CFCopyServerVersionDictionary(void);
-CF_EXPORT const CFStringRef _kCFSystemVersionProductNameKey;
-CF_EXPORT const CFStringRef _kCFSystemVersionProductCopyrightKey;
-CF_EXPORT const CFStringRef _kCFSystemVersionProductVersionKey;
-CF_EXPORT const CFStringRef _kCFSystemVersionProductVersionExtraKey;
-CF_EXPORT const CFStringRef _kCFSystemVersionProductUserVisibleVersionKey;	// For loginwindow; see 2987512
-CF_EXPORT const CFStringRef _kCFSystemVersionBuildVersionKey;		
-CF_EXPORT const CFStringRef _kCFSystemVersionProductVersionStringKey;	// Localized string for the string "Version"
-CF_EXPORT const CFStringRef _kCFSystemVersionBuildStringKey;		// Localized string for the string "Build"
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductNameKey;
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductCopyrightKey;
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductVersionKey;
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductVersionExtraKey;
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductUserVisibleVersionKey;	// For loginwindow; see 2987512
+CF_EXPORT extern const CFStringRef _kCFSystemVersionBuildVersionKey;		
+CF_EXPORT extern const CFStringRef _kCFSystemVersionProductVersionStringKey;	// Localized string for the string "Version"
+CF_EXPORT extern const CFStringRef _kCFSystemVersionBuildStringKey;		// Localized string for the string "Build"
 
 
 CF_EXPORT void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context);
@@ -646,8 +646,8 @@ CF_EXPORT CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRe
 CF_EXPORT CFNotificationCenterRef CFNotificationCenterGetDistributedCenter(void);
 #endif
 
-CF_EXPORT const CFStringRef kCFNumberFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
-CF_EXPORT const CFStringRef kCFDateFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT extern const CFStringRef kCFNumberFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
+CF_EXPORT extern const CFStringRef kCFDateFormatterUsesCharacterDirection API_AVAILABLE(macos(10.9), ios(6.0), watchos(2.0), tvos(9.0));	// CFBoolean
 
 
 CF_EXPORT void _CFGetPathExtensionRangesFromPathComponentUniChars(const UniChar *uchars, CFIndex ucharsLength, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));

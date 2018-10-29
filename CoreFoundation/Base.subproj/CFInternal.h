@@ -419,7 +419,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #endif // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 
 
-CF_EXPORT void * __CFConstantStringClassReferencePtr;
+CF_EXPORT extern void * __CFConstantStringClassReferencePtr;
 
 #if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
@@ -463,7 +463,7 @@ struct CF_CONST_STRING {
     uint32_t _length;
 };
 
-CF_EXPORT int __CFConstantStringClassReference[];
+CF_EXPORT extern int __CFConstantStringClassReference[];
 
 /* CFNetwork also has a copy of the CONST_STRING_DECL macro (for use on platforms without constant string support in cc); please warn cfnetwork-core@group.apple.com of any necessary changes to this macro. -- REW, 1/28/2002 */
 
@@ -476,7 +476,7 @@ CF_PRIVATE const CFStringRef S = (CFStringRef) & __ ## S ## __;
 
 #endif // __CONSTANT_CFSTRINGS__
 
-CF_EXPORT bool __CFOASafe;
+CF_EXPORT extern bool __CFOASafe;
 CF_EXPORT void __CFSetLastAllocationEventName(void *ptr, const char *classname);
 
 
@@ -498,10 +498,10 @@ extern CFTypeRef CFMakeUncollectable(CFTypeRef cf);
 
 CF_PRIVATE void _CFRaiseMemoryException(CFStringRef reason);
 
-CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
+CF_PRIVATE extern Boolean __CFProphylacticAutofsAccess;
 
-CF_EXPORT id __NSDictionary0__;
-CF_EXPORT id __NSArray0__;
+CF_EXPORT extern id __NSDictionary0__;
+CF_EXPORT extern id __NSArray0__;
 
 
 #if TARGET_OS_MAC
@@ -591,8 +591,8 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-CF_PRIVATE _Atomic(uint8_t) __CF120293;
-CF_PRIVATE _Atomic(uint8_t) __CF120290;
+CF_PRIVATE exxtern _Atomic(uint8_t) __CF120293;
+CF_PRIVATE exxtern _Atomic(uint8_t) __CF120290;
 extern void __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(void);
 #define CHECK_FOR_FORK() do { __CF120290 = true; if (__CF120293) __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(); } while (0)
 #define CHECK_FOR_FORK_RET(...) do { CHECK_FOR_FORK(); if (__CF120293) return __VA_ARGS__; } while (0)
@@ -1007,12 +1007,12 @@ enum {
 
 #pragma mark - CF Private Globals
 
-CF_PRIVATE void *__CFAppleLanguages;
-CF_PRIVATE uint8_t __CFZombieEnabled;
-CF_PRIVATE uint8_t __CFDeallocateZombies;
-CF_PRIVATE Boolean __CFInitialized;
-CF_PRIVATE _Atomic(bool) __CFMainThreadHasExited;
-CF_PRIVATE const CFStringRef __kCFLocaleCollatorID;
+CF_PRIVATE extern void *__CFAppleLanguages;
+CF_PRIVATE extern uint8_t __CFZombieEnabled;
+CF_PRIVATE extern uint8_t __CFDeallocateZombies;
+CF_PRIVATE extern Boolean __CFInitialized;
+CF_PRIVATE extern _Atomic(bool) __CFMainThreadHasExited;
+CF_PRIVATE extern const CFStringRef __kCFLocaleCollatorID;
 
 CF_EXTERN_C_END
 

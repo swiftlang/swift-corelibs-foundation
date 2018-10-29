@@ -102,7 +102,7 @@ typedef struct {
 	appropriate for use when the values in a CFSet are all CFTypes.
 */
 CF_EXPORT
-const CFSetCallBacks kCFTypeSetCallBacks;
+extern const CFSetCallBacks kCFTypeSetCallBacks;
 
 /*!
 	@constant kCFCopyStringSetCallBacks
@@ -111,7 +111,7 @@ const CFSetCallBacks kCFTypeSetCallBacks;
         of a CFString.
 */
 CF_EXPORT
-const CFSetCallBacks kCFCopyStringSetCallBacks;
+extern const CFSetCallBacks kCFCopyStringSetCallBacks;
 
 /*!
 	@typedef CFSetApplierFunction

@@ -20,27 +20,27 @@ typedef struct CF_BRIDGED_TYPE(id) __CFBundle *CFPlugInRef;
 
 /* ===================== Standard Info.plist keys ===================== */
 CF_EXPORT
-const CFStringRef kCFBundleInfoDictionaryVersionKey;
+extern const CFStringRef kCFBundleInfoDictionaryVersionKey;
     /* The version of the Info.plist format */
 CF_EXPORT
-const CFStringRef kCFBundleExecutableKey;
+extern const CFStringRef kCFBundleExecutableKey;
     /* The name of the executable in this bundle, if any */
 CF_EXPORT
-const CFStringRef kCFBundleIdentifierKey;
+extern const CFStringRef kCFBundleIdentifierKey;
     /* The bundle identifier (for CFBundleGetBundleWithIdentifier()) */
 CF_EXPORT
-const CFStringRef kCFBundleVersionKey;
+extern const CFStringRef kCFBundleVersionKey;
     /* The version number of the bundle.  For Mac OS 9 style version numbers (for example "2.5.3d5"), */
     /* clients can use CFBundleGetVersionNumber() instead of accessing this key directly since that */
     /* function will properly convert the version string into its compact integer representation. */
 CF_EXPORT
-const CFStringRef kCFBundleDevelopmentRegionKey;
+extern const CFStringRef kCFBundleDevelopmentRegionKey;
     /* The name of the development language of the bundle. */
 CF_EXPORT
-const CFStringRef kCFBundleNameKey;
+extern const CFStringRef kCFBundleNameKey;
     /* The human-readable name of the bundle.  This key is often found in the InfoPlist.strings since it is usually localized. */
 CF_EXPORT
-const CFStringRef kCFBundleLocalizationsKey;
+extern const CFStringRef kCFBundleLocalizationsKey;
     /* Allows an unbundled application that handles localization itself to specify which localizations it has available. */
 
 /* ===================== Finding Bundles ===================== */

@@ -30,9 +30,9 @@ typedef struct {
 } CFBagCallBacks;
 
 CF_EXPORT
-const CFBagCallBacks kCFTypeBagCallBacks;
+extern const CFBagCallBacks kCFTypeBagCallBacks;
 CF_EXPORT
-const CFBagCallBacks kCFCopyStringBagCallBacks;
+extern const CFBagCallBacks kCFCopyStringBagCallBacks;
 
 typedef void (*CFBagApplierFunction)(const void *value, void *context);
 

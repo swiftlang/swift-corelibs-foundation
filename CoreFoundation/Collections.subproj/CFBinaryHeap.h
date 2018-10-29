@@ -66,7 +66,7 @@ typedef struct {
 	of callbacks appropriate for use when the values in a CFBinaryHeap
 	are all CFString types.
 */
-CF_EXPORT const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks;
+CF_EXPORT extern const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks;
 
 /*!
 	@typedef CFBinaryHeapApplierFunction

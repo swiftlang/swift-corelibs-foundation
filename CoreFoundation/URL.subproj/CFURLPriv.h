@@ -51,346 +51,346 @@ enum {
 /*
     Private File System Property Keys
 */
-CF_EXPORT const CFStringRef _kCFURLPathKey API_DEPRECATED("Use the kCFURLPathKey or NSURLPathKey public property keys instead", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLPathKey API_DEPRECATED("Use the kCFURLPathKey or NSURLPathKey public property keys instead", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLPathKey or NSURLPathKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume ID (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLInodeNumberKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLInodeNumberKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 64-bit inode number (the inode number from the file system) (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLFileIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFileIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 64-bit file ID (for tracking a file by ID. This may or may not be the inode number) (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLParentDirectoryIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLParentDirectoryIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 64-bit file ID (for tracking a parent directory by ID. This may or may not be the inode number) (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLDistinctLocalizedNameKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLDistinctLocalizedNameKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* The localized name, if it is distinct from the real name. Otherwise, NULL (CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLNameExtensionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLNameExtensionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* The name extension (CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLFinderInfoKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFinderInfoKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* A 16-byte Finder Info structure immediately followed by a 16-byte Extended Finder Info structure (CFData) */
 
-CF_EXPORT const CFStringRef _kCFURLIsUserNoDumpKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsUserNoDumpKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's UF_NODUMP flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsUserAppendKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsUserAppendKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's UF_APPEND flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsUserOpaqueKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsUserOpaqueKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's UF_OPAQUE flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsCompressedKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsCompressedKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* True if resource's data is transparently compressed by the system on its storage device (UF_COMPRESSED flag is set) (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsUserTrackedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsUserTrackedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's UF_TRACKED flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsUserDataVaultKey API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsUserDataVaultKey API_AVAILABLE(macos(10.13), ios(11.0), watchos(4.0), tvos(11.0));
     /* True if resource's UF_DATAVAULT flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsSystemArchivedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsSystemArchivedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's SF_ARCHIVED flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsSystemAppendKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsSystemAppendKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's SF_APPEND flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsRestrictedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsRestrictedKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource is restricted (SF_RESTRICTED flag is set) (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsSystemNoUnlinkKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsSystemNoUnlinkKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if resource's SF_NOUNLINK flag is set (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsApplicationKey API_DEPRECATED("Use kCFURLIsApplicationKey (API) instead", macos(10.6,10.11), ios(4.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsApplicationKey API_DEPRECATED("Use kCFURLIsApplicationKey (API) instead", macos(10.6,10.11), ios(4.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
 /* Deprecated and scheduled for removal in 10.12/10.0 - Use the kCFURLIsApplicationKey or NSURLIsApplicationKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationIsAppletKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationIsAppletKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
 /* The item is an OSA or Automator applet. Only applies to applications. (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationHasSupportedFormatKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationHasSupportedFormatKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
 /* The item is an application that can be executed on the current system. (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCanSetHiddenExtensionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLCanSetHiddenExtensionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* True if the filename extension can be hidden or unhidden (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLIsReadableKey API_DEPRECATED("Use the kCFURLIsReadableKey or NSURLIsReadableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsReadableKey API_DEPRECATED("Use the kCFURLIsReadableKey or NSURLIsReadableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLIsReadableKey or NSURLIsReadableKey public property keys */
-/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT const CFStringRef _kCFURLUserCanReadKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
+/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT extern const CFStringRef _kCFURLUserCanReadKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
-CF_EXPORT const CFStringRef _kCFURLIsWriteableKey API_DEPRECATED("Use the kCFURLIsWritableKey or NSURLIsWritableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsWriteableKey API_DEPRECATED("Use the kCFURLIsWritableKey or NSURLIsWritableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLIsWritableKey or NSURLIsWritableKey public property keys */
-/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT const CFStringRef _kCFURLUserCanWriteKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
+/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT extern const CFStringRef _kCFURLUserCanWriteKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
-CF_EXPORT const CFStringRef _kCFURLIsExecutableKey API_DEPRECATED("Use the kCFURLIsExecutableKey or NSURLIsExecutableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLIsExecutableKey API_DEPRECATED("Use the kCFURLIsExecutableKey or NSURLIsExecutableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLIsExecutableKey or NSURLIsExecutableKey public property keys */
-/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT const CFStringRef _kCFURLUserCanExecuteKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
+/* never implemented and scheduled for removal in 10.10/8.0 */CF_EXPORT extern const CFStringRef _kCFURLUserCanExecuteKey API_DEPRECATED("Not supported", macos(10.0,10.6), ios(2.0,4.0), watchos(2.0,2.0), tvos(9.0,9.0));
 
-CF_EXPORT const CFStringRef _kCFURLParentDirectoryIsVolumeRootKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLParentDirectoryIsVolumeRootKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* True if the parent directory is the root of a volume (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLFileSecurityKey API_DEPRECATED("Use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFileSecurityKey API_DEPRECATED("Use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLFileSizeOfResourceForkKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFileSizeOfResourceForkKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Size in bytes of the resource fork (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLFileAllocatedSizeOfResourceForkKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFileAllocatedSizeOfResourceForkKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Size in bytes of the blocks allocated for the resource fork (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLEffectiveIconImageDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLEffectiveIconImageDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Icon image data, i.e. raw pixel data (CFData) */
 
-CF_EXPORT const CFStringRef _kCFURLTypeBindingKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLTypeBindingKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
     /* Type binding for icon (Read-only, value type CFData) */
 
-CF_EXPORT const CFStringRef _kCFURLCustomIconImageDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLCustomIconImageDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Icon image data of the item's custom icon, if any (CFData) */
 
-CF_EXPORT const CFStringRef _kCFURLEffectiveIconFlattenedReferenceDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLEffectiveIconFlattenedReferenceDataKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Icon flattened reference, suitable for cheaply sharing the effective icon reference across processess (CFData) */
 
-CF_EXPORT const CFStringRef _kCFURLBundleIdentifierKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLBundleIdentifierKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* If resource is a bundle, the bundle identifier (CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLVersionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVersionKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* If resource is a bundle, the bundle version (CFBundleVersion) as a string (CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLShortVersionStringKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLShortVersionStringKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* If resource is a bundle, the bundle short version (CFBundleShortVersionString) as a string (CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLOwnerIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLOwnerIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 32-bit owner ID (uid_t). (CFNumber) Note: Almost all clients should use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys and CFFileSecurityGetOwner() instead of this. */
 
-CF_EXPORT const CFStringRef _kCFURLGroupIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLGroupIDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 32-bit group ID (gid_t) (CFNumber) Note: Almost all clients should use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys and CFFileSecurityGetGroup() instead of this. */
 
-CF_EXPORT const CFStringRef _kCFURLStatModeKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLStatModeKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* 32-bit group ID (mode_t) (CFNumber) Note: Almost all clients should use the kCFURLFileSecurityKey or NSURLFileSecurityKey public property keys and CFFileSecurityGetMode() instead of this. */
 
 /* To determine which dictionary to request from _kCFURLLocalizedNameDictionaryKey or _kCFURLLocalizedNameWithExtensionsHiddenDictionaryKey, you can consult _LSGetShowAllExtensionsPreference() on macOS. On iOS, extensions are always hidden. */
 
-CF_EXPORT const CFStringRef _kCFURLLocalizedNameDictionaryKey API_AVAILABLE(macos(10.7), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLLocalizedNameDictionaryKey API_AVAILABLE(macos(10.7), ios(9.0), watchos(2.0), tvos(9.0));
     /* For items with localized display names, the dictionary of all available localizations. The keys are the cannonical locale strings for the available localizations. (CFDictionary) */
 
-CF_EXPORT const CFStringRef _kCFURLLocalizedNameWithExtensionsHiddenDictionaryKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef _kCFURLLocalizedNameWithExtensionsHiddenDictionaryKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
     /* For items with localized display names, the dictionary of all available localizations with extensions hidden if safe. The keys are the cannonical locale strings for the available localizations. (CFDictionary) */
 
-CF_EXPORT const CFStringRef _kCFURLLocalizedTypeDescriptionDictionaryKey API_AVAILABLE(macos(10.7), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLLocalizedTypeDescriptionDictionaryKey API_AVAILABLE(macos(10.7), ios(9.0), watchos(2.0), tvos(9.0));
     /* The dictionary of all available localizations of the item kind string. The keys are the cannonical locale strings for the available localizations. (CFDictionary) */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationCategoriesKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationCategoriesKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
     /* The array of category UTI strings associated with the url. (CFArray) */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationHighResolutionModeIsMagnifiedKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationHighResolutionModeIsMagnifiedKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
     /* True if the app runs with magnified 1x graphics on a 2x display (Per-user, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCanSetApplicationHighResolutionModeIsMagnifiedKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLCanSetApplicationHighResolutionModeIsMagnifiedKey API_AVAILABLE(macos(10.7)) API_UNAVAILABLE(ios, watchos, tvos);
     /* True if the app can run in either magnified or native resolution modes (Read only, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLWriterBundleIdentifierKey API_AVAILABLE(macos(10.8)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLWriterBundleIdentifierKey API_AVAILABLE(macos(10.8)) API_UNAVAILABLE(ios, watchos, tvos);
     /* The bundle identifier of the process writing to this object (Read-write, value type CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationNapIsDisabledKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationNapIsDisabledKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
     /* True if app nap is disabled (Applications only, Per-user, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCanSetApplicationNapIsDisabledKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLCanSetApplicationNapIsDisabledKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
     /* True if the ApplicationNapIsDisabled property value can be changed (Applications only, Read only, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCanSetStrongBindingKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLCanSetStrongBindingKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
     /* True if the strong binding can be changed (Read only, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLStrongBindingKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLStrongBindingKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
     /* The application to which the file is strongly bound (Read-write, value type CFURL) */
 
-CF_EXPORT const CFStringRef _kCFURLArchitecturesValidOnCurrentSystemKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLArchitecturesValidOnCurrentSystemKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* Array of CFStringRefs, each element an architecture identifier. The array includes the list of executable architectures found in the application bundle's executable that can be executed on the current system. (Read-only, value type CFArray of CFStrings) */
 
 CF_EXPORT
-const CFStringRef _kCFURLApplicationArchitecturesKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+extern const CFStringRef _kCFURLApplicationArchitecturesKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* The complete list of executable architectures found in the application bundle's executable (Read-only, value type CFArray of CFString) */
 
 CF_EXPORT
-const CFStringRef _kCFURLApplicationSupportedRegionsKey API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
+extern const CFStringRef _kCFURLApplicationSupportedRegionsKey API_AVAILABLE(macos(10.14), ios(12.0), watchos(5.0), tvos(12.0));
     /* The complete list of regions supported by the application as found in the application bundle’s Info.plist (Read-only, value type CFArray of CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLFaultLogicalFileIsHiddenKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLFaultLogicalFileIsHiddenKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* True if the fault logical file is hidden. (Read only, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLLocalizedNameComponentsKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
+CF_EXPORT extern const CFStringRef _kCFURLLocalizedNameComponentsKey API_AVAILABLE(macosx(10.13), ios(11.0), watchos(4.0), tvos(11.0));
     /* An array containing the base name of the file and (if present) the extension to be used for display. Does not include extra Unicode visual ordering characters added by the system. For Finder use. (Read-only, value type CFArray of CFStrings) */
 
-CF_EXPORT const CFStringRef _kCFURLApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Default is false. True means the application will be steered towards the eGPU regardless of which displays it is attached to. (Read-write, CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCanSetApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLCanSetApplicationPrefersExternalGPUKey API_AVAILABLE(macos(10.14)) API_UNAVAILABLE(ios, watchos, tvos);
     /* False if app’s Info.plist specifies a eGPU policy, True if app does not specify an policy. Finder does not show a checkbox when this value is false. (Read-only, CFBoolean) */
 
 /* Additional volume properties */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeRefNumKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeRefNumKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* The Carbon File Manager's FSVolumeRefNum for the resource volume (CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeUUIDStringKey API_DEPRECATED("Use the kCFURLVolumeUUIDStringKey or NSURLVolumeUUIDStringKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeUUIDStringKey API_DEPRECATED("Use the kCFURLVolumeUUIDStringKey or NSURLVolumeUUIDStringKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeUUIDStringKey or NSURLVolumeUUIDStringKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeCreationDateKey API_DEPRECATED("Use the kCFURLVolumeCreationDateKey or NSURLVolumeCreationDateKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeCreationDateKey API_DEPRECATED("Use the kCFURLVolumeCreationDateKey or NSURLVolumeCreationDateKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeCreationDateKey or NSURLVolumeCreationDateKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsLocalKey API_DEPRECATED("Use the kCFURLVolumeIsLocalKey or NSURLVolumeIsLocalKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsLocalKey API_DEPRECATED("Use the kCFURLVolumeIsLocalKey or NSURLVolumeIsLocalKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsLocalKey or NSURLVolumeIsLocalKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsAutomountKey API_DEPRECATED("Use the kCFURLVolumeIsAutomountedKey or NSURLVolumeIsAutomountedKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsAutomountKey API_DEPRECATED("Use the kCFURLVolumeIsAutomountedKey or NSURLVolumeIsAutomountedKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsAutomountedKey or NSURLVolumeIsAutomountedKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeDontBrowseKey API_DEPRECATED("Use the kCFURLVolumeIsBrowsableKey or NSURLVolumeIsBrowsableKey public property keys (Note: value is inverse of _kCFURLVolumeDontBrowseKey)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeDontBrowseKey API_DEPRECATED("Use the kCFURLVolumeIsBrowsableKey or NSURLVolumeIsBrowsableKey public property keys (Note: value is inverse of _kCFURLVolumeDontBrowseKey)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsBrowsableKey or NSURLVolumeIsBrowsableKey public property keys (Note: value is inverse of _kCFURLVolumeDontBrowseKey) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsReadOnlyKey API_DEPRECATED("Use the kCFURLVolumeIsReadOnlyKey or NSURLVolumeIsReadOnlyKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsReadOnlyKey API_DEPRECATED("Use the kCFURLVolumeIsReadOnlyKey or NSURLVolumeIsReadOnlyKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsReadOnlyKey or NSURLVolumeIsReadOnlyKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsQuarantinedKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsQuarantinedKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Mounted quarantined (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsEjectableKey API_DEPRECATED("Use the kCFURLVolumeIsEjectableKey or NSURLVolumeIsEjectableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsEjectableKey API_DEPRECATED("Use the kCFURLVolumeIsEjectableKey or NSURLVolumeIsEjectableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsEjectableKey or NSURLVolumeIsEjectableKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsRemovableKey API_DEPRECATED("Use the kCFURLVolumeIsRemovableKey or NSURLVolumeIsRemovableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsRemovableKey API_DEPRECATED("Use the kCFURLVolumeIsRemovableKey or NSURLVolumeIsRemovableKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsRemovableKey or NSURLVolumeIsRemovableKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsInternalKey API_DEPRECATED("Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsInternalKey API_DEPRECATED("Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsExternalKey API_DEPRECATED("Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsExternalKey API_DEPRECATED("Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key)", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeIsInternalKey or NSURLVolumeIsInternalKey public property keys (Note: this has slightly different behavior than the public VolumeIsInternal key) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsDiskImageKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsDiskImageKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume is a mounted disk image (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLDiskImageBackingURLKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLDiskImageBackingURLKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* If volume is a mounted disk image, the URL of the backing disk image (CFURL) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsFileVaultKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsFileVaultKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume uses File Vault encryption (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsiDiskKey API_DEPRECATED("No supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsiDiskKey API_DEPRECATED("No supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeiDiskUserNameKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeiDiskUserNameKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsLocaliDiskMirrorKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsLocaliDiskMirrorKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - there are no more iDisks */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsiPodKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsiPodKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume is on an iPod (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsCDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsCDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume is a CD (audio or CD-ROM). (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsDVDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsDVDKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume is a DVD (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsDeviceFileSystemKey API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsDeviceFileSystemKey API_AVAILABLE(macos(10.7), ios(5.0), watchos(2.0), tvos(9.0));
     /* Volume is devfs (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsHFSStandardKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsHFSStandardKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /* Volume is HFS standard (which includes AFP volumes). Directory IDs, but not file IDs, can be looked up. (CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIOMediaIconFamilyNameKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIOMediaIconFamilyNameKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume's IOMediaIconFamilyName. (CFStringRef) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIOMediaIconBundleIdentifierKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIOMediaIconBundleIdentifierKey API_AVAILABLE(macos(10.9)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume's IOMediaIconBundleIdentifier. (CFStringRef) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeQuarantinePropertiesKey API_AVAILABLE(macos(10.10)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeQuarantinePropertiesKey API_AVAILABLE(macos(10.10)) API_UNAVAILABLE(ios, watchos, tvos);
     /* The quarantine properties for the volume on which the resource resides as defined in LSQuarantine.h.=To remove quarantine information from a volume, pass kCFNull as the value when setting this property. (Read-write, value type CFDictionary) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeOpenFolderURLKey API_AVAILABLE(macos(10.10)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeOpenFolderURLKey API_AVAILABLE(macos(10.10)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Returns a URL to the folder the Finder should open when a HFS volume is mounted, or NULL if there is none. (Read-only, value type CFURL) */
 
-CF_EXPORT const CFStringRef _kCFURLResolvedFromBookmarkDataKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLResolvedFromBookmarkDataKey API_DEPRECATED("Not supported", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal later in 10.9/7.0 since it is unused (*/
 
-CF_EXPORT const CFStringRef _kCFURLVolumeMountPointStringKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeMountPointStringKey API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
     /*	the volume mountpoint string (Read-only, value type CFString) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeDeviceIDKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLVolumeDeviceIDKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
     /* the volume's dev_t (Read-only, value type CFNumber) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsTimeMachineKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsTimeMachineKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is the Time Machine volume (Read-write, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsAirportKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsAirportKey API_AVAILABLE(macos(10.11)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is an airport volume (Read-write, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsVideoDiskKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsVideoDiskKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is video disk (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsDVDVideoKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsDVDVideoKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is DVD video (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsBDVideoKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsBDVideoKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is BD video (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsMobileTimeMachineKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsMobileTimeMachineKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is mobile time machine (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLVolumeIsNetworkOpticalKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
+CF_EXPORT extern const CFStringRef _kCFURLVolumeIsNetworkOpticalKey API_AVAILABLE(macos(10.13)) API_UNAVAILABLE(ios, watchos, tvos);
     /* Volume is network optical (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCompleteMountURLKey API_DEPRECATED("Use the kCFURLVolumeURLForRemountingKey or NSURLVolumeURLForRemountingKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef _kCFURLCompleteMountURLKey API_DEPRECATED("Use the kCFURLVolumeURLForRemountingKey or NSURLVolumeURLForRemountingKey public property keys", macos(10.6,10.9), ios(4.0,7.0), watchos(2.0,2.0), tvos(9.0,9.0));
     /* Deprecated and scheduled for removal in 10.10/8.0 - Use the kCFURLVolumeURLForRemountingKey or NSURLVolumeURLForRemountingKey public property keys */
 
-CF_EXPORT const CFStringRef _kCFURLUbiquitousItemDownloadRequestedKey API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLUbiquitousItemDownloadRequestedKey API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
     /* Is this Ubiquity item scheduled for download? (this is also true for items that are already downloaded). Use startDownloadingUbiquitousItemAtURL:error: to make this true (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef _kCFURLCloudDocsPlaceholderDictionaryKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLCloudDocsPlaceholderDictionaryKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
     /* Returns the placeholder dictionary for a side-fault file (Read-only, value type CFDictionary) */
 
-CF_EXPORT const CFStringRef _kCFURLCloudDocsPlaceholderLogicalNameKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef _kCFURLCloudDocsPlaceholderLogicalNameKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
     /* Returns the placeholder dictionary for a side-fault file (Read-only, value type CFString) */
 
 // Temporary holding place for future API.
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousItemDownloadRequestedKey API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousItemDownloadRequestedKey API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
 /* Is this Ubiquity item scheduled for download? (this is also true for items that are already downloaded). Use startDownloadingUbiquitousItemAtURL:error: to make this true (Read-only, value type CFBoolean) */
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousItemContainerDisplayNameKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousItemContainerDisplayNameKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
     /* Returns the localized name of the ubiquity container that contains this item (Read-only, value type CFString) */
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousItemIsSharedKey; // true if the ubiquitous item is shared. (Read-only, value type boolean NSNumber)
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousItemIsSharedKey; // true if the ubiquitous item is shared. (Read-only, value type boolean NSNumber)
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemCurrentUserRoleKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleOwner API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // the current user is the owner of this shared item.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleParticipant API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // the current user is a participant of this shared item.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemCurrentUserRoleKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemRoleOwner API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // the current user is the owner of this shared item.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemRoleParticipant API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // the current user is a participant of this shared item.
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemOwnerNameComponentsKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // returns a NSPersonNameComponents, or nil if the current user. (Read-only, value type NSPersonNameComponents)
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemMostRecentEditorNameComponentsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns a NSPersonNameComponents for the most recent editro fo the file, or nil if the current user. (Read-only, value type NSPersonNameComponents)
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemOwnerNameComponentsKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // returns a NSPersonNameComponents, or nil if the current user. (Read-only, value type NSPersonNameComponents)
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemMostRecentEditorNameComponentsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns a NSPersonNameComponents for the most recent editro fo the file, or nil if the current user. (Read-only, value type NSPersonNameComponents)
 
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemCurrentUserPermissionsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadOnly API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are only allowed to read this item
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadWrite API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are allowed to both read and write this item
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemCurrentUserPermissionsKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadOnly API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are only allowed to read this item
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemPermissionsReadWrite API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0)); // participants are allowed to both read and write this item
 
 // Deprecated. Will be removed.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemRoleKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemOwnerNameKey API_DEPRECATED("Replaced by kCFURLUbiquitousSharedItemOwnerNameComponentsKey", macos(10.11,10.11), ios(9.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemPermissionsKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemReadOnlyPermissions API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFStringRef kCFURLUbiquitousSharedItemReadWritePermissions API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemRoleKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // Replaced by kCFURLUbiquitousSharedItemCurrentUserRoleKey.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemOwnerNameKey API_DEPRECATED("Replaced by kCFURLUbiquitousSharedItemOwnerNameComponentsKey", macos(10.11,10.11), ios(9.0,9.0), watchos(2.0,2.0), tvos(9.0,9.0));
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemPermissionsKey API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0)); // returns the permissions for a participant of this shared item, or nil if not shared. (Read-only, value type NSString). Possible values below.
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemReadOnlyPermissions API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLUbiquitousSharedItemReadWritePermissions API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 
 
 // these keys are defined here, not in CFURL.h, because they return NSImage values which can only be used by Foundation
-CF_EXPORT const CFStringRef kCFURLThumbnailDictionaryKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
-CF_EXPORT const CFStringRef kCFURLThumbnailKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLThumbnailDictionaryKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFURLThumbnailKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 // The values of thumbnails in the dictionary returned by NSURLThumbnailDictionaryKey
-CF_EXPORT const CFStringRef kCFThumbnail1024x1024SizeKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
+CF_EXPORT extern const CFStringRef kCFThumbnail1024x1024SizeKey API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));
 
 // This private key is only for the use of CFURLPromises and the URL cache code in CoreServicesInternal
-CF_EXPORT const CFStringRef _kCFURLPromisePhysicalURLKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+CF_EXPORT extern const CFStringRef _kCFURLPromisePhysicalURLKey API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 
 
 /*
