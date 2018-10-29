@@ -65,6 +65,17 @@ internal func _pathComponents(_ path: String?) -> [String]? {
     return result
 }
 
+private func _statfs(path: String) throws -> statfs {
+    var st = statfs()
+    let success = FileManager.default._fileSystemRepresentation(withPath: path) { p in
+        return statfs(p, &st)
+    }
+    guard success == 0 else {
+        throw _NSErrorWithErrno(errno, reading: true, path: path)
+    }
+    return st
+}
+
 public struct URLResourceKey : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     public init(rawValue: String) {
@@ -174,6 +185,10 @@ extension URLResourceKey {
     public static let volumeSupportsFileCloningKey = URLResourceKey(rawValue: "NSURLVolumeSupportsFileCloningKey")
     public static let volumeSupportsSwapRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsSwapRenamingKey")
     public static let volumeSupportsExclusiveRenamingKey = URLResourceKey(rawValue: "NSURLVolumeSupportsExclusiveRenamingKey")
+    public static let volumeSupportsImmutableFilesKey = URLResourceKey(rawValue: "NSURLVolumeSupportsImmutableFilesKey")
+    public static let volumeSupportsAccessPermissionsKey = URLResourceKey(rawValue: "NSURLVolumeSupportsAccessPermissionsKey")
+    public static let volumeAvailableCapacityForImportantUsageKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityForImportantUsageKey")
+    public static let volumeAvailableCapacityForOpportunisticUsageKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityForOpportunisticUsageKey")
     public static let isUbiquitousItemKey = URLResourceKey(rawValue: "NSURLIsUbiquitousItemKey")
     public static let ubiquitousItemHasUnresolvedConflictsKey = URLResourceKey(rawValue: "NSURLUbiquitousItemHasUnresolvedConflictsKey")
     public static let ubiquitousItemIsDownloadingKey = URLResourceKey(rawValue: "NSURLUbiquitousItemIsDownloadingKey")
@@ -215,6 +230,18 @@ extension URLFileResourceType {
     public static let symbolicLink = URLFileResourceType(rawValue: "NSURLFileResourceTypeSymbolicLink")
     public static let socket = URLFileResourceType(rawValue: "NSURLFileResourceTypeSocket")
     public static let unknown = URLFileResourceType(rawValue: "NSURLFileResourceTypeUnknown")
+    
+    fileprivate init(statMode: mode_t) {
+        switch statMode & S_IFMT {
+        case S_IFCHR: self = .characterSpecial
+        case S_IFDIR: self = .directory
+        case S_IFBLK: self = .blockSpecial
+        case S_IFREG: self = .regular
+        case S_IFLNK: self = .symbolicLink
+        case S_IFSOCK: self = .socket
+        default: self = .unknown
+        }
+    }
 }
 
 open class NSURL : NSObject, NSSecureCoding, NSCopying {
@@ -638,13 +665,464 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     override open var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
+    
+    private func _initResourceInfo() {
+        let pInfo = UnsafeMutablePointer<NSMutableArray>.allocate(capacity: 1)
+        pInfo.initialize(to: NSMutableArray())
+        _CFSwiftRetain(UnsafeMutableRawPointer(pInfo)) // Balanced with resourceInfo release in _CFURLDeallocate()
+        pInfo.pointee.add(NSLock())
+        pInfo.pointee.add(NSMutableDictionary())
+        __CFURLSetResourceInfoPtr(_cfObject, UnsafeMutableRawPointer(pInfo))
+    }
+    
+    private func _accessResourceDictionary<T>(_ handler: (_ resourcesCache: NSMutableDictionary) -> T) -> T? {
+        // Resource values are only accessible for file urls.
+        guard _CFURLIsFileURL(_cfObject) else {
+            return nil
+        }
+        if __CFURLResourceInfoPtr(_cfObject) == nil {
+            _initResourceInfo()
+        }
+        guard let resourceInfoPtr = __CFURLResourceInfoPtr(_cfObject)?.assumingMemoryBound(to: NSMutableArray.self),
+            let lock = resourceInfoPtr.pointee.object(at: 0) as? NSLock,
+            let resourcesCache = resourceInfoPtr.pointee.object(at: 1) as? NSMutableDictionary else {
+            return nil
+        }
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return handler(resourcesCache)
+        
+    }
+    
+    open func removeAllCachedResourceValues() {
+        _accessResourceDictionary { (resourcesCache) in
+            resourcesCache.removeAllObjects()
+        }
+    }
+    
+    open func removeCachedResourceValue(forKey key: URLResourceKey) {
+        _accessResourceDictionary { (resourcesCache) in
+            resourcesCache.removeObject(forKey: key.rawValue)
+        }
+    }
+    
+    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] {
+        
+        func hasFlag(path: String, flag: Int32) throws -> Bool {
+            #if canImport(Darwin) || os(FreeBSD)
+            let stat = try FileManager.default._lstatFile(atPath: path)
+            return stat.st_flags & UInt32(flag) != 0
+            #elseif canImport(Glibc)
+            let fd = open(path, O_RDWR)
+            if fd >= 0 {
+                var attr: Int32 = 0
+                ioctl(fd, FS_IOC_GETFLAGS, &attr)
+                close(fd)
+                return attrs & flag != 0
+            } else {
+                throw CocoaError.error(.fileNoSuchFile)
+            }
+            #elseif os(Windows)
+            // GetFileAttributesEx()
+            NSUnimplemented()
+            #else
+            NSUnimplemented()
+            #endif
+        }
+        
+        guard _CFURLIsFileURL(_cfObject) else {
+            return [:]
+        }
+        
+        var unpopulatedKeys = Set(keys)
+        
+        let cachedValues: [URLResourceKey : Any] = _accessResourceDictionary { (resourcesCache) in
+            let resourcesCache = (resourcesCache as! [NSString: Any])
+                .filter { keys.contains(URLResourceKey(rawValue: $0.key._swiftObject)) }
+            var result = [URLResourceKey: Any]()
+            for (key, value) in resourcesCache {
+                let key = URLResourceKey(rawValue: key._swiftObject)
+                unpopulatedKeys.remove(key)
+                result[key] = value
+            }
+            return result
+        } ?? [:]
+        unpopulatedKeys.subtract(cachedValues.keys)
+        
+        let path = self.path!
+        let stat = try FileManager.default._lstatFile(atPath: path)
+        var newValues = [URLResourceKey : Any]()
+        for key in unpopulatedKeys {
+            switch key {
+            case .nameKey:
+                newValues[.nameKey] = lastPathComponent
+                
+            case .localizedNameKey:
+                newValues[.localizedNameKey] = lastPathComponent
+                
+            case .pathKey:
+                newValues[.pathKey] = path
+                
+            case .canonicalPathKey:
+                newValues[.canonicalPathKey] = standardized?.resolvingSymlinksInPath().path
+                
+            case .fileSizeKey:
+                newValues[.fileSizeKey] = NSNumber(value: stat.st_size)
+                
+            case .fileAllocatedSizeKey:
+                newValues[.fileAllocatedSizeKey] = NSNumber(value: Int64(512) * Int64(stat.st_blocks))
+                
+            case .isRegularFileKey:
+                newValues[.isRegularFileKey] = stat.st_mode & S_IFREG != 0
+                
+            case .isDirectoryKey:
+                newValues[.isDirectoryKey] = stat.st_mode & S_IFDIR != 0
+                
+            case .isSymbolicLinkKey:
+                newValues[.isSymbolicLinkKey] = stat.st_mode & S_IFLNK != 0
+                
+            case .fileResourceTypeKey:
+                newValues[.fileResourceTypeKey] = URLFileResourceType(statMode: stat.st_mode)
+                
+            case .creationDateKey:
+                #if canImport(Darwin)
+                let ti = TimeInterval(stat.st_birthtimespec.tv_sec) + (1.0e-9 * TimeInterval(stat.st_birthtimespec.tv_nsec))
+                newValues[.creationDateKey] = NSDate(timeIntervalSince1970: ti)
+                #elseif os(FreeBSD)
+                let ti = TimeInterval(stat.st_birthtim.tv_sec) + (1.0e-9 * TimeInterval(stat.st_birthtim.tv_nsec))
+                newValues[.creationDateKey] = NSDate(timeIntervalSince1970: ti)
+                #else
+                // TODO: Use statx linux 4.11 function
+                break
+                #endif
+                
+            case .contentAccessDateKey:
+                #if canImport(Darwin)
+                let ti = (TimeInterval(stat.st_atimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(stat.st_atimespec.tv_nsec))
+                #elseif os(Android)
+                let ti = TimeInterval(stat.st_atime) + (1.0e-9 * TimeInterval(s.st_atime_nsec))
+                #else
+                let ti = TimeInterval(stat.st_atim.tv_sec) + (1.0e-9 * TimeInterval(s.st_atim.tv_nsec))
+                #endif
+                newValues[.contentAccessDateKey] = NSDate(timeIntervalSince1970: ti)
+                
+            case .contentModificationDateKey:
+                #if canImport(Darwin)
+                let ti = (TimeInterval(stat.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(stat.st_mtimespec.tv_nsec))
+                #elseif os(Android)
+                let ti = TimeInterval(stat.st_mtime) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
+                #else
+                let ti = TimeInterval(stat.st_mtim.tv_sec) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
+                #endif
+                newValues[.contentModificationDateKey] = NSDate(timeIntervalSince1970: ti)
+                
+            case .attributeModificationDateKey:
+                #if canImport(Darwin)
+                let ti = TimeInterval(stat.st_ctimespec.tv_sec) + (1.0e-9 * TimeInterval(stat.st_ctimespec.tv_nsec))
+                #elseif os(Android)
+                let ti = TimeInterval(stat.st_ctime) + (1.0e-9 * TimeInterval(s.st_ctime_nsec))
+                #else
+                let ti = TimeInterval(stat.st_ctim.tv_sec) + (1.0e-9 * TimeInterval(s.st_ctim.tv_nsec))
+                #endif
+                newValues[.attributeModificationDateKey] = NSDate(timeIntervalSince1970: ti)
+                
+            case .preferredIOBlockSizeKey:
+                newValues[.preferredIOBlockSizeKey] = NSNumber(value: stat.st_blksize)
+                
+            case .linkCountKey:
+                newValues[.linkCountKey] = NSNumber(value: stat.st_nlink)
+                
+            case .parentDirectoryURLKey:
+                newValues[.parentDirectoryURLKey] = standardized?.deletingLastPathComponent()._nsObject
+                
+            case .isUserImmutableKey:
+                #if canImport(Darwin) || os(FreeBSD)
+                newValues[.isUserImmutableKey] = stat.st_flags & UInt32(UF_IMMUTABLE) != 0
+                #else
+                NSUnsupported()
+                #endif
+                
+            case .isSystemImmutableKey:
+                #if canImport(Darwin) || os(FreeBSD)
+                newValues[.isSystemImmutableKey] = stat.st_flags & UInt32(SF_IMMUTABLE) != 0
+                #elseif canImport(Glibc)
+                newValues[.isSystemImmutableKey] = try hasFlag(path: path, flag: FS_IMMUTABLE_FL)
+                #else
+                NSUnsupported()
+                #endif
+                
+                
+            case .isHiddenKey:
+                #if canImport(Darwin) || os(FreeBSD)
+                newValues[.isHiddenKey] = stat.st_flags & UInt32(UF_HIDDEN) != 0
+                #elseif os(Windows)
+                newValues[.isHiddenKey] = try hasFlag(path: path, flag: FILE_ATTRIBUTE_HIDDEN)
+                #else
+                newValues[.isHiddenKey] = lastPathComponent?.hasPrefix(".")
+                #endif
+                
+            case .isReadableKey:
+                newValues[.isReadableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
+                    access($0, R_OK) == 0
+                }
+                
+            case .isWritableKey:
+                newValues[.isWritableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
+                    access($0, W_OK) == 0
+                }
+                
+            case .isExecutableKey:
+                newValues[.isExecutableKey] = FileManager.default._fileSystemRepresentation(withPath: path) {
+                    access($0, X_OK) == 0
+                }
+                
+            case .generationIdentifierKey, .documentIdentifierKey:
+                fallthrough
+                
+            case .addedToDirectoryDateKey:
+                fallthrough
+                
+            // These keys are Darwin specific. Some can be implemented using xattrs, but still no
+            // linux disto would honor them!
+            case .hasHiddenExtensionKey, .isPackageKey , .isApplicationKey, .typeIdentifierKey,
+                 .localizedTypeDescriptionKey, .labelNumberKey, .labelColorKey, .localizedLabelKey,
+                 .effectiveIconKey, .customIconKey, .fileSecurityKey, .isExcludedFromBackupKey,
+                 .tagNamesKey, .isMountTriggerKey, .fileResourceIdentifierKey, .quarantinePropertiesKey,
+                 .thumbnailDictionaryKey, .thumbnailKey, .isAliasFileKey:
+                NSUnsupported()
+                
+             case .volumeTotalCapacityKey, .volumeAvailableCapacityKey, .volumeResourceCountKey,
+                  .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityForOpportunisticUsageKey:
+                let attributes = try? FileManager.default.attributesOfFileSystem(forPath: path)
+                newValues[.volumeTotalCapacityKey] = attributes?[.systemSize]
+                newValues[.volumeAvailableCapacityKey] = attributes?[.systemFreeSize]
+                newValues[.volumeAvailableCapacityForImportantUsageKey] = attributes?[.systemFreeSize]
+                newValues[.volumeAvailableCapacityForOpportunisticUsageKey] = attributes?[.systemFreeSize]
+                newValues[.volumeResourceCountKey] = attributes?[.systemNodes]
+                
+            case .volumeURLKey, .isVolumeKey:
+                let rootPath: String
+                #if canImport(Darwin) || os(FreeBSD)
+                var root = try _statfs(path: path).f_mntonname
+                rootPath = String(cString: &root.0)
+                #else
+                let mountedURLs = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: nil)
+                if let root = mountedURLs?.first(where: { $0.path == path || path.hasPrefix($0.path + "/") }) {
+                    rootPath = root.path
+                } else {
+                    rootPath = "/"
+                }
+                #endif
+                let url = NSURL(fileURLWithPath: rootPath)
+                newValues[.volumeURLKey] = url
+                newValues[.isVolumeKey] = self.isEqual(url)
+                
+            case .volumeIsReadOnlyKey:
+                newValues[.volumeIsReadOnlyKey] = try _statfs(path: path).f_flags & UInt32(ST_RDONLY) != 0
+                
+            case .volumeIsBrowsableKey, .volumeIsLocalKey, .volumeIsRootFileSystemKey:
+                #if canImport(Darwin) || os(FreeBSD)
+                let st = try _statfs(path: path)
+                newValues[.volumeIsBrowsableKey] = st.f_flags & UInt32(MNT_DONTBROWSE) == 0
+                newValues[.volumeIsLocalKey] = st.f_flags & UInt32(MNT_LOCAL) != 0
+                newValues[.volumeIsRootFileSystemKey] = st.f_flags & UInt32(MNT_ROOTFS) != 0
+                #else
+                NSUnimplemented()
+                #endif
+                
+            // These keys need `libblkid` in linux.
+            case .volumeIdentifierKey:
+                fallthrough
 
-    open func removeAllCachedResourceValues() { NSUnimplemented() }
-    open func removeCachedResourceValue(forKey key: URLResourceKey) { NSUnimplemented() }
-    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] { NSUnimplemented() }
-    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws { NSUnimplemented() }
-    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws { NSUnimplemented() }
-    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) { NSUnimplemented() }
+            case .volumeNameKey, .volumeLocalizedNameKey:
+                fallthrough
+                
+            case .volumeLocalizedFormatDescriptionKey:
+                fallthrough
+                
+            case .volumeSupportsPersistentIDsKey, .volumeSupportsSymbolicLinksKey, .volumeSupportsHardLinksKey,
+                 .volumeSupportsJournalingKey, .volumeSupportsSparseFilesKey, .volumeSupportsZeroRunsKey,
+                 .volumeSupportsCaseSensitiveNamesKey, .volumeSupportsCasePreservedNamesKey,
+                 .volumeSupportsRootDirectoryDatesKey, .volumeSupportsVolumeSizesKey, .volumeSupportsRenamingKey,
+                 .volumeSupportsAdvisoryFileLockingKey, .volumeSupportsExtendedSecurityKey,
+                 .volumeMaximumFileSizeKey, .volumeIsEjectableKey, .volumeIsRemovableKey, .volumeIsInternalKey,
+                 .volumeIsAutomountedKey, .volumeCreationDateKey, .volumeURLForRemountingKey, .volumeUUIDStringKey,
+                 .volumeIsEncryptedKey, .volumeSupportsCompressionKey, .volumeSupportsFileCloningKey,
+                 .volumeSupportsSwapRenamingKey, .volumeSupportsExclusiveRenamingKey, .volumeSupportsImmutableFilesKey,
+                 .volumeSupportsAccessPermissionsKey:
+                NSUnimplemented()
+                
+            default:
+                break
+            }
+        }
+        
+        _accessResourceDictionary { (resourcesCache) in
+            for resource in newValues {
+                resourcesCache.setObject(resource.value, forKey: resource.key.rawValue._nsObject)
+            }
+        }
+        
+        return cachedValues
+            .merging(newValues) { return $1 }
+            .filter { keys.contains($0.key) }
+    }
+    
+    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws {
+        
+        func setFlag(path: String, set: Bool, flag: Int32) throws {
+            #if canImport(Darwin) || os(FreeBSD)
+            let stat = try FileManager.default._lstatFile(atPath: path)
+            FileManager.default._fileSystemRepresentation(withPath: path) {
+                if set {
+                    chflags($0, stat.st_flags | UInt32(flag))
+                } else {
+                    chflags($0, stat.st_flags & ~UInt32(flag))
+                }
+            }
+            #elseif canImport(Glibc)
+            let fd = open(path, O_RDWR)
+            if fd >= 0 {
+                var attr: Int32 = 0
+                ioctl(fd, FS_IOC_GETFLAGS, &attr)
+                if set {
+                    attr = attr | flag
+                } else {
+                    attr = attr & ~flag
+                }
+                ioctl(fd, FS_IOC_SETFLAGS, &attr)
+                close(fd)
+            } else {
+                throw CocoaError.error(.fileNoSuchFile)
+            }
+            #elseif os(Windows)
+            // SetFileAttributesEx()
+            NSUnimplemented()
+            #else
+            NSUnimplemented()
+            #endif
+        }
+        
+        
+        func finalize(_ success: Bool) {
+            if success {
+                removeCachedResourceValue(forKey: key)
+            } else {
+                _accessResourceDictionary { (resourcesCache) in
+                    let resourceKey = URLResourceKey.keysOfUnsetValuesKey.rawValue._nsObject
+                    if let unsetKeys = resourcesCache.object(forKey: resourceKey) as? NSMutableArray {
+                        unsetKeys.add(key.rawValue._nsObject)
+                    } else {
+                        resourcesCache.setObject(NSMutableArray(array: [resourceKey]), forKey: resourceKey)
+                    }
+                }
+            }
+        }
+        
+        guard _CFURLIsFileURL(_cfObject) else {
+            return
+        }
+        
+        switch key {
+        case .nameKey:
+            guard let name = value as? String else {
+                fatalError()
+            }
+            let newURL = _swiftObject.deletingLastPathComponent().appendingPathComponent(name)
+            do {
+                try FileManager.default.moveItem(at: _swiftObject, to: newURL)
+                finalize(true)
+            } catch {
+                finalize(false)
+            }
+            
+        case .contentAccessDateKey:
+            guard let date = value as? Date else { fatalError() }
+            do {
+                try FileManager.default.updateTimestamp(path: path!, access: date)
+                finalize(true)
+            } catch {
+                finalize(false)
+            }
+            
+        case .contentModificationDateKey:
+            guard let date = value as? Date else { fatalError() }
+            do {
+                try FileManager.default.updateTimestamp(path: path!, modification: date)
+                finalize(true)
+            } catch {
+                finalize(false)
+            }
+            
+        case .creationDateKey:
+            guard let date = value as? Date else { fatalError() }
+            do {
+                try FileManager.default.updateTimestamp(path: path!, creation: date)
+                finalize(true)
+            } catch {
+                finalize(false)
+            }
+
+
+        case .isUserImmutableKey:
+            guard let value = value as? NSNumber else { fatalError() }
+            #if canImport(Darwin) || os(FreeBSD)
+            try setFlag(path: path!, set: value.boolValue, flag: UF_IMMUTABLE)
+            #else
+            NSUnsupported()
+            #endif
+            
+        case .isSystemImmutableKey:
+            guard let value = value as? NSNumber else { fatalError() }
+            #if canImport(Darwin) || os(FreeBSD)
+            try setFlag(path: path!, set: value.boolValue, flag: SF_IMMUTABLE)
+            #elseif canImport(Glibc)
+            // Only a privileged process (CAP_LINUX_IMMUTABLE) can set or clear this attribute.
+            try setFlag(path: path!, set: value.boolValue, flag: FS_IMMUTABLE_FL)
+            #else
+            NSUnsupported()
+            #endif
+            
+        case .isHiddenKey:
+            guard let value = value as? NSNumber else { fatalError() }
+            #if canImport(Darwin) || os(FreeBSD)
+            try setFlag(path: path!, set: value.boolValue, flag: UF_HIDDEN)
+            #elseif os(Windows)
+            try setFlag(path: path!, set: value.boolValue, flag: FILE_ATTRIBUTE_HIDDEN)
+            #else
+            NSUnsupported()
+            #endif
+            
+        case .volumeNameKey:
+            fallthrough
+            
+        // These keys are Darwin specific keys.
+        case .fileSecurityKey, .isPackageKey, .thumbnailKey, .thumbnailDictionaryKey, .hasHiddenExtensionKey,
+             .isExcludedFromBackupKey, .tagNamesKey, .labelNumberKey:
+            NSUnimplemented()
+        default:
+            break
+        }
+    }
+    
+    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws {
+        for (key, value) in keyedValues {
+            try setResourceValue(value, forKey: key)
+        }
+    }
+    
+    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) {
+        let key = key.rawValue._nsObject
+        _accessResourceDictionary { (resourcesCache) in
+            if let value = value {
+                resourcesCache.setObject(value, forKey: key)
+            } else {
+                resourcesCache.removeObject(forKey: key)
+            }
+        }
+    }
 }
 
 extension NSCharacterSet {

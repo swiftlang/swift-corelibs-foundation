@@ -509,28 +509,172 @@ open class FileManager : NSObject {
      */
     open weak var delegate: FileManagerDelegate?
     
+    internal func updateTimestamp(path: String, access: Date? = nil, modification: Date? = nil, creation: Date? = nil) throws {
+        func toTimeval(_ date: Date) -> timeval {
+            let sec = time_t(date.timeIntervalSince1970)
+            let nsec = suseconds_t(date.timeIntervalSince1970.remainder(dividingBy: 1.0) * 1e+6)
+            return timeval(tv_sec: sec, tv_usec: nsec)
+        }
+        
+        func toTimespec(_ date: Date?) -> timespec {
+            if let date = date {
+                let sec = time_t(date.timeIntervalSince1970)
+                let nsec = Int(date.timeIntervalSince1970.remainder(dividingBy: 1.0) * 1e+9)
+                return timespec(tv_sec: sec, tv_nsec: nsec)
+            } else {
+                return timespec(tv_sec: 0, tv_nsec: Int(UTIME_OMIT))
+            }
+        }
+        
+        let values = try NSURL(fileURLWithPath: path).resourceValues(forKeys: [.contentAccessDateKey, .contentModificationDateKey, .creationDateKey])
+        let curAccess = values[.contentAccessDateKey] as? Date
+        let curModified = values[.contentModificationDateKey] as? Date
+        let curCreate = values[.creationDateKey] as? Date
+        
+        if #available(macOS 10.13, iOS 11, tvOS 11, *) { // FreeBSD 10.3 and Linux
+            let acsTimespec = toTimespec(access)
+            let modTimespec = toTimespec(modification)
+            let createTimespec = toTimespec(creation)
+            
+            try _fileSystemRepresentation(withPath: path) { (pathPtr) in
+                if creation != nil, (creation ?? .distantPast) > (curCreate ?? .distantPast) {
+                    // Setting creation time acccording to [FreeBSD manual](https://www.freebsd.org/cgi/man.cgi?query=utimes&sektion=2)
+                    let times = UnsafeMutablePointer<timespec>.allocate(capacity: 2)
+                    times.initialize(to: acsTimespec)
+                    times.advanced(by: 1).initialize(to: createTimespec)
+                    defer {
+                        times.deinitialize(count: 2)
+                        times.deallocate()
+                    }
+                    if utimensat(AT_FDCWD, pathPtr, times, AT_SYMLINK_NOFOLLOW) < 0 {
+                        throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+                    }
+                }
+                
+                let times = UnsafeMutablePointer<timespec>.allocate(capacity: 2)
+                times.initialize(to: acsTimespec)
+                times.advanced(by: 1).initialize(to: modTimespec)
+                defer {
+                    times.deinitialize(count: 2)
+                    times.deallocate()
+                }
+                if utimensat(AT_FDCWD, pathPtr, times, AT_SYMLINK_NOFOLLOW) < 0 {
+                    throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+                }
+            }
+        } else {
+            let acsTimeval = toTimeval(access ?? curAccess ?? Date())
+            let modTimeval = toTimeval(modification ?? curModified ?? Date())
+            let createTimeval = creation.map(toTimeval)
+            
+            try _fileSystemRepresentation(withPath: path) { (pathPtr) in
+                if let createTimeval = createTimeval, (creation ?? .distantPast) > (curCreate ?? .distantPast) {
+                    // Setting creation time acccording to [FreeBSD manual](https://www.freebsd.org/cgi/man.cgi?query=utimes&sektion=2)
+                    let times = UnsafeMutablePointer<timeval>.allocate(capacity: 2)
+                    times.initialize(to: acsTimeval)
+                    times.advanced(by: 1).initialize(to: createTimeval)
+                    defer {
+                        times.deinitialize(count: 2)
+                        times.deallocate()
+                    }
+                    if lutimes(pathPtr, times) < 0 {
+                        throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+                    }
+                }
+                
+                let times = UnsafeMutablePointer<timeval>.allocate(capacity: 2)
+                times.initialize(to: acsTimeval)
+                times.advanced(by: 1).initialize(to: modTimeval)
+                defer {
+                    times.deinitialize(count: 2)
+                    times.deallocate()
+                }
+                if lutimes(pathPtr, times) < 0 {
+                    throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+                }
+            }
+        }
+        
+    }
+    
     /* setAttributes:ofItemAtPath:error: returns YES when the attributes specified in the 'attributes' dictionary are set successfully on the item specified by 'path'. If this method returns NO, a presentable NSError will be provided by-reference in the 'error' parameter. If no error is required, you may pass 'nil' for the error.
      
         This method replaces changeFileAttributes:atPath:.
      */
     open func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
-        for attribute in attributes.keys {
-            if attribute == .posixPermissions {
-                guard let number = attributes[attribute] as? NSNumber else {
-                    fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
+        for (key, value) in attributes {
+            switch key {
+            case .creationDate:
+                guard let date = value as? Date else {
+                    fatalError("Can't set file modification date to \(value as Any?)")
+                }
+                try updateTimestamp(path: path, creation: date)
+                
+            case .modificationDate:
+                guard let date = value as? Date else {
+                    fatalError("Can't set file modification date to \(value as Any?)")
+                }
+                try updateTimestamp(path: path, modification: date)
+                
+            case .posixPermissions:
+                guard let number = value as? NSNumber else {
+                    fatalError("Can't set file permissions to \(value as Any?)")
                 }
                 #if os(macOS) || os(iOS)
-                    let modeT = number.uint16Value
+                let modeT = number.uint16Value
                 #elseif os(Linux) || os(Android) || CYGWIN
-                    let modeT = number.uint32Value
+                let modeT = number.uint32Value
                 #endif
                 _fileSystemRepresentation(withPath: path, {
                     if chmod($0, mode_t(modeT)) != 0 {
                         fatalError("errno \(errno)")
                     }
                 })
-            } else {
-                fatalError("Attribute type not implemented: \(attribute)")
+                
+            case .ownerAccountID:
+                guard let id = value as? NSNumber else {
+                    fatalError("Can't set file owner to \(value as Any?)")
+                }
+                _ = self._fileSystemRepresentation(withPath: path) {
+                    chown($0, uid_t(id.uint32Value), 0 &- 1)
+                }
+                
+            case .ownerAccountName:
+                guard let name = value as? String else {
+                    fatalError("Can't set file owner name to \(value as Any?)")
+                }
+                _ = self._fileSystemRepresentation(withPath: path) {
+                    if let id = getpwnam(name)?.pointee.pw_uid {
+                        chown($0, id, 0 &- 1)
+                    }
+                }
+                
+            case .groupOwnerAccountID:
+                guard let id = value as? NSNumber else {
+                    fatalError("Can't set file group owner to \(value as Any?)")
+                }
+                _ = self._fileSystemRepresentation(withPath: path) {
+                    chown($0, 0 &- 1, uid_t(id.uint32Value))
+                }
+                
+            case .groupOwnerAccountName:
+                guard let name = value as? String else {
+                    fatalError("Can't set file group owner name to \(value as Any?)")
+                }
+                _ = self._fileSystemRepresentation(withPath: path) {
+                    if let id = getgrnam(name)?.pointee.gr_gid {
+                        chown($0, 0 &- 1, id)
+                    }
+                }
+                
+            case .immutable:
+                try NSURL(fileURLWithPath: path).setResourceValue(value, forKey: .isUserImmutableKey)
+                
+            case .busy, .extensionHidden:
+                NSUnimplemented()
+                
+            default:
+                break
             }
         }
     }
@@ -704,35 +848,34 @@ open class FileManager : NSObject {
      
         This method replaces fileSystemAttributesAtPath:.
      */
- #if os(Android)
-    @available(*, unavailable, message: "Unsuppported on this platform")
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        NSUnsupported()
-    }
- #else
-    open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
-        #if os(macOS) || os(iOS)
-            var s = statfs()
-            guard statfs(path, &s) == 0 else {
-                throw _NSErrorWithErrno(errno, reading: true, path: path)
-            }
-        #else
-            var s = statvfs()
-            guard statvfs(path, &s) == 0 else {
-                throw _NSErrorWithErrno(errno, reading: true, path: path)
-            }
-        #endif
-        
-        
+        let pathPtr = fileSystemRepresentation(withPath: path)
+        defer {
+            pathPtr.deallocate()
+        }
         var result = [FileAttributeKey : Any]()
-        #if os(macOS) || os(iOS)
-            let blockSize = UInt64(s.f_bsize)
-            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
+        
+        // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
+        #if canImport(Darwin)
+        var s = statfs()
+        guard statfs(pathPtr, &s) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+        
+        let blockSize = UInt64(s.f_bsize)
+        result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0) | (UInt64(s.f_fsid.val.1) << 32))
+        #elseif os(Android)
+        NSUnsupported()
         #else
-            let blockSize = UInt64(s.f_frsize)
-            result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
+        var s = statvfs()
+        guard statvfs(pathPtr, &s) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+        
+        let blockSize = UInt64(s.f_frsize)
+        result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
         #endif
+        
         result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
         result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
         result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
@@ -740,7 +883,6 @@ open class FileManager : NSObject {
         
         return result
     }
-#endif
     
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
      
@@ -1362,7 +1504,7 @@ open class FileManager : NSObject {
         return path1entries.isEmpty
     }
 
-    private func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
+    internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
             _fsRep = fileSystemRepresentation(withPath: path)

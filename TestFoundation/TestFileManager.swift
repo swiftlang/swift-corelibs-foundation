@@ -417,15 +417,18 @@ class TestFileManager : XCTestCase {
         try? fm.removeItem(atPath: path)
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(), attributes: nil))
         
+        let date = Date(timeIntervalSinceNow: -10)
         do {
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0600))], ofItemAtPath: path)
+            try fm.setAttributes([.modificationDate: date], ofItemAtPath: path)
         }
         catch { XCTFail("\(error)") }
         
         //read back the attributes
         do {
             let attributes = try fm.attributesOfItem(atPath: path)
-            XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
+            XCTAssertEqual((attributes[.posixPermissions] as? NSNumber)?.int16Value, 0o0600)
+            XCTAssertEqual((attributes[.modificationDate] as? Date), date)
         }
         catch { XCTFail("\(error)") }
 
