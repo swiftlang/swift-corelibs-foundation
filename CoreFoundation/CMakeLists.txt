@@ -362,7 +362,8 @@ target_compile_options(CoreFoundation
                          -fblocks
                          -fconstant-cfstrings
                          -fdollars-in-identifiers
-                         -fexceptions)
+                         -fexceptions
+                         -fno-common)
 if(CF_DEPLOYMENT_SWIFT)
   target_compile_options(CoreFoundation
                          PRIVATE
