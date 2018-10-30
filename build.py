@@ -63,6 +63,7 @@ foundation.CFLAGS += " ".join([
 	'-Wno-int-conversion',
 	'-Wno-unused-function',
 	'-I./',
+	'-fno-common',
 	'-fcf-runtime-abi=swift',
 ])
 

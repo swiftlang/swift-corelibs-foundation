@@ -145,7 +145,7 @@ typedef int		boolean_t;
 
 #if DEPLOYMENT_TARGET_LINUX
     
-#define CF_PRIVATE __attribute__((visibility("hidden")))
+#define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __weak
 
 #define strtod_l(a,b,locale) strtod(a,b)
@@ -235,7 +235,7 @@ CF_INLINE uint64_t mach_absolute_time() {
 #if DEPLOYMENT_TARGET_FREEBSD
 #define HAVE_STRUCT_TIMESPEC 1
 
-#define CF_PRIVATE __attribute__((visibility("hidden")))
+#define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __strong
 #define __weak
 
@@ -455,7 +455,7 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 #endif
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE __attribute__((__visibility__("hidden"))) extern
+#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
 #endif
     
     // [FIXED_35517899] We can't currently support this, but would like to leave things annotated
