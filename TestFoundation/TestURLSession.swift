@@ -43,6 +43,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
             ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
+            ("test_postWithEmptyBody", test_postWithEmptyBody),
         ]
     }
     
@@ -674,6 +675,25 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertEqual(config.urlCredentialStorage, nil)
         XCTAssertEqual(config.urlCache, nil)
         XCTAssertEqual(config.shouldUseExtendedBackgroundIdleMode, true)
+    }
+
+    /* Test for SR-8970 to verify that content-type header is not added to post with empty body */
+    func test_postWithEmptyBody() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString): post with empty body")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (_, response, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+            guard let httpresponse = response as? HTTPURLResponse else { fatalError() }
+            XCTAssertEqual(200, httpresponse.statusCode, "HTTP response code is not 200")
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
     }
 }
 
