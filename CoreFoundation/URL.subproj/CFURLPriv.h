@@ -432,6 +432,12 @@ typedef unsigned long long CFURLResourcePropertyFlags;
 CF_EXPORT
 Boolean _CFURLGetResourcePropertyFlags(CFURLRef url, CFURLResourcePropertyFlags mask, CFURLResourcePropertyFlags *flags, CFErrorRef *error) API_AVAILABLE(macos(10.6), ios(4.0), watchos(2.0), tvos(9.0));
 
+CF_EXPORT
+Boolean __CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key, errno_t *error);
+CF_EXPORT
+Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key, Boolean set, errno_t *error);
+
+
 #if TARGET_OS_MAC || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 /*
     File resource properties which can be obtained with _CFURLCopyFilePropertyValuesAndFlags().

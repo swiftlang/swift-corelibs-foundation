@@ -5208,3 +5208,152 @@ CFURLRef CFURLCreateFilePathURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *
 
 CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *error) { return NULL; }
 
+// MARK: NSURL resource value functions
+
+#if __has_include(<linux/fs.h>)
+#include <sys/ioctl.h>
+#include <linux/fs.h>
+#endif
+
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <windows.h>
+#endif
+
+Boolean __CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key, errno_t *error) {
+    char pathBuf[CFMaxPathSize];
+    CFStringRef path = CFURLCopyPath(url);
+    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return false;
+    
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+    struct stat st;
+#endif
+    switch (key) {
+        case kCFURLResourceIsHidden:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            if (stat(pathBuf, &st)) {
+                error = errno;
+                return false;
+            }
+            return st.st_flags & UF_HIDDEN;
+#endif
+#if DEPLOYMENT_TARGET_WINDOWS
+            int attr = GetFileAttributes(path);
+            return (attr & FILE_ATTRIBUTE_HIDDEN) != 0;
+#else
+            // Unix-based systems
+            if (CFStringHasPrefix(CFURLCopyLastPathComponent(url), CFSTR("."))) {
+                return true;
+            }
+#endif
+            return false;
+            
+        case kCFURLResourceIsUserImmutable:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            if (stat(pathBuf, &st)) {
+                error = errno;
+                return false;
+            }
+            return st.st_flags & UF_IMMUTABLE;
+#else
+            return false;
+#endif
+            
+        case kCFURLResourceIsSystemImmutable:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            if (stat(pathBuf, &st)) {
+                error = errno;
+                return false;
+            }
+            return st.st_flags & SF_IMMUTABLE;
+#endif
+#if __has_include(<linux/fs.h>)
+            int fd = _CFOpenFile(pathBuf, O_RDONLY);
+            if (fd < 0) {
+                error = errno;
+                return false;
+            }
+            int attrs;
+            if (ioctl(fd, FS_IOC_GETFLAGS, &attrs)) {
+                error = errno;
+                return false;
+            }
+            return attrs & FS_IMMUTABLE_FL;
+#endif
+            return false;
+            
+        default:
+            return false;
+    }
+    return false;
+}
+
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+int __setChFlags(char *pathBuf, int flag, Boolean set) {
+    struct stat st;
+    if (stat(pathBuf, &st)) {
+        return errno;
+    }
+    long flags = st.st_flags;
+    if (set) {
+        flags = flags | UF_HIDDEN;
+    } else {
+        flags = flags & ~UF_HIDDEN;
+    }
+    return 0;
+}
+#endif
+
+Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key, Boolean set, errno_t *error) {
+    char pathBuf[CFMaxPathSize];
+    CFStringRef path = CFURLCopyPath(url);
+    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return false;
+    
+    switch (key) {
+        case kCFURLResourceIsHidden:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            error = __setChFlags(pathBuf, UF_HIDDEN, set);
+            return error == 0;
+#elif DEPLOYMENT_TARGET_WINDOWS
+            int attr = GetFileAttributes(path);
+            if (set) {
+                SetFileAttributes(path, attr | FILE_ATTRIBUTE_HIDDEN);
+            } else {
+                SetFileAttributes(path, attr & ~FILE_ATTRIBUTE_HIDDEN);
+            }
+            return true;
+#endif
+            return false;
+            
+        case kCFURLResourceIsUserImmutable:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            error = __setChFlags(pathBuf, UF_IMMUTABLE, set);
+            return error == 0;
+#else
+            return false;
+#endif
+            
+        case kCFURLResourceIsSystemImmutable:
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+            error = __setChFlags(pathBuf, SF_IMMUTABLE, set);
+            return error == 0;
+#endif
+#if __has_include(<linux/fs.h>)
+            int fd = _CFOpenFile(pathBuf, O_RDONLY);
+            if (fd < 0) {
+                error = errno;
+                return false;
+            }
+            int attrs;
+            if (ioctl(fd, FS_IOC_GETFLAGS, &attrs)) {
+                error = errno;
+                return false;
+            }
+            return true;
+#endif
+            return false;
+            
+        default:
+            break;
+    }
+    return false;
+}

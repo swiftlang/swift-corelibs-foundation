@@ -8,12 +8,34 @@
 //
 
 #if canImport(Darwin)
-    import Darwin
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
 #endif
 
-#if canImport(Glibc)
-    import Glibc
+#if canImport(Darwin) || os(FreeBSD)
+func _statfs(path: String) throws -> statfs {
+    var st = statfs()
+    let success = FileManager.default._fileSystemRepresentation(withPath: path) { p in
+        return statfs(p, &st)
+    }
+    guard success == 0 else {
+        throw _NSErrorWithErrno(errno, reading: true, path: path)
+    }
+    return st
+}
 #endif
+
+func _statvfs(path: String) throws -> statvfs {
+    var st = statvfs()
+    let success = FileManager.default._fileSystemRepresentation(withPath: path) { p in
+        return statvfs(p, &st)
+    }
+    guard success == 0 else {
+        throw _NSErrorWithErrno(errno, reading: true, path: path)
+    }
+    return st
+}
 
 #if os(Android) // struct stat.st_mode is UInt32
 internal func &(left: UInt32, right: mode_t) -> mode_t {
@@ -509,12 +531,9 @@ open class FileManager : NSObject {
      */
     open weak var delegate: FileManagerDelegate?
     
-    internal func updateTimestamp(path: String, access: Date? = nil, modification: Date? = nil, creation: Date? = nil) throws {
-        func toTimeval(_ date: Date) -> timeval {
-            let sec = time_t(date.timeIntervalSince1970)
-            let nsec = suseconds_t(date.timeIntervalSince1970.remainder(dividingBy: 1.0) * 1e+6)
-            return timeval(tv_sec: sec, tv_usec: nsec)
-        }
+    #if canImport(Darwin) // TODO: Add other OSes when version avaialblity check becomes possible
+    @available(macOS 10.13, iOS 11, tvOS 11, *) // and FreeBSD 10.3 and Linux 4.16
+    private func _setTimespec(path: UnsafePointer<Int8>, asc: Date?, mod: Date?) throws {
         
         func toTimespec(_ date: Date?) -> timespec {
             if let date = date {
@@ -526,41 +545,51 @@ open class FileManager : NSObject {
             }
         }
         
+        let times = UnsafeMutablePointer<timespec>.allocate(capacity: 2)
+        times.initialize(to: toTimespec(asc))
+        times.advanced(by: 1).initialize(to: toTimespec(mod))
+        defer {
+            times.deinitialize(count: 2)
+            times.deallocate()
+        }
+        if utimensat(AT_FDCWD, path, times, AT_SYMLINK_NOFOLLOW) < 0 {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+        }
+    }
+    #endif
+    
+    private func _setTimeval(path: UnsafePointer<Int8>, asc: timeval, mod: timeval) throws {
+        let times = UnsafeMutablePointer<timeval>.allocate(capacity: 2)
+        times.initialize(to: asc)
+        times.advanced(by: 1).initialize(to: mod)
+        defer {
+            times.deinitialize(count: 2)
+            times.deallocate()
+        }
+        if lutimes(path, times) < 0 {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+        }
+    }
+    
+    internal func updateTimestamp(path: String, access: Date? = nil, modification: Date? = nil, creation: Date? = nil) throws {
+        func toTimeval(_ date: Date) -> timeval {
+            let sec = time_t(date.timeIntervalSince1970)
+            let nsec = suseconds_t(date.timeIntervalSince1970.remainder(dividingBy: 1.0) * 1e+6)
+            return timeval(tv_sec: sec, tv_usec: nsec)
+        }
+        
         let values = try NSURL(fileURLWithPath: path).resourceValues(forKeys: [.contentAccessDateKey, .contentModificationDateKey, .creationDateKey])
         let curAccess = values[.contentAccessDateKey] as? Date
         let curModified = values[.contentModificationDateKey] as? Date
         let curCreate = values[.creationDateKey] as? Date
         
-        if #available(macOS 10.13, iOS 11, tvOS 11, *) { // FreeBSD 10.3 and Linux
-            let acsTimespec = toTimespec(access)
-            let modTimespec = toTimespec(modification)
-            let createTimespec = toTimespec(creation)
-            
+        if #available(macOS 10.13, iOS 11, tvOS 11, *) { // FreeBSD 10.3 and Linux 4.16
             try _fileSystemRepresentation(withPath: path) { (pathPtr) in
                 if creation != nil, (creation ?? .distantPast) > (curCreate ?? .distantPast) {
                     // Setting creation time acccording to [FreeBSD manual](https://www.freebsd.org/cgi/man.cgi?query=utimes&sektion=2)
-                    let times = UnsafeMutablePointer<timespec>.allocate(capacity: 2)
-                    times.initialize(to: acsTimespec)
-                    times.advanced(by: 1).initialize(to: createTimespec)
-                    defer {
-                        times.deinitialize(count: 2)
-                        times.deallocate()
-                    }
-                    if utimensat(AT_FDCWD, pathPtr, times, AT_SYMLINK_NOFOLLOW) < 0 {
-                        throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
-                    }
+                    try _setTimespec(path: pathPtr, asc: nil, mod: creation)
                 }
-                
-                let times = UnsafeMutablePointer<timespec>.allocate(capacity: 2)
-                times.initialize(to: acsTimespec)
-                times.advanced(by: 1).initialize(to: modTimespec)
-                defer {
-                    times.deinitialize(count: 2)
-                    times.deallocate()
-                }
-                if utimensat(AT_FDCWD, pathPtr, times, AT_SYMLINK_NOFOLLOW) < 0 {
-                    throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
-                }
+                try _setTimespec(path: pathPtr, asc: access, mod: modification)
             }
         } else {
             let acsTimeval = toTimeval(access ?? curAccess ?? Date())
@@ -570,28 +599,9 @@ open class FileManager : NSObject {
             try _fileSystemRepresentation(withPath: path) { (pathPtr) in
                 if let createTimeval = createTimeval, (creation ?? .distantPast) > (curCreate ?? .distantPast) {
                     // Setting creation time acccording to [FreeBSD manual](https://www.freebsd.org/cgi/man.cgi?query=utimes&sektion=2)
-                    let times = UnsafeMutablePointer<timeval>.allocate(capacity: 2)
-                    times.initialize(to: acsTimeval)
-                    times.advanced(by: 1).initialize(to: createTimeval)
-                    defer {
-                        times.deinitialize(count: 2)
-                        times.deallocate()
-                    }
-                    if lutimes(pathPtr, times) < 0 {
-                        throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
-                    }
+                    try _setTimeval(path: pathPtr, asc: acsTimeval, mod: createTimeval)
                 }
-                
-                let times = UnsafeMutablePointer<timeval>.allocate(capacity: 2)
-                times.initialize(to: acsTimeval)
-                times.advanced(by: 1).initialize(to: modTimeval)
-                defer {
-                    times.deinitialize(count: 2)
-                    times.deallocate()
-                }
-                if lutimes(pathPtr, times) < 0 {
-                    throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
-                }
+                try _setTimeval(path: pathPtr, asc: acsTimeval, mod: modTimeval)
             }
         }
         
@@ -606,7 +616,7 @@ open class FileManager : NSObject {
             switch key {
             case .creationDate:
                 guard let date = value as? Date else {
-                    fatalError("Can't set file modification date to \(value as Any?)")
+                    fatalError("Can't set file creation date to \(value as Any?)")
                 }
                 try updateTimestamp(path: path, creation: date)
                 
@@ -856,29 +866,23 @@ open class FileManager : NSObject {
      
         This method replaces fileSystemAttributesAtPath:.
      */
+#if os(Android)
+    @available(*, unavailable, message: "Unsuppported on this platform")
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        let pathPtr = fileSystemRepresentation(withPath: path)
-        defer {
-            pathPtr.deallocate()
-        }
+        NSUnsupported()
+    }
+#else
+    open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         var result = [FileAttributeKey : Any]()
         
         // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
         #if canImport(Darwin)
-        var s = statfs()
-        guard statfs(pathPtr, &s) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: path)
-        }
+        let s = try _statfs(path: path)
         
         let blockSize = UInt64(s.f_bsize)
         result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0) | (UInt64(s.f_fsid.val.1) << 32))
-        #elseif os(Android)
-        NSUnsupported()
         #else
-        var s = statvfs()
-        guard statvfs(pathPtr, &s) == 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: path)
-        }
+        let s = try _statvfs(path: path)
         
         let blockSize = UInt64(s.f_frsize)
         result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
@@ -891,6 +895,7 @@ open class FileManager : NSObject {
         
         return result
     }
+#endif
     
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
      
