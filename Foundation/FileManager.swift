@@ -1480,7 +1480,8 @@ open class FileManager : NSObject {
     open func contents(atPath path: String) -> Data? {
         return try? Data(contentsOf: URL(fileURLWithPath: path))
     }
-    
+
+    @discardableResult
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
         do {
             try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
