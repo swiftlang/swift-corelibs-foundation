@@ -468,6 +468,13 @@ public class TestURLSessionServer {
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)", body: text)
         }
 
+        if uri == "/emptyPost" {
+            if request.body.count == 0 && request.getHeader(for: "Content-Type") == nil {
+                return _HTTPResponse(response: .OK, body: "")
+            }
+            return _HTTPResponse(response: .NOTFOUND, body: "")
+        }
+
         if uri == "/requestCookies" {
             let text = request.getCommaSeparatedHeaders()
             return _HTTPResponse(response: .OK, headers: "Content-Length: \(text.data(using: .utf8)!.count)\r\nSet-Cookie: fr=anjd&232; Max-Age=7776000; path=/\r\nSet-Cookie: nm=sddf&232; Max-Age=7776000; path=/; domain=.swift.org; secure; httponly\r\n", body: text)
