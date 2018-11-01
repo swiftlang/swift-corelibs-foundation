@@ -699,15 +699,63 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
+    private func _fileSystemDescription(_ value: String) -> String? {
+        switch value {
+        case "apfs":
+            return "APFS"
+        case "hfs", "hfsplus":
+            return "Mac OS Extended"
+        case "ext2":
+            return "ext2"
+        case "ext3":
+            return "ext3"
+        case "ext4":
+            return "ext4"
+        case "msdos", "vfat", "msdosfs":
+            return "MS-DOS (FAT32)"
+        case "hpfs", "ntfs", "ntfs-3g":
+            return "NTFS"
+        case "btrfs":
+            return "Btrfs"
+        case "ufs":
+            return "Unix File System"
+        case "udf":
+            return "Universal Disk Format "
+        case "reiserfs":
+            return "ReiserFS"
+        case "xfs":
+            return "XFS"
+        default:
+            return nil
+        }
+    }
+    
     open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] {
         
-        func hasFlag(path: String, key: CFURLResourcePropertyFlags) throws -> Bool {
+        func hasFlag(path: String, key: CFURLResourcePropertyFlags) throws -> Bool? {
             var error: errno_t = 0
-            let result = __CFURLResourceValueHasFlag(_cfObject, key, &error)
+            guard let result = _CFURLResourceValueHasFlag(_cfObject, key, &error) else {
+                return nil
+            }
             if error != 0 {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
-            return result
+            return result == kCFBooleanTrue
+        }
+        
+        guard _CFURLIsFileURL(_cfObject) else {
+            return [:]
+        }
+        
+        func hasVolumeFlag(path: String, key: CFURLVolumePropertyFlags) throws -> Bool? {
+            var error: errno_t = 0
+            guard let result = _CFURLVolumeHasFlag(_cfObject, key, &error) else {
+                return nil
+            }
+            if error != 0 {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+            return result == kCFBooleanTrue
         }
         
         guard _CFURLIsFileURL(_cfObject) else {
@@ -728,6 +776,9 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             return result
         } ?? [:]
         unpopulatedKeys.subtract(cachedValues.keys)
+        
+        var volumeCapIterated = false
+        var volumeInfoIterated = false
         
         let path = self.path!
         let stat = try FileManager.default._lstatFile(atPath: path)
@@ -816,30 +867,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                 newValues[.parentDirectoryURLKey] = standardized?.deletingLastPathComponent()._nsObject
                 
             case .isUserImmutableKey:
-                #if canImport(Darwin) || os(FreeBSD)
-                newValues[.isUserImmutableKey] = stat.st_flags & UInt32(UF_IMMUTABLE) != 0
-                #else
-                NSUnsupported()
-                #endif
+                newValues[.isUserImmutableKey] = try hasFlag(path: path, key: CFURLResourcePropertyFlags(kCFURLResourceIsHidden))
                 
             case .isSystemImmutableKey:
-                #if canImport(Darwin) || os(FreeBSD)
-                newValues[.isSystemImmutableKey] = stat.st_flags & UInt32(SF_IMMUTABLE) != 0
-                #elseif canImport(Glibc)
-                newValues[.isSystemImmutableKey] = try hasFlag(path: path, flag: FS_IMMUTABLE_FL)
-                #else
-                NSUnsupported()
-                #endif
-                
+                newValues[.isSystemImmutableKey] = try hasFlag(path: path, key: CFURLResourcePropertyFlags(kCFURLResourceIsSystemImmutable))
                 
             case .isHiddenKey:
-                #if canImport(Darwin) || os(FreeBSD)
-                newValues[.isHiddenKey] = stat.st_flags & UInt32(UF_HIDDEN) != 0
-                #elseif os(Windows)
-                newValues[.isHiddenKey] = try hasFlag(path: path, flag: FILE_ATTRIBUTE_HIDDEN)
-                #else
-                newValues[.isHiddenKey] = lastPathComponent?.hasPrefix(".")
-                #endif
+                newValues[.isHiddenKey] = try hasFlag(path: path, key: CFURLResourcePropertyFlags(kCFURLResourceIsSystemImmutable))
                 
             case .isReadableKey:
                 newValues[.isReadableKey] = FileManager.default.isReadableFile(atPath: path)
@@ -865,67 +899,93 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                  .thumbnailDictionaryKey, .thumbnailKey, .isAliasFileKey:
                 NSUnsupported()
                 
-             case .volumeTotalCapacityKey, .volumeAvailableCapacityKey, .volumeResourceCountKey,
-                  .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityForOpportunisticUsageKey:
+            case .volumeURLKey, .isVolumeKey, .volumeNameKey, .volumeLocalizedNameKey, .volumeLocalizedFormatDescriptionKey:
+                guard !volumeInfoIterated, let volume = _CFDictionaryCreateVolumeInfo(kCFAllocatorDefault, _cfObject) as? [String: Any] else {
+                    break
+                }
+                let rootPath: String = volume["mountto"] as! String
+                let url = NSURL(fileURLWithPath: rootPath)
+                
+                newValues[.volumeURLKey] = url
+                newValues[.isVolumeKey] = self.isEqual(url)
+                
+                if let mntfrom = volume["mountfrom"] as? String, !mntfrom.contains("/") {
+                    newValues[.volumeNameKey] = mntfrom
+                    newValues[.volumeLocalizedNameKey] = mntfrom
+                } else if let name = url.lastPathComponent, name != "/" {
+                    newValues[.volumeNameKey] = name
+                    newValues[.volumeLocalizedNameKey] = name
+                } else if rootPath == "/" {
+                    newValues[.volumeNameKey] = "root"
+                    newValues[.volumeLocalizedNameKey] = "root"
+                }
+                newValues[.volumeLocalizedFormatDescriptionKey] = _fileSystemDescription(volume["typename"] as! String)
+                
+                volumeInfoIterated = true
+                
+            case .volumeTotalCapacityKey, .volumeAvailableCapacityKey, .volumeResourceCountKey,
+                 .volumeAvailableCapacityForImportantUsageKey, .volumeAvailableCapacityForOpportunisticUsageKey:
+                guard !volumeCapIterated else { break }
                 let attributes = try? FileManager.default.attributesOfFileSystem(forPath: path)
                 newValues[.volumeTotalCapacityKey] = attributes?[.systemSize]
                 newValues[.volumeAvailableCapacityKey] = attributes?[.systemFreeSize]
                 newValues[.volumeAvailableCapacityForImportantUsageKey] = attributes?[.systemFreeSize]
                 newValues[.volumeAvailableCapacityForOpportunisticUsageKey] = attributes?[.systemFreeSize]
                 newValues[.volumeResourceCountKey] = attributes?[.systemNodes]
+                volumeCapIterated = true
                 
-            case .volumeURLKey, .isVolumeKey, .volumeNameKey, .volumeLocalizedNameKey:
-                let rootPath: String
-                #if canImport(Darwin) || os(FreeBSD)
-                var root = try _statfs(path: path).f_mntonname
-                rootPath = String(cString: &root.0)
-                #else
-                let mountedURLs = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: nil)
-                if let root = mountedURLs?.first(where: { $0.path == path || path.hasPrefix($0.path + "/") }) {
-                    rootPath = root.path
-                } else {
-                    rootPath = "/"
+            case .volumeMaximumFileSizeKey:
+                var error: errno_t = 0
+                guard let result = __CFURLVolumeMaximumSize(_cfObject, &error) else {
+                    break
                 }
-                #endif
-                let url = NSURL(fileURLWithPath: rootPath)
-                newValues[.volumeURLKey] = url
-                newValues[.isVolumeKey] = self.isEqual(url)
-                if let name = url.lastPathComponent, name != "/" {
-                    newValues[.volumeNameKey] = name
-                    newValues[.volumeLocalizedNameKey] = name
-                } else {
-                    newValues[.volumeNameKey] = "root"
-                    newValues[.volumeLocalizedNameKey] = "root"
+                if error != 0 {
+                    throw _NSErrorWithErrno(errno, reading: true, path: path)
                 }
+                newValues[.volumeMaximumFileSizeKey] = result._nsObject
                 
             case .volumeIsReadOnlyKey:
-                newValues[.volumeIsReadOnlyKey] = try UInt(_statvfs(path: path).f_flag) & UInt(ST_RDONLY) != 0
+                newValues[.volumeIsReadOnlyKey] = try hasVolumeFlag(path: path, key: .isReadOnly)
                 
-            case .volumeIsBrowsableKey, .volumeIsLocalKey, .volumeIsRootFileSystemKey:
-                #if canImport(Darwin) || os(FreeBSD)
-                let st = try _statfs(path: path)
-                newValues[.volumeIsBrowsableKey] = st.f_flags & UInt32(MNT_DONTBROWSE) == 0
-                newValues[.volumeIsLocalKey] = st.f_flags & UInt32(MNT_LOCAL) != 0
-                newValues[.volumeIsRootFileSystemKey] = st.f_flags & UInt32(MNT_ROOTFS) != 0
-                #endif
+            case .volumeIsBrowsableKey:
+                if let dontBrowse = try hasVolumeFlag(path: path, key: .dontBrowse) {
+                    newValues[.volumeIsReadOnlyKey] = !dontBrowse
+                }
+                
+            case .volumeIsLocalKey:
+                newValues[.volumeIsLocalKey] = try hasVolumeFlag(path: path, key: .isLocal)
+                
+            case .volumeIsRootFileSystemKey:
+                newValues[.volumeIsRootFileSystemKey] = try hasVolumeFlag(path: path, key: .isRootFileSystem)
+                
+            case .volumeSupportsSymbolicLinksKey:
+                newValues[.volumeSupportsSymbolicLinksKey] = try hasVolumeFlag(path: path, key: .supportsSymbolicLinks)
+                
+            case .volumeSupportsHardLinksKey:
+                newValues[.volumeSupportsHardLinksKey] = try hasVolumeFlag(path: path, key: .supportsHardLinks)
+                
+            case .volumeSupportsExtendedSecurityKey:
+                newValues[.volumeSupportsHardLinksKey] = try hasVolumeFlag(path: path, key: .supportsExtendedSecurity)
+                
+            case .volumeSupportsCaseSensitiveNamesKey:
+                newValues[.volumeSupportsCaseSensitiveNamesKey] = try hasVolumeFlag(path: path, key: .supportsCaseSensitiveNames)
+                
+            case .volumeSupportsCasePreservedNamesKey:
+                newValues[.volumeSupportsCasePreservedNamesKey] = try hasVolumeFlag(path: path, key: .supportsCasePreservedNames)
                 
             // These keys need `libblkid` in linux.
-            case .volumeIdentifierKey:
+            case .volumeIdentifierKey, .volumeUUIDStringKey, .volumeCreationDateKey, .volumeURLForRemountingKey:
                 fallthrough
                 
-            case .volumeLocalizedFormatDescriptionKey:
+            case .volumeIsEjectableKey, .volumeIsRemovableKey, .volumeIsInternalKey, .volumeIsEncryptedKey,
+                 .volumeIsAutomountedKey:
                 fallthrough
                 
-            case .volumeSupportsPersistentIDsKey, .volumeSupportsSymbolicLinksKey, .volumeSupportsHardLinksKey,
-                 .volumeSupportsJournalingKey, .volumeSupportsSparseFilesKey, .volumeSupportsZeroRunsKey,
-                 .volumeSupportsCaseSensitiveNamesKey, .volumeSupportsCasePreservedNamesKey,
-                 .volumeSupportsRootDirectoryDatesKey, .volumeSupportsVolumeSizesKey, .volumeSupportsRenamingKey,
-                 .volumeSupportsAdvisoryFileLockingKey, .volumeSupportsExtendedSecurityKey,
-                 .volumeMaximumFileSizeKey, .volumeIsEjectableKey, .volumeIsRemovableKey, .volumeIsInternalKey,
-                 .volumeIsAutomountedKey, .volumeCreationDateKey, .volumeURLForRemountingKey, .volumeUUIDStringKey,
-                 .volumeIsEncryptedKey, .volumeSupportsCompressionKey, .volumeSupportsFileCloningKey,
-                 .volumeSupportsSwapRenamingKey, .volumeSupportsExclusiveRenamingKey, .volumeSupportsImmutableFilesKey,
-                 .volumeSupportsAccessPermissionsKey:
+            case .volumeSupportsPersistentIDsKey, .volumeSupportsJournalingKey, .volumeSupportsSparseFilesKey,
+                 .volumeSupportsZeroRunsKey, .volumeSupportsRootDirectoryDatesKey, .volumeSupportsVolumeSizesKey,
+                 .volumeSupportsRenamingKey, .volumeSupportsAdvisoryFileLockingKey, .volumeSupportsCompressionKey,
+                 .volumeSupportsFileCloningKey, .volumeSupportsSwapRenamingKey, .volumeSupportsExclusiveRenamingKey,
+                 .volumeSupportsImmutableFilesKey, .volumeSupportsAccessPermissionsKey:
                 NSUnimplemented()
                 
             default:

@@ -58,64 +58,11 @@ open class FileManager : NSObject {
     
     /// Returns an array of URLs that identify the mounted volumes available on the device.
     open func mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
-        var urls: [URL]
-
-#if os(Linux)
-        guard let procMounts = try? String(contentsOfFile: "/proc/mounts", encoding: .utf8) else {
+        guard let volumes = _CFArrayCreateVolumesInfoArray(kCFAllocatorDefault) as? [[String: Any]] else {
             return nil
         }
-        urls = []
-        for line in procMounts.components(separatedBy: "\n") {
-            let mountPoint = line.components(separatedBy: " ")
-            if mountPoint.count > 2 {
-                urls.append(URL(fileURLWithPath: mountPoint[1], isDirectory: true))
-            }
-        }
-#elseif canImport(Darwin)
-
-        func mountPoints(_ statBufs: UnsafePointer<statfs>, _ fsCount: Int) -> [URL] {
-            var urls: [URL] = []
-
-            for fsIndex in 0..<fsCount {
-                var fs = statBufs.advanced(by: fsIndex).pointee
-
-                if options.contains(.skipHiddenVolumes) && fs.f_flags & UInt32(MNT_DONTBROWSE) != 0 {
-                    continue
-                }
-
-                let mountPoint = withUnsafePointer(to: &fs.f_mntonname.0) { (ptr: UnsafePointer<Int8>) -> String in
-                    return string(withFileSystemRepresentation: ptr, length: strlen(ptr))
-                }
-                urls.append(URL(fileURLWithPath: mountPoint, isDirectory: true))
-            }
-            return urls
-        }
-
-        if #available(OSX 10.13, *) {
-            var statBufPtr: UnsafeMutablePointer<statfs>?
-            let fsCount = getmntinfo_r_np(&statBufPtr, MNT_WAIT)
-            guard let statBuf = statBufPtr, fsCount > 0 else {
-                return nil
-            }
-            urls = mountPoints(statBuf, Int(fsCount))
-            free(statBufPtr)
-        } else {
-            var fsCount = getfsstat(nil, 0, MNT_WAIT)
-            guard fsCount > 0 else {
-                return nil
-            }
-            let statBuf = UnsafeMutablePointer<statfs>.allocate(capacity: Int(fsCount))
-            defer { statBuf.deallocate() }
-            fsCount = getfsstat(statBuf, fsCount * Int32(MemoryLayout<statfs>.stride), MNT_WAIT)
-            guard fsCount > 0 else {
-                return nil
-            }
-            urls = mountPoints(statBuf, Int(fsCount))
-        }
-#else
-#error("Requires a platform-specific implementation")
-#endif
-        return urls
+        
+        return volumes.map { URL(fileURLWithPath: $0["mountto"] as! String) }
     }
     
     /* Returns an NSArray of NSURLs identifying the the directory entries. 

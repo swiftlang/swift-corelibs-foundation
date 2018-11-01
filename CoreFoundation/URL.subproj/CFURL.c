@@ -5215,59 +5215,78 @@ CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFError
 #include <linux/fs.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if __has_include(<sys/statvfs.h>)
+#include <sys/statvfs.h>
+#endif
+
+#if TARGET_OS_LINUX
+#include <mntent.h>
+#endif
+
+#if TARGET_OS_WINDOWS
 #include <windows.h>
 #endif
 
-Boolean __CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key, errno_t *error) {
+CONST_STRING_DECL(kVolumeInfoMountFrom, "mountfrom")
+CONST_STRING_DECL(kVolumeInfoMountTo, "mountto")
+CONST_STRING_DECL(kVolumeInfoType, "typename")
+
+__nullable CFBooleanRef _CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key, errno_t *error)
+{
     char pathBuf[CFMaxPathSize];
     CFStringRef path = CFURLCopyPath(url);
-    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return false;
+    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return NULL;
+    CFRelease(path);
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
     struct stat st;
 #endif
     switch (key) {
         case kCFURLResourceIsHidden:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
-            if (stat(pathBuf, &st)) {
+        {
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+            if (lstat(&pathBuf[0], &st)) {
                 error = errno;
-                return false;
+                return NULL;
             }
-            return st.st_flags & UF_HIDDEN;
+            return st.st_flags & UF_HIDDEN ? kCFBooleanTrue : kCFBooleanFalse;
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WINDOWS
             int attr = GetFileAttributes(path);
-            return (attr & FILE_ATTRIBUTE_HIDDEN) != 0;
+            return (attr & FILE_ATTRIBUTE_HIDDEN) != 0 ? kCFBooleanTrue : kCFBooleanFalse;
 #else
             // Unix-based systems
-            if (CFStringHasPrefix(CFURLCopyLastPathComponent(url), CFSTR("."))) {
-                return true;
-            }
+            CFStringRef lastPathComponent = CFURLCopyLastPathComponent(url);
+            Boolean isHidden = CFStringHasPrefix(lastPathComponent, CFSTR("."));
+            CFRelease(lastPathComponent);
+            return isHidden ? kCFBooleanTrue : kCFBooleanFalse;
 #endif
-            return false;
+            break;
+        }
             
         case kCFURLResourceIsUserImmutable:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
-            if (stat(pathBuf, &st)) {
+        {
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+            if (lstat(&pathBuf[0], &st)) {
                 error = errno;
                 return false;
             }
-            return st.st_flags & UF_IMMUTABLE;
-#else
-            return false;
+            return st.st_flags & UF_IMMUTABLE ? kCFBooleanTrue : kCFBooleanFalse;
 #endif
+            break;
+        }
             
         case kCFURLResourceIsSystemImmutable:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
-            if (stat(pathBuf, &st)) {
+        {
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+            if (lstat(&pathBuf[0], &st)) {
                 error = errno;
                 return false;
             }
-            return st.st_flags & SF_IMMUTABLE;
+            return st.st_flags & SF_IMMUTABLE ? kCFBooleanTrue : kCFBooleanFalse;
 #endif
 #if __has_include(<linux/fs.h>)
-            int fd = _CFOpenFile(pathBuf, O_RDONLY);
+            int fd = _CFOpenFile(&pathBuf[0], O_RDONLY);
             if (fd < 0) {
                 error = errno;
                 return false;
@@ -5277,20 +5296,199 @@ Boolean __CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key
                 error = errno;
                 return false;
             }
-            return attrs & FS_IMMUTABLE_FL;
+            return attrs & FS_IMMUTABLE_FL ? kCFBooleanTrue : kCFBooleanFalse;
 #endif
-            return false;
+            break;
+        }
             
         default:
-            return false;
+            break;
     }
-    return false;
+    
+    return NULL;
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
-int __setChFlags(char *pathBuf, int flag, Boolean set) {
+__nullable CFBooleanRef _CFURLVolumeHasFlag(CFURLRef url, CFURLVolumePropertyFlags key, errno_t *error)
+{
+    char pathBuf[CFMaxPathSize];
+    CFStringRef path = CFURLCopyPath(url);
+    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return NULL;
+    CFRelease(path);
+    
+    long result = 0;
+    
+    switch (key) {
+        case kCFURLVolumeIsLocal:
+        {
+#ifdef MNT_LOCAL // Darwin & FreeBSD
+            struct statfs mntent;
+            result = statfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flags & MNT_LOCAL ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+        }
+
+        case kCFURLVolumeIsAutomount:
+        {
+#ifdef MNT_AUTOMOUNTED // Darwin & FreeBSD
+            struct statfs mntent;
+            result = statfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flags & MNT_AUTOMOUNTED ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+        }
+            
+        case kCFURLVolumeDontBrowse:
+        {
+#ifdef MNT_DONTBROWSE // Darwin & FreeBSD
+            struct statfs mntent;
+            result = statfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flags & MNT_DONTBROWSE ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+        }
+            
+        case kCFURLVolumeIsRootFileSystem:
+        {
+#ifdef MNT_ROOTFS // Darwin & FreeBSD
+            struct statfs mntent;
+            result = statfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flags & MNT_ROOTFS ? kCFBooleanTrue : kCFBooleanFalse;
+#else // Other unix systems
+            CFDictionaryRef info = _CFDictionaryCreateVolumeInfo(kCFAllocatorDefault, url);
+            Boolean isRoot = CFEqual(CFDictionaryGetValue(info, kVolumeInfoMountTo), PATH_SEP_STR);
+            CFRelease(info);
+            return isRoot ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+        }
+            
+        case kCFURLVolumeIsReadOnly:
+        {
+#ifdef MNT_RDONLY // Darwin & FreeBSD
+            struct statfs mntent;
+            result = statfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flags & MNT_RDONLY ? kCFBooleanTrue : kCFBooleanFalse;
+#else
+#if __has_include(<sys/statvfs.h>)
+            struct statvfs mntent;
+            result = statvfs(&pathBuf[0], &mntent);
+            if (result < 0) {
+                error = errno;
+            }
+            return mntent.f_flag & ST_RDONLY ? kCFBooleanTrue : kCFBooleanFalse;
+#endif // __has_include(<sys/statvfs.h>)
+#endif // MNT_RDONLY
+            break;
+        }
+            
+        case kCFURLVolumeSupportsHardLinks:
+        {
+#ifdef _PC_LINK_MAX
+            result = pathconf(&pathBuf[0], _PC_LINK_MAX);
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 1 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+        }
+            
+        case kCFURLVolumeSupportsSymbolicLinks:
+#ifdef _PC_2_SYMLINKS
+            result = pathconf(&pathBuf[0], _PC_2_SYMLINKS) > 0;
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 0 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+            
+        case kCFURLVolumeSupportsExtendedSecurity:
+#ifdef _PC_EXTENDED_SECURITY_NP // Darwin
+            result = pathconf(&pathBuf[0], _PC_EXTENDED_SECURITY_NP) > 0;
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 0 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+#ifdef _PC_ACL_EXTENDED // FreeBSD
+            result = pathconf(&pathBuf[0], _PC_ACL_EXTENDED) > 0;
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 0 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+            
+        case kCFURLVolumeSupportsCaseSensitiveNames:
+#ifdef _PC_CASE_SENSITIVE // Darwin
+            result = pathconf(&pathBuf[0], _PC_CASE_SENSITIVE) > 0;
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 0 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+            
+        case kCFURLVolumeSupportsCasePreservedNames:
+#ifdef _PC_CASE_PRESERVING // Darwin
+            result = pathconf(&pathBuf[0], _PC_CASE_PRESERVING) > 0;
+            if (result < 0) {
+                error = errno;
+            }
+            return result > 0 ? kCFBooleanTrue : kCFBooleanFalse;
+#endif
+            break;
+            
+        default:
+            break;
+    }
+    
+    return NULL;
+}
+
+__nullable CFNumberRef __CFURLVolumeMaximumSize(CFURLRef url, errno_t *error)
+{
+    char pathBuf[CFMaxPathSize];
+    CFStringRef path = CFURLCopyPath(url);
+    if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return NULL;
+    CFRelease(path);
+    
+#ifdef _PC_FILESIZEBITS
+    long result = pathconf(&pathBuf[0], _PC_FILESIZEBITS);
+    if (result < 0) {
+        error = errno;
+    }
+    if (result > 64) {
+        return NULL;
+    }
+    unsigned long long max = 1 << result;
+    return CFNumberCreate(kCFAllocatorDefault, kCFNumberLongLongType, &max);
+#endif
+    return NULL;
+}
+
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+int __setChFlags(char *pathBuf, int flag, Boolean set)
+{
     struct stat st;
-    if (stat(pathBuf, &st)) {
+    if (lstat(pathBuf, &st)) {
         return errno;
     }
     long flags = st.st_flags;
@@ -5299,21 +5497,26 @@ int __setChFlags(char *pathBuf, int flag, Boolean set) {
     } else {
         flags = flags & ~UF_HIDDEN;
     }
+    if (lchflags(pathBuf, flags)) {
+        return errno;
+    }
     return 0;
 }
 #endif
 
-Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key, Boolean set, errno_t *error) {
+Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key, Boolean set, errno_t *error)
+{
     char pathBuf[CFMaxPathSize];
     CFStringRef path = CFURLCopyPath(url);
     if (!CFStringGetFileSystemRepresentation(path, pathBuf, CFMaxPathSize)) return false;
+    CFRelease(path);
     
     switch (key) {
         case kCFURLResourceIsHidden:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
             error = __setChFlags(pathBuf, UF_HIDDEN, set);
             return error == 0;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WINDOWS
             int attr = GetFileAttributes(path);
             if (set) {
                 SetFileAttributes(path, attr | FILE_ATTRIBUTE_HIDDEN);
@@ -5325,7 +5528,7 @@ Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key,
             return false;
             
         case kCFURLResourceIsUserImmutable:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
             error = __setChFlags(pathBuf, UF_IMMUTABLE, set);
             return error == 0;
 #else
@@ -5333,7 +5536,7 @@ Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key,
 #endif
             
         case kCFURLResourceIsSystemImmutable:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
             error = __setChFlags(pathBuf, SF_IMMUTABLE, set);
             return error == 0;
 #endif
@@ -5356,4 +5559,114 @@ Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key,
             break;
     }
     return false;
+}
+
+CFDictionaryRef __CFDictionaryCreateVolumeInfoFromCSTR(CFAllocatorRef alloc, const char* from, const char* to, const char* typename) {
+    CFStringRef mountfrom = CFStringCreateWithCString(alloc, from, kCFStringEncodingUTF8);
+    CFStringRef dir = CFStringCreateWithCString(alloc, to, kCFStringEncodingUTF8);
+    CFStringRef type = CFStringCreateWithCString(alloc, typename, kCFStringEncodingUTF8);
+    CFMutableStringRef mntPoint = CFStringCreateMutableCopy(alloc, 0, dir);
+    if (!CFStringHasSuffix(mntPoint, PATH_SEP_STR)) {
+        CFStringAppend(mntPoint, PATH_SEP_STR);
+    }
+    
+    // Creating and populating result dictionary
+    CFMutableDictionaryRef dic = CFDictionaryCreateMutable(alloc, 4, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    CFDictionaryAddValue(dic, kVolumeInfoMountFrom, mountfrom);
+    CFDictionaryAddValue(dic, kVolumeInfoMountTo, mntPoint);
+    CFDictionaryAddValue(dic, kVolumeInfoType, type);
+    return dic;
+}
+
+__nullable CFArrayRef _CFArrayCreateVolumesInfoArray(CFAllocatorRef alloc)
+{
+    CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+    int num_mounts, i;
+    num_mounts = getfsstat(NULL, 0, MNT_WAIT);
+    if (num_mounts < 0) {
+        return NULL;
+    } else if (num_mounts == 0) {
+        return result;
+    }
+    struct statfs *mntent;
+    size_t bufsize = num_mounts * sizeof (*mntent);
+    mntent = malloc(bufsize);
+    num_mounts = getfsstat(mntent, bufsize, MNT_WAIT);
+    for (i = 0; i < num_mounts; ++i) {
+        CFDictionaryRef info = __CFDictionaryCreateVolumeInfoFromCSTR(alloc, &mntent[i].f_mntfromname[0], &mntent[i].f_mntonname[0], &mntent[i].f_fstypename[0]);
+        CFArrayAppendValue(result, info);
+    }
+    free(mntent);
+#elif TARGET_OS_LINUX || TARGET_OS_ANDROID
+    struct mntent *ent;
+    FILE *aFile = setmntent("/proc/self/mounts", "r");
+    if (aFile == NULL) {
+        aFile = setmntent("/proc/mounts", "r");
+        if (aFile == NULL) {
+            return NULL;
+        }
+    }
+    while (NULL != (ent = getmntent(aFile))) {
+        if (strcmp("rootfs", ent->mnt_type) == 0) {
+            continue;
+        }
+        CFDictionaryRef info = __CFDictionaryCreateVolumeInfoFromCSTR(alloc, ent->mnt_fsname, ent->mnt_dir, ent->mnt_type);
+        CFArrayAppendValue(result, info);
+    }
+    endmntent(aFile);
+#else
+#error "Implementation stabbed for VolumesInfoArray"
+#endif
+    return result;
+}
+
+__nullable CFDictionaryRef _CFDictionaryCreateVolumeInfo(CFAllocatorRef alloc, CFURLRef url)
+{
+    if (!_CFURLIsFileURL(url)) {
+        return NULL;
+    }
+    
+#if TARGET_OS_DARWIN || TARGET_OS_BSD
+    // Optimized route
+    CFStringRef path = CFURLCopyPath(url);
+    uint8_t pathPtr[CFMaxPathSize];
+    _CFStringGetFileSystemRepresentation(path, &pathPtr[0], CFMaxPathSize);
+    CFRelease(path);
+    
+    struct statfs mntent;
+    if (!statfs((char *)&pathPtr[0], &mntent)) {
+        return NULL;
+    }
+    
+    return __CFDictionaryCreateVolumeInfoFromCSTR(alloc, &mntent.f_mntfromname[0], mntent.f_mntonname[0], &mntent.f_fstypename[0]);
+#else
+    CFDictionaryRef result = NULL;
+    CFArrayRef volumes = _CFArrayCreateVolumesInfoArray(alloc);
+    if (volumes == NULL) {
+        if (!CFStringHasSuffix(mntPoint, PATH_SEP_STR)) {
+            CFStringAppend(mntPoint, PATH_SEP_STR);
+        }
+    }
+    
+    for (CFIndex i = 0; i < CFArrayGetCount(volumes); ++i) {
+        CFStringRef path = CFURLCopyPath(url);
+        
+        CFDictionaryRef dic = CFArrayGetValueAtIndex(volumes, i);
+        CFStringRef mntPoint = CFDictionaryGetValue(dic, kVolumeInfoMountTo);
+        if (CFEqual(path, mntPoint) || CFStringHasPrefix(path, mntPoint)) {
+            CFRetain(dic);
+            result = dic;
+            CFRelease(path);
+            break;
+        }
+        CFRelease(path);
+    }
+    
+    // Clean up
+    CFRelease(volumes);
+    
+    return result;
+#endif
 }

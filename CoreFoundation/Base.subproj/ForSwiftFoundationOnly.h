@@ -24,6 +24,7 @@
 #include <CoreFoundation/CFRegularExpression.h>
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/CFURLSessionInterface.h>
+#include <CoreFoundation/CFURLPriv.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
 #include <pthread.h>
@@ -365,6 +366,19 @@ CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void);
 CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void);
 
 CF_CROSS_PLATFORM_EXPORT void __CFURLComponentsDeallocate(CFTypeRef cf);
+
+CF_EXPORT
+__nullable CFBooleanRef _CFURLResourceValueHasFlag(CFURLRef url, CFURLResourcePropertyFlags key, errno_t *error);
+CF_EXPORT
+__nullable CFBooleanRef _CFURLVolumeHasFlag(CFURLRef url, CFURLVolumePropertyFlags key, errno_t *error);
+CF_EXPORT
+__nullable CFNumberRef __CFURLVolumeMaximumSize(CFURLRef url, errno_t *error);
+CF_EXPORT
+Boolean _CFURLResourceValueSetFlag(CFURLRef url, CFURLResourcePropertyFlags key, Boolean set, errno_t *error);
+CF_EXPORT
+__nullable CFDictionaryRef _CFDictionaryCreateVolumeInfo(CFAllocatorRef alloc, CFURLRef url);
+CF_EXPORT
+__nullable CFArrayRef _CFArrayCreateVolumesInfoArray(CFAllocatorRef alloc);
 
 typedef struct {
     void *_Nonnull memory;
