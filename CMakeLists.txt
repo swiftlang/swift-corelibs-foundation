@@ -432,22 +432,34 @@ if(ENABLE_TESTING)
                            ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 
-get_swift_host_arch(SWIFT_HOST_ARCH)
+string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
+get_swift_host_arch(swift_arch)
 
+# TODO(compnerd) honour lib vs lib64
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
         DESTINATION
-          ${CMAKE_INSTALL_FULL_LIBDIR}/swift/${CMAKE_SYSTEM_NAME}/${SWIFT_HOST_ARCH})
+          lib/swift/${swift_os}/${swift_arch})
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
         DESTINATION
-          ${CMAKE_INSTALL_FULL_LIBDIR})
+          lib/swift/${swift_os})
+# TODO(compnerd) install as a Framework as that is how swift actually is built
+install(DIRECTORY
+          ${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers/
+        DESTINATION
+          lib/swift/CoreFoundation
+        FILES_MATCHING PATTERN "*.h")
+install(FILES
+          CoreFoundation/Base.subproj/module.map
+        DESTINATION
+          lib/swift/CoreFoundation)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
           DESTINATION
-            ${CMAKE_INSTALL_FULL_LIBDIR}/swift/${CMAKE_SYSTEM_NAME}/${SWIFT_HOST_ARCH})
+            lib/swift/${swift_os}/${swift_arch})
 endif()
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/plutil
