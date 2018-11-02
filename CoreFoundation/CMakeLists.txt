@@ -198,6 +198,7 @@ add_framework(CoreFoundation
                 Base.subproj/CFSystemDirectories.c
                 Base.subproj/CFUtilities.c
                 Base.subproj/CFUUID.c
+                Base.subproj/CFWindowsUtilities.c
                 # Collections
                 Collections.subproj/CFArray.c
                 Collections.subproj/CFBag.c
@@ -223,15 +224,15 @@ add_framework(CoreFoundation
                 NumberDate.subproj/CFDate.c
                 NumberDate.subproj/CFNumber.c
                 NumberDate.subproj/CFTimeZone.c
-                # Parsring
+                # Parsing
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
                 Parsing.subproj/CFXMLInputStream.c
+                Parsing.subproj/CFXMLInterface.c
                 Parsing.subproj/CFXMLNode.c
                 Parsing.subproj/CFXMLParser.c
                 Parsing.subproj/CFXMLTree.c
-                Parsing.subproj/CFXMLInterface.c
                 # PlugIn
                 PlugIn.subproj/CFBundle_Binary.c
                 PlugIn.subproj/CFBundle.c
@@ -244,6 +245,7 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_ResourceFork.c
                 PlugIn.subproj/CFBundle_Resources.c
                 PlugIn.subproj/CFBundle_Strings.c
+                PlugIn.subproj/CFBundle_Tables.c
                 PlugIn.subproj/CFPlugIn.c
                 PlugIn.subproj/CFPlugIn_Factory.c
                 PlugIn.subproj/CFPlugIn_Instance.c
@@ -254,7 +256,9 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
                 # TODO(compnerd) make this empty on non-Mach targets
+                # RunLoop.subproj/CFMachPort.c
                 # RunLoop.subproj/CFMachPort_Lifetime.c
+                # RunLoop.subproj/CFMessagePort.c
                 RunLoop.subproj/CFRunLoop.c
                 RunLoop.subproj/CFSocket.c
                 # Stream
@@ -285,8 +289,8 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFUnicodeDecomposition.c
                 StringEncodings.subproj/CFUnicodePrecomposition.c
                 # URL
-                URL.subproj/CFURL.c
                 URL.subproj/CFURLAccess.c
+                URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
