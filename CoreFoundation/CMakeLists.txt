@@ -358,6 +358,10 @@ else()
                                "/usr/include"
                                "/usr/include/libxml2")
 endif()
+target_include_directories(CoreFoundation
+                           PRIVATE
+                             ${ICU_INCLUDE_DIR})
+
 target_compile_options(CoreFoundation
                        PRIVATE
                          $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)

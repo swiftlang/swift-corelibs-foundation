@@ -39,6 +39,7 @@ ExternalProject_Add(CoreFoundation
                       -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
+                      -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
@@ -240,6 +241,7 @@ add_swift_library(Foundation
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
                     -Fsystem;${install_dir}/System/Library/Frameworks
+                    -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
                     ${swift_optimization_flags})
@@ -259,6 +261,7 @@ add_swift_executable(plutil
                        ${deployment_enable_libdispatch}
                        -Fsystem;${install_dir}/System/Library/Frameworks
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                       -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
                        ${swift_enable_testing}
                        ${swift_optimization_flags})
@@ -277,6 +280,7 @@ if(ENABLE_TESTING)
                        SWIFT_FLAGS
                          -Fsystem;${install_dir}/System/Library/Frameworks
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                         -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags})
   add_dependencies(xdgTestHelper Foundation CoreFoundation)
 
@@ -405,6 +409,7 @@ if(ENABLE_TESTING)
                          -Fsystem;${install_dir}/System/Library/Frameworks
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
+                         -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
                          ${swift_optimization_flags})
   add_dependencies(TestFoundation Foundation CoreFoundation xdgTestHelper)
