@@ -25,7 +25,7 @@ function(_icu_find)
   find_path(ICU_INCLUDE_DIR
             NAMES "unicode/utypes.h"
             HINTS ${icu_roots}
-            PATh_SUFFIXES ${icu_include_suffixes}
+            PATH_SUFFIXES ${icu_include_suffixes}
             DOC "ICU include directory")
   set(ICU_INCLUDE_DIR "${ICU_INCLUDE_DIR}" PARENT_SCOPE)
 
