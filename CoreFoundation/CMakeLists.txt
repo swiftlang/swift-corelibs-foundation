@@ -352,15 +352,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
+  find_package(ICU COMPONENTS uc i18n REQUIRED)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               ${ICU_INCLUDE_DIR})
 else()
   target_include_directories(CoreFoundation
                              PRIVATE
                                "/usr/include"
                                "/usr/include/libxml2")
 endif()
-target_include_directories(CoreFoundation
-                           PRIVATE
-                             ${ICU_INCLUDE_DIR})
 
 target_compile_options(CoreFoundation
                        PRIVATE
