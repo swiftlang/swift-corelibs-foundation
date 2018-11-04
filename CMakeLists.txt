@@ -229,6 +229,7 @@ add_swift_library(Foundation
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
                     ${deployment_enable_libdispatch}
+                    -F${install_dir}/System/Library/Frameworks
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
@@ -240,7 +241,6 @@ add_swift_library(Foundation
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
-                    -Fsystem;${install_dir}/System/Library/Frameworks
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
@@ -252,6 +252,7 @@ add_swift_executable(plutil
                        Tools/plutil/main.swift
                      CFLAGS
                        ${deployment_enable_libdispatch}
+                       -F${install_dir}/System/Library/Frameworks
                      LINK_FLAGS
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
@@ -259,7 +260,6 @@ add_swift_executable(plutil
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
-                       -Fsystem;${install_dir}/System/Library/Frameworks
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                        -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
@@ -271,6 +271,7 @@ if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
                          ${deployment_enable_libdispatch}
+                         -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -278,7 +279,6 @@ if(ENABLE_TESTING)
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
-                         -Fsystem;${install_dir}/System/Library/Frameworks
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags})
@@ -374,6 +374,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
                          ${deployment_enable_libdispatch}
+                         -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -406,7 +407,6 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
                        SWIFT_FLAGS
                          ${deployment_enable_libdispatch}
-                         -Fsystem;${install_dir}/System/Library/Frameworks
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}
@@ -419,7 +419,7 @@ if(ENABLE_TESTING)
                      BYPRODUCTS
                        ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX}
                      COMMAND
-                       ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation
+                       ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX}
                      DEPENDS
                        TestFoundation
                        xdgTestHelper)
