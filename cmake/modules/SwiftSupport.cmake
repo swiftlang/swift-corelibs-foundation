@@ -136,9 +136,14 @@ function(add_swift_target target)
                        COMMAND
                          ${CMAKE_COMMAND} -E copy ${AST_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${target}
                        COMMAND
-                         ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources
-                       COMMAND
-                         ${CMAKE_COMMAND} -E copy ${AST_RESOURCES} ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources)
+                         ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources)
+    foreach(resource ${AST_RESOURCES})
+      add_custom_command(TARGET
+                           ${target}
+                         POST_BUILD
+                         COMMAND
+                           ${CMAKE_COMMAND} -E copy ${resource} ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources/)
+    endforeach()
   else()
     add_custom_command(TARGET
                          ${target}
