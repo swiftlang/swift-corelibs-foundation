@@ -17,7 +17,7 @@ internal func __NSCalendarIsAutoupdating(_ calendar: NSCalendar) -> Bool {
 }
 
 internal func __NSCalendarCurrent() -> NSCalendar {
-    return CFCalendarCopyCurrent()._nsObject
+    return _NSCopyOnWriteCalendar(backingCalendar: CFCalendarCopyCurrent()._nsObject)
 }
 
 internal func __NSCalendarInit(_ identifier: String) -> NSCalendar? {

@@ -66,7 +66,10 @@ add_framework(CoreFoundation
                 # Error
                 Error.subproj/CFError_Private.h
                 # Locale
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
                 Locale.subproj/CFDateFormatter_Private.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
                 Locale.subproj/CFLocaleInternal.h
                 Locale.subproj/CFLocale_Private.h
@@ -119,6 +122,9 @@ add_framework(CoreFoundation
                 Base.subproj/CFRuntime.h
                 Base.subproj/ForFoundationOnly.h
                 Base.subproj/ForSwiftFoundationOnly.h
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFLocaleInternal.h
                 Parsing.subproj/CFXMLInterface.h
                 PlugIn.subproj/CFBundlePriv.h
@@ -214,7 +220,10 @@ add_framework(CoreFoundation
                 Error.subproj/CFError.c
                 # Locale
                 Locale.subproj/CFCalendar.c
+                Locale.subproj/CFCalendar_Enumerate.c
+                Locale.subproj/CFDateComponents.c
                 Locale.subproj/CFDateFormatter.c
+                Locale.subproj/CFDateInterval.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
                 Locale.subproj/CFLocaleKeys.c
