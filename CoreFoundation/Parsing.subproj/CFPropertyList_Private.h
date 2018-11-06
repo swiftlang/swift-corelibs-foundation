@@ -7,7 +7,7 @@
  See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
  */
 
-#import <CoreFoundation/CFPropertyList.h>
+#include <CoreFoundation/CFPropertyList.h>
 
 // this is only allowed the first 8 bits
 typedef CF_OPTIONS(CFOptionFlags, CFPropertyListSupportedFormats) {

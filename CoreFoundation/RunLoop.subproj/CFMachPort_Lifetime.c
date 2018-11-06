@@ -5,9 +5,9 @@
     All of the functions in this file exist to orchestrate the exact time/circumstances we decrement the port references.
  */
 
-#import "CFMachPort_Lifetime.h"
-#import <mach/mach.h>
-#import "CFInternal.h"
+#include "CFMachPort_Lifetime.h"
+#include <mach/mach.h>
+#include "CFInternal.h"
 
 // Records information relevant for cleaning up after a given mach port. Here's
 // a summary of its life cycle:
