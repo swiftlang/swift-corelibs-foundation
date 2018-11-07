@@ -74,8 +74,8 @@ typedef char * Class;
 #define CRSetCrashLogMessage2(A) do {} while (0)
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-#import <libkern/OSAtomic.h>
-#import <pthread.h>
+#include <libkern/OSAtomic.h>
+#include <pthread.h>
 #endif
 
     

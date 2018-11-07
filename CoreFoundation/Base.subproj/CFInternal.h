@@ -110,7 +110,7 @@ CF_EXTERN_C_BEGIN
 #include <pthread.h>
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
-#import <os/log.h>
+#include <os/log.h>
 #else
 typedef struct os_log_s *os_log_t;
 #define os_log(...) do { } while (0)
