@@ -1,8 +1,7 @@
 
 cmake_minimum_required(VERSION 3.4.3)
 list(APPEND CMAKE_MODULE_PATH
-     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
-     "${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules")
+     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 project(CoreFoundation
         VERSION
@@ -356,7 +355,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   find_package(ICU COMPONENTS uc i18n REQUIRED)
   target_include_directories(CoreFoundation
                              PRIVATE
-                               ${ICU_INCLUDE_DIRS})
+                               ${ICU_INCLUDE_DIR})
 else()
   target_include_directories(CoreFoundation
                              PRIVATE
@@ -456,3 +455,4 @@ if(CF_ENABLE_LIBDISPATCH)
                                  ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
   endif()
 endif()
+
