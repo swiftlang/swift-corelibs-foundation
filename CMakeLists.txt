@@ -39,7 +39,7 @@ ExternalProject_Add(CoreFoundation
                       -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
-                      -DICU_ROOT=${ICU_ROOT}
+                      -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
