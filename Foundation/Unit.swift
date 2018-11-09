@@ -1398,7 +1398,7 @@ open class UnitLength : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitLength {
+    open override class func baseUnit() -> Self {
         return .meters
     }
     
