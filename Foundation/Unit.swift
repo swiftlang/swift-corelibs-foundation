@@ -206,7 +206,7 @@ open class Dimension : Unit {
      e.g.
      NSUnitSpeed *metersPerSecond = [NSUnitSpeed baseUnit];
      */
-    open class func baseUnit() -> Self {
+    open class func baseUnit() -> Dimension {
         fatalError("*** You must override baseUnit in your class to define its base unit.")
     }
     
@@ -1398,7 +1398,7 @@ open class UnitLength : Dimension {
         }
     }
     
-    open override class func baseUnit() -> Self {
+    open override class func baseUnit() -> UnitLength {
         return .meters
     }
     
