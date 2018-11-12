@@ -1395,10 +1395,6 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
     override func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) {
         return backingCalendar.enumerateDates(startingAfter: start, matching: comps, options: opts, using: block)
     }
-    
-    override var _cfObject: NSCalendar.CFType {
-        return backingCalendar._cfObject
-    }
 }
 
 // This notification is posted through [NSNotificationCenter defaultCenter]
