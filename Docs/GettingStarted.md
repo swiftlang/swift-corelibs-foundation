@@ -49,14 +49,13 @@ This will build and run the Foundation tests, in the Debug configuration.
 After the complete Swift build has finished, you can iterate quickly on Foundation itself by simply invoking `ninja` in the Foundation directory.
 
 ```
-cd swift-corelibs-foundation
-ninja
+ninja -C build/Ninja-DebugAsserts/swift-corelibs-foundation Foundation
 ```
 
 This will build Foundation. To build and run the tests, use the `test` target:
 
 ```
-ninja test
+ninja -C build/Ninja-DebugAsserts/swift-corelibs-foundation test
 ```
 
 The ninja build script will print the correct command-line invocation for both running the tests and debugging the tests. The exact library path to use will depend on how Foundation itself was configured by the earlier `build-script`. For example:
@@ -78,7 +77,7 @@ Just copy & paste the correct line.
 When new source files or flags are added to the `build.py` script, the project will need to be reconfigured in order for the build system to pick them up. The top-level `swift/utils/build-script` can be used, but for quicker iteration you can use the following command to limit the reconfiguration to just the Foundation project:
 
 ```
-% ninja reconfigure
+% ninja rebuild_cache
 % ninja
 ```
 
