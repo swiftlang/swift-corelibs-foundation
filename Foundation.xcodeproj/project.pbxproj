@@ -17,11 +17,11 @@
 		1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */; };
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
-		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; };
+		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA72187D156009518FA /* CFDateFormatter.c */; };
 		1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA82187D156009518FA /* CFDateFormatter.h */; };
 		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
-		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; };
+		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
 		1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */; };
 		1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */; };
@@ -268,7 +268,7 @@
 		5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */; };
 		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
 		5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89391BBDA7AB00234F36 /* CFUserNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
+		5BB5256C1BEC057200E63BE3 /* module.map in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.map */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC46D531D05D6D900005853 /* DateInterval.swift */; };
 		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
@@ -818,7 +818,7 @@
 		5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
 		5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSUUID.swift; sourceTree = "<group>"; };
 		5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSValue.swift; sourceTree = "<group>"; };
-		5BDC3F721BCC60EF00ED97BB /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
+		5BDC3F721BCC60EF00ED97BB /* module.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
 		5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFString.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFDictionary.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -1139,7 +1139,7 @@
 			children = (
 				1578DA12212B4C35003C9516 /* CFOverflow.h */,
 				F03A43161D48778200A7791E /* CFAsmMacros.h */,
-				5BDC3F721BCC60EF00ED97BB /* module.modulemap */,
+				5BDC3F721BCC60EF00ED97BB /* module.map */,
 				5B5D88741BBC954000234F36 /* CFAvailability.h */,
 				5B5D895D1BBDABBF00234F36 /* CFBase.c */,
 				5B5D88721BBC952A00234F36 /* CFBase.h */,
@@ -1968,7 +1968,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */,
+				5BB5256C1BEC057200E63BE3 /* module.map in Headers */,
 				5B7C8AC81BEA80FC00C5B690 /* CFSet.h in Headers */,
 				5B7C8ADC1BEA80FC00C5B690 /* CFSocket.h in Headers */,
 				5B7C8ACC1BEA80FC00C5B690 /* CFDateFormatter.h in Headers */,
