@@ -1005,7 +1005,7 @@ enum {
     __kCFZombieMessagedEvent = 21,
 };
 
-#define _CFReleaseDeferred __attribute__((cleanup(_CFReleaseOnCleanup)))
+#define _CFReleaseDeferred __attribute__((__cleanup__(_CFReleaseOnCleanup)))
 static inline void _CFReleaseOnCleanup(void * CF_RELEASES_ARGUMENT ptr) {
     CFTypeRef cf = *(CFTypeRef *)ptr;
     if (cf) CFRelease(cf);
