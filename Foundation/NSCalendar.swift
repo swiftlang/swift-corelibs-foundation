@@ -2068,7 +2068,49 @@ fileprivate extension DateComponents {
 // CF Bridging:
 
 internal func _CFSwiftCalendarGetCalendarIdentifier(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef> {
-    return Unmanaged.passUnretained(unsafeBitCast(calendar, to: NSCalendar.self).calendarIdentifier.rawValue._cfObject)
+//    It is tempting to just:
+//    return Unmanaged.passUnretained(unsafeBitCast(calendar, to: NSCalendar.self).calendarIdentifier.rawValue._cfObject)
+//    The problem is that Swift will then release the ._cfObject from under us. It needs to be retained, but Swift objects do not necessarily have a way to retain that CFObject to be alive for the caller because, outside of ObjC, there is no autorelease pool to save us from this. This is a problem with the fact that we're bridging a Get function; Copy functions of course just return +1 and live happily.
+//    So, the solution here is to canonicalize to one of the CFString constants, which are immortal. If someone is using a nonstandard calendar identifier, well, this will currently explode :( TODO.
+    let result: CFString
+    switch unsafeBitCast(calendar, to: NSCalendar.self).calendarIdentifier {
+    case .gregorian:
+        result = kCFCalendarIdentifierGregorian
+    case .buddhist:
+        result = kCFCalendarIdentifierBuddhist
+    case .chinese:
+        result = kCFCalendarIdentifierChinese
+    case .coptic:
+        result = kCFCalendarIdentifierCoptic
+    case .ethiopicAmeteMihret:
+        result = kCFCalendarIdentifierEthiopicAmeteMihret
+    case .ethiopicAmeteAlem:
+        result = kCFCalendarIdentifierEthiopicAmeteAlem
+    case .hebrew:
+        result = kCFCalendarIdentifierHebrew
+    case .ISO8601:
+        result = kCFCalendarIdentifierISO8601
+    case .indian:
+        result = kCFCalendarIdentifierIndian
+    case .islamic:
+        result = kCFCalendarIdentifierIslamic
+    case .islamicCivil:
+        result = kCFCalendarIdentifierIslamicCivil
+    case .japanese:
+        result = kCFCalendarIdentifierJapanese
+    case .persian:
+        result = kCFCalendarIdentifierPersian
+    case .republicOfChina:
+        result = kCFCalendarIdentifierRepublicOfChina
+    case .islamicTabular:
+        result = kCFCalendarIdentifierIslamicTabular
+    case .islamicUmmAlQura:
+        result = kCFCalendarIdentifierIslamicUmmAlQura
+    default:
+        fatalError("Calendars returning a non-system calendar identifier in Swift Foundation are not supported.")
+    }
+    
+    return Unmanaged.passUnretained(result)
 }
 
 internal func _CFSwiftCalendarCopyLocale(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef>? {
