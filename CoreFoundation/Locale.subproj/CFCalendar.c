@@ -27,6 +27,8 @@ enum {
 #pragma GCC diagnostic pop
 };
 
+// In Swift Foundation, nanoseconds are always available.
+#define _CF_CALENDAR_NANOSECONDS_AVAILABLE 1
 
 #define ICU_LOG(FMT, ...) do { } while (0)
 
@@ -2019,7 +2021,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2106,7 +2108,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2229,7 +2231,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2294,7 +2296,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2345,7 +2347,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2386,7 +2388,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2419,7 +2421,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = (minute - 1) * 60 + __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
@@ -2445,7 +2447,7 @@ static CFIndex __CFCalendarGetOrdinalityOfUnit3(CFCalendarRef calendar, CFCalend
             CFIndex second = __cficu_ucal_get(calendar->_cal, UCAL_SECOND, &status) + 1;
             return second;
         }
-#if __LP64__
+#if _CF_CALENDAR_NANOSECONDS_AVAILABLE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-enum"
         case kCFCalendarUnitNanosecond: {
