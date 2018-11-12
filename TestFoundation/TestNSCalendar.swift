@@ -7,21 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-enum TestError: Error {
-    case unexpectedNil
-}
-
-extension Optional {
-    func unwrapped() throws -> Wrapped {
-        if let x = self {
-            return x
-        } else {
-            XCTFail()
-            throw TestError.unexpectedNil
-        }
-    }
-}
-
 class TestNSCalendar: XCTestCase {
     func test_initWithCalendarIdentifier() {
         var calMaybe = NSCalendar(calendarIdentifier: NSCalendar.Identifier("Not a calendar"))
