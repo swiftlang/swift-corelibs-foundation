@@ -1380,6 +1380,10 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
         return backingCalendar.components(unitFlags, from: startingDateComp, to: resultDateComp, options: options)
     }
     
+    override func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
+        return backingCalendar.components(unitFlags, from: startingDate, to: resultDate, options: opts)
+    }
+    
     override func nextWeekendAfter(_ date: Date, options: NSCalendar.Options) -> DateInterval? {
         return backingCalendar.nextWeekendAfter(date, options: options)
     }
@@ -1390,6 +1394,10 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
     
     override func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) {
         return backingCalendar.enumerateDates(startingAfter: start, matching: comps, options: opts, using: block)
+    }
+    
+    override var _cfObject: NSCalendar.CFType {
+        return backingCalendar._cfObject
     }
 }
 
