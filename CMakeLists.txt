@@ -324,6 +324,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestNSArray.swift
                          TestFoundation/TestNSAttributedString.swift
                          TestFoundation/TestNSCache.swift
+                         TestFoundation/TestNSCalendar.swift
                          TestFoundation/TestNSCompoundPredicate.swift
                          TestFoundation/TestNSData.swift
                          TestFoundation/TestNSDictionary.swift

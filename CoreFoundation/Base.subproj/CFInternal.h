@@ -1005,6 +1005,12 @@ enum {
     __kCFZombieMessagedEvent = 21,
 };
 
+#define _CFReleaseDeferred __attribute__((__cleanup__(_CFReleaseOnCleanup)))
+static inline void _CFReleaseOnCleanup(void * CF_RELEASES_ARGUMENT ptr) {
+    CFTypeRef cf = *(CFTypeRef *)ptr;
+    if (cf) CFRelease(cf);
+}
+
 #pragma mark - CF Private Globals
 
 CF_PRIVATE void *__CFAppleLanguages;

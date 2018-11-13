@@ -14,6 +14,14 @@
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
+		1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */; };
+		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
+		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA72187D156009518FA /* CFDateFormatter.c */; };
+		1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA82187D156009518FA /* CFDateFormatter.h */; };
+		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
+		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
 		1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */; };
 		1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */; };
@@ -22,6 +30,7 @@
 		1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA12212B4C35003C9516 /* CFOverflow.h */; };
 		1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA14212B6F33003C9516 /* CFCollections_Internal.h */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
+		15F10CDC218909BF00D88114 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F10CDB218909BF00D88114 /* TestNSCalendar.swift */; };
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */; };
@@ -259,7 +268,7 @@
 		5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */; };
 		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
 		5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89391BBDA7AB00234F36 /* CFUserNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.modulemap */; settings = {ATTRIBUTES = (Public, ); }; };
+		5BB5256C1BEC057200E63BE3 /* module.map in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.map */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC46D531D05D6D900005853 /* DateInterval.swift */; };
 		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
@@ -533,6 +542,14 @@
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
 		15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedStringPriv.h; sourceTree = "<group>"; };
+		1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCalendar_Internal.h; sourceTree = "<group>"; };
+		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
+		1569BFA32187D0E0009518FA /* CFDateInterval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateInterval.c; sourceTree = "<group>"; };
+		1569BFA42187D0E0009518FA /* CFDateInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateInterval.h; sourceTree = "<group>"; };
+		1569BFA72187D156009518FA /* CFDateFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateFormatter.c; sourceTree = "<group>"; };
+		1569BFA82187D156009518FA /* CFDateFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter.h; sourceTree = "<group>"; };
+		1569BFAB2187D529009518FA /* CFDateComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateComponents.c; sourceTree = "<group>"; };
+		1569BFAC2187D529009518FA /* CFDateComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateComponents.h; sourceTree = "<group>"; };
 		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
 		1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFMachPort_Internal.h; sourceTree = "<group>"; };
 		1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFMachPort_Lifetime.c; sourceTree = "<group>"; };
@@ -541,6 +558,7 @@
 		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
 		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
+		15F10CDB218909BF00D88114 /* TestNSCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
@@ -800,7 +818,7 @@
 		5BDC3F4A1BCC5DCB00ED97BB /* NSURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURL.swift; sourceTree = "<group>"; };
 		5BDC3F4B1BCC5DCB00ED97BB /* NSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSUUID.swift; sourceTree = "<group>"; };
 		5BDC3F4C1BCC5DCB00ED97BB /* NSValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSValue.swift; sourceTree = "<group>"; };
-		5BDC3F721BCC60EF00ED97BB /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
+		5BDC3F721BCC60EF00ED97BB /* module.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = "<group>"; };
 		5BDC3FC91BCF176100ED97BB /* NSCFArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFArray.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3FCB1BCF177E00ED97BB /* NSCFString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFString.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		5BDC3FCD1BCF17D300ED97BB /* NSCFDictionary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = NSCFDictionary.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -1121,7 +1139,7 @@
 			children = (
 				1578DA12212B4C35003C9516 /* CFOverflow.h */,
 				F03A43161D48778200A7791E /* CFAsmMacros.h */,
-				5BDC3F721BCC60EF00ED97BB /* module.modulemap */,
+				5BDC3F721BCC60EF00ED97BB /* module.map */,
 				5B5D88741BBC954000234F36 /* CFAvailability.h */,
 				5B5D895D1BBDABBF00234F36 /* CFBase.c */,
 				5B5D88721BBC952A00234F36 /* CFBase.h */,
@@ -1247,9 +1265,17 @@
 			isa = PBXGroup;
 			children = (
 				5B5D896D1BBDAD2000234F36 /* CFCalendar.c */,
+				1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */,
 				5B5D891B1BBDA50800234F36 /* CFCalendar.h */,
+				1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */,
+				1569BFA32187D0E0009518FA /* CFDateInterval.c */,
+				1569BFA42187D0E0009518FA /* CFDateInterval.h */,
+				1569BFAB2187D529009518FA /* CFDateComponents.c */,
+				1569BFAC2187D529009518FA /* CFDateComponents.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
+				1569BFA72187D156009518FA /* CFDateFormatter.c */,
+				1569BFA82187D156009518FA /* CFDateFormatter.h */,
 				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
@@ -1541,6 +1567,7 @@
 				294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */,
 				90E645DE1E4C89A400D0D47C /* TestNSCache.swift */,
 				52829AD61C160D64003BC4EF /* TestCalendar.swift */,
+				15F10CDB218909BF00D88114 /* TestNSCalendar.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestCharacterSet.swift */,
 				790043391CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift */,
 				DCDBB8321C1768AC00313299 /* TestNSData.swift */,
@@ -1941,7 +1968,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BB5256C1BEC057200E63BE3 /* module.modulemap in Headers */,
+				5BB5256C1BEC057200E63BE3 /* module.map in Headers */,
 				5B7C8AC81BEA80FC00C5B690 /* CFSet.h in Headers */,
 				5B7C8ADC1BEA80FC00C5B690 /* CFSocket.h in Headers */,
 				5B7C8ACC1BEA80FC00C5B690 /* CFDateFormatter.h in Headers */,
@@ -1952,6 +1979,8 @@
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
 				1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */,
+				1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */,
+				1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
 				5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */,
@@ -2008,6 +2037,7 @@
 				5B7C8B011BEA82F800C5B690 /* CFError_Private.h in Headers */,
 				5B7C8AF31BEA81AC00C5B690 /* CFStreamPriv.h in Headers */,
 				5B7C8AF21BEA81AC00C5B690 /* CFStreamInternal.h in Headers */,
+				1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */,
 				5B7C8AEB1BEA81AC00C5B690 /* CFBigNumber.h in Headers */,
 				5B6E11A71DA451E7009B48A3 /* CFLocale_Private.h in Headers */,
 				EA66F6671BF2F2F100136161 /* CoreFoundation.h in Headers */,
@@ -2023,6 +2053,7 @@
 				5BDF62911C1A550800A89075 /* CFRegularExpression.h in Headers */,
 				5B7C8AF91BEA81AC00C5B690 /* CFStringEncodingDatabase.h in Headers */,
 				EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */,
+				1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */,
 				5B7C8B001BEA82ED00C5B690 /* CFRuntime.h in Headers */,
 				5BF9B7F31FABBDB900EE1A7C /* CFPropertyList_Private.h in Headers */,
 				5B7C8ABE1BEA807A00C5B690 /* CFByteOrder.h in Headers */,
@@ -2144,7 +2175,7 @@
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
 						CreatedOnToolsVersion = 7.1;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1000;
 						LastSwiftUpdateCheck = 0800;
 						ProvisioningStyle = Manual;
 					};
@@ -2440,6 +2471,7 @@
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
+				1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */,
 				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
@@ -2460,6 +2492,7 @@
 				5B7C8A821BEA7FCE00C5B690 /* CFStorage.c in Sources */,
 				153E951220111DC500F250BE /* CFKnownLocations.c in Sources */,
 				5B7C8AAF1BEA800D00C5B690 /* CFStringUtilities.c in Sources */,
+				1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */,
 				5B7C8A891BEA7FDB00C5B690 /* CFNumberFormatter.c in Sources */,
 				5B7C8A8C1BEA7FE200C5B690 /* CFDate.c in Sources */,
 				5B7C8A751BEA7FCE00C5B690 /* CFRuntime.c in Sources */,
@@ -2476,6 +2509,7 @@
 				5B7C8AAD1BEA800D00C5B690 /* CFStringEncodings.c in Sources */,
 				5B7C8AB21BEA801700C5B690 /* CFPlatformConverters.c in Sources */,
 				5B7C8AB91BEA802100C5B690 /* CFURLComponents.c in Sources */,
+				1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */,
 				5B7C8A9D1BEA7FF900C5B690 /* CFPlugIn_Factory.c in Sources */,
 				5B7C8A861BEA7FDB00C5B690 /* CFDateFormatter.c in Sources */,
 				5B7C8AAB1BEA800D00C5B690 /* CFCharacterSet.c in Sources */,
@@ -2499,6 +2533,7 @@
 				5B7C8A851BEA7FDB00C5B690 /* CFCalendar.c in Sources */,
 				5B7C8A9F1BEA7FF900C5B690 /* CFPlugIn_PlugIn.c in Sources */,
 				5B7C8AB11BEA801700C5B690 /* CFICUConverters.c in Sources */,
+				1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */,
 				5B7C8A841BEA7FDB00C5B690 /* CFError.c in Sources */,
 				5B7C8A8D1BEA7FE200C5B690 /* CFNumber.c in Sources */,
 				5B7C8A991BEA7FF900C5B690 /* CFBundle_Locale.c in Sources */,
@@ -2532,6 +2567,7 @@
 				EA54A6FB1DB16D53009E0809 /* TestObjCRuntime.swift in Sources */,
 				BB3D7558208A1E500085CFDC /* TestImports.swift in Sources */,
 				5B13B34D1C582D4C00651CE2 /* TestNSUUID.swift in Sources */,
+				15F10CDC218909BF00D88114 /* TestNSCalendar.swift in Sources */,
 				5B13B3281C582D4C00651CE2 /* TestBundle.swift in Sources */,
 				5B13B32A1C582D4C00651CE2 /* TestCharacterSet.swift in Sources */,
 				BF8E65311DC3B3CB005AB5C3 /* TestNotification.swift in Sources */,
