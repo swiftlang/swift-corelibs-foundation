@@ -153,8 +153,8 @@ open class Thread : NSObject {
 #endif
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
-    /// - Note: this differs from the Darwin implementation in that the keys must be Strings
-    open var threadDictionary = [String : Any]()
+    
+    open private(set) var threadDictionary: NSMutableDictionary = NSMutableDictionary()
 
     internal init(thread: pthread_t) {
         // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.

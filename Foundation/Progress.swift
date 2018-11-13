@@ -537,7 +537,7 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     public static let fileCompletedCountKey = ProgressUserInfoKey(rawValue: "NSProgressFileCompletedCountKey")
 }
 
-fileprivate class _ProgressTSD {
+fileprivate class _ProgressTSD : NSObject {
     /// The thread's default progress.
     fileprivate var currentProgress : Progress
     
