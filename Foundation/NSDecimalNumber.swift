@@ -147,7 +147,11 @@ open class NSDecimalNumber : NSNumber {
     public required convenience init(bytes buffer: UnsafeRawPointer, objCType type: UnsafePointer<Int8>) {
         NSRequiresConcreteImplementation()
     }
-    
+
+    open override var description: String {
+        return self.decimal.description
+    }
+
     open override func description(withLocale locale: Locale?) -> String {
         guard locale == nil else {
             fatalError("Locale not supported: \(locale!)")

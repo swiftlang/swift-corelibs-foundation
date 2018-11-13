@@ -503,7 +503,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(1, ten._length)
     }
 
-    func test_NSDecimal() {
+    func test_NSDecimal() throws {
         var nan = Decimal.nan
         XCTAssertTrue(NSDecimalIsNotANumber(&nan))
         var zero = Decimal()
@@ -524,6 +524,31 @@ class TestDecimal: XCTestCase {
         let nsd1 = NSDecimalNumber(decimal: Decimal(2657.6))
         let nsd2 = NSDecimalNumber(floatLiteral: 2657.6)
         XCTAssertEqual(nsd1, nsd2)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).description, Int8.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).description, Int8.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.min)).description, UInt8.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).description, UInt8.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).description, Int16.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).description, Int16.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.min)).description, UInt16.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).description, UInt16.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).description, Int32.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).description, Int32.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.min)).description, UInt32.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).description, UInt32.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).description, Int64.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).description, Int64.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.min)).description, UInt64.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.max)).description, UInt64.max.description)
+
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "12.34").unwrapped()).description, "12.34")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0001").unwrapped()).description, "0.0001")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "-1.0002").unwrapped()).description, "-1.0002")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0").unwrapped()).description, "0")
     }
 
     func test_PositivePowers() {
