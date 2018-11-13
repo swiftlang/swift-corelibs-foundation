@@ -133,11 +133,13 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 	CFRelease(memory);
 	return NULL;
     }
-    UChar ubuff[4];
+
     if (kCFNumberFormatterNoStyle == style) {
+        UChar ubuff[1];
         status = U_ZERO_ERROR;
-	ubuff[0] = '#'; ubuff[1] = ';'; ubuff[2] = '#';
-        __cficu_unum_applyPattern(memory->_nf, false, ubuff, 3, NULL, &status);
+        ubuff[0] = '#';
+
+        __cficu_unum_applyPattern(memory->_nf, false, ubuff, 1, NULL, &status);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_INTEGER_DIGITS, 42);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_FRACTION_DIGITS, 0);
     }
