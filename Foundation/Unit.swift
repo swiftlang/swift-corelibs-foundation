@@ -248,7 +248,7 @@ open class Dimension : Unit {
     }
 }
 
-open class UnitAcceleration : Dimension {
+public final class UnitAcceleration : Dimension {
     
     /*
      Base unit - metersPerSecondSquared
@@ -297,7 +297,7 @@ open class UnitAcceleration : Dimension {
     }
 }
 
-open class UnitAngle : Dimension {
+public final class UnitAngle : Dimension {
     
     /*
      Base unit - degrees
@@ -378,7 +378,7 @@ open class UnitAngle : Dimension {
     }
 }
 
-open class UnitArea : Dimension {
+public final class UnitArea : Dimension {
     
     /*
      Base unit - squareMeters
@@ -523,7 +523,7 @@ open class UnitArea : Dimension {
     }
 }
 
-open class UnitConcentrationMass : Dimension {
+public final class UnitConcentrationMass : Dimension {
     
     /*
      Base unit - gramsPerLiter
@@ -578,7 +578,7 @@ open class UnitConcentrationMass : Dimension {
     }
 }
 
-open class UnitDispersion : Dimension {
+public final class UnitDispersion : Dimension {
     
     /*
      Base unit - partsPerMillion
@@ -619,7 +619,7 @@ open class UnitDispersion : Dimension {
     }
 }
 
-open class UnitDuration : Dimension {
+public final class UnitDuration : Dimension {
     
     /*
      Base unit - seconds
@@ -676,7 +676,7 @@ open class UnitDuration : Dimension {
     }
 }
 
-open class UnitElectricCharge : Dimension {
+public final class UnitElectricCharge : Dimension {
     /*
      Base unit - coulombs
      */
@@ -756,7 +756,7 @@ open class UnitElectricCharge : Dimension {
     }
 }
 
-open class UnitElectricCurrent : Dimension {
+public final class UnitElectricCurrent : Dimension {
     
     /*
      Base unit - amperes
@@ -830,7 +830,7 @@ open class UnitElectricCurrent : Dimension {
     }
 }
 
-open class UnitElectricPotentialDifference : Dimension {
+public final class UnitElectricPotentialDifference : Dimension {
     
     /*
      Base unit - volts
@@ -904,7 +904,7 @@ open class UnitElectricPotentialDifference : Dimension {
     }
 }
 
-open class UnitElectricResistance : Dimension {
+public final class UnitElectricResistance : Dimension {
     
     /*
      Base unit - ohms
@@ -978,7 +978,7 @@ open class UnitElectricResistance : Dimension {
     }
 }
 
-open class UnitEnergy : Dimension {
+public final class UnitEnergy : Dimension {
     
     /*
      Base unit - joules
@@ -1052,7 +1052,7 @@ open class UnitEnergy : Dimension {
     }
 }
 
-open class UnitFrequency : Dimension {
+public final class UnitFrequency : Dimension {
     
     /*
      Base unit - hertz
@@ -1149,7 +1149,7 @@ open class UnitFrequency : Dimension {
     }
 }
 
-open class UnitFuelEfficiency : Dimension {
+public final class UnitFuelEfficiency : Dimension {
     
     /*
      Base unit - litersPer100Kilometers
@@ -1206,7 +1206,7 @@ open class UnitFuelEfficiency : Dimension {
     }
 }
 
-open class UnitLength : Dimension {
+public final class UnitLength : Dimension {
     
     /*
      Base unit - meters
@@ -1415,7 +1415,7 @@ open class UnitLength : Dimension {
     }
 }
 
-open class UnitIlluminance : Dimension {
+public final class UnitIlluminance : Dimension {
     
     /*
      Base unit - lux
@@ -1456,7 +1456,7 @@ open class UnitIlluminance : Dimension {
     }
 }
 
-open class UnitMass : Dimension {
+public final class UnitMass : Dimension {
     
     /*
      Base unit - kilograms
@@ -1617,7 +1617,7 @@ open class UnitMass : Dimension {
     }
 }
 
-open class UnitPower : Dimension {
+public final class UnitPower : Dimension {
     
     /*
      Base unit - watts
@@ -1738,7 +1738,7 @@ open class UnitPower : Dimension {
     }
 }
 
-open class UnitPressure : Dimension {
+public final class UnitPressure : Dimension {
     
     /*
      Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
@@ -1851,7 +1851,7 @@ open class UnitPressure : Dimension {
     }
 }
 
-open class UnitSpeed : Dimension {
+public final class UnitSpeed : Dimension {
     
     /*
      Base unit - metersPerSecond
@@ -1916,7 +1916,7 @@ open class UnitSpeed : Dimension {
     }
 }
 
-open class UnitTemperature : Dimension {
+public final class UnitTemperature : Dimension {
     
     /*
      Base unit - kelvin
@@ -1979,7 +1979,7 @@ open class UnitTemperature : Dimension {
     }
 }
 
-open class UnitVolume : Dimension {
+public final class UnitVolume : Dimension {
     
     /*
      Base unit - liters
