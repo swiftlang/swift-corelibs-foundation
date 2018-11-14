@@ -254,17 +254,12 @@ extension Date : _ObjectiveCBridgeable {
     }
 }
 
-extension Date : CustomPlaygroundQuickLookable {
-    var summary: String {
+extension Date : CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
         let df = DateFormatter()
         df.dateStyle = .medium
         df.timeStyle = .short
         return df.string(from: self)
-    }
-
-    @available(*, deprecated, message: "Date.customPlaygroundQuickLook will be removed in a future Swift version") 
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .text(summary)
     }
 }
 
