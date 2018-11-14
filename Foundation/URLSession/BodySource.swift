@@ -72,17 +72,20 @@ extension _BodyStreamSource : _BodySource {
 
         let buffer = UnsafeMutableRawBufferPointer.allocate(count: length)
         guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            buffer.deallocate()
             return .error
         }
         let readBytes = self.inputStream.read(pointer, maxLength: length)
         if readBytes > 0 {
-            let dispatchData = DispatchData(bytes: UnsafeRawBufferPointer(buffer))
+            let dispatchData = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(buffer), deallocator: .free)
             return .data(dispatchData.subdata(in: 0 ..< readBytes))
         }
         else if readBytes == 0 {
+            buffer.deallocate()
             return .done
         }
         else {
+            buffer.deallocate()
             return .error
         }
     }
