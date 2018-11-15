@@ -284,7 +284,7 @@ public final class UnitAcceleration : Dimension {
         return .metersPerSecondSquared
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitAcceleration else {
             return false
         }
@@ -365,7 +365,7 @@ public final class UnitAngle : Dimension {
         return .degrees
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitAngle else {
             return false
         }
@@ -510,7 +510,7 @@ public final class UnitArea : Dimension {
         return .squareMeters
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitArea else {
             return false
         }
@@ -565,7 +565,7 @@ public final class UnitConcentrationMass : Dimension {
         return UnitConcentrationMass.gramsPerLiter
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitConcentrationMass else {
             return false
         }
@@ -606,7 +606,7 @@ public final class UnitDispersion : Dimension {
         return .partsPerMillion
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitDispersion else {
             return false
         }
@@ -663,7 +663,7 @@ public final class UnitDuration : Dimension {
         return .seconds
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitDuration else {
             return false
         }
@@ -743,7 +743,7 @@ public final class UnitElectricCharge : Dimension {
         return .coulombs
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricCharge else {
             return false
         }
@@ -817,7 +817,7 @@ public final class UnitElectricCurrent : Dimension {
         return .amperes
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricCurrent else {
             return false
         }
@@ -891,7 +891,7 @@ public final class UnitElectricPotentialDifference : Dimension {
         return .volts
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricPotentialDifference else {
             return false
         }
@@ -965,7 +965,7 @@ public final class UnitElectricResistance : Dimension {
         return .ohms
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitElectricResistance else {
             return false
         }
@@ -1039,7 +1039,7 @@ public final class UnitEnergy : Dimension {
         return .joules
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitEnergy else {
             return false
         }
@@ -1136,7 +1136,7 @@ public final class UnitFrequency : Dimension {
         return .hertz
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitFrequency else {
             return false
         }
@@ -1193,7 +1193,7 @@ public final class UnitFuelEfficiency : Dimension {
         return .litersPer100Kilometers
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitFuelEfficiency else {
             return false
         }
@@ -1402,7 +1402,7 @@ public final class UnitLength : Dimension {
         return .meters
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? UnitLength else {
             return false
         }
