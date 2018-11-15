@@ -557,7 +557,7 @@ public final class UnitConcentrationMass : Dimension {
         }
     }
     
-    open class func millimolesPerLiter(withGramsPerMole gramsPerMole: Double) -> UnitConcentrationMass {
+    public class func millimolesPerLiter(withGramsPerMole gramsPerMole: Double) -> UnitConcentrationMass {
         return UnitConcentrationMass(symbol: Symbol.millimolesPerLiter, coefficient: Coefficient.millimolesPerLiter * gramsPerMole)
     }
     
