@@ -10,6 +10,7 @@
 
 import CoreFoundation
 
+@usableFromInline
 internal class _NSCFString : NSMutableString {
     required init(characters: UnsafePointer<unichar>, length: Int) {
         fatalError()
