@@ -1171,7 +1171,7 @@ public final class UnitFuelEfficiency : Dimension {
         self.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
     }
     
-    open class var litersPer100Kilometers: UnitFuelEfficiency {
+    public class var litersPer100Kilometers: UnitFuelEfficiency {
         get {
             return UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, reciprocal: Coefficient.litersPer100Kilometers)
         }
