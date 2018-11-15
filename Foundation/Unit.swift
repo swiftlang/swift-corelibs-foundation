@@ -280,7 +280,7 @@ public final class UnitAcceleration : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitAcceleration {
+    public override class func baseUnit() -> UnitAcceleration {
         return .metersPerSecondSquared
     }
     
@@ -361,7 +361,7 @@ public final class UnitAngle : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitAngle {
+    public override class func baseUnit() -> UnitAngle {
         return .degrees
     }
     
@@ -506,7 +506,7 @@ public final class UnitArea : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitArea {
+    public override class func baseUnit() -> UnitArea {
         return .squareMeters
     }
     
@@ -561,7 +561,7 @@ public final class UnitConcentrationMass : Dimension {
         return UnitConcentrationMass(symbol: Symbol.millimolesPerLiter, coefficient: Coefficient.millimolesPerLiter * gramsPerMole)
     }
     
-    open override class func baseUnit() -> UnitConcentrationMass {
+    public override class func baseUnit() -> UnitConcentrationMass {
         return UnitConcentrationMass.gramsPerLiter
     }
     
@@ -602,7 +602,7 @@ public final class UnitDispersion : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitDispersion {
+    public override class func baseUnit() -> UnitDispersion {
         return .partsPerMillion
     }
     
@@ -659,7 +659,7 @@ public final class UnitDuration : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitDuration {
+    public override class func baseUnit() -> UnitDuration {
         return .seconds
     }
     
@@ -739,7 +739,7 @@ public final class UnitElectricCharge : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitElectricCharge {
+    public override class func baseUnit() -> UnitElectricCharge {
         return .coulombs
     }
     
@@ -813,7 +813,7 @@ public final class UnitElectricCurrent : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitElectricCurrent {
+    public override class func baseUnit() -> UnitElectricCurrent {
         return .amperes
     }
     
@@ -887,7 +887,7 @@ public final class UnitElectricPotentialDifference : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitElectricPotentialDifference {
+    public override class func baseUnit() -> UnitElectricPotentialDifference {
         return .volts
     }
     
@@ -961,7 +961,7 @@ public final class UnitElectricResistance : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitElectricResistance {
+    public override class func baseUnit() -> UnitElectricResistance {
         return .ohms
     }
     
@@ -1035,7 +1035,7 @@ public final class UnitEnergy : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitEnergy {
+    public override class func baseUnit() -> UnitEnergy {
         return .joules
     }
     
@@ -1132,7 +1132,7 @@ public final class UnitFrequency : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitFrequency {
+    public override class func baseUnit() -> UnitFrequency {
         return .hertz
     }
     
@@ -1189,7 +1189,7 @@ public final class UnitFuelEfficiency : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitFuelEfficiency {
+    public override class func baseUnit() -> UnitFuelEfficiency {
         return .litersPer100Kilometers
     }
     
@@ -1398,7 +1398,7 @@ public final class UnitLength : Dimension {
         }
     }
     
-    open override class func baseUnit() -> UnitLength {
+    public override class func baseUnit() -> UnitLength {
         return .meters
     }
     
