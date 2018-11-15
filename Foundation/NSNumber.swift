@@ -762,7 +762,7 @@ open class NSNumber : NSValue {
     }
 
     public convenience init(value: Bool) {
-        self.init(factory: value._bridgeToObjectiveC)
+        self.init(factory: cast(value._bridgeToObjectiveC))
     }
 
     override internal init() {
