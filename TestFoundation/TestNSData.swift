@@ -4463,7 +4463,7 @@ extension TestNSData {
         let data = "FooBar".data(using: .ascii)!
         let slice = data[3...] // Bar
         let range = slice.range(of: "a".data(using: .ascii)!)
-        XCTAssertEqual(range, Range<Data.Index>(4..<5))
+        XCTAssertEqual(range, 4..<5)
     }
 
     func test_nskeyedarchiving() {
