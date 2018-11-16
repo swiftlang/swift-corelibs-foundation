@@ -411,6 +411,8 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-OrderedSetTest.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
                        SWIFT_FLAGS
+                         # force -swift-version 4 to work around @autoclosure bug in -swift-version 5
+                         -swift-version 4
                          ${deployment_enable_libdispatch}
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
