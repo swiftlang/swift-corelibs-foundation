@@ -540,29 +540,24 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
 
 #elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 
-typedef int32_t CFLock_t;
-#define CFLockInit 0
+typedef pthread_mutex_t CFLock_t;
+#if DEPLOYMENT_TARGET_FREEBSD
+#define CFLockInit ((pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER)
+#else
+#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP)
+#endif
 #define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
 
-CF_INLINE void __CFLock(volatile CFLock_t *lock) {
-    while (__sync_val_compare_and_swap(lock, 0, ~0) != 0) {
-	sleep(0);
-    }
-}
+#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
+#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
+#define __CFLockTry(LP) ({ (void)pthread_mutex_trylock(LP) == 0; })
 
-CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
-    __sync_synchronize();
-    *lock = 0;
-}
-
-CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-    return (__sync_val_compare_and_swap(lock, 0, ~0) == 0);
-}
-
-typedef CFLock_t OSSpinLock;
-#define OS_SPINLOCK_INIT CFLockInit
-#define OSSpinLockLock(lock) __CFLock(lock)
-#define OSSpinLockUnlock(lock) __CFUnlock(lock)
+// NOTE: we cannot use pthread_spinlock_t here as there is no static initializer
+// defined for them in the POSIX specification.
+typedef int32_t OSSpinLock;
+#define OS_SPINLOCK_INIT 0
+#define OSSpinLockLock(lock) ({ while (__sync_val_compare_and_swap(lock, 0, ~0)) sleep(0); })
+#define OSSpinLockUnlock(lock) ({ __sync_synchronize(); *lock = 0; })
 
 #else
 
