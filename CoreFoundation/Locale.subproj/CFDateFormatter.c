@@ -58,7 +58,7 @@ CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRef allocato
 
 static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDateTimePatternGenerator *ptg)) {
     static UDateTimePatternGenerator *ptg;
-    static pthread_mutex_t ptgLock = PTHREAD_MUTEX_INITIALIZER;
+    static CFLock_t ptgLock = CFLockInit;
     static const char *ptgLocaleName;
     CFStringRef ln = locale ? CFLocaleGetIdentifier(locale) : CFSTR("");
     char buffer[BUFFER_SIZE];
@@ -73,7 +73,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
         free((void *)ptgLocaleName);
         ptgLocaleName = NULL;
     };
-    pthread_mutex_lock(&ptgLock);
+    __CFLock(&ptgLock);
     if (ptgLocaleName && strcmp(ptgLocaleName, localeName) != 0) {
         flushCache();
     }
@@ -88,7 +88,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
     if (result && work) {
         work(ptg);
     }
-    pthread_mutex_unlock(&ptgLock);
+    __CFUnlock(&ptgLock);
     return result;
 }
 
