@@ -72,6 +72,25 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
         }
     }
     
+#elif DEPLOYMENT_TARGET_WINDOWS
+
+    switch (user) {
+    case _kCFKnownLocationUserAny:
+      location = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, CFSTR("\\Users\\All Users\\AppData\\Local"), kCFURLWindowsPathStyle, true);
+      break;
+    case _kCFKnownLocationUserCurrent:
+      username = CFGetUserName();
+      // fallthrough
+    case _kCFKnownLocationUserByName:
+      const char *buffer = CFStringGetCStringPtr(username, kCFStringEncodingUTF8);
+      CFURLRef directory = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (const unsigned char *)buffer, strlen(buffer), true);
+      CFURLRef home = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("\\Users"), kCFURLWindowsPathStyle, true, directory);
+      location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("\\AppData\\Local"),  kCFURLWindowsPathStyle, true, home);
+      CFRelease(home);
+      CFRelease(directory);
+      break;
+    }
+
 #else
     
     #error For this platform, you need to define a preferences path for both 'any user' (i.e. installation-wide preferences) or the current user.

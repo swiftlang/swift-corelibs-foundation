@@ -102,9 +102,6 @@ CF_INLINE CFAllocatorPreferredSizeCallBack __CFAllocatorGetPreferredSizeFunction
 }
 
 static const void * const __MallocDefaultZoneInfoPlaceholder = NULL;
-#if !TARGET_OS_MAC
-#define malloc_default_zone() (NULL)
-#endif
 
 #if TARGET_OS_MAC
 

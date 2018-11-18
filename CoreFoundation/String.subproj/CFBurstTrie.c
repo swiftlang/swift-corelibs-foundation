@@ -351,7 +351,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
     if (stat(filename, &sb) != 0) return NULL;
 
     /* Check if file can be opened */
-    if ((fd=open(filename, CF_OPENFLGS|O_RDONLY)) < 0) return NULL;
+    if ((fd=open(filename, CF_OPENFLGS|O_RDONLY, 0)) < 0) return NULL;
     
 #if DEPLOYMENT_TARGET_WINDOWS
     HANDLE mappedFileHandle = (HANDLE)_get_osfhandle(fd);   

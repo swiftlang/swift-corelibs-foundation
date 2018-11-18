@@ -143,6 +143,10 @@ typedef int		boolean_t;
 #include <sys/stat.h> // mode_t
 #endif
 
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD || DEPLOYMENT_TARGET_WINDOWS
+void OSMemoryBarrier();
+#endif
+
 #if DEPLOYMENT_TARGET_LINUX
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
@@ -208,8 +212,6 @@ int32_t OSAtomicDecrement32(volatile int32_t *theValue);
 int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
 int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
 bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
-    
-void OSMemoryBarrier();
 
 #if TARGET_OS_CYGWIN
 #define HAVE_STRUCT_TIMESPEC 1
@@ -254,19 +256,19 @@ int32_t OSAtomicAdd32( int32_t theAmount, volatile int32_t *theValue );
 int32_t OSAtomicAdd32Barrier( int32_t theAmount, volatile int32_t *theValue );
 bool OSAtomicCompareAndSwap32Barrier( int32_t oldValue, int32_t newValue, volatile int32_t *theValue );
 
-void OSMemoryBarrier();
-
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX    
+#if !__HAS_DISPATCH__
 #if !defined(MIN)
 #define MIN(A,B)	((A) < (B) ? (A) : (B))
 #endif
-    
+
 #if !defined(MAX)
 #define MAX(A,B)	((A) > (B) ? (A) : (B))
 #endif
-    
+#endif
+
 #if !defined(ABS)
 #define ABS(A)	((A) < 0 ? (-(A)) : (A))
 #endif    
@@ -281,14 +283,17 @@ void OSMemoryBarrier();
 // Defined for source compatibility
 #define ino_t _ino_t
 #define off_t _off_t
-#define mode_t uint16_t
+typedef int mode_t;
         
 // This works because things aren't actually exported from the DLL unless they have a __declspec(dllexport) on them... so extern by itself is closest to __private_extern__ on Mac OS
 #define CF_PRIVATE extern
     
 #define __builtin_expect(P1,P2) P1
-    
+
 // These are replacements for POSIX calls on Windows, ensuring that the UTF8 parameters are converted to UTF16 before being passed to Windows
+
+#include <sys/stat.h>
+
 CF_EXPORT int _NS_stat(const char *name, struct _stat *st);
 CF_EXPORT int _NS_mkdir(const char *name);
 CF_EXPORT int _NS_rmdir(const char *name);
@@ -297,40 +302,30 @@ CF_EXPORT int _NS_unlink(const char *name);
 CF_EXPORT char *_NS_getcwd(char *dstbuf, size_t size);     // Warning: this doesn't support dstbuf as null even though 'getcwd' does
 CF_EXPORT char *_NS_getenv(const char *name);
 CF_EXPORT int _NS_rename(const char *oldName, const char *newName);
-CF_EXPORT int _NS_open(const char *name, int oflag, int pmode = 0);
+CF_EXPORT int _NS_open(const char *name, int oflag, int pmode);
 CF_EXPORT int _NS_chdir(const char *name);
 CF_EXPORT int _NS_mkstemp(char *name, int bufSize);
 CF_EXPORT int _NS_access(const char *name, int amode);
 
 #define BOOL WINDOWS_BOOL
 
-#define WIN32_LEAN_AND_MEAN
-
 #ifndef WINVER
-#define WINVER  0x0501
+#define WINVER  0x0600
 #endif
     
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0501
+#define _WIN32_WINNT 0x0600
 #endif
+
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 
 // The order of these includes is important
 #define FD_SETSIZE 1024
 #include <winsock2.h>
 #include <windows.h>
-#include <pthread.h>
 
 #undef BOOL
-
-#ifndef HAVE_STRUCT_TIMESPEC
-#define HAVE_STRUCT_TIMESPEC 1
-struct timespec {
-        long tv_sec;
-        long tv_nsec;
-};
-#endif /* HAVE_STRUCT_TIMESPEC */
-
-#define __PRETTY_FUNCTION__ __FUNCTION__
 
 #define malloc_default_zone() (void *)0
 #define malloc_zone_from_ptr(a) (void *)0
@@ -344,8 +339,6 @@ typedef int gid_t;
 #define geteuid() 0
 #define getuid() 0
 #define getegid() 0
-
-#define scalbn(A, B) _scalb(A, B)
 
 #define fsync(a) _commit(a)
 #define malloc_create_zone(a,b) 123

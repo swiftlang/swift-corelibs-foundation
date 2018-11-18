@@ -26,8 +26,22 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
+#include <direct.h>
+#include <process.h>
+#include <Fibersapi.h>
+#define SECURITY_WIN32
+#include <Security.h>
 
 #define getcwd _NS_getcwd
+
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD dwType; // Must be 0x1000
+  LPCSTR szName; // Pointer to name (in user addr space)
+  DWORD dwThreadID; // Thread ID (-1=caller thread)
+  DWORD dwFlags; // Reserved for future use, must be zero
+} THREADNAME_INFO;
 
 #endif
 
@@ -302,6 +316,15 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     if (upwd && upwd->pw_gecos) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
     }
+#elif TARGET_OS_WIN32
+    ULONG ulLength = 0;
+    GetUserNameExW(NameDisplay, NULL, &ulLength);
+
+    WCHAR *wszBuffer[ulLength + 1];
+    GetUserNameExW(NameDisplay, (LPWSTR)wszBuffer, &ulLength);
+
+    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault,
+                                          (UniChar *)wszBuffer, ulLength);
 #else
 #error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
@@ -517,45 +540,26 @@ CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef a
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-// This code from here:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-
-const DWORD MS_VC_EXCEPTION=0x406D1388;
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-    DWORD dwType; // Must be 0x1000.
-    LPCSTR szName; // Pointer to name (in user addr space).
-    DWORD dwThreadID; // Thread ID (-1=caller thread).
-    DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
 CF_EXPORT void _NS_pthread_setname_np(const char *name) {
-    THREADNAME_INFO info;
-    info.dwType = 0x1000;
-    info.szName = name;
-    info.dwThreadID = GetCurrentThreadId();
-    info.dwFlags = 0;
-
-    __try
-    {
-        RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER)
-    {
-    }
+    _CFThreadSetName(GetCurrentThreadId(), name);
 }
 
-static pthread_t __initialPthread = { NULL, 0 };
+static HANDLE __initialPthread = INVALID_HANDLE_VALUE;
 
 CF_EXPORT int _NS_pthread_main_np() {
-    pthread_t me = pthread_self();
-    if (NULL == __initialPthread.p) {
-        __initialPthread.p = me.p;
-        __initialPthread.x = me.x;
-    }
-    return (pthread_equal(__initialPthread, me));
+    if (__initialPthread == INVALID_HANDLE_VALUE)
+        DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                        GetCurrentProcess(), &__initialPthread, 0, FALSE,
+                        DUPLICATE_SAME_ACCESS);
+    return CompareObjectHandles(__initialPthread, GetCurrentThread());
+}
+
+_CFThreadRef _NS_pthread_self(void) {
+  _CFThreadRef thread;
+  DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                  GetCurrentProcess(), &thread, 0, FALSE,
+                  DUPLICATE_SAME_ACCESS);
+  return thread;
 }
 
 #endif
@@ -585,34 +589,20 @@ static void __CFTSDFinalize(void *arg);
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static DWORD __CFTSDIndexKey = 0xFFFFFFFF;
+static DWORD __CFTSDIndexKey;
 
-// Called from CFRuntime's startup code, on Windows only
-CF_PRIVATE void __CFTSDWindowsInitialize() {
-    __CFTSDIndexKey = TlsAlloc();
-}
-
-// Called from CFRuntime's cleanup code, on Windows only
-CF_PRIVATE void __CFTSDWindowsCleanup() {
-    TlsFree(__CFTSDIndexKey);
-}
-
-// Called for each thread as it exits, on Windows only
-CF_PRIVATE void __CFFinalizeWindowsThreadData() {
-    // Normally, this should call the finalizer several times to emulate the behavior of pthreads on Windows. However, a few bugs keep us from doing this:
-    // <rdar://problem/8989063> REGRESSION(CF-610-CF-611): Crash closing Safari in BonjourDB destructor (Windows)
-    // <rdar://problem/9326814> SyncUIHandler crashes after conflict is resolved and we do SyncNow
-    //  and a bug in dispatch keeps us from using pthreadsWin32 directly, because it does not deal with the case of a dispatch_async happening during process exit (it attempts to create a thread, but that is illegal on Win32 and causes a hang).
-    // So instead we just finalize once, which is the behavior pre-Airwolf anyway
-    __CFTSDFinalize(TlsGetValue(__CFTSDIndexKey));
-}
-
-#endif
+#else
 
 static pthread_key_t __CFTSDIndexKey;
 
+#endif
+
 CF_PRIVATE void __CFTSDInitialize() {
+#if DEPLOYMENT_TARGET_WINDOWS
+    __CFTSDIndexKey = FlsAlloc(__CFTSDFinalize);
+#else
     (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
+#endif
 }
 
 static void __CFTSDSetSpecific(void *arg) {
@@ -621,7 +611,7 @@ static void __CFTSDSetSpecific(void *arg) {
 #elif DEPLOYMENT_TARGET_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    TlsSetValue(__CFTSDIndexKey, arg);
+    FlsSetValue(__CFTSDIndexKey, arg);
 #endif
 }
 
@@ -631,7 +621,7 @@ static void *__CFTSDGetSpecific() {
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    return TlsGetValue(__CFTSDIndexKey);
+    return FlsGetValue(__CFTSDIndexKey);
 #endif
 }
 
@@ -664,6 +654,7 @@ static void __CFTSDFinalize(void *arg) {
         }
     }
     
+#if !DEPLOYMENT_TARGET_WINDOWS
     if (table->destructorCount == PTHREAD_DESTRUCTOR_ITERATIONS - 1) {    // On PTHREAD_DESTRUCTOR_ITERATIONS-1 call, destroy our data
         free(table);
         
@@ -671,6 +662,7 @@ static void __CFTSDFinalize(void *arg) {
         __CFTSDSetSpecific(CF_TSD_BAD_PTR);
         return;
     }
+#endif
 }
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -1170,6 +1162,12 @@ void OSMemoryBarrier() {
     __sync_synchronize();
 }
 
+#elif DEPLOYMENT_TARGET_WINDOWS
+
+void OSMemoryBarrier() {
+    MemoryBarrier();
+}
+
 #endif // DEPLOYMENT_TARGET_LINUX
 
 #pragma mark -
@@ -1321,31 +1319,51 @@ static void _CFThreadSpecificDestructor(void *ctx) {
 }
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
+#if DEPLOYMENT_TARGET_WINDOWS
+    return FlsAlloc(&_CFThreadSpecificDestructor);
+#else
     _CFThreadSpecificKey key;
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
     return key;
+#endif
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    return (CFTypeRef)FlsGetValue(key);
+#else
     return (CFTypeRef)pthread_getspecific(key);
+#endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    if (value)
+      swift_retain((void *)value);
+    FlsSetValue(key, (PVOID)value);
+#else
     if (value != NULL) {
         swift_retain((void *)value);
         pthread_setspecific(key, value);
     } else {
         pthread_setspecific(key, NULL);
     }
+#endif
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    return (_CFThreadRef)_beginthreadex(NULL, 0,
+                                        (_beginthreadex_proc_type)startfn,
+                                        context, 0, NULL);
+#else
     pthread_t thread;
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
+#endif
 }
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
@@ -1353,6 +1371,18 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Non
     return EINVAL;
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_setname_np(thread, name);
+#elif DEPLOYMENT_TARGET_WINDOWS
+    THREADNAME_INFO tnInfo;
+    tnInfo.dwType = 0x1000;
+    tnInfo.szName = name;
+    tnInfo.dwThreadID = thread;
+    tnInfo.dwFlags = 0;
+    __try {
+      RaiseException(MS_VC_EXCEPTION, 0, sizeof(tnInfo) / sizeof(ULONG_PTR),
+                     (ULONG_PTR*)&tnInfo);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+    }
+    return 0;
 #endif
 }
 

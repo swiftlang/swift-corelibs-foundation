@@ -83,6 +83,18 @@ CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
 }
 #endif
 
+#if DEPLOYMENT_TARGET_WINDOWS
+CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
+  SYSTEMTIME stTime;
+  FILETIME ftTime;
+
+  GetSystemTime(&stTime);
+  SystemTimeToFileTime(&stTime, &ftTime);
+
+  return (uint64_t)ftTime.dwLowDateTime + ((uint64_t)ftTime.dwHighDateTime << 32)
+        - kCFAbsoluteTimeIntervalSince1970;
+}
+#else
 CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     CFAbsoluteTime ret;
     struct timeval tv;
@@ -91,6 +103,7 @@ CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     ret += (1.0E-6 * (CFTimeInterval)tv.tv_usec);
     return ret;
 }
+#endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
@@ -104,6 +117,9 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
         HALT;
     }
     return (double)res.tv_sec + ((double)res.tv_nsec)/1.0E9;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    ULONGLONG ullTickCount = GetTickCount64();
+    return ullTickCount / 1000;
 #else
 #error Unable to calculate uptime for this platform
 #endif

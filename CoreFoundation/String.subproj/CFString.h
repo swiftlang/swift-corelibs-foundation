@@ -191,7 +191,7 @@ struct __CFConstStr {
 
 #else
 
-#ifdef __CONSTANT_CFSTRINGS__
+#if defined(__CONSTANT_CFSTRINGS__) || DEPLOYMENT_TARGET_WINDOWS
 #define CFSTR(cStr)  ((CFStringRef) __builtin___CFStringMakeConstantString ("" cStr ""))
 #else
 #define CFSTR(cStr)  __CFStringMakeConstantString("" cStr "")

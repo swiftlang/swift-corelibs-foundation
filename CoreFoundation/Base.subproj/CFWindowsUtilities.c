@@ -84,10 +84,6 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 }
  */
 
-void OSMemoryBarrier() {
-    MemoryBarrier();
-}
-
 void _CFGetFrameworkPath(wchar_t *path, int maxLength) {
 #ifdef _DEBUG
     // might be nice to get this from the project file at some point

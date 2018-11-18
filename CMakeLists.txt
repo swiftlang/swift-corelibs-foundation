@@ -14,10 +14,10 @@ option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
 option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 
-find_package(CURL REQUIRED)
-find_package(ICU COMPONENTS uc i18n REQUIRED)
-find_package(LibXml2 REQUIRED)
-find_package(UUID REQUIRED)
+# find_package(CURL REQUIRED)
+# find_package(ICU COMPONENTS uc i18n REQUIRED)
+# find_package(LibXml2 REQUIRED)
+# find_package(UUID REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -35,11 +35,14 @@ ExternalProject_Add(CoreFoundation
                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                       -DCMAKE_INSTALL_LIBDIR=usr/lib
+                      -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+                      -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                       -DCF_DEPLOYMENT_SWIFT=YES
                       -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
-                      -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
+                      -DICU_ROOT=${ICU_ROOT}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
@@ -241,7 +244,7 @@ add_swift_library(Foundation
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     ${uuid_LIBRARIES}
-		    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}

@@ -12,6 +12,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/CFCharacterSetPriv.h>
 #include <CoreFoundation/CFNumber.h>
+#include "CFURLPriv.h"
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFStringEncodingConverter.h>

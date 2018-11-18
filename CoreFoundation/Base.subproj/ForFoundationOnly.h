@@ -332,6 +332,11 @@ _CF_EXPORT_SCOPE_END
 
 
 // ---- Binary plist material ----------------------------------------
+
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <sys/stat.h>
+#endif
+
 _CF_EXPORT_SCOPE_BEGIN
 typedef const struct CF_BRIDGED_TYPE(_NSKeyedArchiverUID) __CFKeyedArchiverUID * CFKeyedArchiverUIDRef;
 CF_EXPORT CFTypeID _CFKeyedArchiverUIDGetTypeID(void);
@@ -431,8 +436,8 @@ CF_EXPORT int _NS_mkdir(const char *name);
 CF_EXPORT int _NS_rmdir(const char *name);
 CF_EXPORT int _NS_chmod(const char *name, int mode);
 CF_EXPORT int _NS_unlink(const char *name);
-CF_EXPORT char *_NS_getcwd(char *dstbuf, size_t size);     // Warning: this doesn't support dstbuf as null even though 'getcwd' does
-CF_EXPORT char *_NS_getenv(const char *name);
+CF_EXPORT char * _Nullable _NS_getcwd(char * _Nullable dstbuf, size_t size);     // Warning: this doesn't support dstbuf as null even though 'getcwd' does
+CF_EXPORT char * _Nullable _NS_getenv(const char * _Nullable name);
 CF_EXPORT int _NS_rename(const char *oldName, const char *newName);
 CF_EXPORT int _NS_open(const char *name, int oflag, int pmode);
 CF_EXPORT int _NS_mkstemp(char *name, int bufSize);

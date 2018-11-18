@@ -63,9 +63,9 @@ CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream);
 CF_PRIVATE struct _CFStream *_CFStreamCreateWithConstantCallbacks(CFAllocatorRef alloc, void *info, const struct _CFStreamCallBacks *cb, Boolean isReading);
 
 // Returns an array of the runloops and modes on which the stream is currently scheduled
-CF_PRIVATE
+CF_EXPORT
 CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream);
-CF_PRIVATE
+CF_EXPORT
 CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream);
 
 CF_EXPORT

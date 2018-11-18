@@ -19,17 +19,22 @@
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <pthread.h>
+#endif
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif
 
-extern void objc_terminate(void);
-
-
-#if DEPLOYMENT_TARGET_WINDOWS
-#include <typeinfo.h>
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#define USE_DISPATCH_SOURCE_FOR_TIMERS __HAS_DISPATCH__
+#define USE_MK_TIMER_TOO 1
+#else
+#define USE_DISPATCH_SOURCE_FOR_TIMERS 0
+#define USE_MK_TIMER_TOO 1
 #endif
+
+extern void objc_terminate(void);
 
 #if __has_include(<checkint.h>)
 #include <checkint.h>
@@ -50,6 +55,9 @@ CF_INLINE uint64_t check_uint64_add(uint64_t x, uint64_t y, int32_t* err) {
 #if __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #else
+#if !TARGET_OS_MAC
+typedef uint32_t mach_port_t;
+#endif
 extern dispatch_queue_t _dispatch_runloop_root_queue_create_4CF(const char *_Nullable label, unsigned long flags);
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
 extern mach_port_t _dispatch_runloop_root_queue_get_port_4CF(dispatch_queue_t queue);
@@ -77,7 +85,7 @@ typedef int dispatch_runloop_handle_t;
 
 extern void _dispatch_main_queue_callback_4CF(void *);
 
-extern pthread_t pthread_main_thread_np(void);
+extern _CFThreadRef pthread_main_thread_np(void);
 typedef struct voucher_s *voucher_t;
 
 extern voucher_t _Nullable voucher_copy(void);
@@ -96,8 +104,6 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 #define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF()
 
-#define AbsoluteTime LARGE_INTEGER 
-
 #elif DEPLOYMENT_TARGET_LINUX
 
 #include <dlfcn.h>
@@ -114,8 +120,15 @@ extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
-CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
+CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
+#endif
+
+#if DEPLOYMENT_TARGET_WINDOWS
+static bool _NS_pthread_equal(HANDLE lhs, HANDLE rhs) {
+  return CompareObjectHandles(lhs, rhs);
+}
+#define pthread_equal _NS_pthread_equal
 #endif
 
 #include <Block.h>
@@ -123,14 +136,6 @@ CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #include <Block_private.h>
 #elif __has_include("Block_private.h")
 #include "Block_private.h"
-#endif
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
-#define USE_DISPATCH_SOURCE_FOR_TIMERS __HAS_DISPATCH__
-#define USE_MK_TIMER_TOO 1
-#else
-#define USE_DISPATCH_SOURCE_FOR_TIMERS 0
-#define USE_MK_TIMER_TOO 1
 #endif
 
 // Open source CF may not have this defined.
@@ -151,21 +156,21 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static pthread_t const kNilPthreadT = { nil, nil };
-#define pthreadPointer(a) a.p
-typedef	int kern_return_t;
+static _CFThreadRef const kNilPthreadT = INVALID_HANDLE_VALUE;
+#define pthreadPointer(a) a
+typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 #elif DEPLOYMENT_TARGET_LINUX
 
-static pthread_t const kNilPthreadT = (pthread_t)0;
+static _CFThreadRef const kNilPthreadT = PTHREAD_MUTEX_INITIALIZER;
 #define pthreadPointer(a) ((void*)a)
 typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 #else
 
-static pthread_t const kNilPthreadT = (pthread_t)0;
+static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
 #define pthreadPointer(a) a
 #define lockCount(a) a
 #endif
@@ -387,6 +392,15 @@ CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
 
 #elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
 
+#ifndef __unused
+    #if __has_attribute(unused)
+        #define __unused __attribute__((unused))
+    #else
+        #define __unused
+    #endif
+#endif // !defined(__unused)
+
+
 typedef HANDLE __CFPort;
 #define CFPORT_NULL NULL
 
@@ -411,7 +425,7 @@ static __CFPortSet __CFPortSetAllocate(void) {
     result->used = 0;
     result->size = 4;
     result->handles = (HANDLE *)CFAllocatorAllocate(kCFAllocatorSystemDefault, result->size * sizeof(HANDLE), 0);
-    CF_SPINLOCK_INIT_FOR_STRUCTS(result->lock);
+    CF_LOCK_INIT_FOR_STRUCTS(result->lock);
     return result;
 }
 
@@ -612,7 +626,7 @@ static kern_return_t mk_timer_destroy(HANDLE name) {
     return (int)res;
 }
 
-static kern_return_t mk_timer_arm(HANDLE name, LARGE_INTEGER expire_time) {
+static kern_return_t mk_timer_arm(HANDLE name, uint64_t expire_time) {
     LARGE_INTEGER result;
     // There is a race we know about here, (timer fire time calculated -> thread suspended -> timer armed == late timer fire), but we don't have a way to avoid it at this time, since the only way to specify an absolute value to the timer is to calculate the relative time first. Fixing that would probably require not using the TSR for timers on Windows.
     uint64_t now = mach_absolute_time();
@@ -634,7 +648,7 @@ static kern_return_t mk_timer_arm(HANDLE name, LARGE_INTEGER expire_time) {
     return (int)res;
 }
 
-static kern_return_t mk_timer_cancel(HANDLE name, LARGE_INTEGER *result_time) {
+static kern_return_t mk_timer_cancel(HANDLE name, AbsoluteTime *result_time) {
     BOOL res = CancelWaitableTimer(name);
     if (!res) {
         DWORD err = GetLastError();
@@ -750,7 +764,9 @@ static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
 #if USE_MK_TIMER_TOO
     if (MACH_PORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
 #endif
+#if !DEPLOYMENT_TARGET_WINDOWS
     pthread_mutex_destroy(&rlm->_lock);
+#endif
     memset((char *)cf + sizeof(CFRuntimeBase), 0x7C, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase));
 }
 
@@ -776,7 +792,7 @@ struct __CFRunLoop {
     __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
     Boolean _unused;
     volatile _per_run_data *_perRunData;              // reset for runs of the run loop
-    pthread_t _pthread;
+    _CFThreadRef _pthread;
     uint32_t _winthread;
     CFMutableSetRef _commonModes;
     CFMutableSetRef _commonModeItems;
@@ -883,7 +899,10 @@ CF_PRIVATE void __CFRunLoopDump() { // __private_extern__ to keep the compiler f
     CFRelease(desc);
 }
 
-CF_INLINE void __CFRunLoopLockInit(pthread_mutex_t *lock) {
+CF_INLINE void __CFRunLoopLockInit(CFLock_t *lock) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    *lock = CFLockInit;
+#else
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
     pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
@@ -891,6 +910,15 @@ CF_INLINE void __CFRunLoopLockInit(pthread_mutex_t *lock) {
     pthread_mutexattr_destroy(&mattr);
     if (0 != mret) {
     }
+#endif
+}
+
+CF_INLINE void __CFRunLoopLockFini(CFLock_t *lock) {
+#if DEPLOYMENT_TARGET_WINDOWS
+  *lock = CFLockInit;
+#else
+  pthread_mutex_destroy(lock);
+#endif
 }
 
 /* call with rl locked, returns mode locked */
@@ -1364,7 +1392,7 @@ static void __CFRunLoopDeallocateTimers(const void *value, void *context) {
     }
 }
 
-CF_EXPORT CFRunLoopRef _CFRunLoopGet0b(pthread_t t);
+CF_EXPORT CFRunLoopRef _CFRunLoopGet0b(_CFThreadRef t);
 
 static void __CFRunLoopDeallocate(CFTypeRef cf) {
     CFRunLoopRef rl = (CFRunLoopRef)cf;
@@ -1416,7 +1444,7 @@ static void __CFRunLoopDeallocate(CFTypeRef cf) {
     rl->_wakeUpPort = CFPORT_NULL;
     __CFRunLoopPopPerRunData(rl, NULL);
     __CFRunLoopUnlock(rl);
-    pthread_mutex_destroy(&rl->_lock);
+    __CFRunLoopLockFini(&rl->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x8C, sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase));
 }
 
@@ -1450,7 +1478,7 @@ CFTypeID CFRunLoopGetTypeID(void) {
     return _kCFRuntimeIDCFRunLoop;
 }
 
-static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
+static CFRunLoopRef __CFRunLoopCreate(_CFThreadRef t) {
     CFRunLoopRef loop = NULL;
     CFRunLoopModeRef rlm;
     uint32_t size = sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase);
@@ -1487,7 +1515,7 @@ static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
 static CFMutableDictionaryRef __CFRunLoops = NULL;
 static CFLock_t loopsLock = CFLockInit;
 
-CF_PRIVATE CFRunLoopRef _CFRunLoopCacheLookup(pthread_t t, const Boolean createCache) {
+CF_PRIVATE CFRunLoopRef _CFRunLoopCacheLookup(_CFThreadRef t, const Boolean createCache) {
     CFRunLoopRef loop = NULL;
     if (pthread_equal(t, kNilPthreadT)) {
         t = pthread_main_thread_np();
@@ -1531,7 +1559,7 @@ CF_EXPORT Boolean _CFRunLoopIsCurrent(const CFRunLoopRef rl) {
 
 // should only be called by Foundation
 // t==0 is a synonym for "main thread" that always works
-CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
+CF_EXPORT CFRunLoopRef _CFRunLoopGet0(_CFThreadRef t) {
     if (pthread_equal(t, kNilPthreadT)) {
 	t = pthread_main_thread_np();
     }
@@ -1559,14 +1587,18 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
     if (pthread_equal(t, pthread_self())) {
         _CFSetTSD(__CFTSDKeyRunLoop, (void *)loop, NULL);
         if (0 == _CFGetTSD(__CFTSDKeyRunLoopCntr)) {
+#if DEPLOYMENT_TARGET_WINDOWS
+            _CFSetTSD(__CFTSDKeyRunLoopCntr, (void *)0, (void (*)(void *))__CFFinalizeRunLoop);
+#else
             _CFSetTSD(__CFTSDKeyRunLoopCntr, (void *)(PTHREAD_DESTRUCTOR_ITERATIONS-1), (void (*)(void *))__CFFinalizeRunLoop);
+#endif
         }
     }
     return loop;
 }
 
 // should only be called by Foundation
-CFRunLoopRef _CFRunLoopGet0b(pthread_t t) {
+CFRunLoopRef _CFRunLoopGet0b(_CFThreadRef t) {
     if (pthread_equal(t, kNilPthreadT)) {
 	t = pthread_main_thread_np();
     }
@@ -1620,7 +1652,7 @@ CF_PRIVATE void __CFFinalizeRunLoop(uintptr_t data) {
     }
 }
 
-pthread_t _CFRunLoopGet1(CFRunLoopRef rl) {
+_CFThreadRef _CFRunLoopGet1(CFRunLoopRef rl) {
     return rl->_pthread;
 }
 
@@ -3737,7 +3769,9 @@ static void __CFRunLoopSourceDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     if (rls->_context.version0.release) {
 	rls->_context.version0.release(rls->_context.version0.info);
     }
+#if !DEPLOYMENT_TARGET_WINDOWS
     pthread_mutex_destroy(&rls->_lock);
+#endif
     memset((char *)cf + sizeof(CFRuntimeBase), 0, sizeof(struct __CFRunLoopSource) - sizeof(CFRuntimeBase));
 }
 
@@ -3928,7 +3962,9 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
 static void __CFRunLoopObserverDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopObserverRef rlo = (CFRunLoopObserverRef)cf;
     CFRunLoopObserverInvalidate(rlo);
+#if !DEPLOYMENT_TARGET_WINDOWS
     pthread_mutex_destroy(&rlo->_lock);
+#endif
 }
 
 const CFRuntimeClass __CFRunLoopObserverClass = {
@@ -4119,7 +4155,9 @@ static void __CFRunLoopTimerDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopTimerInvalidate(rlt);	/* DOES CALLOUT */
     CFRelease(rlt->_rlModes);
     rlt->_rlModes = NULL;
+#if !DEPLOYMENT_TARGET_WINDOWS
     pthread_mutex_destroy(&rlt->_lock);
+#endif
 }
 
 const CFRuntimeClass __CFRunLoopTimerClass = {

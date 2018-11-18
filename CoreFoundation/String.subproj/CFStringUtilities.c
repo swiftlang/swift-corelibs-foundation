@@ -55,14 +55,26 @@ const CFStringEncoding* CFStringGetListOfAvailableEncodings() {
 
 CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
     static CFMutableDictionaryRef mappingTable = NULL;
+#if DEPLOYMENT_TARGET_WINDOWS
+    SRWLOCK mappingTableLock = SRWLOCK_INIT;
+#else
     static os_unfair_lock mappingTableLock = OS_UNFAIR_LOCK_INIT;
+#endif
 
     CFStringRef theName = NULL;
 
     if (mappingTable) {
+#if DEPLOYMENT_TARGET_WINDOWS
+      AcquireSRWLockExclusive(&mappingTableLock);
+#else
         os_unfair_lock_lock(&mappingTableLock);
+#endif
         theName = (CFStringRef)CFDictionaryGetValue(mappingTable, (const void*)(uintptr_t)theEncoding);
+#if DEPLOYMENT_TARGET_WINDOWS
+        ReleaseSRWLockExclusive(&mappingTableLock);
+#else
         os_unfair_lock_unlock(&mappingTableLock);
+#endif
     }
 
     if (!theName) {
@@ -73,7 +85,11 @@ CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
         }
         
         if (theName) {
+#if DEPLOYMENT_TARGET_WINDOWS
+      AcquireSRWLockExclusive(&mappingTableLock);
+#else
             os_unfair_lock_lock(&mappingTableLock);
+#endif
 
             CFStringRef result = NULL;
             if (!mappingTable) {
@@ -83,10 +99,18 @@ CFStringRef CFStringGetNameOfEncoding(CFStringEncoding theEncoding) {
             }
             if (!result) {  // If not, add it in
                 CFDictionaryAddValue(mappingTable, (const void*)(uintptr_t)theEncoding, (const void*)theName);
+#if DEPLOYMENT_TARGET_WINDOWS
+        ReleaseSRWLockExclusive(&mappingTableLock);
+#else
                 os_unfair_lock_unlock(&mappingTableLock);
+#endif
                 CFRelease(theName);
             } else {        // Otherwise use the one already in there
+#if DEPLOYMENT_TARGET_WINDOWS
+        ReleaseSRWLockExclusive(&mappingTableLock);
+#else
                 os_unfair_lock_unlock(&mappingTableLock);
+#endif
                 CFRelease(theName);
                 theName = result;
             }

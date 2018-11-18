@@ -119,7 +119,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
 #elif DEPLOYMENT_TARGET_WINDOWS
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLWindowsPathStyle, false, urlPath);
-        if (executableURL && !_urlExists(executableURL)) {
+        if (executableURL && !_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
             executableURL = NULL;
         }

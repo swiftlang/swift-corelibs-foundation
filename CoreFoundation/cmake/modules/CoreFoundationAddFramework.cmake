@@ -52,9 +52,17 @@ function(add_framework NAME)
                         PROPERTIES
                           LIBRARY_OUTPUT_DIRECTORY
                               ${CMAKE_BINARY_DIR}/${NAME}.framework)
+  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    target_compile_options(${NAME}
+                           PRIVATE
+                             -Xclang -F${CMAKE_BINARY_DIR})
+  else()
+    target_compile_options(${NAME}
+                           PRIVATE
+                             -F;${CMAKE_BINARY_DIR})
+  endif()
   target_compile_options(${NAME}
                          PRIVATE
-                           -F;${CMAKE_BINARY_DIR}
                            -I;${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders)
   add_dependencies(${NAME} ${NAME}_POPULATE_HEADERS)
 

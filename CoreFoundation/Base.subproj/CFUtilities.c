@@ -20,6 +20,7 @@
 #include <CoreFoundation/CFPropertyList.h>
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <process.h>
+#include <time.h>
 #endif
 #if TARGET_OS_ANDROID
 #include <android/log.h>
@@ -28,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <asl.h>
 #else
 #define ASL_LEVEL_EMERG 0
@@ -759,6 +760,15 @@ static bool also_do_stderr(const _cf_logging_style style) {
     return result;
 }
 
+#if DEPLOYMENT_TARGET_WINDOWS
+static struct tm *localtime_r(time_t *tv, struct tm *result) {
+  struct tm *tm = localtime(tv);
+  if (tm)
+    *result = *tm;
+  return tm;
+}
+#endif
+
 static void _populateBanner(char **banner, char **time, char **thread, int *bannerLen) {
     double dummy;
     CFAbsoluteTime at = CFAbsoluteTimeGetCurrent();
@@ -778,8 +788,8 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
     asprintf(thread, "%x", pthread_mach_thread_np(pthread_self()));
 #elif DEPLOYMENT_TARGET_WINDOWS
-    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
-    asprintf(thread, "%x", GetCurrentThreadId());
+    bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
+    asprintf(thread, "%lx", GetCurrentThreadId());
 #else
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
@@ -802,6 +812,7 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
     __CFUnlock(&lock);
 #elif DEPLOYMENT_TARGET_WINDOWS
+    size_t bannerLen = strlen(banner);
     size_t bufLen = bannerLen + length + 1;
     char *buf = (char *)malloc(sizeof(char) * bufLen);
     if (banner) {
@@ -869,7 +880,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
         _populateBanner(&banner, &time, &thread, &bannerLen);
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
@@ -1202,7 +1213,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     }
 #if __LP64__
 #else
-    if (statBuf.st_size > (1LL << 31)) {	// refuse to do more than 2GB
+    if (statBuf.st_size > (1ull << 31)) {	// refuse to do more than 2GB
         close(fd);
         if (errorPtr) *errorPtr = _CFErrorWithFilePathCodeDomain(kCFErrorDomainPOSIX, EFBIG, path);
         return false;
@@ -1524,6 +1535,8 @@ CFDictionaryRef __CFGetEnvironment() {
 #define environ __environ
 #endif
         char **envp = environ;
+#elif TARGET_OS_WIN32
+        char **envp = _environ;
 #endif
         envDict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         for (; *envp; ++envp) {

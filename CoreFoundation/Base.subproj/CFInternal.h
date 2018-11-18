@@ -107,7 +107,9 @@ CF_EXTERN_C_BEGIN
 #include <stdio.h>
 #endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if !TARGET_OS_WIN32
 #include <pthread.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>
@@ -264,7 +266,7 @@ static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uin
     do {
         // maybe don't need to do the negation part because the right side promises that we are not going to touch the rest of the word
         newInfo = (info & ~mask) | ((x << n2) & mask);
-    } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
+    } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), (uint64_t *)&info, newInfo));
 }
 
 /// Set a flag in a CFTypeRef info bitfield.
@@ -406,6 +408,9 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #if DEPLOYMENT_TARGET_WINDOWS
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
+
+// Be sure to call this before your SAFE_STACK_BUFFER exits scope.
+#define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
 #else
 // Declare and allocate a stack buffer. Max is the max size (in bytes) before falling over to malloc.
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? alloca((Count) * sizeof(Type)) : NULL
@@ -449,7 +454,7 @@ static const CFStringRef S = (CFStringRef)&__##S;
 static _CF_CONSTANT_OBJECT_BACKING struct __CFConstStr __##S CONST_STRING_SECTION = _CF_CONST_STR_CONTENTS(V); \
 CF_PRIVATE const CFStringRef S = (CFStringRef)&__##S;
 
-#elif defined(__CONSTANT_CFSTRINGS__)
+#elif defined(__CONSTANT_CFSTRINGS__) || DEPLOYMENT_TARGET_WINDOWS
 
 #define CONST_STRING_DECL(S, V) const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
 #define STATIC_CONST_STRING_DECL(S, V) static const CFStringRef S = (const CFStringRef)__builtin___CFStringMakeConstantString(V);
@@ -569,6 +574,7 @@ typedef int32_t OSSpinLock;
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>
+#elif DEPLOYMENT_TARGET_WINDOWS
 #else
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
@@ -677,6 +683,7 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
+#define DT_UNKNOWN	 0
 #endif
 
 /*
@@ -858,8 +865,9 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 
 // These are replacements for pthread calls on Windows
 CF_EXPORT int _NS_pthread_main_np();
-CF_EXPORT int _NS_pthread_setspecific(pthread_key_t key, const void *val);
-CF_EXPORT void* _NS_pthread_getspecific(pthread_key_t key);
+CF_EXPORT _CFThreadRef _NS_pthread_self(void);
+CF_EXPORT int _NS_pthread_setspecific(_CFThreadSpecificKey key, const void *val);
+CF_EXPORT void* _NS_pthread_getspecific(_CFThreadSpecificKey key);
 CF_EXPORT int _NS_pthread_key_init_np(int key, void (*destructor)(void *));
 CF_EXPORT void _NS_pthread_setname_np(const char *name);
 
@@ -869,16 +877,11 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #define pthread_key_init_np _NS_pthread_key_init_np
 #define pthread_main_np _NS_pthread_main_np
 #define pthread_setname_np _NS_pthread_setname_np
+#define pthread_self _NS_pthread_self
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
 #define pthread_main_np _CFIsMainThread
-#endif
-
-#if DEPLOYMENT_TARGET_WINDOWS
-// replacement for DISPATCH_QUEUE_OVERCOMMIT until we get a bug fix in dispatch on Windows
-// <rdar://problem/7923891> dispatch on Windows: Need queue_private.h
-#define DISPATCH_QUEUE_OVERCOMMIT 2
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -932,7 +935,8 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW

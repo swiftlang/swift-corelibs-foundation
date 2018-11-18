@@ -626,8 +626,10 @@ static void __CFBundleDeallocate(CFTypeRef cf) {
     if (bundle->_resourceDirectoryContents) CFRelease(bundle->_resourceDirectoryContents);
     
     if (bundle->_additionalResourceBundles) CFRelease(bundle->_additionalResourceBundles);
-    
+
+#if !DEPLOYMENT_TARGET_WINDOWS
     pthread_mutex_destroy(&(bundle->_bundleLoadingLock));
+#endif
 }
 
 const CFRuntimeClass __CFBundleClass = {
@@ -777,6 +779,9 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     bundle->_plugInData._registeredFactory = false;
     bundle->_plugInData._factories = NULL;
 
+#if DEPLOYMENT_TARGET_WINDOWS
+    bundle->_bundleLoadingLock = CFLockInit;
+#else
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
     pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_DEFAULT);
@@ -785,6 +790,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     if (0 != mret) {
         CFLog(4, CFSTR("%s: failed to initialize bundle loading lock for bundle %@."), __PRETTY_FUNCTION__, bundle);
     }
+#endif
     
     bundle->_lock = CFLockInit;
     bundle->_resourceDirectoryContents = NULL;

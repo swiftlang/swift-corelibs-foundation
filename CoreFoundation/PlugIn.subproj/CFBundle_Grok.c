@@ -23,9 +23,11 @@
 #endif /* USE_DYLD_PRIV */
 #endif /* BINARY_SUPPORT_DYLD */
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#endif
 
 #if BINARY_SUPPORT_DLFCN
 #include <dlfcn.h>
@@ -42,7 +44,7 @@
 
 // Windows isspace implementation limits the input chars to < 256 in the ASCII range.  It will
 // assert in debug builds.  This is annoying.  We merrily grok chars > 256.
-static inline BOOL isspace(char c) {
+static inline int isspace(int c) {
     return (c == ' ' || c == '\t' || c == '\n' || c == '\r'|| c == '\v' || c == '\f');
 }
 

@@ -946,10 +946,16 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/socket.h>
 #endif
 #endif
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
+#endif
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <WinSock2.h>
+#include <process.h>
+#endif
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
@@ -965,8 +971,6 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-#define EINPROGRESS WSAEINPROGRESS
-
 // redefine this to the winsock error in this file
 #undef EBADF
 #define EBADF WSAENOTSOCK
@@ -977,6 +981,7 @@ typedef int32_t fd_mask;
 typedef int socklen_t;
 
 #define gettimeofday _NS_gettimeofday
+struct timezone;
 CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz);
 
 // although this is only used for debug info, we define it for compatibility
@@ -1629,6 +1634,17 @@ static CFStringRef copyLocalAddress(CFAllocatorRef alloc, CFSocketNativeHandle s
     return someAddrToString(alloc, getsockname, "local", s);
 }
 
+#endif
+
+#if DEPLOYMENT_TARGET_WINDOWS
+static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) {
+  res->tv_sec = a->tv_sec + b->tv_sec;
+  res->tv_usec = a->tv_usec + b->tv_usec;
+  if (res->tv_usec > 1e06) {
+    res->tv_sec++;
+    res->tv_usec -= 1e06;
+  }
+}
 #endif
 
 static void __CFSocketHandleRead(CFSocketRef s, Boolean causedByTimeout)
