@@ -93,8 +93,19 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
     open func mutableCopy(with zone: NSZone? = nil) -> Any {
         let set = NSMutableIndexSet()
-        set._ranges = _ranges
-        set._count = _count
+
+        if type(of: self as Any) == NSMutableIndexSet.self {
+            set._ranges = _ranges
+            set._count = _count
+        }
+        // On Darwin, NSMutableSet is abstract, and does not have ivars.
+        // Therefore assignment to _ranges and _count would not be correct.
+        else {
+            enumerateRanges(options: []) { (range, _) in
+                set.add(in: range)
+            }
+        }
+
         return set
     }
 
