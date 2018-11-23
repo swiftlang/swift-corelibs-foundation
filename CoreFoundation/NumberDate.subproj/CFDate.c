@@ -116,6 +116,9 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
         HALT;
     }
     return (double)res.tv_sec + ((double)res.tv_nsec)/1.0E9;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    ULONGLONG ullTickCount = GetTickCount64();
+    return ullTickCount / 1000;
 #else
 #error Unable to calculate uptime for this platform
 #endif
