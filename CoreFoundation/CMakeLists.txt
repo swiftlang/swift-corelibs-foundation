@@ -316,6 +316,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_TARGET_MACOSX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE
@@ -341,18 +345,11 @@ target_compile_definitions(CoreFoundation
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data">
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping">
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
-if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  # FIXME(compnerd) why is /usr/local/include added manually?  clang will do so
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               "/usr/local/include"
-                               "/usr/local/include/libxml2"
-                               "/usr/local/include/curl")
-endif()
+
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${CMAKE_SOURCE_DIR})
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
   target_include_directories(CoreFoundation
                              PRIVATE
@@ -365,23 +362,43 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${ICU_INCLUDE_DIR})
-else()
+endif()
+if(CF_ENABLE_LIBDISPATCH)
   target_include_directories(CoreFoundation
                              PRIVATE
-                               "/usr/include"
-                               "/usr/include/libxml2")
+                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}
+                               ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    target_include_directories(CoreFoundation
+                               SYSTEM PRIVATE
+                                 ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
+  endif()
 endif()
 
-target_compile_options(CoreFoundation
-                       PRIVATE
-                         $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-target_compile_options(CoreFoundation
-                       PRIVATE
-                         -fblocks
-                         -fconstant-cfstrings
-                         -fdollars-in-identifiers
-                         -fexceptions
-                         -fno-common)
+if("${CMAKE_SIMULATE_ID}" STREQUAL "MSVC")
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:/FI${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+else()
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+endif()
+
+if("${CMAKE_SIMULATE_ID}" STREQUAL "MSVC")
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fblocks
+                           /EHsc)
+else()
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fblocks
+                           -fconstant-cfstrings
+                           -fdollars-in-identifiers
+                           -fexceptions
+                           -fno-common)
+endif()
 if(CF_DEPLOYMENT_SWIFT)
   target_compile_options(CoreFoundation
                          PRIVATE
@@ -396,17 +413,14 @@ target_compile_options(CoreFoundation
                          -Wno-conditional-uninitialized
                          -Wno-unused-variable
                          -Wno-int-conversion
-                         -Wno-unused-function)
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
+                         -Wno-unused-function
+                         -Wno-microsoft-enum-forward-reference)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           ${CURL_LIBRARIES}
                           ${LIBXML2_LIBRARIES})
-else()
-  target_link_libraries(CoreFoundation
-                        PRIVATE
-                          curl
-                          xml2)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation
@@ -417,7 +431,7 @@ target_link_libraries(CoreFoundation
                       PRIVATE
                         Threads::Threads
                         ${CMAKE_DL_LIBS})
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           m)
@@ -427,11 +441,7 @@ if(CF_ENABLE_LIBDISPATCH)
                         PRIVATE
                           dispatch)
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
-  set_target_properties(CoreFoundation
-                        PROPERTIES LINK_FLAGS
-                          -Xlinker;@${CMAKE_SOURCE_DIR}/linux.ld;-Bsymbolic)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           icucore)
@@ -450,18 +460,4 @@ install(DIRECTORY
           ${CMAKE_INSTALL_PREFIX}/System/Library/Frameworks
         USE_SOURCE_PERMISSIONS
         PATTERN PrivateHeaders EXCLUDE)
-
-
-# TODO(compnerd) formalize this
-if(CF_ENABLE_LIBDISPATCH)
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                               ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
-    target_include_directories(CoreFoundation
-                               SYSTEM PRIVATE
-                                 ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
-  endif()
-endif()
 
