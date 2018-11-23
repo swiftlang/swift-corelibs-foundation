@@ -677,7 +677,8 @@ static void __CFTSDFinalize(void *arg) {
             table->destructors[i]((void *)(old));
         }
     }
-    
+
+#if _POSIX_THREADS
     if (table->destructorCount == PTHREAD_DESTRUCTOR_ITERATIONS - 1) {    // On PTHREAD_DESTRUCTOR_ITERATIONS-1 call, destroy our data
         free(table);
         
@@ -685,6 +686,10 @@ static void __CFTSDFinalize(void *arg) {
         __CFTSDSetSpecific(CF_TSD_BAD_PTR);
         return;
     }
+#else
+    free(table);
+    __CFTSDSetSpecific(CF_TSD_BAD_PTR);
+#endif
 }
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
