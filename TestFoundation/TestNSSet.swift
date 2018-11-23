@@ -25,6 +25,7 @@ class TestNSSet : XCTestCase {
             ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
             ("test_CountedSetCopying", test_CountedSetCopying),
             ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
+            ("test_Subsets", test_Subsets)
         ]
     }
     
@@ -223,5 +224,17 @@ class TestNSSet : XCTestCase {
         aSet.add(["world": "again"])
         dictionary.setObject(aSet, forKey: key)
         XCTAssertNotNil(dictionary.description) //should not crash
+    }
+
+    func test_Subsets() {
+        let set = NSSet(array: ["foo", "bar", "baz"])
+        let otherSet = NSSet(array: ["foo", "bar"])
+        let otherOtherSet = Set<AnyHashable>(["foo", "bar", "baz", "123"])
+        let newSet = Set<AnyHashable>(["foo", "bin"])
+        XCTAssert(otherSet.isSubset(of: set as! Set<AnyHashable>))
+        XCTAssertFalse(set.isSubset(of: otherSet as! Set<AnyHashable>))
+        XCTAssert(set.isSubset(of: otherOtherSet))
+        XCTAssert(otherSet.isSubset(of: otherOtherSet))
+        XCTAssertFalse(newSet.isSubset(of: otherSet as! Set<AnyHashable>))
     }
 }
