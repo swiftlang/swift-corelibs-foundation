@@ -1059,7 +1059,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 }
                 
                 Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-                Boolean result = fileHandler(fileName, isDirectory ? DT_DIR : DT_REG);
+                Boolean result = fileHandler(fileName, NULL, isDirectory ? DT_DIR : DT_REG);
                 CFRelease(fileName);
                 if (!result) break;
             } while (FindNextFileW(handle, &file));
