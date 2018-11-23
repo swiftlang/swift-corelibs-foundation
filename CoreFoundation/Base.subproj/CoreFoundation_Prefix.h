@@ -341,8 +341,6 @@ typedef int gid_t;
 #define getuid() 0
 #define getegid() 0
 
-#define scalbn(A, B) _scalb(A, B)
-
 #define fsync(a) _commit(a)
 #define malloc_create_zone(a,b) 123
 #define malloc_set_zone_name(zone,name)
