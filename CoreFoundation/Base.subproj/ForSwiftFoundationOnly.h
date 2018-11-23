@@ -35,7 +35,9 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <dirent.h>
+#endif
 
 #include <CoreFoundation/CFCalendar_Internal.h>
 
