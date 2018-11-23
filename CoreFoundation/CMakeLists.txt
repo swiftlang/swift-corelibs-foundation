@@ -375,7 +375,7 @@ if(CF_ENABLE_LIBDISPATCH)
   endif()
 endif()
 
-if("${CMAKE_SIMULATE_ID}" STREQUAL "MSVC")
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   target_compile_options(CoreFoundation
                          PRIVATE
                            $<$<COMPILE_LANGUAGE:C>:/FI${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
@@ -385,7 +385,7 @@ else()
                            $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
 endif()
 
-if("${CMAKE_SIMULATE_ID}" STREQUAL "MSVC")
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   target_compile_options(CoreFoundation
                          PRIVATE
                            -fblocks
