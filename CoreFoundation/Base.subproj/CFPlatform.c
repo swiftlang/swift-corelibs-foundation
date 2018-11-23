@@ -558,15 +558,14 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name) {
     }
 }
 
-static _CFThreadRef __initialPthread = { NULL, 0 };
+static _CFThreadRef __initialPthread = INVALID_HANDLE_VALUE;
 
 CF_EXPORT int _NS_pthread_main_np() {
-    _CFThreadRef me = pthread_self();
-    if (NULL == __initialPthread.p) {
-        __initialPthread.p = me.p;
-        __initialPthread.x = me.x;
-    }
-    return (pthread_equal(__initialPthread, me));
+    if (__initialPthread == INVALID_HANDLE_VALUE)
+      DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                      GetCurrentProcess(), &__initialPthread, 0, FALSE,
+                      DUPLICATE_SAME_ACCESS);
+    return CompareObjectHandles(__initialPthread, GetCurrentThread());
 }
 
 #endif
