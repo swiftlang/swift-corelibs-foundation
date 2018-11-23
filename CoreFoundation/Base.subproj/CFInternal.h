@@ -578,7 +578,7 @@ typedef CFLock_t OSSpinLock;
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>
-#else
+#elif _POSIX_THREADS
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
