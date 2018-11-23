@@ -258,18 +258,13 @@ void OSMemoryBarrier();
 
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX    
-#if !defined(MIN)
-#define MIN(A,B)	((A) < (B) ? (A) : (B))
+#if DEPLOYMENT_TARGET_LINUX
+#include <sys/param.h>
 #endif
-    
-#if !defined(MAX)
-#define MAX(A,B)	((A) > (B) ? (A) : (B))
-#endif
-    
+#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 #if !defined(ABS)
 #define ABS(A)	((A) < 0 ? (-(A)) : (A))
-#endif    
+#endif
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
