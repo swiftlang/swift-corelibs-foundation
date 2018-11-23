@@ -68,11 +68,9 @@ extension _BodyStreamSource : _BodySource {
         guard inputStream.hasBytesAvailable else {
             return .done
         }
-
-        let buffer = UnsafeMutableRawBufferPointer.allocate(count: length)
-        defer {
-            buffer.deallocate()
-        }
+        
+        let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: length, alignment: MemoryLayout<UInt8>.alignment)
+        defer { buffer.deallocate() }
         
         guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
             return .error
