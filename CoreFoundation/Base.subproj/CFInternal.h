@@ -885,12 +885,6 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-// replacement for DISPATCH_QUEUE_OVERCOMMIT until we get a bug fix in dispatch on Windows
-// <rdar://problem/7923891> dispatch on Windows: Need queue_private.h
-#define DISPATCH_QUEUE_OVERCOMMIT 2
-#endif
-
-#if DEPLOYMENT_TARGET_WINDOWS
 CF_PRIVATE const wchar_t *_CFDLLPath(void);
 #endif
 
