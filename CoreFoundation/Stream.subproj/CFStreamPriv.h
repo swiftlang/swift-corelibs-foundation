@@ -56,7 +56,7 @@ struct _CFStream;
 CF_EXPORT void* _CFStreamGetInfoPointer(struct _CFStream* stream);
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
 #endif
 
 // cb version must be > 0

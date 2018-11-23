@@ -31,6 +31,7 @@ class TestDecimal: XCTestCase {
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
+            ("test_doubleValue", test_doubleValue)
         ]
     }
 
@@ -712,4 +713,88 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(1, negativeSix.raising(toPower: 0))
     }
 
+    func test_doubleValue() {
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(0)).doubleValue, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(1)).doubleValue, 1)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(-1)).doubleValue, -1)
+        XCTAssertTrue(NSDecimalNumber(decimal:Decimal.nan).doubleValue.isNaN)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(UInt64.max)).doubleValue, Double(1.8446744073709552e+19))
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(string: "1234567890123456789012345678901234567890")!).doubleValue, Double(1.2345678901234568e+39))
+
+        var d = Decimal()
+        d._mantissa.0 = 1
+        d._mantissa.1 = 2
+        d._mantissa.2 = 3
+        d._mantissa.3 = 4
+        d._mantissa.4 = 5
+        d._mantissa.5 = 6
+        d._mantissa.6 = 7
+        d._mantissa.7 = 8
+
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 0)
+        XCTAssertEqual(d, Decimal(0))
+
+        d._length = 1
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 1)
+        XCTAssertEqual(d, Decimal(1))
+
+        d._length = 2
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 131073)
+        XCTAssertEqual(d, Decimal(131073))
+
+        d._length = 3
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 12885032961)
+        XCTAssertEqual(d, Decimal(12885032961))
+
+        d._length = 4
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 1125912791875585)
+        XCTAssertEqual(d, Decimal(1125912791875585))
+
+        d._length = 5
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 9.223484628133963e+19)
+        XCTAssertEqual(d, Decimal(string: "92234846281339633665")!)
+
+        d._length = 6
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 7.253647152534056e+24)
+        XCTAssertEqual(d, Decimal(string: "7253647152534056387870721")!)
+
+        d._length = 7
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 5.546043912470029e+29)
+        XCTAssertEqual(d, Decimal(string: "554604391247002897211195523073")!)
+
+        d._length = 8
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 4.153892947266987e+34)
+        XCTAssertEqual(d, Decimal(string: "41538929472669868031141181829283841")!)
+
+        // The result of the subtractions can leave values in the internal mantissa of a and b,
+        // although _length = 0 which is correct.
+        let x = Decimal(10.5)
+        let y = Decimal(9.0)
+        let z = Decimal(1.5)
+        let a = x - y - z
+        let b = x - z - y
+
+        XCTAssertEqual(x.description, "10.5")
+        XCTAssertEqual(y.description, "9")
+        XCTAssertEqual(z.description, "1.5")
+        XCTAssertEqual(a.description, "0")
+        XCTAssertEqual(b.description, "0")
+        XCTAssertEqual(NSDecimalNumber(decimal: x).doubleValue, 10.5)
+        XCTAssertEqual(NSDecimalNumber(decimal: y).doubleValue, 9.0)
+        XCTAssertEqual(NSDecimalNumber(decimal: z).doubleValue, 1.5)
+        XCTAssertEqual(NSDecimalNumber(decimal: a).doubleValue, 0.0)
+        XCTAssertEqual(NSDecimalNumber(decimal: b).doubleValue, 0.0)
+
+        let nf = NumberFormatter()
+        nf.locale = Locale(identifier: "en_US")
+        nf.numberStyle = .decimal
+        nf.minimumFractionDigits = 2
+        nf.maximumFractionDigits = 2
+
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: x)), "10.50")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: y)), "9.00")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: z)), "1.50")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: a)), "0.00")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: b)), "0.00")
+    }
 }

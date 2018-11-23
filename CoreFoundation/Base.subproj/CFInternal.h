@@ -110,7 +110,7 @@ CF_EXTERN_C_BEGIN
 #include <pthread.h>
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
-#import <os/log.h>
+#include <os/log.h>
 #else
 typedef struct os_log_s *os_log_t;
 #define os_log(...) do { } while (0)
@@ -421,7 +421,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
 #if DEPLOYMENT_TARGET_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
@@ -1004,6 +1004,12 @@ extern void __CFRecordAllocationEvent(int eventnum, void *ptr, int64_t size, uin
 enum {
     __kCFZombieMessagedEvent = 21,
 };
+
+#define _CFReleaseDeferred __attribute__((__cleanup__(_CFReleaseOnCleanup)))
+static inline void _CFReleaseOnCleanup(void * CF_RELEASES_ARGUMENT ptr) {
+    CFTypeRef cf = *(CFTypeRef *)ptr;
+    if (cf) CFRelease(cf);
+}
 
 #pragma mark - CF Private Globals
 

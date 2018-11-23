@@ -8,16 +8,16 @@
 	Responsibility: Christopher Kane
 */
 
-#import "CFBasicHash.h"
-#import <CoreFoundation/CFRuntime.h>
-#import "CFRuntime_Internal.h"
-#import <CoreFoundation/CFSet.h>
-#import <Block.h>
-#import <math.h>
+#include "CFBasicHash.h"
+#include <CoreFoundation/CFRuntime.h>
+#include "CFRuntime_Internal.h"
+#include <CoreFoundation/CFSet.h>
+#include <Block.h>
+#include <math.h>
 #if __HAS_DISPATCH__
-#import <dispatch/dispatch.h>
+#include <dispatch/dispatch.h>
 #endif
-#import "CFOverflow.h"
+#include "CFOverflow.h"
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #define __SetLastAllocationEventName(A, B) do { if (__CFOASafe && (A)) __CFSetLastAllocationEventName(A, B); } while (0)

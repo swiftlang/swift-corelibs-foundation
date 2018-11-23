@@ -837,6 +837,7 @@ extension NSIndexSet : _HasCustomAnyHashableRepresentation {
 /// Holds either the immutable or mutable version of a Foundation type.
 ///
 /// In many cases, the immutable type has optimizations which make it preferred when we know we do not need mutation.
+@usableFromInline
 internal enum _MutablePair<ImmutableType, MutableType> {
     case Default(ImmutableType)
     case Mutable(MutableType)
@@ -845,6 +846,7 @@ internal enum _MutablePair<ImmutableType, MutableType> {
 /// A class type which acts as a handle (pointer-to-pointer) to a Foundation reference type which has both an immutable and mutable class (e.g., NSData, NSMutableData).
 ///
 /// a.k.a. Box
+@usableFromInline
 internal final class _MutablePairHandle<ImmutableType : NSObject, MutableType : NSObject>
   where ImmutableType : NSMutableCopying, MutableType : NSMutableCopying {
     @usableFromInline

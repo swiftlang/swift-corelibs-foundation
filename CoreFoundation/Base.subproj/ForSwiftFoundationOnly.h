@@ -12,7 +12,7 @@
 #define __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ 1
 
 #if !defined(CF_PRIVATE)
-#define CF_PRIVATE __attribute__((__visibility__("hidden")))
+#define CF_PRIVATE extern __attribute__((__visibility__("hidden")))
 #endif
 
 #include <CoreFoundation/CFBase.h>
@@ -29,6 +29,8 @@
 #include <pthread.h>
 #include <dirent.h>
 
+#include <CoreFoundation/CFCalendar_Internal.h>
+
 #if __has_include(<execinfo.h>)
 #include <execinfo.h>
 #endif
@@ -38,6 +40,11 @@
 #endif
 
 _CF_EXPORT_SCOPE_BEGIN
+
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
+CF_CROSS_PLATFORM_EXPORT void _CFCalendarEnumerateDates(CFCalendarRef calendar, CFDateRef start, CFDateComponentsRef matchingComponents, CFOptionFlags opts, void (^block)(CFDateRef, Boolean, Boolean*));
+CF_EXPORT void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef _Nullable date);
+CF_EXPORT _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
 
 struct __CFSwiftObject {
     uintptr_t isa;
@@ -51,7 +58,7 @@ typedef struct __CFSwiftObject *CFSwiftRef;
     if (CF_IS_SWIFT(type, obj)) { \
         return (ret)__CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__); \
     } \
-} while (0)
+} while (0) 
 
 CF_EXPORT bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
 CF_EXPORT void _CFDeinit(CFTypeRef cf);
@@ -243,6 +250,20 @@ struct _NSDataBridge {
     _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
 };
 
+struct _NSCalendarBridge {
+    _Nonnull CFTypeRef (*_Nonnull calendarIdentifier)(CFTypeRef obj);
+    _Nullable CFTypeRef (*_Nonnull copyLocale)(CFTypeRef obj);
+    void (*_Nonnull setLocale)(CFTypeRef obj, CFTypeRef _Nullable locale);
+    _Nonnull CFTypeRef (*_Nonnull copyTimeZone)(CFTypeRef obj);
+    void (*_Nonnull setTimeZone)(CFTypeRef obj, CFTypeRef _Nonnull timeZone);
+    CFIndex (*_Nonnull firstWeekday)(CFTypeRef obj);
+    void (*_Nonnull setFirstWeekday)(CFTypeRef obj, CFIndex firstWeekday);
+    CFIndex (*_Nonnull minimumDaysInFirstWeek)(CFTypeRef obj);
+    void (*_Nonnull setMinimumDaysInFirstWeek)(CFTypeRef obj, CFIndex minimumDays);
+    _Nullable CFTypeRef (*_Nonnull copyGregorianStartDate)(CFTypeRef obj);
+    void (*_Nonnull setGregorianStartDate)(CFTypeRef obj, CFTypeRef _Nullable date);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -259,6 +280,7 @@ struct _CFSwiftBridge {
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
     struct _NSDataBridge NSData;
+    struct _NSCalendarBridge NSCalendar;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
@@ -305,9 +327,6 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
 extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
-
-extern _Nullable CFDateRef CFCalendarCopyGregorianStartDate(CFCalendarRef calendar);
-extern void CFCalendarSetGregorianStartDate(CFCalendarRef calendar, CFDateRef date);
 
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 

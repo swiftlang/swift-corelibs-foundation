@@ -202,7 +202,7 @@ extension Dictionary {
             if let key = $0.0 as? String {
                 key.display(indent + 1, type: .key)
             } else {
-                fatalError("plists should have strings as keys but got a \(type(of: $0.0))")
+                fatalError("plists should have strings as keys but got a \(Swift.type(of: $0.0))")
             }
             print(" => ", terminator: "")
             displayPlist($0.1, indent: indent + 1, type: .value)
@@ -302,7 +302,7 @@ func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
     case let val as NSData:
         val.display(indent, type: type)
     default:
-        fatalError("unhandled type \(type(of: plist))")
+        fatalError("unhandled type \(Swift.type(of: plist))")
     }
 }
 

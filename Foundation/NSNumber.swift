@@ -577,6 +577,10 @@ private struct CFSInt128Struct {
     var low: UInt64
 }
 
+fileprivate func cast<T, U>(_ t: T) -> U {
+  return t as! U
+}
+
 open class NSNumber : NSValue {
     typealias CFType = CFNumber
     // This layout MUST be the same as CFNumber so that they are bridgeable
@@ -675,7 +679,7 @@ open class NSNumber : NSValue {
     
     private convenience init(bytes: UnsafeRawPointer, numberType: CFNumberType) {
         let cfnumber = CFNumberCreate(nil, numberType, bytes)
-        self.init(factory: { unsafeBitCast(cfnumber, to: NSNumber.self) })
+        self.init(factory: { cast(unsafeBitCast(cfnumber, to: NSNumber.self)) })
     }
     
     public convenience init(value: Int8) {
@@ -758,7 +762,7 @@ open class NSNumber : NSValue {
     }
 
     public convenience init(value: Bool) {
-        self.init(factory: value._bridgeToObjectiveC)
+        self.init(factory: cast(value._bridgeToObjectiveC))
     }
 
     override internal init() {

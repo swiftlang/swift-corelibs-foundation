@@ -46,7 +46,7 @@
 #include <crt_externs.h>
 #include <dlfcn.h>
 #include <vproc.h>
-#import <libproc.h>
+#include <libproc.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <mach/mach.h>

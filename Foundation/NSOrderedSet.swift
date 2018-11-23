@@ -156,12 +156,18 @@ extension NSOrderedSet {
         }
     }
 
+    /// Returns an array with the objects at the specified indexes in the
+    /// ordered set.
+    ///
+    /// - Parameter indexes: The indexes.
+    /// - Returns: An array of objects in the ascending order of their indexes
+    /// in `indexes`.
+    ///
+    /// - Complexity: O(*n*), where *n* is the number of indexes in `indexes`.
+    /// - Precondition: The indexes in `indexes` are within the
+    /// bounds of the ordered set.
     open func objects(at indexes: IndexSet) -> [Any] {
-        var entries = [Any]()
-        for idx in indexes {
-            entries.append(object(at: idx))
-        }
-        return entries
+        return indexes.map { object(at: $0) }
     }
 
     public var firstObject: Any? {
@@ -218,6 +224,11 @@ extension NSOrderedSet {
     }
     
     open func isSubset(of other: NSOrderedSet) -> Bool {
+        // If self is larger then self cannot be a subset of other
+        if count > other.count {
+            return false
+        }
+
         for item in self {
             if !other.contains(item) {
                 return false
@@ -227,6 +238,11 @@ extension NSOrderedSet {
     }
 
     open func isSubset(of set: Set<AnyHashable>) -> Bool {
+        // If self is larger then self cannot be a subset of set
+        if count > set.count {
+            return false
+        }
+
         for item in self {
             if !set.contains(item as! AnyHashable) {
                 return false

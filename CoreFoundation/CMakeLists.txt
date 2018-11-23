@@ -66,7 +66,10 @@ add_framework(CoreFoundation
                 # Error
                 Error.subproj/CFError_Private.h
                 # Locale
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
                 Locale.subproj/CFDateFormatter_Private.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
                 Locale.subproj/CFLocaleInternal.h
                 Locale.subproj/CFLocale_Private.h
@@ -119,6 +122,9 @@ add_framework(CoreFoundation
                 Base.subproj/CFRuntime.h
                 Base.subproj/ForFoundationOnly.h
                 Base.subproj/ForSwiftFoundationOnly.h
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFLocaleInternal.h
                 Parsing.subproj/CFXMLInterface.h
                 PlugIn.subproj/CFBundlePriv.h
@@ -198,6 +204,7 @@ add_framework(CoreFoundation
                 Base.subproj/CFSystemDirectories.c
                 Base.subproj/CFUtilities.c
                 Base.subproj/CFUUID.c
+                Base.subproj/CFWindowsUtilities.c
                 # Collections
                 Collections.subproj/CFArray.c
                 Collections.subproj/CFBag.c
@@ -213,7 +220,10 @@ add_framework(CoreFoundation
                 Error.subproj/CFError.c
                 # Locale
                 Locale.subproj/CFCalendar.c
+                Locale.subproj/CFCalendar_Enumerate.c
+                Locale.subproj/CFDateComponents.c
                 Locale.subproj/CFDateFormatter.c
+                Locale.subproj/CFDateInterval.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
                 Locale.subproj/CFLocaleKeys.c
@@ -223,15 +233,15 @@ add_framework(CoreFoundation
                 NumberDate.subproj/CFDate.c
                 NumberDate.subproj/CFNumber.c
                 NumberDate.subproj/CFTimeZone.c
-                # Parsring
+                # Parsing
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
                 Parsing.subproj/CFXMLInputStream.c
+                Parsing.subproj/CFXMLInterface.c
                 Parsing.subproj/CFXMLNode.c
                 Parsing.subproj/CFXMLParser.c
                 Parsing.subproj/CFXMLTree.c
-                Parsing.subproj/CFXMLInterface.c
                 # PlugIn
                 PlugIn.subproj/CFBundle_Binary.c
                 PlugIn.subproj/CFBundle.c
@@ -244,6 +254,7 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_ResourceFork.c
                 PlugIn.subproj/CFBundle_Resources.c
                 PlugIn.subproj/CFBundle_Strings.c
+                PlugIn.subproj/CFBundle_Tables.c
                 PlugIn.subproj/CFPlugIn.c
                 PlugIn.subproj/CFPlugIn_Factory.c
                 PlugIn.subproj/CFPlugIn_Instance.c
@@ -254,7 +265,9 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
                 # TODO(compnerd) make this empty on non-Mach targets
+                # RunLoop.subproj/CFMachPort.c
                 # RunLoop.subproj/CFMachPort_Lifetime.c
+                # RunLoop.subproj/CFMessagePort.c
                 RunLoop.subproj/CFRunLoop.c
                 RunLoop.subproj/CFSocket.c
                 # Stream
@@ -285,8 +298,8 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFUnicodeDecomposition.c
                 StringEncodings.subproj/CFUnicodePrecomposition.c
                 # URL
-                URL.subproj/CFURL.c
                 URL.subproj/CFURLAccess.c
+                URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
@@ -348,12 +361,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
+  find_package(ICU COMPONENTS uc i18n REQUIRED)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               ${ICU_INCLUDE_DIR})
 else()
   target_include_directories(CoreFoundation
                              PRIVATE
                                "/usr/include"
                                "/usr/include/libxml2")
 endif()
+
 target_compile_options(CoreFoundation
                        PRIVATE
                          $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
@@ -362,7 +380,14 @@ target_compile_options(CoreFoundation
                          -fblocks
                          -fconstant-cfstrings
                          -fdollars-in-identifiers
-                         -fexceptions)
+                         -fexceptions
+                         -fno-common)
+if(CF_DEPLOYMENT_SWIFT)
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fcf-runtime-abi=swift)
+endif()
+
 target_compile_options(CoreFoundation
                        PRIVATE
                          -Wno-shorten-64-to-32

@@ -229,10 +229,10 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
 
 #if TARGET_OS_MAC
     [_kCFRuntimeIDCFMachPort] = &__CFMachPortClass,
+    [_kCFRuntimeIDCFMessagePort] = &__CFMessagePortClass,
 #endif
 
 
-    [_kCFRuntimeIDCFMessagePort] = &__CFMessagePortClass,
     [_kCFRuntimeIDCFRunLoopMode] = &__CFRunLoopModeClass,
     [_kCFRuntimeIDCFRunLoop] = &__CFRunLoopClass,
     [_kCFRuntimeIDCFRunLoopSource] = &__CFRunLoopSourceClass,
