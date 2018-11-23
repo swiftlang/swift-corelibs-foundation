@@ -276,8 +276,8 @@ void OSMemoryBarrier();
 // Defined for source compatibility
 #define ino_t _ino_t
 #define off_t _off_t
-#define mode_t uint16_t
-        
+typedef int mode_t;
+
 // This works because things aren't actually exported from the DLL unless they have a __declspec(dllexport) on them... so extern by itself is closest to __private_extern__ on Mac OS
 #define CF_PRIVATE extern
     
