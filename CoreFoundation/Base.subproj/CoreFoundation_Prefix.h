@@ -287,7 +287,9 @@ void OSMemoryBarrier();
 #define CF_PRIVATE extern
     
 #define __builtin_expect(P1,P2) P1
-    
+
+#include <sys/stat.h>
+
 // These are replacements for POSIX calls on Windows, ensuring that the UTF8 parameters are converted to UTF16 before being passed to Windows
 CF_EXPORT int _NS_stat(const char *name, struct _stat *st);
 CF_EXPORT int _NS_mkdir(const char *name);
