@@ -26,6 +26,8 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
+#define SECURITY_WIN32
+#include <Security.h>
 
 #define getcwd _NS_getcwd
 
@@ -302,6 +304,14 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     if (upwd && upwd->pw_gecos) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
     }
+#elif TARGET_OS_WIN32
+    ULONG ulLength = 0;
+    GetUserNameExW(NameDisplay, NULL, &ulLength);
+
+    WCHAR *wszBuffer[ulLength + 1];
+    GetUserNameExW(NameDisplay, (LPWSTR)wszBuffer, &ulLength);
+
+    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar *)wszBuffer, ulLength);
 #else
 #error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
