@@ -315,16 +315,9 @@ CF_EXPORT int _NS_access(const char *name, int amode);
 #define FD_SETSIZE 1024
 #include <winsock2.h>
 #include <windows.h>
+#include <time.h>
 
 #undef BOOL
-
-#ifndef HAVE_STRUCT_TIMESPEC
-#define HAVE_STRUCT_TIMESPEC 1
-struct timespec {
-        long tv_sec;
-        long tv_nsec;
-};
-#endif /* HAVE_STRUCT_TIMESPEC */
 
 #define __PRETTY_FUNCTION__ __FUNCTION__
 

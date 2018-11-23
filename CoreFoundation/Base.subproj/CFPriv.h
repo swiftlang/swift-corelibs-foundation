@@ -572,12 +572,6 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 #endif
 #if _POSIX_THREADS
 #include <pthread.h>
-#elif !TARGET_OS_LINUX
-// Avoid including the pthread header
-#ifndef HAVE_STRUCT_TIMESPEC
-#define HAVE_STRUCT_TIMESPEC 1
-struct timespec { long tv_sec; long tv_nsec; };
-#endif
 #endif
 
 CF_INLINE CFAbsoluteTime _CFAbsoluteTimeFromFileTimeSpec(struct timespec ts) {
