@@ -451,6 +451,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mod
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
@@ -469,6 +470,7 @@ static inline unsigned int _dev_major(dev_t rdev) {
 static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
+#endif
 
 _CF_EXPORT_SCOPE_END
 
