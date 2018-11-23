@@ -241,7 +241,7 @@ add_swift_library(Foundation
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     ${uuid_LIBRARIES}
-		    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
