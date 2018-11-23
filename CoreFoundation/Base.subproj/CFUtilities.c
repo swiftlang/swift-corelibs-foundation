@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #include <asl.h>
 #else
 #define ASL_LEVEL_EMERG 0
@@ -871,7 +871,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
         _populateBanner(&banner, &time, &thread, &bannerLen);
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
