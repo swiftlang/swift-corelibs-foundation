@@ -345,9 +345,15 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
-typedef pthread_attr_t _CFThreadAttributes;
+#if DEPLOYMENT_TARGET_WINDOWS
+typedef HANDLE _CFThreadRef;
+typedef DWORD _CFThreadAttributes;
+typedef DWORD _CFThreadSpecificKey;
+#elif _POSIX_THREADS
 typedef pthread_t _CFThreadRef;
+typedef pthread_attr_t _CFThreadAttributes;
 typedef pthread_key_t _CFThreadSpecificKey;
+#endif
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
 CF_EXPORT _CFThreadRef _CFMainPThread;
