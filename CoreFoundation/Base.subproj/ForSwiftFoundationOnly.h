@@ -26,7 +26,12 @@
 #include <CoreFoundation/CFURLSessionInterface.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <fts.h>
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 #include <dirent.h>
 
 #include <CoreFoundation/CFCalendar_Internal.h>

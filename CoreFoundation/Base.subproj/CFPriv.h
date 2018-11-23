@@ -567,7 +567,10 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
 #elif !TARGET_OS_LINUX
 // Avoid including the pthread header

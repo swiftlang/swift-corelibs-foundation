@@ -19,7 +19,13 @@
 #include <math.h>
 #include <stdio.h>
 #include <limits.h>
+
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
 #endif

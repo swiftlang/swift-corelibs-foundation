@@ -101,13 +101,17 @@ CF_EXTERN_C_BEGIN
 #include <xlocale.h>
 #endif // !TARGET_OS_CYGWIN && !defined(__linux__)
 
-#include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
 #endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>

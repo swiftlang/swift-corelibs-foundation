@@ -318,7 +318,6 @@ CF_EXPORT int _NS_access(const char *name, int amode);
 #define FD_SETSIZE 1024
 #include <winsock2.h>
 #include <windows.h>
-#include <pthread.h>
 
 #undef BOOL
 

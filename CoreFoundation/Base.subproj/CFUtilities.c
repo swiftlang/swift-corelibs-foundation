@@ -40,7 +40,6 @@
 #include <unistd.h>
 #include <sys/uio.h>
 #include <mach/mach.h>
-#include <pthread.h>
 #include <mach-o/loader.h>
 #include <mach-o/dyld.h>
 #include <crt_externs.h>
@@ -61,12 +60,15 @@
 
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <string.h>
-#include <pthread.h>
 #include <sys/mman.h>
-#include <unistd.h>
 #endif
 
-
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
+#include <pthread.h>
+#endif
 
 
 
