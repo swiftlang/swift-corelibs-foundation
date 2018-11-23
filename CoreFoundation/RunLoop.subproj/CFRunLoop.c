@@ -90,7 +90,7 @@ typedef int dispatch_runloop_handle_t;
 
 extern void _dispatch_main_queue_callback_4CF(void *);
 
-extern pthread_t pthread_main_thread_np(void);
+extern _CFThreadRef pthread_main_thread_np(void);
 typedef struct voucher_s *voucher_t;
 
 extern voucher_t _Nullable voucher_copy(void);
@@ -125,7 +125,7 @@ extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
-CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
+CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
 
@@ -154,21 +154,21 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static pthread_t const kNilPthreadT = { nil, nil };
+static _CFThreadRef const kNilPthreadT = { nil, nil };
 #define pthreadPointer(a) a.p
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
 #elif DEPLOYMENT_TARGET_LINUX
 
-static pthread_t const kNilPthreadT = (pthread_t)0;
+static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
 #define pthreadPointer(a) ((void*)a)
 typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
 #else
 
-static pthread_t const kNilPthreadT = (pthread_t)0;
+static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
 #define pthreadPointer(a) a
 #define lockCount(a) a
 #endif
@@ -785,7 +785,7 @@ struct __CFRunLoop {
     __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
     Boolean _unused;
     volatile _per_run_data *_perRunData;              // reset for runs of the run loop
-    pthread_t _pthread;
+    _CFThreadRef _pthread;
     uint32_t _winthread;
     CFMutableSetRef _commonModes;
     CFMutableSetRef _commonModeItems;
@@ -1373,7 +1373,7 @@ static void __CFRunLoopDeallocateTimers(const void *value, void *context) {
     }
 }
 
-CF_EXPORT CFRunLoopRef _CFRunLoopGet0b(pthread_t t);
+CF_EXPORT CFRunLoopRef _CFRunLoopGet0b(_CFThreadRef t);
 
 static void __CFRunLoopDeallocate(CFTypeRef cf) {
     CFRunLoopRef rl = (CFRunLoopRef)cf;
@@ -1459,7 +1459,7 @@ CFTypeID CFRunLoopGetTypeID(void) {
     return _kCFRuntimeIDCFRunLoop;
 }
 
-static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
+static CFRunLoopRef __CFRunLoopCreate(_CFThreadRef t) {
     CFRunLoopRef loop = NULL;
     CFRunLoopModeRef rlm;
     uint32_t size = sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase);
@@ -1496,7 +1496,7 @@ static CFRunLoopRef __CFRunLoopCreate(pthread_t t) {
 static CFMutableDictionaryRef __CFRunLoops = NULL;
 static CFLock_t loopsLock = CFLockInit;
 
-CF_PRIVATE CFRunLoopRef _CFRunLoopCacheLookup(pthread_t t, const Boolean createCache) {
+CF_PRIVATE CFRunLoopRef _CFRunLoopCacheLookup(_CFThreadRef t, const Boolean createCache) {
     CFRunLoopRef loop = NULL;
     if (pthread_equal(t, kNilPthreadT)) {
         t = pthread_main_thread_np();
@@ -1540,7 +1540,7 @@ CF_EXPORT Boolean _CFRunLoopIsCurrent(const CFRunLoopRef rl) {
 
 // should only be called by Foundation
 // t==0 is a synonym for "main thread" that always works
-CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
+CF_EXPORT CFRunLoopRef _CFRunLoopGet0(_CFThreadRef t) {
     if (pthread_equal(t, kNilPthreadT)) {
 	t = pthread_main_thread_np();
     }
@@ -1575,7 +1575,7 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(pthread_t t) {
 }
 
 // should only be called by Foundation
-CFRunLoopRef _CFRunLoopGet0b(pthread_t t) {
+CFRunLoopRef _CFRunLoopGet0b(_CFThreadRef t) {
     if (pthread_equal(t, kNilPthreadT)) {
 	t = pthread_main_thread_np();
     }
@@ -1629,7 +1629,7 @@ CF_PRIVATE void __CFFinalizeRunLoop(uintptr_t data) {
     }
 }
 
-pthread_t _CFRunLoopGet1(CFRunLoopRef rl) {
+_CFThreadRef _CFRunLoopGet1(CFRunLoopRef rl) {
     return rl->_pthread;
 }
 

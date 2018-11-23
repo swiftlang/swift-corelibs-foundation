@@ -1073,7 +1073,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
 #if DEPLOYMENT_TARGET_WINDOWS
 #define kNilPthreadT  { nil, nil }
 #else
-#define kNilPthreadT  (pthread_t)0
+#define kNilPthreadT  (_CFThreadRef)0
 #endif
 
 
@@ -1090,12 +1090,12 @@ static Boolean __CFInitializing = 0;
 Boolean __CFInitialized = 0;
 
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
-CF_EXPORT pthread_t _CFMainPThread;
-pthread_t _CFMainPThread = kNilPthreadT;
+CF_EXPORT _CFThreadRef _CFMainPThread;
+_CFThreadRef _CFMainPThread = kNilPthreadT;
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
-CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
-pthread_t _CF_pthread_main_thread_np(void) {
+CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
+_CFThreadRef _CF_pthread_main_thread_np(void) {
     return _CFMainPThread;
 }
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()

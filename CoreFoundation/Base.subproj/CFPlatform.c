@@ -558,10 +558,10 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name) {
     }
 }
 
-static pthread_t __initialPthread = { NULL, 0 };
+static _CFThreadRef __initialPthread = { NULL, 0 };
 
 CF_EXPORT int _NS_pthread_main_np() {
-    pthread_t me = pthread_self();
+    _CFThreadRef me = pthread_self();
     if (NULL == __initialPthread.p) {
         __initialPthread.p = me.p;
         __initialPthread.x = me.x;
@@ -1242,7 +1242,7 @@ CF_INLINE void _CF_put_thread_semaphore(_CF_sema_t s) {
 typedef struct _CF_dispatch_once_waiter_s {
     volatile struct _CF_dispatch_once_waiter_s *volatile dow_next;
     _CF_sema_t dow_sema;
-    pthread_t dow_thread;
+    _CFThreadRef dow_thread;
 } *_CF_dispatch_once_waiter_t;
 
 #if defined(__x86_64__) || defined(__i386__)
@@ -1369,12 +1369,12 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
-    pthread_t thread;
+    _CFThreadRef thread;
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
 }
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);

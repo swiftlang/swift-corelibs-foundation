@@ -1026,17 +1026,17 @@ static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) 
 
 #include <sys/syslog.h>
 
-static pthread_t __cfSocketTid()
+static _CFThreadRef __cfSocketTid()
 {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     uint64_t tid = 0;
     if (0 != pthread_threadid_np(NULL, &tid))
         tid = pthread_mach_thread_np(pthread_self());
-    return (pthread_t) tid;
+    return (_CFThreadRef) tid;
 #elif DEPLOYMENT_TARGET_WINDOWS
-    return (pthread_t) GetCurrentThreadId();
+    return (_CFThreadRef) GetCurrentThreadId();
 #else
-    return (pthread_t) pthread_self();
+    return (_CFThreadRef) pthread_self();
 #endif
 }
 
@@ -2615,7 +2615,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
     if (INVALID_SOCKET != sock) CFDictionaryAddValue(__CFAllSockets, (void *)(uintptr_t)sock, memory);
     if (NULL == __CFSocketManagerThread) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-        pthread_t tid = 0;
+        _CFThreadRef tid = 0;
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
@@ -2625,7 +2625,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
         pthread_attr_destroy(&attr);
-//warning CF: we dont actually know that a pthread_t is the same size as void *
+//warning CF: we dont actually know that a _CFThreadRef is the same size as void *
         __CFSocketManagerThread = (void *)tid;
 #elif DEPLOYMENT_TARGET_WINDOWS
         unsigned tid;
