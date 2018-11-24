@@ -23,7 +23,9 @@
 #endif /* USE_DYLD_PRIV */
 #endif /* BINARY_SUPPORT_DYLD */
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <sys/mman.h>
 
