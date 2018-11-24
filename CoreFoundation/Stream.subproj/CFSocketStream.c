@@ -13,7 +13,11 @@
 #include "CFInternal.h"
 #include "CFStreamInternal.h"
 #include "CFStreamPriv.h"
+#if TARGET_OS_WIN32
+#include <WinSock2.h>
+#else
 #include <sys/socket.h>
+#endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 // On Mach these live in CF for historical reasons, even though they are declared in CFNetwork

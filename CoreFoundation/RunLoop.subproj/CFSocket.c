@@ -946,7 +946,11 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/socket.h>
 #endif
 #endif
+#if TARGET_OS_WIN32
+#include <WinSock2.h>
+#else
 #include <arpa/inet.h>
+#endif
 #include <sys/ioctl.h>
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
