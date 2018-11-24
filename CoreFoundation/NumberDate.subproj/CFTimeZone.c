@@ -136,7 +136,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
 #if defined(UNICODE)
 	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const UInt8 *)lpName, (_tcslen(lpName) * sizeof(UniChar)), kCFStringEncodingUnicode, false);
 #else
-	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, lpName, _tcslen(lpName), CFStringGetSystemEncoding(), false);
+	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const unsigned char *)lpName, _tcslen(lpName), CFStringGetSystemEncoding(), false);
 #endif
 	    CFArrayAppendValue(result, string);
 	    CFRelease(string);
