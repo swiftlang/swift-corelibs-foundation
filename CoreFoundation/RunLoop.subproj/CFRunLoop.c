@@ -428,7 +428,7 @@ static __CFPortSet __CFPortSetAllocate(void) {
     result->used = 0;
     result->size = 4;
     result->handles = (HANDLE *)CFAllocatorAllocate(kCFAllocatorSystemDefault, result->size * sizeof(HANDLE), 0);
-    CF_SPINLOCK_INIT_FOR_STRUCTS(result->lock);
+    CF_LOCK_INIT_FOR_STRUCTS(result->lock);
     return result;
 }
 
