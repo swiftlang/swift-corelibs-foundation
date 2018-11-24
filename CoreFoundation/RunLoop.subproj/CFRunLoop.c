@@ -668,7 +668,11 @@ typedef struct __CFRunLoopMode *CFRunLoopModeRef;
 
 struct __CFRunLoopMode {
     CFRuntimeBase _base;
+#if DEPLOYMENT_TARGET_WINDOWS
+    CRITICAL_SECTION _lock;
+#else
     CFLock_t _lock;	/* must have the run loop locked before locking this */
+#endif
     CFStringRef _name;
     Boolean _stopped;
     char _padding[3];
@@ -698,13 +702,21 @@ struct __CFRunLoopMode {
 };
 
 CF_INLINE void __CFRunLoopModeLock(CFRunLoopModeRef rlm) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    EnterCriticalSection(&(rlm->_lock));
+#else
     __CFLock(&(rlm->_lock));
+#endif
     //CFLog(6, CFSTR("__CFRunLoopModeLock locked %p"), rlm);
 }
 
 CF_INLINE void __CFRunLoopModeUnlock(CFRunLoopModeRef rlm) {
     //CFLog(6, CFSTR("__CFRunLoopModeLock unlocking %p"), rlm);
+#if DEPLOYMENT_TARGET_WINDOWS
+    LeaveCriticalSection(&(rlm->_lock));
+#else
     __CFUnlock(&(rlm->_lock));
+#endif
 }
 
 static Boolean __CFRunLoopModeEqual(CFTypeRef cf1, CFTypeRef cf2) {
@@ -738,6 +750,16 @@ static CFStringRef __CFRunLoopModeCopyDescription(CFTypeRef cf) {
     return result;
 }
 
+#if DEPLOYMENT_TARGET_WINDOWS
+CF_INLINE void __CFRunLoopLockDestroy(LPCRITICAL_SECTION lpCS) {
+  DeleteCritialSection(lpCS);
+}
+#else
+CF_INLINE void __CFRunLoopLockDestroy(CFLock_t *lock) {
+  pthread_mutex_destroy(lock);
+}
+#endif
+
 static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
     CFRunLoopModeRef rlm = (CFRunLoopModeRef)cf;
     if (NULL != rlm->_sources0) CFRelease(rlm->_sources0);
@@ -759,7 +781,7 @@ static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
 #if USE_MK_TIMER_TOO
     if (MACH_PORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
 #endif
-    pthread_mutex_destroy(&rlm->_lock);
+    __CFRunLoopLockDestroy(&rlm->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x7C, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase));
 }
 
@@ -781,7 +803,11 @@ typedef struct _per_run_data {
 
 struct __CFRunLoop {
     CFRuntimeBase _base;
+#if DEPLOYMENT_TARGET_WINDOWS
+    CRITICAL_SECTION _lock;
+#else
     CFLock_t _lock;			/* locked for accessing mode list */
+#endif
     __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
     Boolean _unused;
     volatile _per_run_data *_perRunData;              // reset for runs of the run loop
@@ -864,13 +890,21 @@ CF_INLINE void __CFRunLoopSetDeallocating(CFRunLoopRef rl) {
 }
 
 CF_INLINE void __CFRunLoopLock(CFRunLoopRef rl) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    EnterCriticalSection(&(rl->_lock));
+#else
     __CFLock(&(((CFRunLoopRef)rl)->_lock));
+#endif
     //    CFLog(6, CFSTR("__CFRunLoopLock locked %p"), rl);
 }
 
 CF_INLINE void __CFRunLoopUnlock(CFRunLoopRef rl) {
     //    CFLog(6, CFSTR("__CFRunLoopLock unlocking %p"), rl);
+#if DEPLOYMENT_TARGET_WINDOWS
+    LeaveCriticalSection(&(rl->_lock));
+#else
     __CFUnlock(&(((CFRunLoopRef)rl)->_lock));
+#endif
 }
 
 static CFStringRef __CFRunLoopCopyDescription(CFTypeRef cf) {
@@ -892,6 +926,11 @@ CF_PRIVATE void __CFRunLoopDump() { // __private_extern__ to keep the compiler f
     CFRelease(desc);
 }
 
+#if DEPLOYMENT_TARGET_WINDOWS
+CF_INLINE void __CFRunLoopLockInit(LPCRITICAL_SECTION lpCS) {
+  InitializeCriticalSection(lpCS);
+}
+#else
 CF_INLINE void __CFRunLoopLockInit(CFLock_t *lock) {
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
@@ -901,6 +940,7 @@ CF_INLINE void __CFRunLoopLockInit(CFLock_t *lock) {
     if (0 != mret) {
     }
 }
+#endif
 
 /* call with rl locked, returns mode locked */
 static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeName, Boolean create) {
@@ -1099,7 +1139,11 @@ CF_INLINE void __CFUnsetValid(void *cf) {
 
 struct __CFRunLoopSource {
     CFRuntimeBase _base;
+#if DEPLOYMENT_TARGET_WINDOWS
+    CRITICAL_SECTION _lock;
+#else
     CFLock_t _lock;
+#endif
     CFIndex _order;			/* immutable */
     CFMutableBagRef _runLoops;
     union {
@@ -1122,20 +1166,32 @@ CF_INLINE void __CFRunLoopSourceUnsetSignaled(CFRunLoopSourceRef rls) {
 }
 
 CF_INLINE void __CFRunLoopSourceLock(CFRunLoopSourceRef rls) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    EnterCriticalSection(&(rls->_lock));
+#else
     __CFLock(&(rls->_lock));
+#endif
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock locked %p"), rls);
 }
 
 CF_INLINE void __CFRunLoopSourceUnlock(CFRunLoopSourceRef rls) {
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock unlocking %p"), rls);
+#if DEPLOYMENT_TARGET_WINDOWS
+    LeaveCriticalSection(&(rls->_lock));
+#else
     __CFUnlock(&(rls->_lock));
+#endif
 }
 
 #pragma mark Observers
 
 struct __CFRunLoopObserver {
     CFRuntimeBase _base;
+#if DEPLOYMENT_TARGET_WINDOWS
+    CRITICAL_SECTION _lock;
+#else
     CFLock_t _lock;
+#endif
     CFRunLoopRef _runLoop;
     CFIndex _rlCount;
     CFOptionFlags _activities;		/* immutable */
@@ -1172,13 +1228,21 @@ CF_INLINE void __CFRunLoopObserverUnsetRepeats(CFRunLoopObserverRef rlo) {
 }
 
 CF_INLINE void __CFRunLoopObserverLock(CFRunLoopObserverRef rlo) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    EnterCriticalSection(&(rlo->_lock));
+#else
     __CFLock(&(rlo->_lock));
+#endif
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock locked %p"), rlo);
 }
 
 CF_INLINE void __CFRunLoopObserverUnlock(CFRunLoopObserverRef rlo) {
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock unlocking %p"), rlo);
+#if DEPLOYMENT_TARGET_WINDOWS
+    LeaveCriticalSection(&(rlo->_lock));
+#else
     __CFUnlock(&(rlo->_lock));
+#endif
 }
 
 static void __CFRunLoopObserverSchedule(CFRunLoopObserverRef rlo, CFRunLoopRef rl, CFRunLoopModeRef rlm) {
@@ -1204,7 +1268,11 @@ static void __CFRunLoopObserverCancel(CFRunLoopObserverRef rlo, CFRunLoopRef rl,
 struct __CFRunLoopTimer {
     CFRuntimeBase _base;
     uint16_t _bits;
+#if DEPLOYMENT_TARGET_WINDOWS
+    CRITICAL_SECTION _lock;
+#else
     CFLock_t _lock;
+#endif
     CFRunLoopRef _runLoop;
     CFMutableSetRef _rlModes;
     CFAbsoluteTime _nextFireDate;
@@ -1241,13 +1309,21 @@ CF_INLINE void __CFRunLoopTimerSetDeallocating(CFRunLoopTimerRef rlt) {
 }
 
 CF_INLINE void __CFRunLoopTimerLock(CFRunLoopTimerRef rlt) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    EnterCriticalSection(&(rlt->_lock));
+#else
     __CFLock(&(rlt->_lock));
+#endif
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock locked %p"), rlt);
 }
 
 CF_INLINE void __CFRunLoopTimerUnlock(CFRunLoopTimerRef rlt) {
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock unlocking %p"), rlt);
+#if DEPLOYMENT_TARGET_WINDOWS
+    LeaveCriticalSection(&(rlt->_lock));
+#else
     __CFUnlock(&(rlt->_lock));
+#endif
 }
 
 
@@ -1425,7 +1501,7 @@ static void __CFRunLoopDeallocate(CFTypeRef cf) {
     rl->_wakeUpPort = CFPORT_NULL;
     __CFRunLoopPopPerRunData(rl, NULL);
     __CFRunLoopUnlock(rl);
-    pthread_mutex_destroy(&rl->_lock);
+    __CFRunLoopLockDestroy(&rl->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x8C, sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase));
 }
 
@@ -1568,7 +1644,11 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(_CFThreadRef t) {
     if (pthread_equal(t, pthread_self())) {
         _CFSetTSD(__CFTSDKeyRunLoop, (void *)loop, NULL);
         if (0 == _CFGetTSD(__CFTSDKeyRunLoopCntr)) {
+#if _POSIX_THREADS
             _CFSetTSD(__CFTSDKeyRunLoopCntr, (void *)(PTHREAD_DESTRUCTOR_ITERATIONS-1), (void (*)(void *))__CFFinalizeRunLoop);
+#elif DEPLOYMENT_TARGET_WINDOWS
+            _CFSetTSD(__CFTSDKeyRunLoopCntr, (void *)0, (void (*)(void *))__CFFinalizeRunLoop);
+#endif
         }
     }
     return loop;
@@ -3746,7 +3826,7 @@ static void __CFRunLoopSourceDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     if (rls->_context.version0.release) {
 	rls->_context.version0.release(rls->_context.version0.info);
     }
-    pthread_mutex_destroy(&rls->_lock);
+    __CFRunLoopLockDestroy(&rls->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0, sizeof(struct __CFRunLoopSource) - sizeof(CFRuntimeBase));
 }
 
@@ -3937,7 +4017,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
 static void __CFRunLoopObserverDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopObserverRef rlo = (CFRunLoopObserverRef)cf;
     CFRunLoopObserverInvalidate(rlo);
-    pthread_mutex_destroy(&rlo->_lock);
+    __CFRunLoopLockDestroy(&rlo->_lock);
 }
 
 const CFRuntimeClass __CFRunLoopObserverClass = {
@@ -4128,7 +4208,7 @@ static void __CFRunLoopTimerDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopTimerInvalidate(rlt);	/* DOES CALLOUT */
     CFRelease(rlt->_rlModes);
     rlt->_rlModes = NULL;
-    pthread_mutex_destroy(&rlt->_lock);
+    __CFRunLoopLockDestroy(&rlt->_lock);
 }
 
 const CFRuntimeClass __CFRunLoopTimerClass = {
