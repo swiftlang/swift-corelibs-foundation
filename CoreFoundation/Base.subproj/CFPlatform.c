@@ -26,6 +26,7 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
+#include <direct.h>
 #define SECURITY_WIN32
 #include <Security.h>
 
