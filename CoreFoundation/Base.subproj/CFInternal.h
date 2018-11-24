@@ -687,6 +687,7 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
+#define	DT_UNKNOWN	 0
 #endif
 
 /*
