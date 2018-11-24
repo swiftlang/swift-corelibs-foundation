@@ -572,6 +572,12 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>
+#elif DEPLOYMENT_TARGET_WINDOWS
+#define OS_UNFAIR_LOCK_INIT SRWLOCK_INIT
+typedef SRWLOCK os_unfair_lock;
+typedef SRWLOCK *os_unfair_lock_t;
+static void os_unfair_lock_lock(os_unfair_lock_t lock) { AcquireSRWLockExclusive(lock); }
+static void os_unfair_lock_unlock(os_unfair_lock_t lock) { ReleaseSRWLockExclusive(lock); }
 #elif _POSIX_THREADS
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
