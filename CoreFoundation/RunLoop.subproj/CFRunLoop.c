@@ -698,13 +698,13 @@ struct __CFRunLoopMode {
 };
 
 CF_INLINE void __CFRunLoopModeLock(CFRunLoopModeRef rlm) {
-    pthread_mutex_lock(&(rlm->_lock));
+    __CFLock(&(rlm->_lock));
     //CFLog(6, CFSTR("__CFRunLoopModeLock locked %p"), rlm);
 }
 
 CF_INLINE void __CFRunLoopModeUnlock(CFRunLoopModeRef rlm) {
     //CFLog(6, CFSTR("__CFRunLoopModeLock unlocking %p"), rlm);
-    pthread_mutex_unlock(&(rlm->_lock));
+    __CFUnlock(&(rlm->_lock));
 }
 
 static Boolean __CFRunLoopModeEqual(CFTypeRef cf1, CFTypeRef cf2) {
@@ -864,13 +864,13 @@ CF_INLINE void __CFRunLoopSetDeallocating(CFRunLoopRef rl) {
 }
 
 CF_INLINE void __CFRunLoopLock(CFRunLoopRef rl) {
-    pthread_mutex_lock(&(((CFRunLoopRef)rl)->_lock));
+    __CFLock(&(((CFRunLoopRef)rl)->_lock));
     //    CFLog(6, CFSTR("__CFRunLoopLock locked %p"), rl);
 }
 
 CF_INLINE void __CFRunLoopUnlock(CFRunLoopRef rl) {
     //    CFLog(6, CFSTR("__CFRunLoopLock unlocking %p"), rl);
-    pthread_mutex_unlock(&(((CFRunLoopRef)rl)->_lock));
+    __CFUnlock(&(((CFRunLoopRef)rl)->_lock));
 }
 
 static CFStringRef __CFRunLoopCopyDescription(CFTypeRef cf) {
@@ -1122,13 +1122,13 @@ CF_INLINE void __CFRunLoopSourceUnsetSignaled(CFRunLoopSourceRef rls) {
 }
 
 CF_INLINE void __CFRunLoopSourceLock(CFRunLoopSourceRef rls) {
-    pthread_mutex_lock(&(rls->_lock));
+    __CFLock(&(rls->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock locked %p"), rls);
 }
 
 CF_INLINE void __CFRunLoopSourceUnlock(CFRunLoopSourceRef rls) {
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock unlocking %p"), rls);
-    pthread_mutex_unlock(&(rls->_lock));
+    __CFUnlock(&(rls->_lock));
 }
 
 #pragma mark Observers
@@ -1172,13 +1172,13 @@ CF_INLINE void __CFRunLoopObserverUnsetRepeats(CFRunLoopObserverRef rlo) {
 }
 
 CF_INLINE void __CFRunLoopObserverLock(CFRunLoopObserverRef rlo) {
-    pthread_mutex_lock(&(rlo->_lock));
+    __CFLock(&(rlo->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock locked %p"), rlo);
 }
 
 CF_INLINE void __CFRunLoopObserverUnlock(CFRunLoopObserverRef rlo) {
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock unlocking %p"), rlo);
-    pthread_mutex_unlock(&(rlo->_lock));
+    __CFUnlock(&(rlo->_lock));
 }
 
 static void __CFRunLoopObserverSchedule(CFRunLoopObserverRef rlo, CFRunLoopRef rl, CFRunLoopModeRef rlm) {
@@ -1241,13 +1241,13 @@ CF_INLINE void __CFRunLoopTimerSetDeallocating(CFRunLoopTimerRef rlt) {
 }
 
 CF_INLINE void __CFRunLoopTimerLock(CFRunLoopTimerRef rlt) {
-    pthread_mutex_lock(&(rlt->_lock));
+    __CFLock(&(rlt->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock locked %p"), rlt);
 }
 
 CF_INLINE void __CFRunLoopTimerUnlock(CFRunLoopTimerRef rlt) {
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock unlocking %p"), rlt);
-    pthread_mutex_unlock(&(rlt->_lock));
+    __CFUnlock(&(rlt->_lock));
 }
 
 

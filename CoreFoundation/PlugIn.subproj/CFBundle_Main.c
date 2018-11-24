@@ -124,9 +124,9 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
                 // Perform delayed final processing steps.
                 // This must be done after _isLoaded has been set, for security reasons (3624341).
                 // It is safe to unlock and re-lock here because we don't really do anything under the lock after we are done. It is just re-locked to satisfy the 'already locked' contract.
-                pthread_mutex_unlock(&_mainBundleLock);
+                __CFUnlock(&_mainBundleLock);
                 _CFBundleInitPlugIn(_mainBundle);
-                pthread_mutex_lock(&_mainBundleLock);
+                __CFLock(&_mainBundleLock);
             }
         }
         if (bundleURL) CFRelease(bundleURL);
@@ -164,8 +164,8 @@ CF_EXPORT CFURLRef _CFBundleCopyMainBundleExecutableURL(Boolean *looksLikeBundle
 
 CF_EXPORT CFBundleRef CFBundleGetMainBundle(void) {
     CFBundleRef mainBundle;
-    pthread_mutex_lock(&_mainBundleLock);
+    __CFLock(&_mainBundleLock);
     mainBundle = _CFBundleGetMainBundleAlreadyLocked();
-    pthread_mutex_unlock(&_mainBundleLock);
+    __CFUnlock(&_mainBundleLock);
     return mainBundle;
 }

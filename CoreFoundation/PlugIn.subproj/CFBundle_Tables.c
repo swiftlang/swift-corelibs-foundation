@@ -176,7 +176,7 @@ CF_EXPORT CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
                 }
             }
         }
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         if (!result) {
@@ -208,15 +208,15 @@ CF_EXPORT CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
             _CFBundleEnsureBundlesUpToDateWithHintAlreadyLocked(bundleID);
             result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
         }
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
     }
     
     if (!result) {
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         // Make sure all bundles have been created and try again.
         _CFBundleEnsureAllBundlesUpToDateAlreadyLocked();
         result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
     }
     
     return result;

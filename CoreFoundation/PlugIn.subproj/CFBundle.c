@@ -207,7 +207,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle) {
     
     CFStringRef bundleID = CFBundleGetIdentifier(bundle);
 
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     
     // Add to the _allBundles list
     if (!_allBundles) {
@@ -266,7 +266,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle) {
             CFRelease(bundlesWithThisID);
         }
     }
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
 }
 
 static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CFStringRef bundleID) {
@@ -278,7 +278,7 @@ static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CF
         // Unique bundles aren't in the tables anyway
         if (bundle->_isUnique) return;
         
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         // Remove from the table of all bundles
         if (_allBundles) {
             CFIndex i = CFArrayGetFirstIndexOfValue(_allBundles, CFRangeMake(0, CFArrayGetCount(_allBundles)), bundle);
@@ -300,14 +300,14 @@ static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CF
                 if (0 == CFArrayGetCount(bundlesWithThisID)) CFDictionaryRemoveValue(_bundlesByIdentifier, bundleID);
             }
         }
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
     }
 #endif
 }
 
 static CFBundleRef _CFBundleGetFromTables(CFStringRef bundleID) {
     CFBundleRef result = NULL, bundle;
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     if (_bundlesByIdentifier && bundleID) {
         // Note that this array is maintained in descending order by version number
         CFArrayRef bundlesWithThisID = (CFArrayRef)CFDictionaryGetValue(_bundlesByIdentifier, bundleID);
@@ -324,7 +324,7 @@ static CFBundleRef _CFBundleGetFromTables(CFStringRef bundleID) {
             }
         }
     }
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
     return result;
 }
 
@@ -342,14 +342,14 @@ static CFBundleRef _CFBundleCopyFromTablesForURL(CFURLRef url) {
      Since the main bundle is not part of the bundle tables, we can support this scenario by having the _bundlesByURL data structure hold the bundle for URL "/S/L/F/Foo.framework/Foo" and _mainBundle (in CFBundle_Main.c) hold the bundle for URL "/S/L/F/Foo.framework/food".
      */
     CFBundleRef result = NULL;
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     if (_bundlesByURL) result = (CFBundleRef)CFDictionaryGetValue(_bundlesByURL, url);
     if (result && !result->_url) {
         result = NULL;
         CFDictionaryRemoveValue(_bundlesByURL, url);
     }
     if (result) CFRetain(result);
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
     return result;
 }
 
@@ -478,7 +478,7 @@ static void _CFBundleArrayApplyFlushBundleCaches(const void *value, void *unused
 #endif
 
 CF_PRIVATE void _CFBundleFlushAllBundleCaches(void) {
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
 #if __OBJC__ || __OBJC2__
     for (id value in (id)_allBundles) {
         _CFBundleFlushBundleCachesAlreadyLocked((CFBundleRef)value, true);
@@ -486,7 +486,7 @@ CF_PRIVATE void _CFBundleFlushAllBundleCaches(void) {
 #else
     CFArrayApplyFunction(_allBundles, CFRangeMake(0, CFArrayGetCount(_allBundles)), &_CFBundleArrayApplyFlushBundleCaches, NULL);
 #endif
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
 }
 
 CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
@@ -1145,7 +1145,7 @@ Boolean _CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, Boolean forceG
     CFURLRef executableURL = CFBundleCopyExecutableURL(bundle);
 
 
-    pthread_mutex_lock(&(bundle->_bundleLoadingLock));
+    __CFLock(&(bundle->_bundleLoadingLock));
     if (!executableURL) bundle->_binaryType = __CFBundleNoBinary;
     // make sure we know whether bundle is already loaded or not
 #if defined(BINARY_SUPPORT_DLFCN)
@@ -1163,30 +1163,30 @@ Boolean _CFBundleLoadExecutableAndReturnError(CFBundleRef bundle, Boolean forceG
     if (executableURL) CFRelease(executableURL);
     
     if (bundle->_isLoaded) {
-        pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+        __CFUnlock(&(bundle->_bundleLoadingLock));
         // Remove from the scheduled unload set if we are there.
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         if (_bundlesToUnload) CFSetRemoveValue(_bundlesToUnload, bundle);
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
         return true;
     }
 
     // Unload bundles scheduled for unloading
     if (!_scheduledBundlesAreUnloading) {
-        pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+        __CFUnlock(&(bundle->_bundleLoadingLock));
         _CFBundleUnloadScheduledBundles();
-        pthread_mutex_lock(&(bundle->_bundleLoadingLock));
+        __CFLock(&(bundle->_bundleLoadingLock));
     }
     
     if (bundle->_isLoaded) {
-        pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+        __CFUnlock(&(bundle->_bundleLoadingLock));
         // Remove from the scheduled unload set if we are there.
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         if (_bundlesToUnload) CFSetRemoveValue(_bundlesToUnload, bundle);
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
         return true;
     }
-    pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+    __CFUnlock(&(bundle->_bundleLoadingLock));
 
     switch (bundle->_binaryType) {
 #if defined(BINARY_SUPPORT_DLFCN)
@@ -1264,7 +1264,7 @@ Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error) {
 #endif
     CFURLRef executableURL = CFBundleCopyExecutableURL(bundle);
 
-    pthread_mutex_lock(&(bundle->_bundleLoadingLock));
+    __CFLock(&(bundle->_bundleLoadingLock));
     if (!executableURL) bundle->_binaryType = __CFBundleNoBinary;
     // make sure we know whether bundle is already loaded or not
 #if defined(BINARY_SUPPORT_DLFCN)
@@ -1282,10 +1282,10 @@ Boolean CFBundlePreflightExecutable(CFBundleRef bundle, CFErrorRef *error) {
     if (executableURL) CFRelease(executableURL);
     
     if (bundle->_isLoaded) {
-        pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+        __CFUnlock(&(bundle->_bundleLoadingLock));
         return true;
     }
-    pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+    __CFUnlock(&(bundle->_bundleLoadingLock));
     
     switch (bundle->_binaryType) {
 #if defined(BINARY_SUPPORT_DLFCN)
@@ -1349,19 +1349,19 @@ void CFBundleUnloadExecutable(CFBundleRef bundle) {
     if (!bundle->_isLoaded) return;
 
     // Remove from the scheduled unload set if we are there.
-    if (!_scheduledBundlesAreUnloading) pthread_mutex_lock(&CFBundleGlobalDataLock);
+    if (!_scheduledBundlesAreUnloading) __CFLock(&CFBundleGlobalDataLock);
     if (_bundlesToUnload) CFSetRemoveValue(_bundlesToUnload, bundle);
-    if (!_scheduledBundlesAreUnloading) pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    if (!_scheduledBundlesAreUnloading) __CFUnlock(&CFBundleGlobalDataLock);
     
     // Give the plugIn code a chance to realize this...
     _CFPlugInWillUnload(bundle);
 
-    pthread_mutex_lock(&(bundle->_bundleLoadingLock));
+    __CFLock(&(bundle->_bundleLoadingLock));
     if (!bundle->_isLoaded) {
-        pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+        __CFUnlock(&(bundle->_bundleLoadingLock));
         return;
     }
-    pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+    __CFUnlock(&(bundle->_bundleLoadingLock));
 
     switch (bundle->_binaryType) {
 #if defined(BINARY_SUPPORT_DYLD)
@@ -1392,7 +1392,7 @@ void CFBundleUnloadExecutable(CFBundleRef bundle) {
 }
 
 CF_PRIVATE void _CFBundleScheduleForUnloading(CFBundleRef bundle) {
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     if (!_bundlesToUnload) {
         CFSetCallBacks nonRetainingCallbacks = kCFTypeSetCallBacks;
         nonRetainingCallbacks.retain = NULL;
@@ -1400,17 +1400,17 @@ CF_PRIVATE void _CFBundleScheduleForUnloading(CFBundleRef bundle) {
         _bundlesToUnload = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &nonRetainingCallbacks);
     }
     CFSetAddValue(_bundlesToUnload, bundle);
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
 }
 
 CF_PRIVATE void _CFBundleUnscheduleForUnloading(CFBundleRef bundle) {
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     if (_bundlesToUnload) CFSetRemoveValue(_bundlesToUnload, bundle);
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
 }
 
 static void _CFBundleUnloadScheduledBundles(void) {
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     if (_bundlesToUnload) {
         CFIndex i, c = CFSetGetCount(_bundlesToUnload);
         if (c > 0) {
@@ -1425,7 +1425,7 @@ static void _CFBundleUnloadScheduledBundles(void) {
             CFAllocatorDeallocate(kCFAllocatorSystemDefault, unloadThese);
         }
     }
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
 }
 
 #pragma mark -
@@ -1566,7 +1566,7 @@ static void _CFBundleEnsureBundleExistsForImagePath(CFStringRef imagePath, Boole
         // NB doFinalProcessing must be false here, see below
         bundle = _CFBundleCreate(kCFAllocatorSystemDefault, curURL, false, false, true);
         if (bundle) {
-            pthread_mutex_lock(&(bundle->_bundleLoadingLock));
+            __CFLock(&(bundle->_bundleLoadingLock));
             if (!bundle->_isLoaded) {
                 // make sure that these bundles listed as loaded, and mark them frameworks (we probably can't see anything else here, and we cannot unload them)
     #if defined(BINARY_SUPPORT_DLFCN)
@@ -1583,7 +1583,7 @@ static void _CFBundleEnsureBundleExistsForImagePath(CFStringRef imagePath, Boole
     #endif /* LOG_BUNDLE_LOAD */
                 bundle->_isLoaded = true;
             }
-            pthread_mutex_unlock(&(bundle->_bundleLoadingLock));
+            __CFUnlock(&(bundle->_bundleLoadingLock));
             // Perform delayed final processing steps.
             // This must be done after _isLoaded has been set, for security reasons (3624341).
             _CFBundleInitPlugIn(bundle);
@@ -1635,14 +1635,14 @@ CFArrayRef CFBundleGetAllBundles(void) {
     // This API is fundamentally broken from a thread safety point of view. To mitigate the issues, we keep around the last list we handed out. If the list of allBundles changed, we leak the last one and return a new copy. If no bundle loading is done this list would be static.
     // Fortunately this method is rarely used.
     CFArrayRef result = NULL;
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     static CFArrayRef _lastBundleList = NULL;
     if (!_lastBundleList) {
         // This is the first time we've been asked for a list of all bundles
         // Unlock the global lock. CopyAllBundles will use it.
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
         result = _CFBundleCopyAllBundles();
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         if (_lastBundleList) {
             // Another thread beat us here
             CFRelease(result);
@@ -1651,14 +1651,14 @@ CFArrayRef CFBundleGetAllBundles(void) {
         }
     } else if (!CFEqual(_lastBundleList, _allBundles)) {
         // Check if the list of bundles has changed
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        __CFUnlock(&CFBundleGlobalDataLock);
         result = _CFBundleCopyAllBundles();
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        __CFLock(&CFBundleGlobalDataLock);
         // note: intentionally leak the last value in _lastBundleList, due to API contract of 'get'
         _lastBundleList = result;
     }
     result = _lastBundleList;
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
     return result;
 }
         
@@ -1666,10 +1666,10 @@ CF_EXPORT CFArrayRef _CFBundleCopyAllBundles(void) {
     // To answer this properly, we have to have created the static bundles!
     _CFBundleEnsureAllBundlesUpToDate();
     CFBundleRef main = CFBundleGetMainBundle();
-    pthread_mutex_lock(&CFBundleGlobalDataLock);
+    __CFLock(&CFBundleGlobalDataLock);
     // _allBundles does not include the main bundle, so insert it here.
     CFMutableArrayRef bundles = CFArrayCreateMutableCopy(kCFAllocatorSystemDefault, CFArrayGetCount(_allBundles) + 1, _allBundles);
-    pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    __CFUnlock(&CFBundleGlobalDataLock);
     CFArrayInsertValueAtIndex(bundles, 0, main);
     return bundles;
 }

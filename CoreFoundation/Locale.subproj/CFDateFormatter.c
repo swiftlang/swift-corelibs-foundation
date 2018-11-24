@@ -73,7 +73,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
         free((void *)ptgLocaleName);
         ptgLocaleName = NULL;
     };
-    pthread_mutex_lock(&ptgLock);
+    __CFLock(&ptgLock);
     if (ptgLocaleName && strcmp(ptgLocaleName, localeName) != 0) {
         flushCache();
     }
@@ -88,7 +88,7 @@ static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDate
     if (result && work) {
         work(ptg);
     }
-    pthread_mutex_unlock(&ptgLock);
+    __CFUnlock(&ptgLock);
     return result;
 }
 
