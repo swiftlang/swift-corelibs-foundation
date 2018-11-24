@@ -973,6 +973,8 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
+// redefine this to the winsock error in this file
+#undef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
 
 // redefine this to the winsock error in this file
