@@ -1071,7 +1071,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
 }
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#define kNilPthreadT  { nil, nil }
+#define kNilPthreadT  INVALID_HANDLE_VALUE
 #else
 #define kNilPthreadT  (_CFThreadRef)0
 #endif
