@@ -230,6 +230,8 @@ CF_INLINE uint64_t mach_absolute_time() {
     return (uint64_t)ts.tv_nsec + (uint64_t)ts.tv_sec * 1000000000UL;
 }
 
+#define malloc_default_zone() (void *)0
+
 #endif
     
 #if DEPLOYMENT_TARGET_FREEBSD
