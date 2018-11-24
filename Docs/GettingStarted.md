@@ -1,13 +1,13 @@
 # Getting Started
 
-## On OS X
+## On macOS
 
-Although OS X is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
+Although macOS is not a deployment platform for Swift Foundation, it is useful for development and test purposes.
 
-In order to build on OS X, you will need:
+In order to build on macOS, you will need:
 
 * The latest version of Xcode
-* The latest version of the OS X SDK (at this time: 10.11)
+* The latest version of the macOS SDK (at this time: 10.13.2)
 * The [current Swift toolchain](https://swift.org/download/#snapshots).
 
 Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
@@ -34,7 +34,7 @@ Build and test steps:
 
 You will need:
 
-* A supported distribution of Linux. At this time, we support [Ubuntu 14.04 and Ubuntu 15.10](http://www.ubuntu.com).
+* A supported distribution of Linux. At this time, we support [Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 16.10](http://www.ubuntu.com).
 
 To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 
@@ -80,5 +80,17 @@ When new source files or flags are added to the `build.py` script, the project w
 ```
 % ninja reconfigure
 % ninja
+```
+
+It is possible to build Foundation without the use of `build-script`.  You can
+build with cmake.  It currently requires clang, swift, and libdispatch (which
+are generally built as part of the swift build).
+
+```
+cmake -G Ninja ../../../swift-corelibs-foundation                               \
+ -DCMAKE_C_COMPILER=../../llvm-linux-x86_64/bin/clang                           \
+ -DCMAKE_SWIFT_COMPILER=../../swift-linux-x86_64/bin/swiftc                     \
+ -DFOUNDATION_PATH_TO_LIBDISPATCH_SOURCE=../../../swift-corelibs-libdispatch    \
+ -DFOUNDATION_PATH_TO_LIBDISPATCH_BUILD=../../libdispatch-linux-x86_64
 ```
 

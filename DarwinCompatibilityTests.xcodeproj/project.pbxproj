@@ -7,8 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1560EA8C219217F8004377E9 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1560EA8B219217F8004377E9 /* TestNSCalendar.swift */; };
+		B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */; };
+		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
+		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
+		B94897772135E7AD00FB930E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94897762135E7AC00FB930E /* Utilities.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
-		B9C89ED21F6BF67C00087AF4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9C89ED11F6BF67C00087AF4 /* XCTest.framework */; };
+		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
+		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
 		B9C89F381F6BF89C00087AF4 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE81F6BF88F00087AF4 /* TestUtils.swift */; };
@@ -106,25 +112,53 @@
 		B9C89FCC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-NotificationTest.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB71F6DCAEB00087AF4 /* NSKeyedUnarchiver-NotificationTest.plist */; };
 		B9C89FCD1F6DCAEB00087AF4 /* PropertyList-1.0.dtd in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */; };
 		B9C89FCE1F6DCAEB00087AF4 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB91F6DCAEB00087AF4 /* Test.plist */; };
-		B9F3269F1FC714DD003C3599 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
+		B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B9F326A01FC714DD003C3599 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
+		DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B9F1379E20B9984F000B7577 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B9C89EB91F6BF47D00087AF4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B917D31B20B0DB8B00728EE0;
+			remoteInfo = xdgTestHelper;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
-		B9C89EBF1F6BF47D00087AF4 /* CopyFiles */ = {
+		B917D31A20B0DB8B00728EE0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 12;
-			dstPath = usr/share/man/man1;
-			dstSubfolderSpec = 7;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		B9F137A020B998C0000B7577 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1560EA8B219217F8004377E9 /* TestNSCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestNSCalendar.swift; path = TestFoundation/TestNSCalendar.swift; sourceTree = "<group>"; };
+		B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = "NSString-ISO-8859-1-data.txt"; path = "TestFoundation/Resources/NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
+		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
+		B94897762135E7AC00FB930E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Utilities.swift; path = TestFoundation/Utilities.swift; sourceTree = "<group>"; };
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
-		B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DarwinCompatibilityTests; sourceTree = BUILT_PRODUCTS_DIR; };
+		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
+		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C89EDB1F6BF77E00087AF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -158,7 +192,6 @@
 		B9C89EFF1F6BF89300087AF4 /* TestNSString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSString.swift; path = TestFoundation/TestNSString.swift; sourceTree = "<group>"; };
 		B9C89F001F6BF89300087AF4 /* TestNSUUID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSUUID.swift; path = TestFoundation/TestNSUUID.swift; sourceTree = "<group>"; };
 		B9C89F011F6BF89300087AF4 /* TestPropertyListSerialization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestPropertyListSerialization.swift; path = TestFoundation/TestPropertyListSerialization.swift; sourceTree = "<group>"; };
-		B9C89F021F6BF89300087AF4 /* XDGTestHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = XDGTestHelper.swift; path = TestFoundation/XDGTestHelper.swift; sourceTree = "<group>"; };
 		B9C89F031F6BF89300087AF4 /* TestNSArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSArray.swift; path = TestFoundation/TestNSArray.swift; sourceTree = "<group>"; };
 		B9C89F051F6BF89400087AF4 /* TestFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestFileHandle.swift; path = TestFoundation/TestFileHandle.swift; sourceTree = "<group>"; };
 		B9C89F061F6BF89400087AF4 /* TestTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestTimer.swift; path = TestFoundation/TestTimer.swift; sourceTree = "<group>"; };
@@ -229,14 +262,15 @@
 		B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "PropertyList-1.0.dtd"; path = "TestFoundation/Resources/PropertyList-1.0.dtd"; sourceTree = "<group>"; };
 		B9C89FB91F6DCAEB00087AF4 /* Test.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Test.plist; path = TestFoundation/Resources/Test.plist; sourceTree = "<group>"; };
 		B9F3269E1FC714DD003C3599 /* DarwinShims.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DarwinShims.swift; sourceTree = "<group>"; };
+		DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestURLProtectionSpace.swift; path = TestFoundation/TestURLProtectionSpace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		B9C89EBE1F6BF47D00087AF4 /* Frameworks */ = {
+		B917D31920B0DB8B00728EE0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9C89ED21F6BF67C00087AF4 /* XCTest.framework in Frameworks */,
+				B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,10 +284,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B917D31D20B0DB8B00728EE0 /* xdgTestHelper */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = xdgTestHelper;
+			sourceTree = "<group>";
+		};
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
-				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				B9C89FB31F6DCAE900087AF4 /* NSKeyedUnarchiver-ComplexTest.plist */,
@@ -269,12 +309,18 @@
 				B9C89FAA1F6DCAE700087AF4 /* NSString-UTF16-LE-data.txt */,
 				B9C89FB01F6DCAE900087AF4 /* NSString-UTF32-BE-data.txt */,
 				B9C89FA51F6DCAE500087AF4 /* NSString-UTF32-LE-data.txt */,
+				B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */,
 				B9C89FAE1F6DCAE800087AF4 /* NSStringTestData.txt */,
 				B9C89FB21F6DCAE900087AF4 /* NSURLTestData.plist */,
 				B9C89FB61F6DCAEA00087AF4 /* NSXMLDocumentTestData.xml */,
 				B9C89FA91F6DCAE700087AF4 /* NSXMLDTDTestData.xml */,
 				B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */,
 				B9C89FB91F6DCAEB00087AF4 /* Test.plist */,
+				B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */,
+				B917D32520B0DE2000728EE0 /* main.swift */,
+				B94897762135E7AC00FB930E /* Utilities.swift */,
+				B987C65D2093C8AF0026B50D /* TestImports.swift */,
+				B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */,
 				B9C89F891F6D4D9D00087AF4 /* HTTPServer.swift */,
 				B9C89F321F6BF89B00087AF4 /* TestAffineTransform.swift */,
 				B9C89EFB1F6BF89200087AF4 /* TestBundle.swift */,
@@ -303,6 +349,7 @@
 				B9C89F031F6BF89300087AF4 /* TestNSArray.swift */,
 				B9C89F091F6BF89400087AF4 /* TestNSAttributedString.swift */,
 				B9C89F221F6BF89800087AF4 /* TestNSCache.swift */,
+				1560EA8B219217F8004377E9 /* TestNSCalendar.swift */,
 				B9C89F271F6BF89900087AF4 /* TestNSCompoundPredicate.swift */,
 				B9C89F291F6BF89900087AF4 /* TestNSData.swift */,
 				B9C89F231F6BF89800087AF4 /* TestNSDictionary.swift */,
@@ -343,6 +390,7 @@
 				B9C89F171F6BF89600087AF4 /* TestUnitConverter.swift */,
 				B9C89F191F6BF89700087AF4 /* TestURL.swift */,
 				B9C89F2D1F6BF89A00087AF4 /* TestURLCredential.swift */,
+				DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */,
 				B9C89EEB1F6BF89000087AF4 /* TestURLProtocol.swift */,
 				B9C89F141F6BF89600087AF4 /* TestURLRequest.swift */,
 				B9C89EF51F6BF89100087AF4 /* TestURLResponse.swift */,
@@ -352,8 +400,8 @@
 				B9C89F0F1F6BF89500087AF4 /* TestXMLDocument.swift */,
 				B9C89EED1F6BF89000087AF4 /* TestXMLParser.swift */,
 				B9C89F131F6BF89600087AF4 /* xdgTestHelper */,
-				B9C89F021F6BF89300087AF4 /* XDGTestHelper.swift */,
 				B9C89ED81F6BF77E00087AF4 /* DarwinCompatibilityTests */,
+				B917D31D20B0DB8B00728EE0 /* xdgTestHelper */,
 				B9C89EC21F6BF47D00087AF4 /* Products */,
 				B9C89ED01F6BF67C00087AF4 /* Frameworks */,
 			);
@@ -362,8 +410,8 @@
 		B9C89EC21F6BF47D00087AF4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */,
 				B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */,
+				B917D31C20B0DB8B00728EE0 /* xdgTestHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -371,6 +419,7 @@
 		B9C89ED01F6BF67C00087AF4 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B917D32320B0DB9700728EE0 /* Foundation.framework */,
 				B9C89ED11F6BF67C00087AF4 /* XCTest.framework */,
 			);
 			name = Frameworks;
@@ -389,21 +438,21 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B9C89EC01F6BF47D00087AF4 /* DarwinCompatibilityTests */ = {
+		B917D31B20B0DB8B00728EE0 /* xdgTestHelper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B9C89EC81F6BF47D00087AF4 /* Build configuration list for PBXNativeTarget "DarwinCompatibilityTests" */;
+			buildConfigurationList = B917D32220B0DB8B00728EE0 /* Build configuration list for PBXNativeTarget "xdgTestHelper" */;
 			buildPhases = (
-				B9C89EBD1F6BF47D00087AF4 /* Sources */,
-				B9C89EBE1F6BF47D00087AF4 /* Frameworks */,
-				B9C89EBF1F6BF47D00087AF4 /* CopyFiles */,
+				B917D31820B0DB8B00728EE0 /* Sources */,
+				B917D31920B0DB8B00728EE0 /* Frameworks */,
+				B917D31A20B0DB8B00728EE0 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = DarwinCompatibilityTests;
-			productName = DarwinCompatibilityTests;
-			productReference = B9C89EC11F6BF47D00087AF4 /* DarwinCompatibilityTests */;
+			name = xdgTestHelper;
+			productName = xdgTestHelper;
+			productReference = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */;
 			productType = "com.apple.product-type.tool";
 		};
 		B9C89ED61F6BF77E00087AF4 /* DarwinCompatibilityTests */ = {
@@ -413,10 +462,12 @@
 				B9C89ED31F6BF77E00087AF4 /* Sources */,
 				B9C89ED41F6BF77E00087AF4 /* Frameworks */,
 				B9C89ED51F6BF77E00087AF4 /* Resources */,
+				B9F137A020B998C0000B7577 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B9F1379F20B9984F000B7577 /* PBXTargetDependency */,
 			);
 			name = DarwinCompatibilityTests;
 			productName = DarwinCompatibilityTests;
@@ -429,13 +480,12 @@
 		B9C89EB91F6BF47D00087AF4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0900;
+				LastSwiftUpdateCheck = 0930;
 				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
-					B9C89EC01F6BF47D00087AF4 = {
-						CreatedOnToolsVersion = 9.0;
-						LastSwiftMigration = 0910;
+					B917D31B20B0DB8B00728EE0 = {
+						CreatedOnToolsVersion = 9.3.1;
 						ProvisioningStyle = Automatic;
 					};
 					B9C89ED61F6BF77E00087AF4 = {
@@ -456,8 +506,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B9C89EC01F6BF47D00087AF4 /* DarwinCompatibilityTests */,
 				B9C89ED61F6BF77E00087AF4 /* DarwinCompatibilityTests */,
+				B917D31B20B0DB8B00728EE0 /* xdgTestHelper */,
 			);
 		};
 /* End PBXProject section */
@@ -467,6 +517,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */,
 				B9C89FBA1F6DCAEB00087AF4 /* NSString-UTF32-LE-data.txt in Resources */,
 				B9C89FBB1F6DCAEB00087AF4 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
 				B9C89FBC1F6DCAEB00087AF4 /* NSKeyedUnarchiver-ConcreteValueTest.plist in Resources */,
@@ -477,6 +528,7 @@
 				B9C89FC11F6DCAEB00087AF4 /* Info.plist in Resources */,
 				B9C89FC21F6DCAEB00087AF4 /* NSKeyedUnarchiver-ArrayTest.plist in Resources */,
 				B9C89FC31F6DCAEB00087AF4 /* NSStringTestData.txt in Resources */,
+				B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */,
 				B9C89FC41F6DCAEB00087AF4 /* NSKeyedUnarchiver-OrderedSetTest.plist in Resources */,
 				B9C89FC51F6DCAEB00087AF4 /* NSString-UTF32-BE-data.txt in Resources */,
 				B9C89FC61F6DCAEB00087AF4 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
@@ -494,11 +546,11 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B9C89EBD1F6BF47D00087AF4 /* Sources */ = {
+		B917D31820B0DB8B00728EE0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9F3269F1FC714DD003C3599 /* DarwinShims.swift in Sources */,
+				B917D32620B0DE2000728EE0 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -506,6 +558,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B94897772135E7AD00FB930E /* Utilities.swift in Sources */,
+				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,
 				B9C89F8B1F6D4DA900087AF4 /* HTTPServer.swift in Sources */,
 				B9C89F8C1F6D4DA900087AF4 /* TestHTTPCookieStorage.swift in Sources */,
@@ -534,6 +588,7 @@
 				B9C89F4C1F6BF89C00087AF4 /* TestDateFormatter.swift in Sources */,
 				B9C89F4D1F6BF89C00087AF4 /* TestHTTPCookie.swift in Sources */,
 				B9C89F4E1F6BF89C00087AF4 /* TestNSError.swift in Sources */,
+				DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */,
 				B9C89F4F1F6BF89C00087AF4 /* TestNSString.swift in Sources */,
 				B9C89F501F6BF89C00087AF4 /* TestNSUUID.swift in Sources */,
 				B9C89F511F6BF89C00087AF4 /* TestPropertyListSerialization.swift in Sources */,
@@ -541,6 +596,7 @@
 				B9C89F541F6BF89C00087AF4 /* TestFileHandle.swift in Sources */,
 				B9F326A01FC714DD003C3599 /* DarwinShims.swift in Sources */,
 				B9C89F551F6BF89C00087AF4 /* TestTimer.swift in Sources */,
+				1560EA8C219217F8004377E9 /* TestNSCalendar.swift in Sources */,
 				B9C89F561F6BF89C00087AF4 /* TestTimeZone.swift in Sources */,
 				B9C89F571F6BF89C00087AF4 /* TestNSNumber.swift in Sources */,
 				B9C89F581F6BF89C00087AF4 /* TestNSAttributedString.swift in Sources */,
@@ -589,7 +645,43 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		B9F1379F20B9984F000B7577 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B917D31B20B0DB8B00728EE0 /* xdgTestHelper */;
+			targetProxy = B9F1379E20B9984F000B7577 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		B917D32020B0DB8B00728EE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		B917D32120B0DB8B00728EE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CODE_SIGN_STYLE = Automatic;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Release;
+		};
 		B9C89EC61F6BF47D00087AF4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -638,7 +730,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -689,38 +781,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-			};
-			name = Release;
-		};
-		B9C89EC91F6BF47D00087AF4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				OTHER_SWIFT_FLAGS = "";
-				"OTHER_SWIFT_FLAGS[arch=*]" = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
-			};
-			name = Debug;
-		};
-		B9C89ECA1F6BF47D00087AF4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				OTHER_SWIFT_FLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -755,20 +819,20 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B917D32220B0DB8B00728EE0 /* Build configuration list for PBXNativeTarget "xdgTestHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B917D32020B0DB8B00728EE0 /* Debug */,
+				B917D32120B0DB8B00728EE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B9C89EBC1F6BF47D00087AF4 /* Build configuration list for PBXProject "DarwinCompatibilityTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B9C89EC61F6BF47D00087AF4 /* Debug */,
 				B9C89EC71F6BF47D00087AF4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B9C89EC81F6BF47D00087AF4 /* Build configuration list for PBXNativeTarget "DarwinCompatibilityTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B9C89EC91F6BF47D00087AF4 /* Debug */,
-				B9C89ECA1F6BF47D00087AF4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -39,7 +39,7 @@ internal extension URLSession {
         let allowsCellularAccess: Bool
         
         /// allows background tasks to be scheduled at the discretion of the system for optimal performance.
-        let discretionary: Bool
+        let isDiscretionary: Bool
         
         /// The proxy dictionary, as described by <CFNetwork/CFHTTPStream.h>
         let connectionProxyDictionary: [AnyHashable : Any]?
@@ -83,7 +83,7 @@ internal extension URLSession._Configuration {
         timeoutIntervalForResource = config.timeoutIntervalForResource
         networkServiceType = config.networkServiceType
         allowsCellularAccess = config.allowsCellularAccess
-        discretionary = config.discretionary
+        isDiscretionary = config.isDiscretionary
         connectionProxyDictionary = config.connectionProxyDictionary
         httpShouldUsePipelining = config.httpShouldUsePipelining
         httpShouldSetCookies = config.httpShouldSetCookies
@@ -100,19 +100,25 @@ internal extension URLSession._Configuration {
 
 // Configure NSURLRequests
 internal extension URLSession._Configuration {
-    func configure(request: URLRequest) {
+    func configure(request: URLRequest) -> URLRequest {
         var request = request
-        httpAdditionalHeaders?.forEach {
-            guard request.value(forHTTPHeaderField: $0.0) == nil else { return }
-            request.setValue($0.1, forHTTPHeaderField: $0.0)
-        }
+        return setCookies(on: request)
     }
-    func setCookies(on request: URLRequest) {
+
+     func setCookies(on request: URLRequest) -> URLRequest {
+        var request = request
         if httpShouldSetCookies {
-            //TODO: Ask the cookie storage what cookie to set.
+            if let cookieStorage = self.httpCookieStorage, let url = request.url, let cookies = cookieStorage.cookies(for: url) {
+                let cookiesHeaderFields =  HTTPCookie.requestHeaderFields(with: cookies)
+                if let cookieValue = cookiesHeaderFields["Cookie"], cookieValue != "" {
+                    request.setValue(cookieValue, forHTTPHeaderField: "Cookie")
+                }
+            }
         }
+        return request
     }
 }
+
 // Cache Management
 private extension URLSession._Configuration {
     func cachedResponse(forRequest request: URLRequest) -> CachedURLResponse? {

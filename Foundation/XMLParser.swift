@@ -13,7 +13,7 @@
 // long in on 64 bit).  I've filed a bug at bugs.swift.org:
 // https://bugs.swift.org/browse/SR-314
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc
@@ -296,8 +296,7 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
             if numBytesWithoutTerminator > 0 {
                 let buffer = UnsafeBufferPointer(start: value,
                                                  count: numBytesWithoutTerminator)
-                attributeValue = String._fromCodeUnitSequence(UTF8.self,
-                                                              input: buffer)!
+                attributeValue = String(decoding: buffer, as: UTF8.self)
             }
             attrDict[attributeQName] = attributeValue
         }
@@ -352,8 +351,8 @@ internal func _NSXMLParserCharacters(_ ctx: _CFXMLInterface, ch: UnsafePointer<U
         _CFXMLInterfaceResetRecursiveState(context)
     } else {
         if let delegate = parser.delegate {
-            let str = String._fromCodeUnitSequence(UTF8.self, input: UnsafeBufferPointer(start: ch, count: Int(len)))
-            delegate.parser(parser, foundCharacters: str!)
+            let str = String(decoding: UnsafeBufferPointer(start: ch, count: Int(len)), as: UTF8.self)
+            delegate.parser(parser, foundCharacters: str)
         }
     }
 }

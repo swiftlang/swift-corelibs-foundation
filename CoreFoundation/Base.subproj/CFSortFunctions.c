@@ -1,7 +1,7 @@
 /*	CFSortFunctions.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,12 +12,12 @@
 #include "CFInternal.h"
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && __has_include(<dispatch/private.h>)
+#if TARGET_OS_MAC && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #else
 #define DISPATCH_APPLY_CURRENT_ROOT_QUEUE ((dispatch_queue_t _Nonnull)0)
-#endif
-#endif
+#endif // TARGET_OS_MAC && __has_include(<dispatch/private.h>)
+#endif // __HAS_DISPATCH__
 #include "CFLogUtilities.h"
 #include "CFInternal.h"
 
@@ -52,6 +52,8 @@ enum {
 
 #define __checkint_int64_mul(x, y, err)         (x * y)
 #define __checkint_uint64_add(x, y, err)        (x + y)
+#define __checkint_int32_mul(x,y,err)           (x * y)
+#define __checkint_uint32_add(x,y,err)          (x + y)
 
 #endif
 

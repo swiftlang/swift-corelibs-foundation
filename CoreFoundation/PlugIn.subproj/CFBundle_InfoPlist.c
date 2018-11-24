@@ -1,7 +1,7 @@
 /*      CFBundle_InfoPlist.c
-	Copyright (c) 2012-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2012-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -15,20 +15,17 @@
 #include <CoreFoundation/CFByteOrder.h>
 #include <CoreFoundation/CFURLAccess.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_FREEBSD
-#if TARGET_OS_CYGWIN
-#else
+#if (TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD) && !TARGET_OS_CYGWIN
 #include <dirent.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
 #endif
 #include <sys/mman.h>
 #endif
-#endif
 
 
 // The following strings are initialized 'later' (i.e., not at static initialization time) because static init time is too early for CFSTR to work, on platforms without constant CF strings
-#if !__CONSTANT_STRINGS__
+#if !__CONSTANT_CFSTRINGS__
 
 #define _CFBundleNumberOfPlatforms 7
 static CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL };
@@ -52,21 +49,36 @@ CF_PRIVATE void _CFBundleResourcesInitialize() {
 
 #else
 
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
 // On iOS, we only support one platform
 #define _CFBundleNumberOfPlatforms 1
-static CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { CFSTR("iphoneos") };
+static const CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { CFSTR("iphoneos") };
 #else
 // On other platforms, we support the following platforms
 #define _CFBundleNumberOfPlatforms 7
-static CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = { CFSTR("iphoneos"), CFSTR("macos"), CFSTR("windows"), CFSTR("linux"), CFSTR("freebsd"), CFSTR("solaris"), CFSTR("hpux") };
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_iphoneos, "iphoneos");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_macos, "macos");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_windows, "windows");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_linux, "linux");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_freebsd, "freebsd");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_solaris, "solaris");
+STATIC_CONST_STRING_DECL(_CFBundleSupportedPlatform_hpux, "hpux");
+static const CFStringRef _CFBundleSupportedPlatforms[_CFBundleNumberOfPlatforms] = {
+    _CFBundleSupportedPlatform_iphoneos,
+    _CFBundleSupportedPlatform_macos,
+    _CFBundleSupportedPlatform_windows,
+    _CFBundleSupportedPlatform_linux,
+    _CFBundleSupportedPlatform_freebsd,
+    _CFBundleSupportedPlatform_solaris,
+    _CFBundleSupportedPlatform_hpux,
+};
 #endif
 
 #define _CFBundleNumberOfProducts 3
-static CFStringRef _CFBundleSupportedProducts[_CFBundleNumberOfProducts] = { CFSTR("iphone"), CFSTR("ipod"), CFSTR("ipad") };
+static const CFStringRef _CFBundleSupportedProducts[_CFBundleNumberOfProducts] = { _CFBundleiPhoneDeviceName, _CFBundleiPodDeviceName, _CFBundleiPadDeviceName };
 
 #define _CFBundleNumberOfiPhoneOSPlatformProducts 3
-static CFStringRef _CFBundleSupportediPhoneOSPlatformProducts[_CFBundleNumberOfiPhoneOSPlatformProducts] = { CFSTR("iphone"), CFSTR("ipod"), CFSTR("ipad") };
+static const CFStringRef _CFBundleSupportediPhoneOSPlatformProducts[_CFBundleNumberOfiPhoneOSPlatformProducts] = { _CFBundleiPhoneDeviceName, _CFBundleiPodDeviceName, _CFBundleiPadDeviceName };
 
 CF_PRIVATE void _CFBundleResourcesInitialize() { }
 #endif
@@ -75,7 +87,7 @@ CF_PRIVATE void _CFBundleResourcesInitialize() { }
 #pragma mark Product and Platform Getters - Exported
 
 static CFStringRef _cfBundlePlatform = NULL;
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
 static CFStringRef _cfBundlePlatformSuffix = NULL;
 CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void);
 #endif
@@ -84,7 +96,7 @@ CF_EXPORT void _CFSetProductName(CFStringRef str) {
     if (str) CFRetain(str);
     _cfBundlePlatform = str;
     
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
     // Reset the suffix version too
     _cfBundlePlatformSuffix = NULL;
     (void)_CFBundleGetProductNameSuffix();
@@ -97,14 +109,14 @@ CF_EXPORT void _CFSetProductName(CFStringRef str) {
 }
 
 CF_EXPORT CFStringRef _CFGetProductName(void) {
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
     if (!_cfBundlePlatform) {
         // We only honor the classic suffix if it is one of two preset values. Otherwise we fall back to the result of sysctlbyname.
         const char *classicSuffix = __CFgetenv("CLASSIC_SUFFIX");
         if (classicSuffix && strncmp(classicSuffix, "iphone", strlen("iphone")) == 0) {
-                _cfBundlePlatform = CFSTR("iphone");
+                _cfBundlePlatform = _CFBundleiPhoneDeviceName;
         } else if (classicSuffix && strncmp(classicSuffix, "ipad", strlen("ipad")) == 0) {
-                _cfBundlePlatform = CFSTR("ipad");
+                _cfBundlePlatform = _CFBundleiPadDeviceName;
         } else {
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -112,18 +124,18 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
             int ret = sysctlbyname("hw.machine", buffer, &buflen, NULL, 0);
             if (0 == ret || (-1 == ret && ENOMEM == errno)) {
                 if (6 <= buflen && 0 == memcmp(buffer, "iPhone", 6)) {
-                    _cfBundlePlatform = CFSTR("iphone");
+                    _cfBundlePlatform = _CFBundleiPhoneDeviceName;
                 } else if (4 <= buflen && 0 == memcmp(buffer, "iPod", 4)) {
-                    _cfBundlePlatform = CFSTR("ipod");
+                    _cfBundlePlatform = _CFBundleiPodDeviceName;
                 } else if (4 <= buflen && 0 == memcmp(buffer, "iPad", 4)) {
-                    _cfBundlePlatform = CFSTR("ipad");
+                    _cfBundlePlatform = _CFBundleiPadDeviceName;
                 } else {
                     const char *env = __CFgetenv("SIMULATOR_LEGACY_ASSET_SUFFIX");
                     if (env) {
                         if (0 == strcmp(env, "iphone")) {
-                            _cfBundlePlatform = CFSTR("iphone");
+                            _cfBundlePlatform = _CFBundleiPhoneDeviceName;
                         } else if (0 == strcmp(env, "ipad")) {
-                            _cfBundlePlatform = CFSTR("ipad");
+                            _cfBundlePlatform = _CFBundleiPadDeviceName;
                         } else {
                             // fallback, unrecognized SIMULATOR_LEGACY_ASSET_SUFFIX
                         }
@@ -133,7 +145,7 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
                 }
             }
         }
-        if (!_cfBundlePlatform) _cfBundlePlatform = CFSTR("iphone"); // fallback
+        if (!_cfBundlePlatform) _cfBundlePlatform = _CFBundleiPhoneDeviceName; // fallback
     }
     return _cfBundlePlatform;
 #endif
@@ -141,12 +153,12 @@ CF_EXPORT CFStringRef _CFGetProductName(void) {
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void) {
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
     // Not dispatch once, because this can be reset (by a rare API call). If a race happens, it just leaks one string.
     if (!_cfBundlePlatformSuffix) {
         CFStringRef productName = _CFGetProductName();
-        if (CFEqual(productName, CFSTR("ipod"))) {
-            productName = CFSTR("iphone");
+        if (CFEqual(productName, _CFBundleiPodDeviceName)) {
+            productName = _CFBundleiPhoneDeviceName;
         }
         _cfBundlePlatformSuffix = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("~%@"), productName);
     }
@@ -158,19 +170,19 @@ CF_PRIVATE CFStringRef _CFBundleGetProductNameSuffix(void) {
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return _CFBundleMacOSXPlatformNameSuffix;
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_IPHONE
     return _CFBundleiPhoneOSPlatformNameSuffix;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return _CFBundleWindowsPlatformNameSuffix;
 #elif DEPLOYMENT_TARGET_SOLARIS
     return _CFBundleSolarisPlatformNameSuffix;
 #elif DEPLOYMENT_TARGET_HPUX
     return _CFBundleHPUXPlatformNameSuffix;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     return _CFBundleLinuxPlatformNameSuffix;
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformNameSuffix;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
@@ -179,23 +191,23 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
 
 // All new-style bundles will have these extensions.
 CF_EXPORT CFStringRef _CFGetPlatformName(void) {
-#if DEPLOYMENT_TARGET_MACOSX 
+#if TARGET_OS_OSX
     return _CFBundleMacOSXPlatformName;
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_IPHONE
     return _CFBundleiPhoneOSPlatformName;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return _CFBundleWindowsPlatformName;
 #elif DEPLOYMENT_TARGET_SOLARIS
     return _CFBundleSolarisPlatformName;
 #elif DEPLOYMENT_TARGET_HPUX
     return _CFBundleHPUXPlatformName;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if TARGET_OS_CYGWIN
     return _CFBundleCygwinPlatformName;
 #else
-     return _CFBundleLinuxPlatformName;
+    return _CFBundleLinuxPlatformName;
 #endif
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformName;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
@@ -203,19 +215,19 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 }
 
 CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return _CFBundleAlternateMacOSXPlatformName;
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_IPHONE
     return _CFBundleMacOSXPlatformName;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return CFSTR("");
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
-     return CFSTR("Linux");
+    return CFSTR("Linux");
 #endif
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
     return CFSTR("FreeBSD");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
@@ -1107,7 +1119,7 @@ static CFPropertyListRef _CFBundleCreateFilteredInfoPlistWithURL(CFURLRef infoPl
     
     void *bytes = NULL;
     CFIndex length = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     Boolean mapped = options & _CFBundleFilteredPlistMemoryMapped ? true : false;
 #else
     Boolean mapped = false;
@@ -1136,7 +1148,7 @@ static CFPropertyListRef _CFBundleCreateFilteredInfoPlistWithURL(CFURLRef infoPl
     CFRelease(newKeyPaths);
     CFRelease(infoPlistData);
     if (mapped) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
         munmap(bytes, length);
 #endif
     } else {

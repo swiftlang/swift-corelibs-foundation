@@ -12,7 +12,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#if TARGET_OS_WIN32
+#include <Windows.h>
+#include <Psapi.h>
+#else
 #include <dlfcn.h>
+#endif
 #if __has_include(<os/assumes.h>)
 #include <os/assumes.h>
 #else
@@ -25,25 +30,22 @@
 #define os_assert(_x) assert(_x)
 #endif
 
-#if TARGET_OS_WIN32
-#define _CRT_SECURE_NO_WARNINGS 1
-#include <windows.h>
-static __inline bool OSAtomicCompareAndSwapLong(long oldl, long newl, long volatile *dst) 
-{ 
-    // fixme barrier is overkill -- see objc-os.h
-    long original = InterlockedCompareExchange(dst, newl, oldl);
-    return (original == oldl);
-}
+#if !defined(__has_builtin)
+#define __has_builtin(builtin) 0
+#endif
 
-static __inline bool OSAtomicCompareAndSwapInt(int oldi, int newi, int volatile *dst) 
-{ 
-    // fixme barrier is overkill -- see objc-os.h
-    int original = InterlockedCompareExchange(dst, newi, oldi);
-    return (original == oldi);
+#if __has_builtin(__sync_bool_compare_and_swap)
+#define OSAtomicCompareAndSwapInt(Old, New, Ptr)                               \
+  __sync_bool_compare_and_swap(Ptr, Old, New)
+#elif TARGET_OS_WIN32
+#define _CRT_SECURE_NO_WARNINGS 1
+#include <Windows.h>
+static __inline bool OSAtomicCompareAndSwapInt(int oldi, int newi,
+                                               int volatile *dst) {
+  // fixme barrier is overkill -- see objc-os.h
+  int original = InterlockedCompareExchange((LONG volatile *)dst, newi, oldi);
+  return (original == oldi);
 }
-#else
-#define OSAtomicCompareAndSwapLong(_Old, _New, _Ptr) __sync_bool_compare_and_swap(_Ptr, _Old, _New)
-#define OSAtomicCompareAndSwapInt(_Old, _New, _Ptr) __sync_bool_compare_and_swap(_Ptr, _Old, _New)
 #endif
 
 /***********************
@@ -142,7 +144,7 @@ GC support stub routines
 
 
 
-static void *_Block_alloc_default(const unsigned long size, const bool initialCountIsOne, const bool isObject) {
+static void *_Block_alloc_default(size_t size, const bool initialCountIsOne, const bool isObject) {
     return malloc(size);
 }
 
@@ -190,7 +192,7 @@ static void _Block_destructInstance_default(const void *aBlock) {}
 GC support callout functions - initially set to stub routines
 ***************************************************************************/
 
-static void *(*_Block_allocator)(const unsigned long, const bool isOne, const bool isObject) = _Block_alloc_default;
+static void *(*_Block_allocator)(size_t, const bool isOne, const bool isObject) = _Block_alloc_default;
 static void (*_Block_deallocator)(const void *) = (void (*)(const void *))free;
 static void (*_Block_assign)(void *value, void **destptr) = _Block_assign_default;
 static void (*_Block_setHasRefcount)(const void *ptr, const bool hasRefcount) = _Block_setHasRefcount_default;
@@ -208,7 +210,7 @@ GC support SPI functions - called from ObjC runtime and CoreFoundation
 // Public SPI
 // Called from objc-auto to turn on GC.
 // version 3, 4 arg, but changed 1st arg
-void _Block_use_GC( void *(*alloc)(const unsigned long, const bool isOne, const bool isObject),
+void _Block_use_GC( void *(*alloc)(size_t, const bool isOne, const bool isObject),
                     void (*setHasRefcount)(const void *, const bool),
                     void (*gc_assign)(void *, void **),
                     void (*gc_assign_weak)(const void *, void *),
@@ -231,7 +233,7 @@ void _Block_use_GC( void *(*alloc)(const unsigned long, const bool isOne, const 
 }
 
 // transitional
-void _Block_use_GC5( void *(*alloc)(const unsigned long, const bool isOne, const bool isObject),
+void _Block_use_GC5( void *(*alloc)(size_t, const bool isOne, const bool isObject),
                     void (*setHasRefcount)(const void *, const bool),
                     void (*gc_assign)(void *, void **),
                     void (*gc_assign_weak)(const void *, void *)) {
@@ -248,7 +250,26 @@ void _Block_use_RR( void (*retain)(const void *),
                     void (*release)(const void *)) {
     _Block_retain_object = retain;
     _Block_release_object = release;
+#if TARGET_OS_WIN32
+    HANDLE hProcess = GetCurrentProcess();
+    HMODULE hModule[1024];
+    DWORD cbNeeded = 0;
+
+    if (!EnumProcessModules(hProcess, hModule, sizeof(hModule), &cbNeeded))
+      return;
+    if (cbNeeded > sizeof(hModule))
+      return;
+
+    for (unsigned I = 0; I < (cbNeeded / sizeof(HMODULE)); ++I) {
+      _Block_destructInstance =
+          (void (*)(const void *))GetProcAddress(hModule[I],
+                                                 "objc_destructInstance");
+      if (_Block_destructInstance)
+        break;
+    }
+#else
     _Block_destructInstance = dlsym(RTLD_DEFAULT, "objc_destructInstance");
+#endif
 }
 
 // Called from CF to indicate MRR. Newer version uses a versioned structure, so we can add more functions

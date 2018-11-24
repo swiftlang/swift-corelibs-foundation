@@ -126,7 +126,7 @@ extension NSRange : Hashable {
     public var hashValue: Int {
         #if arch(i386) || arch(arm)
             return Int(bitPattern: (UInt(bitPattern: location) | (UInt(bitPattern: length) << 16)))
-        #elseif arch(x86_64) || arch(arm64) || arch(s390x)
+        #elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64le)
             return Int(bitPattern: (UInt(bitPattern: location) | (UInt(bitPattern: length) << 32)))
         #endif
     }
@@ -251,7 +251,7 @@ extension NSRange {
 
 extension NSRange {
     public init<R: RangeExpression>(_ region: R)
-        where R.Bound: FixedWidthInteger, R.Bound.Stride : SignedInteger {
+        where R.Bound: FixedWidthInteger {
             let r = region.relative(to: 0..<R.Bound.max)
             location = numericCast(r.lowerBound)
             length = numericCast(r.count)
@@ -309,9 +309,9 @@ extension NSRange : CustomReflectable {
     }
 }
 
-extension NSRange : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .range(Int64(location), Int64(length))
+extension NSRange : CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
+        return (Int64(location), Int64(length))
     }
 }
 
@@ -351,11 +351,6 @@ extension NSRange {
     public init(_ x: Range<Int>) {
         location = x.lowerBound
         length = x.count
-    }
-    
-    internal func toCountableRange() -> CountableRange<Int>? {
-        if location == NSNotFound { return nil }
-        return location..<(location+length)
     }
 }
     

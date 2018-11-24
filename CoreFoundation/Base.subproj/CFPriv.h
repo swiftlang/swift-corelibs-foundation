@@ -1,7 +1,7 @@
 /*	CFPriv.h
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -26,6 +26,19 @@
 #include <CoreFoundation/CFSet.h>
 #include <math.h>
 
+#define CF_CROSS_PLATFORM_EXPORT extern
+
+#if TARGET_OS_WIN32
+  // No C99 support
+  #define _CF_RESTRICT
+#else
+  #if defined(__cplusplus)
+    #define _CF_RESTRICT __restrict__
+  #else
+    #define _CF_RESTRICT restrict
+  #endif
+#endif
+
 
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
@@ -38,8 +51,6 @@
 #include <CoreFoundation/CFBundlePriv.h>
 
 CF_EXTERN_C_BEGIN
-
-CF_EXPORT intptr_t _CFDoOperation(intptr_t code, intptr_t subcode1, intptr_t subcode2);
 
 CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 
@@ -73,12 +84,14 @@ CF_EXPORT void CFPreferencesFlushCaches(void);
 
 
 
+
+
 #if TARGET_OS_WIN32
 CF_EXPORT Boolean _CFURLGetWideFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, wchar_t *buffer, CFIndex bufferLength);
 #endif
 
 #if !__LP64__
-#if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
+#if TARGET_OS_OSX
 struct FSSpec;
 CF_EXPORT
 Boolean _CFGetFSSpecFromURL(CFAllocatorRef alloc, CFURLRef url, struct FSSpec *spec);
@@ -238,11 +251,8 @@ CF_EXPORT const CFStringRef _kCFSystemVersionBuildStringKey;		// Localized strin
 CF_EXPORT void CFMergeSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context);
 CF_EXPORT void CFQSortArray(void *list, CFIndex count, CFIndex elementSize, CFComparatorFunction comparator, void *context);
 
-/* _CFExecutableLinkedOnOrAfter(releaseVersionName) will return YES if the current executable seems to be linked on or after the specified release. Example: If you specify CFSystemVersionPuma (10.1), you will get back true for executables linked on Puma or Jaguar(10.2), but false for those linked on Cheetah (10.0) or any of its software updates (10.0.x). You will also get back false for any app whose version info could not be figured out.
-    This function caches its results, so no need to cache at call sites.
+// For non-Darwin platforms _CFExecutableLinkedOnOrAfter(…) always returns true.
 
-  Note that for non-MACH this function always returns true.
-*/
 typedef CF_ENUM(CFIndex, CFSystemVersion) {
     CFSystemVersionCheetah = 0,         /* 10.0 */
     CFSystemVersionPuma = 1,            /* 10.1 */
@@ -284,10 +294,6 @@ enum {
 /* CFStringEncoding SPI */
 /* When set, CF encoding conversion engine keeps ASCII compatibility. (i.e. ASCII backslash <-> Unicode backslash in MacJapanese */
 CF_EXPORT void _CFStringEncodingSetForceASCIICompatibility(Boolean flag);
-
-extern void __CFSetCharToUniCharFunc(Boolean (*func)(UInt32 flags, UInt8 ch, UniChar *unicodeChar));
-extern UniChar __CFCharToUniCharTable[256];
-
 
 #if defined(CF_INLINE)
 CF_INLINE const UniChar *CFStringGetCharactersPtrFromInlineBuffer(CFStringInlineBuffer *buf, CFRange desiredRange) {
@@ -648,6 +654,34 @@ CF_EXPORT void _CFGetPathExtensionRangesFromPathComponentUniChars(const UniChar 
 CF_EXPORT void _CFGetPathExtensionRangesFromPathComponent(CFStringRef inName, CFRange *outPrimaryExtRange, CFRange *outSecondaryExtRange) API_AVAILABLE(macos(10.11), ios(9.0), watchos(2.0), tvos(9.0));
 CF_EXPORT Boolean _CFExtensionUniCharsIsValidToAppend(const UniChar *uchars, CFIndex ucharsLength) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
 CF_EXPORT Boolean _CFExtensionIsValidToAppend(CFStringRef extension) API_AVAILABLE(macosx(10.12), ios(10.0), watchos(3.0), tvos(10.0));
+
+
+#if !DEPLOYMENT_RUNTIME_OBJC
+
+// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+// Version 0.8
+
+// note: All paths set in these environment variables must be absolute.
+
+/// a single base directory relative to which user-specific data files should be written. This directory is defined by the environment variable $XDG_DATA_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateDataHomePath(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific configuration files should be written. This directory is defined by the environment variable $XDG_CONFIG_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateConfigHomePath(void) CF_RETURNS_RETAINED;
+
+/// a set of preference ordered base directories relative to which data files should be searched. This set of directories is defined by the environment variable $XDG_DATA_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateDataDirectoriesPaths(void) CF_RETURNS_RETAINED;
+
+/// a set of preference ordered base directories relative to which configuration files should be searched. This set of directories is defined by the environment variable $XDG_CONFIG_DIRS.
+CF_EXPORT CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific non-essential (cached) data should be written. This directory is defined by the environment variable $XDG_CACHE_HOME.
+CF_EXPORT CFStringRef _CFXDGCreateCacheDirectoryPath(void) CF_RETURNS_RETAINED;
+
+/// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
+CF_EXPORT CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) CF_RETURNS_RETAINED;
+
+#endif // !DEPLOYMENT_RUNTIME_OBJC
 
 CF_EXTERN_C_END
 

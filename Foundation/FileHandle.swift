@@ -1,27 +1,42 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
 open class FileHandle : NSObject, NSSecureCoding {
-    internal var _fd: Int32
-    internal var _closeOnDealloc: Bool
-    internal var _closed: Bool = false
-    
+    private var _fd: Int32
+    private var _closeOnDealloc: Bool
+
+    open var fileDescriptor: Int32 {
+        return _fd
+    }
+
+    open var readabilityHandler: ((FileHandle) -> Void)? = {
+      (FileHandle) -> Void in NSUnimplemented()
+    }
+    open var writeabilityHandler: ((FileHandle) -> Void)? = {
+      (FileHandle) -> Void in NSUnimplemented()
+    }
+
     open var availableData: Data {
-        return _readDataOfLength(Int.max, untilEOF: false)
+        do {
+            let readResult = try _readDataOfLength(Int.max, untilEOF: false)
+            return readResult.toData()
+        } catch {
+            fatalError("\(error)")
+        }
     }
     
     open func readDataToEndOfFile() -> Data {
@@ -29,96 +44,86 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     open func readData(ofLength length: Int) -> Data {
-        return _readDataOfLength(length, untilEOF: true)
+        do {
+            let readResult = try _readDataOfLength(length, untilEOF: true)
+            return readResult.toData()
+        } catch {
+            fatalError("\(error)")
+        }
     }
 
-    internal func _readDataOfLength(_ length: Int, untilEOF: Bool) -> Data {
-        var statbuf = stat()
-        var dynamicBuffer: UnsafeMutableRawPointer? = nil
-        var total = 0
-        if _closed || fstat(_fd, &statbuf) < 0 {
-            fatalError("Unable to read file")
+    internal func _readDataOfLength(_ length: Int, untilEOF: Bool, options: NSData.ReadingOptions = []) throws -> NSData.NSDataReadResult {
+        precondition(_fd >= 0, "Bad file descriptor")
+        if length == 0 && !untilEOF {
+            // Nothing requested, return empty response
+            return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
-        if statbuf.st_mode & S_IFMT != S_IFREG {
-            /* We get here on sockets, character special files, FIFOs ... */
-            var currentAllocationSize: size_t = 1024 * 8
-            dynamicBuffer = malloc(currentAllocationSize)
-            var remaining = length
-            while remaining > 0 {
-                let amountToRead = min(1024 * 8, remaining)
-                // Make sure there is always at least amountToRead bytes available in the buffer.
-                if (currentAllocationSize - total) < amountToRead {
-                    currentAllocationSize *= 2
-                    dynamicBuffer = _CFReallocf(dynamicBuffer!, currentAllocationSize)
-                    if dynamicBuffer == nil {
-                        fatalError("unable to allocate backing buffer")
+
+        var statbuf = stat()
+        if fstat(_fd, &statbuf) < 0 {
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+        }
+
+        let readBlockSize: Int
+        if statbuf.st_mode & S_IFMT == S_IFREG {
+            // TODO: Should files over a certain size always be mmap()'d?
+            if options.contains(.alwaysMapped) {
+                // Filesizes are often 64bit even on 32bit systems
+                let mapSize = min(length, Int(clamping: statbuf.st_size))
+                let data = mmap(nil, mapSize, PROT_READ, MAP_PRIVATE, _fd, 0)
+                // Swift does not currently expose MAP_FAILURE
+                if data != UnsafeMutableRawPointer(bitPattern: -1) {
+                    return NSData.NSDataReadResult(bytes: data!, length: mapSize) { buffer, length in
+                        munmap(buffer, length)
                     }
                 }
-                let amtRead = read(_fd, dynamicBuffer!.advanced(by: total), amountToRead)
-                if 0 > amtRead {
-                    free(dynamicBuffer)
-                    fatalError("read failure")
-                }
-                if 0 == amtRead {
-                    break // EOF
-                }
-                
-                total += amtRead
-                remaining -= amtRead
-                
-                if total == length || !untilEOF {
-                    break // We read everything the client asked for.
-                }
+            }
+
+            if statbuf.st_blksize > 0 {
+                readBlockSize = Int(clamping: statbuf.st_blksize)
+            } else {
+                readBlockSize = 1024 * 8
             }
         } else {
-            let offset = lseek(_fd, 0, SEEK_CUR)
-            if offset < 0 {
-                fatalError("Unable to fetch current file offset")
+            /* We get here on sockets, character special files, FIFOs ... */
+            readBlockSize = 1024 * 8
+        }
+        var currentAllocationSize = readBlockSize
+        var dynamicBuffer = malloc(currentAllocationSize)!
+        var total = 0
+
+        while total < length {
+            let remaining = length - total
+            let amountToRead = min(readBlockSize, remaining)
+            // Make sure there is always at least amountToRead bytes available in the buffer.
+            if (currentAllocationSize - total) < amountToRead {
+                currentAllocationSize *= 2
+                dynamicBuffer = _CFReallocf(dynamicBuffer, currentAllocationSize)
             }
-            if off_t(statbuf.st_size) > offset {
-                var remaining = size_t(off_t(statbuf.st_size) - offset)
-                remaining = min(remaining, size_t(length))
-                
-                dynamicBuffer = malloc(remaining)
-                if dynamicBuffer == nil {
-                    fatalError("Malloc failure")
-                }
-                
-                while remaining > 0 {
-                    let count = read(_fd, dynamicBuffer!.advanced(by: total), remaining)
-                    if count < 0 {
-                        free(dynamicBuffer)
-                        fatalError("Unable to read from fd")
-                    }
-                    if count == 0 {
-                        break
-                    }
-                    total += count
-                    remaining -= count
-                }
+            let amtRead = read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
+            if amtRead < 0 {
+                free(dynamicBuffer)
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+            }
+            total += amtRead
+            if amtRead == 0 || !untilEOF { // If there is nothing more to read or we shouldnt keep reading then exit
+                break
             }
         }
 
-        if length == Int.max && total > 0 {
-            dynamicBuffer = _CFReallocf(dynamicBuffer!, total)
-        }
-        
         if total == 0 {
             free(dynamicBuffer)
+            return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
-        else if total > 0 {
-            let bytePtr = dynamicBuffer!.bindMemory(to: UInt8.self, capacity: total)
-            return Data(bytesNoCopy: bytePtr, count: total, deallocator: .free)
+        dynamicBuffer = _CFReallocf(dynamicBuffer, total)
+        let bytePtr = dynamicBuffer.bindMemory(to: UInt8.self, capacity: total)
+        return NSData.NSDataReadResult(bytes: bytePtr, length: total) { buffer, length in
+            free(buffer)
         }
-        else {
-            assertionFailure("The total number of read bytes must not be negative")
-            free(dynamicBuffer)
-        }
-        
-        return Data()
     }
     
     open func write(_ data: Data) {
+        guard _fd >= 0 else { return }
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
@@ -131,40 +136,48 @@ open class FileHandle : NSObject, NSSecureCoding {
     // TODO: Error handling.
     
     open var offsetInFile: UInt64 {
+        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_CUR))
     }
     
     @discardableResult
     open func seekToEndOfFile() -> UInt64 {
+        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_END))
     }
     
     open func seek(toFileOffset offset: UInt64) {
+        precondition(_fd >= 0, "Bad file descriptor")
         lseek(_fd, off_t(offset), SEEK_SET)
     }
-    
+
     open func truncateFile(atOffset offset: UInt64) {
-        if lseek(_fd, off_t(offset), SEEK_SET) == 0 {
-            ftruncate(_fd, off_t(offset))
-        }
+        precondition(_fd >= 0, "Bad file descriptor")
+        if lseek(_fd, off_t(offset), SEEK_SET) < 0 { fatalError("lseek() failed.") }
+        if ftruncate(_fd, off_t(offset)) < 0 { fatalError("ftruncate() failed.") }
     }
-    
+
     open func synchronizeFile() {
+        precondition(_fd >= 0, "Bad file descriptor")
         fsync(_fd)
     }
     
     open func closeFile() {
-        if !_closed {
+        if _fd >= 0 {
             close(_fd)
-            _closed = true
+            _fd = -1
         }
     }
-    
+
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {
         _fd = fd
         _closeOnDealloc = closeopt
     }
-    
+
+    public convenience init(fileDescriptor fd: Int32) {
+        self.init(fileDescriptor: fd, closeOnDealloc: false)
+    }
+
     internal init?(path: String, flags: Int32, createMode: Int) {
         _fd = _CFOpenFileWithMode(path, flags, mode_t(createMode))
         _closeOnDealloc = true
@@ -175,8 +188,9 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     deinit {
-        if _fd >= 0 && _closeOnDealloc && !_closed {
+        if _fd >= 0 && _closeOnDealloc {
             close(_fd)
+            _fd = -1
         }
     }
     
@@ -347,56 +361,34 @@ extension FileHandle {
     open func waitForDataInBackgroundAndNotify() {
         NSUnimplemented()
     }
-    
-    open var readabilityHandler: ((FileHandle) -> Void)? {
-        NSUnimplemented()
-    }
-
-    open var writeabilityHandler: ((FileHandle) -> Void)? {
-        NSUnimplemented()
-    }
-}
-
-extension FileHandle {
-    public convenience init(fileDescriptor fd: Int32) {
-        self.init(fileDescriptor: fd, closeOnDealloc: false)
-    }
-    
-    open var fileDescriptor: Int32 {
-        return _fd
-    }
 }
 
 open class Pipe: NSObject {
-    private let readHandle: FileHandle
-    private let writeHandle: FileHandle
-    
+    public let fileHandleForReading: FileHandle
+    public let fileHandleForWriting: FileHandle
+
     public override init() {
         /// the `pipe` system call creates two `fd` in a malloc'ed area
         var fds = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
         defer {
-            free(fds)
+            fds.deallocate()
         }
         /// If the operating system prevents us from creating file handles, stop
-        guard pipe(fds) == 0 else { fatalError("Could not open pipe file handles") }
-        
-        /// The handles below auto-close when the `NSFileHandle` is deallocated, so we
-        /// don't need to add a `deinit` to this class
-        
-        /// Create the read handle from the first fd in `fds`
-        self.readHandle = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
-        
-        /// Advance `fds` by one to create the write handle from the second fd
-        self.writeHandle = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
-        
+        let ret = pipe(fds)
+        switch (ret, errno) {
+        case (0, _):
+            self.fileHandleForReading = FileHandle(fileDescriptor: fds.pointee, closeOnDealloc: true)
+            self.fileHandleForWriting = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
+
+        case (-1, EMFILE), (-1, ENFILE):
+            // Unfortunately this initializer does not throw and isnt failable so this is only
+            // way of handling this situation.
+            self.fileHandleForReading = FileHandle(fileDescriptor: -1, closeOnDealloc: false)
+            self.fileHandleForWriting = FileHandle(fileDescriptor: -1, closeOnDealloc: false)
+
+        default:
+            fatalError("Error calling pipe(): \(errno)")
+        }
         super.init()
-    }
-    
-    open var fileHandleForReading: FileHandle {
-        return self.readHandle
-    }
-    
-    open var fileHandleForWriting: FileHandle {
-        return self.writeHandle
     }
 }

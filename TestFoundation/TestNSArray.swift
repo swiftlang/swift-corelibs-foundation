@@ -7,17 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
-
+import CoreFoundation
 
 class TestNSArray : XCTestCase {
     
@@ -47,10 +37,14 @@ class TestNSArray : XCTestCase {
             ("test_mutableCopying", test_mutableCopying),
             ("test_writeToFile", test_writeToFile),
             ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_initMutableWithContentsOfFile", test_initMutableWithContentsOfFile),
+            ("test_initMutableWithContentsOfURL", test_initMutableWithContentsOfURL),
             ("test_readWriteURL", test_readWriteURL),
             ("test_insertObjectAtIndex", test_insertObjectAtIndex),
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
+            ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
+            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
         ]
     }
     
@@ -646,7 +640,46 @@ class TestNSArray : XCTestCase {
             XCTFail("Temporary file creation failed")
         }
     }
-    
+
+    func test_initMutableWithContentsOfFile() {
+        if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
+            let a1: NSArray = ["foo", "bar"]
+            let isWritten = a1.write(toFile: testFilePath, atomically: true)
+            if isWritten {
+                let array = NSMutableArray.init(contentsOfFile: testFilePath)
+                XCTAssert(array == a1)
+                XCTAssertEqual(array?.count, 2)
+                array?.removeAllObjects()
+                XCTAssertEqual(array?.count, 0)
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+
+    func test_initMutableWithContentsOfURL() {
+        if let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234)) {
+            let a1: NSArray = ["foo", "bar"]
+            let isWritten = a1.write(toFile: testFilePath, atomically: true)
+            if isWritten {
+                let url = URL(fileURLWithPath: testFilePath, isDirectory: false)
+                let array = NSMutableArray.init(contentsOf: url)
+                XCTAssert(array == a1)
+                XCTAssertEqual(array?.count, 2)
+                array?.removeAllObjects()
+                XCTAssertEqual(array?.count, 0)
+            } else {
+                XCTFail("Write to file failed")
+            }
+            removeTestFile(testFilePath)
+        } else {
+            XCTFail("Temporary file creation failed")
+        }
+    }
+
     func test_writeToFile() {
         let testFilePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 234))
         if let _ = testFilePath {
@@ -680,7 +713,7 @@ class TestNSArray : XCTestCase {
             let url = URL(fileURLWithPath: testFile)
             let data2: NSArray
 #if DARWIN_COMPATIBILITY_TESTS
-            if #available(OSX 10.13, *) {
+            if #available(macOS 10.13, *) {
                 try data.write(to: url)
                 data2 = try NSArray(contentsOf: url, error: ())
             } else {
@@ -695,8 +728,8 @@ class TestNSArray : XCTestCase {
 #endif
             XCTAssertEqual(data, data2)
             removeTestFile(testFile)
-        } catch let e {
-            XCTFail("Failed to write to file: \(e)")
+        } catch {
+            XCTFail("Failed to write to file: \(error)")
         }
     }
 
@@ -746,6 +779,32 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(a3, ["a", "b", "c", "d"])
     }
 
+    func test_pathsMatchingExtensions() {
+        let paths = NSArray(arrayLiteral: "file1.txt", "/tmp/file2.txt", "file3.jpg", "file3.png", "/file4.png", "txt", ".txt")
+        let match1 = paths.pathsMatchingExtensions(["txt"])
+        XCTAssertEqual(match1, ["file1.txt", "/tmp/file2.txt"])
+
+        let match2 = paths.pathsMatchingExtensions([])
+        XCTAssertEqual(match2, [])
+
+        let match3 = paths.pathsMatchingExtensions([".txt", "png"])
+        XCTAssertEqual(match3, ["file3.png", "/file4.png"])
+
+        let match4 = paths.pathsMatchingExtensions(["", ".tx", "tx"])
+        XCTAssertEqual(match4, [])
+
+        let match5 = paths.pathsMatchingExtensions(["..txt"])
+        XCTAssertEqual(match5, [])
+    }
+
+    func test_arrayUsedAsCFArrayInvokesArrayMethods() {
+        let number = 789 as NSNumber
+        let array = NSMutableArray(array: [123, 456])
+        CFArraySetValueAtIndex(unsafeBitCast(array, to: CFMutableArray.self), 1, UnsafeRawPointer(Unmanaged.passUnretained(number).toOpaque()))
+        XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
+        XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
+    }
+
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
         do {
@@ -755,16 +814,12 @@ class TestNSArray : XCTestCase {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     private func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 }

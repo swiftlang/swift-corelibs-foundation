@@ -164,7 +164,7 @@ public var NSCoderReadCorruptError: Int                      { return CocoaError
 
 public var NSCoderValueNotFoundError: Int                    { return CocoaError.Code.coderValueNotFound.rawValue }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     import Darwin
 #elseif os(Linux) || CYGWIN
     import Glibc
@@ -174,21 +174,21 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
     var cocoaError : CocoaError.Code
     if reading {
         switch posixErrno {
-            case EFBIG: cocoaError = CocoaError.fileReadTooLarge
-            case ENOENT: cocoaError = CocoaError.fileReadNoSuchFile
-            case EPERM, EACCES: cocoaError = CocoaError.fileReadNoPermission
-            case ENAMETOOLONG: cocoaError = CocoaError.fileReadUnknown
-            default: cocoaError = CocoaError.fileReadUnknown
+            case EFBIG: cocoaError = .fileReadTooLarge
+            case ENOENT: cocoaError = .fileReadNoSuchFile
+            case EPERM, EACCES: cocoaError = .fileReadNoPermission
+            case ENAMETOOLONG: cocoaError = .fileReadUnknown
+            default: cocoaError = .fileReadUnknown
         }
     } else {
         switch posixErrno {
-            case ENOENT: cocoaError = CocoaError.fileNoSuchFile
-            case EPERM, EACCES: cocoaError = CocoaError.fileWriteNoPermission
-            case ENAMETOOLONG: cocoaError = CocoaError.fileWriteInvalidFileName
-            case EDQUOT, ENOSPC: cocoaError = CocoaError.fileWriteOutOfSpace
-            case EROFS: cocoaError = CocoaError.fileWriteVolumeReadOnly
-            case EEXIST: cocoaError = CocoaError.fileWriteFileExists
-            default: cocoaError = CocoaError.fileWriteUnknown
+            case ENOENT: cocoaError = .fileNoSuchFile
+            case EPERM, EACCES: cocoaError = .fileWriteNoPermission
+            case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
+            case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
+            case EROFS: cocoaError = .fileWriteVolumeReadOnly
+            case EEXIST: cocoaError = .fileWriteFileExists
+            default: cocoaError = .fileWriteUnknown
         }
     }
     

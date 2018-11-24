@@ -6,13 +6,6 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
 
 class TestURLProtocol : LoopbackServerTest {
     
@@ -145,7 +138,7 @@ class CustomProtocol : URLProtocol {
     func sendResponse(statusCode: Int, headers: [String: String] = [:], data: Data) {
         let response = HTTPURLResponse(url: self.request.url!, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: headers)
         let capital = "Kathmandu"
-        let data = capital.data(using: String.Encoding.utf8)
+        let data = capital.data(using: .utf8)
         self.client?.urlProtocol(self, didReceive: response!, cacheStoragePolicy: .notAllowed)
         self.client?.urlProtocol(self, didLoad: data!)
         self.client?.urlProtocolDidFinishLoading(self)

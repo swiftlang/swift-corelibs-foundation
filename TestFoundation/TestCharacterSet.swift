@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
 private struct Box: Equatable {
     private let ns: NSCharacterSet
     private let swift: CharacterSet
@@ -31,12 +23,12 @@ private struct Box: Equatable {
     
     static var alphanumerics: Box {
         return Box(ns: NSCharacterSet.alphanumerics._bridgeToObjectiveC(),
-                   swift: CharacterSet.alphanumerics)
+                   swift: .alphanumerics)
     }
     
     static var decimalDigits: Box {
         return Box(ns: NSCharacterSet.decimalDigits._bridgeToObjectiveC(),
-                   swift: CharacterSet.decimalDigits)
+                   swift: .decimalDigits)
     }
 
     // MARK: Equatable
@@ -81,6 +73,7 @@ class TestCharacterSet : XCTestCase {
             ("test_SymmetricDifference", test_SymmetricDifference),
             ("test_formUnion", test_formUnion),
             ("test_union", test_union),
+            ("test_SR5971", test_SR5971),
         ]
     }
     
@@ -218,7 +211,7 @@ class TestCharacterSet : XCTestCase {
         XCTAssert(mcset.isSuperset(of: cset2))
         XCTAssert(cset2.isSuperset(of: mcset))
         
-        XCTAssertTrue(CharacterSet.whitespacesAndNewlines.isSuperset(of: CharacterSet.newlines), "whitespace and newline should be a superset of newline")
+        XCTAssertTrue(CharacterSet.whitespacesAndNewlines.isSuperset(of: .newlines), "whitespace and newline should be a superset of newline")
         let data = CharacterSet.uppercaseLetters.bitmapRepresentation
         XCTAssertNotNil(data)
     }
@@ -364,6 +357,15 @@ class TestCharacterSet : XCTestCase {
         let charset = CharacterSet(charactersIn: "a")
         let union = charset.union(CharacterSet(charactersIn: "A"))
         XCTAssertTrue(union.contains("A" as UnicodeScalar))
+    }
+
+    func test_SR5971() {
+        let problematicString = "\u{10000}"
+        let charset1 = CharacterSet(charactersIn:problematicString) // this should not crash
+        XCTAssertTrue(charset1.contains("\u{10000}"))
+        // Case from SR-3215
+        let charset2 = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&+")
+        XCTAssertTrue(charset2.contains("+"))
     }
     
 }

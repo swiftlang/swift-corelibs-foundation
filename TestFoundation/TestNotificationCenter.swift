@@ -7,16 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
 class TestNotificationCenter : XCTestCase {
     static var allTests: [(String, (TestNotificationCenter) -> () throws -> Void)] {
         return [
@@ -35,7 +25,6 @@ class TestNotificationCenter : XCTestCase {
     
     func test_defaultCenter() {
         let defaultCenter1 = NotificationCenter.default
-        XCTAssertNotNil(defaultCenter1)
         let defaultCenter2 = NotificationCenter.default
         XCTAssertEqual(defaultCenter1, defaultCenter2)
     }

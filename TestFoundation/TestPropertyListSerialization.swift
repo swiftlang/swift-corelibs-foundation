@@ -7,17 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
-
-
 class TestPropertyListSerialization : XCTestCase {
     static var allTests: [(String, (TestPropertyListSerialization) -> () throws -> Void)] {
         return [
@@ -32,7 +21,7 @@ class TestPropertyListSerialization : XCTestCase {
 //        dict["foo"] = "bar"
         var data: Data? = nil
         do {
-            data = try PropertyListSerialization.data(fromPropertyList: dict, format: PropertyListSerialization.PropertyListFormat.binary, options: 0)
+            data = try PropertyListSerialization.data(fromPropertyList: dict, format: .binary, options: 0)
         } catch {
             
         }

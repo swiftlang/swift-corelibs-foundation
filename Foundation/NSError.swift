@@ -291,17 +291,34 @@ public extension CustomNSError {
     }
 }
 
-extension CustomNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
-    // The error code of Error with integral raw values is the raw value.
-    public var errorCode: Int {
-        return numericCast(self.rawValue)
+/// Convert an arbitrary fixed-width integer to an Int, reinterpreting
+/// signed -> unsigned if needed but trapping if the result is otherwise
+/// not expressible.
+func unsafeFixedWidthIntegerToInt<T: FixedWidthInteger>(_ value: T) -> Int {
+    if T.isSigned {
+        return numericCast(value)
     }
+
+    let uintValue: UInt = numericCast(value)
+    return Int(bitPattern: uintValue)
 }
 
-extension CustomNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
+/// Convert from an Int to an arbitrary fixed-width integer, reinterpreting
+/// signed -> unsigned if needed but trapping if the result is otherwise not
+/// expressible.
+func unsafeFixedWidthIntegerFromInt<T: FixedWidthInteger>(_ value: Int) -> T {
+    if T.isSigned {
+        return numericCast(value)
+    }
+
+    let uintValue = UInt(bitPattern: value)
+    return numericCast(uintValue)
+}
+
+extension CustomNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     // The error code of Error with integral raw values is the raw value.
     public var errorCode: Int {
-        return numericCast(self.rawValue)
+        return unsafeFixedWidthIntegerToInt(self.rawValue)
     }
 }
 
@@ -313,12 +330,7 @@ public extension Error where Self : CustomNSError {
     var _code: Int { return self.errorCode }
 }
 
-public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: SignedInteger {
-    /// Default implementation for customized NSErrors.
-    var _code: Int { return self.errorCode }
-}
-
-public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: UnsignedInteger {
+public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     /// Default implementation for customized NSErrors.
     var _code: Int { return self.errorCode }
 }
@@ -402,7 +414,7 @@ extension CFError : Error {
 
 /// An internal protocol to represent Swift error enums that map to standard
 /// Cocoa NSError domains.
-public protocol _ObjectTypeBridgeableError : Error {
+public protocol _ObjectiveCBridgeableError : Error {
     /// Produce a value of the error type corresponding to the given NSError,
     /// or return nil if it cannot be bridged.
     init?(_bridgedNSError: NSError)
@@ -415,15 +427,17 @@ public protocol __BridgedNSError : Error {
 }
 
 // Allow two bridged NSError types to be compared.
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
 }
 
-public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: SignedInteger {
+extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: FixedWidthInteger {
     public var _domain: String { return Self._nsErrorDomain }
-    public var _code: Int { return Int(rawValue) }
+    public var _code: Int {
+        return Int(rawValue)
+    }
     
     public init?(rawValue: RawValue) {
         self = unsafeBitCast(rawValue, to: Self.self)
@@ -440,47 +454,19 @@ public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: S
     public var hashValue: Int { return _code }
 }
 
-// Allow two bridged NSError types to be compared.
-extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-}
-
-public extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
-    public var _domain: String { return Self._nsErrorDomain }
-    public var _code: Int {
-        return Int(bitPattern: UInt(rawValue))
-    }
-    
-    public init?(rawValue: RawValue) {
-        self = unsafeBitCast(rawValue, to: Self.self)
-    }
-    
-    public init?(_bridgedNSError: NSError) {
-        if _bridgedNSError.domain != Self._nsErrorDomain {
-            return nil
-        }
-        
-        self.init(rawValue: RawValue(UInt(_bridgedNSError.code)))
-    }
-    
-    public var hashValue: Int { return _code }
-}
-
 /// Describes a raw representable type that is bridged to a particular
 /// NSError domain.
 ///
 /// This protocol is used primarily to generate the conformance to
-/// _ObjectTypeBridgeableError for such an enum.
-public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _ObjectTypeBridgeableError, Hashable {
+/// _ObjectiveCBridgeableError for such an enum.
+public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _ObjectiveCBridgeableError, Hashable {
     /// The NSError domain to which this type is bridged.
     static var _nsErrorDomain: String { get }
 }
 
 /// Describes a bridged error that stores the underlying NSError, so
 /// it can be queried.
-public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectTypeBridgeableError, CustomNSError, Hashable {
+public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable {
     /// The type of an error code.
     associatedtype Code: _ErrorCodeProtocol
 
@@ -499,43 +485,26 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectTypeBridgeableE
 }
 
 /// Various helper implementations for _BridgedStoredNSError
-public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: SignedInteger {
-    // FIXME: Generalize to Integer.
+extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: FixedWidthInteger {
     public var code: Code {
-        return Code(rawValue: numericCast(_nsError.code))!
+        return Code(rawValue: unsafeFixedWidthIntegerFromInt(_nsError.code))!
     }
 
     /// Initialize an error within this domain with the given ``code``
     /// and ``userInfo``.
     public init(_ code: Code, userInfo: [String : Any] = [:]) {
         self.init(_nsError: NSError(domain: Self._nsErrorDomain,
-            code: numericCast(code.rawValue),
+            code: unsafeFixedWidthIntegerToInt(code.rawValue),
             userInfo: userInfo))
     }
 
     /// The user-info dictionary for an error that was bridged from
     /// NSError.
-    var userInfo: [String : Any] { return errorUserInfo }
-}
-
-/// Various helper implementations for _BridgedStoredNSError
-public extension _BridgedStoredNSError where Code: RawRepresentable, Code.RawValue: UnsignedInteger {
-    // FIXME: Generalize to Integer.
-    public var code: Code {
-        return Code(rawValue: numericCast(_nsError.code))!
-    }
-
-    /// Initialize an error within this domain with the given ``code``
-    /// and ``userInfo``.
-    public init(_ code: Code, userInfo: [String : Any] = [:]) {
-        self.init(_nsError: NSError(domain: Self._nsErrorDomain,
-            code: numericCast(code.rawValue),
-            userInfo: userInfo))
-    }
+    public var userInfo: [String : Any] { return errorUserInfo }
 }
 
 /// Implementation of __BridgedNSError for all _BridgedStoredNSErrors.
-public extension _BridgedStoredNSError {
+extension _BridgedStoredNSError {
     /// Default implementation of ``init(_bridgedNSError)`` to provide
     /// bridging from NSError.
     public init?(_bridgedNSError error: NSError) {
@@ -568,20 +537,16 @@ public extension _BridgedStoredNSError {
 /// Describes the code of an error.
 public protocol _ErrorCodeProtocol : Equatable {
     /// The corresponding error code.
-    associatedtype _ErrorType
-
-    // FIXME: We want _ErrorType to be _BridgedStoredNSError and have its
-    // Code match Self, but we cannot express those requirements yet.
+    associatedtype _ErrorType: _BridgedStoredNSError
+        where _ErrorType.Code == Self
 }
 
-extension _ErrorCodeProtocol where Self._ErrorType: _BridgedStoredNSError {
+extension _ErrorCodeProtocol {
     /// Allow one to match an error code against an arbitrary error.
     public static func ~=(match: Self, error: Error) -> Bool {
         guard let specificError = error as? Self._ErrorType else { return false }
 
-        // FIXME: Work around IRGen crash when we set Code == Code._ErrorType.Code.
-        let specificCode = specificError.code as! Self
-        return match == specificCode
+        return match == specificError.code
     }
 }
 
@@ -690,58 +655,68 @@ public extension CocoaError {
     }
 }
 
+extension CocoaError {
+    public static func error(_ code: CocoaError.Code, userInfo: [AnyHashable: Any]? = nil, url: URL? = nil) -> Error {
+        var info: [String: Any] = userInfo as? [String: Any] ?? [:]
+        if let url = url {
+            info[NSURLErrorKey] = url
+        }
+        return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: info)
+    }
+}
+
 extension CocoaError.Code {
 }
 
 extension CocoaError {
-    public static var fileNoSuchFile:                           CocoaError.Code { return CocoaError.Code.fileNoSuchFile }
-    public static var fileLocking:                              CocoaError.Code { return CocoaError.Code.fileLocking }
-    public static var fileReadUnknown:                          CocoaError.Code { return CocoaError.Code.fileReadUnknown }
-    public static var fileReadNoPermission:                     CocoaError.Code { return CocoaError.Code.fileReadNoPermission }
-    public static var fileReadInvalidFileName:                  CocoaError.Code { return CocoaError.Code.fileReadInvalidFileName }
-    public static var fileReadCorruptFile:                      CocoaError.Code { return CocoaError.Code.fileReadCorruptFile }
-    public static var fileReadNoSuchFile:                       CocoaError.Code { return CocoaError.Code.fileReadNoSuchFile }
-    public static var fileReadInapplicableStringEncoding:       CocoaError.Code { return CocoaError.Code.fileReadInapplicableStringEncoding }
-    public static var fileReadUnsupportedScheme:                CocoaError.Code { return CocoaError.Code.fileReadUnsupportedScheme }
-    public static var fileReadTooLarge:                         CocoaError.Code { return CocoaError.Code.fileReadTooLarge }
-    public static var fileReadUnknownStringEncoding:            CocoaError.Code { return CocoaError.Code.fileReadUnknownStringEncoding }
-    public static var fileWriteUnknown:                         CocoaError.Code { return CocoaError.Code.fileWriteUnknown }
-    public static var fileWriteNoPermission:                    CocoaError.Code { return CocoaError.Code.fileWriteNoPermission }
-    public static var fileWriteInvalidFileName:                 CocoaError.Code { return CocoaError.Code.fileWriteInvalidFileName }
-    public static var fileWriteFileExists:                      CocoaError.Code { return CocoaError.Code.fileWriteFileExists }
-    public static var fileWriteInapplicableStringEncoding:      CocoaError.Code { return CocoaError.Code.fileWriteInapplicableStringEncoding }
-    public static var fileWriteUnsupportedScheme:               CocoaError.Code { return CocoaError.Code.fileWriteUnsupportedScheme }
-    public static var fileWriteOutOfSpace:                      CocoaError.Code { return CocoaError.Code.fileWriteOutOfSpace }
-    public static var fileWriteVolumeReadOnly:                  CocoaError.Code { return CocoaError.Code.fileWriteVolumeReadOnly }
-    public static var fileManagerUnmountUnknown:                CocoaError.Code { return CocoaError.Code.fileManagerUnmountUnknown }
-    public static var fileManagerUnmountBusy:                   CocoaError.Code { return CocoaError.Code.fileManagerUnmountBusy }
-    public static var keyValueValidation:                       CocoaError.Code { return CocoaError.Code.keyValueValidation }
-    public static var formatting:                               CocoaError.Code { return CocoaError.Code.formatting }
-    public static var userCancelled:                            CocoaError.Code { return CocoaError.Code.userCancelled }
-    public static var featureUnsupported:                       CocoaError.Code { return CocoaError.Code.featureUnsupported }
-    public static var executableNotLoadable:                    CocoaError.Code { return CocoaError.Code.executableNotLoadable }
-    public static var executableArchitectureMismatch:           CocoaError.Code { return CocoaError.Code.executableArchitectureMismatch }
-    public static var executableRuntimeMismatch:                CocoaError.Code { return CocoaError.Code.executableRuntimeMismatch }
-    public static var executableLoad:                           CocoaError.Code { return CocoaError.Code.executableLoad }
-    public static var executableLink:                           CocoaError.Code { return CocoaError.Code.executableLink }
-    public static var propertyListReadCorrupt:                  CocoaError.Code { return CocoaError.Code.propertyListReadCorrupt }
-    public static var propertyListReadUnknownVersion:           CocoaError.Code { return CocoaError.Code.propertyListReadUnknownVersion }
-    public static var propertyListReadStream:                   CocoaError.Code { return CocoaError.Code.propertyListReadStream }
-    public static var propertyListWriteStream:                  CocoaError.Code { return CocoaError.Code.propertyListWriteStream }
-    public static var propertyListWriteInvalid:                 CocoaError.Code { return CocoaError.Code.propertyListWriteInvalid }
-    public static var xpcConnectionInterrupted:                 CocoaError.Code { return CocoaError.Code.xpcConnectionInterrupted }
-    public static var xpcConnectionInvalid:                     CocoaError.Code { return CocoaError.Code.xpcConnectionInvalid }
-    public static var xpcConnectionReplyInvalid:                CocoaError.Code { return CocoaError.Code.xpcConnectionReplyInvalid }
-    public static var ubiquitousFileUnavailable:                CocoaError.Code { return CocoaError.Code.ubiquitousFileUnavailable }
-    public static var ubiquitousFileNotUploadedDueToQuota:      CocoaError.Code { return CocoaError.Code.ubiquitousFileNotUploadedDueToQuota }
-    public static var ubiquitousFileUbiquityServerNotAvailable: CocoaError.Code { return CocoaError.Code.ubiquitousFileUbiquityServerNotAvailable }
-    public static var userActivityHandoffFailed:                CocoaError.Code { return CocoaError.Code.userActivityHandoffFailed }
-    public static var userActivityConnectionUnavailable:        CocoaError.Code { return CocoaError.Code.userActivityConnectionUnavailable }
-    public static var userActivityRemoteApplicationTimedOut:    CocoaError.Code { return CocoaError.Code.userActivityRemoteApplicationTimedOut }
-    public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return CocoaError.Code.userActivityHandoffUserInfoTooLarge }
-    public static var coderReadCorrupt:                         CocoaError.Code { return CocoaError.Code.coderReadCorrupt }
-    public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code.coderValueNotFound }
-    public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code.coderInvalidValue }
+    public static var fileNoSuchFile:                           CocoaError.Code { return .fileNoSuchFile }
+    public static var fileLocking:                              CocoaError.Code { return .fileLocking }
+    public static var fileReadUnknown:                          CocoaError.Code { return .fileReadUnknown }
+    public static var fileReadNoPermission:                     CocoaError.Code { return .fileReadNoPermission }
+    public static var fileReadInvalidFileName:                  CocoaError.Code { return .fileReadInvalidFileName }
+    public static var fileReadCorruptFile:                      CocoaError.Code { return .fileReadCorruptFile }
+    public static var fileReadNoSuchFile:                       CocoaError.Code { return .fileReadNoSuchFile }
+    public static var fileReadInapplicableStringEncoding:       CocoaError.Code { return .fileReadInapplicableStringEncoding }
+    public static var fileReadUnsupportedScheme:                CocoaError.Code { return .fileReadUnsupportedScheme }
+    public static var fileReadTooLarge:                         CocoaError.Code { return .fileReadTooLarge }
+    public static var fileReadUnknownStringEncoding:            CocoaError.Code { return .fileReadUnknownStringEncoding }
+    public static var fileWriteUnknown:                         CocoaError.Code { return .fileWriteUnknown }
+    public static var fileWriteNoPermission:                    CocoaError.Code { return .fileWriteNoPermission }
+    public static var fileWriteInvalidFileName:                 CocoaError.Code { return .fileWriteInvalidFileName }
+    public static var fileWriteFileExists:                      CocoaError.Code { return .fileWriteFileExists }
+    public static var fileWriteInapplicableStringEncoding:      CocoaError.Code { return .fileWriteInapplicableStringEncoding }
+    public static var fileWriteUnsupportedScheme:               CocoaError.Code { return .fileWriteUnsupportedScheme }
+    public static var fileWriteOutOfSpace:                      CocoaError.Code { return .fileWriteOutOfSpace }
+    public static var fileWriteVolumeReadOnly:                  CocoaError.Code { return .fileWriteVolumeReadOnly }
+    public static var fileManagerUnmountUnknown:                CocoaError.Code { return .fileManagerUnmountUnknown }
+    public static var fileManagerUnmountBusy:                   CocoaError.Code { return .fileManagerUnmountBusy }
+    public static var keyValueValidation:                       CocoaError.Code { return .keyValueValidation }
+    public static var formatting:                               CocoaError.Code { return .formatting }
+    public static var userCancelled:                            CocoaError.Code { return .userCancelled }
+    public static var featureUnsupported:                       CocoaError.Code { return .featureUnsupported }
+    public static var executableNotLoadable:                    CocoaError.Code { return .executableNotLoadable }
+    public static var executableArchitectureMismatch:           CocoaError.Code { return .executableArchitectureMismatch }
+    public static var executableRuntimeMismatch:                CocoaError.Code { return .executableRuntimeMismatch }
+    public static var executableLoad:                           CocoaError.Code { return .executableLoad }
+    public static var executableLink:                           CocoaError.Code { return .executableLink }
+    public static var propertyListReadCorrupt:                  CocoaError.Code { return .propertyListReadCorrupt }
+    public static var propertyListReadUnknownVersion:           CocoaError.Code { return .propertyListReadUnknownVersion }
+    public static var propertyListReadStream:                   CocoaError.Code { return .propertyListReadStream }
+    public static var propertyListWriteStream:                  CocoaError.Code { return .propertyListWriteStream }
+    public static var propertyListWriteInvalid:                 CocoaError.Code { return .propertyListWriteInvalid }
+    public static var xpcConnectionInterrupted:                 CocoaError.Code { return .xpcConnectionInterrupted }
+    public static var xpcConnectionInvalid:                     CocoaError.Code { return .xpcConnectionInvalid }
+    public static var xpcConnectionReplyInvalid:                CocoaError.Code { return .xpcConnectionReplyInvalid }
+    public static var ubiquitousFileUnavailable:                CocoaError.Code { return .ubiquitousFileUnavailable }
+    public static var ubiquitousFileNotUploadedDueToQuota:      CocoaError.Code { return .ubiquitousFileNotUploadedDueToQuota }
+    public static var ubiquitousFileUbiquityServerNotAvailable: CocoaError.Code { return .ubiquitousFileUbiquityServerNotAvailable }
+    public static var userActivityHandoffFailed:                CocoaError.Code { return .userActivityHandoffFailed }
+    public static var userActivityConnectionUnavailable:        CocoaError.Code { return .userActivityConnectionUnavailable }
+    public static var userActivityRemoteApplicationTimedOut:    CocoaError.Code { return .userActivityRemoteApplicationTimedOut }
+    public static var userActivityHandoffUserInfoTooLarge:      CocoaError.Code { return .userActivityHandoffUserInfoTooLarge }
+    public static var coderReadCorrupt:                         CocoaError.Code { return .coderReadCorrupt }
+    public static var coderValueNotFound:                       CocoaError.Code { return .coderValueNotFound }
+    public static var coderInvalidValue:                        CocoaError.Code { return .coderInvalidValue }
 }
 
 extension CocoaError {
@@ -845,7 +820,7 @@ public struct URLError : _BridgedStoredNSError {
     }
 }
 
-public extension URLError {
+extension URLError {
     private var _nsUserInfo: [AnyHashable : Any] {
         return _nsError.userInfo
     }
@@ -861,7 +836,7 @@ public extension URLError {
     }
 }
 
-public extension URLError {
+extension URLError {
     public static var unknown:                                  URLError.Code { return .unknown }
     public static var cancelled:                                URLError.Code { return .cancelled }
     public static var badURL:                                   URLError.Code { return .badURL }
@@ -1368,3 +1343,40 @@ extension POSIXError {
     /// Interface output queue is full.
     public static var EQFULL: POSIXError.Code { return .EQFULL }
 }
+
+enum UnknownNSError: Error {
+    case missingError
+}
+
+#if !canImport(ObjectiveC)
+
+public // COMPILER_INTRINSIC
+func _convertNSErrorToError(_ error: NSError?) -> Error {
+    return error ?? UnknownNSError.missingError
+}
+
+public // COMPILER_INTRINSIC
+func _convertErrorToNSError(_ error: Error) -> NSError {
+    if let object = _extractDynamicValue(error as Any) {
+        return unsafeBitCast(object, to: NSError.self)
+    } else {
+        let domain: String
+        let code: Int
+        let userInfo: [String: Any]
+        
+        if let error = error as? CustomNSError {
+            domain = type(of: error).errorDomain
+            code = error.errorCode
+            userInfo = error.errorUserInfo
+        } else {
+            domain = "SwiftError"
+            code = 0
+            userInfo = (_swift_Foundation_getErrorDefaultUserInfo(error) as? [String : Any]) ?? [:]
+        }
+        
+        return NSError(domain: domain, code: code, userInfo: userInfo)
+    }
+}
+
+#endif
+

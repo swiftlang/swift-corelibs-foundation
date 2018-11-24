@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 struct TopLevelObjectWrapper<T: Codable & Equatable>: Codable, Equatable {
     var value: T
 
@@ -107,8 +99,8 @@ class TestJSONEncoder : XCTestCase {
     func test_encodingOutputFormattingSortedKeys() {
         let expectedJSON = "{\"email\":\"appleseed@apple.com\",\"name\":\"Johnny Appleseed\"}".data(using: .utf8)!
         let person = Person.testValue
-#if os(OSX) || DARWIN_COMPATIBILITY_TESTS
-        if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+#if os(macOS) || DARWIN_COMPATIBILITY_TESTS
+        if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
             _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.sortedKeys])
         }
 #else
@@ -119,8 +111,8 @@ class TestJSONEncoder : XCTestCase {
     func test_encodingOutputFormattingPrettyPrintedSortedKeys() {
         let expectedJSON = "{\n  \"email\" : \"appleseed@apple.com\",\n  \"name\" : \"Johnny Appleseed\"\n}".data(using: .utf8)!
         let person = Person.testValue
-#if os(OSX) || DARWIN_COMPATIBILITY_TESTS
-        if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+#if os(macOS) || DARWIN_COMPATIBILITY_TESTS
+        if #available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
             _testRoundTrip(of: person, expectedJSON: expectedJSON, outputFormatting: [.prettyPrinted, .sortedKeys])
         }
 #else
@@ -311,7 +303,7 @@ class TestJSONEncoder : XCTestCase {
         let encoder = JSONEncoder()
         do {
             let _ = try encoder.encode(NestedContainersTestType())
-        } catch let error {
+        } catch {
             XCTFail("Caught error during encoding nested container types: \(error)")
         }
     }
@@ -320,7 +312,7 @@ class TestJSONEncoder : XCTestCase {
         let encoder = JSONEncoder()
         do {
             let _ = try encoder.encode(NestedContainersTestType(testSuperEncoder: true))
-        } catch let error {
+        } catch {
             XCTFail("Caught error during encoding nested container types: \(error)")
         }
     }
@@ -334,6 +326,65 @@ class TestJSONEncoder : XCTestCase {
             _ = try JSONDecoder().decode([Bool].self, from: "[1]".data(using: .utf8)!)
             XCTFail("Coercing non-boolean numbers into Bools was expected to fail")
         } catch { }
+
+
+        // Check that a Bool false or true isnt converted to 0 or 1
+        struct Foo: Decodable {
+            var intValue: Int?
+            var int8Value: Int8?
+            var int16Value: Int16?
+            var int32Value: Int32?
+            var int64Value: Int64?
+            var uintValue: UInt?
+            var uint8Value: UInt8?
+            var uint16Value: UInt16?
+            var uint32Value: UInt32?
+            var uint64Value: UInt64?
+            var floatValue: Float?
+            var doubleValue: Double?
+            var decimalValue: Decimal?
+            let boolValue: Bool
+        }
+
+        func testValue(_ valueName: String) {
+            do {
+                let jsonData = "{ \"\(valueName)\": false }".data(using: .utf8)!
+                _ = try JSONDecoder().decode(Foo.self, from: jsonData)
+                XCTFail("Decoded 'false' as non Bool for \(valueName)")
+            } catch {}
+            do {
+                let jsonData = "{ \"\(valueName)\": true }".data(using: .utf8)!
+                _ = try JSONDecoder().decode(Foo.self, from: jsonData)
+                XCTFail("Decoded 'true' as non Bool for \(valueName)")
+            } catch {}
+        }
+
+        testValue("intValue")
+        testValue("int8Value")
+        testValue("int16Value")
+        testValue("int32Value")
+        testValue("int64Value")
+        testValue("uintValue")
+        testValue("uint8Value")
+        testValue("uint16Value")
+        testValue("uint32Value")
+        testValue("uint64Value")
+        testValue("floatValue")
+        testValue("doubleValue")
+        testValue("decimalValue")
+        let falseJsonData = "{ \"boolValue\": false }".data(using: .utf8)!
+        if let falseFoo = try? JSONDecoder().decode(Foo.self, from: falseJsonData) {
+            XCTAssertFalse(falseFoo.boolValue)
+        } else {
+            XCTFail("Could not decode 'false' as a Bool")
+        }
+
+        let trueJsonData = "{ \"boolValue\": true }".data(using: .utf8)!
+        if let trueFoo = try? JSONDecoder().decode(Foo.self, from: trueJsonData) {
+            XCTAssertTrue(trueFoo.boolValue)
+        } else {
+            XCTFail("Could not decode 'true' as a Bool")
+        }
     }
 
     func test_codingOfInt8() {
@@ -448,6 +499,113 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_numericLimits() {
+        struct DataStruct: Codable {
+            let int8Value: Int8?
+            let uint8Value: UInt8?
+            let int16Value: Int16?
+            let uint16Value: UInt16?
+            let int32Value: Int32?
+            let uint32Value: UInt32?
+            let int64Value: Int64?
+            let intValue: Int?
+            let uintValue: UInt?
+            let uint64Value: UInt64?
+            let floatValue: Float?
+            let doubleValue: Double?
+            let decimalValue: Decimal?
+        }
+
+        func decode(_ type: String, _ value: String) throws {
+            var key = type.lowercased()
+            key.append("Value")
+            _ = try JSONDecoder().decode(DataStruct.self, from: "{ \"\(key)\": \(value) }".data(using: .utf8)!)
+        }
+
+        func testGoodValue(_ type: String, _ value: String) {
+            do {
+                try decode(type, value)
+            } catch {
+                XCTFail("Unexpected error: \(error) for parsing \(value) to \(type)")
+            }
+        }
+
+        func testErrorThrown(_ type: String, _ value: String, errorMessage: String) {
+            do {
+                try decode(type, value)
+                XCTFail("Decode of \(value) to \(type) should not succeed")
+            } catch DecodingError.dataCorrupted(let context) {
+                XCTAssertEqual(context.debugDescription, errorMessage)
+            } catch {
+                XCTAssertEqual(String(describing: error), errorMessage)
+            }
+        }
+
+
+        var goodValues = [
+            ("Int8", "0"), ("Int8", "1"), ("Int8", "-1"), ("Int8", "-128"), ("Int8", "127"),
+            ("UInt8", "0"), ("UInt8", "1"), ("UInt8", "255"), ("UInt8", "-0"),
+
+            ("Int16", "0"), ("Int16", "1"), ("Int16", "-1"), ("Int16", "-32768"), ("Int16", "32767"),
+            ("UInt16", "0"), ("UInt16", "1"), ("UInt16", "65535"), ("UInt16", "34.0"),
+
+            ("Int32", "0"), ("Int32", "1"), ("Int32", "-1"), ("Int32", "-2147483648"), ("Int32", "2147483647"),
+            ("UInt32", "0"), ("UInt32", "1"), ("UInt32", "4294967295"),
+
+            ("Int64", "0"), ("Int64", "1"), ("Int64", "-1"), ("Int64", "-9223372036854775808"), ("Int64", "9223372036854775807"),
+            ("UInt64", "0"), ("UInt64", "1"), ("UInt64", "18446744073709551615"),
+
+            ("Double", "0"), ("Double", "1"), ("Double", "-1"), ("Double", "2.2250738585072014e-308"), ("Double", "1.7976931348623157e+308"),
+            ("Double", "5e-324"), ("Double", "3.141592653589793"),
+
+            ("Decimal", "1.2"), ("Decimal", "3.14159265358979323846264338327950288419"),
+            ("Decimal", "3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+            ("Decimal", "-3402823669209384634633746074317682114550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+        ]
+
+        if Int.max == Int64.max {
+            goodValues += [
+                ("Int", "0"), ("Int", "1"), ("Int", "-1"), ("Int", "-9223372036854775808"), ("Int", "9223372036854775807"),
+                ("UInt", "0"), ("UInt", "1"), ("UInt", "18446744073709551615"),
+                ]
+        } else {
+            goodValues += [
+                ("Int", "0"), ("Int", "1"), ("Int", "-1"), ("Int", "-2147483648"), ("Int", "2147483647"),
+                ("UInt", "0"), ("UInt", "1"), ("UInt", "4294967295"),
+            ]
+        }
+
+        let badValues = [
+            ("Int8", "-129"), ("Int8", "128"), ("Int8", "1.2"),
+            ("UInt8", "-1"), ("UInt8", "256"),
+
+            ("Int16", "-32769"), ("Int16", "32768"),
+            ("UInt16", "-1"), ("UInt16", "65536"),
+
+            ("Int32", "-2147483649"), ("Int32", "2147483648"),
+            ("UInt32", "-1"), ("UInt32", "4294967296"),
+
+            ("Int64", "9223372036854775808"), ("Int64", "9223372036854775808"), ("Int64", "-100000000000000000000"),
+            ("UInt64", "-1"), ("UInt64", "18446744073709600000"), ("Int64", "10000000000000000000000000000000000000"),
+        ]
+
+        for value in goodValues {
+            testGoodValue(value.0, value.1)
+        }
+
+        for (type, value) in badValues {
+            testErrorThrown(type, value, errorMessage: "Parsed JSON number <\(value)> does not fit in \(type).")
+        }
+
+        // Invalid JSON number formats
+        testErrorThrown("Int8", "0000000000000000000000000000001", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Double", "-.1", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Int32", "+1", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Int", ".012", errorMessage: "The given data was not valid JSON.")
+        testErrorThrown("Double", "2.7976931348623158e+308", errorMessage: "The given data was not valid JSON.")
+    }
+
+
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
         return "{}".data(using: .utf8)!
@@ -539,11 +697,11 @@ func expectEqualPaths(_ lhs: [CodingKey?], _ rhs: [CodingKey?], _ prefix: String
 
     for (k1, k2) in zip(lhs, rhs) {
         switch (k1, k2) {
-        case (.none, .none): continue
-        case (.some(let _k1), .none):
+        case (nil, nil): continue
+        case (let _k1?, nil):
             XCTFail("\(prefix) CodingKey mismatch: \(type(of: _k1)) != nil")
             return
-        case (.none, .some(let _k2)):
+        case (nil, let _k2?):
             XCTFail("\(prefix) CodingKey mismatch: nil != \(type(of: _k2))")
             return
         default: break
@@ -553,14 +711,14 @@ func expectEqualPaths(_ lhs: [CodingKey?], _ rhs: [CodingKey?], _ prefix: String
         let key2 = k2!
 
         switch (key1.intValue, key2.intValue) {
-        case (.none, .none): break
-        case (.some(let i1), .none):
+        case (nil, nil): break
+        case (let i1?, nil):
             XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != nil")
             return
-        case (.none, .some(let i2)):
+        case (nil, let i2?):
             XCTFail("\(prefix) CodingKey.intValue mismatch: nil != \(type(of: key2))(\(i2))")
             return
-        case (.some(let i1), .some(let i2)):
+        case (let i1?, let i2?):
             guard i1 == i2 else {
                 XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != \(type(of: key2))(\(i2))")
                 return
@@ -1038,6 +1196,7 @@ extension TestJSONEncoder {
             ("test_codingOfDouble", test_codingOfDouble),
             ("test_codingOfString", test_codingOfString),
             ("test_codingOfURL", test_codingOfURL),
+            ("test_numericLimits", test_numericLimits),
         ]
     }
 }

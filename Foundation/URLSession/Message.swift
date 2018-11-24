@@ -1,4 +1,4 @@
-// Foundation/URLSession/Message.swift - URLSession & libcurl
+// Foundation/URLSession/Message.swift -  Message parsing for native protocols
 //
 // This source file is part of the Swift.org open source project
 //
@@ -10,17 +10,14 @@
 //
 // -----------------------------------------------------------------------------
 ///
-/// Common code for Header parsing 
-///
+/// These are libcurl helpers for the URLSession API code.
 /// - SeeAlso: https://curl.haxx.se/libcurl/c/
 /// - SeeAlso: URLSession.swift
 ///
 // -----------------------------------------------------------------------------
 
-import CoreFoundation
-
-extension _HTTPURLProtocol {
-    /// An HTTP header being parsed.
+extension _NativeProtocol {
+    /// A native protocol like FTP or HTTP header being parsed.
     ///
     /// It can either be complete (i.e. the final CR LF CR LF has been
     /// received), or partial.
@@ -45,22 +42,21 @@ extension _HTTPURLProtocol {
     }
 }
 
-extension _HTTPURLProtocol._ParsedResponseHeader {
+extension _NativeProtocol._ParsedResponseHeader {
     /// Parse a header line passed by libcurl.
     ///
     /// These contain the <CRLF> ending and the final line contains nothing but
     /// that ending.
     /// - Returns: Returning nil indicates failure. Otherwise returns a new
     ///     `ParsedResponseHeader` with the given line added.
-    func byAppending(headerLine data: Data) -> _HTTPURLProtocol._ParsedResponseHeader? {
+    func byAppending(headerLine data: Data) -> _NativeProtocol._ParsedResponseHeader? {
         // The buffer must end in CRLF
-        guard
-            2 <= data.count &&
-                data[data.endIndex - 2] == _HTTPCharacters.CR &&
-                data[data.endIndex - 1] == _HTTPCharacters.LF
+        guard 2 <= data.count &&
+            data[data.endIndex - 2] == _Delimiters.CR &&
+            data[data.endIndex - 1] == _Delimiters.LF
             else { return nil }
-        let lineBuffer = data.subdata(in: Range(data.startIndex..<data.endIndex-2))
-        guard let line = String(data: lineBuffer, encoding: String.Encoding.utf8) else { return nil}
+        let lineBuffer = data.subdata(in: data.startIndex..<data.endIndex-2)
+        guard let line = String(data: lineBuffer, encoding: .utf8) else { return nil}
         return byAppending(headerLine: line)
     }
     /// Append a status line.
@@ -69,36 +65,38 @@ extension _HTTPURLProtocol._ParsedResponseHeader {
     /// is a complete header. Otherwise it's a partial header.
     /// - Note: Appending a line to a complete header results in a partial
     ///     header with just that line.
-    private func byAppending(headerLine line: String) -> _HTTPURLProtocol._ParsedResponseHeader {
+    private func byAppending(headerLine line: String) -> _NativeProtocol._ParsedResponseHeader {
         if line.isEmpty {
             switch self {
             case .partial(let header): return .complete(header)
-            case .complete: return .partial(_HTTPURLProtocol._ResponseHeaderLines())
+            case .complete: return .partial(_NativeProtocol._ResponseHeaderLines())
             }
         } else {
             let header = partialResponseHeader
             return .partial(header.byAppending(headerLine: line))
         }
     }
-    private var partialResponseHeader: _HTTPURLProtocol._ResponseHeaderLines {
+
+    private var partialResponseHeader: _NativeProtocol._ResponseHeaderLines {
         switch self {
         case .partial(let header): return header
-        case .complete: return _HTTPURLProtocol._ResponseHeaderLines()
+        case .complete: return _NativeProtocol._ResponseHeaderLines()
         }
     }
 }
 
-private extension _HTTPURLProtocol._ResponseHeaderLines {
+private extension _NativeProtocol._ResponseHeaderLines {
     /// Returns a copy of the lines with the new line appended to it.
-    func byAppending(headerLine line: String) -> _HTTPURLProtocol._ResponseHeaderLines {
+    func byAppending(headerLine line: String) -> _NativeProtocol._ResponseHeaderLines {
         var l = self.lines
         l.append(line)
-        return _HTTPURLProtocol._ResponseHeaderLines(headerLines: l)
+        return _NativeProtocol._ResponseHeaderLines(headerLines: l)
     }
 }
 
-// Characters that we need for HTTP parsing:
-struct _HTTPCharacters {
+// Characters that we need for Header parsing:
+
+struct _Delimiters {
     /// *Carriage Return* symbol
     static let CR: UInt8 = 0x0d
     /// *Line Feed* symbol

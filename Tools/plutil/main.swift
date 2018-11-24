@@ -6,7 +6,7 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 import SwiftFoundation
 #elseif os(Linux)
@@ -202,7 +202,7 @@ extension Dictionary {
             if let key = $0.0 as? String {
                 key.display(indent + 1, type: .key)
             } else {
-                fatalError("plists should have strings as keys but got a \(type(of: $0.0))")
+                fatalError("plists should have strings as keys but got a \(Swift.type(of: $0.0))")
             }
             print(" => ", terminator: "")
             displayPlist($0.1, indent: indent + 1, type: .value)
@@ -302,7 +302,7 @@ func displayPlist(_ plist: Any, indent: Int = 0, type: DisplayType = .primary) {
     case let val as NSData:
         val.display(indent, type: type)
     default:
-        fatalError("unhandled type \(type(of: plist))")
+        fatalError("unhandled type \(Swift.type(of: plist))")
     }
 }
 
@@ -367,8 +367,8 @@ func main() -> Int32 {
             case .help:
                 return help()
         }
-    } catch let err {
-        switch err as! OptionParseError {
+    } catch {
+        switch error as! OptionParseError {
             case .unrecognizedArgument(let arg):
                 print("unrecognized option: \(arg)")
                 let _ = help()

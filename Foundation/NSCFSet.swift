@@ -38,10 +38,10 @@ internal final class _NSCFSet : NSMutableSet {
     
     override func member(_ object: Any) -> Any? {
         
-        guard let value = CFSetGetValue(_cfObject, unsafeBitCast(_SwiftValue.store(object), to: UnsafeRawPointer.self)) else {
+        guard let value = CFSetGetValue(_cfObject, unsafeBitCast(__SwiftValue.store(object), to: UnsafeRawPointer.self)) else {
             return nil
         }
-        return _SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
+        return __SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
         
     }
     
@@ -66,11 +66,11 @@ internal final class _NSCFSet : NSMutableSet {
     }
     
     override func add(_ object: Any) {
-        CFSetAddValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(object), to: UnsafeRawPointer.self))
+        CFSetAddValue(_cfMutableObject, unsafeBitCast(__SwiftValue.store(object), to: UnsafeRawPointer.self))
     }
     
     override func remove(_ object: Any) {
-        CFSetRemoveValue(_cfMutableObject, unsafeBitCast(_SwiftValue.store(object), to: UnsafeRawPointer.self))
+        CFSetRemoveValue(_cfMutableObject, unsafeBitCast(__SwiftValue.store(object), to: UnsafeRawPointer.self))
     }
     
 }
@@ -106,7 +106,7 @@ internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePoin
         }
     } else {
         set.enumerateObjects( { v, _ in
-            let value = _SwiftValue.store(v)
+            let value = __SwiftValue.store(v)
             values?[idx] = Unmanaged<AnyObject>.passUnretained(value)
             set._storage.update(with: value)
             idx += 1
@@ -122,7 +122,7 @@ internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject, key: AnyOb
         }
         
     } else {
-        let v = _SwiftValue.store(set.member(value))
+        let v = __SwiftValue.store(set.member(value))
         if let obj = v {
             set._storage.update(with: obj)
             return Unmanaged<AnyObject>.passUnretained(obj)
@@ -143,7 +143,7 @@ internal func _CFSwiftSetGetValueIfPresent(_ set: AnyObject, object: AnyObject, 
 
 internal func _CFSwiftSetApplyFunction(_ set: AnyObject, applier: @convention(c) (AnyObject, UnsafeMutableRawPointer) -> Void, context: UnsafeMutableRawPointer) {
     (set as! NSSet).enumerateObjects({ value, _ in
-        applier(_SwiftValue.store(value), context)
+        applier(__SwiftValue.store(value), context)
     })
 }
 

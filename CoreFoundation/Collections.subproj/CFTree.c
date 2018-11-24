@@ -1,7 +1,7 @@
 /*	CFTree.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,6 +10,7 @@
 
 #include <CoreFoundation/CFTree.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 
 struct __CFTreeCallBacks {
@@ -99,10 +100,7 @@ static void __CFTreeDeallocate(CFTypeRef cf) {
     }
 }
 
-
-static CFTypeID __kCFTreeTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFTreeClass = {
+const CFRuntimeClass __CFTreeClass = {
     _kCFRuntimeScannedObject,
     "CFTree",
     NULL,	// init
@@ -115,9 +113,7 @@ static const CFRuntimeClass __CFTreeClass = {
 };
 
 CFTypeID CFTreeGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFTreeTypeID = _CFRuntimeRegisterClass(&__CFTreeClass); });
-    return __kCFTreeTypeID;
+    return _kCFRuntimeIDCFTree;
 }
 
 CFTreeRef CFTreeCreate(CFAllocatorRef allocator, const CFTreeContext *context) {

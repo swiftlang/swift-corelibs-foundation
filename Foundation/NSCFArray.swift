@@ -34,11 +34,11 @@ internal final class _NSCFArray : NSMutableArray {
     
     override func object(at index: Int) -> Any {
         let value = CFArrayGetValueAtIndex(_cfObject, index)
-        return _SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
+        return __SwiftValue.fetch(nonOptional: unsafeBitCast(value, to: AnyObject.self))
     }
     
     override func insert(_ value: Any, at index: Int) {
-        let anObject = _SwiftValue.store(value)
+        let anObject = __SwiftValue.store(value)
         CFArrayInsertValueAtIndex(_cfMutableObject, index, unsafeBitCast(anObject, to: UnsafeRawPointer.self))
     }
     
@@ -60,7 +60,7 @@ internal func _CFSwiftArrayGetValueAtIndex(_ array: AnyObject, _ index: CFIndex)
     if type(of: array) === NSArray.self || type(of: array) === NSMutableArray.self {
         return Unmanaged.passUnretained(arr._storage[index])
     } else {
-        let value = _SwiftValue.store(arr.object(at: index))
+        let value = __SwiftValue.store(arr.object(at: index))
         let container: NSMutableDictionary
         if arr._storage.isEmpty {
             container = NSMutableDictionary()
@@ -82,7 +82,7 @@ internal func _CFSwiftArrayGetValues(_ array: AnyObject, _ range: CFRange, _ val
     } else {
         for idx in 0..<range.length {
             let index = idx + range.location
-            let value = _SwiftValue.store(arr.object(at: index))
+            let value = __SwiftValue.store(arr.object(at: index))
             let container: NSMutableDictionary
             if arr._storage.isEmpty {
                 container = NSMutableDictionary()

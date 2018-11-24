@@ -1,7 +1,7 @@
 /*	CFNumber.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,6 +10,7 @@
 
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 #include <math.h>
 #include <float.h>
@@ -85,13 +86,15 @@ struct __CFBoolean {
     CFRuntimeBase _base;
 };
 
-static struct __CFBoolean __kCFBooleanTrue = {
-    INIT_CFRUNTIME_BASE()
+DECLARE_STATIC_CLASS_REF(__NSCFBoolean);
+
+static _CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanTrue = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFBoolean, _kCFRuntimeIDCFBoolean)
 };
 const CFBooleanRef kCFBooleanTrue = &__kCFBooleanTrue;
 
-static struct __CFBoolean __kCFBooleanFalse = {
-    INIT_CFRUNTIME_BASE()
+static _CF_CONSTANT_OBJECT_BACKING struct __CFBoolean __kCFBooleanFalse = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFBoolean, _kCFRuntimeIDCFBoolean)
 };
 const CFBooleanRef kCFBooleanFalse = &__kCFBooleanFalse;
 
@@ -114,9 +117,7 @@ static void __CFBooleanDeallocate(CFTypeRef cf) {
     CFAssert(false, __kCFLogAssertion, "Deallocated CFBoolean!");
 }
 
-static CFTypeID __kCFBooleanTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFBooleanClass = {
+const CFRuntimeClass __CFBooleanClass = {
     0,
     "CFBoolean",
     NULL,      // init
@@ -129,13 +130,7 @@ static const CFRuntimeClass __CFBooleanClass = {
 };
 
 CFTypeID CFBooleanGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{
-        __kCFBooleanTypeID = _CFRuntimeRegisterClass(&__CFBooleanClass); // initOnce covered
-        _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFBooleanTrue, __kCFBooleanTypeID);
-        _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFBooleanFalse, __kCFBooleanTypeID);
-    });
-    return __kCFBooleanTypeID;
+    return _kCFRuntimeIDCFBoolean;
 }
 
 Boolean CFBooleanGetValue(CFBooleanRef boolean) {
@@ -168,6 +163,11 @@ typedef union {
     Float64 floatValue;
     int64_t bits;
 } Float64Bits;
+
+typedef union {
+    Float32Bits _32;
+    Float64Bits _64;
+} FloatBits;
 
 static const Float32Bits floatZeroBits = {.floatValue = 0.0f};
 static const Float32Bits floatOneBits = {.floatValue = 1.0f};
@@ -380,7 +380,7 @@ static void cvtFloat64ToSInt128(CFSInt128Struct *out, const Float64 *in) {
 
 struct __CFNumber {
     CFRuntimeBase _base;
-    uint64_t _pad; // need this space here for the constant objects
+    FloatBits _bits; // need this space here for the constant objects
     /* 0 or 8 more bytes allocated here */
 };
 
@@ -389,39 +389,48 @@ struct __CFNumber {
     Bits 4..0: CFNumber type
 */
 
+DECLARE_STATIC_CLASS_REF(__NSCFNumber);
+
 // Note: The isa for these things is fixed up later
-static struct __CFNumber __kCFNumberNaN = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberNaN = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat64CanonicalTypeIndex),
+    { ._64.bits = BITSFORDOUBLENAN }
 };
 const CFNumberRef kCFNumberNaN = &__kCFNumberNaN;
 
-static struct __CFNumber __kCFNumberNegativeInfinity = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberNegativeInfinity = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat64CanonicalTypeIndex),
+    { ._64.bits = BITSFORDOUBLENEGINF }
 };
 const CFNumberRef kCFNumberNegativeInfinity = &__kCFNumberNegativeInfinity;
 
-static struct __CFNumber __kCFNumberPositiveInfinity = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberPositiveInfinity = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat64CanonicalTypeIndex),
+    { ._64.bits = BITSFORDOUBLEPOSINF }
 };
 const CFNumberRef kCFNumberPositiveInfinity = &__kCFNumberPositiveInfinity;
 
-static struct __CFNumber __kCFNumberFloat32Zero = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberFloat32Zero = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat32CanonicalTypeIndex),
+    { ._32.floatValue = 0.0f }
 };
 static const CFNumberRef kCFNumberFloat32Zero = &__kCFNumberFloat32Zero;
 
-static struct __CFNumber __kCFNumberFloat32One = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberFloat32One = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat32CanonicalTypeIndex),
+    { ._32.floatValue = 1.0f }
 };
 static const CFNumberRef kCFNumberFloat32One = &__kCFNumberFloat32One;
 
-static struct __CFNumber __kCFNumberFloat64Zero = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberFloat64Zero = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat64CanonicalTypeIndex),
+    { ._64.floatValue = 0.0f }
 };
 static const CFNumberRef kCFNumberFloat64Zero = &__kCFNumberFloat64Zero;
 
-static struct __CFNumber __kCFNumberFloat64One = {
-    INIT_CFRUNTIME_BASE(), 0ULL
+static _CF_CONSTANT_OBJECT_BACKING struct __CFNumber __kCFNumberFloat64One = {
+    INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(__NSCFNumber, _kCFRuntimeIDCFNumber, kCFNumberFloat64CanonicalTypeIndex),
+    { ._64.floatValue = 1.0f }
 };
 static const CFNumberRef kCFNumberFloat64One = &__kCFNumberFloat64One;
 
@@ -497,7 +506,7 @@ CF_INLINE CFNumberType __CFNumberGetType(CFNumberRef num) {
 static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *valuePtr) {
     type = __CFNumberTypeTable[type].canonicalType;
     CFNumberType ntype = __CFNumberGetType(number);
-    const void *data = &(number->_pad);
+    const void *data = &(number->_bits._64.bits);
     Boolean floatBit = __CFNumberTypeTable[ntype].floatBit;
     Boolean storageBit = __CFNumberTypeTable[ntype].storageBit;
     switch (type) {
@@ -689,7 +698,7 @@ static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *v
 static Boolean __CFNumberGetValueCompat(CFNumberRef number, CFNumberType type, void *valuePtr) {
     type = __CFNumberTypeTable[type].canonicalType;
     CFNumberType ntype = __CFNumberGetType(number);
-    const void *data = &(number->_pad);
+    const void *data = &(number->_bits._64.bits);
     switch (type) {
     case kCFNumberSInt8Type:
 	if (__CFNumberTypeTable[ntype].floatBit) {
@@ -970,7 +979,6 @@ static CFHashCode __CFNumberHash(CFTypeRef cf) {
     return h;
 }
 
-static CFTypeID __kCFNumberTypeID = _kCFRuntimeNotATypeID;
 
 enum {
   kCFNumberCachingEnabled = 0,
@@ -979,7 +987,7 @@ enum {
 };
 static char __CFNumberCaching = kCFNumberCachingEnabled;
 
-static const CFRuntimeClass __CFNumberClass = {
+const CFRuntimeClass __CFNumberClass = {
     0,
     "CFNumber",
     NULL,      // init
@@ -992,56 +1000,16 @@ static const CFRuntimeClass __CFNumberClass = {
 };
 
 
-CF_PRIVATE void __CFNumberInitialize(void) {
-    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFNumberNaN, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberNaN, kCFNumberFloat64Type);
-    __kCFNumberNaN._pad = BITSFORDOUBLENAN;
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberNegativeInfinity, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberNegativeInfinity, kCFNumberFloat64Type);
-    __kCFNumberNegativeInfinity._pad = BITSFORDOUBLENEGINF;
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberPositiveInfinity, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberPositiveInfinity, kCFNumberFloat64Type);
-    __kCFNumberPositiveInfinity._pad = BITSFORDOUBLEPOSINF;
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32Zero, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberFloat32Zero, kCFNumberFloat32Type);
-    __kCFNumberFloat32Zero._pad = BITSFORFLOATZERO;
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat32One, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberFloat32One, kCFNumberFloat32Type);
-    __kCFNumberFloat32One._pad = BITSFORFLOATONE;
-#if __BIG_ENDIAN__
-    __kCFNumberFloat32One._pad = __kCFNumberFloat32One._pad << 32;
-#endif
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64Zero, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberFloat64Zero, kCFNumberFloat64Type);
-    __kCFNumberFloat64Zero._pad = BITSFORDOUBLEZERO;
-    
-    _CFRuntimeSetInstanceTypeIDAndIsa(& __kCFNumberFloat64One, __kCFNumberTypeID);
-    __CFRuntimeSetNumberType(&__kCFNumberFloat64One, kCFNumberFloat64Type);
-    __kCFNumberFloat64One._pad = BITSFORDOUBLEONE;
-#if DEPLOYMENT_RUNTIME_SWIFT
-    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFBooleanTrue, __kCFBooleanTypeID);
-    _CFRuntimeSetInstanceTypeIDAndIsa(&__kCFBooleanFalse, __kCFBooleanTypeID);
-#endif
-}
-
 CFTypeID CFNumberGetTypeID(void) {
+    // TODO: Move other work out of here
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-        __kCFNumberTypeID = _CFRuntimeRegisterClass(&__CFNumberClass); // initOnce covered
-#if !DEPLOYMENT_RUNTIME_SWIFT
-        __CFNumberInitialize();
-#endif
         
 
         const char *caching = __CFgetenv("CFNumberDisableCache");	// "all" to disable caching and tagging; anything else to disable caching; nothing to leave both enabled
         if (caching) __CFNumberCaching = (!strcmp(caching, "all")) ? kCFNumberCachingFullyDisabled : kCFNumberCachingDisabled;	// initial state above is kCFNumberCachingEnabled
     });
-    return __kCFNumberTypeID;
+    return _kCFRuntimeIDCFNumber;
 }
 
 #define MinCachedInt (-1)
@@ -1057,11 +1025,11 @@ static inline void __CFNumberInit(CFNumberRef result, CFNumberType type, const v
         case kCFNumberSInt8Type:   value = (uint64_t)(int64_t)*(int8_t *)valuePtr; goto smallVal;
         case kCFNumberSInt16Type:  value = (uint64_t)(int64_t)*(int16_t *)valuePtr; goto smallVal;
         case kCFNumberSInt32Type:  value = (uint64_t)(int64_t)*(int32_t *)valuePtr; goto smallVal;
-        smallVal: memmove((void *)&result->_pad, &value, 8); break;
-        case kCFNumberSInt64Type:  memmove((void *)&result->_pad, valuePtr, 8); break;
-        case kCFNumberSInt128Type: memmove((void *)&result->_pad, valuePtr, 16); break;
-        case kCFNumberFloat32Type: memmove((void *)&result->_pad, valuePtr, 4); break;
-        case kCFNumberFloat64Type: memmove((void *)&result->_pad, valuePtr, 8); break;
+        smallVal: memmove((void *)&result->_bits._64.bits, &value, 8); break;
+        case kCFNumberSInt64Type:  memmove((void *)&result->_bits._64.bits, valuePtr, 8); break;
+        case kCFNumberSInt128Type: memmove((void *)&result->_bits._64.bits, valuePtr, 16); break;
+        case kCFNumberFloat32Type: memmove((void *)&result->_bits._64.bits, valuePtr, 4); break;
+        case kCFNumberFloat64Type: memmove((void *)&result->_bits._64.bits, valuePtr, 8); break;
     }
 }
 
@@ -1180,7 +1148,7 @@ static CFNumberRef _CFNumberCreate(CFAllocatorRef allocator, CFNumberType type, 
 
     // for a value to be cached, we already have the value handy
     if (NotToBeCached != valToBeCached) {
-	memmove((void *)&result->_pad, &valToBeCached, 8);
+	memmove((void *)&result->_bits._64.bits, &valToBeCached, 8);
 	// Put this in the cache unless the cache is already filled (by another thread).  If we do put it in the cache, retain it an extra time for the cache.
 	// Note that we don't bother freeing this result and returning the cached value if the cache was filled, since cached CFNumbers are not guaranteed unique.
 	// Barrier assures that the number that is placed in the cache is properly formed.

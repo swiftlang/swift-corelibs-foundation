@@ -7,18 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestDecimal: XCTestCase {
 
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
+            ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
             ("test_AdditionWithNormalization", test_AdditionWithNormalization),
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_Constants", test_Constants),
@@ -40,7 +33,35 @@ class TestDecimal: XCTestCase {
             ("test_ZeroPower", test_ZeroPower),
             ("test_LeastMagnitude", test_LeastMagnitude),
             ("test_GreatestMagnitude", test_GreatestMagnitude),
+            ("test_doubleValue", test_doubleValue)
         ]
+    }
+
+    func test_NSDecimalNumberInit() {
+        XCTAssertEqual(NSDecimalNumber(mantissa: 123456789000, exponent: -2, isNegative: true), -1234567890)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal()).decimalValue, Decimal(0))
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).intValue, 1)
+        XCTAssertEqual(NSDecimalNumber(string: "1.234").floatValue, 1.234)
+        XCTAssertTrue(NSDecimalNumber(string: "invalid").decimalValue.isNaN)
+        XCTAssertEqual(NSDecimalNumber(value: true).boolValue, true)
+        XCTAssertEqual(NSDecimalNumber(value: false).boolValue, false)
+        XCTAssertEqual(NSDecimalNumber(value: Int.min).intValue, Int.min)
+        XCTAssertEqual(NSDecimalNumber(value: UInt.min).uintValue, UInt.min)
+        XCTAssertEqual(NSDecimalNumber(value: Int8.min).int8Value, Int8.min)
+        XCTAssertEqual(NSDecimalNumber(value: UInt8.min).uint8Value, UInt8.min)
+        XCTAssertEqual(NSDecimalNumber(value: Int16.min).int16Value, Int16.min)
+        XCTAssertEqual(NSDecimalNumber(value: UInt16.min).uint16Value, UInt16.min)
+        XCTAssertEqual(NSDecimalNumber(value: Int32.min).int32Value, Int32.min)
+        XCTAssertEqual(NSDecimalNumber(value: UInt32.min).uint32Value, UInt32.min)
+        XCTAssertEqual(NSDecimalNumber(value: Int64.min).int64Value, Int64.min)
+        XCTAssertEqual(NSDecimalNumber(value: UInt64.min).uint64Value, UInt64.min)
+        XCTAssertEqual(NSDecimalNumber(value: Float.leastNormalMagnitude).floatValue, Float.leastNormalMagnitude)
+        XCTAssertEqual(NSDecimalNumber(value: Float.greatestFiniteMagnitude).floatValue, Float.greatestFiniteMagnitude)
+        XCTAssertEqual(NSDecimalNumber(value: Double.pi).doubleValue, Double.pi)
+        XCTAssertEqual(NSDecimalNumber(integerLiteral: 0).intValue, 0)
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: Double.pi).doubleValue, Double.pi)
+        XCTAssertEqual(NSDecimalNumber(booleanLiteral: true).boolValue, true)
+        XCTAssertEqual(NSDecimalNumber(booleanLiteral: false).boolValue, false)
     }
 
     func test_AdditionWithNormalization() {
@@ -134,6 +155,10 @@ class TestDecimal: XCTestCase {
         XCTAssertFalse(zero.isInfinite)
         XCTAssertFalse(zero.isNaN)
         XCTAssertFalse(zero.isSignaling)
+
+        let d1 = Decimal(1234567890123456789 as UInt64)
+        XCTAssertEqual(d1._exponent, 0)
+        XCTAssertEqual(d1._length, 4)
     }
     func test_Constants() {
         XCTAssertEqual(8, NSDecimalMaxSize)
@@ -283,7 +308,31 @@ class TestDecimal: XCTestCase {
                 }
             }
         }
+
         XCTAssertEqual(Decimal(186243 * 15673 as Int64), Decimal(186243) * Decimal(15673))
+
+        XCTAssertEqual(Decimal(string: "5538")! + Decimal(string: "2880.4")!, Decimal(string: "8418.4")!)
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).adding(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 + 2880.4))
+
+        XCTAssertEqual(Decimal(string: "5538.0")! - Decimal(string: "2880.4")!, Decimal(string: "2657.6")!)
+        XCTAssertEqual(Decimal(string: "2880.4")! - Decimal(5538), Decimal(string: "-2657.6")!)
+        XCTAssertEqual(Decimal(0x10000) - Decimal(0x1000), Decimal(0xf000))
+        XCTAssertEqual(Decimal(0x1_0000_0000) - Decimal(0x1000), Decimal(0xFFFFF000))
+        XCTAssertEqual(Decimal(0x1_0000_0000_0000) - Decimal(0x1000), Decimal(0xFFFFFFFFF000))
+        XCTAssertEqual(Decimal(1234_5678_9012_3456_7899 as UInt64) - Decimal(1234_5678_9012_3456_7890 as UInt64), Decimal(9))
+        XCTAssertEqual(Decimal(0xffdd_bb00_8866_4422 as UInt64) - Decimal(0x7777_7777), Decimal(0xFFDD_BB00_10EE_CCAB as UInt64))
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 5538).subtracting(NSDecimalNumber(floatLiteral: 2880.4)), NSDecimalNumber(floatLiteral: 5538 - 2880.4))
+        XCTAssertEqual(NSDecimalNumber(floatLiteral: 2880.4).subtracting(NSDecimalNumber(floatLiteral: 5538)), NSDecimalNumber(floatLiteral: 2880.4 - 5538))
+
+        XCTAssertEqual(Decimal.greatestFiniteMagnitude - Decimal.greatestFiniteMagnitude, Decimal(0))
+        XCTAssertEqual(Decimal.leastFiniteMagnitude - Decimal(1), Decimal.leastFiniteMagnitude)
+        let overflowed = Decimal.greatestFiniteMagnitude + Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(overflowed.isNaN)
+
+        let highBit = Decimal(_exponent: 0, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x8000))
+        let otherBits = Decimal(_exponent: 0, _length: 8, _isNegative: 0, _isCompact: 1, _reserved: 0, _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0x7fff))
+        XCTAssertEqual(highBit - otherBits, Decimal(1))
+        XCTAssertEqual(otherBits + Decimal(1), highBit)
     }
 
     func test_Misc() {
@@ -488,6 +537,10 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(1, f._isCompact)
         let after = f.description
         XCTAssertEqual(before, after)
+
+        let nsd1 = NSDecimalNumber(decimal: Decimal(2657.6))
+        let nsd2 = NSDecimalNumber(floatLiteral: 2657.6)
+        XCTAssertEqual(nsd1, nsd2)
     }
 
     func test_PositivePowers() {
@@ -543,27 +596,27 @@ class TestDecimal: XCTestCase {
     }
 
     func test_Round() {
-        let testCases = [
+        let testCases: [(Double, Double, Int, NSDecimalNumber.RoundingMode)] = [
             // expected, start, scale, round
-            ( 0, 0.5, 0, Decimal.RoundingMode.down ),
-            ( 1, 0.5, 0, Decimal.RoundingMode.up ),
-            ( 2, 2.5, 0, Decimal.RoundingMode.bankers ),
-            ( 4, 3.5, 0, Decimal.RoundingMode.bankers ),
-            ( 5, 5.2, 0, Decimal.RoundingMode.plain ),
-            ( 4.5, 4.5, 1, Decimal.RoundingMode.down ),
-            ( 5.5, 5.5, 1, Decimal.RoundingMode.up ),
-            ( 6.5, 6.5, 1, Decimal.RoundingMode.plain ),
-            ( 7.5, 7.5, 1, Decimal.RoundingMode.bankers ),
+            ( 0, 0.5, 0, .down ),
+            ( 1, 0.5, 0, .up ),
+            ( 2, 2.5, 0, .bankers ),
+            ( 4, 3.5, 0, .bankers ),
+            ( 5, 5.2, 0, .plain ),
+            ( 4.5, 4.5, 1, .down ),
+            ( 5.5, 5.5, 1, .up ),
+            ( 6.5, 6.5, 1, .plain ),
+            ( 7.5, 7.5, 1, .bankers ),
 
-            ( -1, -0.5, 0, Decimal.RoundingMode.down ),
-            ( -2, -2.5, 0, Decimal.RoundingMode.up ),
-            ( -3, -2.5, 0, Decimal.RoundingMode.bankers ),
-            ( -4, -3.5, 0, Decimal.RoundingMode.bankers ),
-            ( -5, -5.2, 0, Decimal.RoundingMode.plain ),
-            ( -4.5, -4.5, 1, Decimal.RoundingMode.down ),
-            ( -5.5, -5.5, 1, Decimal.RoundingMode.up ),
-            ( -6.5, -6.5, 1, Decimal.RoundingMode.plain ),
-            ( -7.5, -7.5, 1, Decimal.RoundingMode.bankers ),
+            ( -1, -0.5, 0, .down ),
+            ( -2, -2.5, 0, .up ),
+            ( -3, -2.5, 0, .bankers ),
+            ( -4, -3.5, 0, .bankers ),
+            ( -5, -5.2, 0, .plain ),
+            ( -4.5, -4.5, 1, .down ),
+            ( -5.5, -5.5, 1, .up ),
+            ( -6.5, -6.5, 1, .plain ),
+            ( -7.5, -7.5, 1, .bankers ),
             ]
         for testCase in testCases {
             let (expected, start, scale, mode) = testCase
@@ -677,5 +730,90 @@ class TestDecimal: XCTestCase {
 
         var greatest = Decimal.greatestFiniteMagnitude
         XCTAssertEqual(.overflow, NSDecimalMultiplyByPowerOf10(&result, &greatest, 1, .plain))
+    }
+
+    func test_doubleValue() {
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(0)).doubleValue, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(1)).doubleValue, 1)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(-1)).doubleValue, -1)
+        XCTAssertTrue(NSDecimalNumber(decimal:Decimal.nan).doubleValue.isNaN)
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(UInt64.max)).doubleValue, Double(1.8446744073709552e+19))
+        XCTAssertEqual(NSDecimalNumber(decimal:Decimal(string: "1234567890123456789012345678901234567890")!).doubleValue, Double(1.2345678901234568e+39))
+
+        var d = Decimal()
+        d._mantissa.0 = 1
+        d._mantissa.1 = 2
+        d._mantissa.2 = 3
+        d._mantissa.3 = 4
+        d._mantissa.4 = 5
+        d._mantissa.5 = 6
+        d._mantissa.6 = 7
+        d._mantissa.7 = 8
+
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 0)
+        XCTAssertEqual(d, Decimal(0))
+
+        d._length = 1
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 1)
+        XCTAssertEqual(d, Decimal(1))
+
+        d._length = 2
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 131073)
+        XCTAssertEqual(d, Decimal(131073))
+
+        d._length = 3
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 12885032961)
+        XCTAssertEqual(d, Decimal(12885032961))
+
+        d._length = 4
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 1125912791875585)
+        XCTAssertEqual(d, Decimal(1125912791875585))
+
+        d._length = 5
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 9.223484628133963e+19)
+        XCTAssertEqual(d, Decimal(string: "92234846281339633665")!)
+
+        d._length = 6
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 7.253647152534056e+24)
+        XCTAssertEqual(d, Decimal(string: "7253647152534056387870721")!)
+
+        d._length = 7
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 5.546043912470029e+29)
+        XCTAssertEqual(d, Decimal(string: "554604391247002897211195523073")!)
+
+        d._length = 8
+        XCTAssertEqual(NSDecimalNumber(decimal: d).doubleValue, 4.153892947266987e+34)
+        XCTAssertEqual(d, Decimal(string: "41538929472669868031141181829283841")!)
+
+        // The result of the subtractions can leave values in the internal mantissa of a and b,
+        // although _length = 0 which is correct.
+        let x = Decimal(10.5)
+        let y = Decimal(9.0)
+        let z = Decimal(1.5)
+        let a = x - y - z
+        let b = x - z - y
+
+        XCTAssertEqual(x.description, "10.5")
+        XCTAssertEqual(y.description, "9")
+        XCTAssertEqual(z.description, "1.5")
+        XCTAssertEqual(a.description, "0")
+        XCTAssertEqual(b.description, "0")
+        XCTAssertEqual(NSDecimalNumber(decimal: x).doubleValue, 10.5)
+        XCTAssertEqual(NSDecimalNumber(decimal: y).doubleValue, 9.0)
+        XCTAssertEqual(NSDecimalNumber(decimal: z).doubleValue, 1.5)
+        XCTAssertEqual(NSDecimalNumber(decimal: a).doubleValue, 0.0)
+        XCTAssertEqual(NSDecimalNumber(decimal: b).doubleValue, 0.0)
+
+        let nf = NumberFormatter()
+        nf.locale = Locale(identifier: "en_US")
+        nf.numberStyle = .decimal
+        nf.minimumFractionDigits = 2
+        nf.maximumFractionDigits = 2
+
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: x)), "10.50")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: y)), "9.00")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: z)), "1.50")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: a)), "0.00")
+        XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: b)), "0.00")
     }
 }

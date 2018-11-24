@@ -53,8 +53,10 @@ open class Bundle: NSObject {
         self.init(path: url.path)
     }
     
-    public init(for aClass: AnyClass) { NSUnimplemented() }
-    
+    public init(for aClass: AnyClass) {
+        NSUnimplemented()
+    }
+
     public init?(identifier: String) {
         super.init()
         
@@ -115,8 +117,8 @@ open class Bundle: NSObject {
         return CFBundleCopyExecutableURL(_bundle)?._swiftObject
     }
     
-    open func url(forAuxiliaryExecutable executableName: String) -> NSURL? {
-        return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._nsObject
+    open func url(forAuxiliaryExecutable executableName: String) -> URL? {
+        return CFBundleCopyAuxiliaryExecutableURL(_bundle, executableName._cfObject)?._swiftObject
     }
     
     open var privateFrameworksURL: URL? {
@@ -224,7 +226,7 @@ open class Bundle: NSObject {
     // MARK: - Path Resource Lookup - Class
 
     open class func path(forResource name: String?, ofType ext: String?, inDirectory bundlePath: String) -> String? {
-        return Bundle.url(forResource: name, withExtension: ext, subdirectory: bundlePath, in: URL(fileURLWithPath: bundlePath))?.path ?? nil
+        return Bundle.url(forResource: name, withExtension: ext, subdirectory: bundlePath, in: URL(fileURLWithPath: bundlePath))?.path
     }
     
     open class func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
@@ -274,12 +276,12 @@ open class Bundle: NSObject {
     
     open var infoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetInfoDictionary(_bundle)
-        return _SwiftValue.fetch(cfDict) as? [String : Any]
+        return __SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     open var localizedInfoDictionary: [String : Any]? {
         let cfDict: CFDictionary? = CFBundleGetLocalInfoDictionary(_bundle)
-        return _SwiftValue.fetch(cfDict) as? [String : Any]
+        return __SwiftValue.fetch(cfDict) as? [String : Any]
     }
     
     open func object(forInfoDictionaryKey key: String) -> Any? {
@@ -297,7 +299,7 @@ open class Bundle: NSObject {
     }
     open var localizations: [String] {
         let cfLocalizations: CFArray? = CFBundleCopyBundleLocalizations(_bundle)
-        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
+        let nsLocalizations = __SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
 
@@ -308,7 +310,7 @@ open class Bundle: NSObject {
 
     open class func preferredLocalizations(from localizationsArray: [String]) -> [String] {
         let cfLocalizations: CFArray? = CFBundleCopyPreferredLocalizationsFromArray(localizationsArray._cfObject)
-        let nsLocalizations = _SwiftValue.fetch(cfLocalizations) as? [Any]
+        let nsLocalizations = __SwiftValue.fetch(cfLocalizations) as? [Any]
         return nsLocalizations?.map { $0 as! String } ?? []
     }
     

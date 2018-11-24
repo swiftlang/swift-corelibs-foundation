@@ -111,16 +111,21 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     
     open func isEqual(to indexSet: IndexSet) -> Bool {
-        
-        let otherRanges = indexSet.rangeView.map { NSRange(location: $0.lowerBound, length: $0.upperBound - $0.lowerBound) }
-        if _ranges.count != otherRanges.count {
+        // Exit early if the IndexSets do not have the same number of intervals
+        if _ranges.count != indexSet.rangeView.count {
             return false
         }
-        for (r1, r2) in zip(_ranges, otherRanges) {
-            if r1.length != r2.length || r1.location != r2.location {
+
+        // Iterate over indexes to compare each
+        for (range, element) in zip(_ranges, indexSet.rangeView) {
+            let elementLength = element.upperBound - element.lowerBound
+
+            // Return false if the ranges do not match
+            if range.location != element.lowerBound || range.length != elementLength {
                 return false
             }
         }
+
         return true
     }
     
@@ -349,7 +354,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
     open func contains(_ indexSet: IndexSet) -> Bool {
         var result = true
-        enumerateRanges(options: []) { range, stop in
+        let nsIndexSet = indexSet._bridgeToObjectiveC()
+        nsIndexSet.enumerateRanges(options: []) { range, stop in
             if !self.contains(in: range) {
                 result = false
                 stop.pointee = true
@@ -389,8 +395,8 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let lock = NSLock()
         let ranges = _ranges[startRangeIndex...endRangeIndex]
         let rangeSequence = (reverse ? AnyCollection(ranges.reversed()) : AnyCollection(ranges))
-        let iteration = withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> (Int) -> Void in
-            return { (rangeIdx) in
+        withoutActuallyEscaping(block) { (closure: @escaping (P, UnsafeMutablePointer<ObjCBool>) -> R) -> () in
+            let iteration : (Int) -> Void = { (rangeIdx) in
                 lock.lock()
                 var stop = ObjCBool(sharedStop)
                 lock.unlock()
@@ -431,13 +437,12 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                     }
                 }
             }
-        }
-        
-        if opts.contains(.concurrent) {
-            DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
-        } else {
-            for idx in 0..<Int(rangeSequence.count) {
-                iteration(idx)
+            if opts.contains(.concurrent) {
+                DispatchQueue.concurrentPerform(iterations: Int(rangeSequence.count), execute: iteration)
+            } else {
+                for idx in 0..<Int(rangeSequence.count) {
+                    iteration(idx)
+                }
             }
         }
         
@@ -589,7 +594,7 @@ open class NSMutableIndexSet : NSIndexSet {
             let nextRange = _ranges[rangeIndex + 1]
             let currentEnd = currentRange.location + currentRange.length
             let nextEnd = nextRange.location + nextRange.length
-            if nextEnd >= nextRange.location {
+            if currentEnd >= nextRange.location {
                 // overlaps
                 if currentEnd < nextEnd {
                     // next range extends beyond current range

@@ -8,7 +8,7 @@
 //
 
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
@@ -41,13 +41,22 @@ open class ProcessInfo: NSObject {
         
     }
     
-    
-    internal static var _environment: [String : String] = {
-        return Dictionary<String, String>._unconditionallyBridgeFromObjectiveC(__CFGetEnvironment()._nsObject)
-    }()
-    
     open var environment: [String : String] {
-        return ProcessInfo._environment
+        let equalSign = Character("=")
+        let strEncoding = String.defaultCStringEncoding
+        let envp = _CFEnviron()
+        var env: [String : String] = [:]
+        var idx = 0
+
+        while let entry = envp.advanced(by: idx).pointee {
+            if let entry = String(cString: entry, encoding: strEncoding), let i = entry.index(of: equalSign) {
+                let key = String(entry.prefix(upTo: i))
+                let value = String(entry.suffix(from: i).dropFirst())
+                env[key] = value
+            }
+            idx += 1
+        }
+        return env
     }
     
     open var arguments: [String] {
@@ -65,7 +74,7 @@ open class ProcessInfo: NSObject {
     open var processName: String = _CFProcessNameString()._swiftObject
     
     open var processIdentifier: Int32 {
-        return __CFGetPid()
+        return Int32(getpid())
     }
     
     open var globallyUniqueString: String {
@@ -139,5 +148,13 @@ open class ProcessInfo: NSObject {
     
     open var systemUptime: TimeInterval {
         return CFGetSystemUptime()
+    }
+    
+    open var userName: String {
+        return NSUserName()
+    }
+    
+    open var fullUserName: String {
+        return NSFullUserName()
     }
 }

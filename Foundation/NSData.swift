@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
@@ -69,11 +69,10 @@ private final class _NSDataDeallocator {
 
 private let __kCFMutable: CFOptionFlags = 0x01
 private let __kCFGrowable: CFOptionFlags = 0x02
-private let __kCFMutableVarietyMask: CFOptionFlags = 0x03
-private let __kCFBytesInline: CFOptionFlags = 0x04
-private let __kCFUseAllocator: CFOptionFlags = 0x08
-private let __kCFDontDeallocate: CFOptionFlags = 0x10
-private let __kCFAllocatesCollectable: CFOptionFlags = 0x20
+
+private let __kCFBytesInline: CFOptionFlags = 2
+private let __kCFUseAllocator: CFOptionFlags = 3
+private let __kCFDontDeallocate: CFOptionFlags = 4
 
 open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFData
@@ -180,47 +179,64 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
+        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
     public init(contentsOf url: URL, options readOptionsMask: ReadingOptions = []) throws {
         super.init()
-        try _contentsOf(url: url, options: readOptionsMask)
+        let (data, _) = try NSData.contentsOf(url: url, options: readOptionsMask)
+        _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
     public init?(contentsOf url: URL) {
         super.init()
         do {
-            try _contentsOf(url: url)
+            let (data, _) = try NSData.contentsOf(url: url)
+            _init(bytes: UnsafeMutableRawPointer(mutating: data.bytes), length: data.length, copy: true)
         } catch {
             return nil
         }
     }
 
-    /// Initializes a data object with the data from the location specified by a given URL.
-    private func _contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws {
+    internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (NSData, URLResponse?) {
+        let readResult: NSData
+        var urlResponse: URLResponse?
+
         if url.isFileURL {
-            let readResult = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
-            _init(bytes: readResult.bytes, length: readResult.length, copy: false, deallocator: readResult.deallocator)
+            let data = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
+            readResult = data.toNSData()
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()
+            cond.lock()
+
             var resError: Error?
             var resData: Data?
+            var taskFinished = false
             let task = session.dataTask(with: url, completionHandler: { data, response, error in
+                cond.lock()
                 resData = data
+                urlResponse = response
                 resError = error
-                cond.broadcast()
+                taskFinished = true
+                cond.signal()
+                cond.unlock()
             })
+
             task.resume()
-            cond.wait()
+            while taskFinished == false {
+                cond.wait()
+            }
+            cond.unlock()
+
             guard let data = resData else {
                 throw resError!
             }
-            _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: length, copy: true)
+            readResult = NSData(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count)
         }
+        return (readResult, urlResponse)
     }
 
     /// Initializes a data object with the given Base64 encoded string.
@@ -272,7 +288,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - NSObject methods
     open override var hash: Int {
-        return Int(bitPattern: CFHash(_cfObject))
+        return Int(bitPattern: _CFNonObjCHash(_cfObject))
     }
 
     /// Returns a Boolean value indicating whether this data object is the same as another.
@@ -394,102 +410,33 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     // MARK: - IO
     internal struct NSDataReadResult {
-        var bytes: UnsafeMutableRawPointer
+        var bytes: UnsafeMutableRawPointer?
         var length: Int
-        var deallocator: ((_ buffer: UnsafeMutableRawPointer, _ length: Int) -> Void)?
+        var deallocator: ((_ buffer: UnsafeMutableRawPointer, _ length: Int) -> Void)!
+
+        func toNSData() -> NSData {
+            if bytes == nil {
+                return NSData()
+            }
+            return NSData(bytesNoCopy: bytes!, length: length, deallocator: deallocator)
+        }
+
+        func toData() -> Data {
+            guard let bytes = bytes else {
+                return Data()
+            }
+            return Data(bytesNoCopy: bytes, count: length, deallocator: Data.Deallocator.custom(deallocator))
+        }
     }
-    
+
     internal static func readBytesFromFileWithExtendedAttributes(_ path: String, options: ReadingOptions) throws -> NSDataReadResult {
-        let fd = _CFOpenFile(path, O_RDONLY)
-        if fd < 0 {
+        guard let handle = FileHandle(path: path, flags: O_RDONLY, createMode: 0) else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
-        defer {
-            close(fd)
-        }
-
-        var info = stat()
-        let ret = withUnsafeMutablePointer(to: &info) { infoPointer -> Bool in
-            if fstat(fd, infoPointer) < 0 {
-                return false
-            }
-            return true
-        }
-        
-        if !ret {
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
-        }
-        
-        let length = Int(info.st_size)
-        if length == 0 && (info.st_mode & S_IFMT == S_IFREG) {
-            return try readZeroSizeFile(fd)
-        }
-
-        if options.contains(.alwaysMapped) {
-            let data = mmap(nil, length, PROT_READ, MAP_PRIVATE, fd, 0)
-            
-            // Swift does not currently expose MAP_FAILURE
-            if data != UnsafeMutableRawPointer(bitPattern: -1) {
-                return NSDataReadResult(bytes: data!, length: length) { buffer, length in
-                    munmap(buffer, length)
-                }
-            }
-            
-        }
-        
-        let data = malloc(length)!
-        var remaining = Int(info.st_size)
-        var total = 0
-        while remaining > 0 {
-            let amt = read(fd, data.advanced(by: total), remaining)
-            if amt < 0 {
-                break
-            }
-            remaining -= amt
-            total += amt
-        }
-
-        if remaining != 0 {
-            free(data)
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
-        }
-        
-        return NSDataReadResult(bytes: data, length: length) { buffer, length in
-            free(buffer)
-        }
+        let result = try handle._readDataOfLength(Int.max, untilEOF: true)
+        return result
     }
 
-    internal static func readZeroSizeFile(_ fd: Int32) throws -> NSDataReadResult {
-        let blockSize = 1024 * 1024 // 1MB
-        var data: UnsafeMutableRawPointer? = nil
-        var bytesRead = 0
-        var amt = 0
-
-        repeat {
-            data = realloc(data, bytesRead + blockSize)
-            amt = read(fd, data!.advanced(by: bytesRead), blockSize)
-
-            // Dont continue on EINTR or EAGAIN as the file position may not
-            // have changed, see read(2).
-            if amt < 0 {
-                free(data!)
-                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
-            }
-            bytesRead += amt
-        } while amt > 0
-
-        if bytesRead == 0 {
-            free(data!)
-            data = malloc(0)
-        } else {
-            data = realloc(data, bytesRead) // shrink down the allocated block.
-        }
-
-        return NSDataReadResult(bytes: data!, length: bytesRead) { buffer, length in
-            free(buffer)
-        }
-    }
-    
     internal func makeTemporaryFile(inDirectory dirPath: String) throws -> (Int32, String) {
         let template = dirPath._nsObject.appendingPathComponent("tmp.XXXXXX")
         let maxLength = Int(PATH_MAX) + 1
@@ -508,7 +455,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         while bytesRemaining > 0 {
             var bytesWritten : Int
             repeat {
-                #if os(OSX) || os(iOS)
+                #if os(macOS) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
                 #elseif os(Linux) || os(Android) || CYGWIN
                     bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
@@ -524,64 +471,65 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
-        var fd : Int32
-        var mode : mode_t? = nil
-        let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
-        var auxFilePath : String? = nil
-        if useAuxiliaryFile {
-            // Preserve permissions.
-            var info = stat()
-            if lstat(path, &info) == 0 {
-                mode = mode_t(info.st_mode)
-            } else if errno != ENOENT && errno != ENAMETOOLONG {
+        let fm = FileManager.default
+        try fm._fileSystemRepresentation(withPath: path, { pathFsRep in
+            var fd : Int32
+            var mode : mode_t? = nil
+            let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
+            var auxFilePath : String? = nil
+            if useAuxiliaryFile {
+                // Preserve permissions.
+                var info = stat()
+                if lstat(pathFsRep, &info) == 0 {
+                    let mode = mode_t(info.st_mode)
+                } else if errno != ENOENT && errno != ENAMETOOLONG {
+                    throw _NSErrorWithErrno(errno, reading: false, path: path)
+                }
+                let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
+                fd = newFD
+                auxFilePath = path
+                fchmod(fd, 0o666)
+            } else {
+                var flags = O_WRONLY | O_CREAT | O_TRUNC
+                if writeOptionsMask.contains(.withoutOverwriting) {
+                    flags |= O_EXCL
+                }
+                fd = _CFOpenFileWithMode(path, flags, 0o666)
+            }
+            if fd == -1 {
                 throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-            let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
-            fd = newFD
-            auxFilePath = path
-            fchmod(fd, 0o666)
-        } else {
-            var flags = O_WRONLY | O_CREAT | O_TRUNC
-            if writeOptionsMask.contains(.withoutOverwriting) {
-                flags |= O_EXCL
+            defer {
+                close(fd)
             }
-            fd = _CFOpenFileWithMode(path, flags, 0o666)
-        }
-        if fd == -1 {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        }
-        defer {
-            close(fd)
-        }
 
-        try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
-            if range.length > 0 {
-                do {
-                    try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
-                    if fsync(fd) < 0 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+            try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
+                if range.length > 0 {
+                    do {
+                        try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
+                        if fsync(fd) < 0 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        }
+                    } catch {
+                        if let auxFilePath = auxFilePath {
+                            try? FileManager.default.removeItem(atPath: auxFilePath)
+                        }
+                        throw error
                     }
-                } catch let err {
-                    if let auxFilePath = auxFilePath {
-                        do {
-                            try FileManager.default.removeItem(atPath: auxFilePath)
-                        } catch _ {}
-                    }
-                    throw err
                 }
             }
-        }
-        if let auxFilePath = auxFilePath {
-            if rename(auxFilePath, path) != 0 {
-                do {
-                    try FileManager.default.removeItem(atPath: auxFilePath)
-                } catch _ {}
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            if let auxFilePath = auxFilePath {
+                try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
+                    if rename(auxFilePathFsRep, pathFsRep) != 0 {
+                        try? FileManager.default.removeItem(atPath: auxFilePath)
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
+                    if let mode = mode {
+                        chmod(pathFsRep, mode)
+                    }
+                })
             }
-            if let mode = mode {
-                chmod(path, mode)
-            }
-        }
+        })
     }
 
     /// Writes the data object's bytes to the file specified by a given path.
@@ -684,8 +632,8 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         self.enumerateBytes() { (buf, range, stop) -> Void in
             do {
                 try block(buf, range, stop)
-            } catch let e {
-                err = e
+            } catch {
+                err = error
             }
         }
         if let err = err {
@@ -966,7 +914,7 @@ open class NSMutableData : NSData {
     }
 
     // NOTE: the deallocator block here is implicitly @escaping by virtue of it being optional
-    public override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+    fileprivate override init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool = false, deallocator: (/*@escaping*/ (UnsafeMutableRawPointer, Int) -> Void)? = nil) {
         super.init(bytes: bytes, length: length, copy: copy, deallocator: deallocator)
     }
 
@@ -989,6 +937,47 @@ open class NSMutableData : NSData {
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int) {
+        super.init(bytesNoCopy: bytes, length: length)
+    }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)? = nil) {
+        super.init(bytesNoCopy: bytes, length: length, deallocator: deallocator)
+    }
+
+    public override init(bytesNoCopy bytes: UnsafeMutableRawPointer, length: Int, freeWhenDone: Bool) {
+        super.init(bytesNoCopy: bytes, length: length, freeWhenDone: freeWhenDone)
+    }
+
+    public override init(data: Data) {
+        super.init(data: data)
+    }
+
+    public override init?(contentsOfFile path: String) {
+        super.init(contentsOfFile: path)
+    }
+
+    public override init(contentsOfFile path: String, options: NSData.ReadingOptions = []) throws {
+        try super.init(contentsOfFile: path, options: options)
+    }
+
+    public override init?(contentsOf url: URL) {
+        super.init(contentsOf: url)
+    }
+
+    public override init(contentsOf url: URL, options: NSData.ReadingOptions = []) throws {
+        try super.init(contentsOf: url, options: options)
+    }
+
+    public override init?(base64Encoded base64Data: Data, options: NSData.Base64DecodingOptions = []) {
+        super.init(base64Encoded: base64Data, options: options)
+    }
+
+    public override init?(base64Encoded base64Data: String, options: NSData.Base64DecodingOptions = []) {
+        super.init(base64Encoded: base64Data, options: options)
+    }
+
 
     // MARK: - Funnel Methods
     /// A pointer to the data contained by the mutable data object.
@@ -1075,4 +1064,8 @@ extension NSData : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Data {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
+}
+
+internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
 }

@@ -1,7 +1,7 @@
 /*	CFBinaryHeap.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,6 +11,7 @@
 #include <CoreFoundation/CFBinaryHeap.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 
 const CFBinaryHeapCallBacks kCFStringBinaryHeapCallBacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, CFCopyDescription, (CFComparisonResult (*)(const void *, const void *, void *))CFStringCompare};
 
@@ -161,9 +162,7 @@ static void __CFBinaryHeapDeallocate(CFTypeRef cf) {
     }
 }
 
-static CFTypeID __kCFBinaryHeapTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFBinaryHeapClass = {
+const CFRuntimeClass __CFBinaryHeapClass = {
     _kCFRuntimeScannedObject,
     "CFBinaryHeap",
     NULL,	// init
@@ -176,9 +175,7 @@ static const CFRuntimeClass __CFBinaryHeapClass = {
 };
 
 CFTypeID CFBinaryHeapGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFBinaryHeapTypeID = _CFRuntimeRegisterClass(&__CFBinaryHeapClass); });
-    return __kCFBinaryHeapTypeID;
+    return _kCFRuntimeIDCFBinaryHeap;
 }
 
 static CFBinaryHeapRef __CFBinaryHeapInit(CFAllocatorRef allocator, UInt32 flags, CFIndex capacity, const void **values, CFIndex numValues, const CFBinaryHeapCallBacks *callBacks, const CFBinaryHeapCompareContext *compareContext) {

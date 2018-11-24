@@ -7,20 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-// Exposing internal ReadingOptions for tests.
-extension JSONSerialization.ReadingOptions {
-    fileprivate static let useReferenceNumericTypes = JSONSerialization.ReadingOptions(rawValue: 1 << 15)
-}
-
 class TestJSONSerialization : XCTestCase {
     
     let supportedEncodings: [String.Encoding] = [
@@ -486,7 +472,7 @@ extension TestJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? NSNumber, true)
                 XCTAssertEqual(result?[1] as? NSNumber, false)
                 XCTAssertEqual(result?[2] as? String, "hello")
@@ -501,7 +487,7 @@ extension TestJSONSerialization {
 
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -510,19 +496,27 @@ extension TestJSONSerialization {
                     return
                 }
                 let result = try getjsonObjectResult(data, objectType) as? [Any]
-                XCTAssertEqual(result?[0] as? Int,        1)
-                XCTAssertEqual(result?[1] as? Int,       -1)
-                XCTAssertEqual(result?[2] as? Double,   1.3)
-                XCTAssertEqual(result?[3] as? Double,  -1.3)
-                XCTAssertEqual(result?[4] as? Int,     1000)
+                XCTAssertEqual(result?[0] as? Int,    1)
+                XCTAssertEqual(result?[1] as? Int,    -1)
+                XCTAssertEqual(result?[2] as? Double, 1.3)
+                XCTAssertEqual(result?[3] as? Double, -1.3)
+                XCTAssertEqual(result?[4] as? Int,    1000)
                 XCTAssertEqual(result?[5] as? Double, 0.001)
+                XCTAssertEqual(result?[6] as? Int,    10)
+                XCTAssertEqual(result?[6] as? Double, 10.0)
+                XCTAssertEqual(result?[7] as? Double, -12.34e56)
+                XCTAssertEqual(result?[8] as? Double, 12.34e-56)
+                XCTAssertEqual(result?[9] as? Double, 12.34e6)
+                XCTAssertEqual(result?[10] as? Double, 2e-3)
+                XCTAssertEqual(result?[11] as? Double, 43)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
+
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -530,13 +524,21 @@ extension TestJSONSerialization {
                     XCTFail("Unable to convert string to data")
                     return
                 }
-                let result = try getjsonObjectResult(data, objectType, options: [.useReferenceNumericTypes]) as? [Any]
+                let result = try getjsonObjectResult(data, objectType) as? [Any]
                 XCTAssertEqual(result?[0] as? NSNumber, 1)
                 XCTAssertEqual(result?[1] as? NSNumber, -1)
                 XCTAssertEqual(result?[2] as? NSNumber, 1.3)
                 XCTAssertEqual(result?[3] as? NSNumber, -1.3)
                 XCTAssertEqual(result?[4] as? NSNumber, 1000)
                 XCTAssertEqual(result?[5] as? NSNumber, 0.001)
+                XCTAssertEqual(result?[6] as? NSNumber, 10)
+                XCTAssertEqual(result?[6] as? NSNumber, 10.0)
+                XCTAssertEqual(result?[7] as? NSNumber, -12.34e56)
+                XCTAssertEqual(result?[8] as? NSNumber, 12.34e-56)
+                XCTAssertEqual(result?[9] as? NSNumber, 12.34e6)
+                XCTAssertEqual(result?[10] as? NSNumber, 2e-3)
+                XCTAssertEqual(result?[11] as? NSNumber, 43)
+
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -1207,7 +1209,8 @@ extension TestJSONSerialization {
     }
     
     func test_serialize_UIntMin() {
-        let json: [Any] = [UInt.min]
+        let array: [UInt] = [UInt.min]
+        let json = array as [Any]
         XCTAssertEqual(try trySerialize(json), "[\(UInt.min)]")
     }
 
@@ -1240,18 +1243,35 @@ extension TestJSONSerialization {
     }
 
     func test_serialize_Float() {
-        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,0,1]")
+        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-1e-45,1e-45]")
+        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,1e-45,1]")
     }
 
     func test_serialize_Double() {
-        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-5e-324,5e-324]")
+        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-2.2250738585072014e-308,2.2250738585072014e-308]")
+        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-1.7976931348623157e+308]")
+        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[1.7976931348623157e+308]")
         XCTAssertEqual(try trySerialize([Double(-1.0),  Double(1.0)]), "[-1,1]")
+
+        // Test round-tripping Double values
+        let value1 = 7.7087009966199993
+        let value2 = 7.7087009966200002
+        let dict1 = ["value": value1]
+        let dict2 = ["value": value2]
+        let jsonData1 = try! JSONSerialization.data(withJSONObject: dict1)
+        let jsonData2 = try! JSONSerialization.data(withJSONObject: dict2)
+        let jsonString1 = String(decoding: jsonData1, as: UTF8.self)
+        let jsonString2 = String(decoding: jsonData2, as: UTF8.self)
+
+        XCTAssertEqual(jsonString1, "{\"value\":7.708700996619999}")
+        XCTAssertEqual(jsonString2, "{\"value\":7.70870099662}")
+        let decodedDict1 = try! JSONSerialization.jsonObject(with: jsonData1) as! [String : Double]
+        let decodedDict2 = try! JSONSerialization.jsonObject(with: jsonData2) as! [String : Double]
+        XCTAssertEqual(decodedDict1["value"], value1)
+        XCTAssertEqual(decodedDict2["value"], value2)
     }
 
     func test_serialize_Decimal() {
@@ -1375,7 +1395,7 @@ extension TestJSONSerialization {
             let result = try JSONSerialization.writeJSONObject(dict, toStream: outputStream, options: [])
             outputStream.close()
             if(result > -1) {
-                XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                XCTAssertEqual(NSString(bytes: buffer, length: buffer.firstIndex(of: 0) ?? buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
             }
         } catch {
             XCTFail("Error thrown: \(error)")
@@ -1398,7 +1418,7 @@ extension TestJSONSerialization {
                         let resultRead: Int = fileStream.read(&buffer, maxLength: buffer.count)
                         fileStream.close()
                         if(resultRead > -1){
-                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
+                            XCTAssertEqual(NSString(bytes: buffer, length: buffer.firstIndex(of: 0) ?? buffer.count, encoding: String.Encoding.utf8.rawValue), "{\"a\":{\"b\":1}}")
                         }
                     }
                     removeTestFile(filePath)
@@ -1457,7 +1477,7 @@ extension TestJSONSerialization {
         }
         do {
             let data = decimalArray.data(using: String.Encoding.utf8)
-            let result = try JSONSerialization.jsonObject(with: data!, options: [.useReferenceNumericTypes]) as? [Any]
+            let result = try JSONSerialization.jsonObject(with: data!, options: []) as? [Any]
             XCTAssertEqual(result?[0] as! NSNumber, 12.1)
             XCTAssertEqual(result?[1] as! NSNumber, 10)
             XCTAssertEqual(result?[2] as! NSNumber, 0)
@@ -1475,7 +1495,7 @@ extension TestJSONSerialization {
         let dict3 = ["c": ["c":1,"b":1,"a":1],"b":["c":1,"b":1,"a":1],"a":["c":1,"b":1,"a":1]]
 
 #if DARWIN_COMPATIBILITY_TESTS
-        if #available(OSX 10.13, *) {
+        if #available(macOS 10.13, *) {
             XCTAssertEqual(try trySerialize(dict1, options: .sortedKeys), "{\"q\":1,\"r\":1,\"s\":1,\"t\":1,\"u\":1,\"v\":1,\"w\":1,\"x\":1,\"y\":1,\"z\":1}")
             XCTAssertEqual(try trySerialize(dict2, options: .sortedKeys), "{\"a\":1,\"aa\":1,\"aaa\":1,\"aaaa\":1}")
             XCTAssertEqual(try trySerialize(dict3, options: .sortedKeys), "{\"a\":{\"a\":1,\"b\":1,\"c\":1},\"b\":{\"a\":1,\"b\":1,\"c\":1},\"c\":{\"a\":1,\"b\":1,\"c\":1}}")
@@ -1502,16 +1522,12 @@ extension TestJSONSerialization {
             } else {
                 return nil
             }
-        } catch _ {
+        } catch {
             return nil
         }
     }
     
     fileprivate func removeTestFile(_ location: String) {
-        do {
-            try FileManager.default.removeItem(atPath: location)
-        } catch _ {
-            
-        }
+        try? FileManager.default.removeItem(atPath: location)
     }
 }

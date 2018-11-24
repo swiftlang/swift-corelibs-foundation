@@ -141,9 +141,9 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
     
     /// Returns `true` if `self` contains `date`.
     public func contains(_ date: Date) -> Bool {
-        let timeIntervalForGivenDate = date.timeIntervalSinceReferenceDate
-        let timeIntervalForSelfStart = start.timeIntervalSinceReferenceDate
-        let timeIntervalforSelfEnd = end.timeIntervalSinceReferenceDate
+        let timeIntervalForGivenDate = abs(date.timeIntervalSinceReferenceDate)
+        let timeIntervalForSelfStart = abs(start.timeIntervalSinceReferenceDate)
+        let timeIntervalforSelfEnd = abs(end.timeIntervalSinceReferenceDate)
         if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalforSelfEnd) {
             return true
         }
@@ -183,11 +183,11 @@ extension DateInterval : CustomStringConvertible, CustomDebugStringConvertible, 
         c.append((label: "start", value: start))
         c.append((label: "end", value: end))
         c.append((label: "duration", value: duration))
-        return Mirror(self, children: c, displayStyle: Mirror.DisplayStyle.struct)
+        return Mirror(self, children: c, displayStyle: .struct)
     }
 }
 
-extension DateInterval : _ObjectTypeBridgeable {
+extension DateInterval : _ObjectiveCBridgeable {
     public static func _isBridgedToObjectiveC() -> Bool {
         return true
     }

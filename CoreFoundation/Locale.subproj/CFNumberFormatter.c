@@ -1,7 +1,7 @@
 /*	CFNumberFormatter.c
-	Copyright (c) 2002-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2002-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -12,6 +12,7 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <CoreFoundation/CFBigNumber.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include "CFLocaleInternal.h"
 #include "CFICULogging.h"
 #include <math.h>
@@ -56,9 +57,7 @@ static void __CFNumberFormatterDeallocate(CFTypeRef cf) {
     if (formatter->_zeroSym) CFRelease(formatter->_zeroSym);
 }
 
-static CFTypeID __kCFNumberFormatterTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFNumberFormatterClass = {
+const CFRuntimeClass __CFNumberFormatterClass = {
     0,
     "CFNumberFormatter",
     NULL,	// init
@@ -71,9 +70,7 @@ static const CFRuntimeClass __CFNumberFormatterClass = {
 };
 
 CFTypeID CFNumberFormatterGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFNumberFormatterTypeID = _CFRuntimeRegisterClass(&__CFNumberFormatterClass); });
-    return __kCFNumberFormatterTypeID;
+    return _kCFRuntimeIDCFNumberFormatter;
 }
 
 CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleRef locale, CFNumberFormatterStyle style) {
@@ -136,11 +133,13 @@ CFNumberFormatterRef CFNumberFormatterCreate(CFAllocatorRef allocator, CFLocaleR
 	CFRelease(memory);
 	return NULL;
     }
-    UChar ubuff[4];
+
     if (kCFNumberFormatterNoStyle == style) {
+        UChar ubuff[1];
         status = U_ZERO_ERROR;
-	ubuff[0] = '#'; ubuff[1] = ';'; ubuff[2] = '#';
-        __cficu_unum_applyPattern(memory->_nf, false, ubuff, 3, NULL, &status);
+        ubuff[0] = '#';
+
+        __cficu_unum_applyPattern(memory->_nf, false, ubuff, 1, NULL, &status);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_INTEGER_DIGITS, 42);
 	__cficu_unum_setAttribute(memory->_nf, UNUM_MAX_FRACTION_DIGITS, 0);
     }

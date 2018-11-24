@@ -91,6 +91,7 @@ open class XMLNode: NSObject, NSCopying {
     }
 
     internal let _xmlNode: _CFXMLNodePtr
+    internal var _xmlDocument: XMLDocument?
 
     open func copy(with zone: NSZone? = nil) -> Any {
         let newNode = _CFXMLCopyNode(_xmlNode, true)
@@ -761,6 +762,8 @@ open class XMLNode: NSObject, NSCopying {
             node.detach()
         }
 
+        _xmlDocument = nil
+
         switch kind {
         case .document:
             _CFXMLFreeDocument(_CFXMLDocPtr(_xmlNode))
@@ -789,6 +792,11 @@ open class XMLNode: NSObject, NSCopying {
 
         withUnretainedReference {
             _CFXMLNodeSetPrivateData(_xmlNode, $0)
+        }
+        if let documentPtr = _CFXMLNodeGetDocument(_xmlNode) {
+            if documentPtr != ptr {
+                _xmlDocument = XMLDocument._objectNodeForNode(documentPtr)
+            }
         }
     }
 

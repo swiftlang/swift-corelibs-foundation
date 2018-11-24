@@ -7,15 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 enum XMLParserDelegateEvent {
     case startDocument
     case endDocument
@@ -139,7 +130,7 @@ class TestXMLParser : XCTestCase {
 
     func test_withDataOptions() {
         let xml = TestXMLParser.xmlUnderTest()
-        let parser = XMLParser(data: xml.data(using: String.Encoding.utf8)!)
+        let parser = XMLParser(data: xml.data(using: .utf8)!)
         parser.shouldProcessNamespaces = true
         parser.shouldReportNamespacePrefixes = true
         parser.shouldResolveExternalEntities = true

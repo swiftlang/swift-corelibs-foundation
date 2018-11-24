@@ -8,7 +8,7 @@
 //
 
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
@@ -31,14 +31,14 @@ private typealias _PthreadCondPointer = UnsafeMutablePointer<pthread_cond_t>
 
 open class NSLock: NSObject, NSLocking {
     internal var mutex = _PthreadMutexPointer.allocate(capacity: 1)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     private var timeoutCond = _PthreadCondPointer.allocate(capacity: 1)
     private var timeoutMutex = _PthreadMutexPointer.allocate(capacity: 1)
 #endif
 
     public override init() {
         pthread_mutex_init(mutex, nil)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         pthread_cond_init(timeoutCond, nil)
         pthread_mutex_init(timeoutMutex, nil)
 #endif
@@ -48,7 +48,7 @@ open class NSLock: NSObject, NSLocking {
         pthread_mutex_destroy(mutex)
         mutex.deinitialize(count: 1)
         mutex.deallocate()
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
     }
@@ -59,7 +59,7 @@ open class NSLock: NSObject, NSLocking {
 
     open func unlock() {
         pthread_mutex_unlock(mutex)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         // Wakeup any threads waiting in lock(before:)
         pthread_mutex_lock(timeoutMutex)
         pthread_cond_broadcast(timeoutCond)
@@ -76,7 +76,7 @@ open class NSLock: NSObject, NSLocking {
             return true
         }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
@@ -176,7 +176,7 @@ open class NSConditionLock : NSObject, NSLocking {
 
 open class NSRecursiveLock: NSObject, NSLocking {
     internal var mutex = _PthreadMutexPointer.allocate(capacity: 1)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
     private var timeoutCond = _PthreadCondPointer.allocate(capacity: 1)
     private var timeoutMutex = _PthreadMutexPointer.allocate(capacity: 1)
 #endif
@@ -198,7 +198,7 @@ open class NSRecursiveLock: NSObject, NSLocking {
         pthread_mutex_destroy(mutex)
         mutex.deinitialize(count: 1)
         mutex.deallocate()
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
     }
@@ -209,7 +209,7 @@ open class NSRecursiveLock: NSObject, NSLocking {
     
     open func unlock() {
         pthread_mutex_unlock(mutex)
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         // Wakeup any threads waiting in lock(before:)
         pthread_mutex_lock(timeoutMutex)
         pthread_cond_broadcast(timeoutCond)
@@ -226,7 +226,7 @@ open class NSRecursiveLock: NSObject, NSLocking {
             return true
         }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
@@ -299,7 +299,7 @@ private func timeSpecFrom(date: Date) -> timespec? {
                     tv_nsec: Int(intervalNS % nsecPerSec))
 }
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 
 private func deallocateTimedLockData(cond: _PthreadCondPointer, mutex: _PthreadMutexPointer) {
     pthread_cond_destroy(cond)

@@ -109,7 +109,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
             let nameSpecified = name != nil
             let differentName = observer.name != name
             let objectSpecified = object != nil
-            let differentSender = observer.sender !== _SwiftValue.store(object)
+            let differentSender = observer.sender !== __SwiftValue.store(object)
 
             return differentObserver || (nameSpecified  && differentName) || (objectSpecified && differentSender)
         }
@@ -127,7 +127,7 @@ extension Sequence where Iterator.Element : NSNotificationReceiver {
             let emptyName = observer.name == nil
             let sameName = observer.name == name
             let emptySender = observer.sender == nil
-            let sameSender = observer.sender === _SwiftValue.store(sender)
+            let sameSender = observer.sender === __SwiftValue.store(sender)
 
             return (emptySender || sameSender) && (emptyName || sameName)
         }
@@ -200,7 +200,7 @@ open class NotificationCenter: NSObject {
         newObserver.object = object
         newObserver.name = name
         newObserver.block = block
-        newObserver.sender = _SwiftValue.store(obj)
+        newObserver.sender = __SwiftValue.store(obj)
         newObserver.queue = queue
 
         _observersLock.synchronized({

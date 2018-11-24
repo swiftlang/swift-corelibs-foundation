@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestEnergyFormatter: XCTestCase {
     let formatter: EnergyFormatter = EnergyFormatter()
     
@@ -61,88 +53,88 @@ class TestEnergyFormatter: XCTestCase {
     }
     
     func test_stringFromValue() {
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: EnergyFormatter.Unit.kilojoule),"0.002 kilojoules")
-        XCTAssertEqual(formatter.string(fromValue:0, unit:EnergyFormatter.Unit.joule), "0 joules")
-        XCTAssertEqual(formatter.string(fromValue:1, unit:EnergyFormatter.Unit.joule), "1 joule")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: .kilojoule),"0.002 kilojoules")
+        XCTAssertEqual(formatter.string(fromValue:0, unit: .joule), "0 joules")
+        XCTAssertEqual(formatter.string(fromValue:1, unit: .joule), "1 joule")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit:EnergyFormatter.Unit.kilocalorie), "0kcal")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: EnergyFormatter.Unit.calorie), "2.4cal")
-        XCTAssertEqual(formatter.string(fromValue: 123456, unit: EnergyFormatter.Unit.calorie), "123,456cal")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .kilocalorie), "0kcal")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: .calorie), "2.4cal")
+        XCTAssertEqual(formatter.string(fromValue: 123456, unit: .calorie), "123,456cal")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
+        formatter.unitStyle = .medium
         formatter.isForFoodEnergyUse = true
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: EnergyFormatter.Unit.calorie), "0 cal")
-        XCTAssertEqual(formatter.string(fromValue: 987654321, unit: EnergyFormatter.Unit.kilocalorie), "987,654,321 Cal")
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .calorie), "0 cal")
+        XCTAssertEqual(formatter.string(fromValue: 987654321, unit: .kilocalorie), "987,654,321 Cal")
         
         formatter.isForFoodEnergyUse = false
-        XCTAssertEqual(formatter.string(fromValue: 5.3, unit: EnergyFormatter.Unit.kilocalorie), "5.3 kcal")
-        XCTAssertEqual(formatter.string(fromValue: 873.2345, unit: EnergyFormatter.Unit.calorie), "873.234 cal")
+        XCTAssertEqual(formatter.string(fromValue: 5.3, unit: .kilocalorie), "5.3 kcal")
+        XCTAssertEqual(formatter.string(fromValue: 873.2345, unit: .calorie), "873.234 cal")
     }
     
     func test_unitStringFromJoules() {
         var unit = EnergyFormatter.Unit.joule
         XCTAssertEqual(formatter.unitString(fromJoules: -100000, usedUnit: &unit), "kcal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilocalorie)
+        XCTAssertEqual(unit, .kilocalorie)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 0, usedUnit: &unit), "kcal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilocalorie)
+        XCTAssertEqual(unit, .kilocalorie)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 0.0001, usedUnit: &unit), "cal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.calorie)
+        XCTAssertEqual(unit, .calorie)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 4184, usedUnit: &unit), "cal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.calorie)
+        XCTAssertEqual(unit, .calorie)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 4185, usedUnit: &unit), "kcal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilocalorie)
+        XCTAssertEqual(unit, .kilocalorie)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 100000, usedUnit: &unit), "kcal")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilocalorie)
+        XCTAssertEqual(unit, .kilocalorie)
         
         formatter.numberFormatter.locale = Locale(identifier: "de_DE")
         XCTAssertEqual(formatter.unitString(fromJoules: -100000, usedUnit: &unit), "kJ")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilojoule)
+        XCTAssertEqual(unit, .kilojoule)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 0, usedUnit: &unit), "kJ")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilojoule)
+        XCTAssertEqual(unit, .kilojoule)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 0.0001, usedUnit: &unit), "J")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.joule)
+        XCTAssertEqual(unit, .joule)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 1000, usedUnit: &unit), "J")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.joule)
+        XCTAssertEqual(unit, .joule)
         
         XCTAssertEqual(formatter.unitString(fromJoules: 1000.01, usedUnit: &unit), "kJ")
-        XCTAssertEqual(unit, EnergyFormatter.Unit.kilojoule)
+        XCTAssertEqual(unit, .kilojoule)
     }
     
     func test_unitStringFromValue() {
         formatter.isForFoodEnergyUse = true
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.unitString(fromValue: 1, unit: EnergyFormatter.Unit.kilocalorie), "Calories")
-        XCTAssertEqual(formatter.unitString(fromValue: 2, unit: EnergyFormatter.Unit.kilocalorie), "Calories")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.unitString(fromValue: 1, unit: .kilocalorie), "Calories")
+        XCTAssertEqual(formatter.unitString(fromValue: 2, unit: .kilocalorie), "Calories")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: EnergyFormatter.Unit.kilocalorie), "Cal")
-        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: EnergyFormatter.Unit.kilocalorie), "Cal")
+        formatter.unitStyle = .medium
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .kilocalorie), "Cal")
+        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: .kilocalorie), "Cal")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: EnergyFormatter.Unit.calorie), "cal")
-        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: EnergyFormatter.Unit.kilocalorie), "C")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .calorie), "cal")
+        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: .kilocalorie), "C")
         
         formatter.isForFoodEnergyUse = false
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: EnergyFormatter.Unit.kilojoule), "kilojoules")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: .kilojoule), "kilojoules")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: EnergyFormatter.Unit.kilocalorie), "kcal")
-        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: EnergyFormatter.Unit.kilocalorie), "kcal")
+        formatter.unitStyle = .medium
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .kilocalorie), "kcal")
+        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: .kilocalorie), "kcal")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: EnergyFormatter.Unit.calorie), "cal")
-        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: EnergyFormatter.Unit.joule), "J")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .calorie), "cal")
+        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: .joule), "J")
     }
 
 }

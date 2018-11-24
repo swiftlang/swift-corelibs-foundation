@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
-
 class TestNSLock: XCTestCase {
     static var allTests: [(String, (TestNSLock) -> () throws -> Void)] {
         return [
@@ -76,15 +68,15 @@ class TestNSLock: XCTestCase {
 
         for t in 0..<threadCount {
             let thread = Thread() {
+                condition.lock()
                 arrayLock.lock()
                 threadsStarted[t] = true
                 arrayLock.unlock()
 
-                condition.lock()
                 condition.wait()
                 condition.unlock()
                 for _ in 1...50 {
-                    let r = (endSeconds * drand48()) / 50
+                    let r = Double.random(in: 0...0.02)
                     Thread.sleep(forTimeInterval: r)
                     if lock.lock(before: endTime) {
                         lock.unlock()

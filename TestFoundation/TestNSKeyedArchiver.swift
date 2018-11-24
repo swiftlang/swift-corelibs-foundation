@@ -7,15 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 public class NSUserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
@@ -50,7 +41,7 @@ public class NSUserClass : NSObject, NSSecureCoding {
     }
 }
 
-public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureCoding {
+public class UserClass : NSObject, NSSecureCoding {
     var ivar : Int
     
     public class var supportsSecureCoding: Bool {
@@ -63,24 +54,26 @@ public class UserClass : CustomStringConvertible, Equatable, Hashable, NSSecureC
     
     init(_ value: Int) {
         self.ivar = value
+        super.init()
     }
     
     public required init?(coder aDecoder: NSCoder) {
         self.ivar = aDecoder.decodeInteger(forKey: "$ivar")
+        super.init()
     }
     
-    public var description: String {
+    public override var description: String {
         get {
             return "UserClass \(ivar)"
         }
     }
     
-    public static func ==(lhs: UserClass, rhs: UserClass) -> Bool {
-        return lhs.ivar == rhs.ivar
-    }
-    
-    public var hashValue: Int {
-        return ivar
+    public override func isEqual(_ other: Any?) -> Bool {
+      guard let other = other as? UserClass else {
+        return false
+      }
+      
+      return ivar == other.ivar
     }
 }
 
@@ -107,6 +100,8 @@ class TestNSKeyedArchiver : XCTestCase {
             ("test_archive_uuid_bvref", test_archive_uuid_byref),
             ("test_archive_uuid_byvalue", test_archive_uuid_byvalue),
             ("test_archive_unhashable", test_archive_unhashable),
+            ("test_archiveRootObject_String", test_archiveRootObject_String),
+            ("test_archiveRootObject_URLRequest()", test_archiveRootObject_URLRequest),
         ]
     }
 
@@ -159,8 +154,8 @@ class TestNSKeyedArchiver : XCTestCase {
     
     private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true) {
         // test both XML and binary encodings
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.xml)
-        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: PropertyListSerialization.PropertyListFormat.binary)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: .xml)
+        test_archive(object, classes: classes, allowsSecureCoding: allowsSecureCoding, outputFormat: .binary)
     }
     
     private func test_archive(_ object: AnyObject, allowsSecureCoding: Bool = true) {
@@ -345,4 +340,29 @@ class TestNSKeyedArchiver : XCTestCase {
             XCTFail("test_archive_unhashable, de-serialization error \(error)")
         }
     }
+
+    func test_archiveRootObject_String() {
+        let filePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        let result = NSKeyedArchiver.archiveRootObject("Hello", toFile: filePath)
+        XCTAssertTrue(result)
+        do {
+            try FileManager.default.removeItem(atPath: filePath)
+        } catch {
+            XCTFail("Failed to clean up file")
+        }
+    }
+
+    func test_archiveRootObject_URLRequest() {
+        let filePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)"
+        let url = URL(string: "http://swift.org")!
+        let request = URLRequest(url: url)._bridgeToObjectiveC()
+        let result = NSKeyedArchiver.archiveRootObject(request, toFile: filePath)
+        XCTAssertTrue(result)
+        do {
+            try FileManager.default.removeItem(atPath: filePath)
+        } catch {
+            XCTFail("Failed to clean up file")
+        }
+    }
+
 }

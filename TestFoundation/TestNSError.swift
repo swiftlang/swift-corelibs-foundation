@@ -7,15 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 struct SwiftCustomNSError: Error, CustomNSError {
 }
 
@@ -25,11 +16,13 @@ class TestNSError : XCTestCase {
         return [
             ("test_LocalizedError_errorDescription", test_LocalizedError_errorDescription),
             ("test_NSErrorAsError_localizedDescription", test_NSErrorAsError_localizedDescription),
+            ("test_NSError_inDictionary", test_NSError_inDictionary),
             ("test_CustomNSError_domain", test_CustomNSError_domain),
             ("test_CustomNSError_userInfo", test_CustomNSError_userInfo),
             ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
             ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
             ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
+            ("test_errorConvenience", test_errorConvenience)
         ]
     }
     
@@ -47,9 +40,18 @@ class TestNSError : XCTestCase {
         let error = nsError as Error
         XCTAssertEqual(error.localizedDescription, "Localized!")
     }
+    
+    func test_NSError_inDictionary() {
+        let error = NSError(domain: "domain", code: 42, userInfo: nil)
+        let nsdictionary = ["error": error] as NSDictionary
+        let dictionary = nsdictionary as? Dictionary<String, Error>
+        XCTAssertNotNil(dictionary)
+        XCTAssertEqual(error, dictionary?["error"] as? NSError)
+    }
 
     func test_CustomNSError_domain() {
-        XCTAssertEqual(SwiftCustomNSError.errorDomain, "TestFoundation.SwiftCustomNSError")
+        let name = testBundleName()
+        XCTAssertEqual(SwiftCustomNSError.errorDomain, "\(name).SwiftCustomNSError")
     }
 
     func test_CustomNSError_userInfo() {
@@ -87,5 +89,21 @@ class TestNSError : XCTestCase {
         }
 
         XCTAssertEqual(SwiftError.fortyTwo.errorCode, 42)
+    }
+
+    func test_errorConvenience() {
+        let error = CocoaError.error(.fileReadNoSuchFile, url: URL(fileURLWithPath: #file))
+
+        if let nsError = error as? NSError {
+            XCTAssertEqual(nsError._domain, NSCocoaErrorDomain)
+            XCTAssertEqual(nsError._code, CocoaError.fileReadNoSuchFile.rawValue)
+            if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
+                XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
+            } else {
+                XCTFail()
+            }
+        } else {
+            XCTFail()
+        }
     }
 }

@@ -668,7 +668,9 @@ public struct URL : ReferenceConvertible, Equatable {
     /// File system representation is a null-terminated C string with canonical UTF-8 encoding.
     /// - note: The pointer is not valid outside the context of the block.
     public func withUnsafeFileSystemRepresentation<ResultType>(_ block: (UnsafePointer<Int8>?) throws -> ResultType) rethrows -> ResultType {
-        return try block(_url.fileSystemRepresentation)
+        let fsRep = _url.fileSystemRepresentation
+        defer { fsRep.deallocate() }
+        return try block(fsRep)
     }
     
     // MARK: -
@@ -817,7 +819,7 @@ public struct URL : ReferenceConvertible, Equatable {
         self = appendingPathExtension(pathExtension)
     }
 
-    /// Returns a URL constructed by removing the last path component of self.
+    /// Removes the last path component from self.
     ///
     /// This function may either remove a path component or append `/..`.
     ///
@@ -827,7 +829,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
     
 
-    /// Returns a URL constructed by removing any path extension.
+    /// Removes any path extension from self.
     ///
     /// If the URL has an empty path (e.g., `http://www.example.com`), then this function will do nothing.
     public mutating func deletePathExtension() {
@@ -955,7 +957,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
 }
 
-extension URL : _ObjectTypeBridgeable {
+extension URL : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSURL {
         return _url
@@ -989,9 +991,9 @@ extension URL : CustomStringConvertible, CustomDebugStringConvertible {
     }
 }
 
-extension URL : CustomPlaygroundQuickLookable {
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .url(absoluteString)
+extension URL : CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
+        return absoluteString
     }
 }
 

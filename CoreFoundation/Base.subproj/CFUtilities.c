@@ -1,7 +1,7 @@
 /*	CFUtilities.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,6 +11,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFLocaleInternal.h"
+#include "CFBundle_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
 #include <CoreFoundation/CFBundle.h>
@@ -45,7 +46,7 @@
 #include <crt_externs.h>
 #include <dlfcn.h>
 #include <vproc.h>
-#import <libproc.h>
+#include <libproc.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <mach/mach.h>
@@ -55,7 +56,9 @@
 #include <sys/errno.h>
 #include <mach/mach_time.h>
 #include <Block.h>
+#include <os/lock.h>
 #endif
+
 #if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 #include <string.h>
 #include <pthread.h>
@@ -64,8 +67,13 @@
 #endif
 
 
-#if !defined(CF_HAVE_HW_CONFIG_COMMPAGE) && defined(_COMM_PAGE_LOGICAL_CPUS) && defined(_COMM_PAGE_PHYSICAL_CPUS) && defined(_COMM_PAGE_ACTIVE_CPUS)
+
+
+
+#if !defined(CF_HAVE_HW_CONFIG_COMMPAGE) && defined(_COMM_PAGE_LOGICAL_CPUS) && defined(_COMM_PAGE_PHYSICAL_CPUS) && defined(_COMM_PAGE_ACTIVE_CPUS) && !__has_feature(address_sanitizer)
 #define CF_HAVE_HW_CONFIG_COMMPAGE 1
+#else
+#define CF_HAVE_HW_CONFIG_COMMPAGE 0
 #endif
 
 CF_PRIVATE os_log_t _CFOSLog(void) {
@@ -482,7 +490,7 @@ CF_PRIVATE uint64_t __CFMemorySize() {
 #endif
     return memsize;
 }
-    
+
 #if TARGET_OS_MAC
 static uid_t _CFGetSVUID(BOOL *successful) {
     uid_t uid = -1;
@@ -531,7 +539,7 @@ typedef struct _ugids {
 } ugids;
     
 CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
-    ugids(^lookup)() = ^{
+    ugids(^lookup)(void) = ^{
         ugids ids;
 #if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
         if (0 != pthread_getugid_np(&ids._euid, &ids._egid))
@@ -658,7 +666,7 @@ static void _CFShowToFile(FILE *file, Boolean flush, const void *obj) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
          fprintf_l(file, NULL, "\n");
 #else
-         fprintf(file, NULL, "\n");
+         fprintf(file, "\n");
 #endif
          if (flush) fflush(file);
      }
@@ -750,8 +758,6 @@ static bool also_do_stderr(const _cf_logging_style style) {
 #endif
     return result;
 }
-
-extern char *__CFBundleMainID;
 
 static void _populateBanner(char **banner, char **time, char **thread, int *bannerLen) {
     double dummy;
@@ -874,7 +880,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
     asl_set(msg, "CFLog Local Time", time); // not to be documented, not public API
     asl_set(msg, "CFLog Thread", thread);   // not to be documented, not public API
     asl_set(msg, "ReadUID", uid);
-    static const char *levstr[] = {"0", "1", "2", "3", "4", "5", "6", "7"};
+    static const char * const levstr[] = {"0", "1", "2", "3", "4", "5", "6", "7"};
     asl_set(msg, ASL_KEY_LEVEL, levstr[lev]);
     asl_set(msg, ASL_KEY_MSG, message);
     asl_send(asl, msg);
@@ -1000,6 +1006,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
         CFStringGetCString(message, buffer, maxLength, encoding);
     
     __android_log_print(priority, tag, "%s", buffer);
+    fprintf(stderr, "%s\n", buffer);
     
     if (buffer != &stack_buffer[0]) free(buffer);
 #else
@@ -1064,22 +1071,23 @@ kern_return_t _CFDiscorporateMemoryMaterialize(CFDiscorporateMemory *hm) {
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX
-
-#define SUDDEN_TERMINATION_ENABLE_VPROC 1
-
-#if SUDDEN_TERMINATION_ENABLE_VPROC
-
 static os_unfair_lock __CFProcessKillingLock = OS_UNFAIR_LOCK_INIT;
 static CFIndex __CFProcessKillingDisablingCount = 1;
 static Boolean __CFProcessKillingWasTurnedOn = false;
+#endif
 
 void _CFSuddenTerminationDisable(void) {
+#if DEPLOYMENT_TARGET_MACOSX
     os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount++;
     os_unfair_lock_unlock(&__CFProcessKillingLock);
+#else
+    // Do nothing
+#endif
 }
 
 void _CFSuddenTerminationEnable(void) {
+#if DEPLOYMENT_TARGET_MACOSX
     // In our model the first call of _CFSuddenTerminationEnable() that does not balance a previous call of _CFSuddenTerminationDisable() actually enables sudden termination so we have to keep a count that's almost redundant with vproc's.
     os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount--;
@@ -1088,34 +1096,41 @@ void _CFSuddenTerminationEnable(void) {
     } else {
     }
     os_unfair_lock_unlock(&__CFProcessKillingLock);
+#else
+    // Do nothing
+#endif
 }
 
 void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
+#if DEPLOYMENT_TARGET_MACOSX
     // This is for when the caller wants to try to exit quickly if possible but not automatically exit the process when it next becomes clean, because quitting might still be cancelled by the user.
     os_unfair_lock_lock(&__CFProcessKillingLock);
     os_unfair_lock_unlock(&__CFProcessKillingLock);
+#else
+    // Elsewhere, sudden termination is always disabled
+#endif
 }
 
 void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
+#if DEPLOYMENT_TARGET_MACOSX
     // The user has had their final opportunity to cancel quitting. Exit as soon as the process is clean. Same carefulness as in _CFSuddenTerminationExitIfTerminationEnabled().
     os_unfair_lock_lock(&__CFProcessKillingLock);
     if (__CFProcessKillingWasTurnedOn) {
     }
     os_unfair_lock_unlock(&__CFProcessKillingLock);
+#else
+    // Elsewhere, sudden termination is always disabled
+#endif
 }
 
 size_t _CFSuddenTerminationDisablingCount(void) {
+#if DEPLOYMENT_TARGET_MACOSX
     return (__CFProcessKillingWasTurnedOn ? 0 : 1);
-}
-
 #else
-
-//The non-vproc implementation is present in the commit history, but long ago began failing to compile and nobody noticed. If you need to resurrect it, start there.
-#error Building with vproc sudden termination API disabled.
-
+    // Elsewhere, sudden termination is always disabled
+    return 1;
 #endif
-
-#endif
+}
 
 #pragma mark File Reading
     
@@ -1498,13 +1513,13 @@ CFDictionaryRef __CFGetEnvironment() {
     static dispatch_once_t once = 0L;
     static CFMutableDictionaryRef envDict = NULL;
     dispatch_once(&once, ^{
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
         extern char ***_NSGetEnviron(void);
         char **envp = *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_FREEBSD || TARGET_OS_CYGWIN
+#elif TARGET_OS_BSD || TARGET_OS_CYGWIN
         extern char **environ;
         char **envp = environ;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if !defined(environ) && !TARGET_OS_ANDROID
 #define environ __environ
 #endif

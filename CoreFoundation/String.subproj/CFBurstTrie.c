@@ -1,7 +1,7 @@
 /*	CFBurstTrie.c
-	Copyright (c) 2008-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2008-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,7 +11,7 @@
 #include "CFInternal.h"
 #include "CFBurstTrie.h"
 #include <CoreFoundation/CFByteOrder.h>
-#include "CFNumber.h"
+#include <CoreFoundation/CFNumber.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

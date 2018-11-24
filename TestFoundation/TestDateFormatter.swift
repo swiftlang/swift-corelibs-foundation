@@ -7,17 +7,9 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestDateFormatter: XCTestCase {
     
-    let DEFAULT_LOCALE = "en_US"
+    let DEFAULT_LOCALE = "en_US_POSIX"
     let DEFAULT_TIMEZONE = "GMT"
     
     static var allTests : [(String, (TestDateFormatter) -> () throws -> Void)] {
@@ -30,6 +22,10 @@ class TestDateFormatter: XCTestCase {
             ("test_customDateFormat", test_customDateFormat),
             ("test_setLocalizedDateFormatFromTemplate", test_setLocalizedDateFormatFromTemplate),
             ("test_dateFormatString", test_dateFormatString),
+            ("test_setLocaleToNil", test_setLocaleToNil),
+            ("test_setTimeZoneToNil", test_setTimeZoneToNil),
+            ("test_setTimeZone", test_setTimeZone),
+            ("test_expectedTimeZone", test_expectedTimeZone),
         ]
     }
     
@@ -56,7 +52,6 @@ class TestDateFormatter: XCTestCase {
                             "shortStandaloneQuarterSymbols" : ["Q1", "Q2", "Q3", "Q4"]]
         
         let f = DateFormatter()
-        XCTAssertNotNil(f)
         XCTAssertNotNil(f.timeZone)
         XCTAssertNotNil(f.locale)
         
@@ -196,7 +191,7 @@ class TestDateFormatter: XCTestCase {
     // en_US   EEEE, MMMM d, y 'at' h:mm:ss a zzzz  Friday, December 25, 2015 at 12:00:00 AM Greenwich Mean Time
     func test_dateStyleFull() {
 
-#if os(OSX) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
+#if os(macOS) // timestyle .full is currently broken on Linux, the timezone should be 'Greenwich Mean Time' not 'GMT'
         let timestamps: [TimeInterval:String] = [
             // Negative time offsets are still buggy on macOS
             -31536000 : "Wednesday, January 1, 1969 at 12:00:00 AM GMT", 0.0 : "Thursday, January 1, 1970 at 12:00:00 AM Greenwich Mean Time",
@@ -248,7 +243,7 @@ class TestDateFormatter: XCTestCase {
         f.timeZone = TimeZone(identifier: DEFAULT_TIMEZONE)
         f.locale = Locale(identifier: DEFAULT_LOCALE)
 
-#if os(OSX) // timestyle zzzz is currently broken on Linux
+#if os(macOS) // timestyle zzzz is currently broken on Linux
         f.dateFormat = "EEEE, MMMM d, y 'at' hh:mm:ss a zzzz"
         for (timestamp, stringResult) in timestamps {
             
@@ -338,5 +333,80 @@ class TestDateFormatter: XCTestCase {
             
             XCTAssertEqual(f.dateFormat, dateFormat)
         }
+    }
+
+    func test_setLocaleToNil() {
+        let f = DateFormatter()
+        // Locale should be the current one by default
+        XCTAssertEqual(f.locale, .current)
+
+        f.locale = nil
+
+        // Locale should go back to current.
+        XCTAssertEqual(f.locale, .current)
+
+        // A nil locale should not crash a subsequent operation
+        let result: String? = f.string(from: Date())
+        XCTAssertNotNil(result)
+    }
+
+    func test_setTimeZoneToNil() {
+        let f = DateFormatter()
+        // Time zone should be the system one by default.
+        XCTAssertEqual(f.timeZone, NSTimeZone.system)
+        f.timeZone = nil
+        // Time zone should go back to the system one.
+        XCTAssertEqual(f.timeZone, NSTimeZone.system)
+    }
+
+    func test_setTimeZone() {
+        // Test two different time zones. Should ensure that if one
+        // happens to be TimeZone.current, we still get a valid test.
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        // Case 1: New York
+        let f = DateFormatter()
+        f.timeZone = newYork
+        XCTAssertEqual(f.timeZone, newYork)
+
+        // Case 2: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.timeZone, losAngeles)
+    }
+
+    func test_expectedTimeZone() {
+        let newYork = TimeZone(identifier: "America/New_York")!
+        let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
+
+        XCTAssertNotEqual(newYork, losAngeles)
+
+        let now = Date()
+
+        let f = DateFormatter()
+        f.dateFormat = "z"
+        f.locale = Locale(identifier: "en_US_POSIX")
+
+        // Case 1: TimeZone.current
+        // This case can catch some issues that cause TimeZone.current to be
+        // treated like GMT, but it doesn't work if TimeZone.current is GMT.
+        // If you do find an issue like this caused by this first case,
+        // it would benefit from a more specific test that fails when
+        // TimeZone.current is GMT as well.
+        // (ex. TestTimeZone.test_systemTimeZoneName)
+
+// Disabled because of: https://bugs.swift.org/browse/SR-8994
+//        f.timeZone = TimeZone.current
+//        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
+
+        // Case 2: New York
+        f.timeZone = newYork
+        XCTAssertEqual(f.string(from: now), newYork.abbreviation())
+
+        // Case 3: Los Angeles
+        f.timeZone = losAngeles
+        XCTAssertEqual(f.string(from: now), losAngeles.abbreviation())
     }
 }

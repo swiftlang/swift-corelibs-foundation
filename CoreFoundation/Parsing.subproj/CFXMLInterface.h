@@ -137,7 +137,7 @@ typedef void* _CFXMLEntityPtr;
 typedef void* _CFXMLDTDPtr;
 typedef void* _CFXMLDTDNodePtr;
 
-_CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr _Nullable namespace, const char* name);
+_CFXMLNodePtr _CFXMLNewNode(_CFXMLNamespacePtr _Nullable name_space, const char* name);
 _CFXMLNodePtr _CFXMLCopyNode(_CFXMLNodePtr node, bool recursive);
 
 _CFXMLDocPtr _CFXMLNewDoc(const unsigned char* version);
@@ -199,7 +199,7 @@ CFStringRef _Nullable _CFXMLCopyPathForNode(_CFXMLNodePtr node);
 
 _CFXMLNodePtr _Nullable _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName);
 
-_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, int options);
+_CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int options);
 
 CFStringRef _Nullable _CFXMLNodeCopyLocalName(_CFXMLNodePtr node);
 CFStringRef _Nullable _CFXMLNodeCopyPrefix(_CFXMLNodePtr node);

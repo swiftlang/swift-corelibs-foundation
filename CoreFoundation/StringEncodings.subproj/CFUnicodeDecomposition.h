@@ -3,9 +3,9 @@
 	CoreFoundation
 
 	Created by aki on Wed Oct 03 2001.
-	Copyright (c) 2001-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 2001-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -25,7 +25,6 @@ CF_INLINE bool CFUniCharIsDecomposableCharacter(UTF32Char character, bool isHFSP
 }
 
 CF_EXPORT CFIndex CFUniCharDecomposeCharacter(UTF32Char character, UTF32Char *convertedChars, CFIndex maxBufferLength);
-CF_EXPORT CFIndex CFUniCharCompatibilityDecompose(UTF32Char *convertedChars, CFIndex length, CFIndex maxBufferLength);
 
 CF_EXPORT bool CFUniCharDecompose(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus);
 CF_EXPORT bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, CFIndex *consumedLength, void *dst, CFIndex maxLength, CFIndex *filledLength, bool needToReorder, uint32_t dstFormat, bool isHFSPlus, CFIndex *charIndex);

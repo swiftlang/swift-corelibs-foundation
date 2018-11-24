@@ -62,8 +62,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     /// Returns a string created from the UUID, such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     public var uuidString: String {
         var bytes: uuid_string_t = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        var localValue = uuid
-        return withUnsafeMutablePointer(to: &localValue) { valPtr in
+        return withUnsafePointer(to: uuid) { valPtr in
             valPtr.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<uuid_t>.size) { val in
                 withUnsafeMutablePointer(to: &bytes) { strPtr in
                     strPtr.withMemoryRebound(to: CChar.self, capacity: MemoryLayout<uuid_string_t>.size) { str in
@@ -76,10 +75,9 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     }
     
     public var hashValue: Int {
-        var localValue = uuid
-        return withUnsafeMutablePointer(to: &localValue) {
+        return withUnsafePointer(to: uuid) {
             $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<uuid_t>.size) {
-                return Int(bitPattern: CFHashBytes($0, CFIndex(MemoryLayout<uuid_t>.size)))
+                return Int(bitPattern: CFHashBytes(UnsafeMutablePointer(mutating: $0), CFIndex(MemoryLayout<uuid_t>.size)))
             }
         }
     }
@@ -95,8 +93,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
     // MARK: - Bridging Support
     
     fileprivate var reference: NSUUID {
-        var bytes = uuid
-        return withUnsafePointer(to: &bytes) {
+        return withUnsafePointer(to: uuid) {
             $0.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<uuid_t>.size) {
                 return NSUUID(uuidBytes: $0)
             }
@@ -126,12 +123,12 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
 extension UUID : CustomReflectable {
     public var customMirror: Mirror {
         let c : [(label: String?, value: Any)] = []
-        let m = Mirror(self, children:c, displayStyle: Mirror.DisplayStyle.struct)
+        let m = Mirror(self, children:c, displayStyle: .struct)
         return m
     }
 }
 
-extension UUID : _ObjectTypeBridgeable {
+extension UUID : _ObjectiveCBridgeable {
     @_semantics("convertToObjectiveC")
     public func _bridgeToObjectiveC() -> NSUUID {
         return reference

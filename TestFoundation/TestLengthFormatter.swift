@@ -7,14 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 class TestLengthFormatter: XCTestCase {
     let formatter: LengthFormatter = LengthFormatter()
     
@@ -95,84 +87,83 @@ class TestLengthFormatter: XCTestCase {
     }
     
     func test_stringFromValue() {
-        formatter.unitStyle = Formatter.UnitStyle.long
-        //Commented out due to [SR-3391] which causes NumberFormatter to strip leading integer 0
-        //XCTAssertEqual(formatter.string(fromValue: 0.002, unit: LengthFormatter.Unit.millimeter),"0.002 millimeters")
-        XCTAssertEqual(formatter.string(fromValue:0, unit:LengthFormatter.Unit.centimeter), "0 centimeters")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.string(fromValue: 0.002, unit: .millimeter),"0.002 millimeters")
+        XCTAssertEqual(formatter.string(fromValue:0, unit: .centimeter), "0 centimeters")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit:LengthFormatter.Unit.foot), "0′")
-        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: LengthFormatter.Unit.inch), "2.4\"")
-        XCTAssertEqual(formatter.string(fromValue: 123456, unit: LengthFormatter.Unit.yard), "123,456yd")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .foot), "0′")
+        XCTAssertEqual(formatter.string(fromValue: 2.4, unit: .inch), "2.4″")
+        XCTAssertEqual(formatter.string(fromValue: 123456, unit: .yard), "123,456yd")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
+        formatter.unitStyle = .medium
         formatter.isForPersonHeightUse = true
-        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: LengthFormatter.Unit.foot), "0 ft")
-        XCTAssertEqual(formatter.string(fromValue: 987654321, unit: LengthFormatter.Unit.yard), "987,654,321 yd")
+        XCTAssertEqual(formatter.string(fromValue: 0.00000001, unit: .foot), "0 ft")
+        XCTAssertEqual(formatter.string(fromValue: 987654321, unit: .yard), "987,654,321 yd")
         
         formatter.isForPersonHeightUse = false
-        XCTAssertEqual(formatter.string(fromValue: 5.3, unit: LengthFormatter.Unit.millimeter), "5.3 mm")
-        XCTAssertEqual(formatter.string(fromValue: 873.2345, unit: LengthFormatter.Unit.centimeter), "873.234 cm")
+        XCTAssertEqual(formatter.string(fromValue: 5.3, unit: .millimeter), "5.3 mm")
+        XCTAssertEqual(formatter.string(fromValue: 873.2345, unit: .centimeter), "873.234 cm")
     }
     
     func test_unitStringFromMeters() {
         var unit = LengthFormatter.Unit.meter
         XCTAssertEqual(formatter.unitString(fromMeters: -100000, usedUnit: &unit), "mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
         
         XCTAssertEqual(formatter.unitString(fromMeters: -1, usedUnit: &unit), "mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 0.00001, usedUnit: &unit), "in")
-        XCTAssertEqual(unit, LengthFormatter.Unit.inch)
+        XCTAssertEqual(unit, .inch)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 0.0001, usedUnit: &unit), "in")
-        XCTAssertEqual(unit, LengthFormatter.Unit.inch)
+        XCTAssertEqual(unit, .inch)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 0.001, usedUnit: &unit), "in")
-        XCTAssertEqual(unit, LengthFormatter.Unit.inch)
+        XCTAssertEqual(unit, .inch)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 0.01, usedUnit: &unit), "in")
-        XCTAssertEqual(unit, LengthFormatter.Unit.inch)
+        XCTAssertEqual(unit, .inch)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 0.1, usedUnit: &unit), "in")
-        XCTAssertEqual(unit, LengthFormatter.Unit.inch)
+        XCTAssertEqual(unit, .inch)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 1, usedUnit: &unit), "yd")
-        XCTAssertEqual(unit, LengthFormatter.Unit.yard)
+        XCTAssertEqual(unit, .yard)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 10, usedUnit: &unit), "yd")
-        XCTAssertEqual(unit, LengthFormatter.Unit.yard)
+        XCTAssertEqual(unit, .yard)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 10000, usedUnit: &unit), "mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 1000000, usedUnit: &unit),"mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 10000000, usedUnit: &unit), "mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
         
         XCTAssertEqual(formatter.unitString(fromMeters: 100000000, usedUnit: &unit), "mi")
-        XCTAssertEqual(unit, LengthFormatter.Unit.mile)
+        XCTAssertEqual(unit, .mile)
     }
     
     func test_unitStringFromValue() {
-        formatter.unitStyle = Formatter.UnitStyle.long
-        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: LengthFormatter.Unit.millimeter), "millimeters")
-        XCTAssertEqual(formatter.unitString(fromValue: 0, unit: LengthFormatter.Unit.centimeter), "centimeters")
+        formatter.unitStyle = .long
+        XCTAssertEqual(formatter.unitString(fromValue: 0.002, unit: .millimeter), "millimeters")
+        XCTAssertEqual(formatter.unitString(fromValue: 0, unit: .centimeter), "centimeters")
         
-        formatter.unitStyle = Formatter.UnitStyle.short
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: LengthFormatter.Unit.foot), "′")
-        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: LengthFormatter.Unit.yard), "yd")
+        formatter.unitStyle = .short
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .foot), "′")
+        XCTAssertEqual(formatter.unitString(fromValue: 123456, unit: .yard), "yd")
         
-        formatter.unitStyle = Formatter.UnitStyle.medium
+        formatter.unitStyle = .medium
         formatter.isForPersonHeightUse = true
-        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: LengthFormatter.Unit.foot), "ft")
-        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: LengthFormatter.Unit.yard), "yd")
+        XCTAssertEqual(formatter.unitString(fromValue: 0.00000001, unit: .foot), "ft")
+        XCTAssertEqual(formatter.unitString(fromValue: 987654321, unit: .yard), "yd")
         
         formatter.isForPersonHeightUse = false
-        XCTAssertEqual(formatter.unitString(fromValue: 5.3, unit: LengthFormatter.Unit.millimeter), "mm")
-        XCTAssertEqual(formatter.unitString(fromValue: 873.2345, unit: LengthFormatter.Unit.centimeter), "cm")
+        XCTAssertEqual(formatter.unitString(fromValue: 5.3, unit: .millimeter), "mm")
+        XCTAssertEqual(formatter.unitString(fromValue: 873.2345, unit: .centimeter), "cm")
     }
 }

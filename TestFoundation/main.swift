@@ -7,20 +7,13 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-import Foundation
-import XCTest
-#else
-import SwiftFoundation
-import SwiftXCTest
-#endif
+// Most imports now centraized in TestImports.swift
 
-#if os(OSX) || os(iOS)
+#if canImport(Darwin)
     import Darwin
-#elseif os(Linux)
+#elseif canImport(Glibc)
     import Glibc
 #endif
-
 
 // ignore SIGPIPE which is sent when writing to closed file descriptors.
 _ = signal(SIGPIPE, SIG_IGN)
@@ -33,10 +26,12 @@ XCTMain([
     testCase(TestByteCountFormatter.allTests),
     testCase(TestNSCache.allTests),
     testCase(TestCalendar.allTests),
+    testCase(TestNSCalendar.allTests),
     testCase(TestCharacterSet.allTests),
     testCase(TestNSCompoundPredicate.allTests),
     testCase(TestNSData.allTests),
     testCase(TestDate.allTests),
+    testCase(TestDateComponents.allTests),
     testCase(TestNSDateComponents.allTests),
     testCase(TestDateFormatter.allTests),
     testCase(TestDecimal.allTests),
@@ -84,6 +79,7 @@ XCTMain([
     testCase(TestURL.allTests),
     testCase(TestURLComponents.allTests),
     testCase(TestURLCredential.allTests),
+    testCase(TestURLProtectionSpace.allTests),
     testCase(TestURLProtocol.allTests),
     testCase(TestNSURLRequest.allTests),
     testCase(TestURLRequest.allTests),
@@ -108,5 +104,6 @@ XCTMain([
     testCase(TestJSONEncoder.allTests),
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
+    testCase(TestDimension.allTests),
     testCase(TestNSLock.allTests),
 ])

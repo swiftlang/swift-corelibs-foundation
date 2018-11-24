@@ -7,15 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
 private func assertEqual(_ rect: CGRect,
                          x: CGFloat,
                          y: CGFloat,
@@ -27,15 +18,15 @@ private func assertEqual(_ rect: CGRect,
                          line: UInt = #line) {
 
     if let accuracy = accuracy {
-        XCTAssertEqual(rect.origin.x, x, accuracy: accuracy, message, file: file, line: line)
-        XCTAssertEqual(rect.origin.y, y, accuracy: accuracy, message, file: file, line: line)
-        XCTAssertEqual(rect.size.width, width, accuracy: accuracy, message, file: file, line: line)
-        XCTAssertEqual(rect.size.height, height, accuracy: accuracy, message, file: file, line: line)
+        XCTAssertEqual(rect.origin.x, x, accuracy: accuracy, message(), file: file, line: line)
+        XCTAssertEqual(rect.origin.y, y, accuracy: accuracy, message(), file: file, line: line)
+        XCTAssertEqual(rect.size.width, width, accuracy: accuracy, message(), file: file, line: line)
+        XCTAssertEqual(rect.size.height, height, accuracy: accuracy, message(), file: file, line: line)
     } else {
-        XCTAssertEqual(rect.origin.x, x, message, file: file, line: line)
-        XCTAssertEqual(rect.origin.y, y, message, file: file, line: line)
-        XCTAssertEqual(rect.size.width, width, message, file: file, line: line)
-        XCTAssertEqual(rect.size.height, height, message, file: file, line: line)
+        XCTAssertEqual(rect.origin.x, x, message(), file: file, line: line)
+        XCTAssertEqual(rect.origin.y, y, message(), file: file, line: line)
+        XCTAssertEqual(rect.size.width, width, message(), file: file, line: line)
+        XCTAssertEqual(rect.size.height, height, message(), file: file, line: line)
     }
 }
 

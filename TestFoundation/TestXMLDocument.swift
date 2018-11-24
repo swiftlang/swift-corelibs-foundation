@@ -7,71 +7,35 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
-class TestXMLDocument : XCTestCase {
+class TestXMLDocument : LoopbackServerTest {
 
     static var allTests: [(String, (TestXMLDocument) -> () throws -> Void)] {
-        #if os(OSX) || os(iOS)
-            return [
-                ("test_basicCreation", test_basicCreation),
-                ("test_nextPreviousNode", test_nextPreviousNode),
-                ("test_xpath", test_xpath),
-                ("test_elementCreation", test_elementCreation),
-                ("test_elementChildren", test_elementChildren),
-                ("test_stringValue", test_stringValue),
-                ("test_objectValue", test_objectValue),
-                ("test_attributes", test_attributes),
-                ("test_comments", test_comments),
-                ("test_processingInstruction", test_processingInstruction),
-                ("test_parseXMLString", test_parseXMLString),
-                ("test_prefixes", test_prefixes),
-                //                ("test_validation_success", test_validation_success),
-                //                ("test_validation_failure", test_validation_failure),
-                ("test_dtd", test_dtd),
-                ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
-                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
-                ("test_createElement", test_createElement),
-                ("test_addNamespace", test_addNamespace),
-                ("test_removeNamespace", test_removeNamespace),
-            ]
-        #else // On Linux, currently the tests that rely on NSError are segfaulting in swift_dynamicCast
-            return [
-                ("test_basicCreation", test_basicCreation),
-                ("test_nextPreviousNode", test_nextPreviousNode),
-                ("test_xpath", test_xpath),
-                ("test_elementCreation", test_elementCreation),
-                ("test_elementChildren", test_elementChildren),
-                ("test_stringValue", test_stringValue),
-                ("test_objectValue", test_objectValue),
-                ("test_attributes", test_attributes),
-                ("test_comments", test_comments),
-                ("test_processingInstruction", test_processingInstruction),
-                ("test_parseXMLString", test_parseXMLString),
-                ("test_prefixes", test_prefixes),
-                //                ("test_validation_success", test_validation_success),
-                //                ("test_validation_failure", test_validation_failure),
-                ("test_dtd", test_dtd),
-                //                ("test_documentWithDTD", test_documentWithDTD),
-                ("test_dtd_attributes", test_dtd_attributes),
-                ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
-                ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
-                ("test_createElement", test_createElement),
-                ("test_addNamespace", test_addNamespace),
-                ("test_removeNamespace", test_removeNamespace),
-            ]
-        #endif
+        return [
+            ("test_basicCreation", test_basicCreation),
+            ("test_nextPreviousNode", test_nextPreviousNode),
+            ("test_xpath", test_xpath),
+            ("test_elementCreation", test_elementCreation),
+            ("test_elementChildren", test_elementChildren),
+            ("test_stringValue", test_stringValue),
+            ("test_objectValue", test_objectValue),
+            ("test_attributes", test_attributes),
+            ("test_comments", test_comments),
+            ("test_processingInstruction", test_processingInstruction),
+            ("test_parseXMLString", test_parseXMLString),
+            ("test_prefixes", test_prefixes),
+            ("test_validation_success", test_validation_success),
+            ("test_validation_failure", test_validation_failure),
+            ("test_dtd", test_dtd),
+            ("test_documentWithDTD", test_documentWithDTD),
+            ("test_dtd_attributes", test_dtd_attributes),
+            ("test_documentWithEncodingSetDoesntCrash", test_documentWithEncodingSetDoesntCrash),
+            ("test_nodeFindingWithNamespaces", test_nodeFindingWithNamespaces),
+            ("test_createElement", test_createElement),
+            ("test_addNamespace", test_addNamespace),
+            ("test_removeNamespace", test_removeNamespace),
+            ("test_optionPreserveAll", test_optionPreserveAll),
+            ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
+        ]
     }
 
     func test_basicCreation() {
@@ -158,7 +122,10 @@ class TestXMLDocument : XCTestCase {
         XCTAssertEqual(nodes[0], bar1)
         XCTAssertEqual(nodes[1], bar2)
         XCTAssertEqual(nodes[2], bar3)
-        
+
+        let emptyResults = try! doc.nodes(forXPath: "/items/item/name[@type='alternate']/@value")
+        XCTAssertEqual(emptyResults.count, 0)
+
         let xmlString = """
         <?xml version="1.0" encoding="utf-8" standalone="yes"?>
             <D:propfind xmlns:D="DAV:">
@@ -378,8 +345,6 @@ class TestXMLDocument : XCTestCase {
         XCTAssert(doc.rootElement()?.namespaces?.first?.name == "R")
     }
 
-    /*
-     * <rdar://31567922> Re-enable these tests in a way that does not depend on the internet.
     func test_validation_success() throws {
         let validString = "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE foo [ <!ELEMENT foo (#PCDATA)> ]><foo>Hello world</foo>"
         do {
@@ -389,7 +354,8 @@ class TestXMLDocument : XCTestCase {
             XCTFail("\(error)")
         }
 
-        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
+        let dtdUrl = "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd"
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"\(dtdUrl)\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string></dict></plist>"
         let plistDoc = try XMLDocument(xmlString: plistDocString, options: [])
         do {
             try plistDoc.validate()
@@ -413,7 +379,8 @@ class TestXMLDocument : XCTestCase {
             XCTAssert((nsError.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element img was declared EMPTY this one has content"))
         }
 
-        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
+        let dtdUrl = "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd"
+        let plistDocString = "<?xml version='1.0' encoding='utf-8'?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"\(dtdUrl)\"> <plist version='1.0'><dict><key>MyKey</key><string>Hello!</string><key>MyBooleanThing</key><true>foobar</true></dict></plist>"
         let plistDoc = try XMLDocument(xmlString: plistDocString, options: [])
         do {
             try plistDoc.validate()
@@ -421,7 +388,7 @@ class TestXMLDocument : XCTestCase {
         } catch let error as NSError {
             XCTAssert((error.userInfo[NSLocalizedDescriptionKey] as! String).contains("Element true was declared EMPTY this one has content"))
         }
-    }*/
+    }
 
     func test_dtd() throws {
         let node = XMLNode.dtdNode(withXMLString:"<!ELEMENT foo (#PCDATA)>") as! XMLDTDNode
@@ -544,6 +511,38 @@ class TestXMLDocument : XCTestCase {
         XCTAssert(node?.localName == "prop")
         
         XCTAssert(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first?.name == "D:prop", "failed to get elements, got \(doc.rootElement()?.elements(forLocalName: "prop", uri: "DAV:").first as Any)")
+    }
+
+    func test_optionPreserveAll() {
+        let xmlString = """
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+</document>
+"""
+
+        let data = xmlString.data(using: .utf8)!
+        guard let document = try? XMLDocument(data: data, options: .nodePreserveAll) else {
+            XCTFail("XMLDocument with options .nodePreserveAll")
+            return
+        }
+        let expected = xmlString.lowercased() + "\n"
+        XCTAssertEqual(expected, String(describing: document))
+    }
+
+    func test_rootElementRetainsDocument() {
+        let str = """
+<?xml version="1.0" encoding="UTF-8"?>
+<plans></plans>
+"""
+
+        let data = str.data(using: .utf8)!
+
+        func test() throws -> String? {
+            let doc = try XMLDocument(data: data, options: []).rootElement()
+            return doc?.name
+        }
+
+        XCTAssertEqual(try? test(), "plans")
     }
 }
 

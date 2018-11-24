@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal extension UInt {
     init(_ status: CFStreamStatus) {
         self.init(status.rawValue)

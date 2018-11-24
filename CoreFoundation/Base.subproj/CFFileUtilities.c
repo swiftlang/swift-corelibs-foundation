@@ -1,7 +1,7 @@
 /*	CFFileUtilities.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -11,11 +11,11 @@
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <assert.h>
 
 #if DEPLOYMENT_TARGET_WINDOWS
 #include <io.h>
@@ -1075,6 +1075,23 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
         while ((dent = readdir(dirp))) {
 #if DEPLOYMENT_TARGET_LINUX
             CFIndex nameLen = strlen(dent->d_name);
+            if (dent->d_type == DT_UNKNOWN) {
+                // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
+                struct stat statBuf;
+                char pathToStat[sizeof(dent->d_name)];
+                strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
+                strlcat(pathToStat, "/", sizeof(pathToStat));
+                strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                if (stat(pathToStat, &statBuf) == 0) {
+                    if (S_ISDIR(statBuf.st_mode)) {
+                        dent->d_type = DT_DIR;
+                    } else if (S_ISREG(statBuf.st_mode)) {
+                        dent->d_type = DT_REG;
+                    } else if (S_ISLNK(statBuf.st_mode)) {
+                        dent->d_type = DT_LNK;
+                    }
+                }
+            }
 #else
             CFIndex nameLen = dent->d_namlen;
 #endif
@@ -1178,8 +1195,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
 #endif
 }
 
-
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if !DEPLOYMENT_RUNTIME_OBJC
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8
@@ -1198,7 +1214,7 @@ static CFStringRef _CFXDGCreateHome(void) {
 }
 
 /// a single base directory relative to which user-specific data files should be written. This directory is defined by the environment variable $XDG_DATA_HOME.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFStringRef _CFXDGCreateDataHomePath(void) {
     // $XDG_DATA_HOME defines the base directory relative to which user specific data files should be stored. If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used.
     const char *dataHome = __CFgetenv("XDG_DATA_HOME");
@@ -1213,7 +1229,7 @@ CFStringRef _CFXDGCreateDataHomePath(void) {
 }
 
 /// a single base directory relative to which user-specific configuration files should be written. This directory is defined by the environment variable $XDG_CONFIG_HOME.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFStringRef _CFXDGCreateConfigHomePath(void) {
     // $XDG_CONFIG_HOME defines the base directory relative to which user specific configuration files should be stored. If $XDG_CONFIG_HOME is either not set or empty, a default equal to $HOME/.config should be used.
     const char *configHome = __CFgetenv("XDG_CONFIG_HOME");
@@ -1228,7 +1244,7 @@ CFStringRef _CFXDGCreateConfigHomePath(void) {
 }
 
 /// a set of preference ordered base directories relative to which data files should be searched. This set of directories is defined by the environment variable $XDG_DATA_DIRS.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFArrayRef _CFXDGCreateDataDirectoriesPaths(void) {
     // $XDG_DATA_DIRS defines the preference-ordered set of base directories to search for data files in addition to the $XDG_DATA_HOME base directory. The directories in $XDG_DATA_DIRS should be seperated with a colon ':'.
     // If $XDG_DATA_DIRS is either not set or empty, a value equal to /usr/local/share/:/usr/share/ should be used.
@@ -1252,7 +1268,7 @@ CFArrayRef _CFXDGCreateDataDirectoriesPaths(void) {
 
 
 /// a set of preference ordered base directories relative to which configuration files should be searched. This set of directories is defined by the environment variable $XDG_CONFIG_DIRS.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void) {
     // $XDG_CONFIG_DIRS defines the preference-ordered set of base directories to search for configuration files in addition to the $XDG_CONFIG_HOME base directory. The directories in $XDG_CONFIG_DIRS should be seperated with a colon ':'.
     // If $XDG_CONFIG_DIRS is either not set or empty, a value equal to /etc/xdg should be used.
@@ -1274,7 +1290,7 @@ CFArrayRef _CFXDGCreateConfigDirectoriesPaths(void) {
 }
 
 /// a single base directory relative to which user-specific non-essential (cached) data should be written. This directory is defined by the environment variable $XDG_CACHE_HOME.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFStringRef _CFXDGCreateCacheDirectoryPath(void) {
     //$XDG_CACHE_HOME defines the base directory relative to which user specific non-essential data files should be stored. If $XDG_CACHE_HOME is either not set or empty, a default equal to $HOME/.cache should be used.
     const char *cacheHome = __CFgetenv("XDG_CACHE_HOME");
@@ -1290,7 +1306,7 @@ CFStringRef _CFXDGCreateCacheDirectoryPath(void) {
 }
 
 /// a single base directory relative to which user-specific runtime files and other file objects should be placed. This directory is defined by the environment variable $XDG_RUNTIME_DIR.
-CF_SWIFT_EXPORT
+CF_CROSS_PLATFORM_EXPORT
 CFStringRef _CFXDGCreateRuntimeDirectoryPath(void) {
     const char *runtimeDir = __CFgetenv("XDG_RUNTIME_DIR");
     if (runtimeDir && strnlen(runtimeDir, CFMaxPathSize) > 1 && runtimeDir[0] == '/') {
@@ -1356,5 +1372,4 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
     return CFArrayCreate(kCFAllocatorSystemDefault, NULL, 0, &kCFTypeArrayCallBacks);
 }
 
-#endif
-
+#endif // !DEPLOYMENT_RUNTIME_OBJC

@@ -69,7 +69,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
             switch self {
             case .empty:
                 return .empty
-            case .single(_):
+            case .single:
                 return .empty
             case .pair(let first, _):
                 return .single(first)
@@ -237,7 +237,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
                 case .empty:
                     fatalError("index \(index) out of bounds of count 0")
                     break
-                case .single(_):
+                case .single:
                     precondition(index == 0, "index \(index) out of bounds of count 1")
                     self = .single(newValue)
                     break
@@ -742,21 +742,21 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     }
     
     public static func <(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedAscending
+        return lhs.compare(rhs) == .orderedAscending
     }
     
     public static func <=(lhs: IndexPath, rhs: IndexPath) -> Bool {
         let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedAscending || order == ComparisonResult.orderedSame
+        return order == .orderedAscending || order == .orderedSame
     }
     
     public static func >(lhs: IndexPath, rhs: IndexPath) -> Bool {
-        return lhs.compare(rhs) == ComparisonResult.orderedDescending
+        return lhs.compare(rhs) == .orderedDescending
     }
     
     public static func >=(lhs: IndexPath, rhs: IndexPath) -> Bool {
         let order = lhs.compare(rhs)
-        return order == ComparisonResult.orderedDescending || order == ComparisonResult.orderedSame
+        return order == .orderedDescending || order == .orderedSame
     }
 }
 
@@ -774,13 +774,7 @@ extension IndexPath : CustomStringConvertible, CustomDebugStringConvertible, Cus
     }
 }
 
-#if DEPLOYMENT_RUNTIME_SWIFT
-internal typealias IndexPathBridgeType = _ObjectTypeBridgeable
-#else
-internal typealias IndexPathBridgeType = _ObjectiveCBridgeable
-#endif
-
-extension IndexPath : IndexPathBridgeType {
+extension IndexPath : _ObjectiveCBridgeable {
     public static func _getObjectiveCType() -> Any.Type {
         return NSIndexPath.self
     }

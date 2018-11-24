@@ -1,7 +1,7 @@
 /*	CFPreferences.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,18 +10,18 @@
 
 #include <CoreFoundation/CFPreferences.h>
 #include <CoreFoundation/CFURLAccess.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFUserNotification.h>
 #endif
 #include <CoreFoundation/CFPropertyList.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include <sys/stat.h>
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #include <unistd.h>
 #include <CoreFoundation/CFUUID.h>
 #endif
@@ -30,6 +30,20 @@
 #include "../Tests/CFCountingAllocator.c"
 #endif
 
+#include <assert.h>
+#include "CFRuntime_Internal.h"
+#include "CFKnownLocations.h"
+
+CF_PRIVATE Boolean _CFPreferencesDomainSynchronize(CFPreferencesDomainRef domain);
+CF_PRIVATE void _CFPreferencesDomainSetIsWorldReadable(CFPreferencesDomainRef domain, Boolean isWorldReadable);
+CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName);
+CF_PRIVATE const _CFPreferencesDomainCallBacks __kCFXMLPropertyListDomainCallBacks;
+
+void _CFPreferencesDomainSet(CFPreferencesDomainRef domain, CFStringRef  key, CFTypeRef  value);
+CFTypeRef  _CFPreferencesDomainCreateValueForKey(CFPreferencesDomainRef domain, CFStringRef key);
+CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef  domainName, CFStringRef  userName, CFStringRef  hostName);
+CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef  context, const _CFPreferencesDomainCallBacks *callBacks);
+CFDictionaryRef _CFPreferencesDomainDeepCopyDictionary(CFPreferencesDomainRef domain);
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel);
 
 struct __CFPreferencesDomain {
@@ -61,7 +75,7 @@ CF_PRIVATE CFAllocatorRef __CFPreferencesAllocator(void) {
     return _preferencesAllocator;
 }
 
-// declaration for telling the 
+// declaration for telling the
 void _CFApplicationPreferencesDomainHasChanged(CFPreferencesDomainRef);
 
 #if DEBUG_PREFERENCES_MEMORY
@@ -75,12 +89,12 @@ CF_EXPORT void CFPreferencesDumpMem(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #pragma mark -
 #pragma mark Determining host UUID
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 // The entry point is in libSystem.B.dylib, but not actually declared
 // If this becomes available in a header (<rdar://problem/4943036>), I need to pull this out
 int gethostuuid(unsigned char *uuid_buf, const struct timespec *timeoutp);
@@ -155,14 +169,14 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 
 static unsigned long __CFSafeLaunchLevel = 0;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <shfolder.h>
 
 #endif
 
 static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFAllocatorRef alloc = __CFPreferencesAllocator();
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 	CFURLRef url = NULL;
 
@@ -182,37 +196,29 @@ static CFURLRef _preferencesDirectoryForUserHostSafetyLevel(CFStringRef userName
 	return url;
  
 #else
-    CFURLRef  home = NULL;
-    CFURLRef  url;
-    int levels = 0;
-    //    if (hostName != kCFPreferencesCurrentHost && hostName != kCFPreferencesAnyHost) return NULL; // Arbitrary host access not permitted
+    CFURLRef location = NULL;
+    
+    CFKnownLocationUser user;
+    
     if (userName == kCFPreferencesAnyUser) {
-        if (!home) home = CFURLCreateWithFileSystemPath(alloc, CFSTR("/Library/Preferences/"), kCFURLPOSIXPathStyle, true);
-        levels = 1;
-        if (hostName == kCFPreferencesCurrentHost) url = home;
-        else {
-            url = CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Network/"), kCFURLPOSIXPathStyle, true, home);
-            levels ++;
-            CFRelease(home);
-        }
+        user = _kCFKnownLocationUserAny;
+    } else if (userName == kCFPreferencesCurrentUser) {
+        user = _kCFKnownLocationUserCurrent;
     } else {
-        home = CFCopyHomeDirectoryURLForUser((userName == kCFPreferencesCurrentUser) ? NULL : userName);
-        if (home) {
-            url = (safeLevel > 0) ? CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Library/Safe Preferences/"), kCFURLPOSIXPathStyle, true, home) :
-            CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("Library/Preferences/"), kCFURLPOSIXPathStyle, true, home);
-            levels = 2;
-            CFRelease(home);
-            if (hostName != kCFPreferencesAnyHost) {
-                home = url;
-                url = CFURLCreateWithFileSystemPathRelativeToBase(alloc, CFSTR("ByHost/"), kCFURLPOSIXPathStyle, true, home);
-                levels ++;
-                CFRelease(home);
-            }
-        } else {
-            url = NULL;
-        }
+        user = _kCFKnownLocationUserByName;
     }
-    return url;
+    
+    CFURLRef base = _CFKnownLocationCreatePreferencesURLForUser(user, userName);
+    
+    if (hostName == kCFPreferencesCurrentHost) {
+        location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("ByHost"), kCFURLPOSIXPathStyle, true, base);
+    } else {
+        assert(hostName == kCFPreferencesAnyHost);
+        location = CFRetain(base);
+    }
+    
+    CFRelease(base);
+    return location;
 #endif
 }
 
@@ -392,9 +398,7 @@ static void __CFPreferencesDomainDeallocate(CFTypeRef cf) {
     if (domain->_context) CFRelease(domain->_context);
 }
 
-static CFTypeID __kCFPreferencesDomainTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFPreferencesDomainClass = {
+const CFRuntimeClass __CFPreferencesDomainClass = {
     0,
     "CFPreferencesDomain",
     NULL,      // init
@@ -402,7 +406,7 @@ static const CFRuntimeClass __CFPreferencesDomainClass = {
     __CFPreferencesDomainDeallocate,
     NULL,
     NULL,
-    NULL,      // 
+    NULL,      //
     __CFPreferencesDomainCopyDescription
 };
 
@@ -445,7 +449,7 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_LINUX || TARGET_OS_WIN32
     CFURLRef prefDir = _preferencesDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
@@ -479,9 +483,9 @@ static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef do
 	CFRelease(appName);
     }
     if (fileName) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX
         theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLPOSIXPathStyle, false, prefDir);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 		theURL = CFURLCreateWithFileSystemPathRelativeToBase(prefAlloc, fileName, kCFURLWindowsPathStyle, false, prefDir);
 #endif
         if (prefDir) CFRelease(prefDir);
@@ -532,7 +536,7 @@ CFPreferencesDomainRef _CFPreferencesStandardDomain(CFStringRef  domainName, CFS
                 domain = checkDomain;	// repoint it at the domain picked up out of the cache.
             } else {
                 // We must not have found the domain in the cache, so it's ok for us to put this in.
-                CFDictionarySetValue(domainCache, domainKey, domain);                
+                CFDictionarySetValue(domainCache, domainKey, domain);
             }
             if(shouldReleaseDomain) CFRelease(domain);
         }
@@ -568,7 +572,7 @@ CF_PRIVATE void _CFPreferencesPurgeDomainCache(void) {
     __CFUnlock(&domainCacheLock);
 }
 
-CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
+CF_PRIVATE CFArrayRef _CFPreferencesCreateDomainList(CFStringRef  userName, CFStringRef  hostName) {
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
     CFArrayRef  domains;
     CFMutableArrayRef  marray;
@@ -671,12 +675,10 @@ CF_PRIVATE CFArrayRef  _CFPreferencesCreateDomainList(CFStringRef  userName, CFS
 //
 
 CFPreferencesDomainRef _CFPreferencesDomainCreate(CFTypeRef  context, const _CFPreferencesDomainCallBacks *callBacks) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFPreferencesDomainTypeID = _CFRuntimeRegisterClass(&__CFPreferencesDomainClass); });
     CFAllocatorRef alloc = __CFPreferencesAllocator();
     CFPreferencesDomainRef newDomain;
     CFAssert(callBacks != NULL && callBacks->createDomain != NULL && callBacks->freeDomain != NULL && callBacks->fetchValue != NULL && callBacks->writeValue != NULL, __kCFLogAssertion, "Cannot create a domain with NULL callbacks");
-    newDomain = (CFPreferencesDomainRef)_CFRuntimeCreateInstance(alloc, __kCFPreferencesDomainTypeID, sizeof(struct __CFPreferencesDomain) - sizeof(CFRuntimeBase), NULL);
+    newDomain = (CFPreferencesDomainRef)_CFRuntimeCreateInstance(alloc, _kCFRuntimeIDCFPreferencesDomain, sizeof(struct __CFPreferencesDomain) - sizeof(CFRuntimeBase), NULL);
     if (newDomain) {
         newDomain->_callBacks = callBacks;
         if (context) CFRetain(context);

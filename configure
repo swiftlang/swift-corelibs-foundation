@@ -71,6 +71,8 @@ def reconfigure(config, path):
                 config.toolchain = Path(info['toolchain'])
             if 'linker' in info and info['linker'] is not None:
                 config.linker = info['linker']
+            elif config.target is not None:
+                config.linker = config.target.linker
             if 'build_directory' in info and info['build_directory'] is not None:
                 config.build_directory = Path(info['build_directory'])
             if 'intermediate_directory' in info and info['intermediate_directory'] is not None:
@@ -181,7 +183,10 @@ def main():
             config.swift_sdk = "/usr"
         config.toolchain = Path.path(args.toolchain)
         config.pkg_config = args.pkg_config
-        config.linker = args.linker
+        if args.linker is not None:
+            config.linker = args.linker
+        else:
+            config.linker = config.target.linker
         config.bootstrap_directory = Path.path(args.bootstrap)
         config.verbose = args.verbose
         if config.toolchain is not None:

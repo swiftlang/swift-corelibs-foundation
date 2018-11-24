@@ -10,13 +10,13 @@
 
 import CoreFoundation
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 import Darwin
 #elseif os(Linux) || CYGWIN
 import Glibc
 #endif
 
-#if os(OSX) || os(iOS)
+#if os(macOS) || os(iOS)
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif
@@ -29,39 +29,40 @@ private func _standardizedPath(_ path: String) -> String {
 }
 
 internal func _pathComponents(_ path: String?) -> [String]? {
-    if let p = path {
-        var result = [String]()
-        if p.length == 0 {
-            return result
-        } else {
-            let characterView = p
-            var curPos = characterView.startIndex
-            let endPos = characterView.endIndex
-            if characterView[curPos] == "/" {
-                result.append("/")
-            }
-            
-            while curPos < endPos {
-                while curPos < endPos && characterView[curPos] == "/" {
-                    curPos = characterView.index(after: curPos)
-                }
-                if curPos == endPos {
-                    break
-                }
-                var curEnd = curPos
-                while curEnd < endPos && characterView[curEnd] != "/" {
-                    curEnd = characterView.index(after: curEnd)
-                }
-                result.append(String(characterView[curPos ..< curEnd]))
-                curPos = curEnd
-            }
-        }
-        if p.length > 1 && p.hasSuffix("/") {
+    guard let p = path else {
+        return nil
+    }
+
+    var result = [String]()
+    if p.length == 0 {
+        return result
+    } else {
+        let characterView = p
+        var curPos = characterView.startIndex
+        let endPos = characterView.endIndex
+        if characterView[curPos] == "/" {
             result.append("/")
         }
-        return result
+
+        while curPos < endPos {
+            while curPos < endPos && characterView[curPos] == "/" {
+                curPos = characterView.index(after: curPos)
+            }
+            if curPos == endPos {
+                break
+            }
+            var curEnd = curPos
+            while curEnd < endPos && characterView[curEnd] != "/" {
+                curEnd = characterView.index(after: curEnd)
+            }
+            result.append(String(characterView[curPos ..< curEnd]))
+            curPos = curEnd
+        }
     }
-    return nil
+    if p.length > 1 && p.hasSuffix("/") {
+        result.append("/")
+    }
+    return result
 }
 
 public struct URLResourceKey : RawRepresentable, Equatable, Hashable {
@@ -254,7 +255,11 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     open override var description: String {
-        return self.absoluteString
+        if self.relativeString != self.absoluteString {
+            return "\(self.relativeString) -- \(self.baseURL!)"
+        } else {
+            return self.absoluteString
+        }
     }
 
     deinit {
@@ -561,10 +566,8 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         let bufSize = Int(PATH_MAX + 1)
         
         let _fsrBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: bufSize)
-        for i in 0..<bufSize {
-            _fsrBuffer.advanced(by: i).initialize(to: 0)
-        }
-        
+        _fsrBuffer.initialize(repeating: 0, count: bufSize)
+
         if getFileSystemRepresentation(_fsrBuffer, maxLength: bufSize) {
             return UnsafePointer(_fsrBuffer)
         }
@@ -608,8 +611,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         guard isFileURL,
             let path = path else {
                 throw NSError(domain: NSCocoaErrorDomain,
-                              code: CocoaError.Code.fileNoSuchFile.rawValue)
-                //return false
+                              code: CocoaError.Code.fileReadUnsupportedScheme.rawValue)
         }
         
         guard FileManager.default.fileExists(atPath: path) else {
@@ -618,7 +620,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
                           userInfo: [
                             "NSURL" : self,
                             "NSFilePath" : path])
-            //return false
         }
         
         return true
@@ -708,41 +709,40 @@ extension NSURL {
     }
     
     internal func _pathByFixingSlashes(compress : Bool = true, stripTrailing: Bool = true) -> String? {
-        if let p = path {
-            if p == "/" {
-                return p
-            }
-            
-            var result = p
-            if compress {
-                result.withMutableCharacters { characterView in
-                    let startPos = characterView.startIndex
-                    var endPos = characterView.endIndex
-                    var curPos = startPos
-                    
-                    while curPos < endPos {
-                        if characterView[curPos] == "/" {
-                            var afterLastSlashPos = curPos
-                            while afterLastSlashPos < endPos && characterView[afterLastSlashPos] == "/" {
-                                afterLastSlashPos = characterView.index(after: afterLastSlashPos)
-                            }
-                            if afterLastSlashPos != characterView.index(after: curPos) {
-                                characterView.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
-                                endPos = characterView.endIndex
-                            }
-                            curPos = afterLastSlashPos
-                        } else {
-                            curPos = characterView.index(after: curPos)
-                        }
+        guard let p = path else {
+            return nil
+        }
+
+        if p == "/" {
+            return p
+        }
+
+        var result = p
+        if compress {
+            let startPos = result.startIndex
+            var endPos = result.endIndex
+            var curPos = startPos
+
+            while curPos < endPos {
+                if result[curPos] == "/" {
+                    var afterLastSlashPos = curPos
+                    while afterLastSlashPos < endPos && result[afterLastSlashPos] == "/" {
+                        afterLastSlashPos = result.index(after: afterLastSlashPos)
                     }
+                    if afterLastSlashPos != result.index(after: curPos) {
+                        result.replaceSubrange(curPos ..< afterLastSlashPos, with: ["/"])
+                        endPos = result.endIndex
+                    }
+                    curPos = afterLastSlashPos
+                } else {
+                    curPos = result.index(after: curPos)
                 }
             }
-            if stripTrailing && result.hasSuffix("/") {
-                result.remove(at: result.index(before: result.endIndex))
-            }
-            return result
         }
-        return nil
+        if stripTrailing && result.hasSuffix("/") {
+            result.remove(at: result.index(before: result.endIndex))
+        }
+        return result
     }
 
     open var pathComponents: [String]? {
@@ -953,19 +953,13 @@ open class NSURLQueryItem : NSObject, NSSecureCoding, NSCopying {
                     && other.value == self.value)
     }
     
-    open let name: String
-    open let value: String?
+    open private(set) var name: String
+    open private(set) var value: String?
 }
 
 open class NSURLComponents: NSObject, NSCopying {
-    private let _components : CFURLComponentsRef!
+    private let _components : CFURLComponents!
     
-     deinit {
-        if let component = _components {
-            __CFURLComponentsDeallocate(component)
-        }
-    }
-
     open override func copy() -> Any {
         return copy(with: nil)
     }
@@ -981,6 +975,19 @@ open class NSURLComponents: NSObject, NSCopying {
                 && path == other.path
                 && query == other.query
                 && fragment == other.fragment)
+    }
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(scheme)
+        hasher.combine(user)
+        hasher.combine(password)
+        hasher.combine(host)
+        hasher.combine(port)
+        hasher.combine(path)
+        hasher.combine(query)
+        hasher.combine(fragment)
+        return hasher.finalize()
     }
 
     open func copy(with zone: NSZone? = nil) -> Any {
@@ -1243,37 +1250,37 @@ open class NSURLComponents: NSObject, NSCopying {
     open var queryItems: [URLQueryItem]? {
         get {
             // This CFURL implementation returns a CFArray of CFDictionary; each CFDictionary has an entry for name and optionally an entry for value
-            if let queryArray = _CFURLComponentsCopyQueryItems(_components) {
-                let count = CFArrayGetCount(queryArray)
-                
-                return (0..<count).map { idx in
-                    let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
-                    let swiftEntry = oneEntry._swiftObject 
-                    let entryName = swiftEntry["name"] as! String
-                    let entryValue = swiftEntry["value"] as? String
-                    return URLQueryItem(name: entryName, value: entryValue)
-                }
-            } else {
+            guard let queryArray = _CFURLComponentsCopyQueryItems(_components) else {
                 return nil
+            }
+
+            let count = CFArrayGetCount(queryArray)
+            return (0..<count).map { idx in
+                let oneEntry = unsafeBitCast(CFArrayGetValueAtIndex(queryArray, idx), to: NSDictionary.self)
+                let swiftEntry = oneEntry._swiftObject
+                let entryName = swiftEntry["name"] as! String
+                let entryValue = swiftEntry["value"] as? String
+                return URLQueryItem(name: entryName, value: entryValue)
             }
         }
         set(new) {
-            if let new = new {
-                // The CFURL implementation requires two CFArrays, one for names and one for values
-                var names = [CFTypeRef]()
-                var values = [CFTypeRef]()
-                for entry in new {
-                    names.append(entry.name._cfObject)
-                    if let v = entry.value {
-                        values.append(v._cfObject)
-                    } else {
-                        values.append(kCFNull)
-                    }
-                }
-                _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
-            } else {
+            guard let new = new else {
                 self.percentEncodedQuery = nil
+                return
             }
+
+            // The CFURL implementation requires two CFArrays, one for names and one for values
+            var names = [CFTypeRef]()
+            var values = [CFTypeRef]()
+            for entry in new {
+                names.append(entry.name._cfObject)
+                if let v = entry.value {
+                    values.append(v._cfObject)
+                } else {
+                    values.append(kCFNull)
+                }
+            }
+            _CFURLComponentsSetQueryItems(_components, names._cfObject, values._cfObject)
         }
     }
 }

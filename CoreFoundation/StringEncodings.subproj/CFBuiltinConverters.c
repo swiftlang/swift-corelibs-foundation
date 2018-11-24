@@ -1,7 +1,7 @@
 /*	CFBuiltinConverters.c
-	Copyright (c) 1999-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1999-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,20 +10,13 @@
 
 #include "CFStringEncodingConverterExt.h"
 #include "CFUniChar.h"
+#include "CFUniCharPriv.h"
 #include "CFUnicodeDecomposition.h"
 #include "CFUnicodePrecomposition.h"
 #include "CFStringEncodingConverterPriv.h"
 #include "CFInternal.h"
 
-#define ParagraphSeparator 0x2029
 #define ASCIINewLine 0x0a
-static int8_t __CFMapsParagraphSeparator = -1;
-
-CF_INLINE bool __CFIsParagraphSeparator(UTF16Char character) {
-    if (-1 == __CFMapsParagraphSeparator) __CFMapsParagraphSeparator = (1 ? false : true);
-
-    return ((__CFMapsParagraphSeparator && (ParagraphSeparator == character)) ? true : false);
-}
 
 /* Precomposition */
 static const uint32_t __CFLatin1CombiningCharBitmap[] = { // 0x300 ~ 0x35FF
@@ -70,8 +63,6 @@ UniChar CFStringEncodingPrecomposeLatinCharacter(const UniChar *character, CFInd
 static bool __CFToASCII(uint32_t flags, UniChar character, uint8_t *byte) {
     if (character < 0x80) {
         *byte = (uint8_t)character;
-    } else if (__CFIsParagraphSeparator(character)) {
-        *byte = ASCIINewLine;
     } else {
         return false;
     }
@@ -88,17 +79,24 @@ static bool __CFFromASCII(uint32_t flags, uint8_t byte, UniChar *character) {
 }
 
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterASCII = {
-    __CFToASCII, __CFFromASCII, 1, 1, kCFStringEncodingConverterCheapEightBit,
-    NULL, NULL, NULL, NULL, NULL, NULL,
+const CFStringEncodingConverter __CFConverterASCII = {
+    .encodingClass = kCFStringEncodingConverterCheapEightBit,
+    .toBytes.cheapEightBit = __CFToASCII,
+    .toUnicode.cheapEightBit = __CFFromASCII,
+    .maxBytesPerChar = 1,
+    .maxDecomposedCharLen = 1,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = NULL,
+    .isValidCombiningChar = NULL,
 };
 
 /* ISO Latin 1 (8859-1) */
 static bool __CFToISOLatin1(uint32_t flags, UniChar character, uint8_t *byte) {
     if (character <= 0xFF) {
         *byte = (uint8_t)character;
-    } else if (__CFIsParagraphSeparator(character)) {
-        *byte = ASCIINewLine;
     } else {
         return false;
     }
@@ -124,9 +122,18 @@ static CFIndex __CFToISOLatin1Precompose(uint32_t flags, const UniChar *characte
     }
 }
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterISOLatin1 = {
-    __CFToISOLatin1, __CFFromISOLatin1, 1, 1, kCFStringEncodingConverterCheapEightBit,
-    NULL, NULL, NULL, NULL, __CFToISOLatin1Precompose, CFStringEncodingIsValidCombiningCharacterForLatin1,
+const CFStringEncodingConverter __CFConverterISOLatin1 = {
+    .encodingClass = kCFStringEncodingConverterCheapEightBit,
+    .toBytes.cheapEightBit = __CFToISOLatin1,
+    .toUnicode.cheapEightBit = __CFFromISOLatin1,
+    .maxBytesPerChar = 1,
+    .maxDecomposedCharLen = 1,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = __CFToISOLatin1Precompose,
+    .isValidCombiningChar = CFStringEncodingIsValidCombiningCharacterForLatin1,
 };
 
 /* Mac Roman */
@@ -421,9 +428,18 @@ static CFIndex __CFToMacRomanPrecompose(uint32_t flags, const UniChar *character
     }
 }
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterMacRoman = {
-    __CFToMacRoman, __CFFromMacRoman, 1, 1, kCFStringEncodingConverterCheapEightBit,
-    NULL, NULL, NULL, NULL, __CFToMacRomanPrecompose, CFStringEncodingIsValidCombiningCharacterForLatin1,
+const CFStringEncodingConverter __CFConverterMacRoman = {
+    .encodingClass = kCFStringEncodingConverterCheapEightBit,
+    .toBytes.cheapEightBit = __CFToMacRoman,
+    .toUnicode.cheapEightBit = __CFFromMacRoman,
+    .maxBytesPerChar = 1,
+    .maxDecomposedCharLen = 1,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = __CFToMacRomanPrecompose,
+    .isValidCombiningChar = CFStringEncodingIsValidCombiningCharacterForLatin1,
 };
 
 /* Win Latin1 (ANSI CodePage 1252) */
@@ -519,9 +535,18 @@ static CFIndex __CFToWinLatin1Precompose(uint32_t flags, const UniChar *characte
     }
 }
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterWinLatin1 = {
-    __CFToWinLatin1, __CFFromWinLatin1, 1, 1, kCFStringEncodingConverterCheapEightBit,
-    NULL, NULL, NULL, NULL, __CFToWinLatin1Precompose, CFStringEncodingIsValidCombiningCharacterForLatin1,
+const CFStringEncodingConverter __CFConverterWinLatin1 = {
+    .encodingClass = kCFStringEncodingConverterCheapEightBit,
+    .toBytes.cheapEightBit = __CFToWinLatin1,
+    .toUnicode.cheapEightBit = __CFFromWinLatin1,
+    .maxBytesPerChar = 1,
+    .maxDecomposedCharLen = 1,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = __CFToWinLatin1Precompose,
+    .isValidCombiningChar = CFStringEncodingIsValidCombiningCharacterForLatin1,
 };
 
 /* NEXTSTEP Encoding */
@@ -661,9 +686,6 @@ static const CFStringEncodingUnicodeTo8BitCharMap nextstep_from_tab[NUM_NEXTSTEP
 static bool __CFToNextStepLatin(uint32_t flags, UniChar character, uint8_t *byte) {
     if (character < 0x80) {
         *byte = (uint8_t)character;
-        return true;
-    } else if (__CFIsParagraphSeparator(character)) {
-        *byte = ASCIINewLine;
         return true;
     } else {
         return CFStringEncodingUnicodeTo8BitEncoding(nextstep_from_tab, NUM_NEXTSTEP_FROM_UNI, character, byte);
@@ -819,9 +841,18 @@ static CFIndex __CFToNextStepLatinPrecompose(uint32_t flags, const UniChar *char
     }
 }
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterNextStepLatin = {
-    __CFToNextStepLatin, __CFFromNextStepLatin, 1, 1, kCFStringEncodingConverterCheapEightBit,
-    NULL, NULL, NULL, NULL, __CFToNextStepLatinPrecompose, CFStringEncodingIsValidCombiningCharacterForLatin1,
+const CFStringEncodingConverter __CFConverterNextStepLatin = {
+    .encodingClass = kCFStringEncodingConverterCheapEightBit,
+    .toBytes.cheapEightBit = __CFToNextStepLatin,
+    .toUnicode.cheapEightBit = __CFFromNextStepLatin,
+    .maxBytesPerChar = 1,
+    .maxDecomposedCharLen = 1,
+    .toBytesLen = NULL,
+    .toUnicodeLen = NULL,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = __CFToNextStepLatinPrecompose,
+    .isValidCombiningChar = CFStringEncodingIsValidCombiningCharacterForLatin1,
 };
 
 /* UTF8 */
@@ -1173,7 +1204,16 @@ static CFIndex __CFFromUTF8Len(uint32_t flags, const uint8_t *source, CFIndex nu
     return theUsedCharLen;
 }
 
-CF_PRIVATE const CFStringEncodingConverter __CFConverterUTF8 = {
-    __CFToUTF8, __CFFromUTF8, 3, 2, kCFStringEncodingConverterStandard,
-    __CFToUTF8Len, __CFFromUTF8Len, NULL, NULL, NULL, NULL,
+const CFStringEncodingConverter __CFConverterUTF8 = {
+    .encodingClass = kCFStringEncodingConverterStandard,
+    .toBytes.standard = __CFToUTF8,
+    .toUnicode.standard = __CFFromUTF8,
+    .maxBytesPerChar = 3,
+    .maxDecomposedCharLen = 2,
+    .toBytesLen = __CFToUTF8Len,
+    .toUnicodeLen = __CFFromUTF8Len,
+    .toBytesFallback = NULL,
+    .toUnicodeFallback = NULL,
+    .toBytesPrecompose = NULL,
+    .isValidCombiningChar = NULL,
 };

@@ -1,7 +1,7 @@
 /*	CFBitVector.c
-	Copyright (c) 1998-2017, Apple Inc. and the Swift project authors
+	Copyright (c) 1998-2018, Apple Inc. and the Swift project authors
  
-	Portions Copyright (c) 2014-2017, Apple Inc. and the Swift project authors
+	Portions Copyright (c) 2014-2018, Apple Inc. and the Swift project authors
 	Licensed under Apache License v2.0 with Runtime Library Exception
 	See http://swift.org/LICENSE.txt for license information
 	See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
@@ -10,6 +10,7 @@
 
 #include <CoreFoundation/CFBitVector.h>
 #include "CFInternal.h"
+#include "CFRuntime_Internal.h"
 #include <string.h>
 
 /* The bucket type must be unsigned, at least one byte in size, and
@@ -189,9 +190,7 @@ static void __CFBitVectorDeallocate(CFTypeRef cf) {
     if (bv->_buckets) CFAllocatorDeallocate(allocator, bv->_buckets);
 }
 
-static CFTypeID __kCFBitVectorTypeID = _kCFRuntimeNotATypeID;
-
-static const CFRuntimeClass __CFBitVectorClass = {
+const CFRuntimeClass __CFBitVectorClass = {
     _kCFRuntimeScannedObject,
     "CFBitVector",
     NULL,	// init
@@ -204,9 +203,7 @@ static const CFRuntimeClass __CFBitVectorClass = {
 };
 
 CFTypeID CFBitVectorGetTypeID(void) {
-    static dispatch_once_t initOnce;
-    dispatch_once(&initOnce, ^{ __kCFBitVectorTypeID = _CFRuntimeRegisterClass(&__CFBitVectorClass); });
-    return __kCFBitVectorTypeID;
+    return _kCFRuntimeIDCFBitVector;
 }
 
 static CFMutableBitVectorRef __CFBitVectorInit(CFAllocatorRef allocator, CFOptionFlags flags, CFIndex capacity, const uint8_t *bytes, CFIndex numBits) CF_RETURNS_RETAINED {

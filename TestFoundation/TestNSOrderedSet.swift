@@ -7,18 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
-
-
-
 class TestNSOrderedSet : XCTestCase {
 
     static var allTests: [(String, (TestNSOrderedSet) -> () throws -> Void)] {
@@ -121,11 +109,8 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_ObjectsAtIndexes() {
         let set = NSOrderedSet(array: ["foo", "bar", "baz", "1", "2", "3"])
-        var indexSet = IndexSet()
-        indexSet.insert(1)
-        indexSet.insert(3)
-        indexSet.insert(5)
-        let objects = set.objects(at: indexSet)
+        let objects = set.objects(at: [1, 3, 5])
+        XCTAssertEqual(objects.count, 3)
         XCTAssertEqual(objects[0] as? String, "bar")
         XCTAssertEqual(objects[1] as? String, "1")
         XCTAssertEqual(objects[2] as? String, "3")
@@ -359,7 +344,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? String, let rhs = rhs as? String {
                 return lhs.compare(rhs)
             }
-            return ComparisonResult.orderedSame
+            return .orderedSame
         }
         XCTAssertEqual(set[0] as? String, "a")
         XCTAssertEqual(set[1] as? String, "b")
@@ -370,7 +355,7 @@ class TestNSOrderedSet : XCTestCase {
             if let lhs = lhs as? String, let rhs = rhs as? String {
                 return rhs.compare(lhs)
             }
-            return ComparisonResult.orderedSame
+            return .orderedSame
         }
         XCTAssertEqual(set[0] as? String, "a")
         XCTAssertEqual(set[1] as? String, "c")

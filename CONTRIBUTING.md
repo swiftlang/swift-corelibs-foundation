@@ -17,7 +17,7 @@ Please remember to include platform information with your report. If the bug is 
 
 Before embarking on a large amount of work to implement missing functionality, please double-check with the community on the [swift-corelibs-dev](https://lists.swift.org/mailman/listinfo/swift-corelibs-dev) mailing list. Someone may already be working in this area, and we want to avoid duplication of work.
 
-If your request includes functionality changes, please be sure to test your code on Linux as well as OS X. Differences in the compiler and runtime on each platform means that code that compiles and runs correctly on Darwin (where the Objective-C runtime is present) may not compile at all on Linux.
+If your request includes functionality changes, please be sure to test your code on Linux as well as macOS. Differences in the compiler and runtime on each platform means that code that compiles and runs correctly on Darwin (where the Objective-C runtime is present) may not compile at all on Linux.
 
 ##### Review
 

@@ -185,7 +185,7 @@ fileprivate func nextSessionIdentifier() -> Int32 {
 public let NSURLSessionTransferSizeUnknown: Int64 = -1
 
 open class URLSession : NSObject {
-    fileprivate let _configuration: _Configuration
+    internal let _configuration: _Configuration
     fileprivate let multiHandle: _MultiHandle
     fileprivate var nextTaskIdentifier = 1
     internal let workQueue: DispatchQueue 
@@ -201,8 +201,19 @@ open class URLSession : NSObject {
      * The shared session uses the currently set global URLCache,
      * HTTPCookieStorage and URLCredential.Storage objects.
      */
-    open class var shared: URLSession { NSUnimplemented() }
-    
+    open class var shared: URLSession {
+        return _shared
+    }
+
+    fileprivate static let _shared: URLSession = {
+        var configuration = URLSessionConfiguration.default
+        configuration.httpCookieStorage = HTTPCookieStorage.shared
+        //TODO: Set urlCache to URLCache.shared. Needs implementation of URLCache.
+        //TODO: Set urlCredentialStorage to `URLCredentialStorage.shared`. Needs implementation of URLCredentialStorage.
+        configuration.protocolClasses = URLProtocol.getProtocols()
+        return URLSession(configuration: configuration, delegate: nil, delegateQueue: nil)
+    }()
+
     /*
      * Customization of URLSession occurs during creation of a new session.
      * If you only need to use the convenience routines with custom
@@ -254,9 +265,9 @@ open class URLSession : NSObject {
         let _ = URLSession.registerProtocols
     }
     
-    open let delegateQueue: OperationQueue
+    open private(set) var delegateQueue: OperationQueue
     open var delegate: URLSessionDelegate?
-    open let configuration: URLSessionConfiguration
+    open private(set) var configuration: URLSessionConfiguration
     
     /*
      * The sessionDescription property is available for the developer to
@@ -373,8 +384,7 @@ fileprivate extension URLSession {
     }
     func createConfiguredRequest(from request: URLSession._Request) -> URLRequest {
         let r = request.createMutableURLRequest()
-        _configuration.configure(request: r)
-        return r
+        return _configuration.configure(request: r)
     }
 }
 extension URLSession._Request {
@@ -525,11 +535,10 @@ internal extension URLSession {
         case .dataCompletionHandler(let c): return .dataCompletionHandler(c)
         case .downloadCompletionHandler(let c): return .downloadCompletionHandler(c)
         case .callDelegate:
-            switch delegate {
-            case .none: return .noDelegate
-            case .some(let d as URLSessionTaskDelegate): return .taskDelegate(d)
-            case .some: return .noDelegate
+            guard let d = delegate as? URLSessionTaskDelegate else {
+                return .noDelegate
             }
+            return .taskDelegate(d)
         }
     }
 }

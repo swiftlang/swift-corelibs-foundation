@@ -201,20 +201,19 @@ extension Decimal {
 
 extension Decimal : Hashable, Comparable {
     internal var doubleValue: Double {
-        var d = 0.0
-        if _length == 0 && _isNegative == 1 {
-            return Double.nan
+        if _length == 0 {
+            if _isNegative == 1 {
+                return Double.nan
+            } else {
+                return 0
+            }
         }
-        
-        d = d * 65536 + Double(_mantissa.7)
-        d = d * 65536 + Double(_mantissa.6)
-        d = d * 65536 + Double(_mantissa.5)
-        d = d * 65536 + Double(_mantissa.4)
-        d = d * 65536 + Double(_mantissa.3)
-        d = d * 65536 + Double(_mantissa.2)
-        d = d * 65536 + Double(_mantissa.1)
-        d = d * 65536 + Double(_mantissa.0)
-        
+
+        var d = 0.0
+        for idx in stride(from: min(_length, 8), to: 0, by: -1) {
+            d = d * 65536 + Double(self[idx - 1])
+        }
+
         if _exponent < 0 {
             for _ in _exponent..<0 {
                 d /= 10.0
@@ -226,9 +225,11 @@ extension Decimal : Hashable, Comparable {
         }
         return _isNegative != 0 ? -d : d
     }
+
     public var hashValue: Int {
         return Int(bitPattern: __CFHashDouble(doubleValue))
     }
+
     public static func ==(lhs: Decimal, rhs: Decimal) -> Bool {
         if lhs.isNaN {
             return rhs.isNaN
@@ -326,6 +327,9 @@ extension Decimal : SignedNumeric {
         return answer;
     }
 
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
     public mutating func negate() {
         guard _length != 0 else { return }
         _isNegative = _isNegative == 0 ? 1 : 0
@@ -389,6 +393,7 @@ extension Decimal {
         self.init(Int64(value))
     }
     public init(_ value: Double) {
+        precondition(!value.isInfinite, "Decimal does not yet fully adopt FloatingPoint")
         if value.isNaN {
             self = Decimal.nan
         } else if value == 0.0 {
@@ -441,24 +446,59 @@ extension Decimal {
             self.compact()
         }
     }
+
     public init(_ value: UInt64) {
-        self.init(Double(value))
+        self = Decimal()
+        if value == 0 {
+            return
+        }
+
+        var compactValue = value
+        var exponent: Int32 = 0
+        while compactValue % 10 == 0 {
+            compactValue /= 10
+            exponent += 1
+        }
+        _isCompact = 1
+        _exponent = exponent
+
+        let wordCount = ((UInt64.bitWidth - compactValue.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
+        _length = UInt32(wordCount)
+        _mantissa.0 = UInt16(truncatingIfNeeded: compactValue >> 0)
+        _mantissa.1 = UInt16(truncatingIfNeeded: compactValue >> 16)
+        _mantissa.2 = UInt16(truncatingIfNeeded: compactValue >> 32)
+        _mantissa.3 = UInt16(truncatingIfNeeded: compactValue >> 48)
     }
+
     public init(_ value: Int64) {
-        self.init(Double(value))
+        self.init(value.magnitude)
+        if value < 0 {
+            _isNegative = 1
+        }
     }
+
     public init(_ value: UInt) {
         self.init(UInt64(value))
     }
+
     public init(_ value: Int) {
         self.init(Int64(value))
     }
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var infinity: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var signalingNaN: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
     public var isSignalingNaN: Bool {
         return false
     }
+
     public static var nan: Decimal {
         return quietNaN
     }
+
     public static var quietNaN: Decimal {
         var quiet = Decimal()
         quiet._isNegative = 1
@@ -1164,62 +1204,60 @@ public func NSDecimalAdd(_ result: UnsafeMutablePointer<Decimal>, _ leftOperand:
 }
 
 fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i:UInt32 = 0
-    var carry:UInt16 = 0
-    var accumulator:UInt32 = 0
+    var idx: UInt32 = 0
+    var carry: UInt16 = 0
+    let maxIndex: UInt32 = min(left._length, right._length) // The highest index with bits set in both values
 
-    let c:UInt32 = min(left._length, right._length)
-
-    while i < c {
-        let li = UInt32(left[i])
-        let ri = UInt32(right[i])
-        accumulator = li + ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        i += 1
+    while idx < maxIndex {
+        let li = UInt32(left[idx])
+        let ri = UInt32(right[idx])
+        let sum = li + ri + UInt32(carry)
+        carry = UInt16(truncatingIfNeeded: sum >> 16)
+        result[idx] = UInt16(truncatingIfNeeded: sum)
+        idx += 1
     }
 
-    while i < left._length {
+    while idx < left._length {
         if carry != 0 {
-            let li = UInt32(left[i])
-            accumulator = li + UInt32(carry)
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+            let li = UInt32(left[idx])
+            let sum = li + UInt32(carry)
+            carry = UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < left._length {
-                result[i] = left[i]
-                i += 1
+            while idx < left._length {
+                result[idx] = left[idx]
+                idx += 1
             }
             break
         }
     }
-    while i < right._length {
+    while idx < right._length {
         if carry != 0 {
-            let ri = UInt32(right[i])
-            accumulator = ri + UInt32(carry)
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+            let ri = UInt32(right[idx])
+            let sum = ri + UInt32(carry)
+            carry = UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < right._length {
-                result[i] = right[i]
-                i += 1
+            while idx < right._length {
+                result[idx] = right[idx]
+                idx += 1
             }
             break
         }
     }
+    result._length = idx
 
     if carry != 0 {
-        if result._length < i {
-            result._length = i
-            return .overflow
-        } else {
-            result[i] = carry
-            i += 1
-        }
+        result[idx] = carry
+        idx += 1
+        result._length = idx
     }
-    result._length = i;
+    if idx > Decimal.maxSize {
+        return .overflow
+    }
+
     return .noError;
 }
 
@@ -1231,49 +1269,48 @@ fileprivate func integerAdd(_ result: inout WideDecimal, _ left: inout Decimal, 
 //    give b-a...
 //
 fileprivate func integerSubtract(_ result: inout Decimal, _ left: inout Decimal, _ right: inout Decimal) -> NSDecimalNumber.CalculationError {
-    var i:UInt32 = 0
-    var carry:UInt16 = 1
-    var accumulator:UInt32 = 0
+    var idx: UInt32 = 0
+    let maxIndex: UInt32 = min(left._length, right._length) // The highest index with bits set in both values
+    var borrow: UInt16 = 0
 
-    let c:UInt32 = min(left._length, right._length)
-
-    while i < c {
-        let li = UInt32(left[i])
-        let ri = UInt32(right[i])
-        accumulator = 0xffff + li - ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        i += 1
+    while idx < maxIndex {
+        let li = UInt32(left[idx])
+        let ri = UInt32(right[idx])
+        // 0x10000 is to borrow in advance to avoid underflow.
+        let difference: UInt32 = (0x10000 + li) - UInt32(borrow) - ri
+        result[idx] = UInt16(truncatingIfNeeded: difference)
+        // borrow = 1 if the borrow was used.
+        borrow = 1 - UInt16(truncatingIfNeeded: difference >> 16)
+        idx += 1
     }
 
-    while i < left._length {
-        if carry != 0 {
-            let li = UInt32(left[i])
-            accumulator = 0xffff + li // + no carry
-            carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-            result[i] = UInt16(truncatingIfNeeded:accumulator)
-            i += 1
+    while idx < left._length {
+        if borrow != 0 {
+            let li = UInt32(left[idx])
+            let sum = 0xffff + li // + no carry
+            borrow = 1 - UInt16(truncatingIfNeeded: sum >> 16)
+            result[idx] = UInt16(truncatingIfNeeded: sum)
+            idx += 1
         } else {
-            while i < left._length {
-                result[i] = left[i]
-                i += 1
+            while idx < left._length {
+                result[idx] = left[idx]
+                idx += 1
             }
             break
         }
     }
-    while i < right._length {
-        let ri = UInt32(right[i])
-        accumulator = 0xffff - ri + UInt32(carry)
-        carry = UInt16(truncatingIfNeeded:accumulator >> 16)
-        result[i] = UInt16(truncatingIfNeeded:accumulator)
-        i += 1
+    while idx < right._length {
+        let ri = UInt32(right[idx])
+        let difference = 0xffff - ri + UInt32(borrow)
+        borrow = 1 - UInt16(truncatingIfNeeded: difference >> 16)
+        result[idx] = UInt16(truncatingIfNeeded: difference)
+        idx += 1
     }
 
-    if carry != 0 {
+    if borrow != 0 {
         return .overflow
     }
-    result._length = i;
-
+    result._length = idx;
     result.trimTrailingZeros()
 
     return .noError;

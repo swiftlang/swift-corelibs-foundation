@@ -53,12 +53,12 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLProtectionSpace`         | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocol`                | Unimplemented   | None          |                                                                                                                    |
     | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
-    | `NSURLRequest`               | Mostly Complete | Incomplete    |                                                                                                                    |
-    | `NSMutableURLRequest`        | Mostly Complete | Incomplete    |                                                                                                                    |
-    | `URLResponse`                | Mostly Complete | Incomplete    |                                                                                                                    |
-    | `NSHTTPURLResponse`          | Mostly Complete | Substantial   |                                                                                                                    |
+    | `NSURLRequest`               | Complete        | Incomplete    |                                                                                                                    |
+    | `NSMutableURLRequest`        | Complete        | Incomplete    |                                                                                                                    |
+    | `URLResponse`                | Complete        | Incomplete    |                                                                                                                    |
+    | `NSHTTPURLResponse`          | Complete        | Substantial   |                                                                                                                    |
     | `NSURL`                      | Mostly Complete | Substantial   | Resource values remain unimplemented                                                                               |
-    | `NSURLQueryItem`             | Mostly Complete | N/A           |                                                                                                                    |
+    | `NSURLQueryItem`             | Complete        | N/A           |                                                                                                                    |
     | `URLResourceKey`             | Complete        | N/A           |                                                                                                                    |
     | `URLFileResourceType`        | Complete        | N/A           |                                                                                                                    |
     | `URL`                        | Complete        | Incomplete    |                                                                                                                    |
@@ -67,7 +67,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLRequest`                 | Complete        | None          |                                                                                                                    |
     | `HTTPCookie`                 | Complete        | Incomplete    |                                                                                                                    |
     | `HTTPCookiePropertyKey`      | Complete        | N/A           |                                                                                                                    |
-    | `HTTPCookieStorage`          | Unimplemented   | None          |                                                                                                                    |
+    | `HTTPCookieStorage`          | Mostly Complete | Substantial   |                                                                                                                    |
     | `Host`                       | Complete        | None          |                                                                                                                    |
     | `Configuration`              | N/A             | N/A           | For internal use only                                                                                              |
     | `EasyHandle`                 | N/A             | N/A           | For internal use only                                                                                              |
@@ -81,7 +81,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLSessionTask`             | Mostly Complete | Incomplete    | `cancel()`, `createTransferState(url:)` with streams, and others remain unimplemented                              |
     | `URLSessionDataTask`         | Complete        | Incomplete    |                                                                                                                    |
     | `URLSessionUploadTask`       | Complete        | None          |                                                                                                                    |
-    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    | `cancel(byProducingResumeData:)` remains unimplemented                                                             |
+    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    |                                                                                                                  |
     | `URLSessionStreamTask`       | Unimplemented   | None          |                                                                                                                    |
     | `TaskRegistry`               | N/A             | N/A           | For internal use only                                                                                              |
     | `TransferState`              | N/A             | N/A           | For internal use only                                                                                              |
@@ -155,8 +155,8 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSOrderedSet`        | Mostly Complete | Substantial   | `NS[Mutable]Copying`, and `array` & `set` (and associated indexing methods) remain unimplemented                                                                    |
     | `NSMutableOrderedSet` | Mostly Complete | Substantial   | `NSCoding` and `sortRange(_:options:, usingComparator:)` with non-empty options remain unimplemented                                                                |
     | `NSCFArray`           | N/A             | N/A           | For internal use only                                                                                                                                               |
-    | `NSIndexSet`          | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, and concurrent `enumerateWithOptions(_:range:paramType:returnType:block:)` remain unimplemented                                            |
-    | `NSMutableIndexSet`   | Mostly Complete | Incomplete    | `shiftIndexesStarting(at:by:)` remains unimplemented                                                                                                                |
+    | `NSIndexSet`          | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
+    | `NSMutableIndexSet`   | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
     | `IndexSet`            | Complete        | Incomplete    |                                                                                                                                                                     |
     | `NSIndexPath`         | Mostly Complete | None          | `NSCoding`, `NSCopying`, `getIndexes(_:)` remain unimplemented                                                                                                      |
     | `IndexPath`           | Complete        | Incomplete    |                                                                                                                                                                     |
@@ -198,15 +198,15 @@ There is no _Complete_ status for test coverage because there are always additio
     | Entity Name                 | Status          | Test Coverage | Notes                                                                                                                                                            |
     |-----------------------------|-----------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
     | `NSRegularExpression`       | Complete        | Substantial   |                                                                                                                                                                  |
-    | `Scanner`                   | Mostly Complete | Incomplete    | `scanHex<T: _FloatLike>(_:locale:locationToScanFrom:to:)` and `localizedScannerWithString(_:)` remain unimplemented                                              |
+    | `Scanner`                   | Mostly Complete | Incomplete    | `localizedScannerWithString(_:)` remains unimplemented                                                                                                           |
     | `NSTextCheckingResult`      | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, `resultType`, and `range(at:)` remain unimplemented                                                                                     |
-    | `NSAttributedString`        | Incomplete      | Incomplete    | `NSCoding`, `NS[Mutable]Copying`, `attributedSubstring(from:)`, `isEqual(to:)`, `init(NSAttributedString:)` remain unimplemented                                 |
-    | `NSMutableAttributedString` | Unimplemented   | Incomplete    | Only `addAttribute(_:value:range:)` is implemented                                                                                                               |
+    | `NSAttributedString`        | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
+    | `NSMutableAttributedString` | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
     | `NSCharacterSet`            | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
     | `NSMutableCharacterSet`     | Mostly Complete | None          | Decoding remains unimplemented                                                                                                                                   |
     | `NSCFCharacterSet`          | N/A             | N/A           | For internal use only                                                                                                                                            |
     | `CharacterSet`              | Complete        | Incomplete    |                                                                                                                                                                  |
-    | `NSString`                  | Mostly Complete | Substantial   | `init(contentsOf:usedEncoding:)`, `init(contentsOfFile:usedEncoding:)`, `enumerateSubstrings(in:options:using:)` remain unimplemented                            |
+    | `NSString`                  | Mostly Complete | Substantial   | `enumerateSubstrings(in:options:using:)` remains unimplemented                                                                                                   |
     | `NSStringEncodings`         | Complete        | N/A           | Contains definitions of string encodings                                                                                                                         |
     | `NSCFString`                | N/A             | N/A           | For internal use only                                                                                                                                            |
     | `NSStringAPI`               | N/A             | N/A           | Exposes `NSString` APIs on `String`                                                                                                                              |
@@ -307,7 +307,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | Entity Name          | Status          | Test Coverage | Notes                                                      |
     |----------------------|-----------------|---------------|------------------------------------------------------------|
     | `NSNotification`     | Complete        | N/A           |                                                            |
-    | `NotificationCenter` | Mostly Complete | Substantial   | Adding observers to non-`nil` queues remains unimplemented |
+    | `NotificationCenter` | Complete        | Substantial   |                                                            |
     | `Notification`       | Complete        | N/A           |                                                            |
     | `NotificationQueue`  | Complete        | Substantial   |                                                            |
 

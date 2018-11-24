@@ -1,19 +1,11 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2015 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2015 - 2016, 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
 
 class TestProcess : XCTestCase {
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
@@ -36,6 +28,11 @@ class TestProcess : XCTestCase {
                    ("test_passthrough_environment", test_passthrough_environment),
                    ("test_no_environment", test_no_environment),
                    ("test_custom_environment", test_custom_environment),
+                   ("test_run", test_run),
+                   ("test_preStartEndState", test_preStartEndState),
+                   ("test_interrupt", test_interrupt),
+                   ("test_terminate", test_terminate),
+                   ("test_suspend_resume", test_suspend_resume),
         ]
 #endif
     }
@@ -45,11 +42,19 @@ class TestProcess : XCTestCase {
         
         let process = Process()
         
-        process.launchPath = "/bin/bash"
+        let executablePath = "/bin/bash"
+        if #available(OSX 10.13, *) {
+            process.executableURL = URL(fileURLWithPath: executablePath)
+        } else {
+            // Fallback on earlier versions
+            process.launchPath = executablePath
+        }
+        XCTAssertEqual(executablePath, process.launchPath)
+
         process.arguments = ["-c", "exit 0"]
-        
         process.launch()
         process.waitUntilExit()
+        
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
@@ -248,7 +253,7 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: nil)
             let env = try parseEnv(output)
             XCTAssertGreaterThan(env.count, 0)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
     }
@@ -258,7 +263,7 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: [:])
             let env = try parseEnv(output)
             XCTAssertEqual(env.count, 0)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
     }
@@ -269,38 +274,251 @@ class TestProcess : XCTestCase {
             let (output, _) = try runTask(["/usr/bin/env"], environment: input)
             let env = try parseEnv(output)
             XCTAssertEqual(env, input)
-        } catch let error {
+        } catch {
             XCTFail("Test failed: \(error)")
         }
+    }
+
+    private func realpathOf(path: String) -> String? {
+        let fm = FileManager.default
+        let length = Int(PATH_MAX) + 1
+        var buf = [Int8](repeating: 0, count: length)
+        let fsRep = fm.fileSystemRepresentation(withPath: path)
+#if !DARWIN_COMPATIBILITY_TESTS
+       defer { fsRep.deallocate() }
+#endif
+        guard let result = realpath(fsRep, &buf) else {
+            return nil
+        }
+        return fm.string(withFileSystemRepresentation: result, length: strlen(result))
     }
 
     func test_current_working_directory() {
-        do {
-            let previousWorkingDirectory = FileManager.default.currentDirectoryPath
+        let tmpDir = "/tmp"
 
-            // Darwin Foundation requires the full path to the executable (.launchPath)
-            let (output, _) = try runTask(["/bin/bash", "-c", "pwd"], currentDirectoryPath: "/bin")
-            XCTAssertEqual(output.trimmingCharacters(in: .newlines), "/bin")
-            XCTAssertEqual(previousWorkingDirectory, FileManager.default.currentDirectoryPath)
-        } catch let error {
+        guard let resolvedTmpDir = realpathOf(path: tmpDir) else {
+            XCTFail("Cant find realpath of /tmp")
+            return
+        }
+
+        let fm = FileManager.default
+        let previousWorkingDirectory = fm.currentDirectoryPath
+
+        // Test that getcwd() returns the currentDirectoryPath
+        do {
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), resolvedTmpDir)
+        } catch {
             XCTFail("Test failed: \(error)")
         }
-    }
-#endif
-}
 
-private func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
-    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("TestProcess.XXXXXX")
-    
-    try url.withUnsafeFileSystemRepresentation {
-        switch mkstemp(UnsafeMutablePointer(mutating: $0!)) {
-        case -1: XCTFail("Could not create temporary file")
-        case let fd:
-            defer { url.withUnsafeFileSystemRepresentation { _ = unlink($0!) } }
-            try body(FileHandle(fileDescriptor: fd, closeOnDealloc: true))
+        // Test that $PWD by default is set to currentDirectoryPath
+        do {
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
+        } catch {
+            XCTFail("Test failed: \(error)")
         }
+
+        // Test that $PWD can be over-ridden
+        do {
+            var env = ProcessInfo.processInfo.environment
+            env["PWD"] = "/bin"
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "/bin")
+        } catch {
+            XCTFail("Test failed: \(error)")
+        }
+
+        // Test that $PWD can be set to empty
+        do {
+            var env = ProcessInfo.processInfo.environment
+            env["PWD"] = ""
+            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+            // Check the sub-process used the correct directory
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "")
+        } catch {
+            XCTFail("Test failed: \(error)")
+        }
+
+        XCTAssertEqual(previousWorkingDirectory, fm.currentDirectoryPath)
     }
-    
+
+    func test_run() {
+        let fm = FileManager.default
+        let cwd = fm.currentDirectoryPath
+
+        do {
+            let process = try Process.run(URL(fileURLWithPath: "/bin/sh", isDirectory: false), arguments: ["-c", "exit 123"], terminationHandler: nil)
+            process.waitUntilExit()
+            XCTAssertEqual(process.terminationReason, .exit)
+            XCTAssertEqual(process.terminationStatus, 123)
+        } catch {
+            XCTFail("Cant execute /bin/sh: \(error)")
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+
+        do {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/sh", isDirectory: false)
+            process.arguments = ["-c", "exit 0"]
+            process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
+            try process.run()
+            XCTFail("Executed /bin/sh with invalid currentDirectoryURL")
+            process.terminate()
+            process.waitUntilExit()
+        } catch {
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+
+        do {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
+            process.arguments = []
+            process.currentDirectoryURL = URL(fileURLWithPath: "/tmp")
+            try process.run()
+            XCTFail("Somehow executed a directory!")
+            process.terminate()
+            process.waitUntilExit()
+        } catch {
+        }
+        XCTAssertEqual(fm.currentDirectoryPath, cwd)
+        fm.changeCurrentDirectoryPath(cwd)
+    }
+
+    func test_preStartEndState() {
+        let process = Process()
+        XCTAssertNil(process.executableURL)
+        XCTAssertNotNil(process.currentDirectoryURL)
+        XCTAssertNil(process.arguments)
+        XCTAssertNil(process.environment)
+        XCTAssertFalse(process.isRunning)
+        XCTAssertEqual(process.processIdentifier, 0)
+        XCTAssertEqual(process.qualityOfService, .default)
+
+        process.executableURL = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        _ = try? process.run()
+        XCTAssertTrue(process.isRunning)
+        XCTAssertTrue(process.processIdentifier > 0)
+        process.terminate()
+        process.waitUntilExit()
+        XCTAssertFalse(process.isRunning)
+        XCTAssertTrue(process.processIdentifier > 0)
+        XCTAssertEqual(process.terminationReason, .uncaughtSignal)
+        XCTAssertEqual(process.terminationStatus, SIGTERM)
+    }
+
+    func test_interrupt() {
+        let helper = _SignalHelperRunner()
+        do {
+            try helper.start()
+        }  catch {
+            XCTFail("Cant run xdgTestHelper: \(error)")
+            return
+        }
+        if !helper.waitForReady() {
+            XCTFail("Didnt receive Ready from sub-process")
+            return
+        }
+
+        let now = DispatchTime.now().uptimeNanoseconds
+        let timeout = DispatchTime(uptimeNanoseconds: now + 2_000_000_000)
+
+        var count = 3
+        while count > 0 {
+            helper.process.interrupt()
+            guard helper.semaphore.wait(timeout: timeout) == .success else {
+                helper.process.terminate()
+                XCTFail("Timedout waiting for signal")
+                return
+            }
+
+            if helper.sigIntCount == 3 {
+                break
+            }
+            count -= 1
+        }
+        helper.process.terminate()
+        XCTAssertEqual(helper.sigIntCount, 3)
+        helper.process.waitUntilExit()
+        let terminationReason = helper.process.terminationReason
+        XCTAssertEqual(terminationReason, Process.TerminationReason.exit)
+        let status = helper.process.terminationStatus
+        XCTAssertEqual(status, 99)
+    }
+
+    func test_terminate() {
+        let cat = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        guard let process = try? Process.run(cat, arguments: []) else {
+            XCTFail("Cant run /bin/cat")
+            return
+        }
+
+        process.terminate()
+        process.waitUntilExit()
+        let terminationReason = process.terminationReason
+        XCTAssertEqual(terminationReason, Process.TerminationReason.uncaughtSignal)
+        XCTAssertEqual(process.terminationStatus, SIGTERM)
+    }
+
+    func test_suspend_resume() {
+        let helper = _SignalHelperRunner()
+        do {
+            try helper.start()
+        }  catch {
+            XCTFail("Cant run xdgTestHelper: \(error)")
+            return
+        }
+        if !helper.waitForReady() {
+            XCTFail("Didnt receive Ready from sub-process")
+            return
+        }
+        let now = DispatchTime.now().uptimeNanoseconds
+        let timeout = DispatchTime(uptimeNanoseconds: now + 2_000_000_000)
+
+        func waitForSemaphore() -> Bool {
+            guard helper.semaphore.wait(timeout: timeout) == .success else {
+                helper.process.terminate()
+                XCTFail("Timedout waiting for signal")
+                return false
+            }
+            return true
+        }
+
+        XCTAssertTrue(helper.process.isRunning)
+        XCTAssertTrue(helper.process.suspend())
+        XCTAssertTrue(helper.process.isRunning)
+        XCTAssertTrue(helper.process.resume())
+        if waitForSemaphore() == false { return }
+        XCTAssertEqual(helper.sigContCount, 1)
+
+        XCTAssertTrue(helper.process.resume())
+        XCTAssertTrue(helper.process.suspend())
+        XCTAssertTrue(helper.process.resume())
+        XCTAssertEqual(helper.sigContCount, 1)
+
+        XCTAssertTrue(helper.process.suspend())
+        XCTAssertTrue(helper.process.suspend())
+        XCTAssertTrue(helper.process.resume())
+        if waitForSemaphore() == false { return }
+
+        helper.process.suspend()
+        helper.process.resume()
+        if waitForSemaphore() == false { return }
+        XCTAssertEqual(helper.sigContCount, 3)
+
+        helper.process.terminate()
+        helper.process.waitUntilExit()
+        XCTAssertFalse(helper.process.isRunning)
+        XCTAssertFalse(helper.process.suspend())
+        XCTAssertTrue(helper.process.resume())
+        XCTAssertTrue(helper.process.resume())
+    }
+
+#endif
 }
 
 private enum Error: Swift.Error {
@@ -309,8 +527,91 @@ private enum Error: Swift.Error {
     case InvalidEnvironmentVariable(String)
 }
 
+// Run xdgTestHelper, wait for 'Ready' from the sub-process, then signal a semaphore.
+// Read lines from a pipe and store in a queue.
+class _SignalHelperRunner {
+    let process = Process()
+    let semaphore = DispatchSemaphore(value: 0)
+
+    private let outputPipe = Pipe()
+    private let sQueue = DispatchQueue(label: "io queue")
+    private let source: DispatchSourceRead
+
+    private var gotReady = false
+    private var bytesIn = Data()
+    private var _sigIntCount = 0
+    private var _sigContCount = 0
+    var sigIntCount: Int { return sQueue.sync { return _sigIntCount } }
+    var sigContCount: Int { return sQueue.sync { return _sigContCount } }
+
+
+    init() {
+        process.executableURL = xdgTestHelperURL()
+        process.environment = ProcessInfo.processInfo.environment
+        process.arguments = ["--signal-test"]
+        process.standardOutput = outputPipe.fileHandleForWriting
+
+        source = DispatchSource.makeReadSource(fileDescriptor: outputPipe.fileHandleForReading.fileDescriptor, queue: sQueue)
+        let workItem = DispatchWorkItem(block: { [weak self] in
+            if let strongSelf = self {
+                let newLine = UInt8(ascii: "\n")
+
+                strongSelf.bytesIn.append(strongSelf.outputPipe.fileHandleForReading.availableData)
+                if strongSelf.bytesIn.isEmpty {
+                    return
+                }
+                // Split the incoming data into lines.
+                while let index = strongSelf.bytesIn.index(of: newLine) {
+                    if index >= strongSelf.bytesIn.startIndex {
+                        // dont include the newline when converting to string
+                        let line = String(data: strongSelf.bytesIn[strongSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
+                        strongSelf.bytesIn.removeSubrange(strongSelf.bytesIn.startIndex...index)
+
+                        if strongSelf.gotReady == false && line == "Ready" {
+                            strongSelf.semaphore.signal()
+                            strongSelf.gotReady = true;
+                        }
+                        else if strongSelf.gotReady == true {
+                            if line == "Signal: SIGINT" {
+                                strongSelf._sigIntCount += 1
+                                strongSelf.semaphore.signal()
+                            }
+                            else if line == "Signal: SIGCONT" {
+                                strongSelf._sigContCount += 1
+                                strongSelf.semaphore.signal()
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        source.setEventHandler(handler: workItem)
+    }
+
+    deinit {
+        source.cancel()
+        process.terminate()
+        process.waitUntilExit()
+    }
+
+    func start() throws {
+        source.resume()
+        try process.run()
+    }
+
+    func waitForReady() -> Bool {
+        let now = DispatchTime.now().uptimeNanoseconds
+        let timeout = DispatchTime(uptimeNanoseconds: now + 2_000_000_000)
+        guard semaphore.wait(timeout: timeout) == .success else {
+            process.terminate()
+            return false
+        }
+        return true
+    }
+}
+
 #if !os(Android)
-private func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
+internal func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
     var arguments = arguments
@@ -330,7 +631,7 @@ private func runTask(_ arguments: [String], environment: [String: String]? = nil
     let stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
-    process.launch()
+    try process.run()
     process.waitUntilExit()
 
     guard process.terminationStatus == 0 else {

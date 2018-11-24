@@ -10,6 +10,7 @@
 
 import CoreFoundation
 
+@usableFromInline
 internal class _NSCFString : NSMutableString {
     required init(characters: UnsafePointer<unichar>, length: Int) {
         fatalError()
@@ -57,13 +58,13 @@ internal class _NSCFString : NSMutableString {
     }
 }
 
+@usableFromInline
 internal final class _NSCFConstantString : _NSCFString {
     internal var _ptr : UnsafePointer<UInt8> {
         // FIXME: Split expression as a work-around for slow type
         //        checking (tracked by SR-5322).
-        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
-        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
-        let offset = offTemp1 + offTemp2
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<uintptr_t>.size
+        let offset = offTemp1 + MemoryLayout<_CFInfo>.size
         let ptr = Unmanaged.passUnretained(self).toOpaque()
         return ptr.load(fromByteOffset: offset, as: UnsafePointer<UInt8>.self)
     }
@@ -71,9 +72,9 @@ internal final class _NSCFConstantString : _NSCFString {
     private var _lenOffset : Int {
         // FIXME: Split expression as a work-around for slow type
         //        checking (tracked by SR-5322).
-        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<Int32>.size
-        let offTemp2 = MemoryLayout<Int32>.size + MemoryLayout<_CFInfo>.size
-        return offTemp1 + offTemp2 + MemoryLayout<UnsafePointer<UInt8>>.size
+        let offTemp1 = MemoryLayout<OpaquePointer>.size + MemoryLayout<uintptr_t>.size
+        let offset = offTemp1 + MemoryLayout<_CFInfo>.size
+        return offset + MemoryLayout<UnsafePointer<UInt8>>.size
     }
 
     private var _lenPtr :  UnsafeMutableRawPointer {
@@ -167,7 +168,7 @@ internal func _CFSwiftStringGetBytes(_ str: AnyObject, encoding: CFStringEncodin
         if let buffer = buffer {
             for idx in 0..<range.length {
                 // Since character is 2 bytes but the buffer is in term of 1 byte values, we have to split it up
-                let character = encodingView[start.advanced(by: idx + range.location)]
+                let character = encodingView[encodingView.index(start, offsetBy: idx + range.location)]
 #if _endian(big)
                 let byte0 = UInt8((character >> 8) & 0x00ff)
                 let byte1 = UInt8(character & 0x00ff)
