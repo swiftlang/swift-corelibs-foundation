@@ -98,8 +98,6 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void);
 #define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 #define _dispatch_main_queue_callback_4CF(x) _dispatch_main_queue_callback_4CF()
 
-#define AbsoluteTime LARGE_INTEGER 
-
 #elif DEPLOYMENT_TARGET_LINUX
 
 #include <dlfcn.h>
@@ -620,7 +618,7 @@ static kern_return_t mk_timer_destroy(HANDLE name) {
     return (int)res;
 }
 
-static kern_return_t mk_timer_arm(HANDLE name, LARGE_INTEGER expire_time) {
+static kern_return_t mk_timer_arm(HANDLE name, uint64_t expire_time) {
     LARGE_INTEGER result;
     // There is a race we know about here, (timer fire time calculated -> thread suspended -> timer armed == late timer fire), but we don't have a way to avoid it at this time, since the only way to specify an absolute value to the timer is to calculate the relative time first. Fixing that would probably require not using the TSR for timers on Windows.
     uint64_t now = mach_absolute_time();
@@ -642,7 +640,7 @@ static kern_return_t mk_timer_arm(HANDLE name, LARGE_INTEGER expire_time) {
     return (int)res;
 }
 
-static kern_return_t mk_timer_cancel(HANDLE name, LARGE_INTEGER *result_time) {
+static kern_return_t mk_timer_cancel(HANDLE name, AbsoluteTime *result_time) {
     BOOL res = CancelWaitableTimer(name);
     if (!res) {
         DWORD err = GetLastError();
