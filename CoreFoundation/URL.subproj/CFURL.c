@@ -2323,7 +2323,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #elif DEPLOYMENT_TARGET_WINDOWS
         CFStringRef filePath = CFStringCreateWithBytes(allocator, buffer, bufLen, CFStringFileSystemEncoding(), false);
         if ( filePath ) {
-            result = _CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
+            result = (struct __CFURL *)_CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
             CFRelease(filePath);
         }
 #endif
