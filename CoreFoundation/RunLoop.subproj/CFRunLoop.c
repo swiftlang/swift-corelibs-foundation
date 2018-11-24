@@ -48,6 +48,14 @@ CF_INLINE uint64_t check_uint64_add(uint64_t x, uint64_t y, int32_t* err) {
 };
 #endif
 
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#define USE_DISPATCH_SOURCE_FOR_TIMERS __HAS_DISPATCH__
+#define USE_MK_TIMER_TOO 1
+#else
+#define USE_DISPATCH_SOURCE_FOR_TIMERS 0
+#define USE_MK_TIMER_TOO 1
+#endif
+
 #if __HAS_DISPATCH__
 #if __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
@@ -123,14 +131,6 @@ CF_EXPORT pthread_t _CF_pthread_main_thread_np(void);
 #include <Block_private.h>
 #elif __has_include("Block_private.h")
 #include "Block_private.h"
-#endif
-
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
-#define USE_DISPATCH_SOURCE_FOR_TIMERS __HAS_DISPATCH__
-#define USE_MK_TIMER_TOO 1
-#else
-#define USE_DISPATCH_SOURCE_FOR_TIMERS 0
-#define USE_MK_TIMER_TOO 1
 #endif
 
 // Open source CF may not have this defined.
