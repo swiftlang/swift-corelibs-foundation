@@ -1536,6 +1536,8 @@ CFDictionaryRef __CFGetEnvironment() {
 #define environ __environ
 #endif
         char **envp = environ;
+#elif TARGET_OS_WIN32
+        char **envp = _environ;
 #endif
         envDict = CFDictionaryCreateMutable(kCFAllocatorSystemDefault, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
         for (; *envp; ++envp) {
