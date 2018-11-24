@@ -26,6 +26,9 @@
 #include <CoreFoundation/CFURLSessionInterface.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #if DEPLOYMENT_TARGET_WINDOWS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #else
 #include <fts.h>
 #endif
