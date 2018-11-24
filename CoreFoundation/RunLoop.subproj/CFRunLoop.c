@@ -210,6 +210,20 @@ static pthread_t const kNilPthreadT = (pthread_t)0;
 #define	CFRUNLOOP_WAKEUP_FOR_WAKEUP_ENABLED() (0)
 #endif
 
+
+// NOTE: this is locally defined rather than in CFInternal.h as on Linux,
+// `linux/sysctl.h` defines `struct __sysctl_args` with an `__unused` member
+// which breaks the build.
+#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN || DEPLOYMENT_TARGET_LINUX
+#ifndef __unused
+    #if __has_attribute(unused)
+        #define __unused __attribute__((unused))
+    #else
+        #define __unused
+    #endif
+#endif // !defined(__unused)
+#endif
+
 // In order to reuse most of the code across Mach and Windows v1 RunLoopSources, we define a
 // simple abstraction layer spanning Mach ports and Windows HANDLES
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -487,14 +501,6 @@ typedef int __CFPort;
 // epoll file descriptor
 typedef int __CFPortSet;
 #define CFPORTSET_NULL -1
-
-#ifndef __unused
-    #if __has_attribute(unused)
-        #define __unused __attribute__((unused))
-    #else
-        #define __unused
-    #endif
-#endif // !defined(__unused)
 
 static __CFPort __CFPortAllocate(__unused uintptr_t guard) {
     return eventfd(0, EFD_CLOEXEC|EFD_NONBLOCK);
