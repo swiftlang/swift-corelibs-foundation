@@ -1925,7 +1925,7 @@ void __CFStreamCleanup(void) {
             int i;
 #endif
             CFDictionaryGetKeysAndValues(sSharedSources, keys, NULL);
-             fprintf(stderr, "*** CFNetwork is shutting down, but %ld streams are still scheduled.\n", count);
+             fprintf(stderr, "*** CFNetwork is shutting down, but %lld streams are still scheduled.\n", (long long)count);
 #if defined(DEBUG)
             for (i = 0; i < count;i ++) {
                 if ((CFGetTypeID(keys[i]) == _kCFRuntimeIDCFReadStream) || (CFGetTypeID(keys[i]) == _kCFRuntimeIDCFWriteStream)) {
