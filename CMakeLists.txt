@@ -61,6 +61,16 @@ if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
+  set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
+endif()
+
 add_swift_library(Foundation
                   MODULE_NAME
                     Foundation
@@ -228,6 +238,7 @@ add_swift_library(Foundation
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
+                    ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${install_dir}/System/Library/Frameworks
                   LINK_FLAGS
@@ -252,6 +263,7 @@ add_swift_executable(plutil
                      SOURCES
                        Tools/plutil/main.swift
                      CFLAGS
+                       ${deployment_target}
                        ${deployment_enable_libdispatch}
                        -F${install_dir}/System/Library/Frameworks
                      LINK_FLAGS
@@ -271,6 +283,7 @@ add_dependencies(plutil Foundation CoreFoundation)
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
+                         ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
