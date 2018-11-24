@@ -1117,9 +1117,14 @@ void __CFInitialize(void) {
 
 #if DEPLOYMENT_TARGET_WINDOWS
         if (!pthread_main_np()) HALT;   // CoreFoundation must be initialized on the main thread
-#endif
+
+        DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                        GetCurrentProcess(), &_CFMainPThread, 0, FALSE,
+                        DUPLICATE_SAME_ACCESS);
+#else
         // move this next line up into the #if above after Foundation gets off this symbol. Also: <rdar://problem/39622745> Stop using _CFMainPThread
         _CFMainPThread = pthread_self();
+#endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
         // Must not call any CF functions
