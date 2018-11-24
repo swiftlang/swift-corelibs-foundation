@@ -1000,6 +1000,14 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz);
         }							\
     } while (0)
 
+static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) {
+  res->tv_sec = a->tv_sec + b->tv_sec;
+  res->tv_usec = a->tv_usec + b->tv_usec;
+  if (res->tv_usec > 1e06) {
+    res->tv_sec++;
+    res->tv_usec -= 1e06;
+  }
+}
 
 #endif // DEPLOYMENT_TARGET_WINDOWS
 
