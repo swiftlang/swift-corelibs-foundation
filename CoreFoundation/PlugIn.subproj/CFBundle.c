@@ -119,7 +119,7 @@ CONST_STRING_DECL(_kCFBundleCFMLoadAsBundleKey, "CFBundleCFMLoadAsBundle")
 // Keys used by NSBundle for loaded Info plists.
 CONST_STRING_DECL(_kCFBundlePrincipalClassKey, "NSPrincipalClass")
 
-static pthread_mutex_t CFBundleGlobalDataLock = PTHREAD_MUTEX_INITIALIZER;
+static CFLock_t CFBundleGlobalDataLock = PTHREAD_MUTEX_INITIALIZER;
 
 static CFMutableDictionaryRef _bundlesByIdentifier = NULL;
 static CFMutableDictionaryRef _bundlesByURL = NULL;

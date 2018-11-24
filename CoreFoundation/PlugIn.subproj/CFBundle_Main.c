@@ -24,7 +24,7 @@ static Boolean _initedMainBundle = false;
 static CFBundleRef _mainBundle = NULL;
 static char __CFBundleMainID__[1026] = {0};
 char *__CFBundleMainID = __CFBundleMainID__;
-static pthread_mutex_t _mainBundleLock = PTHREAD_MUTEX_INITIALIZER;
+static CFLock_t _mainBundleLock = PTHREAD_MUTEX_INITIALIZER;
 
 #pragma mark -
 

@@ -109,7 +109,7 @@ struct __CFBundle {
     
     _CFPlugInData _plugInData;
     
-    pthread_mutex_t _bundleLoadingLock;
+    CFLock_t _bundleLoadingLock;
     
     CFStringRef _executablePath; // Calculated and cached here
     CFStringRef _developmentRegion; // Calculated and cached here

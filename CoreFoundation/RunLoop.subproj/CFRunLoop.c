@@ -668,7 +668,7 @@ typedef struct __CFRunLoopMode *CFRunLoopModeRef;
 
 struct __CFRunLoopMode {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;	/* must have the run loop locked before locking this */
+    CFLock_t _lock;	/* must have the run loop locked before locking this */
     CFStringRef _name;
     Boolean _stopped;
     char _padding[3];
@@ -781,7 +781,7 @@ typedef struct _per_run_data {
 
 struct __CFRunLoop {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;			/* locked for accessing mode list */
+    CFLock_t _lock;			/* locked for accessing mode list */
     __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
     Boolean _unused;
     volatile _per_run_data *_perRunData;              // reset for runs of the run loop
@@ -892,7 +892,7 @@ CF_PRIVATE void __CFRunLoopDump() { // __private_extern__ to keep the compiler f
     CFRelease(desc);
 }
 
-CF_INLINE void __CFRunLoopLockInit(pthread_mutex_t *lock) {
+CF_INLINE void __CFRunLoopLockInit(CFLock_t *lock) {
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
     pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
@@ -1099,7 +1099,7 @@ CF_INLINE void __CFUnsetValid(void *cf) {
 
 struct __CFRunLoopSource {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;
+    CFLock_t _lock;
     CFIndex _order;			/* immutable */
     CFMutableBagRef _runLoops;
     union {
@@ -1135,7 +1135,7 @@ CF_INLINE void __CFRunLoopSourceUnlock(CFRunLoopSourceRef rls) {
 
 struct __CFRunLoopObserver {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;
+    CFLock_t _lock;
     CFRunLoopRef _runLoop;
     CFIndex _rlCount;
     CFOptionFlags _activities;		/* immutable */
@@ -1204,7 +1204,7 @@ static void __CFRunLoopObserverCancel(CFRunLoopObserverRef rlo, CFRunLoopRef rl,
 struct __CFRunLoopTimer {
     CFRuntimeBase _base;
     uint16_t _bits;
-    pthread_mutex_t _lock;
+    CFLock_t _lock;
     CFRunLoopRef _runLoop;
     CFMutableSetRef _rlModes;
     CFAbsoluteTime _nextFireDate;
