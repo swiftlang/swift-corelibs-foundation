@@ -27,7 +27,9 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
+#if !DEPLOYMENT_TARGET_WINDOWS
 #include <sys/mman.h>
+#endif
 
 #if BINARY_SUPPORT_DLFCN
 #include <dlfcn.h>
