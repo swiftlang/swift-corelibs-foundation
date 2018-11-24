@@ -1214,7 +1214,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     }
 #if __LP64__
 #else
-    if (statBuf.st_size > (1LL << 31)) {	// refuse to do more than 2GB
+    if (statBuf.st_size > (1ull << 31)) {	// refuse to do more than 2GB
         close(fd);
         if (errorPtr) *errorPtr = _CFErrorWithFilePathCodeDomain(kCFErrorDomainPOSIX, EFBIG, path);
         return false;
