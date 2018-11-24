@@ -58,7 +58,7 @@ CFArrayRef CFDateFormatterCreateDateFormatsFromTemplates(CFAllocatorRef allocato
 
 static Boolean useTemplatePatternGenerator(CFLocaleRef locale, void(^work)(UDateTimePatternGenerator *ptg)) {
     static UDateTimePatternGenerator *ptg;
-    static CFLock_t ptgLock = PTHREAD_MUTEX_INITIALIZER;
+    static CFLock_t ptgLock = CFLockInit;
     static const char *ptgLocaleName;
     CFStringRef ln = locale ? CFLocaleGetIdentifier(locale) : CFSTR("");
     char buffer[BUFFER_SIZE];
