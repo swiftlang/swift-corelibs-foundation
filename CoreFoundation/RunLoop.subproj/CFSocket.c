@@ -966,6 +966,9 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <process.h>
+#endif
 
 #ifndef NBBY
 #define NBBY 8
