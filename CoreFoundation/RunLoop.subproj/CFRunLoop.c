@@ -33,10 +33,6 @@
 extern void objc_terminate(void);
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
-#include <typeinfo.h>
-#endif
-
 #if __has_include(<checkint.h>)
 #include <checkint.h>
 #else
