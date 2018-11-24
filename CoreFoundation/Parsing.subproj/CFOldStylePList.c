@@ -8,6 +8,7 @@
  Responsibility: Tony Parker
  */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFPropertyList.h>
 #include <CoreFoundation/CFDate.h>
 #include <CoreFoundation/CFNumber.h>
@@ -368,7 +369,7 @@ static CFStringRef parsePlistString(_CFStringsFileParseInfo *pInfo, bool require
 // when this returns yes, pInfo->error will be set
 static BOOL depthIsInvalid(_CFStringsFileParseInfo *pInfo, const uint32_t depth) {
     BOOL invalid = NO;
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define MAX_DEPTH 512
 #else
 #define MAX_DEPTH 256

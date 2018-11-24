@@ -138,6 +138,8 @@ struct __notInlineMutable {
     unsigned int capacityProvidedExternally:1;
 #if __LP64__
     unsigned long desiredCapacity:60;
+#elif __LLP64__
+    unsigned long long desiredCapacity:60;
 #else
     unsigned long desiredCapacity:28;
 #endif
@@ -533,7 +535,7 @@ CFStringEncoding __CFStringComputeEightBitStringEncoding(void) {
 /* Returns whether the provided bytes can be stored in ASCII
 */
 CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
-#if __LP64__
+#if TARGET_RT_64_BIT
     /* A bit of unrolling; go by 32s, 16s, and 8s first */
     while (len >= 32) {
         uint64_t val = *(const uint64_t *)bytes;
@@ -621,7 +623,7 @@ Additional complications are applied in the following order:
 */
 #define SHRINKFACTOR(c) (c / 2)
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define GROWFACTOR(c) ((c * 3 + 1) / 2)
 #else
 #define GROWFACTOR(c) (((c) >= (ULONG_MAX / 3UL)) ? __CFMax(LONG_MAX - 4095, (c)) : (((unsigned long)c * 3 + 1) / 2))
@@ -5984,7 +5986,7 @@ enum {
     CFFormatSize4 = 3,
     CFFormatSize8 = 4,
     CFFormatSize16 = 5,
-#if __LP64__
+#if TARGET_RT_64_BIT
     CFFormatSizeLong = CFFormatSize8,
     CFFormatSizePointer = CFFormatSize8
 #else

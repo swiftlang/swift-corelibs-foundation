@@ -333,7 +333,7 @@ CF_INLINE _CFOverflowResult _CFIntegerProductWouldOverflow(CFIndex si_a, CFIndex
         result = _CFOverflowResultNegativeParameters;
     } else {
         int32_t err = CHECKINT_NO_ERROR;
-#if __LP64__
+#if TARGET_RT_64_BIT
         __checkint_int64_mul(si_a, si_b, &err);
 #else
         __checkint_int32_mul(si_a, si_b, &err);
@@ -347,7 +347,7 @@ CF_INLINE _CFOverflowResult _CFIntegerProductWouldOverflow(CFIndex si_a, CFIndex
 CF_INLINE _CFOverflowResult _CFPointerSumWouldOverflow(void *p, size_t n) {
     _CFOverflowResult result = _CFOverflowResultOK;
     int32_t err = CHECKINT_NO_ERROR;
-#if __LP64__
+#if TARGET_RT_64_BIT
     __checkint_uint64_add((uint64_t)p, (uint64_t)n, &err);
 #else
     __checkint_uint32_add((uint32_t)p, (uint32_t)n, &err);

@@ -167,11 +167,11 @@ struct __CFConstStr {
         uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
-#if defined(__LP64__) && defined(__BIG_ENDIAN__)
+#if TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
     uint64_t _length;
 #else // 32-bit:
     uint32_t _length;
-#endif // defined(__LP64__) || defined(__LLP64__)
+#endif // TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
 };
 
 #if __BIG_ENDIAN__

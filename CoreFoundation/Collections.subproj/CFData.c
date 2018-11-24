@@ -8,6 +8,7 @@
 	Responsibility: Kevin Perry
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
@@ -17,7 +18,7 @@
 
 
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define CFDATA_MAX_SIZE	    ((1ULL << 42) - 1)
 #else
 #define CFDATA_MAX_SIZE	    ((1ULL << 31) - 1)
@@ -161,7 +162,7 @@ CF_INLINE void __CFDataSetNumBytes(CFMutableDataRef data, CFIndex v) {
     data->_capacity = v;
 }
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define CHUNK_SIZE (1ULL << 29)
 #define LOW_THRESHOLD (1ULL << 20)
 #define HIGH_THRESHOLD (1ULL << 32)
@@ -183,7 +184,7 @@ CF_INLINE CFIndex __CFDataRoundUpCapacity(CFIndex capacity) {
 	return (1L << (long)flsl(capacity));
     } else {
 	/* Round up to next multiple of CHUNK_SIZE */
-	unsigned long newCapacity = CHUNK_SIZE * (1+(capacity >> ((long)flsl(CHUNK_SIZE)-1)));
+	unsigned long long newCapacity = CHUNK_SIZE * (1+(capacity >> ((long)flsl(CHUNK_SIZE)-1)));
 	return __CFMin(newCapacity, CFDATA_MAX_SIZE);
     }
 }

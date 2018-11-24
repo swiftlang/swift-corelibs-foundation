@@ -167,7 +167,7 @@ static CFStringRef _CFBundleDYLDCopyLoadedImagePathForPointer(void *p) {
         uint32_t i, j, n = _dyld_image_count();
         Boolean foundit = false;
         const char *name;
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define MACH_HEADER_TYPE struct mach_header_64
 #define MACH_SEGMENT_CMD_TYPE struct segment_command_64
 #define MACH_SEGMENT_FLAVOR LC_SEGMENT_64
