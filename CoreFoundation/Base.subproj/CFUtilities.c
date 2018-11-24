@@ -761,6 +761,15 @@ static bool also_do_stderr(const _cf_logging_style style) {
     return result;
 }
 
+#if DEPLOYMENT_TARGET_WINDOWS
+static struct tm *localtime_r(time_t *tv, struct tm *result) {
+  struct tm *tm = localtime(tv);
+  if (tm)
+    *result = *tm;
+  return tm;
+}
+#endif
+
 static void _populateBanner(char **banner, char **time, char **thread, int *bannerLen) {
     double dummy;
     CFAbsoluteTime at = CFAbsoluteTimeGetCurrent();
