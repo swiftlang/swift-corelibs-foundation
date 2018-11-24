@@ -15,6 +15,9 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <stdio.h>
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <process.h>
+#endif
 
 #if defined(DEBUG)
 #include <assert.h>
@@ -1729,6 +1732,13 @@ static CFRunLoopRef _legacyStreamRunLoop()
         if (sLegacyRL == NULL) {
             dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
+#if DEPLOYMENT_TARGET_WINDOWS
+            HANDLE hThread =
+                (HANDLE)_beginthreadex(NULL, 0,
+                                       (_beginthreadex_proc_type)_legacyStreamRunLoop_workThread,
+                                       &sem, 0, NULL);
+            CloseHandle(hThread);
+#else
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -1738,6 +1748,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
             pthread_t workThread;
             (void) pthread_create(&workThread, &attr, _legacyStreamRunLoop_workThread, &sem);
             pthread_attr_destroy(&attr);
+#endif
 
             dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
             dispatch_release(sem);
