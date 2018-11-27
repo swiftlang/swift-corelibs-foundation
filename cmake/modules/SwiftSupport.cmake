@@ -2,7 +2,7 @@
 include(CMakeParseArguments)
 
 function(add_swift_target target)
-  set(options LIBRARY)
+  set(options LIBRARY;SHARED;STATIC)
   set(single_value_options MODULE_NAME;MODULE_LINK_NAME;MODULE_PATH;MODULE_CACHE_PATH;OUTPUT;TARGET)
   set(multiple_value_options CFLAGS;DEPENDS;LINK_FLAGS;RESOURCES;SOURCES;SWIFT_FLAGS)
 
@@ -44,11 +44,33 @@ function(add_swift_target target)
       list(APPEND link_flags ${flag})
     endforeach()
   endif()
+  if(AST_LIBRARY)
+    if(AST_STATIC AND AST_SHARED)
+      message(SEND_ERROR "add_swift_target asked to create library as STATIC and SHARED")
+    elseif(AST_STATIC OR NOT BUILD_SHARED_LIBS)
+      set(library_kind STATIC)
+    elseif(AST_SHARED OR BUILD_SHARED_LIBS)
+      set(library_kind SHARED)
+    endif()
+  else()
+    if(AST_STATIC OR AST_SHARED)
+      message(SEND_ERROR "add_swift_target asked to create executable as STATIC or SHARED")
+    endif()
+  endif()
   if(NOT AST_OUTPUT)
     if(AST_LIBRARY)
-      set(AST_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX})
+      if(AST_SHARED OR BUILD_SHARED_LIBS)
+        set(AST_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${CMAKE_SHARED_LIBRARY_PREFIX}${target}${CMAKE_SHARED_LIBRARY_SUFFIX})
+      else()
+        set(AST_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${CMAKE_STATIC_LIBRARY_PREFIX}${target}${CMAKE_STATIC_LIBRARY_SUFFIX})
+      endif()
     else()
       set(AST_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${target}${CMAKE_EXECUTABLE_SUFFIX})
+    endif()
+  endif()
+  if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+    if(AST_SHARED OR BUILD_SHARED_LIBS)
+      set(IMPORT_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${CMAKE_IMPORT_LIBRARY_PREFIX}${target}${CMAKE_IMPORT_LIBRARY_SUFFIX})
     endif()
   endif()
 
@@ -113,19 +135,40 @@ function(add_swift_target target)
   if(AST_LIBRARY)
     set(emit_library -emit-library)
   endif()
-  add_custom_command(OUTPUT
-                       ${AST_OUTPUT}
-                     DEPENDS
-                       ${objs}
-                       ${AST_DEPENDS}
-                     COMMAND
-                       ${CMAKE_SWIFT_COMPILER} ${emit_library} ${link_flags} -o ${AST_OUTPUT} ${objs})
-  add_custom_target(${target}
-                    ALL
-                    DEPENDS
-                       ${AST_OUTPUT}
-                       ${module}
-                       ${documentation})
+  if(NOT AST_LIBRARY OR library_kind STREQUAL SHARED)
+    add_custom_command(OUTPUT
+                         ${AST_OUTPUT}
+                       DEPENDS
+                         ${objs}
+                         ${AST_DEPENDS}
+                       COMMAND
+                         ${CMAKE_SWIFT_COMPILER} ${emit_library} ${link_flags} -o ${AST_OUTPUT} ${objs})
+    add_custom_target(${target}
+                      ALL
+                      DEPENDS
+                         ${AST_OUTPUT}
+                         ${module}
+                         ${documentation})
+  else()
+    add_library(${target}-static STATIC ${objs})
+    add_dependencies(${target}-static ${AST_DEPENDS})
+    get_filename_component(ast_output_bn ${AST_OUTPUT} NAME)
+    string(REGEX REPLACE "^${CMAKE_STATIC_LIBRARY_PREFIX}" "" ast_output_bn ${ast_output_bn})
+    string(REGEX REPLACE "${CMAKE_STATIC_LIBRARY_SUFFIX}$" "" ast_output_bn ${ast_output_bn})
+    get_filename_component(ast_output_dn ${AST_OUTPUT} DIRECTORY)
+    set_target_properties(${target}-static
+                          PROPERTIES
+                            LINKER_LANGUAGE C
+                            ARCHIVE_OUTPUT_DIRECTORY ${ast_output_dn}
+                            OUTPUT_DIRECTORY ${ast_output_dn}
+                            OUTPUT_NAME ${ast_output_bn})
+    add_custom_target(${target}
+                      ALL
+                      DEPENDS
+                        ${target}-static
+                        ${module}
+                        ${documentation})
+  endif()
 
   if(AST_RESOURCES)
     add_custom_command(TARGET
@@ -150,6 +193,15 @@ function(add_swift_target target)
                        POST_BUILD
                        COMMAND
                          ${CMAKE_COMMAND} -E copy ${AST_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR})
+    if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+      if(AST_SHARED OR BUILD_SHARED_LIBS)
+        add_custom_command(TARGET
+                             ${target}
+                           POST_BUILD
+                           COMMAND
+                             ${CMAKE_COMMAND} -E copy ${IMPORT_LIBRARY} ${CMAKE_CURRENT_BINARY_DIR})
+      endif()
+    endif()
   endif()
 endfunction()
 
@@ -188,6 +240,8 @@ function(get_swift_host_arch result_var_name)
   elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "IA64")
     set("${result_var_name}" "itanium" PARENT_SCOPE)
   elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86")
+    set("${result_var_name}" "i686" PARENT_SCOPE)
+  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
     set("${result_var_name}" "i686" PARENT_SCOPE)
   else()
     message(FATAL_ERROR "Unrecognized architecture on host system: ${CMAKE_SYSTEM_PROCESSOR}")
