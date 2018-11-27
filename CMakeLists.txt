@@ -83,8 +83,6 @@ add_swift_library(Foundation
                     Foundation
                   MODULE_PATH
                     ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
-                  OUTPUT
-                    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
                   SOURCES
                     Foundation/AffineTransform.swift
                     Foundation/Array.swift
@@ -250,7 +248,7 @@ add_swift_library(Foundation
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
                     ${CURL_LIBRARIES}
-                    ${ICU_UC_LIBRARIES} ${ICU_I18N_LIBRARIES}
+                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     ${uuid_LIBRARIES}
@@ -265,6 +263,17 @@ add_swift_library(Foundation
                   DEPENDS
                     CoreFoundation)
 
+if(NOT BUILD_SHARED_LIBS)
+  set(Foundation_INTERFACE_LIBRARIES
+      -L${install_dir}/usr/lib
+      -lCoreFoundation
+      ${CURL_LIBRARIES}
+      ${ICU_UC_LIBRARY}
+      ${ICU_I18N_LIBRARY}
+      ${LIBXML2_LIBRARIES}
+      ${uuid_LIBRARIES})
+endif()
+
 add_swift_executable(plutil
                      SOURCES
                        Tools/plutil/main.swift
@@ -276,6 +285,7 @@ add_swift_executable(plutil
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
                        -lFoundation
+                       ${Foundation_INTERFACE_LIBRARIES}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
@@ -298,6 +308,7 @@ if(ENABLE_TESTING)
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
+                         ${Foundation_INTERFACE_LIBRARIES}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
@@ -404,6 +415,7 @@ if(ENABLE_TESTING)
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
+                         ${Foundation_INTERFACE_LIBRARIES}
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                        RESOURCES
@@ -474,10 +486,17 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
         DESTINATION
           lib/swift/${swift_os}/${swift_arch})
-install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
-        DESTINATION
-          lib/swift/${swift_os})
+if(BUILD_SHARED_LIBS)
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
+          DESTINATION
+            lib/swift/${swift_os})
+else()
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Foundation${CMAKE_STATIC_LIBRARY_SUFFIX}
+          DESTINATION
+            lib/swift/${swift_os})
+endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers/
