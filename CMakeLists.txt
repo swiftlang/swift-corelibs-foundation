@@ -259,8 +259,9 @@ add_swift_library(Foundation
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
-                    ${swift_optimization_flags})
-add_dependencies(Foundation CoreFoundation)
+                    ${swift_optimization_flags}
+                  DEPENDS
+                    CoreFoundation)
 
 add_swift_executable(plutil
                      SOURCES
@@ -280,8 +281,10 @@ add_swift_executable(plutil
                        -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
                        ${swift_enable_testing}
-                       ${swift_optimization_flags})
-add_dependencies(plutil Foundation CoreFoundation)
+                       ${swift_optimization_flags}
+                     DEPENDS
+                       Foundation
+                       CoreFoundation)
 
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
@@ -298,8 +301,10 @@ if(ENABLE_TESTING)
                        SWIFT_FLAGS
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${ICU_INCLUDE_DIR}
-                         ${libdispatch_cflags})
-  add_dependencies(xdgTestHelper Foundation CoreFoundation)
+                         ${libdispatch_cflags}
+                       DEPENDS
+                         Foundation
+                         CoreFoundation)
 
   add_swift_executable(TestFoundation
                        SOURCES
@@ -429,8 +434,11 @@ if(ENABLE_TESTING)
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
-                         ${swift_optimization_flags})
-  add_dependencies(TestFoundation Foundation CoreFoundation xdgTestHelper)
+                         ${swift_optimization_flags}
+                       DEPENDS
+                         Foundation
+                         CoreFoundation
+                         xdgTestHelper)
 
   add_custom_command(TARGET TestFoundation
                      POST_BUILD
