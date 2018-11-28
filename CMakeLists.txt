@@ -495,7 +495,7 @@ else()
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Foundation${CMAKE_STATIC_LIBRARY_SUFFIX}
           DESTINATION
-            lib/swift/${swift_os})
+            lib/swift_static/${swift_os})
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
