@@ -76,6 +76,8 @@ function(_icu_find)
     set(component_cache_debug "${component_cache}_DEBUG")
     set(component_found "${component_cache}_FOUND")
 
+    unset(component_libnames)
+    unset(component_debug_libnames)
     list(APPEND component_libnames "icu${component}")
     list(APPEND component_debug_libnames "icu${component}d")
     if(component STREQUAL data)
