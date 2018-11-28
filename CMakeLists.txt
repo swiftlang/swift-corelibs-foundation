@@ -9,6 +9,8 @@ project(Foundation
           C)
 enable_testing()
 
+option(BUILD_SHARED_LIBS "build shared libraries" ON)
+
 option(FOUNDATION_ENABLE_LIBDISPATCH "Enable GCD Support" YES)
 option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
