@@ -25,6 +25,9 @@ include(SwiftSupport)
 include(GNUInstallDirs)
 include(ExternalProject)
 
+string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
+get_swift_host_arch(swift_arch)
+
 ExternalProject_Add(CoreFoundation
                     SOURCE_DIR
                       ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation
@@ -286,6 +289,7 @@ add_swift_executable(plutil
                        ${libdispatch_ldflags}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
+                       -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
@@ -477,9 +481,6 @@ if(ENABLE_TESTING)
                            ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 
-string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
-get_swift_host_arch(swift_arch)
-
 # TODO(compnerd) honour lib vs lib64
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
@@ -507,7 +508,7 @@ install(FILES
           CoreFoundation/Base.subproj/module.map
         DESTINATION
           lib/swift/CoreFoundation)
-install(FILES
+install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/plutil
         DESTINATION
           ${CMAKE_INSTALL_FULL_BINDIR})
