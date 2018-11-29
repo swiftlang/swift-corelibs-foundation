@@ -38,6 +38,9 @@ function(add_swift_target target)
     foreach(flag ${AST_CFLAGS})
       list(APPEND compile_flags -Xcc;${flag})
     endforeach()
+    if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+      list(APPEND compile_flags -sdk;`xcrun --show-sdk-path -sdk macosx`)
+    endif()
   endif()
   if(AST_LINK_FLAGS)
     foreach(flag ${AST_LINK_FLAGS})
@@ -73,6 +76,9 @@ function(add_swift_target target)
       set(IMPORT_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${CMAKE_IMPORT_LIBRARY_PREFIX}${target}${CMAKE_IMPORT_LIBRARY_SUFFIX})
     endif()
   endif()
+  
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/swift)
 
   set(sources)
   foreach(source ${AST_SOURCES})
@@ -83,7 +89,7 @@ function(add_swift_target target)
       list(APPEND sources ${CMAKE_CURRENT_SOURCE_DIR}/${source})
     endif()
   endforeach()
-
+  
   set(objs)
   set(mods)
   set(docs)
@@ -148,7 +154,9 @@ function(add_swift_target target)
                       DEPENDS
                          ${AST_OUTPUT}
                          ${module}
-                         ${documentation})
+                         ${documentation}
+                      SOURCES
+                         ${sources})
   else()
     add_library(${target}-static STATIC ${objs})
     if(AST_DEPENDS)
@@ -169,7 +177,9 @@ function(add_swift_target target)
                       DEPENDS
                         ${target}-static
                         ${module}
-                        ${documentation})
+                        ${documentation}
+                      SOURCES
+                        ${sources})
   endif()
 
   if(AST_RESOURCES)

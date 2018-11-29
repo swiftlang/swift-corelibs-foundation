@@ -1,0 +1,163 @@
+#!/bin/bash
+
+HERE="`dirname "$0"`"
+HERE="`(cd "$HERE"; pwd)`"
+ME="`basename "$0"`"
+
+SRCROOT="`(cd "$HERE"/..; pwd)`"
+if [ "$SWIFT_BUILD_ROOT" == "" ]; then
+	SWIFT_BUILD_ROOT="`(cd "$HERE"/../..; pwd)`"/build
+fi
+
+EMIT_FOUNDATION=YES
+EMIT_CORE_FOUNDATION=YES
+EMIT_CLEAN=NO
+DEFAULT_PARTIAL_PROJECTS_DIR="$SWIFT_BUILD_ROOT/FoundationDev-"
+
+if [ "`uname -s`" == "Darwin" ]; then
+	DEFAULT_GENERATOR=Xcode
+else
+	DEFAULT_GENERATOR=Ninja
+fi
+GENERATOR="$DEFAULT_GENERATOR"
+
+function end() {
+	echo "$@" >&2
+	exit 1
+}
+
+function echo_sh() {
+	echo " \$ $@"
+	"$@"
+}
+
+DEFAULT_SWIFTC=/Library/Developer/Toolchains/swift-latest.xctoolchain/usr/bin/swiftc
+if [ -x "$DEFAULT_SWIFTC" ]; then
+	SWIFTC="$DEFAULT_SWIFTC"
+fi
+
+function usage() {
+	echo "Usage: $ME [{--xcode,-x}|{--ninja,-N}] [{--generator,-G} GENERATOR] [--swiftc <PATH TO SWIFTC>] [--{enable,disable}-foundation] [--{enable,disable}-core-foundation] [{--projects-dir,-o} PROJECTS_DIR] [{--clean,-K}]" >&2
+	echo "  The default generator is '$DEFAULT_GENERATOR'." >&2
+	echo "  Build files will be generated in subdirectories of PROJECTS_DIR, " >&2
+	echo "  which defaults to: $DEFAULT_PARTIAL_PROJECTS_DIR[GENERATOR], e.g.:" >&2
+	echo "   $DEFAULT_PARTIAL_PROJECTS_DIR$GENERATOR" >&2
+	echo "  (this default respects the SWIFT_BUILD_ROOT environment variable.)" >&2
+	if [ "$SWIFTC" == "" ]; then
+		echo "  You must specify the path to swiftc with the --swiftc flag." >&2
+	else
+		echo "  If the path to swiftc is not specified, it will build with:" >&2
+		echo "   $SWIFTC"
+	fi
+}
+
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+	--xcode|-x)
+		GENERATOR=Xcode
+		;;
+	--ninja|-N)
+		GENERATOR=Ninja
+		;;
+	--generator|-G)
+		shift
+		GENERATOR="$1"
+		if [ "$GENERATOR" == "" ]; then
+			end "error: Expected a CMake generator name after --generator/-G."
+		fi
+		;;
+		
+	--enable-foundation)
+		EMIT_FOUNDATION=YES
+		;;
+	--disable-foundation)
+		EMIT_FOUNDATION=NO
+		;;
+	--enable-core-foundation)
+		EMIT_CORE_FOUNDATION=YES
+		;;
+	--disable-core-foundation)
+		EMIT_CORE_FOUNDATION=NO
+		;;
+	--projects-dir|-o)
+		shift
+		PROJECTS_DIR="$1"
+		if [ "$PROJECTS_DIR" == "" ]; then
+			end "error: Expected a project directory path after -o/--projects-dir."
+		fi
+		;;
+	--clean|-K)
+		EMIT_CLEAN=YES
+		;;
+	--swiftc)
+		shift
+		SWIFTC="$1"
+		if [ ! -x "$SWIFTC" ]; then
+			end "error: Couldn't find an executable swiftc at: $SWIFTC"
+		fi
+		;;
+		
+	--help)
+		usage
+		exit 0
+		;;
+	*)
+		usage
+		exit 1
+		;;
+	esac
+	
+	shift
+done
+
+if [ "$PROJECTS_DIR" == "" ]; then
+	PROJECTS_DIR="$DEFAULT_PARTIAL_PROJECTS_DIR$GENERATOR"
+fi
+
+echo "note: == Creating build files with configuration:" 
+echo "note:  Generator: $GENERATOR"
+echo "note:  Create Foundation build setup? $EMIT_FOUNDATION"
+echo "note:  Create Core Foundation build setup? $EMIT_CORE_FOUNDATION"
+echo "note:  Create build setups at subdirectories of: $PROJECTS_DIR"
+echo "note:  Use swiftc at: $SWIFTC"
+
+if [ "$EMIT_FOUNDATION" == "NO" -a "$EMIT_CORE_FOUNDATION" == "NO" ]; then
+	end "error: You must enable at least one project to emit."
+fi
+
+echo_sh mkdir -p "$PROJECTS_DIR" || end "error: Could not create directory at $PROJECTS_DIR"
+
+if [ "$EMIT_FOUNDATION" == "YES" ]; then
+	echo
+	echo "note: == Generating Foundation"
+
+	FOUNDATION_PROJECT_DIR="$PROJECTS_DIR"/Foundation
+	if [ "$EMIT_CLEAN" == "YES" -a -d "$FOUNDATION_PROJECT_DIR" ]; then
+		echo "note: Removing existing files at $FOUNDATION_PROJECT_DIR"
+		echo_sh rm -rfv "$FOUNDATION_PROJECT_DIR" || end "error: Could not delete directory at $FOUNDATION_PROJECT_DIR"
+	fi
+	echo_sh mkdir -p "$FOUNDATION_PROJECT_DIR" || end "error: Could not create Foundation directory at $FOUNDATION_PROJECT_DIR"
+
+	(echo_sh cd "$FOUNDATION_PROJECT_DIR" && echo_sh \
+		cmake -G "$GENERATOR" \
+			-DCMAKE_SWIFT_COMPILER="$SWIFTC" \
+			-DENABLE_TESTING=YES \
+			-DCMAKE_BUILD_TYPE=Debug \
+			-DCMAKE_INSTALL_PREFIX="$PWD"/Install \
+			-DBUILD_SHARED_LIBS=YES \
+		"$SRCROOT") || end "error: CMake could not generate the build setup for Foundation."
+fi
+
+if [ "$EMIT_CORE_FOUNDATION" == "YES" ]; then
+	echo
+	echo "note: == Generating Core Foundation"
+
+	CORE_FOUNDATION_PROJECT_DIR="$PROJECTS_DIR"/CoreFoundation
+	if [ "$EMIT_CLEAN" == "YES" -a -d "$CORE_FOUNDATION_PROJECT_DIR" ]; then
+		echo "note: Removing existing files at $CORE_FOUNDATION_PROJECT_DIR"
+		echo_sh rm -rfv "$CORE_FOUNDATION_PROJECT_DIR" || end "error: Could not delete directory at $CORE_FOUNDATION_PROJECT_DIR"
+	fi
+	echo_sh mkdir -p "$CORE_FOUNDATION_PROJECT_DIR" || end "error: Could not create Foundation directory at $CORE_FOUNDATION_PROJECT_DIR"
+
+	(echo_sh cd "$CORE_FOUNDATION_PROJECT_DIR" && echo_sh cmake -G "$GENERATOR" -DBUILD_SHARED_LIBS=NO -DCF_DEPLOYMENT_SWIFT=YES -DCF_ENABLE_LIBDISPATCH=YES "$SRCROOT"/CoreFoundation) || end "error: CMake could not generate the build setup for Core Foundation."
+fi

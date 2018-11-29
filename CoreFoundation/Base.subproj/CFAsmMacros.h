@@ -16,7 +16,7 @@
 
 /* Use .note.GNU-stack to explicitly indicate a non-exec stack, b/c of bad   */
 /* default behaviour when translating handwritten assembly files (needed on  */
-/* GNU/* platforms, Android and FreeBSD, as tests have shown).               */
+/* GNU/<etc> platforms, Android and FreeBSD, as tests have shown).           */
 /* Platform tests are documented at http://git.savannah.gnu.org/gitweb/?p=libffcall.git;a=blob;f=porting-tools/execstack/README */
 #if (defined(__GNUC__) || defined (__llvm__) || defined (__clang__)) && defined(__ELF__) && (defined (__linux__) || defined (__linux) || defined (__gnu_linux__) || defined(__FreeBSD__) || defined (__FreeBSD_kernel__))
 #define NO_EXEC_STACK_DIRECTIVE .section .note.GNU-stack,"",%progbits

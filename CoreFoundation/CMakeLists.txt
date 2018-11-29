@@ -41,8 +41,18 @@ else()
   set(FRAMEWORK_LIBRARY_TYPE STATIC)
 endif()
 
+set(cf_swift_runtime_abi_flags)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(cf_swift_runtime_abi_flags -fcf-runtime-abi=swift)
+endif()
+
+set(cf_darwin_only_mach_port_sources)
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(cf_darwin_only_mach_port_sources RunLoop.subproj/CFMachPort.c;RunLoop.subproj/CFMachPort_Lifetime.c;RunLoop.subproj/CFMessagePort.c)
+endif()
+
 add_framework(CoreFoundation
-                ${FRAMEWORK_LIBRARY_TYPE}
+              ${FRAMEWORK_LIBRARY_TYPE}
               FRAMEWORK_DIRECTORY
                 CoreFoundation_FRAMEWORK_DIRECTORY
               MODULE_MAP
@@ -264,10 +274,7 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFPreferences.c
                 Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
-                # TODO(compnerd) make this empty on non-Mach targets
-                # RunLoop.subproj/CFMachPort.c
-                # RunLoop.subproj/CFMachPort_Lifetime.c
-                # RunLoop.subproj/CFMessagePort.c
+                ${cf_darwin_only_mach_port_sources}
                 RunLoop.subproj/CFRunLoop.c
                 RunLoop.subproj/CFSocket.c
                 # Stream
@@ -278,7 +285,6 @@ add_framework(CoreFoundation
                 String.subproj/CFAttributedString.c
                 String.subproj/CFBurstTrie.c
                 String.subproj/CFCharacterSet.c
-                String.subproj/CFCharacterSetData.S
                 String.subproj/CFRegularExpression.c
                 String.subproj/CFRunArray.c
                 String.subproj/CFString.c
@@ -286,8 +292,6 @@ add_framework(CoreFoundation
                 String.subproj/CFStringScanner.c
                 String.subproj/CFStringTransform.c
                 String.subproj/CFStringUtilities.c
-                String.subproj/CFUniCharPropertyDatabase.S
-                String.subproj/CFUnicodeData.S
                 # StringEncodings
                 StringEncodings.subproj/CFBuiltinConverters.c
                 StringEncodings.subproj/CFICUConverters.c
@@ -303,6 +307,33 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
+
+
+add_library(CFUnicodeAsm
+            STATIC
+              String.subproj/CFCharacterSetData.S
+              String.subproj/CFUniCharPropertyDatabase.S
+              String.subproj/CFUnicodeData.S)
+target_include_directories(CFUnicodeAsm
+                           PRIVATE
+                             .)
+add_dependencies(CFUnicodeAsm CoreFoundation_POPULATE_HEADERS)
+add_dependencies(CoreFoundation CFUnicodeAsm)
+target_link_libraries(CoreFoundation
+                      PRIVATE
+                        CFUnicodeAsm)
+
+target_compile_definitions(CFUnicodeAsm
+                           PRIVATE
+                              CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap"
+                              CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data"
+                              CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping"
+                              CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping")
+target_compile_options(CFUnicodeAsm
+                       PRIVATE
+                         -F;${CoreFoundation_FRAMEWORK_DIRECTORY}/..)
+set(CMAKE_XCODE_ATTRIBUTE_FRAMEWORK_SEARCH_PATHS "${CoreFoundation_FRAMEWORK_DIRECTORY}/..")
+
 if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_compile_definitions(CoreFoundation
                              PRIVATE
@@ -339,21 +370,30 @@ else()
                              PRIVATE
                                -DDEPLOYMENT_RUNTIME_C)
 endif()
-target_compile_definitions(CoreFoundation
-                           PRIVATE
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_BITMAP="CharacterSets/CFCharacterSetBitmaps.bitmap">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping">
-                              $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
+
+if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  # FIXME(compnerd) why is /usr/local/include added manually?  clang will do so
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               "/usr/local/include"
+                               "/usr/local/include/libxml2"
+                               "/usr/local/include/curl")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                              "../bootstrap/x86_64-apple-darwin/usr/local/include")
+endif()
 
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${CMAKE_SOURCE_DIR})
+find_package(LibXml2 REQUIRED)
+target_include_directories(CoreFoundation
+                           PRIVATE
+                             ${LIBXML2_INCLUDE_DIR})
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  find_package(LibXml2 REQUIRED)
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${LIBXML2_INCLUDE_DIR})
   find_package(CURL REQUIRED)
   target_include_directories(CoreFoundation
                              PRIVATE
@@ -402,7 +442,7 @@ endif()
 if(CF_DEPLOYMENT_SWIFT)
   target_compile_options(CoreFoundation
                          PRIVATE
-                           -fcf-runtime-abi=swift)
+                           ${cf_swift_runtime_abi_flags})
 endif()
 
 target_compile_options(CoreFoundation

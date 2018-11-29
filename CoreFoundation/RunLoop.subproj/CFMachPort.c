@@ -181,8 +181,13 @@ static Boolean __CFMachPortCheck(mach_port_t port) {
     return (KERN_SUCCESS != ret || (0 == (type & MACH_PORT_TYPE_PORT_RIGHTS))) ? false : true;
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define _CFMachPortIsKnownToBeUniquelyReferenced(...) false
+#else
 // This function exists regardless of platform, but is only declared in headers for legacy clients.
 CF_EXPORT CFIndex CFGetRetainCount(CFTypeRef object);
+#define _CFMachPortIsKnownToBeUniquelyReferenced(value) (CFGetRetainCount(value) == 1)
+#endif
 
 static void __CFMachPortChecker(Boolean fromTimer) {
     __CFLock(&__CFAllMachPortsLock); // take this lock first before any instance-specific lock
@@ -190,7 +195,7 @@ static void __CFMachPortChecker(Boolean fromTimer) {
         CFMachPortRef mp = (CFMachPortRef)CFArrayGetValueAtIndex(__CFAllMachPorts, idx);
         if (!mp) continue;
         // second clause cleans no-longer-wanted CFMachPorts out of our strong table
-        if (!__CFMachPortCheck(mp->_port) || (1 == CFGetRetainCount(mp))) {
+        if (!__CFMachPortCheck(mp->_port) || _CFMachPortIsKnownToBeUniquelyReferenced(mp)) {
             CFRunLoopSourceRef source = NULL;
             Boolean wasReady = (mp->_state == kCFMachPortStateReady);
             if (wasReady) {

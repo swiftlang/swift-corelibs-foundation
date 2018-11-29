@@ -16,8 +16,13 @@ option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
 option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 
+set(icu_darwin_libraries)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin) 
+  find_package(ICU COMPONENTS uc i18n REQUIRED)
+else()
+  set(icu_darwin_libraries -licucore)
+endif()
 find_package(CURL REQUIRED)
-find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
 find_package(UUID REQUIRED)
 
@@ -62,10 +67,12 @@ set(libdispatch_cflags)
 set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(deployment_enable_libdispatch -DDEPLOYMENT_ENABLE_LIBDISPATCH)
-  set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
-  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
+    set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
+    if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+      list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+    endif()
   endif()
 endif()
 
@@ -79,13 +86,20 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
 
+set(foundation_module_name Foundation)
+set(foundation_darwin_link_flags)
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(foundation_module_name SwiftFoundation)
+  set(foundation_darwin_link_flags -Xlinker;-twolevel_namespace;-Xlinker;-alias_list;-Xlinker;${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation/Base.subproj/DarwinSymbolAliases;-Xlinker;-all_load;-Xlinker;-sectcreate;-Xlinker;__UNICODE;-Xlinker;__csbitmaps;-Xlinker;${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap;-Xlinker;-sectcreate;-Xlinker;__UNICODE;-Xlinker;__properties;-Xlinker;${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data;-Xlinker;-sectcreate;-Xlinker;__UNICODE;-Xlinker;__data;-Xlinker;${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation/CharacterSets/CFUnicodeData-L.mapping;-Xlinker;-segprot;-Xlinker;__UNICODE;-Xlinker;r;-Xlinker;r)
+endif()
+
 add_swift_library(Foundation
                   MODULE_NAME
-                    Foundation
+                    ${foundation_module_name}
                   MODULE_LINK_NAME
-                    Foundation
+                    ${foundation_module_name}
                   MODULE_PATH
-                    ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/${foundation_module_name}.swiftmodule
                   SOURCES
                     Foundation/AffineTransform.swift
                     Foundation/Array.swift
@@ -251,11 +265,12 @@ add_swift_library(Foundation
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
                     ${CURL_LIBRARIES}
-                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
+                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY} ${icu_darwin_libraries}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     ${uuid_LIBRARIES}
                     -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    ${foundation_darwin_link_flags}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -287,7 +302,7 @@ add_swift_executable(plutil
                      LINK_FLAGS
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
-                       -lFoundation
+                       -l${foundation_module_name}
                        ${Foundation_INTERFACE_LIBRARIES}
                        -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
                      SWIFT_FLAGS
@@ -311,7 +326,7 @@ if(ENABLE_TESTING)
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
-                         -lFoundation
+                         -l${foundation_module_name}
                          ${Foundation_INTERFACE_LIBRARIES}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
@@ -418,7 +433,7 @@ if(ENABLE_TESTING)
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
-                         -lFoundation
+                         -l${foundation_module_name}
                          ${Foundation_INTERFACE_LIBRARIES}
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
