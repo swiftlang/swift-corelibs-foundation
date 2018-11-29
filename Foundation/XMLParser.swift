@@ -471,7 +471,7 @@ open class XMLParser : NSObject {
         if let p = parser {
             Thread.current.threadDictionary["__CurrentNSXMLParser"] = p
         } else {
-            Thread.current.threadDictionary.removeValue(forKey: "__CurrentNSXMLParser")
+            Thread.current.threadDictionary.removeObject(forKey: "__CurrentNSXMLParser")
         }
     }
     
