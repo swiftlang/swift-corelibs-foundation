@@ -9,35 +9,6 @@
 
 class TestDecimal: XCTestCase {
 
-    static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
-        return [
-            ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
-            ("test_AdditionWithNormalization", test_AdditionWithNormalization),
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_Constants", test_Constants),
-            ("test_Description", test_Description),
-            ("test_ExplicitConstruction", test_ExplicitConstruction),
-            ("test_Maths", test_Maths),
-            ("test_Misc", test_Misc),
-            ("test_MultiplicationOverflow", test_MultiplicationOverflow),
-            ("test_NaNInput", test_NaNInput),
-            ("test_NegativeAndZeroMultiplication", test_NegativeAndZeroMultiplication),
-            ("test_Normalise", test_Normalise),
-            ("test_NSDecimal", test_NSDecimal),
-            ("test_PositivePowers", test_PositivePowers),
-            ("test_RepeatingDivision", test_RepeatingDivision),
-            ("test_Round", test_Round),
-            ("test_ScanDecimal", test_ScanDecimal),
-            ("test_SimpleMultiplication", test_SimpleMultiplication),
-            ("test_SmallerNumbers", test_SmallerNumbers),
-            ("test_ZeroPower", test_ZeroPower),
-            ("test_doubleValue", test_doubleValue),
-            ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
-            ("test_bridging", test_bridging),
-            ("test_stringWithLocale", test_stringWithLocale),
-        ]
-    }
-
     func test_NSDecimalNumberInit() {
         XCTAssertEqual(NSDecimalNumber(mantissa: 123456789000, exponent: -2, isNegative: true), -1234567890)
         XCTAssertEqual(NSDecimalNumber(decimal: Decimal()).decimalValue, Decimal(0))
@@ -161,6 +132,7 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(d1._exponent, 0)
         XCTAssertEqual(d1._length, 4)
     }
+
     func test_Constants() {
         XCTAssertEqual(8, NSDecimalMaxSize)
         XCTAssertEqual(32767, NSDecimalNoScale)
@@ -211,8 +183,8 @@ class TestDecimal: XCTestCase {
         let reserved: UInt32 = (1<<18 as UInt32) + (1<<17 as UInt32) + 1
         let mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16) = (6, 7, 8, 9, 10, 11, 12, 13)
         var explicit = Decimal(
-            _exponent: 0x17f,
-            _length: 0xff,
+            _exponent: 0x7f,
+            _length: 0x0f,
             _isNegative: 3,
             _isCompact: 4,
             _reserved: reserved,
@@ -478,6 +450,11 @@ class TestDecimal: XCTestCase {
         XCTAssertTrue(NSDecimalIsNotANumber(&result), "NaN e5")
 
         XCTAssertFalse(Double(truncating: NSDecimalNumber(decimal: Decimal(0))).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNonzeroMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.leastNormalMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double.greatestFiniteMagnitude).isNaN)
+        XCTAssertTrue(Decimal(Double("1e-129")!).isNaN)
+        XCTAssertTrue(Decimal(Double("0.1e-128")!).isNaN)
     }
 
     func test_NegativeAndZeroMultiplication() {
@@ -1115,5 +1092,35 @@ class TestDecimal: XCTestCase {
         let s2 = "1234,5678"
         XCTAssertEqual(Decimal(string: s2, locale: en_US)?.description, "1234")
         XCTAssertEqual(Decimal(string: s2, locale: fr_FR)?.description, s1)
+    }
+
+
+    static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
+        return [
+            ("test_NSDecimalNumberInit", test_NSDecimalNumberInit),
+            ("test_AdditionWithNormalization", test_AdditionWithNormalization),
+            ("test_BasicConstruction", test_BasicConstruction),
+            ("test_Constants", test_Constants),
+            ("test_Description", test_Description),
+            ("test_ExplicitConstruction", test_ExplicitConstruction),
+            ("test_Maths", test_Maths),
+            ("test_Misc", test_Misc),
+            ("test_MultiplicationOverflow", test_MultiplicationOverflow),
+            ("test_NaNInput", test_NaNInput),
+            ("test_NegativeAndZeroMultiplication", test_NegativeAndZeroMultiplication),
+            ("test_Normalise", test_Normalise),
+            ("test_NSDecimal", test_NSDecimal),
+            ("test_PositivePowers", test_PositivePowers),
+            ("test_RepeatingDivision", test_RepeatingDivision),
+            ("test_Round", test_Round),
+            ("test_ScanDecimal", test_ScanDecimal),
+            ("test_SimpleMultiplication", test_SimpleMultiplication),
+            ("test_SmallerNumbers", test_SmallerNumbers),
+            ("test_ZeroPower", test_ZeroPower),
+            ("test_doubleValue", test_doubleValue),
+            ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
+            ("test_bridging", test_bridging),
+            ("test_stringWithLocale", test_stringWithLocale),
+        ]
     }
 }

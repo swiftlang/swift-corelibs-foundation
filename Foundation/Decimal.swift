@@ -22,7 +22,7 @@ public struct Decimal {
             return Int32(__exponent)
         }
         set {
-            __exponent = Int8(truncatingIfNeeded: newValue)
+            __exponent = Int8(newValue)
         }
     }
 
@@ -85,8 +85,9 @@ public struct Decimal {
     }
 
     public init(_exponent: Int32, _length: UInt32, _isNegative: UInt32, _isCompact: UInt32, _reserved: UInt32, _mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        precondition(_length <= 15)
         self._mantissa = _mantissa
-        self.__exponent = Int8(truncatingIfNeeded: _exponent)
+        self.__exponent = Int8(_exponent)
         self.__lengthAndFlags = UInt8(_length & 0b1111)
         self.__reserved = 0
         self._isNegative = _isNegative
@@ -638,12 +639,21 @@ extension Decimal {
             self = Decimal()
             let negative = value < 0
             var val = negative ? -1 * value : value
-            var exponent = 0
+            var exponent: Int8 = 0
+
             while val < Double(UInt64.max - 1) {
+                guard exponent > Int8.min else {
+                    setNaN()
+                    return
+                }
                 val *= 10.0
                 exponent -= 1
             }
             while Double(UInt64.max - 1) < val {
+                guard exponent < Int8.max else {
+                    setNaN()
+                    return
+                }
                 val /= 10.0
                 exponent += 1
             }
@@ -1873,6 +1883,7 @@ extension Decimal {
     fileprivate static let maxSize: UInt32 = UInt32(NSDecimalMaxSize)
 
     fileprivate init(length: UInt32, mantissa: (UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16, UInt16)) {
+        precondition(length <= 15)
         self._mantissa = mantissa
         self.__exponent = 0
         self.__lengthAndFlags = 0
