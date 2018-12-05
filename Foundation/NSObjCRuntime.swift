@@ -213,16 +213,16 @@ internal func NSInvalidArgument(_ message: String, method: String = #function, f
     fatalError("\(method): \(message)", file: file, line: line)
 }
 
-internal struct _CFInfo {
+public struct _CFInfo {
     // This must match _CFRuntimeBase
-    var info: UInt32
-    var pad : UInt32
-    init(typeID: CFTypeID) {
+    public var info: UInt32
+    public var pad : UInt32
+    public init(typeID: CFTypeID) {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
         info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
         pad = 0
     }
-    init(typeID: CFTypeID, extra: UInt32) {
+    public init(typeID: CFTypeID, extra: UInt32) {
         info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
         pad = extra
     }
@@ -230,8 +230,10 @@ internal struct _CFInfo {
 
 #if os(macOS) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
+private let _SwiftFoundationSoilModuleName = "SwiftFoundationSoil"
 #else
 private let _SwiftFoundationModuleName = "Foundation"
+private let _SwiftFoundationSoilModuleName = "FoundationSoil"
 #endif
 
 /**
@@ -250,7 +252,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
         fatalError("NSStringFromClass: \(String(reflecting: aClass)) is not a top-level class")
     }
     
-    if components[0] == _SwiftFoundationModuleName {
+    if components[0] == _SwiftFoundationModuleName || components[0] == _SwiftFoundationSoilModuleName {
         return components[1]
     } else {
         return String(describing: aClassName)
@@ -267,6 +269,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     let aClassNameWithPrefix : String
+    var aClassNameWithPrefixToRetryWith : String? = nil
     let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
     
     switch components.count {
@@ -276,12 +279,24 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
             return nil
         }
         aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        aClassNameWithPrefixToRetryWith = _SwiftFoundationSoilModuleName + "." + aClassName
     case 2:
         aClassNameWithPrefix = aClassName
+        if components[0] == _SwiftFoundationModuleName {
+            aClassNameWithPrefixToRetryWith = _SwiftFoundationSoilModuleName + "." + components[1]
+        }
     default:
         NSLog("*** NSClassFromString(\(aClassName)): nested class names not yet supported")
         return nil
     }
     
-    return _typeByName(aClassNameWithPrefix) as? AnyClass
+    if let theClass = _typeByName(aClassNameWithPrefix) as? AnyClass {
+        return theClass
+    }
+    
+    if let retryable = aClassNameWithPrefixToRetryWith {
+        return _typeByName(retryable) as? AnyClass
+    }
+    
+    return nil
 }

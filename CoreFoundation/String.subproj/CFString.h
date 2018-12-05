@@ -150,9 +150,9 @@ since it is the default choice with Mac OS X developer tools.
 
 #if DEPLOYMENT_RUNTIME_SWIFT
     #if TARGET_OS_MAC
-        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s15SwiftFoundation19_NSCFConstantStringCN
+        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s19SwiftFoundationSoil19_NSCFConstantStringCN
     #else
-        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s10Foundation19_NSCFConstantStringCN
+        #define _CF_CONSTANT_STRING_SWIFT_CLASS $s14FoundationSoil19_NSCFConstantStringCN
     #endif
 
 CF_EXPORT void *_CF_CONSTANT_STRING_SWIFT_CLASS[];

@@ -338,8 +338,14 @@ public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.R
 public extension Error {
     /// Retrieve the localized description for this error.
     var localizedDescription: String {
-        if let nsError = self as? NSError {
-            return nsError.localizedDescription
+        #if _runtime(_ObjC)
+            let object: AnyObject? = self as AnyObject
+        #else
+            let object: AnyObject? = Swift._extractDynamicValue(self)
+        #endif
+
+        if let object = object as? NSError {
+            return object.localizedDescription
         }
 
         let defaultUserInfo = _swift_Foundation_getErrorDefaultUserInfo(self) as? [String : Any]
@@ -1343,40 +1349,3 @@ extension POSIXError {
     /// Interface output queue is full.
     public static var EQFULL: POSIXError.Code { return .EQFULL }
 }
-
-enum UnknownNSError: Error {
-    case missingError
-}
-
-#if !canImport(ObjectiveC)
-
-public // COMPILER_INTRINSIC
-func _convertNSErrorToError(_ error: NSError?) -> Error {
-    return error ?? UnknownNSError.missingError
-}
-
-public // COMPILER_INTRINSIC
-func _convertErrorToNSError(_ error: Error) -> NSError {
-    if let object = _extractDynamicValue(error as Any) {
-        return unsafeBitCast(object, to: NSError.self)
-    } else {
-        let domain: String
-        let code: Int
-        let userInfo: [String: Any]
-        
-        if let error = error as? CustomNSError {
-            domain = type(of: error).errorDomain
-            code = error.errorCode
-            userInfo = error.errorUserInfo
-        } else {
-            domain = "SwiftError"
-            code = 0
-            userInfo = (_swift_Foundation_getErrorDefaultUserInfo(error) as? [String : Any]) ?? [:]
-        }
-        
-        return NSError(domain: domain, code: code, userInfo: userInfo)
-    }
-}
-
-#endif
-

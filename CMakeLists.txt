@@ -112,13 +112,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
 
-add_swift_library(Foundation
+add_swift_library(FoundationSoil
                   MODULE_NAME
-                    Foundation
+                    FoundationSoil
                   MODULE_LINK_NAME
-                    Foundation
+                    FoundationSoil
                   MODULE_PATH
-                    ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationSoil.swiftmodule
                   SOURCES
                     Foundation/AffineTransform.swift
                     Foundation/Array.swift
@@ -180,8 +180,8 @@ add_swift_library(Foundation
                     Foundation/NSDate.swift
                     Foundation/NSDecimalNumber.swift
                     Foundation/NSDictionary.swift
-                    Foundation/NSEnumerator.swift
                     Foundation/NSError.swift
+                    Foundation/NSEnumerator.swift
                     Foundation/NSExpression.swift
                     Foundation/NSGeometry.swift
                     Foundation/NSIndexPath.swift
@@ -301,10 +301,48 @@ add_swift_library(Foundation
                   DEPENDS
                     CoreFoundation)
 
+add_swift_library(Foundation
+                  MODULE_NAME
+                    Foundation
+                  MODULE_LINK_NAME
+                    Foundation
+                  MODULE_PATH
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
+                  SOURCES
+                    Foundation/Foundation.swift
+                  TARGET
+                    ${CMAKE_C_COMPILER_TARGET}
+                  CFLAGS
+                    ${deployment_target}
+                    ${deployment_enable_libdispatch}
+                    -F${install_dir}/System/Library/Frameworks
+                  LINK_FLAGS
+                    -L${install_dir}/usr/lib
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    -lFoundationSoil
+                    -lCoreFoundation
+                    ${CURL_LIBRARIES}
+                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
+                    ${LIBXML2_LIBRARIES}
+                    ${libdispatch_ldflags}
+                    ${uuid_LIBRARIES}
+                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                  SWIFT_FLAGS
+                    -DDEPLOYMENT_RUNTIME_SWIFT
+                    ${deployment_enable_libdispatch}
+                    -I;${ICU_INCLUDE_DIR}
+                    -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                    ${libdispatch_cflags}
+                    ${swift_enable_testing}
+                    ${swift_optimization_flags}
+                  DEPENDS
+                    FoundationSoil)
+
 if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES
       -L${install_dir}/usr/lib
       -lCoreFoundation
+      -lFoundationSoil
       -L${CMAKE_CURRENT_BINARY_DIR}
       -luuid
       ${CURL_LIBRARIES}
