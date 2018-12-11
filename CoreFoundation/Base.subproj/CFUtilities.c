@@ -764,8 +764,9 @@ static bool also_do_stderr(const _cf_logging_style style) {
 #if DEPLOYMENT_TARGET_WINDOWS
 static struct tm *localtime_r(time_t *tv, struct tm *result) {
   struct tm *tm = localtime(tv);
-  if (tm)
+  if (tm) {
     *result = *tm;
+  }
   return tm;
 }
 #endif

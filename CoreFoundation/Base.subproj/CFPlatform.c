@@ -1354,8 +1354,9 @@ CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
 #if DEPLOYMENT_TARGET_WINDOWS
-    if (value != NULL)
+    if (value != NULL) {
         swift_retain((void *)value);
+    }
     FlsSetValue(key, value);
 #else
     if (value != NULL) {
