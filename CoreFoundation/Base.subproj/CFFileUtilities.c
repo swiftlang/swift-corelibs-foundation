@@ -1015,6 +1015,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFInde
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define	DT_LNK		10
+#define	DT_UNKNOWN	 0
 #endif
 
 // NOTE: on Windows the filename is UTF16-encoded, the fileNameLen is result of wcslen. This function automatically skips '.' and '..', and '._' files

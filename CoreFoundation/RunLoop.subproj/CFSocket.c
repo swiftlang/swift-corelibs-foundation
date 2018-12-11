@@ -946,9 +946,17 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/socket.h>
 #endif
 #endif
+#if TARGET_OS_WIN32
+#include <WinSock2.h>
+#else
 #include <arpa/inet.h>
+#endif
+#if !DEPLOYMENT_TARGET_WINDOWS
 #include <sys/ioctl.h>
+#endif
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFData.h>
@@ -958,6 +966,9 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <process.h>
+#endif
 
 #ifndef NBBY
 #define NBBY 8
@@ -965,6 +976,8 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
+// redefine this to the winsock error in this file
+#undef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
 
 // redefine this to the winsock error in this file
@@ -990,6 +1003,14 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz);
         }							\
     } while (0)
 
+static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) {
+  res->tv_sec = a->tv_sec + b->tv_sec;
+  res->tv_usec = a->tv_usec + b->tv_usec;
+  if (res->tv_usec > 1e06) {
+    res->tv_sec++;
+    res->tv_usec -= 1e06;
+  }
+}
 
 #endif // DEPLOYMENT_TARGET_WINDOWS
 

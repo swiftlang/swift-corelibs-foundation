@@ -11,7 +11,10 @@
 #include <CoreFoundation/CFBase.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
 #endif
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -102,9 +105,6 @@ CF_INLINE CFAllocatorPreferredSizeCallBack __CFAllocatorGetPreferredSizeFunction
 }
 
 static const void * const __MallocDefaultZoneInfoPlaceholder = NULL;
-#if !TARGET_OS_MAC
-#define malloc_default_zone() (NULL)
-#endif
 
 #if TARGET_OS_MAC
 

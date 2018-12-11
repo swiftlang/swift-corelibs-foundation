@@ -101,13 +101,17 @@ CF_EXTERN_C_BEGIN
 #include <xlocale.h>
 #endif // !TARGET_OS_CYGWIN && !defined(__linux__)
 
-#include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
 #endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
 #include <os/log.h>
@@ -406,6 +410,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #if DEPLOYMENT_TARGET_WINDOWS
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
+#define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
 #else
 // Declare and allocate a stack buffer. Max is the max size (in bytes) before falling over to malloc.
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? alloca((Count) * sizeof(Type)) : NULL
@@ -574,7 +579,7 @@ typedef CFLock_t OSSpinLock;
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>
-#else
+#elif _POSIX_THREADS
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
@@ -682,6 +687,7 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
+#define	DT_UNKNOWN	 0
 #endif
 
 /*
@@ -881,12 +887,6 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
-// replacement for DISPATCH_QUEUE_OVERCOMMIT until we get a bug fix in dispatch on Windows
-// <rdar://problem/7923891> dispatch on Windows: Need queue_private.h
-#define DISPATCH_QUEUE_OVERCOMMIT 2
-#endif
-
-#if DEPLOYMENT_TARGET_WINDOWS
 CF_PRIVATE const wchar_t *_CFDLLPath(void);
 #endif
 
@@ -937,7 +937,7 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW

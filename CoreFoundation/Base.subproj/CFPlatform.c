@@ -26,6 +26,9 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
+#include <direct.h>
+#define SECURITY_WIN32
+#include <Security.h>
 
 #define getcwd _NS_getcwd
 
@@ -302,6 +305,14 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     if (upwd && upwd->pw_gecos) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
     }
+#elif TARGET_OS_WIN32
+    ULONG ulLength = 0;
+    GetUserNameExW(NameDisplay, NULL, &ulLength);
+
+    WCHAR *wszBuffer[ulLength + 1];
+    GetUserNameExW(NameDisplay, (LPWSTR)wszBuffer, &ulLength);
+
+    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar *)wszBuffer, ulLength);
 #else
 #error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
@@ -589,12 +600,12 @@ static DWORD __CFTSDIndexKey = 0xFFFFFFFF;
 
 // Called from CFRuntime's startup code, on Windows only
 CF_PRIVATE void __CFTSDWindowsInitialize() {
-    __CFTSDIndexKey = TlsAlloc();
+    __CFTSDIndexKey = FlsAlloc(__CFTSDFinalize);
 }
 
 // Called from CFRuntime's cleanup code, on Windows only
 CF_PRIVATE void __CFTSDWindowsCleanup() {
-    TlsFree(__CFTSDIndexKey);
+    FlsFree(__CFTSDIndexKey);
 }
 
 // Called for each thread as it exits, on Windows only
@@ -624,7 +635,7 @@ static void __CFTSDSetSpecific(void *arg) {
 #elif DEPLOYMENT_TARGET_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    TlsSetValue(__CFTSDIndexKey, arg);
+    FlsSetValue(__CFTSDIndexKey, arg);
 #endif
 }
 
@@ -634,7 +645,7 @@ static void *__CFTSDGetSpecific() {
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    return TlsGetValue(__CFTSDIndexKey);
+    return FlsGetValue(__CFTSDIndexKey);
 #endif
 }
 
@@ -1325,21 +1336,36 @@ static void _CFThreadSpecificDestructor(void *ctx) {
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
     _CFThreadSpecificKey key;
+#if DEPLOYMENT_TARGET_WINDOWS
+    key = FlsAlloc(_CFThreadSpecificDestructor);
+#else
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
+#endif
     return key;
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+#if DEPLOYMENT_TARGET_WINDOWS
+  return (CFTypeRef)FlsGetValue(key);
+#else
     return (CFTypeRef)pthread_getspecific(key);
+#endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    if (value != NULL) {
+        swift_retain((void *)value);
+    }
+    FlsSetValue(key, value);
+#else
     if (value != NULL) {
         swift_retain((void *)value);
         pthread_setspecific(key, value);
     } else {
         pthread_setspecific(key, NULL);
     }
+#endif
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {

@@ -2323,7 +2323,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #elif DEPLOYMENT_TARGET_WINDOWS
         CFStringRef filePath = CFStringCreateWithBytes(allocator, buffer, bufLen, CFStringFileSystemEncoding(), false);
         if ( filePath ) {
-            result = _CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
+            result = (struct __CFURL *)_CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
             CFRelease(filePath);
         }
 #endif
@@ -4701,6 +4701,53 @@ CFStringRef CFURLCopyPathExtension(CFURLRef url) {
     return ext;
 }
 
+static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
+{
+    Boolean result;
+    CFURLRef baseURL = CFURLGetBaseURL(url);
+
+    if ( baseURL ) {
+        result = _CFURLHasFileURLScheme(baseURL, hasScheme);
+    }
+    else {
+        if ( CF_IS_OBJC(CFURLGetTypeID(), url) || (_getSchemeTypeFromFlags(url->_flags) == kHasUncommonScheme) ) {
+            // if it's not a CFURL or the scheme is not a common canonical-form scheme, determine the scheme the slower way.
+            CFStringRef scheme = CFURLCopyScheme(url);
+            if ( scheme ) {
+                if ( scheme == kCFURLFileScheme ) {
+                    result = true;
+                }
+                else {
+                    result = CFStringCompare(scheme, kCFURLFileScheme, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
+                }
+                if ( hasScheme ) {
+                    *hasScheme = true;
+                }
+                CFRelease(scheme);
+            }
+            else {
+                if ( hasScheme ) {
+                    *hasScheme = false;
+                }
+                result = false;
+            }
+        }
+        else {
+            if ( hasScheme ) {
+                *hasScheme = (url->_flags & HAS_SCHEME) != 0;
+            }
+            result = (_getSchemeTypeFromFlags(url->_flags) == kHasFileScheme);
+        }
+    }
+    return ( result );
+}
+
+Boolean _CFURLIsFileURL(CFURLRef url)
+{
+    Boolean result = _CFURLHasFileURLScheme(url, NULL);
+    return ( result );
+}
+
 CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRef url, CFStringRef pathComponent, Boolean isDirectory) {
     CFURLRef result = NULL;
     url = _CFURLFromNSURL(url);
@@ -5083,53 +5130,6 @@ Boolean CFURLIsFileReferenceURL(CFURLRef url)
     return ( result );
 }
 #endif
-
-static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
-{
-    Boolean result;
-    CFURLRef baseURL = CFURLGetBaseURL(url);
-    
-    if ( baseURL ) {
-	result = _CFURLHasFileURLScheme(baseURL, hasScheme);
-    }
-    else {
-        if ( CF_IS_OBJC(CFURLGetTypeID(), url) || (_getSchemeTypeFromFlags(url->_flags) == kHasUncommonScheme) ) {
-            // if it's not a CFURL or the scheme is not a common canonical-form scheme, determine the scheme the slower way.
-            CFStringRef scheme = CFURLCopyScheme(url);
-            if ( scheme ) {
-                if ( scheme == kCFURLFileScheme ) {
-                    result = true;
-                }
-                else {
-                    result = CFStringCompare(scheme, kCFURLFileScheme, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
-                }
-                if ( hasScheme ) {
-                    *hasScheme = true;
-                }
-                CFRelease(scheme);
-            }
-            else {
-                if ( hasScheme ) {
-                    *hasScheme = false;
-                }
-                result = false;
-            }
-        }
-        else {
-            if ( hasScheme ) {
-                *hasScheme = (url->_flags & HAS_SCHEME) != 0;
-            }
-            result = (_getSchemeTypeFromFlags(url->_flags) == kHasFileScheme);
-        }
-    }
-    return ( result );
-}
-
-Boolean _CFURLIsFileURL(CFURLRef url)
-{
-    Boolean result = _CFURLHasFileURLScheme(url, NULL);
-    return ( result );
-}
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 

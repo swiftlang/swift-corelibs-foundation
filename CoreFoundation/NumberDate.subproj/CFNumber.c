@@ -75,8 +75,6 @@ static const uint8_t __CFNumberCanonicalTypeIndex[] = {
 
 
 #if DEPLOYMENT_TARGET_WINDOWS
-#define isnan(A) _isnan(A)
-#define isinf(A) !_finite(A)
 #define copysign(A, B) _copysign(A, B)
 #endif
 
