@@ -295,10 +295,10 @@ open class URLSession : NSObject {
 
            let invalidateSessionCallback = { [weak self] in
                //invoke the delegate method and break the delegate link
-               guard let `self` = self, let sessionDelegate = self.delegate else { return }
-               self.delegateQueue.addOperation {
-                   sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
-                   self.delegate = nil
+               guard let strongSelf = self, let sessionDelegate = strongSelf.delegate else { return }
+               strongSelf.delegateQueue.addOperation {
+                   sessionDelegate.urlSession(strongSelf, didBecomeInvalidWithError: nil)
+                   strongSelf.delegate = nil
                }
            }
 
