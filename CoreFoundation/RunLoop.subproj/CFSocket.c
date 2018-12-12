@@ -2625,7 +2625,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
         pthread_attr_destroy(&attr);
-//warning CF: we dont actually know that a _CFThreadRef is the same size as void *
+        _Static_assert(sizeof(_CFThreadRef) == sizeof(void *), "_CFThreadRef is not pointer sized");
         __CFSocketManagerThread = (void *)tid;
 #elif DEPLOYMENT_TARGET_WINDOWS
         unsigned tid;
