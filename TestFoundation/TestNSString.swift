@@ -92,6 +92,7 @@ class TestNSString: LoopbackServerTest {
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
+            ("test_substringFromCFString", test_substringFromCFString),
             ("test_createCopy", test_createCopy),
             ("test_commonPrefix", test_commonPrefix)
         ]
@@ -1295,7 +1296,15 @@ class TestNSString: LoopbackServerTest {
         let s6 = NSString(string: "Beyonce\u{301} and Tay")
         XCTAssertEqual(s6.substring(with: NSRange(location: 7, length: 9)), "\u{301} and Tay")
     }
-    
+
+    func test_substringFromCFString() {
+        let cfString = kCFStringTransformStripCombiningMarks!
+        let range = NSRange(location: 0, length: CFStringGetLength(cfString))
+        let substring = unsafeBitCast(cfString, to: NSString.self).substring(with: range)
+
+        XCTAssertEqual(CFStringGetLength(cfString), substring.utf16.count)
+    }
+
     func test_createCopy() {
         let string: NSMutableString = "foo"
         let stringCopy = string.copy() as! NSString
