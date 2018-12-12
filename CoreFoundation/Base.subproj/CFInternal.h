@@ -869,8 +869,8 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 
 // These are replacements for pthread calls on Windows
 CF_EXPORT int _NS_pthread_main_np();
-CF_EXPORT int _NS_pthread_setspecific(pthread_key_t key, const void *val);
-CF_EXPORT void* _NS_pthread_getspecific(pthread_key_t key);
+CF_EXPORT int _NS_pthread_setspecific(_CFThreadSpecificKey key, const void *val);
+CF_EXPORT void* _NS_pthread_getspecific(_CFThreadSpecificKey key);
 CF_EXPORT int _NS_pthread_key_init_np(int key, void (*destructor)(void *));
 CF_EXPORT void _NS_pthread_setname_np(const char *name);
 

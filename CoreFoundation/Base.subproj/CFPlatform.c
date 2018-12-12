@@ -620,7 +620,7 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
 
 #endif
 
-static pthread_key_t __CFTSDIndexKey;
+static _CFThreadSpecificKey __CFTSDIndexKey;
 
 CF_PRIVATE void __CFTSDInitialize() {
     static dispatch_once_t once;
@@ -1209,8 +1209,8 @@ static void _CF_sem_destroy(_CF_sema_t s) {
     free(s);
 }
 
-CF_INLINE pthread_key_t _CF_thread_sem_key() {
-    static pthread_key_t key = 0;
+CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
+    static _CFThreadSpecificKey key = 0;
     static OSSpinLock lock = OS_SPINLOCK_INIT;
     if (key == 0) {
         OSSpinLockLock(&lock);
@@ -1223,7 +1223,7 @@ CF_INLINE pthread_key_t _CF_thread_sem_key() {
 }
 
 CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
-    pthread_key_t key = _CF_thread_sem_key();
+    _CFThreadSpecificKey key = _CF_thread_sem_key();
     _CF_sema_t s = (_CF_sema_t)pthread_getspecific(key);
     if (s == NULL) {
         s = malloc(sizeof(struct _CF_sema_s));
