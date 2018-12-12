@@ -149,30 +149,19 @@ internal class _NSRegularExpressionMatcher {
     }
 }
 
-internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, options: _CFRegularExpressionMatchingOptions, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
+internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ranges: UnsafeMutablePointer<CFRange>?, count: CFIndex, flags: _CFRegularExpressionMatchingFlags, stop: UnsafeMutablePointer<_DarwinCompatibleBoolean>) -> Void {
     let matcher = unsafeBitCast(context, to: _NSRegularExpressionMatcher.self)
-    if ranges == nil {
 #if os(macOS) || os(iOS)
-        let opts = options.rawValue
+    let flags = NSRegularExpression.MatchingFlags(rawValue: flags.rawValue)
 #else
-        let opts = options
+    let flags = NSRegularExpression.MatchingFlags(rawValue: flags)
 #endif
-        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
-            matcher.block(nil, NSRegularExpression.MatchingFlags(rawValue: opts), $0)
-        })
-    } else {
-        let result = ranges!.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
-            NSTextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
-        }
-#if os(macOS) || os(iOS)
-        let flags = NSRegularExpression.MatchingFlags(rawValue: options.rawValue)
-#else
-        let flags = NSRegularExpression.MatchingFlags(rawValue: options)
-#endif
-        stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
-            matcher.block(result, flags, $0)
-        })
+    let result = ranges?.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
+        NSTextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
     }
+    stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
+        matcher.block(result, flags, $0)
+    })
 }
 
 extension NSRegularExpression {

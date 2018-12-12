@@ -333,7 +333,7 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
     void *bufferToFree = NULL, *utextToFree = NULL;
     struct regexCallBackContext context;
     CFIndex offset, length = CFStringGetLength(string);
-    _CFRegularExpressionMatchingOptions flags;
+    _CFRegularExpressionMatchingFlags flags;
     Boolean checkedOutRegex = true;
     Boolean stop = false;
     Boolean reportProgress = ((options & _kCFRegularExpressionMatchingReportProgress) != 0);
