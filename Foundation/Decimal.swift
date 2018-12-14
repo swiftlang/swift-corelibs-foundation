@@ -14,6 +14,7 @@ public var NSDecimalMaxSize: Int32 { return 8 }
 
 public var NSDecimalNoScale: Int32 { return Int32(Int16.max) }
 
+@_fixed_layout
 public struct Decimal {
     fileprivate static let maxSize: UInt32 = UInt32(NSDecimalMaxSize)
     fileprivate var __exponent: Int8
