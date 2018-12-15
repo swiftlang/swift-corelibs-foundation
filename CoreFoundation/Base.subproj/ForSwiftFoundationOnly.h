@@ -345,22 +345,28 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
+#if DEPLOYMENT_TARGET_WINDOWS
+typedef HANDLE _CFThreadRef;
+typedef DWORD _CFThreadAttributes;
+typedef DWORD _CFThreadSpecificKey;
+#elif _POSIX_THREADS
+typedef pthread_t _CFThreadRef;
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_key_t _CFThreadSpecificKey;
+#endif
+
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
-CF_EXPORT pthread_t _CFMainPThread;
+CF_EXPORT _CFThreadRef _CFMainPThread;
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
-typedef pthread_key_t _CFThreadSpecificKey;
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
 CF_EXPORT void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
 CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 
-typedef pthread_attr_t _CFThreadAttributes;
-typedef pthread_t _CFThreadRef;
-
 CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context);
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name);
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
 
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);

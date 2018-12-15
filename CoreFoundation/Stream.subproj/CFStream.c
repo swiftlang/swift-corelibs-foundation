@@ -1745,7 +1745,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
-            pthread_t workThread;
+            _CFThreadRef workThread;
             (void) pthread_create(&workThread, &attr, _legacyStreamRunLoop_workThread, &sem);
             pthread_attr_destroy(&attr);
 #endif

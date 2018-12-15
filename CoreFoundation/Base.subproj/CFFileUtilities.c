@@ -1024,7 +1024,6 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     if (!CFStringGetFileSystemRepresentation(directoryPath, directoryPathBuf, CFMaxPathSize)) return;
     
 #if DEPLOYMENT_TARGET_WINDOWS
-#error this path does not support calculateFullResultPath but it must do so someday
     CFIndex cpathLen = strlen(directoryPathBuf);
     // Make sure there is room for the additional space we need in the win32 api
     if (cpathLen + 2 < CFMaxPathSize) {
