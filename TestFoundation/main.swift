@@ -86,7 +86,6 @@ XCTMain([
     testCase(TestURLResponse.allTests),
     testCase(TestHTTPURLResponse.allTests),
     testCase(TestURLSession.allTests),
-    testCase(TestNSNull.allTests),
     testCase(TestNSUUID.allTests),
     testCase(TestNSValue.allTests),
     testCase(TestUserDefaults.allTests),
