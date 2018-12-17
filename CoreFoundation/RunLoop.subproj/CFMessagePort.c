@@ -8,6 +8,7 @@
 	Responsibility: Christopher Kane
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFMessagePort.h>
 #include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFMachPort.h>
@@ -132,10 +133,6 @@ CF_INLINE void __CFMessagePortUnlock(CFMessagePortRef ms) {
     __CFUnlock(&(ms->_lock));
 }
 
-#if !defined(__LP64__)
-#define __LP64__ 0
-#endif
-
 // Just a heuristic
 #define __CFMessagePortMaxInlineBytes ((int32_t)4000)
 
@@ -153,14 +150,14 @@ struct __CFMessagePortMachMessage {
 
 #define CFMP_MSGH_ID_64 0x63666d70 // 'cfmp'
 #define CFMP_MSGH_ID_32 0x43464d50 // 'CFMP'
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define CFMP_MSGH_ID CFMP_MSGH_ID_64
 #else
 #define CFMP_MSGH_ID CFMP_MSGH_ID_32
 #endif
 
 // NOTE: mach_msg_ool_descriptor_t has different sizes based on 32/64-bit for send/receive
-#define __INNARD_OFFSET (((!(msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) && ((mach_msg_header_t *)msgp)->msgh_id == CFMP_MSGH_ID_32) || ( (msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) && !__LP64__)) ? 40 : 44)
+#define __INNARD_OFFSET (((!(msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) && ((mach_msg_header_t *)msgp)->msgh_id == CFMP_MSGH_ID_32) || ( (msgp->header.msgh_bits & MACH_MSGH_BITS_COMPLEX) && !TARGET_RT_64_BIT)) ? 40 : 44)
 
 #define MAGIC 0xF0F2F4F8
 

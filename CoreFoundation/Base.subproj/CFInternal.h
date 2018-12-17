@@ -229,7 +229,7 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if __LP64__ || DEPLOYMENT_TARGET_ANDROID
+#if TARGET_RT_64_BIT || DEPLOYMENT_TARGET_ANDROID
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else
@@ -291,13 +291,13 @@ CF_PRIVATE void __CFRuntimeSetRC(CFTypeRef cf, uint32_t rc);
 // On systems where we have ObjC support (DEPLOYMENT_RUNTIME_OBJC), STATIC_CLASS_REF(…) can statically produce a reference to the ObjC class symbol that ties into this particular type.
 // When compiling for Swift Foundation, STATIC_CLASS_REF returns a Swift class. There's a mapping of ObjC name classes to Swift symbols in the header that defines it that should be kept up to date if more constant objects are defined.
 // On all other platforms, it returns NULL, which is okay; we only need the type ID if CF is to be used by itself.
-#if __LP64__
+#if TARGET_RT_64_BIT
     #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
     #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
-#else // if !__LP64__
+#else // if !TARGET_RT_64_BIT
     #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) { ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x00000080UL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
     #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS), ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
-#endif // __LP64__
+#endif // TARGET_RT_64_BIT
 
 #define __CFBitIsSet(V, N)  (((V) & (1UL << (N))) != 0)
 #define __CFBitSet(V, N)  ((V) |= (1UL << (N)))

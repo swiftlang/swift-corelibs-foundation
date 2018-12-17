@@ -8,6 +8,7 @@
 	Responsibility: Ali Ozer
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFNumber.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
@@ -451,7 +452,7 @@ static const struct {
     /* kCFNumberCharType */	{kCFNumberSInt8Type, 0, 0, 0, 0},
     /* kCFNumberShortType */	{kCFNumberSInt16Type, 0, 0, 1, 0},
     /* kCFNumberIntType */	{kCFNumberSInt32Type, 0, 0, 2, 0},
-#if __LP64__
+#if TARGET_RT_64_BIT
     /* kCFNumberLongType */	{kCFNumberSInt64Type, 0, 0, 3, 0},
 #else
     /* kCFNumberLongType */	{kCFNumberSInt32Type, 0, 0, 2, 0},
@@ -460,7 +461,7 @@ static const struct {
     /* kCFNumberFloatType */	{kCFNumberFloat32Type, 1, 0, 2, 0},
     /* kCFNumberDoubleType */	{kCFNumberFloat64Type, 1, 1, 3, 0},
 
-#if __LP64__
+#if TARGET_RT_64_BIT
     /* kCFNumberCFIndexType */	{kCFNumberSInt64Type, 0, 0, 3, 0},
     /* kCFNumberNSIntegerType */ {kCFNumberSInt64Type, 0, 0, 3, 0},
     /* kCFNumberCGFloatType */	{kCFNumberFloat64Type, 1, 1, 3, 0},

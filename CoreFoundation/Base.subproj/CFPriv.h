@@ -90,7 +90,7 @@ CF_EXPORT void CFPreferencesFlushCaches(void);
 CF_EXPORT Boolean _CFURLGetWideFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, wchar_t *buffer, CFIndex bufferLength);
 #endif
 
-#if !__LP64__
+#if !TARGET_RT_64_BIT
 #if TARGET_OS_OSX
 struct FSSpec;
 CF_EXPORT

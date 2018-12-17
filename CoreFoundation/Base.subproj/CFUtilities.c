@@ -8,6 +8,7 @@
 	Responsibility: Tony Parker
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include "CFLocaleInternal.h"
@@ -1213,7 +1214,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
         if (errorPtr) *errorPtr = _CFErrorWithFilePathCodeDomain(kCFErrorDomainPOSIX, ENOMEM, path);
         return false;
     }
-#if __LP64__
+#if TARGET_RT_64_BIT
 #else
     if (statBuf.st_size > (1ull << 31)) {	// refuse to do more than 2GB
         close(fd);

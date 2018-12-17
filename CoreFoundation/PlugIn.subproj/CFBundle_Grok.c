@@ -138,19 +138,19 @@ static char *_CFBundleGetSectData(const char *segname, const char *sectname, uns
     
     for (i = 0; i < numImages; i++) {
         if (mhp == (void *)_dyld_get_image_header(i)) {
-#if __LP64__
+#if TARGET_RT_64_BIT
             const struct section_64 *sp = getsectbynamefromheader_64((const struct mach_header_64 *)mhp, segname, sectname);
             if (sp) {
                 retval = (char *)(sp->addr + _dyld_get_image_vmaddr_slide(i));
                 localSize = (unsigned long)sp->size;
             }
-#else /* __LP64__ */
+#else /* TARGET_RT_64_BIT */
             const struct section *sp = getsectbynamefromheader((const struct mach_header *)mhp, segname, sectname);
             if (sp) {
                 retval = (char *)(sp->addr + _dyld_get_image_vmaddr_slide(i));
                 localSize = (unsigned long)sp->size;
             }
-#endif /* __LP64__ */
+#endif /* TARGET_RT_64_BIT */
             break;
         }
     }
@@ -170,11 +170,11 @@ CF_PRIVATE Boolean _CFBundleGrokObjCImageInfoFromMainExecutable(uint32_t *objcVe
     uint32_t localVersion = 0, localFlags = 0;
     char *bytes = NULL;
     unsigned long length = 0;
-#if __LP64__
+#if TARGET_RT_64_BIT
     if (getsegbyname(OBJC_SEGMENT_64)) bytes = _CFBundleGetSectData(OBJC_SEGMENT_64, IMAGE_INFO_SECTION_64, &length);
-#else /* __LP64__ */
+#else /* TARGET_RT_64_BIT */
     if (getsegbyname(OBJC_SEGMENT)) bytes = _CFBundleGetSectData(OBJC_SEGMENT, IMAGE_INFO_SECTION, &length);
-#endif /* __LP64__ */
+#endif /* TARGET_RT_64_BIT */
     if (bytes && length >= 8) {
         localVersion = *(uint32_t *)bytes;
         localFlags = *(uint32_t *)(bytes + 4);
