@@ -873,6 +873,7 @@ CF_EXPORT int _NS_pthread_setspecific(_CFThreadSpecificKey key, const void *val)
 CF_EXPORT void* _NS_pthread_getspecific(_CFThreadSpecificKey key);
 CF_EXPORT int _NS_pthread_key_init_np(int key, void (*destructor)(void *));
 CF_EXPORT void _NS_pthread_setname_np(const char *name);
+CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 
 // map use of pthread_set/getspecific to internal API
 #define pthread_setspecific _NS_pthread_setspecific
@@ -880,6 +881,7 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #define pthread_key_init_np _NS_pthread_key_init_np
 #define pthread_main_np _NS_pthread_main_np
 #define pthread_setname_np _NS_pthread_setname_np
+#define pthread_equal _NS_pthread_equal
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX

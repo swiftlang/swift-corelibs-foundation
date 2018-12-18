@@ -543,6 +543,10 @@ CF_EXPORT int _NS_pthread_main_np() {
     return CompareObjectHandles(__initialPthread, GetCurrentThread());
 }
 
+CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2) {
+  return CompareObjectHandles(t1, t2) == TRUE;
+}
+
 #endif
 
 #pragma mark -
