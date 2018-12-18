@@ -529,34 +529,8 @@ CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef a
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-// This code from here:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-
-const DWORD MS_VC_EXCEPTION=0x406D1388;
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-    DWORD dwType; // Must be 0x1000.
-    LPCSTR szName; // Pointer to name (in user addr space).
-    DWORD dwThreadID; // Thread ID (-1=caller thread).
-    DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
 CF_EXPORT void _NS_pthread_setname_np(const char *name) {
-    THREADNAME_INFO info;
-    info.dwType = 0x1000;
-    info.szName = name;
-    info.dwThreadID = GetCurrentThreadId();
-    info.dwFlags = 0;
-
-    __try
-    {
-        RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER)
-    {
-    }
+  _CFThreadSetName(GetCurrentThread(), name);
 }
 
 static _CFThreadRef __initialPthread = INVALID_HANDLE_VALUE;
@@ -1387,12 +1361,45 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
 #endif
 }
 
+#if DEPLOYMENT_TARGET_WINDOWS
+
+// This code from here:
+// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
+
+const DWORD MS_VC_EXCEPTION=0x406D1388;
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+    DWORD dwType; // Must be 0x1000.
+    LPCSTR szName; // Pointer to name (in user addr space).
+    DWORD dwThreadID; // Thread ID (-1=caller thread).
+    DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+#endif
+
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
     }
     return EINVAL;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    THREADNAME_INFO info;
+
+    info.dwType = 0x1000;
+    info.szName = name;
+    info.dwThreadID = GetThreadId(thread);
+    info.dwFlags = 0;
+
+    __try {
+        RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR),
+                       (ULONG_PTR*)&info);
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
+    }
+
+    return 0;
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_setname_np(thread, name);
 #endif
