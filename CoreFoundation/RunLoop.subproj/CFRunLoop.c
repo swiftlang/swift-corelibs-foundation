@@ -668,7 +668,7 @@ typedef struct __CFRunLoopMode *CFRunLoopModeRef;
 
 struct __CFRunLoopMode {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;	/* must have the run loop locked before locking this */
+    _CFRecursiveMutex _lock;	/* must have the run loop locked before locking this */
     CFStringRef _name;
     Boolean _stopped;
     char _padding[3];
@@ -698,13 +698,13 @@ struct __CFRunLoopMode {
 };
 
 CF_INLINE void __CFRunLoopModeLock(CFRunLoopModeRef rlm) {
-    pthread_mutex_lock(&(rlm->_lock));
+    _CFRecursiveMutexLock(&(rlm->_lock));
     //CFLog(6, CFSTR("__CFRunLoopModeLock locked %p"), rlm);
 }
 
 CF_INLINE void __CFRunLoopModeUnlock(CFRunLoopModeRef rlm) {
     //CFLog(6, CFSTR("__CFRunLoopModeLock unlocking %p"), rlm);
-    pthread_mutex_unlock(&(rlm->_lock));
+    _CFRecursiveMutexUnlock(&(rlm->_lock));
 }
 
 static Boolean __CFRunLoopModeEqual(CFTypeRef cf1, CFTypeRef cf2) {
@@ -759,7 +759,7 @@ static void __CFRunLoopModeDeallocate(CFTypeRef cf) {
 #if USE_MK_TIMER_TOO
     if (MACH_PORT_NULL != rlm->_timerPort) mk_timer_destroy(rlm->_timerPort);
 #endif
-    pthread_mutex_destroy(&rlm->_lock);
+    _CFRecursiveMutexDestroy(&rlm->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x7C, sizeof(struct __CFRunLoopMode) - sizeof(CFRuntimeBase));
 }
 
@@ -781,7 +781,7 @@ typedef struct _per_run_data {
 
 struct __CFRunLoop {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;			/* locked for accessing mode list */
+    _CFRecursiveMutex _lock;			/* locked for accessing mode list */
     __CFPort _wakeUpPort;			// used for CFRunLoopWakeUp 
     Boolean _unused;
     volatile _per_run_data *_perRunData;              // reset for runs of the run loop
@@ -864,13 +864,13 @@ CF_INLINE void __CFRunLoopSetDeallocating(CFRunLoopRef rl) {
 }
 
 CF_INLINE void __CFRunLoopLock(CFRunLoopRef rl) {
-    pthread_mutex_lock(&(((CFRunLoopRef)rl)->_lock));
+    _CFRecursiveMutexLock(&(((CFRunLoopRef)rl)->_lock));
     //    CFLog(6, CFSTR("__CFRunLoopLock locked %p"), rl);
 }
 
 CF_INLINE void __CFRunLoopUnlock(CFRunLoopRef rl) {
     //    CFLog(6, CFSTR("__CFRunLoopLock unlocking %p"), rl);
-    pthread_mutex_unlock(&(((CFRunLoopRef)rl)->_lock));
+    _CFRecursiveMutexUnlock(&(((CFRunLoopRef)rl)->_lock));
 }
 
 static CFStringRef __CFRunLoopCopyDescription(CFTypeRef cf) {
@@ -890,16 +890,6 @@ CF_PRIVATE void __CFRunLoopDump() { // __private_extern__ to keep the compiler f
     CFStringRef desc = CFCopyDescription(CFRunLoopGetCurrent());
     CFShow(desc);
     CFRelease(desc);
-}
-
-CF_INLINE void __CFRunLoopLockInit(pthread_mutex_t *lock) {
-    pthread_mutexattr_t mattr;
-    pthread_mutexattr_init(&mattr);
-    pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-    int32_t mret = pthread_mutex_init(lock, &mattr);
-    pthread_mutexattr_destroy(&mattr);
-    if (0 != mret) {
-    }
 }
 
 /* call with rl locked, returns mode locked */
@@ -922,7 +912,7 @@ static CFRunLoopModeRef __CFRunLoopFindMode(CFRunLoopRef rl, CFStringRef modeNam
     if (NULL == rlm) {
 	return NULL;
     }
-    __CFRunLoopLockInit(&rlm->_lock);
+    _CFRecursiveMutexCreate(&rlm->_lock);
     rlm->_name = CFStringCreateCopy(kCFAllocatorSystemDefault, modeName);
     rlm->_stopped = false;
     rlm->_portToV1SourceMap = NULL;
@@ -1099,7 +1089,7 @@ CF_INLINE void __CFUnsetValid(void *cf) {
 
 struct __CFRunLoopSource {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;
+    _CFRecursiveMutex _lock;
     CFIndex _order;			/* immutable */
     CFMutableBagRef _runLoops;
     union {
@@ -1122,20 +1112,20 @@ CF_INLINE void __CFRunLoopSourceUnsetSignaled(CFRunLoopSourceRef rls) {
 }
 
 CF_INLINE void __CFRunLoopSourceLock(CFRunLoopSourceRef rls) {
-    pthread_mutex_lock(&(rls->_lock));
+    _CFRecursiveMutexLock(&(rls->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock locked %p"), rls);
 }
 
 CF_INLINE void __CFRunLoopSourceUnlock(CFRunLoopSourceRef rls) {
 //    CFLog(6, CFSTR("__CFRunLoopSourceLock unlocking %p"), rls);
-    pthread_mutex_unlock(&(rls->_lock));
+    _CFRecursiveMutexUnlock(&(rls->_lock));
 }
 
 #pragma mark Observers
 
 struct __CFRunLoopObserver {
     CFRuntimeBase _base;
-    pthread_mutex_t _lock;
+    _CFRecursiveMutex _lock;
     CFRunLoopRef _runLoop;
     CFIndex _rlCount;
     CFOptionFlags _activities;		/* immutable */
@@ -1172,13 +1162,13 @@ CF_INLINE void __CFRunLoopObserverUnsetRepeats(CFRunLoopObserverRef rlo) {
 }
 
 CF_INLINE void __CFRunLoopObserverLock(CFRunLoopObserverRef rlo) {
-    pthread_mutex_lock(&(rlo->_lock));
+    _CFRecursiveMutexLock(&(rlo->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock locked %p"), rlo);
 }
 
 CF_INLINE void __CFRunLoopObserverUnlock(CFRunLoopObserverRef rlo) {
 //    CFLog(6, CFSTR("__CFRunLoopObserverLock unlocking %p"), rlo);
-    pthread_mutex_unlock(&(rlo->_lock));
+    _CFRecursiveMutexUnlock(&(rlo->_lock));
 }
 
 static void __CFRunLoopObserverSchedule(CFRunLoopObserverRef rlo, CFRunLoopRef rl, CFRunLoopModeRef rlm) {
@@ -1204,7 +1194,7 @@ static void __CFRunLoopObserverCancel(CFRunLoopObserverRef rlo, CFRunLoopRef rl,
 struct __CFRunLoopTimer {
     CFRuntimeBase _base;
     uint16_t _bits;
-    pthread_mutex_t _lock;
+    _CFRecursiveMutex _lock;
     CFRunLoopRef _runLoop;
     CFMutableSetRef _rlModes;
     CFAbsoluteTime _nextFireDate;
@@ -1241,13 +1231,13 @@ CF_INLINE void __CFRunLoopTimerSetDeallocating(CFRunLoopTimerRef rlt) {
 }
 
 CF_INLINE void __CFRunLoopTimerLock(CFRunLoopTimerRef rlt) {
-    pthread_mutex_lock(&(rlt->_lock));
+    _CFRecursiveMutexLock(&(rlt->_lock));
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock locked %p"), rlt);
 }
 
 CF_INLINE void __CFRunLoopTimerUnlock(CFRunLoopTimerRef rlt) {
 //    CFLog(6, CFSTR("__CFRunLoopTimerLock unlocking %p"), rlt);
-    pthread_mutex_unlock(&(rlt->_lock));
+    _CFRecursiveMutexUnlock(&(rlt->_lock));
 }
 
 
@@ -1425,7 +1415,7 @@ static void __CFRunLoopDeallocate(CFTypeRef cf) {
     rl->_wakeUpPort = CFPORT_NULL;
     __CFRunLoopPopPerRunData(rl, NULL);
     __CFRunLoopUnlock(rl);
-    pthread_mutex_destroy(&rl->_lock);
+    _CFRecursiveMutexDestroy(&rl->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0x8C, sizeof(struct __CFRunLoop) - sizeof(CFRuntimeBase));
 }
 
@@ -1468,7 +1458,7 @@ static CFRunLoopRef __CFRunLoopCreate(_CFThreadRef t) {
 	return NULL;
     }
     (void)__CFRunLoopPushPerRunData(loop);
-    __CFRunLoopLockInit(&loop->_lock);
+    _CFRecursiveMutexCreate(&loop->_lock);
     loop->_wakeUpPort = __CFPortAllocate((uintptr_t)loop);
     if (CFPORT_NULL == loop->_wakeUpPort) HALT;
     __CFRunLoopSetIgnoreWakeUps(loop);
@@ -3750,7 +3740,7 @@ static void __CFRunLoopSourceDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     if (rls->_context.version0.release) {
 	rls->_context.version0.release(rls->_context.version0.info);
     }
-    pthread_mutex_destroy(&rls->_lock);
+    _CFRecursiveMutexDestroy(&rls->_lock);
     memset((char *)cf + sizeof(CFRuntimeBase), 0, sizeof(struct __CFRunLoopSource) - sizeof(CFRuntimeBase));
 }
 
@@ -3783,7 +3773,7 @@ CFRunLoopSourceRef CFRunLoopSourceCreate(CFAllocatorRef allocator, CFIndex order
     }
     __CFSetValid(memory);
     __CFRunLoopSourceUnsetSignaled(memory);
-    __CFRunLoopLockInit(&memory->_lock);
+    _CFRecursiveMutexCreate(&memory->_lock);
     memory->_signaled = false;
     memory->_order = order;
     memory->_runLoops = NULL;
@@ -3941,7 +3931,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
 static void __CFRunLoopObserverDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopObserverRef rlo = (CFRunLoopObserverRef)cf;
     CFRunLoopObserverInvalidate(rlo);
-    pthread_mutex_destroy(&rlo->_lock);
+    _CFRecursiveMutexDestroy(&rlo->_lock);
 }
 
 const CFRuntimeClass __CFRunLoopObserverClass = {
@@ -3976,7 +3966,7 @@ CFRunLoopObserverRef CFRunLoopObserverCreate(CFAllocatorRef allocator, CFOptionF
     } else {
 	__CFRunLoopObserverUnsetRepeats(memory);
     }
-    __CFRunLoopLockInit(&memory->_lock);
+    _CFRecursiveMutexCreate(&memory->_lock);
     memory->_runLoop = NULL;
     memory->_rlCount = 0;
     memory->_activities = activities;
@@ -4132,7 +4122,7 @@ static void __CFRunLoopTimerDeallocate(CFTypeRef cf) {	/* DOES CALLOUT */
     CFRunLoopTimerInvalidate(rlt);	/* DOES CALLOUT */
     CFRelease(rlt->_rlModes);
     rlt->_rlModes = NULL;
-    pthread_mutex_destroy(&rlt->_lock);
+    _CFRecursiveMutexDestroy(&rlt->_lock);
 }
 
 const CFRuntimeClass __CFRunLoopTimerClass = {
@@ -4166,7 +4156,7 @@ CFRunLoopTimerRef CFRunLoopTimerCreate(CFAllocatorRef allocator, CFAbsoluteTime 
     }
     __CFSetValid(memory);
     __CFRunLoopTimerUnsetFiring(memory);
-    __CFRunLoopLockInit(&memory->_lock);
+    _CFRecursiveMutexCreate(&memory->_lock);
     memory->_runLoop = NULL;
     memory->_rlModes = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeSetCallBacks);
     memory->_order = order;

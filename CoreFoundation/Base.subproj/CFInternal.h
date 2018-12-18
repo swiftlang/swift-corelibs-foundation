@@ -592,6 +592,84 @@ static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(
 #define os_unfair_lock_unlock __CFUnlock
 #endif // __has_include(<os/lock.h>)
 
+#if _POSIX_THREADS
+typedef pthread_mutex_t _CFMutex;
+#define _CF_MUTEX_STATIC_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+static int _CFMutexCreate(_CFMutex *lock) {
+  return pthread_mutex_init(lock, NULL);
+}
+static int _CFMutexDestroy(_CFMutex *lock) {
+  return pthread_mutex_destroy(lock);
+}
+static int _CFMutexLock(_CFMutex *lock) {
+  return pthread_mutex_lock(lock);
+}
+static int _CFMutexUnlock(_CFMutex *lock) {
+  return pthread_mutex_unlock(lock);
+}
+
+typedef pthread_mutex_t _CFRecursiveMutex;
+static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+
+  int result = pthread_mutex_init(mutex, &attr);
+
+  pthread_mutexattr_destroy(&attr);
+
+  return result;
+}
+static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_destroy(mutex);
+}
+static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_lock(mutex);
+}
+static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_unlock(mutex);
+}
+#elif defined(_WIN32)
+typedef SRWLOCK _CFMutex;
+#define _CF_MUTEX_STATIC_INITIALIZER SRWLOCK_INIT
+static int _CFMutexCreate(_CFMutex *lock) {
+  InitializeSRWLock(lock);
+  return 0;
+}
+static int _CFMutexDestroy(_CFMutex *lock) {
+  (void)lock;
+  return 0;
+}
+static int _CFMutexLock(_CFMutex *lock) {
+  AcquireSRWLockExclusive(lock);
+  return 0;
+}
+static int _CFMutexUnlock(_CFMutex *lock) {
+  ReleaseSRWLockExclusive(lock);
+  return 0;
+}
+
+typedef CRITICAL_SECTION _CFRecursiveMutex;
+static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+  InitializeCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+  DeleteCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+  EnterCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+  LeaveCriticalSection(mutex);
+  return 0;
+}
+#else
+#error "do not know how to define mutex and recursive mutex for this OS"
+#endif
+
 #if !__HAS_DISPATCH__
 
 typedef volatile long dispatch_once_t;
