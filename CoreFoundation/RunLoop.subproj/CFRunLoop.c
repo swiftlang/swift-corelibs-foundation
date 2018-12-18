@@ -154,8 +154,8 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static _CFThreadRef const kNilPthreadT = { nil, nil };
-#define pthreadPointer(a) a.p
+static _CFThreadRef const kNilPthreadT = INVALID_HANDLE_VALUE;
+#define pthreadPointer(a) a
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
