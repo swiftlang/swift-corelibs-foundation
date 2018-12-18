@@ -618,7 +618,7 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
     __CFTSDFinalize(TlsGetValue(__CFTSDIndexKey));
 }
 
-#endif
+#else
 
 static _CFThreadSpecificKey __CFTSDIndexKey;
 
@@ -628,6 +628,8 @@ CF_PRIVATE void __CFTSDInitialize() {
         (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
     });
 }
+
+#endif
 
 static void __CFTSDSetSpecific(void *arg) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
