@@ -546,14 +546,6 @@ CF_EXPORT void _CFLocaleResetCurrent(void);
 CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef alloc, int nFolder);
 #endif
 
-#if TARGET_OS_WIN32
-#include <CoreFoundation/CFMessagePort.h>
-
-#define CF_MESSAGE_PORT_CLONE_MESSAGE_ID -1209
-CF_EXPORT CFMessagePortRef	CFMessagePortCreateUber(CFAllocatorRef allocator, CFStringRef name, CFMessagePortCallBack callout, CFMessagePortContext *context, Boolean *shouldFreeInfo, Boolean isRemote);
-CF_EXPORT void CFMessagePortSetCloneCallout(CFMessagePortRef ms, CFMessagePortCallBack cloneCallout);
-#endif
-
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMessagePort.h>
 
