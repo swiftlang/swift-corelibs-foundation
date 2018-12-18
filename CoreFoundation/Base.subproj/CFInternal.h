@@ -882,6 +882,9 @@ CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 #define pthread_main_np _NS_pthread_main_np
 #define pthread_setname_np _NS_pthread_setname_np
 #define pthread_equal _NS_pthread_equal
+
+#define pthread_self() GetCurrentThread()
+
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
