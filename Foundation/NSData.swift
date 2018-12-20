@@ -179,7 +179,10 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
+        let cnt = data.count
+        data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
+            _init(bytes: UnsafeMutableRawPointer(mutating:bytes), length: cnt, copy: true)
+        }
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
@@ -234,7 +237,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             guard let data = resData else {
                 throw resError!
             }
-            readResult = NSData(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count)
+            readResult = data._nsObject
         }
         return (readResult, urlResponse)
     }

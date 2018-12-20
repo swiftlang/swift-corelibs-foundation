@@ -33,6 +33,7 @@ public func NSRoundDownToMultipleOfPageSize(_ size: Int) -> Int {
 }
 
 
+@usableFromInline
 func NSCopyMemoryPages(_ source: UnsafeRawPointer, _ dest: UnsafeMutableRawPointer, _ bytes: Int) {
 #if os(macOS) || os(iOS)
     if vm_copy(mach_task_self_, vm_address_t(bitPattern: source), vm_size_t(bytes), vm_address_t(bitPattern: dest)) != KERN_SUCCESS {

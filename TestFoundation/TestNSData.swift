@@ -179,6 +179,7 @@ class TestNSData: LoopbackServerTest {
     
     static var allTests: [(String, (TestNSData) -> () throws -> Void)] {
         return [
+            ("test_noCopyBehavior", test_noCopyBehavior),
             ("testBasicConstruction", testBasicConstruction),
             ("test_base64Data_medium", test_base64Data_medium),
             ("test_base64Data_small", test_base64Data_small),
@@ -526,6 +527,7 @@ class TestNSData: LoopbackServerTest {
             ("test_replaceSubrangeReferencingMutable", test_replaceSubrangeReferencingMutable),
             ("test_replaceSubrangeReferencingImmutable", test_replaceSubrangeReferencingImmutable),
             ("test_rangeOfSlice", test_rangeOfSlice),
+            
         ]
     }
     
@@ -4477,6 +4479,25 @@ extension TestNSData {
         let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData)
         let decodedData = NSData(coder: unarchiver)
         XCTAssertEqual(data, decodedData)
+    }
+    
+    func test_noCopyBehavior() {
+        let ptr = UnsafeMutableRawPointer.allocate(byteCount: 17, alignment: 1)
+        
+        var deallocated = false
+        do {
+            let data = Data(bytesNoCopy: ptr, count: 17, deallocator: .custom({ (bytes, length) in
+                deallocated = true
+                ptr.deallocate()
+            }))
+            XCTAssertFalse(deallocated)
+            let equal = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Bool in
+                return ptr == UnsafeMutableRawPointer(mutating: bytes)
+            }
+            
+            XCTAssertTrue(equal)
+        }
+        XCTAssertTrue(deallocated)
     }
 }
 
