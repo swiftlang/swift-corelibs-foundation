@@ -17,7 +17,7 @@ import Darwin
 #elseif os(Linux)
 import Glibc
 
-@inlinable
+@usableFromInline
 fileprivate func malloc_good_size(_ size: Int) -> Int {
     return size
 }
@@ -825,7 +825,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 count = range.upperBound
             }
             Swift.withUnsafeMutableBytes(of: &bytes) { rawBuffer in
-                bzero(rawBuffer.baseAddress?.advanced(by: range.lowerBound), range.upperBound - range.lowerBound)
+                memset(rawBuffer.baseAddress?.advanced(by: range.lowerBound), 0, range.upperBound - range.lowerBound)
             }
         }
 

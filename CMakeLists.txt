@@ -97,7 +97,10 @@ add_swift_library(Foundation
                     Foundation/CGFloat.swift
                     Foundation/CharacterSet.swift
                     Foundation/Codable.swift
+                    Foundation/Collections+DataProtocol.swift
+                    Foundation/ContiguousBytes.swift
                     Foundation/Data.swift
+                    Foundation/DataProtocol.swift
                     Foundation/DateComponentsFormatter.swift
                     Foundation/DateComponents.swift
                     Foundation/DateFormatter.swift
@@ -106,6 +109,7 @@ add_swift_library(Foundation
                     Foundation/Date.swift
                     Foundation/Decimal.swift
                     Foundation/Dictionary.swift
+                    Foundation/DispatchData+DataProtocol.swift
                     Foundation/EnergyFormatter.swift
                     Foundation/ExtraStringAPIs.swift
                     Foundation/FileHandle.swift
@@ -144,6 +148,7 @@ add_swift_library(Foundation
                     Foundation/NSCompoundPredicate.swift
                     Foundation/NSConcreteValue.swift
                     Foundation/NSData.swift
+                    Foundation/NSData+DataProtocol.swift
                     Foundation/NSDate.swift
                     Foundation/NSDecimalNumber.swift
                     Foundation/NSDictionary.swift
@@ -190,6 +195,7 @@ add_swift_library(Foundation
                     Foundation/Operation.swift
                     Foundation/PersonNameComponentsFormatter.swift
                     Foundation/PersonNameComponents.swift
+                    Foundation/Pointers+DataProtocol.swift
                     Foundation/PortMessage.swift
                     Foundation/Port.swift
                     Foundation/ProcessInfo.swift
