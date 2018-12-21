@@ -45,6 +45,10 @@ ExternalProject_Add(CoreFoundation
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
                       -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
+                      -DLIBXML2_LIBRARY=${LIBXML2_LIBRARY}
+                      -DLIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}
+                      -DCURL_LIBRARY=${CURL_LIBRARY}
+                      -DCURL_INCLUDE_DIR=${CURL_INCLUDE_DIR}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)

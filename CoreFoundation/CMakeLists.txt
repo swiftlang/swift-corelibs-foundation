@@ -400,9 +400,15 @@ else()
                            -fno-common)
 endif()
 if(CF_DEPLOYMENT_SWIFT)
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           -fcf-runtime-abi=swift)
+  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             /clang:-fcf-runtime-abi=swift)
+  else()
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             -fcf-runtime-abi=swift)
+  endif()
 endif()
 
 target_compile_options(CoreFoundation

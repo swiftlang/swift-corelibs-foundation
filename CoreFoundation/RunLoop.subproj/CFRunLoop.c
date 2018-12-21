@@ -154,8 +154,8 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-static _CFThreadRef const kNilPthreadT = { nil, nil };
-#define pthreadPointer(a) a.p
+static _CFThreadRef const kNilPthreadT = INVALID_HANDLE_VALUE;
+#define pthreadPointer(a) a
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
@@ -428,7 +428,7 @@ static __CFPortSet __CFPortSetAllocate(void) {
     result->used = 0;
     result->size = 4;
     result->handles = (HANDLE *)CFAllocatorAllocate(kCFAllocatorSystemDefault, result->size * sizeof(HANDLE), 0);
-    CF_SPINLOCK_INIT_FOR_STRUCTS(result->lock);
+    CF_LOCK_INIT_FOR_STRUCTS(result->lock);
     return result;
 }
 
@@ -1568,7 +1568,11 @@ CF_EXPORT CFRunLoopRef _CFRunLoopGet0(_CFThreadRef t) {
     if (pthread_equal(t, pthread_self())) {
         _CFSetTSD(__CFTSDKeyRunLoop, (void *)loop, NULL);
         if (0 == _CFGetTSD(__CFTSDKeyRunLoopCntr)) {
+#if _POSIX_THREADS
             _CFSetTSD(__CFTSDKeyRunLoopCntr, (void *)(PTHREAD_DESTRUCTOR_ITERATIONS-1), (void (*)(void *))__CFFinalizeRunLoop);
+#else
+            _CFSetTSD(__CFTSDKeyRunLoopCntr, 0, &__CFFinalizeRunLoop);
+#endif
         }
     }
     return loop;

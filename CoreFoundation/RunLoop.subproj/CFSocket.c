@@ -990,6 +990,7 @@ typedef int32_t fd_mask;
 typedef int socklen_t;
 
 #define gettimeofday _NS_gettimeofday
+struct timezone;
 CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz);
 
 // although this is only used for debug info, we define it for compatibility

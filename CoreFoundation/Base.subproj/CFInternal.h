@@ -585,6 +585,11 @@ typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
 static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
 static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
+#elif defined(_WIN32)
+#define OS_UNFAIR_LOCK_INIT CFLockInit
+#define os_unfair_lock CFLock_t
+#define os_unfair_lock_lock __CFLock
+#define os_unfair_lock_unlock __CFUnlock
 #endif // __has_include(<os/lock.h>)
 
 #if !__HAS_DISPATCH__
@@ -873,6 +878,7 @@ CF_EXPORT int _NS_pthread_setspecific(_CFThreadSpecificKey key, const void *val)
 CF_EXPORT void* _NS_pthread_getspecific(_CFThreadSpecificKey key);
 CF_EXPORT int _NS_pthread_key_init_np(int key, void (*destructor)(void *));
 CF_EXPORT void _NS_pthread_setname_np(const char *name);
+CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 
 // map use of pthread_set/getspecific to internal API
 #define pthread_setspecific _NS_pthread_setspecific
@@ -880,6 +886,10 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #define pthread_key_init_np _NS_pthread_key_init_np
 #define pthread_main_np _NS_pthread_main_np
 #define pthread_setname_np _NS_pthread_setname_np
+#define pthread_equal _NS_pthread_equal
+
+#define pthread_self() GetCurrentThread()
+
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
