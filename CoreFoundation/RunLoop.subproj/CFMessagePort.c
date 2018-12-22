@@ -392,8 +392,7 @@ static CFMessagePortRef __CFMessagePortCreateLocal(CFAllocatorRef allocator, CFS
     if (NULL != name) {
 	CFMachPortRef native = NULL;
 	kern_return_t ret;
-	mach_port_t bs, mp;
-	task_get_bootstrap_port(mach_task_self(), &bs);
+	mach_port_t mp;
 	if (!perPID) {
 	}
 	if (!native) {
@@ -454,7 +453,7 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     CFMachPortContext ctx;
     uint8_t *utfname = NULL;
     CFIndex size;
-    mach_port_t bp, port;
+    mach_port_t port;
     kern_return_t ret;
 
     CFStringRef const name = __CFMessagePortSanitizeStringName(inName, &utfname, NULL);
@@ -507,7 +506,6 @@ static CFMessagePortRef __CFMessagePortCreateRemote(CFAllocatorRef allocator, CF
     ctx.retain = NULL;
     ctx.release = NULL;
     ctx.copyDescription = NULL;
-    task_get_bootstrap_port(mach_task_self(), &bp);
     native = (KERN_SUCCESS == ret) ? CFMachPortCreateWithPort(allocator, port, __CFMessagePortDummyCallback, &ctx, NULL) : NULL;
     CFAllocatorDeallocate(kCFAllocatorSystemDefault, utfname);
     if (NULL == native) {
