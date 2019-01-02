@@ -40,15 +40,19 @@ ExternalProject_Add(CoreFoundation
                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                       -DCMAKE_INSTALL_LIBDIR=usr/lib
+                      -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+                      -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                       -DCF_DEPLOYMENT_SWIFT=YES
                       -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
+                      -DICU_LIBRARY=${ICU_LIBRARY}
                       -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
-                      -DLIBXML2_LIBRARY=${LIBXML2_LIBRARY}
-                      -DLIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}
                       -DCURL_LIBRARY=${CURL_LIBRARY}
                       -DCURL_INCLUDE_DIR=${CURL_INCLUDE_DIR}
+                      -DLIBXML2_LIBRARY=${LIBXML2_LIBRARY}
+                      -DLIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
