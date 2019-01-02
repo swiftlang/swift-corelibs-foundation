@@ -338,14 +338,10 @@ public extension Error where Self: CustomNSError, Self: RawRepresentable, Self.R
 public extension Error {
     /// Retrieve the localized description for this error.
     var localizedDescription: String {
-        #if _runtime(_ObjC)
-            let object: AnyObject? = self as AnyObject
-        #else
-            let object: AnyObject? = Swift._extractDynamicValue(self)
-        #endif
+        let asObject = self as AnyObject
 
-        if let object = object as? NSError {
-            return object.localizedDescription
+        if let asObject = asObject as? NSError {
+            return asObject.localizedDescription
         }
 
         let defaultUserInfo = _swift_Foundation_getErrorDefaultUserInfo(self) as? [String : Any]
