@@ -656,9 +656,9 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 // --- Static class references for Swift use; implements {DECLARE_,}STATIC_CLASS_REF.
 
 #if TARGET_OS_MAC
-#define STATIC_CLASS_PREFIX $s19SwiftFoundationSoil
+#define STATIC_CLASS_PREFIX $s19SwiftFoundationBase
 #else
-#define STATIC_CLASS_PREFIX $s14FoundationSoil
+#define STATIC_CLASS_PREFIX $s14FoundationBase
 #endif
 
 #define STATIC_CLASS_NAME_LENGTH_LOOKUP___NSCFType 10

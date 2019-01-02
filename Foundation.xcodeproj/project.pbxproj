@@ -477,7 +477,7 @@
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 15D6CD3521B88593009E6770;
-			remoteInfo = SwiftFoundationSoil;
+			remoteInfo = SwiftFoundationBase;
 		};
 		AE2FC5941CFEFC70008F7981 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -563,7 +563,7 @@
 		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
 		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
-		15D6CD3621B88593009E6770 /* libSwiftFoundationSoil.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSwiftFoundationSoil.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		15D6CD3621B88593009E6770 /* libSwiftFoundationBase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSwiftFoundationBase.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		15D6CDD921B8862B009E6770 /* Foundation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Foundation.swift; sourceTree = "<group>"; };
 		15F10CDB218909BF00D88114 /* TestNSCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
@@ -1133,7 +1133,7 @@
 				5B7C8A6E1BEA7F8F00C5B690 /* libCoreFoundation.a */,
 				EA66F66F1BF56CCB00136161 /* plutil */,
 				9F0DD33F1ECD734200F68030 /* xdgTestHelper.app */,
-				15D6CD3621B88593009E6770 /* libSwiftFoundationSoil.a */,
+				15D6CD3621B88593009E6770 /* libSwiftFoundationBase.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2092,9 +2092,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		15D6CD3521B88593009E6770 /* SwiftFoundationSoil */ = {
+		15D6CD3521B88593009E6770 /* SwiftFoundationBase */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 15D6CD3E21B88593009E6770 /* Build configuration list for PBXNativeTarget "SwiftFoundationSoil" */;
+			buildConfigurationList = 15D6CD3E21B88593009E6770 /* Build configuration list for PBXNativeTarget "SwiftFoundationBase" */;
 			buildPhases = (
 				15D6CD3221B88593009E6770 /* Headers */,
 				15D6CD3321B88593009E6770 /* Sources */,
@@ -2104,9 +2104,9 @@
 			);
 			dependencies = (
 			);
-			name = SwiftFoundationSoil;
-			productName = SwiftFoundationSoil;
-			productReference = 15D6CD3621B88593009E6770 /* libSwiftFoundationSoil.a */;
+			name = SwiftFoundationBase;
+			productName = SwiftFoundationBase;
+			productReference = 15D6CD3621B88593009E6770 /* libSwiftFoundationBase.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		5B5D885C1BBC938800234F36 /* SwiftFoundation */ = {
@@ -2259,7 +2259,7 @@
 			projectRoot = "";
 			targets = (
 				5B5D885C1BBC938800234F36 /* SwiftFoundation */,
-				15D6CD3521B88593009E6770 /* SwiftFoundationSoil */,
+				15D6CD3521B88593009E6770 /* SwiftFoundationBase */,
 				5BDC405B1BD6D83B00ED97BB /* TestFoundation */,
 				5B7C8A6D1BEA7F8F00C5B690 /* CoreFoundation */,
 				EA66F66E1BF56CCB00136161 /* plutil */,
@@ -2713,7 +2713,7 @@
 /* Begin PBXTargetDependency section */
 		15D6CDDF21B887AB009E6770 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 15D6CD3521B88593009E6770 /* SwiftFoundationSoil */;
+			target = 15D6CD3521B88593009E6770 /* SwiftFoundationBase */;
 			targetProxy = 15D6CDDE21B887AB009E6770 /* PBXContainerItemProxy */;
 		};
 		AE2FC5951CFEFC70008F7981 /* PBXTargetDependency */ = {
@@ -3059,7 +3059,7 @@
 					r,
 					r,
 					"-all_load",
-					"$(BUILT_PRODUCTS_DIR)/libSwiftFoundationSoil.a",
+					"$(BUILT_PRODUCTS_DIR)/libSwiftFoundationBase.a",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
@@ -3135,7 +3135,7 @@
 					r,
 					r,
 					"-all_load",
-					"$(BUILT_PRODUCTS_DIR)/libSwiftFoundationSoil.a",
+					"$(BUILT_PRODUCTS_DIR)/libSwiftFoundationBase.a",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
@@ -3341,7 +3341,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		15D6CD3E21B88593009E6770 /* Build configuration list for PBXNativeTarget "SwiftFoundationSoil" */ = {
+		15D6CD3E21B88593009E6770 /* Build configuration list for PBXNativeTarget "SwiftFoundationBase" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				15D6CD3C21B88593009E6770 /* Debug */,

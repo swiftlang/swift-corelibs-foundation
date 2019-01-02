@@ -112,13 +112,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
 
-add_swift_library(FoundationSoil
+add_swift_library(FoundationBase
                   MODULE_NAME
-                    FoundationSoil
+                    FoundationBase
                   MODULE_LINK_NAME
-                    FoundationSoil
+                    FoundationBase
                   MODULE_PATH
-                    ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationSoil.swiftmodule
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationBase.swiftmodule
                   SOURCES
                     Foundation/AffineTransform.swift
                     Foundation/Array.swift
@@ -319,7 +319,7 @@ add_swift_library(Foundation
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -L${CMAKE_CURRENT_BINARY_DIR}
-                    -lFoundationSoil
+                    -lFoundationBase
                     -lCoreFoundation
                     ${CURL_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
@@ -336,13 +336,13 @@ add_swift_library(Foundation
                     ${swift_enable_testing}
                     ${swift_optimization_flags}
                   DEPENDS
-                    FoundationSoil)
+                    FoundationBase)
 
 if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES
       -L${install_dir}/usr/lib
       -lCoreFoundation
-      -lFoundationSoil
+      -lFoundationBase
       -L${CMAKE_CURRENT_BINARY_DIR}
       -luuid
       ${CURL_LIBRARIES}

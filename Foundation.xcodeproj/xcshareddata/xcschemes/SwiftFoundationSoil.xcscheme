@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "15D6CC8B21B8835C009E6770"
-               BuildableName = "libSwiftFoundationSoil.a"
-               BlueprintName = "SwiftFoundationSoil"
+               BuildableName = "libSwiftFoundationBase.a"
+               BlueprintName = "SwiftFoundationBase"
                ReferencedContainer = "container:Foundation.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,8 +46,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "15D6CC8B21B8835C009E6770"
-            BuildableName = "libSwiftFoundationSoil.a"
-            BlueprintName = "SwiftFoundationSoil"
+            BuildableName = "libSwiftFoundationBase.a"
+            BlueprintName = "SwiftFoundationBase"
             ReferencedContainer = "container:Foundation.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -64,8 +64,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "15D6CC8B21B8835C009E6770"
-            BuildableName = "libSwiftFoundationSoil.a"
-            BlueprintName = "SwiftFoundationSoil"
+            BuildableName = "libSwiftFoundationBase.a"
+            BlueprintName = "SwiftFoundationBase"
             ReferencedContainer = "container:Foundation.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
