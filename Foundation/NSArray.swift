@@ -816,7 +816,7 @@ open class NSMutableArray : NSArray {
     
     open func exchangeObject(at idx1: Int, withObjectAt idx2: Int) {
         if type(of: self) === NSMutableArray.self {
-            swap(&_storage[idx1], &_storage[idx2])
+            _storage.swapAt(idx1, idx2)
         } else {
             NSUnimplemented()
         }
