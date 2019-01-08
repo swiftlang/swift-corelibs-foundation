@@ -139,7 +139,7 @@ import CoreFoundation
 
 // Below this point are compiler intrinsics — symbols either swiftc or clang rely upon that _must_ be in the Foundation module.
 
-#if !canImport(ObjectiveC)
+#if !_runtime(_ObjC)
 
 enum UnknownNSError: Error {
     case missingError
@@ -173,5 +173,4 @@ func _convertErrorToNSError(_ error: Error) -> NSError {
     }
 }
 
-#endif
-
+#endif // !_runtime(_ObjC)
