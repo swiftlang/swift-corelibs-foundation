@@ -68,6 +68,13 @@ set_target_properties(uuid
 target_compile_options(uuid
                        PUBLIC
                          -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(uuid
+                             PRIVATE
+                               _CRT_NONSTDC_NO_WARNINGS
+                               _CRT_SECURE_NO_DEPRECATE
+                               _CRT_SECURE_NO_WARNINGS)
+endif()
 add_dependencies(uuid CoreFoundation)
 
 set(swift_optimization_flags)
