@@ -35,7 +35,7 @@ private func getTestData() -> [Any]? {
         XCTFail("Unable to deserialize property list data")
         return nil
     }
-    guard let parsingTests = testRoot[kURLTestParsingTestsKey] as? [Any] else {
+    guard let parsingTests = testRoot?[kURLTestParsingTestsKey] as? [Any] else {
         XCTFail("Unable to create the parsingTests dictionary")
         return nil
     }
