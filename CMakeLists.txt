@@ -418,6 +418,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestURL.swift
                          TestFoundation/TestUserDefaults.swift
                          TestFoundation/TestUtils.swift
+                         TestFoundation/TestUUID.swift
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
