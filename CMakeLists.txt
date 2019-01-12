@@ -57,6 +57,17 @@ ExternalProject_Add(CoreFoundation
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
 
+add_library(uuid
+            STATIC
+              uuid/uuid.h
+              uuid/uuid.c)
+# Add an include directory for the CoreFoundation framework headers to satisfy
+# the dependency on TargetConditionals.h
+target_compile_options(uuid
+                       PUBLIC
+                         -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+add_dependencies(uuid CoreFoundation)
+
 set(swift_optimization_flags)
 if(CMAKE_BUILD_TYPE MATCHES Release)
   set(swift_optimization_flags -O)
