@@ -387,7 +387,7 @@ open class NSAffineTransform : NSObject, NSCopying, NSSecureCoding {
         return other === self || (other.affineTransform == self.affineTransform)
     }
 
-    open override var hashValue: Int {
+    open override var hash: Int {
         return affineTransform.hashValue
     }
     
