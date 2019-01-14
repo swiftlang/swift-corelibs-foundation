@@ -1334,7 +1334,7 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
         return backingCalendar.isEqual(value)
     }
     
-    override var hashValue: Int {
+    override var hash: Int {
         return backingCalendar.hashValue
     }
     
