@@ -323,8 +323,8 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
 
-    open var hashValue: Int {
-        return hash
+    open func hash(into hasher: inout Hasher) {
+        hasher.combine(hash)
     }
 
     /// Returns a Boolean value indicating whether two values are equal.

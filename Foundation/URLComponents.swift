@@ -274,10 +274,10 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
         set { _applyMutation { $0.queryItems = newValue } }
     }
     
-    public var hashValue: Int {
-        return _handle.map { $0.hash }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_handle.map { $0.hash })
     }
-    
+
     // MARK: - Bridging
     
     fileprivate init(reference: NSURLComponents) {
@@ -346,9 +346,11 @@ public struct URLQueryItem : ReferenceConvertible, Hashable, Equatable {
         get { return _queryItem.value }
         set { _queryItem = NSURLQueryItem(name: name, value: newValue) }
     }
-    
-    public var hashValue: Int { return _queryItem.hash }
-    
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_queryItem.hash)
+    }
+
     public static func ==(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {
         return lhs._queryItem.isEqual(rhs._queryItem)
     }

@@ -68,10 +68,10 @@ public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, 
         set { _applyMutation { $0.phoneticRepresentation = newValue } }
     }
     
-    public var hashValue : Int {
-        return _handle.map { $0.hash }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_handle.map { $0.hash })
     }
-    
+
     public static func ==(lhs : PersonNameComponents, rhs: PersonNameComponents) -> Bool {
         // Don't copy references here; no one should be storing anything
         return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
