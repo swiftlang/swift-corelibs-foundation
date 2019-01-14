@@ -170,7 +170,7 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_mapUnmanaged { $0.hashValue })
+        hasher.combine(_mapUnmanaged { $0 })
     }
     
     public var description: String {

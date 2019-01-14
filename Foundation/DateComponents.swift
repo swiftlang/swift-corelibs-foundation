@@ -303,7 +303,7 @@ public struct DateComponents : ReferenceConvertible, Hashable, Equatable, _Mutab
     // MARK: -
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_handle.map { $0.hash })
+        hasher.combine(_handle.map { $0 })
     }
     
     public static func ==(lhs: DateComponents, rhs: DateComponents) -> Bool {

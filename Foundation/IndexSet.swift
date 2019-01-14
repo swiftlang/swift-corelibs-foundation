@@ -174,7 +174,7 @@ public struct IndexSet : ReferenceConvertible, Equatable, BidirectionalCollectio
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_handle.map { $0.hash })
+        hasher.combine(_handle.map { $0 })
     }
 
     /// Returns the number of integers in `self`.

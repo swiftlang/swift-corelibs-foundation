@@ -212,9 +212,9 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     
     public func hash(into hasher: inout Hasher) {
         if _autoupdating {
-            hasher.combine(1)
+            hasher.combine(1 as Int8)
         } else {
-            hasher.combine(_wrapped.hash)
+            hasher.combine(_wrapped)
         }
     }
 

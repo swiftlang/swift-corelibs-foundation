@@ -275,7 +275,7 @@ public struct URLComponents : ReferenceConvertible, Hashable, Equatable, _Mutabl
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_handle.map { $0.hash })
+        hasher.combine(_handle.map { $0 })
     }
 
     // MARK: - Bridging
@@ -348,7 +348,7 @@ public struct URLQueryItem : ReferenceConvertible, Hashable, Equatable {
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_queryItem.hash)
+        hasher.combine(_queryItem)
     }
 
     public static func ==(lhs: URLQueryItem, rhs: URLQueryItem) -> Bool {

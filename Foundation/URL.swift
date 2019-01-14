@@ -504,7 +504,7 @@ public struct URL : ReferenceConvertible, Equatable {
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_url.hash)
+        hasher.combine(_url)
     }
     
     // MARK: -

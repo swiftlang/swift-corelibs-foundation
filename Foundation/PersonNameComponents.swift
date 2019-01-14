@@ -69,7 +69,7 @@ public struct PersonNameComponents : ReferenceConvertible, Hashable, Equatable, 
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_handle.map { $0.hash })
+        hasher.combine(_handle.map { $0 })
     }
 
     public static func ==(lhs : PersonNameComponents, rhs: PersonNameComponents) -> Bool {
