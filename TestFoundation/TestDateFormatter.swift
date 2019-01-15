@@ -26,6 +26,7 @@ class TestDateFormatter: XCTestCase {
             ("test_setTimeZoneToNil", test_setTimeZoneToNil),
             ("test_setTimeZone", test_setTimeZone),
             ("test_expectedTimeZone", test_expectedTimeZone),
+            ("test_dateFrom", test_dateFrom),
         ]
     }
     
@@ -408,5 +409,20 @@ class TestDateFormatter: XCTestCase {
         // Case 3: Los Angeles
         f.timeZone = losAngeles
         XCTAssertEqual(f.string(from: now), losAngeles.abbreviation())
+    }
+
+    func test_dateFrom() throws {
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        XCTAssertNil(formatter.date(from: "2018-03-09T10:25:16+01:00"))
+        let d1 = try formatter.date(from: "2018-03-09").unwrapped()
+        XCTAssertEqual(d1.description, "2018-03-09 00:00:00 +0000")
+
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+        XCTAssertNil(formatter.date(from: "2018-03-09"))
+        let d2 = try formatter.date(from: "2018-03-09T10:25:16+01:00").unwrapped()
+        XCTAssertEqual(d2.description, "2018-03-09 09:25:16 +0000")
     }
 }
