@@ -62,6 +62,12 @@ open class DateFormatter : Formatter {
             }
             return res._swiftObject
         }
+
+        // range.length is updated with the last position of the input string that was parsed
+        guard range.length == string.length else {
+            // The whole string was not parsed
+            return nil
+        }
         return date
     }
 
