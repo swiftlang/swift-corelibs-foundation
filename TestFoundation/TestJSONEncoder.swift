@@ -723,8 +723,6 @@ func expectEqualPaths(_ lhs: [CodingKey?], _ rhs: [CodingKey?], _ prefix: String
                 XCTFail("\(prefix) CodingKey.intValue mismatch: \(type(of: key1))(\(i1)) != \(type(of: key2))(\(i2))")
                 return
             }
-
-            break
         }
 
         XCTAssertEqual(key1.stringValue,

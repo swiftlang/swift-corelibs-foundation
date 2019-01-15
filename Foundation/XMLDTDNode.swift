@@ -127,9 +127,8 @@ open class XMLDTDNode: XMLNode {
             case _kCFXMLDTDNodeEntityTypeExternalGeneralUnparsed:
                 return .unparsed
                 
-            case _kCFXMLDTDNodeEntityTypeExternalParameter:
-                fallthrough
-            case _kCFXMLDTDNodeEntityTypeInternalParameter:
+            case _kCFXMLDTDNodeEntityTypeExternalParameter,
+                 _kCFXMLDTDNodeEntityTypeInternalParameter:
                 return .parameter
                 
             case _kCFXMLDTDNodeEntityTypeInternalPredefined:

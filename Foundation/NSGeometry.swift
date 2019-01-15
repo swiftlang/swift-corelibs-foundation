@@ -376,23 +376,25 @@ extension CGRect {
         var rect2 = rect
 
         switch fromEdge {
-        case .minXEdge: fallthrough
-        case .maxXEdge:
+        case .minXEdge,
+             .maxXEdge:
             rect1.size.width = splitLocation
             rect2.origin.x = rect1.maxX
             rect2.size.width = rect.width - splitLocation
-        case .minYEdge: fallthrough
-        case .maxYEdge:
+        case .minYEdge,
+             .maxYEdge:
             rect1.size.height = splitLocation
             rect2.origin.y = rect1.maxY
             rect2.size.height = rect.height - splitLocation
         }
 
         switch fromEdge {
-        case .minXEdge: fallthrough
-        case .minYEdge: return (rect1, rect2)
-        case .maxXEdge: fallthrough
-        case .maxYEdge: return (rect2, rect1)
+        case .minXEdge,
+             .minYEdge:
+            return (rect1, rect2)
+        case .maxXEdge,
+             .maxYEdge:
+            return (rect2, rect1)
         }
     }
 }

@@ -523,11 +523,9 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var children: [XMLNode]? {
         switch kind {
-        case .document:
-            fallthrough
-        case .element:
-            fallthrough
-        case .DTDKind:
+        case .document,
+             .element,
+             .DTDKind:
             return Array<XMLNode>(self as XMLNode)
 
         default:
@@ -811,13 +809,10 @@ open class XMLNode: NSObject, NSCopying {
         case _kCFXMLTypeDTD:
             return XMLDTD._objectNodeForNode(node)
 
-        case _kCFXMLDTDNodeTypeEntity:
-            fallthrough
-        case _kCFXMLDTDNodeTypeElement:
-            fallthrough
-        case _kCFXMLDTDNodeTypeNotation:
-            fallthrough
-        case _kCFXMLDTDNodeTypeAttribute:
+        case _kCFXMLDTDNodeTypeEntity,
+             _kCFXMLDTDNodeTypeElement,
+             _kCFXMLDTDNodeTypeNotation,
+             _kCFXMLDTDNodeTypeAttribute:
             return XMLDTDNode._objectNodeForNode(node)
 
         default:

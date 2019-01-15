@@ -797,8 +797,8 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 return .orderedSame
             case .timeZone:
                 return .orderedSame
-            case .day: fallthrough
-            case .hour:
+            case .day,
+                 .hour:
                 let range = self.range(of: unit, for: date1)
                 let ats = range!.start.timeIntervalSinceReferenceDate
                 let at2 = date2.timeIntervalSinceReferenceDate

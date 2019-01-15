@@ -347,8 +347,6 @@ internal extension _HTTPURLProtocol {
         guard let response = ts.response as? HTTPURLResponse else { fatalError("Header complete, but not URL response.") }
         guard let session = task?.session as? URLSession else { fatalError() }
         switch session.behaviour(for: self.task!) {
-        case .noDelegate:
-            break
         case .taskDelegate:
             //TODO: There's a problem with libcurl / with how we're using it.
             // We're currently unable to pause the transfer / the easy handle:
@@ -362,9 +360,9 @@ internal extension _HTTPURLProtocol {
             default:
                 self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             }
-        case .dataCompletionHandler:
-            break
-        case .downloadCompletionHandler:
+        case .noDelegate,
+             .dataCompletionHandler,
+             .downloadCompletionHandler:
             break
         }
     }

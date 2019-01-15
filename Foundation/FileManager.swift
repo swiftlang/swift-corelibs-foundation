@@ -289,35 +289,21 @@ open class FileManager : NSObject {
             }
             
         // None of these are supported outside of Darwin:
-        case .applicationDirectory:
-            fallthrough
-        case .demoApplicationDirectory:
-            fallthrough
-        case .developerApplicationDirectory:
-            fallthrough
-        case .adminApplicationDirectory:
-            fallthrough
-        case .libraryDirectory:
-            fallthrough
-        case .developerDirectory:
-            fallthrough
-        case .documentationDirectory:
-            fallthrough
-        case .coreServiceDirectory:
-            fallthrough
-        case .inputMethodsDirectory:
-            fallthrough
-        case .preferencePanesDirectory:
-            fallthrough
-        case .applicationScriptsDirectory:
-            fallthrough
-        case .allApplicationsDirectory:
-            fallthrough
-        case .allLibrariesDirectory:
-            fallthrough
-        case .printerDescriptionDirectory:
-            fallthrough
-        case .itemReplacementDirectory:
+        case .applicationDirectory,
+             .demoApplicationDirectory,
+             .developerApplicationDirectory,
+             .adminApplicationDirectory,
+             .libraryDirectory,
+             .developerDirectory,
+             .documentationDirectory,
+             .coreServiceDirectory,
+             .inputMethodsDirectory,
+             .preferencePanesDirectory,
+             .applicationScriptsDirectory,
+             .allApplicationsDirectory,
+             .allLibrariesDirectory,
+             .printerDescriptionDirectory,
+             .itemReplacementDirectory:
             return []
         }
     }
