@@ -329,6 +329,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_TARGET_WINDOWS)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -D_USRDLL)
+  endif()
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE
