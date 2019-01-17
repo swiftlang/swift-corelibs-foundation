@@ -19,7 +19,6 @@ option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 find_package(CURL REQUIRED)
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
-find_package(UUID REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -56,6 +55,27 @@ ExternalProject_Add(CoreFoundation
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
+
+add_library(uuid
+            STATIC
+              uuid/uuid.h
+              uuid/uuid.c)
+set_target_properties(uuid
+                      PROPERTIES
+                        POSITION_INDEPENDENT_CODE YES)
+# Add an include directory for the CoreFoundation framework headers to satisfy
+# the dependency on TargetConditionals.h
+target_compile_options(uuid
+                       PUBLIC
+                         -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(uuid
+                             PRIVATE
+                               _CRT_NONSTDC_NO_WARNINGS
+                               _CRT_SECURE_NO_DEPRECATE
+                               _CRT_SECURE_NO_WARNINGS)
+endif()
+add_dependencies(uuid CoreFoundation)
 
 set(swift_optimization_flags)
 if(CMAKE_BUILD_TYPE MATCHES Release)
@@ -262,7 +282,8 @@ add_swift_library(Foundation
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
-                    ${uuid_LIBRARIES}
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    -luuid
                     -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
@@ -278,11 +299,12 @@ if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES
       -L${install_dir}/usr/lib
       -lCoreFoundation
+      -L${CMAKE_CURRENT_BINARY_DIR}
+      -luuid
       ${CURL_LIBRARIES}
       ${ICU_UC_LIBRARY}
       ${ICU_I18N_LIBRARY}
-      ${LIBXML2_LIBRARIES}
-      ${uuid_LIBRARIES})
+      ${LIBXML2_LIBRARIES})
 endif()
 
 add_swift_executable(plutil
@@ -293,8 +315,8 @@ add_swift_executable(plutil
                        ${deployment_enable_libdispatch}
                        -F${install_dir}/System/Library/Frameworks
                      LINK_FLAGS
-                       -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
+                       -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
                        -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
@@ -307,6 +329,7 @@ add_swift_executable(plutil
                        ${swift_enable_testing}
                        ${swift_optimization_flags}
                      DEPENDS
+                       uuid
                        Foundation
                        CoreFoundation)
 
@@ -328,6 +351,7 @@ if(ENABLE_TESTING)
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
                        DEPENDS
+                         uuid
                          Foundation
                          CoreFoundation)
 
