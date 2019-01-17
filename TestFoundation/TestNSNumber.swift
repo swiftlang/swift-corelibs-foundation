@@ -1036,6 +1036,26 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: UInt32.max).description, "4294967295")
         XCTAssertEqual(NSNumber(value: UInt64.min).description, "0")
         XCTAssertEqual(NSNumber(value: UInt64.max).description, "18446744073709551615")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Float).description, "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Float).description, "1e+09")
+        XCTAssertEqual(NSNumber(value: -0.99 as Float).description, "-0.99")
+        XCTAssertEqual(NSNumber(value: Float.zero).description, "0.0")
+        XCTAssertEqual(NSNumber(value: Float.nan).description, "nan")
+        XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description, "1.1754944e-38")
+        XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description, "1e-45")
+        XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description, "3.4028235e+38")
+        XCTAssertEqual(NSNumber(value: Float.pi).description, "3.1415925")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Double).description, "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description, "1000000000.0")
+        XCTAssertEqual(NSNumber(value: -0.99 as Double).description, "-0.99")
+        XCTAssertEqual(NSNumber(value: Double.zero).description, "0.0")
+        XCTAssertEqual(NSNumber(value: Double.nan).description, "nan")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description, "2.2250738585072014e-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description, "5e-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description, "1.7976931348623157e+308")
+        XCTAssertEqual(NSNumber(value: Double.pi).description, "3.141592653589793")
     }
 
     func test_descriptionWithLocale() {
@@ -1060,6 +1080,26 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: UInt32.max).description(withLocale: nil), "4294967295")
         XCTAssertEqual(NSNumber(value: UInt64.min).description(withLocale: nil), "0")
         XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: nil), "18446744073709551615")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Float).description(withLocale: nil), "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Float).description(withLocale: nil), "1e+09")
+        XCTAssertEqual(NSNumber(value: -0.99 as Float).description(withLocale: nil), "-0.99")
+        XCTAssertEqual(NSNumber(value: Float.zero).description(withLocale: nil), "0.0")
+        XCTAssertEqual(NSNumber(value: Float.nan).description(withLocale: nil), "nan")
+        XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description(withLocale: nil), "1.1754944e-38")
+        XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description(withLocale: nil), "1e-45")
+        XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description(withLocale: nil), "3.4028235e+38")
+        XCTAssertEqual(NSNumber(value: Float.pi).description(withLocale: nil), "3.1415925")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Double).description(withLocale: nil), "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description(withLocale: nil), "1000000000.0")
+        XCTAssertEqual(NSNumber(value: -0.99 as Double).description(withLocale: nil), "-0.99")
+        XCTAssertEqual(NSNumber(value: Double.zero).description(withLocale: nil), "0.0")
+        XCTAssertEqual(NSNumber(value: Double.nan).description(withLocale: nil), "nan")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: nil), "2.2250738585072014e-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: nil), "5e-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: nil), "1.7976931348623157e+308")
+        XCTAssertEqual(NSNumber(value: Double.pi).description(withLocale: nil), "3.141592653589793")
 
         // en_GB Locale
         XCTAssertEqual(NSNumber(value: 1000).description(withLocale: Locale(identifier: "en_GB")), "1,000")
@@ -1086,6 +1126,25 @@ class TestNSNumber : XCTestCase {
         // XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "en_GB")), "18,446,744,073,709,551,615")
         XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "en_GB")), "18446744073709551615")
 
+        XCTAssertEqual(NSNumber(value: 1.2 as Float).description(withLocale: Locale(identifier: "en_GB")), "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Float).description(withLocale: Locale(identifier: "en_GB")), "1E+09")
+        XCTAssertEqual(NSNumber(value: -0.99 as Float).description(withLocale: Locale(identifier: "en_GB")), "-0.99")
+        XCTAssertEqual(NSNumber(value: Float.zero).description(withLocale: Locale(identifier: "en_GB")), "0")
+        XCTAssertEqual(NSNumber(value: Float.nan).description(withLocale: Locale(identifier: "en_GB")), "NaN")
+        XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.175494E-38")
+        XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.401298E-45")
+        XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "en_GB")), "3.402823E+38")
+        XCTAssertEqual(NSNumber(value: Float.pi).description(withLocale: Locale(identifier: "en_GB")), "3.141593")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Double).description(withLocale: Locale(identifier: "en_GB")), "1.2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description(withLocale: Locale(identifier: "en_GB")), "1,000,000,000")
+        XCTAssertEqual(NSNumber(value: -0.99 as Double).description(withLocale: Locale(identifier: "en_GB")), "-0.99")
+        XCTAssertEqual(NSNumber(value: Double.zero).description(withLocale: Locale(identifier: "en_GB")), "0")
+        XCTAssertEqual(NSNumber(value: Double.nan).description(withLocale: Locale(identifier: "en_GB")), "NaN")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "en_GB")), "2.225073858507201E-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.797693134862316E+308")
+
         // de_DE Locale
         XCTAssertEqual(NSNumber(value: 1000).description(withLocale: Locale(identifier: "de_DE")), "1.000")
         XCTAssertEqual(NSNumber(value: 0.001).description(withLocale: Locale(identifier: "de_DE")), "0,001")
@@ -1110,6 +1169,25 @@ class TestNSNumber : XCTestCase {
         // This is the correct value but currently buggy and the locale is not used
         //XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "de_DE")), "18.446.744.073.709.551.615")
         XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "de_DE")), "18446744073709551615")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Float).description(withLocale: Locale(identifier: "de_DE")), "1,2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Float).description(withLocale: Locale(identifier: "de_DE")), "1E+09")
+        XCTAssertEqual(NSNumber(value: -0.99 as Float).description(withLocale: Locale(identifier: "de_DE")), "-0,99")
+        XCTAssertEqual(NSNumber(value: Float.pi).description(withLocale: Locale(identifier: "de_DE")), "3,141593")
+        XCTAssertEqual(NSNumber(value: Float.zero).description(withLocale: Locale(identifier: "de_DE")), "0")
+        XCTAssertEqual(NSNumber(value: Float.nan).description(withLocale: Locale(identifier: "de_DE")), "NaN")
+        XCTAssertEqual(NSNumber(value: Float.leastNormalMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,175494E-38")
+        XCTAssertEqual(NSNumber(value: Float.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,401298E-45")
+        XCTAssertEqual(NSNumber(value: Float.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "de_DE")), "3,402823E+38")
+
+        XCTAssertEqual(NSNumber(value: 1.2 as Double).description(withLocale: Locale(identifier: "de_DE")), "1,2")
+        XCTAssertEqual(NSNumber(value: 1000_000_000 as Double).description(withLocale: Locale(identifier: "de_DE")), "1.000.000.000")
+        XCTAssertEqual(NSNumber(value: -0.99 as Double).description(withLocale: Locale(identifier: "de_DE")), "-0,99")
+        XCTAssertEqual(NSNumber(value: Double.zero).description(withLocale: Locale(identifier: "de_DE")), "0")
+        XCTAssertEqual(NSNumber(value: Double.nan).description(withLocale: Locale(identifier: "de_DE")), "NaN")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "de_DE")), "2,225073858507201E-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,797693134862316E+308")
     }
 
     func test_objCType() {
