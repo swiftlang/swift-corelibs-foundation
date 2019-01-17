@@ -611,7 +611,6 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 
 CF_EXPORT CFStringRef _CFGetWindowsAppleAppDataDirectory(void);
 CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
-CF_EXPORT CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 
 // If your Windows application does not use a CFRunLoop on the main thread (perhaps because it is reserved for handling UI events via Windows API), then call this function to make distributed notifications arrive using a different run loop.
 CF_EXPORT void _CFNotificationCenterSetRunLoop(CFNotificationCenterRef nc, CFRunLoopRef rl);
