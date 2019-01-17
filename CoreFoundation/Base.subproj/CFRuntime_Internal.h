@@ -151,7 +151,6 @@ CF_PRIVATE void __CFCharacterSetInitialize(void);
 
 #if TARGET_OS_WIN32
 CF_PRIVATE void __CFTSDWindowsInitialize(void);
-CF_PRIVATE void __CFWindowsNamedPipeInitialize(void);
 #endif
 
 #if TARGET_OS_MAC || TARGET_OS_IPHONE || TARGET_OS_WIN32
