@@ -57,6 +57,7 @@ _CFRegularExpressionRef _Nullable _CFRegularExpressionCreate(CFAllocatorRef allo
 void _CFRegularExpressionDestroy(_CFRegularExpressionRef regex);
 
 CFIndex _CFRegularExpressionGetNumberOfCaptureGroups(_CFRegularExpressionRef regex);
+CFIndex _CFRegularExpressionGetCaptureGroupNumberWithName(_CFRegularExpressionRef regex, CFStringRef groupName);
 void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexObj, CFStringRef string, _CFRegularExpressionMatchingOptions options, CFRange range, void *_Nullable context, _CFRegularExpressionMatch match);
 
 CFStringRef _CFRegularExpressionGetPattern(_CFRegularExpressionRef regex);

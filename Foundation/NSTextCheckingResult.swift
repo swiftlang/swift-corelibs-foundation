@@ -54,6 +54,8 @@ open class NSTextCheckingResult: NSObject, NSCopying, NSCoding {
     open var range: NSRange { return range(at: 0) }
     /* A result must have at least one range, but may optionally have more (for example, to represent regular expression capture groups).  The range at index 0 always matches the range property.  Additional ranges, if any, will have indexes from 1 to numberOfRanges-1. */
     open func range(at idx: Int) -> NSRange { NSRequiresConcreteImplementation() }
+    @available(macOS 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *)
+    open func range(withName: String) -> NSRange { NSRequiresConcreteImplementation() }
     open var regularExpression: NSRegularExpression? { return nil }
     open var numberOfRanges: Int { return 1 }
 }
@@ -81,6 +83,15 @@ internal class _NSRegularExpressionNSTextCheckingResultResult : NSTextCheckingRe
     
     override var resultType: CheckingType { return .RegularExpression }
     override func range(at idx: Int) -> NSRange { return _ranges[idx] }
+    override func range(withName name: String) -> NSRange {
+        let idx = _regularExpression._captureGroupNumber(withName: name)
+        if idx != kCFNotFound, idx < numberOfRanges {
+            return range(at: idx)
+        }
+
+        return NSRange(location: NSNotFound, length: 0)
+    }
+
     override var numberOfRanges: Int { return _ranges.count }
     override var regularExpression: NSRegularExpression? { return _regularExpression }
 }

@@ -18,9 +18,11 @@ class TestNSRegularExpression : XCTestCase {
             ("test_NSCoding", test_NSCoding),
             ("test_defaultOptions", test_defaultOptions),
             ("test_badPattern", test_badPattern),
+            ("test_unicodeNamedGroup", test_unicodeNamedGroup),
+            ("test_conflictingNamedGroups", test_conflictingNamedGroups),
         ]
     }
-    
+
     func simpleRegularExpressionTestWithPattern(_ patternString: String, target searchString: String, looking: Bool, match: Bool, file: StaticString = #file, line: UInt = #line) {
         do {
             let str = NSString(string: searchString)
@@ -371,4 +373,27 @@ class TestNSRegularExpression : XCTestCase {
             XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(}")
         }
     }
+
+    func test_unicodeNamedGroup() {
+        let patternString = "(?<りんご>a)"
+        do {
+            _ = try NSRegularExpression(pattern: patternString, options: [])
+            XCTFail("Building regular expression for pattern with unicode group name should fail.")
+        } catch {
+            let err = String(describing: error)
+            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(?<りんご>a)}")
+        }
+    }
+
+    func test_conflictingNamedGroups() {
+        let patternString = "(?<name>a)(?<name>b)"
+        do {
+            _ = try NSRegularExpression(pattern: patternString, options: [])
+            XCTFail("Building regular expression for pattern with identically named groups should fail.")
+        } catch {
+            let err = String(describing: error)
+            XCTAssertEqual(err, "Error Domain=NSCocoaErrorDomain Code=2048 \"(null)\" UserInfo={NSInvalidValue=(?<name>a)(?<name>b)}")
+        }
+    }
+
 }
