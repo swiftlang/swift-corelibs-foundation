@@ -57,10 +57,12 @@ CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
+
+#if !TARGET_OS_WIN32
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
-
+#endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
 CF_EXPORT void _CFRunLoopSetCurrent(CFRunLoopRef rl);
