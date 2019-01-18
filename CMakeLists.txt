@@ -102,10 +102,12 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
@@ -278,6 +280,7 @@ add_swift_library(Foundation
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${install_dir}/System/Library/Frameworks
+                    -D_DLL
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
@@ -287,7 +290,7 @@ add_swift_library(Foundation
                     ${libdispatch_ldflags}
                     -L${CMAKE_CURRENT_BINARY_DIR}
                     -luuid
-                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    ${Foundation_rpath_flags}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
