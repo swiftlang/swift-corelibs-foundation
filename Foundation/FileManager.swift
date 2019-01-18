@@ -775,7 +775,7 @@ open class FileManager : NSObject {
         var bytesRead = 0
 
         repeat {
-            bytesRead = read(fd, buffer, bytesToRead)
+            bytesRead = numericCast(read(fd, buffer, numericCast(bytesToRead)))
         } while bytesRead < 0 && errno == EINTR
         guard bytesRead >= 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: filename)
@@ -789,7 +789,9 @@ open class FileManager : NSObject {
             var written = 0
             let bytesLeftToWrite = bytesToWrite - bytesWritten
             repeat {
-                written = write(fd, buffer.advanced(by: bytesWritten), bytesLeftToWrite)
+                written =
+                    numericCast(write(fd, buffer.advanced(by: bytesWritten),
+                                      numericCast(bytesLeftToWrite)))
             } while written < 0 && errno == EINTR
             guard written >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: false, path: filename)

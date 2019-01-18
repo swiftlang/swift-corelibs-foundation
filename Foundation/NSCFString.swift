@@ -213,7 +213,8 @@ internal func _CFSwiftStringFastContents(_ str: AnyObject) -> UnsafePointer<UniC
 }
 
 internal func _CFSwiftStringGetCString(_ str: AnyObject, buffer: UnsafeMutablePointer<Int8>, maxLength: Int, encoding: CFStringEncoding) -> Bool {
-    return (str as! NSString).getCString(buffer, maxLength: maxLength, encoding: CFStringConvertEncodingToNSStringEncoding(encoding))
+    return (str as! NSString).getCString(buffer, maxLength: maxLength,
+                                         encoding: numericCast(CFStringConvertEncodingToNSStringEncoding(encoding)))
 }
 
 internal func _CFSwiftStringIsUnicode(_ str: AnyObject) -> Bool {
