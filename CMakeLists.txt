@@ -280,6 +280,7 @@ add_swift_library(Foundation
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${install_dir}/System/Library/Frameworks
+                    -D_DLL
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
