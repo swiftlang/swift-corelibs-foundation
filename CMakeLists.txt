@@ -130,15 +130,19 @@ add_swift_library(Foundation
                     Foundation/CGFloat.swift
                     Foundation/CharacterSet.swift
                     Foundation/Codable.swift
+                    Foundation/Collections+DataProtocol.swift
+                    Foundation/ContiguousBytes.swift
                     Foundation/Data.swift
-                    Foundation/DateComponentsFormatter.swift
-                    Foundation/DateComponents.swift
-                    Foundation/DateFormatter.swift
-                    Foundation/DateIntervalFormatter.swift
-                    Foundation/DateInterval.swift
+                    Foundation/DataProtocol.swift
                     Foundation/Date.swift
+                    Foundation/DateComponents.swift
+                    Foundation/DateComponentsFormatter.swift
+                    Foundation/DateFormatter.swift
+                    Foundation/DateInterval.swift
+                    Foundation/DateIntervalFormatter.swift
                     Foundation/Decimal.swift
                     Foundation/Dictionary.swift
+                    Foundation/DispatchData+DataProtocol.swift
                     Foundation/EnergyFormatter.swift
                     Foundation/ExtraStringAPIs.swift
                     Foundation/FileHandle.swift
@@ -147,8 +151,8 @@ add_swift_library(Foundation
                     Foundation/Formatter.swift
                     Foundation/FoundationErrors.swift
                     Foundation/Host.swift
-                    Foundation/HTTPCookieStorage.swift
                     Foundation/HTTPCookie.swift
+                    Foundation/HTTPCookieStorage.swift
                     Foundation/IndexPath.swift
                     Foundation/IndexSet.swift
                     Foundation/ISO8601DateFormatter.swift
@@ -157,10 +161,10 @@ add_swift_library(Foundation
                     Foundation/LengthFormatter.swift
                     Foundation/Locale.swift
                     Foundation/MassFormatter.swift
-                    Foundation/MeasurementFormatter.swift
                     Foundation/Measurement.swift
-                    Foundation/NotificationQueue.swift
+                    Foundation/MeasurementFormatter.swift
                     Foundation/Notification.swift
+                    Foundation/NotificationQueue.swift
                     Foundation/NSArray.swift
                     Foundation/NSAttributedString.swift
                     Foundation/NSCache.swift
@@ -176,6 +180,7 @@ add_swift_library(Foundation
                     Foundation/NSComparisonPredicate.swift
                     Foundation/NSCompoundPredicate.swift
                     Foundation/NSConcreteValue.swift
+                    Foundation/NSData+DataProtocol.swift
                     Foundation/NSData.swift
                     Foundation/NSDate.swift
                     Foundation/NSDecimalNumber.swift
@@ -186,8 +191,8 @@ add_swift_library(Foundation
                     Foundation/NSGeometry.swift
                     Foundation/NSIndexPath.swift
                     Foundation/NSIndexSet.swift
-                    Foundation/NSKeyedArchiverHelpers.swift
                     Foundation/NSKeyedArchiver.swift
+                    Foundation/NSKeyedArchiverHelpers.swift
                     Foundation/NSKeyedCoderOldStyleArray.swift
                     Foundation/NSKeyedUnarchiver.swift
                     Foundation/NSLocale.swift
@@ -209,68 +214,69 @@ add_swift_library(Foundation
                     Foundation/NSSet.swift
                     Foundation/NSSortDescriptor.swift
                     Foundation/NSSpecialValue.swift
-                    Foundation/NSStringAPI.swift
                     Foundation/NSString.swift
+                    Foundation/NSStringAPI.swift
                     Foundation/NSSwiftRuntime.swift
                     Foundation/NSTextCheckingResult.swift
                     Foundation/NSTimeZone.swift
+                    Foundation/NSURL.swift
                     Foundation/NSURLError.swift
                     Foundation/NSURLRequest.swift
-                    Foundation/NSURL.swift
                     Foundation/NSUUID.swift
                     Foundation/NSValue.swift
                     Foundation/NumberFormatter.swift
                     Foundation/Operation.swift
-                    Foundation/PersonNameComponentsFormatter.swift
                     Foundation/PersonNameComponents.swift
-                    Foundation/PortMessage.swift
+                    Foundation/PersonNameComponentsFormatter.swift
+                    Foundation/Pointers+DataProtocol.swift
                     Foundation/Port.swift
-                    Foundation/ProcessInfo.swift
+                    Foundation/PortMessage.swift
                     Foundation/Process.swift
-                    Foundation/ProgressFraction.swift
+                    Foundation/ProcessInfo.swift
                     Foundation/Progress.swift
+                    Foundation/ProgressFraction.swift
                     Foundation/PropertyListSerialization.swift
                     Foundation/ReferenceConvertible.swift
                     Foundation/RunLoop.swift
                     Foundation/Scanner.swift
                     Foundation/Set.swift
                     Foundation/Stream.swift
-                    Foundation/StringEncodings.swift
                     Foundation/String.swift
+                    Foundation/StringEncodings.swift
                     Foundation/Thread.swift
                     Foundation/Timer.swift
                     Foundation/TimeZone.swift
                     Foundation/Unit.swift
+                    Foundation/URL.swift
                     Foundation/URLAuthenticationChallenge.swift
                     Foundation/URLCache.swift
                     Foundation/URLComponents.swift
-                    Foundation/URLCredentialStorage.swift
                     Foundation/URLCredential.swift
+                    Foundation/URLCredentialStorage.swift
                     Foundation/URLProtectionSpace.swift
                     Foundation/URLProtocol.swift
                     Foundation/URLRequest.swift
                     Foundation/URLResponse.swift
                     Foundation/URLSession/BodySource.swift
                     Foundation/URLSession/Configuration.swift
-                    Foundation/URLSession/Message.swift
                     Foundation/URLSession/http/HTTPMessage.swift
                     Foundation/URLSession/http/HTTPURLProtocol.swift
                     Foundation/URLSession/libcurl/EasyHandle.swift
                     Foundation/URLSession/libcurl/libcurlHelpers.swift
                     Foundation/URLSession/libcurl/MultiHandle.swift
+                    Foundation/URLSession/Message.swift
                     Foundation/URLSession/NativeProtocol.swift
                     Foundation/URLSession/TaskRegistry.swift
                     Foundation/URLSession/TransferState.swift
+                    Foundation/URLSession/URLSession.swift
                     Foundation/URLSession/URLSessionConfiguration.swift
                     Foundation/URLSession/URLSessionDelegate.swift
-                    Foundation/URLSession/URLSession.swift
                     Foundation/URLSession/URLSessionTask.swift
-                    Foundation/URL.swift
                     Foundation/UserDefaults.swift
                     Foundation/UUID.swift
                     Foundation/XMLDocument.swift
-                    Foundation/XMLDTDNode.swift
                     Foundation/XMLDTD.swift
+                    Foundation/XMLDTDNode.swift
                     Foundation/XMLElement.swift
                     Foundation/XMLNode.swift
                     Foundation/XMLParser.swift
