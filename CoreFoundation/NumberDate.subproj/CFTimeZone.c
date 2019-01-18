@@ -679,14 +679,10 @@ CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFString
     return retval;
 }
 
-extern CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 static void __InitTZStrings(void) {
     static CFLock_t __CFTZDirLock = CFLockInit;
     __CFLock(&__CFTZDirLock);
-    if (!__tzZoneInfo) {
-        CFStringRef winDir = _CFGetWindowsAppleSystemLibraryDirectory();
-        __tzZoneInfo = CFStringCreateWithFormat(NULL, NULL, CFSTR("%@\\etc\\zoneinfo"), winDir);
-    }   
+    // TODO(compnerd) figure out how to initialize __tzZoneInfo
     if (!__tzDir && __tzZoneInfo) {
         int length = CFStringGetLength(__tzZoneInfo) + sizeof("\\zone.tab") + 1;
         __tzDir = malloc(length); // If we don't use ascii, we'll need to malloc more space

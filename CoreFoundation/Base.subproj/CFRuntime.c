@@ -1193,11 +1193,6 @@ void __CFInitialize(void) {
         CFNumberGetTypeID();		// NB: This does other work
 
         __CFCharacterSetInitialize();
-        
-#if DEPLOYMENT_TARGET_WINDOWS
-        __CFWindowsNamedPipeInitialize();
-#endif
-        
         __CFDateInitialize();
         
 #if DEPLOYMENT_RUNTIME_SWIFT

@@ -326,9 +326,19 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # NOTE(compnerd) we only support building with the dynamic CRT as using the
+  # static CRT causes problems for users of the library.
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -D_DLL)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_TARGET_WINDOWS)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -D_USRDLL)
+  endif()
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE

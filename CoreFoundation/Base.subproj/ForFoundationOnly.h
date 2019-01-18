@@ -465,6 +465,7 @@ CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex 
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
 
 
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 /* Enumeration
  Call CFStartSearchPathEnumeration() once, then call
  CFGetNextSearchPathEnumeration() one or more times with the returned state.
@@ -475,6 +476,7 @@ CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, con
 typedef CFIndex CFSearchPathEnumerationState;
 CF_EXPORT CFSearchPathEnumerationState __CFStartSearchPathEnumeration(CFSearchPathDirectory dir, CFSearchPathDomainMask domainMask);
 CF_EXPORT CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumerationState state, UInt8 *path, CFIndex pathSize);
+#endif
 
 /* For use by NSNumber and CFNumber.
   Hashing algorithm for CFNumber:
