@@ -399,7 +399,7 @@ open class URLProtocol : NSObject {
     */
     open class func unregisterClass(_ protocolClass: AnyClass) {
         _classesLock.lock()
-        if let idx = _registeredProtocolClasses.index(where: { $0 === protocolClass }) {
+        if let idx = _registeredProtocolClasses.firstIndex(where: { $0 === protocolClass }) {
             _registeredProtocolClasses.remove(at: idx)
         }
         _classesLock.unlock()
