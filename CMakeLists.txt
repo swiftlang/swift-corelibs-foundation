@@ -562,16 +562,20 @@ endif()
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationBase.swiftdoc
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationBase.swiftmodule
         DESTINATION
           lib/swift/${swift_os}/${swift_arch})
 if(BUILD_SHARED_LIBS)
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}FoundationBase${CMAKE_SHARED_LIBRARY_SUFFIX}
           DESTINATION
             lib/swift/${swift_os})
 else()
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Foundation${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}FoundationBase${CMAKE_STATIC_LIBRARY_SUFFIX}
           DESTINATION
             lib/swift_static/${swift_os})
 endif()

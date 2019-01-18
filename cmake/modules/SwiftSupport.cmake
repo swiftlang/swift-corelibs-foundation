@@ -84,6 +84,11 @@ function(add_swift_target target)
     endif()
   endforeach()
 
+  set(parse_as_library)
+  if(AST_LIBRARY)
+    set(parse_as_library -parse-as-library)
+  endif()
+
   set(objs)
   set(mods)
   set(docs)
@@ -106,7 +111,7 @@ function(add_swift_target target)
                          ${source}
                          ${AST_DEPENDS}
                        COMMAND
-                         ${CMAKE_SWIFT_COMPILER} -frontend ${compile_flags} -emit-module-path ${mod} -emit-module-doc-path ${doc} -o ${obj} -c ${all_sources})
+                         ${CMAKE_SWIFT_COMPILER} -frontend ${compile_flags} ${parse_as_library} -emit-module-path ${mod} -emit-module-doc-path ${doc} -o ${obj} -c ${all_sources})
 
     list(APPEND objs ${obj})
     list(APPEND mods ${mod})
