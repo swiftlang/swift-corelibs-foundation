@@ -51,11 +51,11 @@ open class Port : NSObject, NSCopying, NSCoding {
     // to setup monitoring of the port when added to a run loop,
     // and stop monitoring if needed when removed;
     // These methods should not be called directly!
-    open func schedule(in runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func schedule(in runLoop: RunLoop, forMode mode: RunLoop.Mode) {
         NSUnimplemented()
     }
 
-    open func remove(from runLoop: RunLoop, forMode mode: RunLoopMode) {
+    open func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode) {
         NSUnimplemented()
     }
     
