@@ -18,8 +18,6 @@
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
 		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA72187D156009518FA /* CFDateFormatter.c */; };
-		1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA82187D156009518FA /* CFDateFormatter.h */; };
 		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
 		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
@@ -547,8 +545,6 @@
 		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
 		1569BFA32187D0E0009518FA /* CFDateInterval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateInterval.c; sourceTree = "<group>"; };
 		1569BFA42187D0E0009518FA /* CFDateInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateInterval.h; sourceTree = "<group>"; };
-		1569BFA72187D156009518FA /* CFDateFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateFormatter.c; sourceTree = "<group>"; };
-		1569BFA82187D156009518FA /* CFDateFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter.h; sourceTree = "<group>"; };
 		1569BFAB2187D529009518FA /* CFDateComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateComponents.c; sourceTree = "<group>"; };
 		1569BFAC2187D529009518FA /* CFDateComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateComponents.h; sourceTree = "<group>"; };
 		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
@@ -1276,8 +1272,6 @@
 				1569BFAC2187D529009518FA /* CFDateComponents.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
-				1569BFA72187D156009518FA /* CFDateFormatter.c */,
-				1569BFA82187D156009518FA /* CFDateFormatter.h */,
 				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
@@ -1982,7 +1976,6 @@
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
 				1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */,
-				1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */,
 				1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
@@ -2474,7 +2467,6 @@
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
-				1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */,
 				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
