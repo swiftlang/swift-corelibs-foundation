@@ -77,7 +77,13 @@ open class ProcessInfo: NSObject {
     }
 
     open var operatingSystemVersionString: String {
-        return CFCopySystemVersionString()?._swiftObject ?? "Unknown"
+        let fallback = "Unknown"
+#if os(Linux)
+        let version = try? String(contentsOf: URL(fileURLWithPath: "/proc/version_signature", isDirectory: false), encoding: .utf8)
+        return version ?? fallback
+#else
+        return CFCopySystemVersionString()?._swiftObject ?? fallback
+#endif
     }
     
     open var operatingSystemVersion: OperatingSystemVersion {
@@ -85,7 +91,9 @@ open class ProcessInfo: NSObject {
         let fallbackMajor = -1
         let fallbackMinor = 0
         let fallbackPatch = 0
-        
+        let versionString: String
+
+#if canImport(Darwin)
         guard let systemVersionDictionary = _CFCopySystemVersionDictionary() else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
@@ -94,8 +102,19 @@ open class ProcessInfo: NSObject {
         guard let productVersion = unsafeBitCast(CFDictionaryGetValue(systemVersionDictionary, productVersionKey), to: NSString?.self) else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
-        
-        let versionComponents = productVersion._swiftObject.split(separator: ".").map(String.init).compactMap({ Int($0) })
+        versionString = productVersion._swiftObject
+#else
+        var utsNameBuffer = utsname()
+        guard uname(&utsNameBuffer) == 0 else {
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        let release = withUnsafePointer(to: &utsNameBuffer.release.0) {
+            return String(cString: $0)
+        }
+        let idx = release.firstIndex(of: "-") ?? release.endIndex
+        versionString = String(release[..<idx])
+#endif
+        let versionComponents = versionString.split(separator: ".").map(String.init).compactMap({ Int($0) })
         let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
         let minorVersion = versionComponents.dropFirst(1).first ?? fallbackMinor
         let patchVersion = versionComponents.dropFirst(2).first ?? fallbackPatch
