@@ -310,7 +310,7 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.isDeletableFile(atPath: "/dev/null"))
     }
 
-    func test_fileAttributes() {
+    func test_fileAttributes() throws {
         let fm = FileManager.default
         let path = NSTemporaryDirectory() + "test_fileAttributes\(NSUUID().uuidString)"
 
@@ -349,7 +349,17 @@ class TestFileManager : XCTestCase {
             
             let fileGroupOwnerAccountID = attrs[.groupOwnerAccountID] as? NSNumber
             XCTAssertNotNil(fileGroupOwnerAccountID)
-            
+
+#if os(Linux)
+            let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
+            let creationDate = attrs[.creationDate] as? Date
+            if ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion) {
+                XCTAssertNotNil(creationDate)
+                XCTAssertGreaterThan(Date().timeIntervalSince1970, try creationDate.unwrapped().timeIntervalSince1970)
+            } else {
+                XCTAssertNil(creationDate)
+            }
+#endif
             if let fileOwnerAccountName = attrs[.ownerAccountName] {
                 XCTAssertNotNil(fileOwnerAccountName as? String)
                 if let fileOwnerAccountNameStr = fileOwnerAccountName as? String {
