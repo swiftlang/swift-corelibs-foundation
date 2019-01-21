@@ -6,6 +6,13 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if (os(Linux) || os(Android))
+        @testable import Foundation
+    #else
+        @testable import SwiftFoundation
+    #endif
+#endif
 
 private extension Data {
     init(reading input: InputStream) {
@@ -18,7 +25,7 @@ private extension Data {
             let read = input.read(buffer, maxLength: bufferSize)
             self.append(buffer, count: read)
         }
-        buffer.deallocate(capacity: bufferSize)
+        buffer.deallocate()
         
         input.close()
     }
@@ -150,7 +157,7 @@ class TestStream : XCTestCase {
             try stream.seek(to: pos)
             let streamData = Data(reading: stream)
             
-            let subdata = data.subdata(in: Range(Int(pos)..<data.count))
+            let subdata = data[Int(pos)..<data.count]
             XCTAssertEqual(streamData, subdata)
             
             return subdata
