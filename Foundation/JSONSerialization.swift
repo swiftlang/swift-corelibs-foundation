@@ -738,19 +738,40 @@ private struct JSONReader {
             return nil
         }
 
-        if !UTF16.isLeadSurrogate(codeUnit) {
+        let isLeadSurrogate = UTF16.isLeadSurrogate(codeUnit)
+        let isTrailSurrogate = UTF16.isTrailSurrogate(codeUnit)
+
+        guard isLeadSurrogate || isTrailSurrogate else {
+            // The code units that are neither lead surrogates nor trail surrogates
+            // form valid unicode scalars.
             return (String(UnicodeScalar(codeUnit)!), index)
         }
 
-        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) , UTF16.isTrailSurrogate(trailCodeUnit) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
-            ])
+        // Surrogates must always come in pairs.
+
+        guard isLeadSurrogate else {
+            // Trail surrogate must come after lead surrogate
+            throw CocoaError.error(.propertyListReadCorrupt,
+                                   userInfo: [
+                                     "NSDebugDescription" : """
+                                      Unable to convert unicode escape sequence (no high-surrogate code point) \
+                                      to UTF8-encoded character at position \(source.distanceFromStart(input))
+                                      """
+                                   ])
         }
 
-        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
-        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
-        return (String(UnicodeScalar(highValue + lowValue + 0x10000)!), finalIndex)
+        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit),
+              UTF16.isTrailSurrogate(trailCodeUnit) else {
+            throw CocoaError.error(.propertyListReadCorrupt,
+                                   userInfo: [
+                                     "NSDebugDescription" : """
+                                      Unable to convert unicode escape sequence (no low-surrogate code point) \
+                                      to UTF8-encoded character at position \(source.distanceFromStart(input))
+                                      """
+                                   ])
+        }
+
+        return (String(UTF16.decode(UTF16.EncodedScalar([codeUnit, trailCodeUnit]))), finalIndex)
     }
 
     func isHexChr(_ byte: UInt8) -> Bool {

@@ -1016,21 +1016,100 @@ class TestNSNumber : XCTestCase {
 
     
     func test_description() {
-        let nsnumber: NSNumber = 1000
-        let expectedDesc = "1000"
-        XCTAssertEqual(nsnumber.description, expectedDesc, "expected \(expectedDesc) but received \(nsnumber.description)")
+        XCTAssertEqual(NSNumber(value: 1000).description, "1000")
+        XCTAssertEqual(NSNumber(value: 0.001).description, "0.001")
+
+        XCTAssertEqual(NSNumber(value: Int8.min).description, "-128")
+        XCTAssertEqual(NSNumber(value: Int8.max).description, "127")
+        XCTAssertEqual(NSNumber(value: Int16.min).description, "-32768")
+        XCTAssertEqual(NSNumber(value: Int16.max).description, "32767")
+        XCTAssertEqual(NSNumber(value: Int32.min).description, "-2147483648")
+        XCTAssertEqual(NSNumber(value: Int32.max).description, "2147483647")
+        XCTAssertEqual(NSNumber(value: Int64.min).description, "-9223372036854775808")
+        XCTAssertEqual(NSNumber(value: Int64.max).description, "9223372036854775807")
+
+        XCTAssertEqual(NSNumber(value: UInt8.min).description, "0")
+        XCTAssertEqual(NSNumber(value: UInt8.max).description, "255")
+        XCTAssertEqual(NSNumber(value: UInt16.min).description, "0")
+        XCTAssertEqual(NSNumber(value: UInt16.max).description, "65535")
+        XCTAssertEqual(NSNumber(value: UInt32.min).description, "0")
+        XCTAssertEqual(NSNumber(value: UInt32.max).description, "4294967295")
+        XCTAssertEqual(NSNumber(value: UInt64.min).description, "0")
+        XCTAssertEqual(NSNumber(value: UInt64.max).description, "18446744073709551615")
     }
-    
+
     func test_descriptionWithLocale() {
-        let nsnumber: NSNumber = 1000
-        let values : Dictionary = [
-                Locale(identifier: "en_GB") : "1,000",
-                Locale(identifier: "de_DE") : "1.000",
-        ]
-        for (locale, expectedDesc) in values {
-            let receivedDesc = nsnumber.description(withLocale: locale)
-            XCTAssertEqual(receivedDesc, expectedDesc, "expected \(expectedDesc) but received \(receivedDesc)")
-        }
+        // nil Locale
+        XCTAssertEqual(NSNumber(value: 1000).description(withLocale: nil), "1000")
+        XCTAssertEqual(NSNumber(value: 0.001).description(withLocale: nil), "0.001")
+
+        XCTAssertEqual(NSNumber(value: Int8.min).description(withLocale: nil), "-128")
+        XCTAssertEqual(NSNumber(value: Int8.max).description(withLocale: nil), "127")
+        XCTAssertEqual(NSNumber(value: Int16.min).description(withLocale: nil), "-32768")
+        XCTAssertEqual(NSNumber(value: Int16.max).description(withLocale: nil), "32767")
+        XCTAssertEqual(NSNumber(value: Int32.min).description(withLocale: nil), "-2147483648")
+        XCTAssertEqual(NSNumber(value: Int32.max).description(withLocale: nil), "2147483647")
+        XCTAssertEqual(NSNumber(value: Int64.min).description(withLocale: nil), "-9223372036854775808")
+        XCTAssertEqual(NSNumber(value: Int64.max).description(withLocale: nil), "9223372036854775807")
+
+        XCTAssertEqual(NSNumber(value: UInt8.min).description(withLocale: nil), "0")
+        XCTAssertEqual(NSNumber(value: UInt8.max).description(withLocale: nil), "255")
+        XCTAssertEqual(NSNumber(value: UInt16.min).description(withLocale: nil), "0")
+        XCTAssertEqual(NSNumber(value: UInt16.max).description(withLocale: nil), "65535")
+        XCTAssertEqual(NSNumber(value: UInt32.min).description(withLocale: nil), "0")
+        XCTAssertEqual(NSNumber(value: UInt32.max).description(withLocale: nil), "4294967295")
+        XCTAssertEqual(NSNumber(value: UInt64.min).description(withLocale: nil), "0")
+        XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: nil), "18446744073709551615")
+
+        // en_GB Locale
+        XCTAssertEqual(NSNumber(value: 1000).description(withLocale: Locale(identifier: "en_GB")), "1,000")
+        XCTAssertEqual(NSNumber(value: 0.001).description(withLocale: Locale(identifier: "en_GB")), "0.001")
+
+        XCTAssertEqual(NSNumber(value: Int8.min).description(withLocale: Locale(identifier: "en_GB")), "-128")
+        XCTAssertEqual(NSNumber(value: Int8.max).description(withLocale: Locale(identifier: "en_GB")), "127")
+        XCTAssertEqual(NSNumber(value: Int16.min).description(withLocale: Locale(identifier: "en_GB")), "-32,768")
+        XCTAssertEqual(NSNumber(value: Int16.max).description(withLocale: Locale(identifier: "en_GB")), "32,767")
+        XCTAssertEqual(NSNumber(value: Int32.min).description(withLocale: Locale(identifier: "en_GB")), "-2,147,483,648")
+        XCTAssertEqual(NSNumber(value: Int32.max).description(withLocale: Locale(identifier: "en_GB")), "2,147,483,647")
+        XCTAssertEqual(NSNumber(value: Int64.min).description(withLocale: Locale(identifier: "en_GB")), "-9,223,372,036,854,775,808")
+        XCTAssertEqual(NSNumber(value: Int64.max).description(withLocale: Locale(identifier: "en_GB")), "9,223,372,036,854,775,807")
+
+        XCTAssertEqual(NSNumber(value: UInt8.min).description(withLocale: Locale(identifier: "en_GB")), "0")
+        XCTAssertEqual(NSNumber(value: UInt8.max).description(withLocale: Locale(identifier: "en_GB")), "255")
+        XCTAssertEqual(NSNumber(value: UInt16.min).description(withLocale: Locale(identifier: "en_GB")), "0")
+        XCTAssertEqual(NSNumber(value: UInt16.max).description(withLocale: Locale(identifier: "en_GB")), "65,535")
+        XCTAssertEqual(NSNumber(value: UInt32.min).description(withLocale: Locale(identifier: "en_GB")), "0")
+        XCTAssertEqual(NSNumber(value: UInt32.max).description(withLocale: Locale(identifier: "en_GB")), "4,294,967,295")
+        XCTAssertEqual(NSNumber(value: UInt64.min).description(withLocale: Locale(identifier: "en_GB")), "0")
+
+        // This is the correct value but currently buggy and the locale is not used
+        // XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "en_GB")), "18,446,744,073,709,551,615")
+        XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "en_GB")), "18446744073709551615")
+
+        // de_DE Locale
+        XCTAssertEqual(NSNumber(value: 1000).description(withLocale: Locale(identifier: "de_DE")), "1.000")
+        XCTAssertEqual(NSNumber(value: 0.001).description(withLocale: Locale(identifier: "de_DE")), "0,001")
+
+        XCTAssertEqual(NSNumber(value: Int8.min).description(withLocale: Locale(identifier: "de_DE")), "-128")
+        XCTAssertEqual(NSNumber(value: Int8.max).description(withLocale: Locale(identifier: "de_DE")), "127")
+        XCTAssertEqual(NSNumber(value: Int16.min).description(withLocale: Locale(identifier: "de_DE")), "-32.768")
+        XCTAssertEqual(NSNumber(value: Int16.max).description(withLocale: Locale(identifier: "de_DE")), "32.767")
+        XCTAssertEqual(NSNumber(value: Int32.min).description(withLocale: Locale(identifier: "de_DE")), "-2.147.483.648")
+        XCTAssertEqual(NSNumber(value: Int32.max).description(withLocale: Locale(identifier: "de_DE")), "2.147.483.647")
+        XCTAssertEqual(NSNumber(value: Int64.min).description(withLocale: Locale(identifier: "de_DE")), "-9.223.372.036.854.775.808")
+        XCTAssertEqual(NSNumber(value: Int64.max).description(withLocale: Locale(identifier: "de_DE")), "9.223.372.036.854.775.807")
+
+        XCTAssertEqual(NSNumber(value: UInt8.min).description(withLocale: Locale(identifier: "de_DE")), "0")
+        XCTAssertEqual(NSNumber(value: UInt8.max).description(withLocale: Locale(identifier: "de_DE")), "255")
+        XCTAssertEqual(NSNumber(value: UInt16.min).description(withLocale: Locale(identifier: "de_DE")), "0")
+        XCTAssertEqual(NSNumber(value: UInt16.max).description(withLocale: Locale(identifier: "de_DE")), "65.535")
+        XCTAssertEqual(NSNumber(value: UInt32.min).description(withLocale: Locale(identifier: "de_DE")), "0")
+        XCTAssertEqual(NSNumber(value: UInt32.max).description(withLocale: Locale(identifier: "de_DE")), "4.294.967.295")
+        XCTAssertEqual(NSNumber(value: UInt64.min).description(withLocale: Locale(identifier: "de_DE")), "0")
+
+        // This is the correct value but currently buggy and the locale is not used
+        //XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "de_DE")), "18.446.744.073.709.551.615")
+        XCTAssertEqual(NSNumber(value: UInt64.max).description(withLocale: Locale(identifier: "de_DE")), "18446744073709551615")
     }
 
     func test_objCType() {

@@ -57,10 +57,12 @@ CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
+
+#if !TARGET_OS_WIN32
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
-
+#endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
 CF_EXPORT void _CFRunLoopSetCurrent(CFRunLoopRef rl);
@@ -90,7 +92,7 @@ CF_EXPORT void CFPreferencesFlushCaches(void);
 CF_EXPORT Boolean _CFURLGetWideFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, wchar_t *buffer, CFIndex bufferLength);
 #endif
 
-#if !__LP64__
+#if !TARGET_RT_64_BIT
 #if TARGET_OS_OSX
 struct FSSpec;
 CF_EXPORT
@@ -220,8 +222,10 @@ typedef CF_OPTIONS(CFOptionFlags, CFSearchPathDomainMask) {
     kCFAllDomainsMask = 0x0ffff	/* all domains: all of the above and more, future items */
 };
 
+#if TARGET_OS_MAC || TARGET_OS_EMBEDDED
 CF_EXPORT
 CFArrayRef CFCopySearchPathForDirectoriesInDomains(CFSearchPathDirectory directory, CFSearchPathDomainMask domainMask, Boolean expandTilde);
+#endif
 
 
 /* Obsolete keys */
@@ -546,14 +550,6 @@ CF_EXPORT void _CFLocaleResetCurrent(void);
 CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef alloc, int nFolder);
 #endif
 
-#if TARGET_OS_WIN32
-#include <CoreFoundation/CFMessagePort.h>
-
-#define CF_MESSAGE_PORT_CLONE_MESSAGE_ID -1209
-CF_EXPORT CFMessagePortRef	CFMessagePortCreateUber(CFAllocatorRef allocator, CFStringRef name, CFMessagePortCallBack callout, CFMessagePortContext *context, Boolean *shouldFreeInfo, Boolean isRemote);
-CF_EXPORT void CFMessagePortSetCloneCallout(CFMessagePortRef ms, CFMessagePortCallBack cloneCallout);
-#endif
-
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX)) || (TARGET_OS_EMBEDDED || TARGET_OS_IPHONE)
 #include <CoreFoundation/CFMessagePort.h>
 
@@ -567,14 +563,11 @@ CF_EXPORT CFMessagePortRef _CFMessagePortCreateLocalEx(CFAllocatorRef allocator,
 
 #endif
 
-#if TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE
-#include <pthread.h>
-#elif !TARGET_OS_LINUX
-// Avoid including the pthread header
-#ifndef HAVE_STRUCT_TIMESPEC
-#define HAVE_STRUCT_TIMESPEC 1
-struct timespec { long tv_sec; long tv_nsec; };
+#if __has_include(<unistd.h>)
+#include <unistd.h>
 #endif
+#if _POSIX_THREADS
+#include <pthread.h>
 #endif
 
 CF_INLINE CFAbsoluteTime _CFAbsoluteTimeFromFileTimeSpec(struct timespec ts) {
@@ -620,7 +613,6 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 
 CF_EXPORT CFStringRef _CFGetWindowsAppleAppDataDirectory(void);
 CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
-CF_EXPORT CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 
 // If your Windows application does not use a CFRunLoop on the main thread (perhaps because it is reserved for handling UI events via Windows API), then call this function to make distributed notifications arrive using a different run loop.
 CF_EXPORT void _CFNotificationCenterSetRunLoop(CFNotificationCenterRef nc, CFRunLoopRef rl);

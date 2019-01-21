@@ -92,6 +92,7 @@ class TestNSString: LoopbackServerTest {
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
+            ("test_substringFromCFString", test_substringFromCFString),
             ("test_createCopy", test_createCopy),
             ("test_commonPrefix", test_commonPrefix)
         ]
@@ -832,19 +833,17 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(string, "Default value is 1000 (42.0)")
         }
         
-#if false // these two tests expose bugs in icu4c's localization on some linux builds (disable until we can get a uniform fix for this)
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(localeIdentifier: "en_GB"), arguments: pointer)
+            let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(identifier: "en_GB") as AnyObject, arguments: pointer)
             XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(localeIdentifier: "de_DE"), arguments: pointer)
+            let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(identifier: "de_DE") as AnyObject, arguments: pointer)
             XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
         }
-#endif
         
         withVaList(argument) {
             pointer in
@@ -1297,7 +1296,15 @@ class TestNSString: LoopbackServerTest {
         let s6 = NSString(string: "Beyonce\u{301} and Tay")
         XCTAssertEqual(s6.substring(with: NSRange(location: 7, length: 9)), "\u{301} and Tay")
     }
-    
+
+    func test_substringFromCFString() {
+        let cfString = kCFStringTransformStripCombiningMarks!
+        let range = NSRange(location: 0, length: CFStringGetLength(cfString))
+        let substring = unsafeBitCast(cfString, to: NSString.self).substring(with: range)
+
+        XCTAssertEqual(CFStringGetLength(cfString), substring.utf16.count)
+    }
+
     func test_createCopy() {
         let string: NSMutableString = "foo"
         let stringCopy = string.copy() as! NSString

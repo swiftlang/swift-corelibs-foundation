@@ -17,13 +17,18 @@
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFMachPort.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <mach/mach.h>
 #include <mach/error.h>
 #include <limits.h>
 #include <errno.h>
+
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 
 #define CFUserNotificationLog(alertHeader, alertMessage) CFLog(3, CFSTR("%@:  %@"), alertHeader, alertMessage);
 

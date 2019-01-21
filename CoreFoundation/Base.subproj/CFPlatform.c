@@ -26,6 +26,10 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
+#include <direct.h>
+#include <process.h>
+#define SECURITY_WIN32
+#include <Security.h>
 
 #define getcwd _NS_getcwd
 
@@ -122,11 +126,13 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
+#endif
 
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 #if DEPLOYMENT_TARGET_MACOSX
@@ -302,6 +308,14 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
     if (upwd && upwd->pw_gecos) {
         result = CFStringCreateWithCString(kCFAllocatorSystemDefault, upwd->pw_gecos, kCFPlatformInterfaceStringEncoding);
     }
+#elif TARGET_OS_WIN32
+    ULONG ulLength = 0;
+    GetUserNameExW(NameDisplay, NULL, &ulLength);
+
+    WCHAR *wszBuffer[ulLength + 1];
+    GetUserNameExW(NameDisplay, (LPWSTR)wszBuffer, &ulLength);
+
+    result = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (UniChar *)wszBuffer, ulLength);
 #else
 #error "Please add an implementation for CFCopyFullUserName() that copies the full (display) user name"
 #endif
@@ -517,45 +531,22 @@ CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef a
 
 #if DEPLOYMENT_TARGET_WINDOWS
 
-// This code from here:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
-
-const DWORD MS_VC_EXCEPTION=0x406D1388;
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-    DWORD dwType; // Must be 0x1000.
-    LPCSTR szName; // Pointer to name (in user addr space).
-    DWORD dwThreadID; // Thread ID (-1=caller thread).
-    DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
 CF_EXPORT void _NS_pthread_setname_np(const char *name) {
-    THREADNAME_INFO info;
-    info.dwType = 0x1000;
-    info.szName = name;
-    info.dwThreadID = GetCurrentThreadId();
-    info.dwFlags = 0;
-
-    __try
-    {
-        RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info );
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER)
-    {
-    }
+  _CFThreadSetName(GetCurrentThread(), name);
 }
 
-static pthread_t __initialPthread = { NULL, 0 };
+static _CFThreadRef __initialPthread = INVALID_HANDLE_VALUE;
 
 CF_EXPORT int _NS_pthread_main_np() {
-    pthread_t me = pthread_self();
-    if (NULL == __initialPthread.p) {
-        __initialPthread.p = me.p;
-        __initialPthread.x = me.x;
-    }
-    return (pthread_equal(__initialPthread, me));
+    if (__initialPthread == INVALID_HANDLE_VALUE)
+      DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
+                      GetCurrentProcess(), &__initialPthread, 0, FALSE,
+                      DUPLICATE_SAME_ACCESS);
+    return CompareObjectHandles(__initialPthread, GetCurrentThread());
+}
+
+CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2) {
+  return CompareObjectHandles(t1, t2) == TRUE;
 }
 
 #endif
@@ -589,12 +580,12 @@ static DWORD __CFTSDIndexKey = 0xFFFFFFFF;
 
 // Called from CFRuntime's startup code, on Windows only
 CF_PRIVATE void __CFTSDWindowsInitialize() {
-    __CFTSDIndexKey = TlsAlloc();
+    __CFTSDIndexKey = FlsAlloc(__CFTSDFinalize);
 }
 
 // Called from CFRuntime's cleanup code, on Windows only
 CF_PRIVATE void __CFTSDWindowsCleanup() {
-    TlsFree(__CFTSDIndexKey);
+    FlsFree(__CFTSDIndexKey);
 }
 
 // Called for each thread as it exits, on Windows only
@@ -607,13 +598,18 @@ CF_PRIVATE void __CFFinalizeWindowsThreadData() {
     __CFTSDFinalize(TlsGetValue(__CFTSDIndexKey));
 }
 
-#endif
+#else
 
-static pthread_key_t __CFTSDIndexKey;
+static _CFThreadSpecificKey __CFTSDIndexKey;
 
 CF_PRIVATE void __CFTSDInitialize() {
-    (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        (void)pthread_key_create(&__CFTSDIndexKey, __CFTSDFinalize);
+    });
 }
+
+#endif
 
 static void __CFTSDSetSpecific(void *arg) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -621,7 +617,7 @@ static void __CFTSDSetSpecific(void *arg) {
 #elif DEPLOYMENT_TARGET_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    TlsSetValue(__CFTSDIndexKey, arg);
+    FlsSetValue(__CFTSDIndexKey, arg);
 #endif
 }
 
@@ -631,7 +627,7 @@ static void *__CFTSDGetSpecific() {
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
-    return TlsGetValue(__CFTSDIndexKey);
+    return FlsGetValue(__CFTSDIndexKey);
 #endif
 }
 
@@ -663,7 +659,8 @@ static void __CFTSDFinalize(void *arg) {
             table->destructors[i]((void *)(old));
         }
     }
-    
+
+#if _POSIX_THREADS
     if (table->destructorCount == PTHREAD_DESTRUCTOR_ITERATIONS - 1) {    // On PTHREAD_DESTRUCTOR_ITERATIONS-1 call, destroy our data
         free(table);
         
@@ -671,6 +668,10 @@ static void __CFTSDFinalize(void *arg) {
         __CFTSDSetSpecific(CF_TSD_BAD_PTR);
         return;
     }
+#else
+    free(table);
+    __CFTSDSetSpecific(CF_TSD_BAD_PTR);
+#endif
 }
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
@@ -689,7 +690,9 @@ static __CFTSDTable *__CFTSDGetTable(const Boolean create) {
         // This memory is freed in the finalize function
         table = (__CFTSDTable *)calloc(1, sizeof(__CFTSDTable));
         // Windows and Linux have created the table already, we need to initialize it here for other platforms. On Windows, the cleanup function is called by DllMain when a thread exits. On Linux the destructor is set at init time.
+#if !DEPLOYMENT_TARGET_WINDOWS
         __CFTSDInitialize();
+#endif
         __CFTSDSetSpecific(table);
     }
     
@@ -1195,8 +1198,8 @@ static void _CF_sem_destroy(_CF_sema_t s) {
     free(s);
 }
 
-CF_INLINE pthread_key_t _CF_thread_sem_key() {
-    static pthread_key_t key = 0;
+CF_INLINE _CFThreadSpecificKey _CF_thread_sem_key() {
+    static _CFThreadSpecificKey key = 0;
     static OSSpinLock lock = OS_SPINLOCK_INIT;
     if (key == 0) {
         OSSpinLockLock(&lock);
@@ -1209,7 +1212,7 @@ CF_INLINE pthread_key_t _CF_thread_sem_key() {
 }
 
 CF_INLINE _CF_sema_t _CF_get_thread_semaphore() {
-    pthread_key_t key = _CF_thread_sem_key();
+    _CFThreadSpecificKey key = _CF_thread_sem_key();
     _CF_sema_t s = (_CF_sema_t)pthread_getspecific(key);
     if (s == NULL) {
         s = malloc(sizeof(struct _CF_sema_s));
@@ -1228,7 +1231,7 @@ CF_INLINE void _CF_put_thread_semaphore(_CF_sema_t s) {
 typedef struct _CF_dispatch_once_waiter_s {
     volatile struct _CF_dispatch_once_waiter_s *volatile dow_next;
     _CF_sema_t dow_sema;
-    pthread_t dow_thread;
+    _CFThreadRef dow_thread;
 } *_CF_dispatch_once_waiter_t;
 
 #if defined(__x86_64__) || defined(__i386__)
@@ -1322,35 +1325,89 @@ static void _CFThreadSpecificDestructor(void *ctx) {
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
     _CFThreadSpecificKey key;
+#if DEPLOYMENT_TARGET_WINDOWS
+    key = FlsAlloc(_CFThreadSpecificDestructor);
+#else
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
+#endif
     return key;
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
+#if DEPLOYMENT_TARGET_WINDOWS
+  return (CFTypeRef)FlsGetValue(key);
+#else
     return (CFTypeRef)pthread_getspecific(key);
+#endif
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
+#if DEPLOYMENT_TARGET_WINDOWS
+    if (value != NULL) {
+        swift_retain((void *)value);
+    }
+    FlsSetValue(key, value);
+#else
     if (value != NULL) {
         swift_retain((void *)value);
         pthread_setspecific(key, value);
     } else {
         pthread_setspecific(key, NULL);
     }
+#endif
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
-    pthread_t thread;
+#if DEPLOYMENT_TARGET_WINDOWS
+    return (_CFThreadRef)_beginthreadex(NULL, 0,
+                                        (_beginthreadex_proc_type)startfn,
+                                        context, 0, NULL);
+#else
+    _CFThreadRef thread;
     pthread_create(&thread, &attrs, startfn, context);
     return thread;
+#endif
 }
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name) {
+#if DEPLOYMENT_TARGET_WINDOWS
+
+// This code from here:
+// http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
+
+const DWORD MS_VC_EXCEPTION=0x406D1388;
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+    DWORD dwType; // Must be 0x1000.
+    LPCSTR szName; // Pointer to name (in user addr space).
+    DWORD dwThreadID; // Thread ID (-1=caller thread).
+    DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+#endif
+
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
     }
     return EINVAL;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    THREADNAME_INFO info;
+
+    info.dwType = 0x1000;
+    info.szName = name;
+    info.dwThreadID = GetThreadId(thread);
+    info.dwFlags = 0;
+
+    __try {
+        RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR),
+                       (ULONG_PTR*)&info);
+    } __except(EXCEPTION_EXECUTE_HANDLER) {
+    }
+
+    return 0;
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_setname_np(thread, name);
 #endif

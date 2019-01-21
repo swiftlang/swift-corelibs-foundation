@@ -9,6 +9,8 @@ project(Foundation
           C)
 enable_testing()
 
+option(BUILD_SHARED_LIBS "build shared libraries" ON)
+
 option(FOUNDATION_ENABLE_LIBDISPATCH "Enable GCD Support" YES)
 option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
@@ -17,11 +19,13 @@ option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 find_package(CURL REQUIRED)
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
-find_package(UUID REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(ExternalProject)
+
+string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
+get_swift_host_arch(swift_arch)
 
 ExternalProject_Add(CoreFoundation
                     SOURCE_DIR
@@ -30,19 +34,51 @@ ExternalProject_Add(CoreFoundation
                       ${CMAKE_COMMAND}
                     CMAKE_ARGS
                       -DBUILD_SHARED_LIBS=NO
-                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                      # NOTE(compnerd) ensure that we build it as a DLL as we
+                      # wish to re-export the symbols from Foundation
+                      -DCMAKE_C_FLAGS=-D_USRDLL
                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                       -DCMAKE_INSTALL_LIBDIR=usr/lib
+                      -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+                      -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
+                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                       -DCF_DEPLOYMENT_SWIFT=YES
                       -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
                       -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
                       -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
+                      -DICU_LIBRARY=${ICU_LIBRARY}
                       -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
+                      -DCURL_LIBRARY=${CURL_LIBRARY}
+                      -DCURL_INCLUDE_DIR=${CURL_INCLUDE_DIR}
+                      -DLIBXML2_LIBRARY=${LIBXML2_LIBRARY}
+                      -DLIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}
                     INSTALL_COMMAND
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
+
+add_library(uuid
+            STATIC
+              uuid/uuid.h
+              uuid/uuid.c)
+set_target_properties(uuid
+                      PROPERTIES
+                        POSITION_INDEPENDENT_CODE YES)
+# Add an include directory for the CoreFoundation framework headers to satisfy
+# the dependency on TargetConditionals.h
+target_compile_options(uuid
+                       PUBLIC
+                         -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(uuid
+                             PRIVATE
+                               _CRT_NONSTDC_NO_WARNINGS
+                               _CRT_SECURE_NO_DEPRECATE
+                               _CRT_SECURE_NO_WARNINGS)
+endif()
+add_dependencies(uuid CoreFoundation)
 
 set(swift_optimization_flags)
 if(CMAKE_BUILD_TYPE MATCHES Release)
@@ -58,10 +94,22 @@ set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(deployment_enable_libdispatch -DDEPLOYMENT_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
-  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
+  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
   if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
   endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
+  set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
 
 add_swift_library(Foundation
@@ -71,8 +119,6 @@ add_swift_library(Foundation
                     Foundation
                   MODULE_PATH
                     ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
-                  OUTPUT
-                    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
                   SOURCES
                     Foundation/AffineTransform.swift
                     Foundation/Array.swift
@@ -231,36 +277,55 @@ add_swift_library(Foundation
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
+                    ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${install_dir}/System/Library/Frameworks
+                    -D_DLL
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
                     ${CURL_LIBRARIES}
-                    ${ICU_UC_LIBRARIES} ${ICU_I18N_LIBRARIES}
+                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
-                    ${uuid_LIBRARIES}
-                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    -luuid
+                    ${Foundation_rpath_flags}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
-                    ${swift_optimization_flags})
-add_dependencies(Foundation CoreFoundation)
+                    ${swift_optimization_flags}
+                  DEPENDS
+                    CoreFoundation)
+
+if(NOT BUILD_SHARED_LIBS)
+  set(Foundation_INTERFACE_LIBRARIES
+      -L${install_dir}/usr/lib
+      -lCoreFoundation
+      -L${CMAKE_CURRENT_BINARY_DIR}
+      -luuid
+      ${CURL_LIBRARIES}
+      ${ICU_UC_LIBRARY}
+      ${ICU_I18N_LIBRARY}
+      ${LIBXML2_LIBRARIES})
+endif()
 
 add_swift_executable(plutil
                      SOURCES
                        Tools/plutil/main.swift
                      CFLAGS
+                       ${deployment_target}
                        ${deployment_enable_libdispatch}
                        -F${install_dir}/System/Library/Frameworks
                      LINK_FLAGS
-                       -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
+                       -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
+                       ${Foundation_INTERFACE_LIBRARIES}
+                       -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
@@ -268,25 +333,33 @@ add_swift_executable(plutil
                        -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
                        ${swift_enable_testing}
-                       ${swift_optimization_flags})
-add_dependencies(plutil Foundation CoreFoundation)
+                       ${swift_optimization_flags}
+                     DEPENDS
+                       uuid
+                       Foundation
+                       CoreFoundation)
 
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
+                         ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
+                         ${Foundation_INTERFACE_LIBRARIES}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${ICU_INCLUDE_DIR}
-                         ${libdispatch_cflags})
-  add_dependencies(xdgTestHelper Foundation CoreFoundation)
+                         ${libdispatch_cflags}
+                       DEPENDS
+                         uuid
+                         Foundation
+                         CoreFoundation)
 
   add_swift_executable(TestFoundation
                        SOURCES
@@ -375,6 +448,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestURL.swift
                          TestFoundation/TestUserDefaults.swift
                          TestFoundation/TestUtils.swift
+                         TestFoundation/TestUUID.swift
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
@@ -384,6 +458,7 @@ if(ENABLE_TESTING)
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
+                         ${Foundation_INTERFACE_LIBRARIES}
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                        RESOURCES
@@ -416,8 +491,11 @@ if(ENABLE_TESTING)
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
-                         ${swift_optimization_flags})
-  add_dependencies(TestFoundation Foundation CoreFoundation xdgTestHelper)
+                         ${swift_optimization_flags}
+                       DEPENDS
+                         Foundation
+                         CoreFoundation
+                         xdgTestHelper)
 
   add_custom_command(TARGET TestFoundation
                      POST_BUILD
@@ -442,19 +520,23 @@ if(ENABLE_TESTING)
                            ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 
-string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
-get_swift_host_arch(swift_arch)
-
 # TODO(compnerd) honour lib vs lib64
 install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
         DESTINATION
           lib/swift/${swift_os}/${swift_arch})
-install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
-        DESTINATION
-          lib/swift/${swift_os})
+if(BUILD_SHARED_LIBS)
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
+          DESTINATION
+            lib/swift/${swift_os})
+else()
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Foundation${CMAKE_STATIC_LIBRARY_SUFFIX}
+          DESTINATION
+            lib/swift_static/${swift_os})
+endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers/
@@ -465,13 +547,7 @@ install(FILES
           CoreFoundation/Base.subproj/module.map
         DESTINATION
           lib/swift/CoreFoundation)
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
-          DESTINATION
-            lib/swift/${swift_os}/${swift_arch})
-endif()
-install(FILES
+install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/plutil
         DESTINATION
           ${CMAKE_INSTALL_FULL_BINDIR})

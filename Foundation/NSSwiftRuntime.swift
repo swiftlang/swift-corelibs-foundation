@@ -88,11 +88,11 @@ extension ObjCBool : CustomStringConvertible {
 
 @usableFromInline
 internal class __NSCFType : NSObject {
-    private var _cfinfo : Int32
+    private var _cfinfo : _CFInfo
     
     override init() {
         // This is not actually called; _CFRuntimeCreateInstance will initialize _cfinfo
-        _cfinfo = 0
+        _cfinfo = _CFInfo(typeID: 0)
     }
     
     override var hash: Int {

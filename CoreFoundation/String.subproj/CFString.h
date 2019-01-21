@@ -147,9 +147,6 @@ equivalents in the encoding the compiler will use to interpret them (for instanc
 O-umlaut is \303\226 in UTF-8). UTF-8 is the recommended encoding here, 
 since it is the default choice with Mac OS X developer tools.
 */
-#if TARGET_OS_WIN32
-#undef __CONSTANT_CFSTRINGS__
-#endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
     #if TARGET_OS_MAC
@@ -170,11 +167,11 @@ struct __CFConstStr {
         uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
-#if defined(__LP64__) && defined(__BIG_ENDIAN__)
+#if TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
     uint64_t _length;
 #else // 32-bit:
     uint32_t _length;
-#endif // defined(__LP64__) || defined(__LLP64__)
+#endif // TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
 };
 
 #if __BIG_ENDIAN__

@@ -18,8 +18,6 @@
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
 		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA72187D156009518FA /* CFDateFormatter.c */; };
-		1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA82187D156009518FA /* CFDateFormatter.h */; };
 		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
 		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
@@ -372,6 +370,7 @@
 		BDFDF0A71DFF5B3E00C04CC5 /* TestPersonNameComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFDF0A61DFF5B3E00C04CC5 /* TestPersonNameComponents.swift */; };
 		BF85E9D81FBDCC2000A79793 /* TestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF85E9D71FBDCC2000A79793 /* TestHost.swift */; };
 		BF8E65311DC3B3CB005AB5C3 /* TestNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */; };
+		C7DE1FCC21EEE67200174F35 /* TestUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7DE1FCB21EEE67200174F35 /* TestUUID.swift */; };
 		CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */; };
 		CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1C7F7C1E303B47008E331C /* TestNSError.swift */; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
@@ -546,8 +545,6 @@
 		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
 		1569BFA32187D0E0009518FA /* CFDateInterval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateInterval.c; sourceTree = "<group>"; };
 		1569BFA42187D0E0009518FA /* CFDateInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateInterval.h; sourceTree = "<group>"; };
-		1569BFA72187D156009518FA /* CFDateFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateFormatter.c; sourceTree = "<group>"; };
-		1569BFA82187D156009518FA /* CFDateFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter.h; sourceTree = "<group>"; };
 		1569BFAB2187D529009518FA /* CFDateComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateComponents.c; sourceTree = "<group>"; };
 		1569BFAC2187D529009518FA /* CFDateComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateComponents.h; sourceTree = "<group>"; };
 		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
@@ -891,6 +888,7 @@
 		BF85E9D71FBDCC2000A79793 /* TestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHost.swift; sourceTree = "<group>"; };
 		BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNotification.swift; sourceTree = "<group>"; };
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
+		C7DE1FCB21EEE67200174F35 /* TestUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestAffineTransform.swift; sourceTree = "<group>"; };
 		CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUnitConverter.swift; sourceTree = "<group>"; };
 		CD1C7F7C1E303B47008E331C /* TestNSError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSError.swift; sourceTree = "<group>"; };
@@ -1274,8 +1272,6 @@
 				1569BFAC2187D529009518FA /* CFDateComponents.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
-				1569BFA72187D156009518FA /* CFDateFormatter.c */,
-				1569BFA82187D156009518FA /* CFDateFormatter.h */,
 				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
@@ -1548,6 +1544,7 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C7DE1FCB21EEE67200174F35 /* TestUUID.swift */,
 				7D0DE86D211883F500540061 /* Utilities.swift */,
 				7D0DE86C211883F500540061 /* TestDateComponents.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
@@ -1979,7 +1976,6 @@
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
 				1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */,
-				1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */,
 				1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
@@ -2471,7 +2467,6 @@
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
-				1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */,
 				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
@@ -2581,6 +2576,7 @@
 				5B13B33E1C582D4C00651CE2 /* TestProcessInfo.swift in Sources */,
 				5B13B33F1C582D4C00651CE2 /* TestPropertyListSerialization.swift in Sources */,
 				5B13B32C1C582D4C00651CE2 /* TestDate.swift in Sources */,
+				C7DE1FCC21EEE67200174F35 /* TestUUID.swift in Sources */,
 				231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */,
 				7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */,
 				5B13B33B1C582D4C00651CE2 /* TestNumberFormatter.swift in Sources */,
@@ -2854,14 +2850,14 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -2929,13 +2925,13 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -3039,12 +3035,12 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -3065,11 +3061,11 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -3092,7 +3088,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -3112,7 +3108,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.xdgTestHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -3124,7 +3120,7 @@
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -3135,7 +3131,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

@@ -370,7 +370,7 @@ extension NSString {
         } else {
             let buff = UnsafeMutablePointer<unichar>.allocate(capacity: range.length)
             getCharacters(buff, range: range)
-            let result = String(describing: buff)
+            let result = String(utf16CodeUnits: buff, count: range.length)
             buff.deinitialize(count: 1)
             buff.deallocate()
             return result

@@ -422,8 +422,14 @@ typedef CFTypeRef _Nonnull (*CFErrorUserInfoKeyCallBack)(CFErrorRef err, CFStrin
 CF_EXPORT void CFErrorSetCallBackForDomain(CFStringRef domainName, CFErrorUserInfoKeyCallBack _Nullable callBack) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 CF_EXPORT CFErrorUserInfoKeyCallBack _Nullable CFErrorGetCallBackForDomain(CFStringRef domainName) API_AVAILABLE(macos(10.5), ios(2.0), watchos(2.0), tvos(9.0));
 
-#if DEPLOYMENT_TARGET_WINDOWS
+_CF_EXPORT_SCOPE_END
+
 // ---- Windows-specific material ---------------------------------------
+#if DEPLOYMENT_TARGET_WINDOWS
+
+#include <sys/stat.h>
+
+_CF_EXPORT_SCOPE_BEGIN
 
 // These are replacements for POSIX calls on Windows, ensuring that the UTF8 parameters are converted to UTF16 before being passed to Windows
 CF_EXPORT int _NS_stat(const char *name, struct _stat *st);
@@ -436,9 +442,10 @@ CF_EXPORT char *_NS_getenv(const char *name);
 CF_EXPORT int _NS_rename(const char *oldName, const char *newName);
 CF_EXPORT int _NS_open(const char *name, int oflag, int pmode);
 CF_EXPORT int _NS_mkstemp(char *name, int bufSize);
-#endif
 
 _CF_EXPORT_SCOPE_END
+
+#endif
 
 // ---- Miscellaneous material ----------------------------------------
 
@@ -458,6 +465,7 @@ CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex 
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
 
 
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 /* Enumeration
  Call CFStartSearchPathEnumeration() once, then call
  CFGetNextSearchPathEnumeration() one or more times with the returned state.
@@ -468,6 +476,7 @@ CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, con
 typedef CFIndex CFSearchPathEnumerationState;
 CF_EXPORT CFSearchPathEnumerationState __CFStartSearchPathEnumeration(CFSearchPathDirectory dir, CFSearchPathDomainMask domainMask);
 CF_EXPORT CFSearchPathEnumerationState __CFGetNextSearchPathEnumeration(CFSearchPathEnumerationState state, UInt8 *path, CFIndex pathSize);
+#endif
 
 /* For use by NSNumber and CFNumber.
   Hashing algorithm for CFNumber:
@@ -598,10 +607,10 @@ CF_EXPORT CFStringRef CFCopySystemVersionString(void);
 CF_EXPORT CFDictionaryRef _CFCopySystemVersionDictionary(void);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarInitWithIdentifier(CFCalendarRef calendar, CFStringRef identifier);
-CF_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
-CF_EXPORT Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarComposeAbsoluteTimeV(CFCalendarRef calendar, /* out */ CFAbsoluteTime *atp, const char *componentDesc, int32_t *vector, int32_t count);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarDecomposeAbsoluteTimeV(CFCalendarRef calendar, CFAbsoluteTime at, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarAddComponentsV(CFCalendarRef calendar, /* inout */ CFAbsoluteTime *atp, CFOptionFlags options, const char *componentDesc, int32_t *vector, int32_t count);
+CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetComponentDifferenceV(CFCalendarRef calendar, CFAbsoluteTime startingAT, CFAbsoluteTime resultAT, CFOptionFlags options, const char *componentDesc, int32_t *_Nonnull * _Nonnull vector, int32_t count);
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFLocaleInit(CFLocaleRef locale, CFStringRef identifier);
 

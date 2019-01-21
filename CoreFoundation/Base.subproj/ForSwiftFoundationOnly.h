@@ -25,9 +25,22 @@
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/CFURLSessionInterface.h>
 #include <CoreFoundation/ForFoundationOnly.h>
+#if DEPLOYMENT_TARGET_WINDOWS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
 #include <fts.h>
+#endif
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <dirent.h>
+#endif
 
 #include <CoreFoundation/CFCalendar_Internal.h>
 
@@ -325,29 +338,35 @@ extern uint32_t _CFKeyedArchiverUIDGetValue(CFKeyedArchiverUIDRef uid);
 #endif
 
 extern CFIndex __CFBinaryPlistWriteToStream(CFPropertyListRef plist, CFTypeRef stream);
-extern CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
+CF_CROSS_PLATFORM_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList);
 extern CFWriteStreamRef _CFWriteStreamCreateFromFileDescriptor(CFAllocatorRef alloc, int fd);
 
 CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
+#if DEPLOYMENT_TARGET_WINDOWS
+typedef HANDLE _CFThreadRef;
+typedef DWORD _CFThreadAttributes;
+typedef DWORD _CFThreadSpecificKey;
+#elif _POSIX_THREADS
+typedef pthread_t _CFThreadRef;
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_key_t _CFThreadSpecificKey;
+#endif
+
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void);
-CF_EXPORT pthread_t _CFMainPThread;
+CF_EXPORT _CFThreadRef _CFMainPThread;
 
 CF_EXPORT CFHashCode __CFHashDouble(double d);
 
-typedef pthread_key_t _CFThreadSpecificKey;
 CF_EXPORT CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key);
 CF_EXPORT void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value);
 CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 
-typedef pthread_attr_t _CFThreadAttributes;
-typedef pthread_t _CFThreadRef;
-
 CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context);
 
-CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(pthread_t thread, const char *_Nonnull name);
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name);
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
 
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
@@ -441,6 +460,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mod
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size);
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
@@ -459,6 +479,7 @@ static inline unsigned int _dev_major(dev_t rdev) {
 static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
+#endif
 
 _CF_EXPORT_SCOPE_END
 

@@ -11,7 +11,8 @@ class TestNSNull : XCTestCase {
     
     static var allTests: [(String, (TestNSNull) -> () throws -> Void)] {
         return [
-            ("test_alwaysEqual", test_alwaysEqual)
+            ("test_alwaysEqual", test_alwaysEqual),
+            ("test_description", test_description),
         ]
     }
     
@@ -33,5 +34,9 @@ class TestNSNull : XCTestCase {
         
         //Make sure that NSNull() != .None
         XCTAssertNotEqual(null_1, null_4)        
+    }
+    
+    func test_description() {
+        XCTAssertEqual(NSNull().description, "<null>")
     }
 }

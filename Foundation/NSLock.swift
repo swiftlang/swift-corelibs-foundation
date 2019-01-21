@@ -22,18 +22,18 @@ public protocol NSLocking {
 }
 
 #if CYGWIN
-private typealias _PthreadMutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
-private typealias _PthreadCondPointer = UnsafeMutablePointer<pthread_cond_t?>
+private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
+private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t?>
 #else
-private typealias _PthreadMutexPointer = UnsafeMutablePointer<pthread_mutex_t>
-private typealias _PthreadCondPointer = UnsafeMutablePointer<pthread_cond_t>
+private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t>
+private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t>
 #endif
 
 open class NSLock: NSObject, NSLocking {
-    internal var mutex = _PthreadMutexPointer.allocate(capacity: 1)
+    internal var mutex = _MutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS)
-    private var timeoutCond = _PthreadCondPointer.allocate(capacity: 1)
-    private var timeoutMutex = _PthreadMutexPointer.allocate(capacity: 1)
+    private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
+    private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
 #endif
 
     public override init() {
@@ -175,10 +175,10 @@ open class NSConditionLock : NSObject, NSLocking {
 }
 
 open class NSRecursiveLock: NSObject, NSLocking {
-    internal var mutex = _PthreadMutexPointer.allocate(capacity: 1)
+    internal var mutex = _MutexPointer.allocate(capacity: 1)
 #if os(macOS) || os(iOS)
-    private var timeoutCond = _PthreadCondPointer.allocate(capacity: 1)
-    private var timeoutMutex = _PthreadMutexPointer.allocate(capacity: 1)
+    private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
+    private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
 #endif
 
     public override init() {
@@ -240,8 +240,8 @@ open class NSRecursiveLock: NSObject, NSLocking {
 }
 
 open class NSCondition: NSObject, NSLocking {
-    internal var mutex = _PthreadMutexPointer.allocate(capacity: 1)
-    internal var cond = _PthreadCondPointer.allocate(capacity: 1)
+    internal var mutex = _MutexPointer.allocate(capacity: 1)
+    internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
 
     public override init() {
         pthread_mutex_init(mutex, nil)
@@ -301,7 +301,7 @@ private func timeSpecFrom(date: Date) -> timespec? {
 
 #if os(macOS) || os(iOS)
 
-private func deallocateTimedLockData(cond: _PthreadCondPointer, mutex: _PthreadMutexPointer) {
+private func deallocateTimedLockData(cond: _ConditionVariablePointer, mutex: _MutexPointer) {
     pthread_cond_destroy(cond)
     cond.deinitialize(count: 1)
     cond.deallocate()
@@ -314,9 +314,9 @@ private func deallocateTimedLockData(cond: _PthreadCondPointer, mutex: _PthreadM
 // Emulate pthread_mutex_timedlock using pthread_cond_timedwait.
 // lock(before:) passes a condition variable/mutex pair to use.
 // unlock() will use pthread_cond_broadcast() to wake any waits in progress.
-private func timedLock(mutex: _PthreadMutexPointer, endTime: Date,
-                       using timeoutCond: _PthreadCondPointer,
-                       with timeoutMutex: _PthreadMutexPointer) -> Bool {
+private func timedLock(mutex: _MutexPointer, endTime: Date,
+                       using timeoutCond: _ConditionVariablePointer,
+                       with timeoutMutex: _MutexPointer) -> Bool {
 
     var timeSpec = timeSpecFrom(date: endTime)
     while var ts = timeSpec {
