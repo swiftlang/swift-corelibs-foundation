@@ -262,27 +262,38 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
     func seekInputStream(to position: UInt64) throws {
         // We will reset the body source and seek forward.
         guard let session = task?.session as? URLSession else { fatalError() }
+        
+        var currentInputStream: InputStream?
+        
         if let delegate = session.delegate as? URLSessionTaskDelegate {
-            delegate.urlSession(session, task: task!, needNewBodyStream: { [weak self] inputStream in
-                if let strongSelf = self, let url = strongSelf.request.url, let inputStream = inputStream {
-                    switch strongSelf.internalState {
-                    case .transferInProgress(let currentTransferState):
-                        switch currentTransferState.requestBodySource {
-                        case is _BodyStreamSource:
-                            try inputStream.seek(to: position)
-                            let drain = strongSelf.createTransferBodyDataDrain()
-                            let source = _BodyStreamSource(inputStream: inputStream)
-                            let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
-                            strongSelf.internalState = .transferInProgress(transferState)
-                        default:
-                            NSUnimplemented()
-                        }
-                    default:
-                        //TODO: it's possible?
-                        break
-                    }
-                }
+            let dispatchGroup = DispatchGroup()
+            dispatchGroup.enter()
+            
+            delegate.urlSession(session, task: task!, needNewBodyStream: { inputStream in
+                currentInputStream = inputStream
+                dispatchGroup.leave()
             })
+            
+            _ = dispatchGroup.wait(timeout: .now() + 7)
+        }
+      
+        if let url = self.request.url, let inputStream = currentInputStream {
+            switch self.internalState {
+            case .transferInProgress(let currentTransferState):
+                switch currentTransferState.requestBodySource {
+                case is _BodyStreamSource:
+                    try inputStream.seek(to: position)
+                    let drain = self.createTransferBodyDataDrain()
+                    let source = _BodyStreamSource(inputStream: inputStream)
+                    let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
+                    self.internalState = .transferInProgress(transferState)
+                default:
+                    NSUnimplemented()
+                }
+            default:
+                //TODO: it's possible?
+                break
+            }
         }
     }
 
