@@ -269,6 +269,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
                     case .transferInProgress(let currentTransferState):
                         switch currentTransferState.requestBodySource {
                         case is _BodyStreamSource:
+                            try inputStream.seek(to: position)
                             let drain = strongSelf.createTransferBodyDataDrain()
                             let source = _BodyStreamSource(inputStream: inputStream)
                             let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
