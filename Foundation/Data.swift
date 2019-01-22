@@ -18,7 +18,7 @@ import Darwin
 import Glibc
 
 @inlinable // This is @inlinable as trivially computable.
-fileprivate func malloc_good_size(_ size: Int) -> Int {
+internal func malloc_good_size(_ size: Int) -> Int {
     return size
 }
 
@@ -767,7 +767,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             }
 
             let _ = Swift.withUnsafeMutableBytes(of: &bytes) { rawBuffer in
-              memset(rawBuffer.baseAddress?.advanced(by: range.lowerBound), 0, range.upperBound - range.lowerBound)
+              memset(rawBuffer.baseAddress!.advanced(by: range.lowerBound), 0, range.upperBound - range.lowerBound)
             }
         }
 
@@ -786,10 +786,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 let start = subrange.lowerBound
                 let length = subrange.upperBound - subrange.lowerBound
                 if shift != 0 {
-                    memmove(mutableBytes.baseAddress?.advanced(by: start + replacementLength), mutableBytes.baseAddress?.advanced(by: start + length), currentLength - start - length)
+                    memmove(mutableBytes.baseAddress!.advanced(by: start + replacementLength), mutableBytes.baseAddress!.advanced(by: start + length), currentLength - start - length)
                 }
                 if replacementLength != 0 {
-                    memmove(mutableBytes.baseAddress?.advanced(by: start), replacementBytes!, replacementLength)
+                    memmove(mutableBytes.baseAddress!.advanced(by: start), replacementBytes!, replacementLength)
                 }
             }
             count = resultingLength
@@ -1930,8 +1930,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inlinable // This is @inlinable as a convenience initializer.
     public init(repeating repeatedValue: UInt8, count: Int) {
         self.init(count: count)
-        withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) -> Void in
-            memset(buffer.baseAddress, Int32(repeatedValue), buffer.count)
+        if count > 0 {
+            withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) -> Void in
+                memset(buffer.baseAddress!, Int32(repeatedValue), buffer.count)
+            }
         }
     }
     
@@ -2606,9 +2608,10 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     public func _copyContents(initializing buffer: UnsafeMutableBufferPointer<UInt8>) -> (Iterator, UnsafeMutableBufferPointer<UInt8>.Index) {
         guard !isEmpty else { return (makeIterator(), buffer.startIndex) }
         let cnt = Swift.min(count, buffer.count)
-        
-        withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
-            _ = memcpy(UnsafeMutableRawPointer(buffer.baseAddress), bytes.baseAddress, cnt)
+        if cnt > 0 {
+            withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+                _ = memcpy(UnsafeMutableRawPointer(buffer.baseAddress!), bytes.baseAddress!, cnt)
+            }
         }
         
         return (Iterator(self, at: startIndex + cnt), buffer.index(buffer.startIndex, offsetBy: cnt))

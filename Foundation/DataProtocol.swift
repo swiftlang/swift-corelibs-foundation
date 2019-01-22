@@ -209,7 +209,7 @@ extension DataProtocol where Self : ContiguousBytes {
         withUnsafeBytes { fullBuffer in
             let adv = distance(from: startIndex, to: concreteRange.lowerBound)
             let delta = distance(from: concreteRange.lowerBound, to: concreteRange.upperBound)
-            memcpy(ptr.baseAddress!, fullBuffer.baseAddress?.advanced(by: adv), delta)
+            memcpy(ptr.baseAddress!, fullBuffer.baseAddress!.advanced(by: adv), delta)
         }
     }
 }
