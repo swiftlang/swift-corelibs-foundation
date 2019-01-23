@@ -153,7 +153,6 @@ public final class _DataStorage {
                 var buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: range.count, alignment: MemoryLayout<UInt>.alignment)
                 defer { buffer.deallocate() }
 
-                let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0
                 d.enumerateBytes { (ptr, byteRange, stop) in
                     if byteRange.upperBound - _offset < range.lowerBound {
@@ -187,7 +186,6 @@ public final class _DataStorage {
                 var buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: range.count, alignment: MemoryLayout<UInt>.alignment)
                 defer { buffer.deallocate() }
 
-                let sliceRange = NSRange(location: range.lowerBound - _offset, length: range.count)
                 var enumerated = 0
                 d.enumerateBytes { (ptr, byteRange, stop) in
                     if byteRange.upperBound - _offset < range.lowerBound {
