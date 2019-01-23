@@ -117,7 +117,7 @@ private extension _HTTPURLProtocol._HTTPMessage._StartLine {
         } else if let version = _HTTPURLProtocol._HTTPMessage._Version(versionString: r.2),
             let URI = URL(string: r.1) {
             // The request method must be a token (i.e. without seperators):
-            let seperatorIdx = r.0.unicodeScalars.index(where: { !$0.isValidMessageToken } )
+            let seperatorIdx = r.0.unicodeScalars.firstIndex(where: { !$0.isValidMessageToken } )
             guard seperatorIdx == nil else { return nil }
             self = .requestLine(method: r.0, uri: URI, version: version)
         } else {
@@ -241,7 +241,7 @@ private extension String.UnicodeScalarView.SubSequence {
     /// The range of space (U+0020) characters.
     var rangeOfSpace: Range<Index>? {
         guard !isEmpty else { return startIndex..<startIndex }
-        guard let idx = index(of: _Delimiters.Space!) else { return nil }
+        guard let idx = firstIndex(of: _Delimiters.Space!) else { return nil }
         return idx..<self.index(after: idx)
     }
     // Has a space (SP) or horizontal tab (HT) prefix

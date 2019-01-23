@@ -49,7 +49,8 @@ open class ProcessInfo: NSObject {
         var idx = 0
 
         while let entry = envp.advanced(by: idx).pointee {
-            if let entry = String(cString: entry, encoding: strEncoding), let i = entry.index(of: equalSign) {
+            if let entry = String(cString: entry, encoding: strEncoding),
+               let i = entry.firstIndex(of: equalSign) {
                 let key = String(entry.prefix(upTo: i))
                 let value = String(entry.suffix(from: i).dropFirst())
                 env[key] = value

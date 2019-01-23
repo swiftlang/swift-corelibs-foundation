@@ -285,7 +285,7 @@ extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.index(of: "/") ?? _swiftObject.endIndex
+        let endOfUserName = _swiftObject.firstIndex(of: "/") ?? _swiftObject.endIndex
         let startOfUserName = _swiftObject.index(after: _swiftObject.startIndex)
         let userName = String(_swiftObject[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName

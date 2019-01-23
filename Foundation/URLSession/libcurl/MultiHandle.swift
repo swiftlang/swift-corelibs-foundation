@@ -152,7 +152,7 @@ internal extension URLSession._MultiHandle {
     }
     /// Remove an easy handle -- stop its transfer.
     func remove(_ handle: _EasyHandle) {
-        guard let idx = self.easyHandles.index(of: handle) else {
+        guard let idx = self.easyHandles.firstIndex(of: handle) else {
             fatalError("Handle not in list.")
         }
         self.easyHandles.remove(at: idx)
@@ -197,7 +197,7 @@ fileprivate extension URLSession._MultiHandle {
     /// Transfer completed.
     func completedTransfer(forEasyHandle handle: CFURLSessionEasyHandle, easyCode: CFURLSessionEasyCode) {
         // Look up the matching wrapper:
-        guard let idx = easyHandles.index(where: { $0.rawHandle == handle }) else {
+        guard let idx = easyHandles.firstIndex(where: { $0.rawHandle == handle }) else {
             fatalError("Tansfer completed for easy handle, but it is not in the list of added handles.")
         }
         let easyHandle = easyHandles[idx]
