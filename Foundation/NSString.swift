@@ -298,7 +298,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         }
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
-                return unsafeBitCast(_storage._guts.startASCII, to: UnsafePointer<Int8>.self)
+                return UnsafePointer<Int8>(_storage._guts.startASCII);
             }
         }
         return nil
