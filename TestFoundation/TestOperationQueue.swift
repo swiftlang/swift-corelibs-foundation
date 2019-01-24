@@ -203,7 +203,7 @@ class AsyncOperation: Operation {
     private var _executing = false
     private var _finished = false
 
-    override internal(set) var isExecuting: Bool {
+    override var isExecuting: Bool {
         get {
             lock.lock()
             let wasExecuting = _executing
@@ -221,7 +221,7 @@ class AsyncOperation: Operation {
         }
     }
 
-    override internal(set) var isFinished: Bool {
+    override var isFinished: Bool {
         get {
             lock.lock()
             let wasFinished = _finished
