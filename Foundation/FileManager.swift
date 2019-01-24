@@ -7,14 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if canImport(Darwin)
-    import Darwin
-#endif
-
-#if canImport(Glibc)
-    import Glibc
-#endif
-
 #if os(Android) // struct stat.st_mode is UInt32
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right

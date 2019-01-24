@@ -7,13 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 import CoreFoundation
 
 open class Host: NSObject {

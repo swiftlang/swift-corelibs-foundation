@@ -12,16 +12,11 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-
+#if os(Linux)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
     return size
 }
-
 #endif
 
 import CoreFoundation

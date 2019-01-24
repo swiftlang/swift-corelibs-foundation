@@ -10,12 +10,6 @@
 #if !os(Android) // not available
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 extension Process {
     public enum TerminationReason : Int {
         case exit

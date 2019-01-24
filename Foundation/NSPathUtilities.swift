@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 public func NSTemporaryDirectory() -> String {
     #if os(macOS) || os(iOS)
     var buf = [Int8](repeating: 0, count: 100)

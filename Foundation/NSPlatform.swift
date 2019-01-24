@@ -8,12 +8,6 @@
 //
 
 #if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-#endif
-
-#if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())

@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 open class FileHandle : NSObject, NSSecureCoding {
     private var _fd: Int32
     private var _closeOnDealloc: Bool
