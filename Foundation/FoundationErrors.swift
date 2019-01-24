@@ -164,12 +164,6 @@ public var NSCoderReadCorruptError: Int                      { return CocoaError
 
 public var NSCoderValueNotFoundError: Int                    { return CocoaError.Code.coderValueNotFound.rawValue }
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
     var cocoaError : CocoaError.Code
     if reading {

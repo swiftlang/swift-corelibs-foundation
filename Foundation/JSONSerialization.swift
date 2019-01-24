@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 extension JSONSerialization {
     public struct ReadingOptions : OptionSet {
         public let rawValue: UInt

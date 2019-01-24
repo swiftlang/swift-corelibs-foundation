@@ -10,12 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-#endif
-
 //===--- DataProtocol -----------------------------------------------------===//
 
 public protocol DataProtocol : RandomAccessCollection where Element == UInt8, SubSequence : DataProtocol {

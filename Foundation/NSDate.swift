@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 public typealias TimeInterval = Double
 
 public var NSTimeIntervalSince1970: Double {

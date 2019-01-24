@@ -7,12 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-#endif
-
 import Dispatch
 
 /**
