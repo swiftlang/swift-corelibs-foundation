@@ -179,7 +179,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     /// Initializes a data object with the contents of another data object.
     public init(data: Data) {
         super.init()
-        _init(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count, copy: true)
+        data.withUnsafeBytes {
+            _init(bytes: UnsafeMutableRawPointer(mutating: $0.baseAddress), length: $0.count, copy: true)
+        }
     }
 
     /// Initializes a data object with the data from the location specified by a given URL.
