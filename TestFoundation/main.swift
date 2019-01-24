@@ -102,6 +102,7 @@ XCTMain([
     testCase(TestNotification.allTests),
     testCase(TestMassFormatter.allTests),
     testCase(TestJSONEncoder.allTests),
+    testCase(TestPropertyListEncoder.allTests),
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
     testCase(TestDimension.allTests),

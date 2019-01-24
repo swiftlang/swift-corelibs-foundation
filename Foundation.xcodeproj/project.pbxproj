@@ -352,6 +352,8 @@
 		9F0DD3521ECD73D000F68030 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0041781ECD5962004138BD /* main.swift */; };
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
+		AA9E0E0B21FA6C5600963F4C /* PropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */; };
+		AA9E0E0D21FA6E0700963F4C /* TestPropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */; };
 		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B907F36B20BB07A700013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
@@ -877,6 +879,8 @@
 		9F4ADBB61ECD445E001F0B3D /* SymbolAliases */ = {isa = PBXFileReference; lastKnownFileType = text; path = SymbolAliases; sourceTree = "<group>"; };
 		A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMassFormatter.swift; sourceTree = "<group>"; };
 		A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestByteCountFormatter.swift; sourceTree = "<group>"; };
+		AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PropertyListEncoder.swift; sourceTree = "<group>"; };
+		AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPropertyListEncoder.swift; sourceTree = "<group>"; };
 		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
 		B167A6641ED7303F0040B09A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
@@ -1074,13 +1078,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3EDCE5121EF04D8600C2EC04 /* JSONEncoder */ = {
+		3EDCE5121EF04D8600C2EC04 /* Codable */ = {
 			isa = PBXGroup;
 			children = (
 				3EDCE5051EF04D8100C2EC04 /* Codable.swift */,
 				3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */,
+				AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */,
 			);
-			name = JSONEncoder;
+			name = Codable;
 			sourceTree = "<group>";
 		};
 		5B1FD9C71D6D162D0080E83C /* Session */ = {
@@ -1570,6 +1575,7 @@
 				A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */,
 				BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */,
 				3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */,
+				AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */,
 				DCA8120A1F046D13000D0C86 /* TestCodable.swift */,
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
@@ -1766,7 +1772,7 @@
 		EAB57B6C1BD1A852004AC5C5 /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
-				3EDCE5121EF04D8600C2EC04 /* JSONEncoder */,
+				3EDCE5121EF04D8600C2EC04 /* Codable */,
 				EADE0B641BD15DFF00C49C64 /* JSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
 				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
@@ -2371,6 +2377,7 @@
 				5BF7AEAE1BCD51F9008F214A /* Formatter.swift in Sources */,
 				EADE0B9C1BD15DFF00C49C64 /* FileManager.swift in Sources */,
 				5BF7AEA61BCD51F9008F214A /* NSCharacterSet.swift in Sources */,
+				AA9E0E0B21FA6C5600963F4C /* PropertyListEncoder.swift in Sources */,
 				5BD70FB41D3D4F8B003B9BF8 /* Calendar.swift in Sources */,
 				5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */,
 				5BD70FB21D3D4CDC003B9BF8 /* Locale.swift in Sources */,
@@ -2612,6 +2619,7 @@
 				5B13B34E1C582D4C00651CE2 /* TestXMLDocument.swift in Sources */,
 				5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */,
 				5B13B34C1C582D4C00651CE2 /* TestURLResponse.swift in Sources */,
+				AA9E0E0D21FA6E0700963F4C /* TestPropertyListEncoder.swift in Sources */,
 				0383A1751D2E558A0052E5D1 /* TestStream.swift in Sources */,
 				5B13B3481C582D4C00651CE2 /* TestTimer.swift in Sources */,
 				5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */,

@@ -235,6 +235,7 @@ add_swift_library(Foundation
                     Foundation/ProcessInfo.swift
                     Foundation/Progress.swift
                     Foundation/ProgressFraction.swift
+                    Foundation/PropertyListEncoder.swift
                     Foundation/PropertyListSerialization.swift
                     Foundation/ReferenceConvertible.swift
                     Foundation/RunLoop.swift
@@ -395,6 +396,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestIndexSet.swift
                          TestFoundation/TestISO8601DateFormatter.swift
                          TestFoundation/TestJSONEncoder.swift
+                         TestFoundation/TestPropertyListEncoder.swift
                          TestFoundation/TestJSONSerialization.swift
                          TestFoundation/TestLengthFormatter.swift
                          TestFoundation/TestMassFormatter.swift
