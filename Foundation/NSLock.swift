@@ -8,49 +8,78 @@
 //
 
 import CoreFoundation
+#if os(Windows)
+import WinSDK
+#endif
 
 public protocol NSLocking {
     func lock()
     func unlock()
 }
 
-#if CYGWIN
+#if os(Windows)
+private typealias _MutexPointer = UnsafeMutablePointer<SRWLOCK>
+private typealias _RecursiveMutexPointer = UnsafeMutablePointer<CRITICAL_SECTION>
+private typealias _ConditionVariablePointer = UnsafeMutablePointer<CONDITION_VARIABLE>
+#elseif CYGWIN
 private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
+private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t?>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t?>
 #else
 private typealias _MutexPointer = UnsafeMutablePointer<pthread_mutex_t>
+private typealias _RecursiveMutexPointer = UnsafeMutablePointer<pthread_mutex_t>
 private typealias _ConditionVariablePointer = UnsafeMutablePointer<pthread_cond_t>
 #endif
 
 open class NSLock: NSObject, NSLocking {
     internal var mutex = _MutexPointer.allocate(capacity: 1)
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
     private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
 #endif
 
     public override init() {
+#if os(Windows)
+        InitializeSRWLock(mutex)
+        InitializeConditionVariable(timeoutCond)
+        InitializeSRWLock(timeoutMutex)
+#else
         pthread_mutex_init(mutex, nil)
 #if os(macOS) || os(iOS)
         pthread_cond_init(timeoutCond, nil)
         pthread_mutex_init(timeoutMutex, nil)
 #endif
+#endif
     }
     
     deinit {
+#if os(Windows)
+        // SRWLocks do not need to be explicitly destroyed
+#else
         pthread_mutex_destroy(mutex)
+#endif
         mutex.deinitialize(count: 1)
         mutex.deallocate()
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
     }
     
     open func lock() {
+#if os(Windows)
+        AcquireSRWLockExclusive(mutex)
+#else
         pthread_mutex_lock(mutex)
+#endif
     }
 
     open func unlock() {
+#if os(Windows)
+        ReleaseSRWLockExclusive(mutex)
+        AcquireSRWLockExclusive(timeoutMutex)
+        WakeAllConditionVariable(timeoutCond)
+        ReleaseSRWLockExclusive(timeoutMutex)
+#else
         pthread_mutex_unlock(mutex)
 #if os(macOS) || os(iOS)
         // Wakeup any threads waiting in lock(before:)
@@ -58,18 +87,29 @@ open class NSLock: NSObject, NSLocking {
         pthread_cond_broadcast(timeoutCond)
         pthread_mutex_unlock(timeoutMutex)
 #endif
+#endif
     }
 
     open func `try`() -> Bool {
+#if os(Windows)
+        return TryAcquireSRWLockExclusive(mutex) != FALSE
+#else
         return pthread_mutex_trylock(mutex) == 0
+#endif
     }
     
     open func lock(before limit: Date) -> Bool {
+#if os(Windows)
+        if TryAcquireSRWLockExclusive(mutex) != FALSE {
+          return true
+        }
+#else
         if pthread_mutex_trylock(mutex) == 0 {
             return true
         }
+#endif
 
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
@@ -93,7 +133,7 @@ extension NSLock {
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
-    internal var _thread: pthread_t?
+    internal var _thread: _CFThreadRef?
     
     public convenience override init() {
         self.init(condition: 0)
@@ -109,7 +149,11 @@ open class NSConditionLock : NSObject, NSLocking {
 
     open func unlock() {
         _cond.lock()
+#if os(Windows)
+        _thread = INVALID_HANDLE_VALUE
+#else
         _thread = nil
+#endif
         _cond.broadcast()
         _cond.unlock()
     }
@@ -132,7 +176,11 @@ open class NSConditionLock : NSObject, NSLocking {
 
     open func unlock(withCondition condition: Int) {
         _cond.lock()
+#if os(Windows)
+        _thread = INVALID_HANDLE_VALUE
+#else
         _thread = nil
+#endif
         _value = condition
         _cond.broadcast()
         _cond.unlock()
@@ -146,7 +194,11 @@ open class NSConditionLock : NSObject, NSLocking {
                 return false
             }
         }
+#if os(Windows)
+        _thread = GetCurrentThread()
+#else
         _thread = pthread_self()
+#endif
         _cond.unlock()
         return true
     }
@@ -159,7 +211,11 @@ open class NSConditionLock : NSObject, NSLocking {
                 return false
             }
         }
+#if os(Windows)
+        _thread = GetCurrentThread()
+#else
         _thread = pthread_self()
+#endif
         _cond.unlock()
         return true
     }
@@ -168,14 +224,17 @@ open class NSConditionLock : NSObject, NSLocking {
 }
 
 open class NSRecursiveLock: NSObject, NSLocking {
-    internal var mutex = _MutexPointer.allocate(capacity: 1)
-#if os(macOS) || os(iOS)
+    internal var mutex = _RecursiveMutexPointer.allocate(capacity: 1)
+#if os(macOS) || os(iOS) || os(Windows)
     private var timeoutCond = _ConditionVariablePointer.allocate(capacity: 1)
     private var timeoutMutex = _MutexPointer.allocate(capacity: 1)
 #endif
 
     public override init() {
         super.init()
+#if os(Windows)
+        InitializeCriticalSection(mutex)
+#else
 #if CYGWIN
         var attrib : pthread_mutexattr_t? = nil
 #else
@@ -185,22 +244,37 @@ open class NSRecursiveLock: NSObject, NSLocking {
             pthread_mutexattr_settype(attrs, Int32(PTHREAD_MUTEX_RECURSIVE))
             pthread_mutex_init(mutex, attrs)
         }
+#endif
     }
     
     deinit {
+#if os(Windows)
+        DeleteCriticalSection(mutex)
+#else
         pthread_mutex_destroy(mutex)
+#endif
         mutex.deinitialize(count: 1)
         mutex.deallocate()
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
         deallocateTimedLockData(cond: timeoutCond, mutex: timeoutMutex)
 #endif
     }
     
     open func lock() {
+#if os(Windows)
+        EnterCriticalSection(mutex)
+#else
         pthread_mutex_lock(mutex)
+#endif
     }
     
     open func unlock() {
+#if os(Windows)
+        LeaveCriticalSection(mutex)
+        AcquireSRWLockExclusive(timeoutMutex)
+        WakeAllConditionVariable(timeoutCond)
+        ReleaseSRWLockExclusive(timeoutMutex)
+#else
         pthread_mutex_unlock(mutex)
 #if os(macOS) || os(iOS)
         // Wakeup any threads waiting in lock(before:)
@@ -208,18 +282,29 @@ open class NSRecursiveLock: NSObject, NSLocking {
         pthread_cond_broadcast(timeoutCond)
         pthread_mutex_unlock(timeoutMutex)
 #endif
+#endif
     }
     
     open func `try`() -> Bool {
+#if os(Windows)
+        return TryEnterCriticalSection(mutex) != FALSE
+#else
         return pthread_mutex_trylock(mutex) == 0
+#endif
     }
     
     open func lock(before limit: Date) -> Bool {
+#if os(Windows)
+        if TryEnterCriticalSection(mutex) != FALSE {
+            return true
+        }
+#else
         if pthread_mutex_trylock(mutex) == 0 {
             return true
         }
+#endif
 
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
         return timedLock(mutex: mutex, endTime: limit, using: timeoutCond, with: timeoutMutex)
 #else
         guard var endTime = timeSpecFrom(date: limit) else {
@@ -237,13 +322,22 @@ open class NSCondition: NSObject, NSLocking {
     internal var cond = _ConditionVariablePointer.allocate(capacity: 1)
 
     public override init() {
+#if os(Windows)
+        InitializeSRWLock(mutex)
+        InitializeConditionVariable(cond)
+#else
         pthread_mutex_init(mutex, nil)
         pthread_cond_init(cond, nil)
+#endif
     }
     
     deinit {
+#if os(Windows)
+        // SRWLock do not need to be explicitly destroyed
+#else
         pthread_mutex_destroy(mutex)
         pthread_cond_destroy(cond)
+#endif
         mutex.deinitialize(count: 1)
         cond.deinitialize(count: 1)
         mutex.deallocate()
@@ -251,35 +345,66 @@ open class NSCondition: NSObject, NSLocking {
     }
     
     open func lock() {
+#if os(Windows)
+        AcquireSRWLockExclusive(mutex)
+#else
         pthread_mutex_lock(mutex)
+#endif
     }
     
     open func unlock() {
+#if os(Windows)
+        ReleaseSRWLockExclusive(mutex)
+#else
         pthread_mutex_unlock(mutex)
+#endif
     }
     
     open func wait() {
+#if os(Windows)
+        SleepConditionVariableSRW(cond, mutex, WinSDK.INFINITE, 0)
+#else
         pthread_cond_wait(cond, mutex)
+#endif
     }
 
     open func wait(until limit: Date) -> Bool {
+#if os(Windows)
+        return SleepConditionVariableSRW(cond, mutex, timeoutFrom(date: limit),
+                                         0) != FALSE
+#else
         guard var timeout = timeSpecFrom(date: limit) else {
             return false
         }
         return pthread_cond_timedwait(cond, mutex, &timeout) == 0
+#endif
     }
     
     open func signal() {
+#if os(Windows)
+        WakeConditionVariable(cond)
+#else
         pthread_cond_signal(cond)
+#endif
     }
     
     open func broadcast() {
+#if os(Windows)
+        WakeAllConditionVariable(cond)
+#else
         pthread_cond_broadcast(cond)
+#endif
     }
     
     open var name: String?
 }
 
+#if os(Windows)
+private func timeoutFrom(date: Date) -> DWORD {
+  guard date.timeIntervalSinceNow > 0 else { return 0 }
+  return DWORD(date.timeIntervalSinceNow * 1000)
+}
+#else
 private func timeSpecFrom(date: Date) -> timespec? {
     guard date.timeIntervalSinceNow > 0 else {
         return nil
@@ -291,15 +416,24 @@ private func timeSpecFrom(date: Date) -> timespec? {
     return timespec(tv_sec: Int(intervalNS / nsecPerSec),
                     tv_nsec: Int(intervalNS % nsecPerSec))
 }
+#endif
 
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Windows)
 
 private func deallocateTimedLockData(cond: _ConditionVariablePointer, mutex: _MutexPointer) {
+#if os(Windows)
+    // CONDITION_VARIABLEs do not need to be explicitly destroyed
+#else
     pthread_cond_destroy(cond)
+#endif
     cond.deinitialize(count: 1)
     cond.deallocate()
 
+#if os(Windows)
+    // SRWLOCKs do not need to be explicitly destroyed
+#else
     pthread_mutex_destroy(mutex)
+#endif
     mutex.deinitialize(count: 1)
     mutex.deallocate()
 }
@@ -307,10 +441,40 @@ private func deallocateTimedLockData(cond: _ConditionVariablePointer, mutex: _Mu
 // Emulate pthread_mutex_timedlock using pthread_cond_timedwait.
 // lock(before:) passes a condition variable/mutex pair to use.
 // unlock() will use pthread_cond_broadcast() to wake any waits in progress.
+#if os(Windows)
 private func timedLock(mutex: _MutexPointer, endTime: Date,
                        using timeoutCond: _ConditionVariablePointer,
                        with timeoutMutex: _MutexPointer) -> Bool {
+    repeat {
+      AcquireSRWLockExclusive(timeoutMutex)
+      SleepConditionVariableSRW(timeoutCond, timeoutMutex,
+                                timeoutFrom(date: endTime), 0)
+      ReleaseSRWLockExclusive(timeoutMutex)
+      if TryAcquireSRWLockExclusive(mutex) != FALSE {
+        return true
+      }
+    } while timeoutFrom(date: endTime) != 0
+    return false
+}
 
+private func timedLock(mutex: _RecursiveMutexPointer, endTime: Date,
+                       using timeoutCond: _ConditionVariablePointer,
+                       with timeoutMutex: _MutexPointer) -> Bool {
+    repeat {
+      AcquireSRWLockExclusive(timeoutMutex)
+      SleepConditionVariableSRW(timeoutCond, timeoutMutex,
+                                timeoutFrom(date: endTime), 0)
+      ReleaseSRWLockExclusive(timeoutMutex)
+      if TryEnterCriticalSection(mutex) != FALSE {
+        return true
+      }
+    } while timeoutFrom(date: endTime) != 0
+    return false
+}
+#else
+private func timedLock(mutex: _MutexPointer, endTime: Date,
+                       using timeoutCond: _ConditionVariablePointer,
+                       with timeoutMutex: _MutexPointer) -> Bool {
     var timeSpec = timeSpecFrom(date: endTime)
     while var ts = timeSpec {
         let lockval = pthread_mutex_lock(timeoutMutex)
@@ -333,4 +497,5 @@ private func timedLock(mutex: _MutexPointer, endTime: Date,
     }
     return false
 }
+#endif
 #endif
