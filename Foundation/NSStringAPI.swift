@@ -443,7 +443,7 @@ extension StringProtocol where Index == String.Index {
   /// Return an `Index` corresponding to the given offset in our UTF-16
   /// representation.
   func _index(_ utf16Index: Int) -> Index {
-    return Index(encodedOffset: utf16Index + _substringOffset)
+    return self.utf16.index(self.utf16.startIndex, offsetBy: utf16Index)
   }
 
   @inlinable
