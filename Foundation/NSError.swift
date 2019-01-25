@@ -13,33 +13,53 @@
 
 import CoreFoundation
 
-public typealias NSErrorDomain = NSString
+public let NSCocoaErrorDomain: String = NSError.Domain.cocoa.rawValue as String
+public let NSPOSIXErrorDomain: String = NSError.Domain.posix.rawValue as String
+public let NSOSStatusErrorDomain: String = NSError.Domain.osStatus.rawValue as String
+public let NSMachErrorDomain: String = NSError.Domain.mach.rawValue as String
 
-/// Predefined domain for errors from most Foundation APIs.
-public let NSCocoaErrorDomain: String = "NSCocoaErrorDomain"
+public enum NSErrorUserInfoKey: NSString {
+    // Key in userInfo. A recommended standard way to embed NSErrors from underlying calls. The value of this key should be an NSError.
+    case underlyingError = "NSUnderlyingError"
+    
+    // Keys in userInfo, for subsystems wishing to provide their error messages up-front. Note that NSError will also consult the userInfoValueProvider for the domain when these values are not present in the userInfo dictionary.
+    case localizedDescription = "NSLocalizedDescription"
+    case failureReason = "NSLocalizedFailureReason"
+    case recoverySuggestion = "NSLocalizedRecoverySuggestion"
+    case recoveryOptions = "NSLocalizedRecoveryOptions"
+    case recoveryAttempter = "NSRecoveryAttempter"
+    case helpAnchor = "NSHelpAnchor"
+    
+    // Other standard keys in userInfo, for various error codes
+    case encodingError = "NSStringEncodingErrorKey"
+    case url = "NSURL"
+    case filePath = "NSFilePathErrorKey"
+}
 
-// Other predefined domains; value of "code" will correspond to preexisting values in these domains.
-public let NSPOSIXErrorDomain: String = "NSPOSIXErrorDomain"
-public let NSOSStatusErrorDomain: String = "NSOSStatusErrorDomain"
-public let NSMachErrorDomain: String = "NSMachErrorDomain"
+public let NSUnderlyingErrorKey: String = NSErrorUserInfoKey.underlyingError.rawValue as String
 
-// Key in userInfo. A recommended standard way to embed NSErrors from underlying calls. The value of this key should be an NSError.
-public let NSUnderlyingErrorKey: String = "NSUnderlyingError"
+public let NSLocalizedDescriptionKey: String = NSErrorUserInfoKey.localizedDescription.rawValue as String
+public let NSLocalizedFailureReasonErrorKey: String = NSErrorUserInfoKey.failureReason.rawValue as String
+public let NSLocalizedRecoverySuggestionErrorKey: String = String(NSErrorUserInfoKey.recoverySuggestion.rawValue)
+public let NSLocalizedRecoveryOptionsErrorKey: String = NSErrorUserInfoKey.recoveryOptions.rawValue as String
+public let NSRecoveryAttempterErrorKey: String = NSErrorUserInfoKey.recoveryAttempter.rawValue as String
+public let NSHelpAnchorErrorKey: String = NSErrorUserInfoKey.helpAnchor.rawValue as String
 
-// Keys in userInfo, for subsystems wishing to provide their error messages up-front. Note that NSError will also consult the userInfoValueProvider for the domain when these values are not present in the userInfo dictionary.
-public let NSLocalizedDescriptionKey: String = "NSLocalizedDescription"
-public let NSLocalizedFailureReasonErrorKey: String = "NSLocalizedFailureReason"
-public let NSLocalizedRecoverySuggestionErrorKey: String = "NSLocalizedRecoverySuggestion"
-public let NSLocalizedRecoveryOptionsErrorKey: String = "NSLocalizedRecoveryOptions"
-public let NSRecoveryAttempterErrorKey: String = "NSRecoveryAttempter"
-public let NSHelpAnchorErrorKey: String = "NSHelpAnchor"
-
-// Other standard keys in userInfo, for various error codes
-public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
-public let NSURLErrorKey: String = "NSURL"
-public let NSFilePathErrorKey: String = "NSFilePathErrorKey"
+public let NSStringEncodingErrorKey: String = NSErrorUserInfoKey.encodingError.rawValue as String
+public let NSURLErrorKey: String = NSErrorUserInfoKey.url.rawValue as String
+public let NSFilePathErrorKey: String = NSErrorUserInfoKey.filePath.rawValue as String
 
 open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
+    public enum Domain: NSString {
+        /// Predefined domain for errors from most Foundation APIs.
+        case cocoa = "NSCocoaErrorDomain"
+    
+        // Other predefined domains; value of "code" will correspond to preexisting values in these domains.
+        case posix = "NSPOSIXErrorDomain"
+        case osStatus = "NSOSStatusErrorDomain"
+        case mach = "NSMachErrorDomain"
+    }
+    
     typealias CFType = CFError
     
     internal var _cfObject: CFType {
