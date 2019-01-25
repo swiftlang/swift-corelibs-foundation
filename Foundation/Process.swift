@@ -585,7 +585,7 @@ open class Process: NSObject {
         
         repeat {
             
-        } while( self.isRunning == true && RunLoop.current.run(mode: .defaultRunLoopMode, before: Date(timeIntervalSinceNow: 0.05)) )
+        } while( self.isRunning == true && RunLoop.current.run(mode: .default, before: Date(timeIntervalSinceNow: 0.05)) )
         
         self.runLoop = nil
     }

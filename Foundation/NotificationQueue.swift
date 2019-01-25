@@ -30,7 +30,7 @@ extension NotificationQueue {
 open class NotificationQueue: NSObject {
 
     internal typealias NotificationQueueList = NSMutableArray
-    internal typealias NSNotificationListEntry = (Notification, [RunLoopMode]) // Notification ans list of modes the notification may be posted in.
+    internal typealias NSNotificationListEntry = (Notification, [RunLoop.Mode]) // Notification ans list of modes the notification may be posted in.
     internal typealias NSNotificationList = [NSNotificationListEntry] // The list of notifications to post
 
     internal let notificationCenter: NotificationCenter
@@ -80,8 +80,8 @@ open class NotificationQueue: NSObject {
         enqueue(notification, postingStyle: postingStyle, coalesceMask: [.onName, .onSender], forModes: nil)
     }
 
-    open func enqueue(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoopMode]?) {
-        var runloopModes: [RunLoopMode] = [.defaultRunLoopMode]
+    open func enqueue(_ notification: Notification, postingStyle: PostingStyle, coalesceMask: NotificationCoalescing, forModes modes: [RunLoop.Mode]?) {
+        var runloopModes: [RunLoop.Mode] = [.default]
         if let modes = modes  {
             runloopModes = modes
         }
@@ -140,7 +140,7 @@ open class NotificationQueue: NSObject {
         CFRunLoopRemoveObserver(RunLoop.current._cfRunLoop, observer, kCFRunLoopCommonModes)
     }
 
-    private func notify(_ currentMode: RunLoopMode?, notificationList: inout NSNotificationList) {
+    private func notify(_ currentMode: RunLoop.Mode?, notificationList: inout NSNotificationList) {
         for (idx, (notification, modes)) in notificationList.enumerated().reversed() {
             if currentMode == nil || modes.contains(currentMode!) {
                 self.notificationCenter.post(notification)

@@ -19,36 +19,29 @@ import CoreFoundation
     internal let kCFRunLoopAllActivities = CFRunLoopActivity.allActivities.rawValue
 #endif
 
-public struct RunLoopMode : RawRepresentable, Equatable, Hashable {
-    public private(set) var rawValue: String
-    
-    public init(_ rawValue: String) {
-        self.rawValue = rawValue
-    }
-    
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-    
-    public var hashValue: Int {
-        return rawValue.hashValue
-    }
+extension RunLoop {
+    public struct Mode : RawRepresentable, Equatable, Hashable {
+        public private(set) var rawValue: String
 
-    public static func ==(_ lhs: RunLoopMode, _ rhs: RunLoopMode) -> Bool {
-        return lhs.rawValue == rhs.rawValue
+        public init(_ rawValue: String) {
+            self.rawValue = rawValue
+        }
+
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
     }
 }
 
-
-extension RunLoopMode {
-    public static let defaultRunLoopMode = RunLoopMode("kCFRunLoopDefaultMode")
-    public static let commonModes = RunLoopMode("kCFRunLoopCommonModes")
+extension RunLoop.Mode {
+    public static let `default`: RunLoop.Mode = RunLoop.Mode("kCFRunLoopDefaultMode")
+    public static let common: RunLoop.Mode = RunLoop.Mode("kCFRunLoopCommonModes")
     
     // Use this instead of .rawValue._cfObject; this will allow CFRunLoop to use pointer equality internally.
     fileprivate var _cfStringUniquingKnown: CFString {
-        if self == .defaultRunLoopMode {
+        if self == .default {
             return kCFRunLoopDefaultMode
-        } else if self == .commonModes {
+        } else if self == .common {
             return kCFRunLoopCommonModes
         } else {
             return rawValue._cfObject
@@ -79,9 +72,9 @@ open class RunLoop: NSObject {
         return _CFRunLoopGet2(CFRunLoopGetMain()) as! RunLoop
     }
 
-    open var currentMode: RunLoopMode? {
+    open var currentMode: RunLoop.Mode? {
         if let mode = CFRunLoopCopyCurrentMode(_cfRunLoop) {
-            return RunLoopMode(mode._swiftObject)
+            return RunLoop.Mode(mode._swiftObject)
         } else {
             return nil
         }
@@ -91,19 +84,19 @@ open class RunLoop: NSObject {
         return _cfRunLoop
     }
 
-    open func add(_ timer: Timer, forMode mode: RunLoopMode) {
+    open func add(_ timer: Timer, forMode mode: RunLoop.Mode) {
         CFRunLoopAddTimer(CFRunLoopGetCurrent(), timer._cfObject, mode._cfStringUniquingKnown)
     }
 
-    open func add(_ aPort: Port, forMode mode: RunLoopMode) {
+    open func add(_ aPort: Port, forMode mode: RunLoop.Mode) {
         NSUnimplemented()
     }
 
-    open func remove(_ aPort: Port, forMode mode: RunLoopMode) {
+    open func remove(_ aPort: Port, forMode mode: RunLoop.Mode) {
         NSUnimplemented()
     }
 
-    open func limitDate(forMode mode: RunLoopMode) -> Date? {
+    open func limitDate(forMode mode: RunLoop.Mode) -> Date? {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return nil
         }
@@ -135,14 +128,14 @@ open class RunLoop: NSObject {
 extension RunLoop {
 
     public func run() {
-        while run(mode: .defaultRunLoopMode, before: Date.distantFuture) { }
+        while run(mode: .default, before: Date.distantFuture) { }
     }
 
     public func run(until limitDate: Date) {
-        while run(mode: .defaultRunLoopMode, before: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
+        while run(mode: .default, before: limitDate) && limitDate.timeIntervalSinceReferenceDate > CFAbsoluteTimeGetCurrent() { }
     }
 
-    public func run(mode: RunLoopMode, before limitDate: Date) -> Bool {
+    public func run(mode: RunLoop.Mode, before limitDate: Date) -> Bool {
         if _cfRunLoop !== CFRunLoopGetCurrent() {
             return false
         }
@@ -157,11 +150,11 @@ extension RunLoop {
         return true
     }
 
-    public func perform(inModes modes: [RunLoopMode], block: @escaping () -> Void) {
+    public func perform(inModes modes: [RunLoop.Mode], block: @escaping () -> Void) {
         CFRunLoopPerformBlock(getCFRunLoop(), (modes.map { $0._cfStringUniquingKnown })._cfObject, block)
     }
     
     public func perform(_ block: @escaping () -> Void) {
-        perform(inModes: [.defaultRunLoopMode], block: block)
+        perform(inModes: [.default], block: block)
     }
 }

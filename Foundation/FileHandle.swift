@@ -324,7 +324,7 @@ public let NSFileHandleNotificationDataItem: String = "NSFileHandleNotificationD
 public let NSFileHandleNotificationFileHandleItem: String = "NSFileHandleNotificationFileHandleItem"
 
 extension FileHandle {
-    open func readInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    open func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         NSUnimplemented()
     }
 
@@ -332,7 +332,7 @@ extension FileHandle {
         NSUnimplemented()
     }
 
-    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         NSUnimplemented()
     }
 
@@ -340,7 +340,7 @@ extension FileHandle {
         NSUnimplemented()
     }
     
-    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         NSUnimplemented()
     }
 
@@ -348,7 +348,7 @@ extension FileHandle {
         NSUnimplemented()
     }
     
-    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoopMode]?) {
+    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
         NSUnimplemented()
     }
 
