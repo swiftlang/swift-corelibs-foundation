@@ -547,7 +547,7 @@ class TestXMLDocument : LoopbackServerTest {
 }
 
 fileprivate extension XMLNode {
-    fileprivate func findFirstChild(named name: String) -> XMLNode? {
+    func findFirstChild(named name: String) -> XMLNode? {
         guard let children = self.children else {
             return nil
         }
