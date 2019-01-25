@@ -110,6 +110,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
+  set(CoreFoundation_INTERFACE_LIBRARIES -lWS2_32 -lUser32 -lmsvcrt -ladvapi32 -lshell32 -lrpcrt4 -lsecur32 -lPathcch -lOle32 -lCrypt32 -lwldap32 -lNormaliz -lDbgHelp -lIphlpapi)
 endif()
 
 add_swift_library(Foundation
@@ -298,6 +299,7 @@ add_swift_library(Foundation
                     -L${CMAKE_CURRENT_BINARY_DIR}
                     -luuid
                     ${Foundation_rpath_flags}
+                    ${CoreFoundation_INTERFACE_LIBRARIES}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -305,6 +307,7 @@ add_swift_library(Foundation
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
                     ${swift_optimization_flags}
+                    -Xcc -D_DLL
                   DEPENDS
                     CoreFoundation)
 

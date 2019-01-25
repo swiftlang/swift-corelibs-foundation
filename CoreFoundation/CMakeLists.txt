@@ -353,6 +353,12 @@ if(CF_DEPLOYMENT_SWIFT)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_RUNTIME_SWIFT)
+  if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -D_DLL
+                                 -DCURL_STATICLIB)
+  endif()
 else()
   target_compile_definitions(CoreFoundation
                              PRIVATE
