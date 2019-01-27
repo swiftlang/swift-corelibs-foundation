@@ -347,7 +347,10 @@ CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
 #if DEPLOYMENT_TARGET_WINDOWS
 typedef HANDLE _CFThreadRef;
-typedef DWORD _CFThreadAttributes;
+typedef struct _CFThreadAttributes {
+  DWORD dwSizeOfAttributes;
+  DWORD dwThreadStackReservation;
+} _CFThreadAttributes;
 typedef DWORD _CFThreadSpecificKey;
 #elif _POSIX_THREADS
 typedef pthread_t _CFThreadRef;
