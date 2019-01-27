@@ -487,7 +487,7 @@ open class NSKeyedArchiver : NSCoder {
         let className = NSStringFromClass(clsv)
         let mappedClassName = _classNameForClass(clsv)
         
-        if mappedClassName != nil && mappedClassName != className {
+        if let mappedClassName = mappedClassName && mappedClassName != className {
             // If we have a mapped class name, OS X only encodes the mapped name
             classDict["$classname"] = mappedClassName
         } else {
@@ -552,7 +552,7 @@ open class NSKeyedArchiver : NSCoder {
         // check replacement cache
         if let hashable = object as? AnyHashable {
             objectToEncode = self._replacementMap[hashable]
-            if objectToEncode != nil {
+            if let objectToEncode = objectToEncode {
                 return objectToEncode
             }
         }
