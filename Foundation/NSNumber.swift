@@ -989,7 +989,7 @@ open class NSNumber : NSValue {
                 return String(format: "%@", locale: locale, unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
             }
 
-        case kCFNumberFloatType, kCFNumberCGFloatType, kCFNumberFloatType:
+        case kCFNumberFloatType, kCFNumberFloat32Type:
             return String(format: "%0.7g", locale: locale, self.floatValue)
 
         case kCFNumberFloat64Type, kCFNumberDoubleType:
@@ -1026,7 +1026,7 @@ open class NSNumber : NSValue {
                 return String(format: "%@", locale: nil, unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
             }
 
-        case kCFNumberFloatType, kCFNumberCGFloatType, kCFNumberFloatType:
+        case kCFNumberFloatType, kCFNumberFloat32Type:
             return self.floatValue.description
 
         case kCFNumberFloat64Type, kCFNumberDoubleType:
