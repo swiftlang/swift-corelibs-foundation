@@ -23,6 +23,12 @@ class TestOperationQueue : XCTestCase {
             ("test_CurrentQueueWithCustomUnderlyingQueue", test_CurrentQueueWithCustomUnderlyingQueue),
             ("test_CurrentQueueWithUnderlyingQueueResetToNil", test_CurrentQueueWithUnderlyingQueueResetToNil),
             ("test_isSuspended", test_isSuspended),
+            ("test_QueueDoesntEatAllThreadsInPool", test_QueueDoesntEatAllThreadsInPool),
+            ("test_isSuspendedAndCanceled", test_isSuspendedAndCanceled),
+            ("test_WaitUntilFinished", test_WaitUntilFinished),
+            ("test_WaitUntilFinishedOperation", test_WaitUntilFinishedOperation),
+            ("test_CustomReadyOperation", test_CustomReadyOperation),
+            ("testMac0s_10_6_CancelBehavour", testMac0s_10_6_CancelBehavour),
         ]
     }
     
@@ -190,6 +196,171 @@ class TestOperationQueue : XCTestCase {
             XCTAssertEqual(operationQueue, OperationQueue.current)
             expectation.fulfill()
         }
+        
+        waitForExpectations(timeout: 1)
+    }
+    
+    // OperationQueue shouldn't move all threads on wait as previous implementation does
+    func test_QueueDoesntEatAllThreadsInPool() {
+        let expectation = self.expectation(description: "Background execution")
+        
+        let operationQueue1 = OperationQueue()
+        operationQueue1.maxConcurrentOperationCount = 2
+        operationQueue1.underlyingQueue = DispatchQueue(label: "underlying_queue1")
+        operationQueue1.underlyingQueue = nil
+        
+        for _ in 0 ..< 1000 {
+            operationQueue1.addOperation {
+                sleep(1)
+            }
+        }
+        
+        let operationQueue2 = OperationQueue()
+        operationQueue2.maxConcurrentOperationCount = 2
+        operationQueue2.underlyingQueue = DispatchQueue(label: "underlying_queue2")
+        operationQueue2.underlyingQueue = nil
+        
+        operationQueue2.addOperation {
+            expectation.fulfill()
+        }
+    
+        waitForExpectations(timeout: 1)
+        
+        operationQueue1.cancelAllOperations()
+    }
+    
+    public func test_isSuspendedAndCanceled() {
+        let queue = OperationQueue()
+        queue.isSuspended = true
+        
+        let op1 = BlockOperation {}
+        op1.name = "op1"
+        
+        let op2 = BlockOperation {}
+        op2.name = "op2"
+        
+        queue.addOperation(op1)
+        queue.addOperation(op2)
+        
+        op1.cancel()
+        op2.cancel()
+        
+        queue.isSuspended = false
+        queue.waitUntilAllOperationsAreFinished()
+        
+        XCTAssert(op1.isCancelled)
+        XCTAssertFalse(op1.isExecuting)
+        XCTAssert(op1.isFinished)
+        XCTAssert(op2.isCancelled)
+        XCTAssertFalse(op2.isExecuting)
+        XCTAssert(op2.isFinished)
+    }
+    
+    func test_WaitUntilFinished() {
+        let expectation = self.expectation(description: "Operation should finish")
+        let queue1 = OperationQueue()
+        let queue2 = OperationQueue()
+        
+        let op1 = BlockOperation {
+            sleep(1)
+            expectation.fulfill()
+        }
+        let op2 = BlockOperation { }
+        
+        op2.addDependency(op1)
+        
+        queue1.addOperation(op1)
+        queue2.addOperation(op2)
+        
+        queue2.waitUntilAllOperationsAreFinished()
+        waitForExpectations(timeout: 0)
+        XCTAssertEqual(queue2.operationCount, 0)
+    }
+    
+    func test_WaitUntilFinishedOperation() {
+        let expectation = self.expectation(description: "Operation should finish")
+        let queue1 = OperationQueue()
+        let op1 = BlockOperation {
+            sleep(1)
+            expectation.fulfill()
+        }
+        queue1.addOperation(op1)
+        op1.waitUntilFinished()
+        waitForExpectations(timeout: 0)
+        XCTAssertEqual(queue1.operationCount, 0)
+    }
+    
+    func test_CustomReadyOperation() {
+        class CustomOperation: Operation {
+            
+            private var _isReady = false
+            
+            override var isReady: Bool {
+                return _isReady
+            }
+            
+            func setIsReady() {
+                willChangeValue(forKey: "isReady")
+                _isReady = true
+                didChangeValue(forKey: "isReady")
+            }
+            
+        }
+        
+        let expectation = self.expectation(description: "Operation should finish")
+        
+        let queue1 = OperationQueue()
+        let op1 = CustomOperation()
+        let op2 = BlockOperation(block: {
+            expectation.fulfill()
+        })
+        
+        op2.addDependency(op1)
+        
+        queue1.addOperation(op1)
+        queue1.addOperation(op2)
+        
+        sleep(1)
+        XCTAssertEqual(queue1.operationCount, 2)
+        
+        op1.setIsReady()
+        waitForExpectations(timeout: 1)
+        XCTAssertEqual(queue1.operationCount, 0)
+    }
+    
+    // In macOS 10.6 and later, if you cancel an operation while it is waiting on the completion of
+    // one or more dependent operations, those dependencies are thereafter ignored and the
+    // value of this property is updated to reflect that it is now ready to run. This behavior gives
+    // an operation queue the chance to flush cancelled operations out of its queue more quickly.
+    func testMac0s_10_6_CancelBehavour() {
+        
+        let expectation1 = self.expectation(description: "Operation should finish")
+        let expectation2 = self.expectation(description: "Operation should finish")
+        
+        let queue1 = OperationQueue()
+        let op1 = BlockOperation(block: {
+            expectation1.fulfill()
+        })
+        let op2 = BlockOperation(block: {
+            expectation2.fulfill()
+        })
+        let op3 = BlockOperation(block: {
+            // empty
+        })
+        
+        op1.addDependency(op2)
+        op2.addDependency(op3)
+        op3.addDependency(op1)
+        
+        queue1.addOperation(op1)
+        queue1.addOperation(op2)
+        queue1.addOperation(op3)
+        
+        sleep(1)
+        
+        XCTAssertEqual(queue1.operationCount, 3)
+        
+        op3.cancel()
         
         waitForExpectations(timeout: 1)
     }
