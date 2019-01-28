@@ -1421,10 +1421,6 @@ extension TestNSData {
     }
     
     func test_dataHash() {
-        let dataStruct = "Hello World".data(using: .utf8)!
-        let dataObj = dataStruct._bridgeToObjectiveC()
-        XCTAssertEqual(dataObj.hashValue, dataStruct.hashValue, "Data and NSData should have the same hash value")
-
         XCTAssertEqual(NSData().hash, 0)
         XCTAssertEqual(NSMutableData().hash, 0)
 
