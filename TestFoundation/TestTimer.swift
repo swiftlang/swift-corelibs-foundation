@@ -43,7 +43,7 @@ class TestTimer : XCTestCase {
         }
 
         let runLoop = RunLoop.current
-        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.add(dummyTimer, forMode: .default)
         runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
@@ -69,7 +69,7 @@ class TestTimer : XCTestCase {
         }
         
         let runLoop = RunLoop.current
-        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.add(dummyTimer, forMode: .default)
         runLoop.run(until: Date(timeIntervalSinceNow: interval * Double(numberOfRepeats + 1)))
         
         XCTAssertEqual(flag, numberOfRepeats)
@@ -89,7 +89,7 @@ class TestTimer : XCTestCase {
         }
         
         let runLoop = RunLoop.current
-        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
+        runLoop.add(dummyTimer, forMode: .default)
         runLoop.run(until: Date(timeIntervalSinceNow: 0.05))
         
         XCTAssertTrue(flag)
