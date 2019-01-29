@@ -465,16 +465,18 @@ open class XMLParser : NSObject {
     }
     
     internal func _handleParseResult(_ parseResult: Int32) -> Bool {
-        return true
-        /*
         var result = true
         if parseResult != 0 {
             if parseResult != -1 {
                 // TODO: determine if this result is a fatal error from libxml via the CF implementations
             }
+            
+            if _parserError == nil {
+                _parserError = NSError(domain: XMLParser.errorDomain, code: Int(parseResult))
+            }
+            result = false
         }
         return result
-        */
     }
 
     internal func parseData(_ data: Data) -> Bool {
