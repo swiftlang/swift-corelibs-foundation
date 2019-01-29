@@ -33,11 +33,13 @@ extension TestPropertyListEncoder {
             let optionalInt: Int?
             let url: URL
             let stringEnum: StringEnum?
+            var data: Data
+            var date: Date?
         }
         
         let intEnum: IntEnum
         let innerStruct: InnerStruct
-        
+
         init(intEnum: IntEnum, innerStruct: InnerStruct) {
             self.intEnum = intEnum
             self.innerStruct = innerStruct
@@ -51,8 +53,10 @@ extension TestPropertyListEncoder {
             let optionalInt: Int? = 1234
             let url = URL(string: "https://swift.org")!
             let innerClassString = "demo_string"
+            let testData = innerClassString.data(using: .utf8)!
+            let testDate = Date.distantPast
             
-            let innerStruct = TestBaseClass.InnerStruct(string: innerClassString, optionalInt: optionalInt, url: url, stringEnum: .two)
+            let innerStruct = TestBaseClass.InnerStruct(string: innerClassString, optionalInt: optionalInt, url: url, stringEnum: .two, data: testData, date: testDate)
             let testClass = TestBaseClass(intEnum: .one, innerStruct: innerStruct)
             
             let encoder = PropertyListEncoder()
@@ -95,6 +99,14 @@ extension TestPropertyListEncoder {
     <true/>
     <key>CFBundleOtherKey</key>
     <string>other...</string>
+    <key>CFBundleDataArrayKey</key>
+    <array>
+        <data>
+        VEVTVF9EQVRB
+        </data>
+    </array>
+    <key>CFBundleDateKey</key>
+    <date>1970-01-01T00:00:20Z</date>
     </dict>
     </plist>
     """
@@ -107,6 +119,8 @@ extension TestPropertyListEncoder {
         let CFBundleIntKey: Int
         let CFFakeOptionalKey: Int?
         let CFBundleBoolKey: Bool
+        let CFBundleDataArrayKey: [Data]
+        let CFBundleDateKey: Date
     }
     
     func test_xmlDecoder() throws {
@@ -117,7 +131,9 @@ extension TestPropertyListEncoder {
             CFBundleInfoDictionaryVersion: 6.0,
             CFBundleIntKey: -100,
             CFFakeOptionalKey: nil,
-            CFBundleBoolKey: true
+            CFBundleBoolKey: true,
+            CFBundleDataArrayKey: ["TEST_DATA".data(using: .utf8)!],
+            CFBundleDateKey: Date(timeIntervalSince1970: 20)
         )
         
         let testData = TestPropertyListEncoder.propertyListXML.data(using: .utf8)!
