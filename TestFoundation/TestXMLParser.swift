@@ -65,6 +65,7 @@ class TestXMLParser : XCTestCase {
             ("test_withData", test_withData),
             ("test_withDataEncodings", test_withDataEncodings),
             ("test_withDataOptions", test_withDataOptions),
+            ("test_sr9758_abortParsing", test_sr9758_abortParsing),
         ]
     }
 
@@ -139,6 +140,18 @@ class TestXMLParser : XCTestCase {
         let res = parser.parse()
         XCTAssertEqual(stream.events, TestXMLParser.xmlUnderTestExpectedEvents(namespaces: true)  )
         XCTAssertTrue(res)
+    }
+
+    func test_sr9758_abortParsing() {
+        class Delegate: NSObject, XMLParserDelegate {
+            func parserDidStartDocument(_ parser: XMLParser) { parser.abortParsing() }
+        }
+        let xml = TestXMLParser.xmlUnderTest(encoding: .utf8)
+        let parser = XMLParser(data: xml.data(using: .utf8)!)
+        let delegate = Delegate()
+        parser.delegate = delegate
+        XCTAssertFalse(parser.parse())
+        XCTAssertNotNil(parser.parserError)
     }
 
 }
