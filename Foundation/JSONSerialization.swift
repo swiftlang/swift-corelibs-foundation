@@ -146,17 +146,13 @@ open class JSONSerialization : NSObject {
         } else {
             fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
         }
-        
-        let count = jsonStr.lengthOfBytes(using: .utf8)
-        let bufferLength = count+1 // Allow space for null terminator
-        var utf8: [CChar] = Array<CChar>(repeating: 0, count: bufferLength)
-        if !jsonStr.getCString(&utf8, maxLength: bufferLength, encoding: .utf8) {
-            fatalError("Failed to generate a CString from a String")
+
+        let count = jsonStr.utf8.count
+        return jsonStr.withCString {
+            Data(bytes: $0, count: count)
         }
-        let rawBytes = UnsafeRawPointer(UnsafePointer(utf8))
-        let result = Data(bytes: rawBytes.bindMemory(to: UInt8.self, capacity: count), count: count)
-        return result
     }
+
     open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
         return try _data(withJSONObject: value, options: opt, stream: false)
     }
