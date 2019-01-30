@@ -323,8 +323,31 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return self
     }
 
-    open var hashValue: Int {
+    /// The hash value.
+    ///
+    /// `NSObject` implements this by returning `self.hash`.
+    ///
+    /// `NSObject.hashValue` is not overridable; subclasses can customize hashing
+    /// by overriding the `hash` property.
+    ///
+    /// **Axiom:** `x == y` implies `x.hashValue == y.hashValue`
+    ///
+    /// - Note: the hash value is not guaranteed to be stable across
+    ///   different invocations of the same program.  Do not persist the
+    ///   hash value across program runs.
+    public final var hashValue: Int {
         return hash
+    }
+
+    /// Hashes the essential components of this value by feeding them into the
+    /// given hasher.
+    ///
+    /// NSObject implements this by feeding `self.hash` to the hasher.
+    ///
+    /// `NSObject.hash(into:)` is not overridable; subclasses can customize
+    /// hashing by overriding the `hash` property.
+    public final func hash(into hasher: inout Hasher) {
+        hasher.combine(self.hash)
     }
 
     /// Returns a Boolean value indicating whether two values are equal.
