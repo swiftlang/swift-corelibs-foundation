@@ -534,10 +534,18 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
             .st_mtim = { .tv_sec = statx_buffer.stx_mtime.tv_sec, .tv_nsec = statx_buffer.stx_mtime.tv_nsec },
             .st_ctim = { .tv_sec = statx_buffer.stx_ctime.tv_sec, .tv_nsec = statx_buffer.stx_ctime.tv_nsec },
         };
-        *btime = (struct timespec) {
-            .tv_sec =  statx_buffer.stx_btime.tv_sec,
-            .tv_nsec = statx_buffer.stx_btime.tv_nsec
-        };
+        // Check that stx_btime was set in the response, not all filesystems support it.
+        if (statx_buffer.stx_mask & STATX_BTIME) {
+            *btime = (struct timespec) {
+                .tv_sec = statx_buffer.stx_btime.tv_sec,
+                .tv_nsec = statx_buffer.stx_btime.tv_nsec
+            };
+        } else {
+            *btime = (struct timespec) {
+                .tv_sec = 0,
+                .tv_nsec = 0
+            };
+        }
     }
     return ret;
 }

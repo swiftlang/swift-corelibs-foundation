@@ -1428,8 +1428,13 @@ open class FileManager : NSObject {
 
             let sec = btime.tv_sec
             let nsec = btime.tv_nsec
-            let ti = (TimeInterval(sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(nsec))
-            let creationDate = Date(timeIntervalSinceReferenceDate: ti)
+            let creationDate: Date?
+            if sec == 0 && nsec == 0 {
+                creationDate = nil
+            } else {
+                let ti = (TimeInterval(sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(nsec))
+                creationDate = Date(timeIntervalSinceReferenceDate: ti)
+            }
             return (statInfo, creationDate)
         } else {
             // fallback if statx() is unavailable or fails
