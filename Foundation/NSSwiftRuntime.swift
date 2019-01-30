@@ -22,6 +22,10 @@ import CoreFoundation
 
 @_exported import Dispatch
 
+#if os(Windows)
+import WinSDK
+#endif
+
 #if os(Android) // shim required for bzero
 @_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
     memset(ptr, 0, size)
