@@ -153,7 +153,11 @@ open class InputStream: Stream {
     }
     
     open override var streamStatus: Status {
+#if os(Windows)
+        return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream).rawValue))!
+#else
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
+#endif
     }
     
     open override var streamError: Error? {
@@ -205,7 +209,11 @@ open class OutputStream : Stream {
     }
     
     open override var streamStatus: Status {
+#if os(Windows)
+        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream).rawValue))!
+#else
         return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_stream)))!
+#endif
     }
     
     open class func toMemory() -> Self {

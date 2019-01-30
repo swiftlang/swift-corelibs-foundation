@@ -374,9 +374,13 @@ internal extension _EasyHandle {
     /// errno number from last connect failure
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLINFO_OS_ERRNO.html
     var connectFailureErrno: Int {
+    #if os(Windows) && (arch(arm64) || arch(x86_64))
+        var errno = Int32()
+    #else
         var errno = Int()
+    #endif
         try! CFURLSession_easy_getinfo_long(rawHandle, CFURLSessionInfoOS_ERRNO, &errno).asError()
-        return errno
+        return numericCast(errno)
     }
 }
 

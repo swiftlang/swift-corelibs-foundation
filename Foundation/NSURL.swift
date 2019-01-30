@@ -556,9 +556,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     // Memory leak. See https://github.com/apple/swift-corelibs-foundation/blob/master/Docs/Issues.md
     open var fileSystemRepresentation: UnsafePointer<Int8> {
-        
+
+#if os(Windows)
+        let bufSize = Int(MAX_PATH + 1)
+#else
         let bufSize = Int(PATH_MAX + 1)
-        
+#endif
+
         let _fsrBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: bufSize)
         _fsrBuffer.initialize(repeating: 0, count: bufSize)
 

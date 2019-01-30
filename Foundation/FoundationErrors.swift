@@ -179,7 +179,11 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
             case ENOENT: cocoaError = .fileNoSuchFile
             case EPERM, EACCES: cocoaError = .fileWriteNoPermission
             case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
+#if os(Windows)
+            case ENOSPC: cocoaError = .fileWriteOutOfSpace
+#else
             case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
+#endif
             case EROFS: cocoaError = .fileWriteVolumeReadOnly
             case EEXIST: cocoaError = .fileWriteFileExists
             default: cocoaError = .fileWriteUnknown
