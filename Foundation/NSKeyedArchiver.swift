@@ -487,7 +487,7 @@ open class NSKeyedArchiver : NSCoder {
         let className = NSStringFromClass(clsv)
         let mappedClassName = _classNameForClass(clsv)
         
-        if let mappedClassName = mappedClassName && mappedClassName != className {
+        if let mappedClassName = mappedClassName, && mappedClassName != className {
             // If we have a mapped class name, OS X only encodes the mapped name
             classDict["$classname"] = mappedClassName
         } else {
