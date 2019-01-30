@@ -9,6 +9,13 @@
 
 import CoreFoundation
 
+// WORKAROUND_SR9811
+#if os(Windows)
+internal typealias _swift_CFThreadRef = HANDLE
+#else
+internal typealias _swift_CFThreadRef = pthread_t
+#endif
+
 internal class NSThreadSpecific<T: NSObject> {
     private var key = _CFThreadSpecificKeyCreate()
 
@@ -178,7 +185,7 @@ open class Thread : NSObject {
     }
 
     internal var _main: () -> Void = {}
-    private var _thread: _CFThreadRef? = nil
+    private var _thread: _swift_CFThreadRef? = nil
 
 #if os(Windows) && !CYGWIN
     internal var _attr: _CFThreadAttributes =
@@ -194,7 +201,7 @@ open class Thread : NSObject {
 
     open private(set) var threadDictionary: NSMutableDictionary = NSMutableDictionary()
 
-    internal init(thread: _CFThreadRef) {
+    internal init(thread: _swift_CFThreadRef) {
         // Note: even on Darwin this is a non-optional _CFThreadRef; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }

@@ -133,7 +133,7 @@ extension NSLock {
 open class NSConditionLock : NSObject, NSLocking {
     internal var _cond = NSCondition()
     internal var _value: Int
-    internal var _thread: _CFThreadRef?
+    internal var _thread: _swift_CFThreadRef?
     
     public convenience override init() {
         self.init(condition: 0)
