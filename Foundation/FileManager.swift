@@ -1358,11 +1358,11 @@ open class FileManager : NSObject {
         }
 
         var path1entries = Set<String>()
-        while let item = enumerator1.nextObject() as? String {
+        while let item = enumerator1.nextObject() {
             path1entries.insert(item)
         }
 
-        while let item = enumerator2.nextObject() as? String {
+        while let item = enumerator2.nextObject() {
             if path1entries.remove(item) == nil {
                 return false
             }
@@ -1467,7 +1467,7 @@ open class FileManager : NSObject {
     
     /* enumeratorAtPath: returns an NSDirectoryEnumerator rooted at the provided path. If the enumerator cannot be created, this returns NULL. Because NSDirectoryEnumerator is a subclass of NSEnumerator, the returned object can be used in the for...in construct.
      */
-    open func enumerator(atPath path: String) -> DirectoryEnumerator? {
+    open func enumerator(atPath path: String) -> DirectoryEnumerator<String>? {
         return NSPathDirectoryEnumerator(path: path)
     }
     
@@ -1476,7 +1476,7 @@ open class FileManager : NSObject {
         If you wish to only receive the URLs and no other attributes, then pass '0' for 'options' and an empty NSArray ('[NSArray array]') for 'keys'. If you wish to have the property caches of the vended URLs pre-populated with a default set of attributes, then pass '0' for 'options' and 'nil' for 'keys'.
      */
     // Note: Because the error handler is an optional block, the compiler treats it as @escaping by default. If that behavior changes, the @escaping will need to be added back.
-    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+    open func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?, options mask: DirectoryEnumerationOptions = [], errorHandler handler: (/* @escaping */ (URL, Error) -> Bool)? = nil) -> DirectoryEnumerator<URL>? {
         return NSURLDirectoryEnumerator(url: url, options: mask, errorHandler: handler)
     }
     
@@ -1807,7 +1807,20 @@ extension FileManagerDelegate {
 }
 
 extension FileManager {
-    open class DirectoryEnumerator : NSEnumerator {
+    open class DirectoryEnumerator<T>: Sequence {
+        
+        public typealias EnumeratorElement = T
+        
+        public struct Iterator : IteratorProtocol {
+            let enumerator : DirectoryEnumerator<T>
+            public func next() -> T? {
+                return enumerator.nextObject()
+            }
+        }
+        
+        public func makeIterator() -> Iterator {
+            return Iterator(enumerator: self)
+        }
         
         /* For NSDirectoryEnumerators created with -enumeratorAtPath:, the -fileAttributes and -directoryAttributes methods return an NSDictionary containing the keys listed below. For NSDirectoryEnumerators created with -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:, these two methods return nil.
          */
@@ -1827,11 +1840,16 @@ extension FileManager {
         open func skipDescendants() {
             NSRequiresConcreteImplementation()
         }
+        
+        open func nextObject() -> EnumeratorElement? {
+            NSRequiresConcreteImplementation()
+        }
+        
     }
 
-    internal class NSPathDirectoryEnumerator: DirectoryEnumerator {
+    internal class NSPathDirectoryEnumerator: DirectoryEnumerator<String> {
         let baseURL: URL
-        let innerEnumerator : DirectoryEnumerator
+        let innerEnumerator : DirectoryEnumerator<URL>
         private var _currentItemPath: String?
 
         override var fileAttributes: [FileAttributeKey : Any]? {
@@ -1862,9 +1880,8 @@ extension FileManager {
             self.innerEnumerator = ie
         }
         
-        override func nextObject() -> Any? {
-            let o = innerEnumerator.nextObject()
-            guard let url = o as? URL else {
+        override func nextObject() -> EnumeratorElement? {
+            guard let url = innerEnumerator.nextObject() else {
                 return nil
             }
             let path = url.path.replacingOccurrences(of: baseURL.path+"/", with: "")
@@ -1873,7 +1890,7 @@ extension FileManager {
         }
     }
 
-    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
+    internal class NSURLDirectoryEnumerator : DirectoryEnumerator<URL> {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
@@ -1908,7 +1925,7 @@ extension FileManager {
             }
         }
         
-        override func nextObject() -> Any? {
+        override func nextObject() -> EnumeratorElement? {
 
             func match(filename: String, to options: DirectoryEnumerationOptions, isDir: Bool) -> (Bool, Bool) {
                 var showFile = true
