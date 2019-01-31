@@ -607,6 +607,19 @@ public func NSFullUserName() -> String {
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
     let template = filePath + ".tmp.XXXXXX"
+#if os(Windows)
+    let maxLength: Int = Int(MAX_PATH + 1)
+    var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
+    let length = GetTempPathW(DWORD(MAX_PATH), &buf)
+    precondition(length <= MAX_PATH - 14, "temp path too long")
+    if GetTempFileNameW(buf, unsafeBitCast("SCF".utf16, to: LPCWSTR?.self), 0,
+                        &buf) == FALSE {
+      throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
+                              path: filePath)
+    }
+    let pathResult = FileManager.default.string(withFileSystemRepresentation: String(decoding: buf, as: UTF16.self), length: wcslen(buf))
+    let fd = open(pathResult, _O_CREAT)
+#else
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
     let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
@@ -615,6 +628,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
     let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+#endif
     return (fd, pathResult)
 }
 

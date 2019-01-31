@@ -26,7 +26,8 @@ import CoreFoundation
 import WinSDK
 #endif
 
-#if os(Android) // shim required for bzero
+// shim required for bzero
+#if os(Android) || os(Windows)
 @_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
     memset(ptr, 0, size)
 }

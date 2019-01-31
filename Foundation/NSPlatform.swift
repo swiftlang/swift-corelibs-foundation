@@ -11,6 +11,12 @@
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())
+#elseif os(Windows)
+fileprivate var _NSPageSize: Int {
+  var siInfo: SYSTEM_INFO = SYSTEM_INFO()
+  GetSystemInfo(&siInfo)
+  return Int(siInfo.dwPageSize)
+}
 #endif
 
 public func NSPageSize() -> Int {

@@ -83,9 +83,14 @@ fileprivate extension URLSession._MultiHandle {
             }.asError()
         // Timeout:
         try! CFURLSession_multi_setopt_ptr(rawHandle, CFURLSessionMultiOptionTIMERDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
-        try! CFURLSession_multi_setopt_tf(rawHandle, CFURLSessionMultiOptionTIMERFUNCTION) { (_, timeout: Int, userdata: UnsafeMutableRawPointer?) -> Int32 in
+#if os(Windows) && (arch(arm64) || arch(x86_64))
+        typealias CFURLSessionMultiOption = Int32
+#else
+        typealias CFURLSessionMultiOption = Int
+#endif
+        try! CFURLSession_multi_setopt_tf(rawHandle, CFURLSessionMultiOptionTIMERFUNCTION) { (_, timeout: CFURLSessionMultiOption, userdata: UnsafeMutableRawPointer?) -> Int32 in
             guard let handle = URLSession._MultiHandle.from(callbackUserData: userdata) else { fatalError() }
-            handle.updateTimeoutTimer(to: timeout)
+            handle.updateTimeoutTimer(to: numericCast(timeout))
             return 0
             }.asError()
     }
