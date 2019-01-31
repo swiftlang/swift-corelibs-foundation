@@ -435,6 +435,24 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     internal func makeTemporaryFile(inDirectory dirPath: String) throws -> (Int32, String) {
         let template = dirPath._nsObject.appendingPathComponent("tmp.XXXXXX")
+#if os(Windows)
+        let maxLength = Int(MAX_PATH) + 1
+        var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
+        let length = GetTempPathW(DWORD(MAX_PATH), &buf)
+        precondition(length <= MAX_PATH - 14, "temp path too long")
+        if "SCF".withCString(encodedAs: UTF16.self, {
+          return GetTempFileNameW(buf, $0, 0, &buf)
+        }) == FALSE {
+          throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
+                                  path: dirPath)
+        }
+        let pathResult =
+            FileManager.default
+                .string(withFileSystemRepresentation: String(decoding: buf,
+                                                             as: UTF16.self),
+                        length: wcslen(buf))
+        let fd = open(pathResult, _O_CREAT)
+#else
         let maxLength = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: maxLength)
         let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
@@ -443,13 +461,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             throw _NSErrorWithErrno(errno, reading: false, path: dirPath)
         }
         let pathResult = FileManager.default.string(withFileSystemRepresentation:buf, length: Int(strlen(buf)))
+#endif
         return (fd, pathResult)
     }
 
     internal class func write(toFileDescriptor fd: Int32, path: String? = nil, buf: UnsafeRawPointer, length: Int) throws {
         var bytesRemaining = length
         while bytesRemaining > 0 {
-            var bytesWritten : Int
+            var bytesWritten: Int = 0
             repeat {
                 #if os(macOS) || os(iOS)
                     bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
@@ -465,6 +484,22 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
+#if os(Windows)
+    internal class func write(toHandle handle: HANDLE, path: String? = nil, buf: UnsafeRawPointer, length: Int) throws {
+      var BytesToWrite = length
+      while BytesToWrite > 0 {
+        var BytesWritten: DWORD = 0
+        if WriteFile(handle, buf.advanced(by: length - BytesToWrite), DWORD(BytesToWrite), &BytesWritten, nil) == FALSE {
+          throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: path)
+        }
+        if BytesWritten == 0 {
+          throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: path)
+        }
+        BytesToWrite -= Int(BytesWritten)
+      }
+    }
+#endif
+
     /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
         let fm = FileManager.default
@@ -474,6 +509,16 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
             var auxFilePath : String? = nil
             if useAuxiliaryFile {
+#if os(Windows)
+                var info: ucrt._stat64 = ucrt._stat64()
+                try! String(cString: pathFsRep).withCString(encodedAs: UTF16.self) { wpath in
+                    if ucrt._wstat64(wpath, &info) == 0 {
+                        let mode = mode_t(info.st_mode)
+                    } else if errno != ENOENT && errno != ENAMETOOLONG {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
+                }
+#else
                 // Preserve permissions.
                 var info = stat()
                 if lstat(pathFsRep, &info) == 0 {
@@ -481,10 +526,20 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 } else if errno != ENOENT && errno != ENAMETOOLONG {
                     throw _NSErrorWithErrno(errno, reading: false, path: path)
                 }
+#endif
                 let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
                 fd = newFD
                 auxFilePath = path
+#if os(Windows)
+                let handle: HANDLE = HANDLE(bitPattern: _get_osfhandle(fd))!
+                var buf = [UInt16](repeating: 0, count: Int(MAX_PATH + 1))
+                if GetFinalPathNameByHandleW(handle, &buf, DWORD(MAX_PATH), DWORD(FILE_NAME_NORMALIZED)) == FALSE {
+                    fatalError("GetFinalPathNameByHandle() failed")
+                }
+                _wchmod(buf, 0o666)
+#else
                 fchmod(fd, 0o666)
+#endif
             } else {
                 var flags = O_WRONLY | O_CREAT | O_TRUNC
                 if writeOptionsMask.contains(.withoutOverwriting) {
@@ -503,9 +558,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
                 if range.length > 0 {
                     do {
                         try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
+#if os(Windows)
+                        if FlushFileBuffers(HANDLE(bitPattern: _get_osfhandle(fd))) == FALSE {
+                            throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: path)
+                        }
+#else
                         if fsync(fd) < 0 {
                             throw _NSErrorWithErrno(errno, reading: false, path: path)
                         }
+#endif
                     } catch {
                         if let auxFilePath = auxFilePath {
                             try? FileManager.default.removeItem(atPath: auxFilePath)
