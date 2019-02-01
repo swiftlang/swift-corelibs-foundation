@@ -29,7 +29,7 @@ fileprivate class NSCacheKey: NSObject {
         super.init()
     }
     
-    override var hashValue: Int {
+    override var hash: Int {
         switch self.value {
         case let nsObject as NSObject:
             return nsObject.hashValue
