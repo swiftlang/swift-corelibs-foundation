@@ -517,8 +517,9 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
             if let auxFilePath = auxFilePath {
                 try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
                     if rename(auxFilePathFsRep, pathFsRep) != 0 {
+                        let savedErrno = errno
                         try? FileManager.default.removeItem(atPath: auxFilePath)
-                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                        throw _NSErrorWithErrno(savedErrno, reading: false, path: path)
                     }
                     if let mode = mode {
                         chmod(pathFsRep, mode)
