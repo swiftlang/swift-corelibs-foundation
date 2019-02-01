@@ -301,7 +301,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         }
         if type(of: self) == NSString.self || type(of: self) == NSMutableString.self {
             if _storage._guts._isContiguousASCII {
-                return UnsafePointer<Int8>(_storage._guts.startASCII);
+                return UnsafeRawPointer(_storage._guts.startASCII).assumingMemoryBound(to: Int8.self)
             }
         }
         return nil
