@@ -223,7 +223,24 @@ open class FileManager : NSObject {
         return urls
     }
     #endif
-    
+
+    private lazy var xdgHomeDirectory: String = {
+        let key = "HOME="
+        if let contents = try? String(contentsOfFile: "/etc/default/useradd", encoding: .utf8) {
+            for line in contents.components(separatedBy: "\n") {
+                if line.hasPrefix(key) {
+                    let index = line.index(line.startIndex, offsetBy: key.count)
+                    let str = String(line[index...]) as NSString
+                    let homeDir = str.trimmingCharacters(in: CharacterSet.whitespaces)
+                    if homeDir.count > 0 {
+                        return homeDir
+                    }
+                }
+            }
+        }
+        return "/home"
+    }()
+
     private func xdgURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
         // FHS/XDG-compliant OSes:
         switch directory {
@@ -255,7 +272,7 @@ open class FileManager : NSObject {
             
         case .userDirectory:
             guard domain == .local else { return [] }
-            return [ URL(fileURLWithPath: "/home", isDirectory: true) ]
+            return [ URL(fileURLWithPath: xdgHomeDirectory, isDirectory: true) ]
             
         case .moviesDirectory:
             return [ _XDGUserDirectory.videos.url ]
