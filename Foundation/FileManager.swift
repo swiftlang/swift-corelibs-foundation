@@ -1392,6 +1392,11 @@ open class FileManager : NSObject {
         return statInfo
     }
 
+    internal func _permissionsOfItem(atPath path: String) throws -> Int {
+        let fileInfo = try _lstatFile(atPath: path)
+        return Int(fileInfo.st_mode & 0o777)
+    }
+
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {

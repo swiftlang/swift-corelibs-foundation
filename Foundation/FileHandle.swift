@@ -14,10 +14,12 @@ import CoreFoundation
 #if canImport(Darwin)
 import Darwin
 fileprivate let _read = Darwin.read(_:_:_:)
+fileprivate let _write = Darwin.write(_:_:_:)
 fileprivate let _close = Darwin.close(_:)
 #elseif canImport(Glibc)
 import Glibc
 fileprivate let _read = Glibc.read(_:_:_:)
+fileprivate let _write = Glibc.write(_:_:_:)
 fileprivate let _close = Glibc.close(_:)
 #endif
 
@@ -217,6 +219,34 @@ open class FileHandle : NSObject, NSSecureCoding {
 #endif
     }
 
+    internal func _writeBytes(buf: UnsafeRawPointer, length: Int) throws {
+#if os(Windows)
+        var bytesRemaining = length
+        while bytesRemaining > 0 {
+            var bytesWritten: DWORD = 0
+            if WriteFile(handle, buf.advanced(by: length - bytesRemaining), DWORD(bytesRemaining), &bytesWritten, nil) == FALSE {
+                throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: nil)
+            }
+            if bytesWritten == 0 {
+                throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: nil)
+            }
+            bytesRemaining -= Int(bytesWritten)
+        }
+#else
+        var bytesRemaining = length
+        while bytesRemaining > 0 {
+            var bytesWritten = 0
+            repeat {
+                bytesWritten = _write(_fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
+            } while (bytesWritten < 0 && errno == EINTR)
+            if bytesWritten <= 0 {
+                throw _NSErrorWithErrno(errno, reading: false, path: nil)
+            }
+            bytesRemaining -= bytesWritten
+        }
+#endif
+    }
+
 #if os(Windows)
     public init(handle: HANDLE, closeOnDealloc closeopt: Bool) {
       _handle = handle
@@ -314,13 +344,7 @@ open class FileHandle : NSObject, NSSecureCoding {
         
         for region in data.regions {
             try region.withUnsafeBytes { (bytes) in
-                #if os(Windows)
-                try NSData.write(toHandle: self._handle, path: nil,
-                                 buf: UnsafeRawPointer(bytes.baseAddress!),
-                                 length: bytes.count)
-                #else
-                try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
-                #endif
+                try _writeBytes(buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
             }
         }
     }
@@ -446,31 +470,7 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift, deprecated: 100000, renamed: "write(contentsOf:)")
     open func write(_ data: Data) {
-        #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
-        for region in data.regions {
-            region.withUnsafeBytes { (bytes) in
-                do {
-                    try NSData.write(toHandle: self._handle, path: nil,
-                                     buf: UnsafeRawPointer(bytes.baseAddress!),
-                                     length: bytes.count)
-                } catch {
-                    fatalError("Write failure")
-                }
-            }
-        }
-        #else
-        guard _fd >= 0 else { return }
-        for region in data.regions {
-            region.withUnsafeBytes { (bytes) in
-                do {
-                    try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
-                } catch {
-                    fatalError("Write failure")
-                }
-            }
-        }
-        #endif
+        try! write(contentsOf: data)
     }
     
     @available(swift, deprecated: 100000, renamed: "offset()")

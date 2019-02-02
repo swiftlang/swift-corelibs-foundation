@@ -433,100 +433,46 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return result
     }
 
-    internal func makeTemporaryFile(inDirectory dirPath: String) throws -> (Int32, String) {
-        let template = dirPath._nsObject.appendingPathComponent("tmp.XXXXXX")
-        let maxLength = Int(PATH_MAX) + 1
-        var buf = [Int8](repeating: 0, count: maxLength)
-        let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
-        let fd = mkstemp(&buf)
-        if fd == -1 {
-            throw _NSErrorWithErrno(errno, reading: false, path: dirPath)
-        }
-        let pathResult = FileManager.default.string(withFileSystemRepresentation:buf, length: Int(strlen(buf)))
-        return (fd, pathResult)
-    }
-
-    internal class func write(toFileDescriptor fd: Int32, path: String? = nil, buf: UnsafeRawPointer, length: Int) throws {
-        var bytesRemaining = length
-        while bytesRemaining > 0 {
-            var bytesWritten : Int
-            repeat {
-                #if os(macOS) || os(iOS)
-                    bytesWritten = Darwin.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
-                #elseif os(Linux) || os(Android) || CYGWIN
-                    bytesWritten = Glibc.write(fd, buf.advanced(by: length - bytesRemaining), bytesRemaining)
-                #endif
-            } while (bytesWritten < 0 && errno == EINTR)
-            if bytesWritten <= 0 {
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
-            } else {
-                bytesRemaining -= bytesWritten
-            }
-        }
-    }
 
     /// Writes the data object's bytes to the file specified by a given path.
     open func write(toFile path: String, options writeOptionsMask: WritingOptions = []) throws {
-        let fm = FileManager.default
-        try fm._fileSystemRepresentation(withPath: path, { pathFsRep in
-            var fd : Int32
-            var mode : mode_t? = nil
-            let useAuxiliaryFile = writeOptionsMask.contains(.atomic)
-            var auxFilePath : String? = nil
-            if useAuxiliaryFile {
-                // Preserve permissions.
-                var info = stat()
-                if lstat(pathFsRep, &info) == 0 {
-                    let mode = mode_t(info.st_mode)
-                } else if errno != ENOENT && errno != ENAMETOOLONG {
-                    throw _NSErrorWithErrno(errno, reading: false, path: path)
-                }
-                let (newFD, path) = try self.makeTemporaryFile(inDirectory: path._nsObject.deletingLastPathComponent)
-                fd = newFD
-                auxFilePath = path
-                fchmod(fd, 0o666)
-            } else {
-                var flags = O_WRONLY | O_CREAT | O_TRUNC
-                if writeOptionsMask.contains(.withoutOverwriting) {
-                    flags |= O_EXCL
-                }
-                fd = _CFOpenFileWithMode(path, flags, 0o666)
-            }
-            if fd == -1 {
-                throw _NSErrorWithErrno(errno, reading: false, path: path)
-            }
-            defer {
-                close(fd)
-            }
 
+        func doWrite(_ fh: FileHandle) throws {
             try self.enumerateByteRangesUsingBlockRethrows { (buf, range, stop) in
                 if range.length > 0 {
-                    do {
-                        try NSData.write(toFileDescriptor: fd, path: path, buf: buf, length: range.length)
-                        if fsync(fd) < 0 {
-                            throw _NSErrorWithErrno(errno, reading: false, path: path)
-                        }
-                    } catch {
-                        if let auxFilePath = auxFilePath {
-                            try? FileManager.default.removeItem(atPath: auxFilePath)
-                        }
-                        throw error
-                    }
+                    try fh._writeBytes(buf: buf, length: range.length)
                 }
             }
-            if let auxFilePath = auxFilePath {
-                try fm._fileSystemRepresentation(withPath: auxFilePath, { auxFilePathFsRep in
-                    if rename(auxFilePathFsRep, pathFsRep) != 0 {
-                        let savedErrno = errno
-                        try? FileManager.default.removeItem(atPath: auxFilePath)
-                        throw _NSErrorWithErrno(savedErrno, reading: false, path: path)
-                    }
-                    if let mode = mode {
-                        chmod(pathFsRep, mode)
-                    }
-                })
+            try fh.synchronize()
+        }
+
+        let fm = FileManager.default
+        // The destination file path may not exist so provide a default file permissions of RW user only
+        let permissions = (try? fm._permissionsOfItem(atPath: path)) ?? 0o600
+
+        if writeOptionsMask.contains(.atomic) {
+            let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
+            let fh = FileHandle(fileDescriptor: newFD, closeOnDealloc: true)
+            do {
+                try doWrite(fh)
+                try _NSCleanupTemporaryFile(auxFilePath, path)
+                try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
+            } catch {
+                let savedErrno = errno
+                try? fm.removeItem(atPath: auxFilePath)
+                throw _NSErrorWithErrno(savedErrno, reading: false, path: path)
             }
-        })
+        } else {
+            var flags = O_WRONLY | O_CREAT | O_TRUNC
+            if writeOptionsMask.contains(.withoutOverwriting) {
+                flags |= O_EXCL
+            }
+
+            guard let fh = FileHandle(path: path, flags: flags, createMode: permissions) else {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            }
+            try doWrite(fh)
+        }
     }
 
     /// Writes the data object's bytes to the file specified by a given path.
