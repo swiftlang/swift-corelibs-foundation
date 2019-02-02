@@ -12,29 +12,41 @@ import CoreFoundation
 open class FileHandle : NSObject, NSSecureCoding {
 #if os(Windows)
     private var _handle: HANDLE
+
+    @available(windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
+    open var fileDescriptor: Int32 {
+        NSUnsupported()
+    }
+
+    private func _checkFileHandle() {
+        precondition(_handle != INVALID_HANDLE_VALUE, "Invalid file handle")
+    }
+
 #else
     private var _fd: Int32
+
+    open var fileDescriptor: Int32 {
+        return _fd
+    }
+
+    private func _checkFileHandle() {
+        precondition(_fd >= 0, "Bad file descriptor")
+    }
 #endif
+
     private var _closeOnDealloc: Bool
 
-    @available(windows, unavailable,
-               message: "cannot perform non-owning handle to fd conversion")
-    open var fileDescriptor: Int32 {
-#if os(Windows)
-        return -1
-#else
-        return _fd
-#endif
-    }
 
     open var readabilityHandler: ((FileHandle) -> Void)? = {
       (FileHandle) -> Void in NSUnimplemented()
     }
+
     open var writeabilityHandler: ((FileHandle) -> Void)? = {
       (FileHandle) -> Void in NSUnimplemented()
     }
 
     open var availableData: Data {
+        _checkFileHandle()
         do {
             let readResult = try _readDataOfLength(Int.max, untilEOF: false)
             return readResult.toData()
@@ -44,10 +56,12 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     open func readDataToEndOfFile() -> Data {
+        _checkFileHandle()
         return readData(ofLength: Int.max)
     }
 
     open func readData(ofLength length: Int) -> Data {
+        _checkFileHandle()
         do {
             let readResult = try _readDataOfLength(length, untilEOF: true)
             return readResult.toData()
@@ -58,7 +72,6 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     internal func _readDataOfLength(_ length: Int, untilEOF: Bool, options: NSData.ReadingOptions = []) throws -> NSData.NSDataReadResult {
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
 
         if length == 0 && !untilEOF {
           // Nothing requested, return empty response
@@ -131,7 +144,6 @@ open class FileHandle : NSObject, NSSecureCoding {
           free(buffer)
         }
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         if length == 0 && !untilEOF {
             // Nothing requested, return empty response
             return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
@@ -202,8 +214,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     open func write(_ data: Data) {
+        _checkFileHandle()
 #if os(Windows)
-      precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
       data.enumerateBytes() { (bytes, range, stop) in
         do {
           try NSData.write(toHandle: self._handle, path: nil,
@@ -214,7 +226,6 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
       }
 #else
-        guard _fd >= 0 else { return }
         data.enumerateBytes() { (bytes, range, stop) in
             do {
                 try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
@@ -228,8 +239,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     // TODO: Error handling.
 
     open var offsetInFile: UInt64 {
+        _checkFileHandle()
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
         if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0),
                             &liPointer, DWORD(FILE_CURRENT)) == FALSE {
@@ -237,15 +248,14 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
         return UInt64(liPointer.QuadPart)
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_CUR))
 #endif
     }
 
     @discardableResult
     open func seekToEndOfFile() -> UInt64 {
+        _checkFileHandle()
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
         var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
         if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0),
                             &liPointer, DWORD(FILE_END)) == FALSE {
@@ -253,27 +263,25 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
         return UInt64(liPointer.QuadPart)
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         return UInt64(lseek(_fd, 0, SEEK_END))
 #endif
     }
 
     open func seek(toFileOffset offset: UInt64) {
+        _checkFileHandle()
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
         if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)),
                             nil, DWORD(FILE_BEGIN)) == FALSE {
           fatalError("SetFilePointerEx failed")
         }
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         lseek(_fd, off_t(offset), SEEK_SET)
 #endif
     }
 
     open func truncateFile(atOffset offset: UInt64) {
+        _checkFileHandle()
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
         if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)),
                             nil, DWORD(FILE_BEGIN)) == FALSE {
           fatalError("SetFilePointerEx failed")
@@ -282,20 +290,18 @@ open class FileHandle : NSObject, NSSecureCoding {
           fatalError("SetEndOfFile failed")
         }
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         if lseek(_fd, off_t(offset), SEEK_SET) < 0 { fatalError("lseek() failed.") }
         if ftruncate(_fd, off_t(offset)) < 0 { fatalError("ftruncate() failed.") }
 #endif
     }
 
     open func synchronizeFile() {
+        _checkFileHandle()
 #if os(Windows)
-        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
         if FlushFileBuffers(_handle) == FALSE {
           fatalError("FlushFileBuffers failed: \(GetLastError())")
         }
 #else
-        precondition(_fd >= 0, "Bad file descriptor")
         fsync(_fd)
 #endif
     }
