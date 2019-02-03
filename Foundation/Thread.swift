@@ -189,7 +189,7 @@ open class Thread : NSObject {
 
 #if os(Windows) && !CYGWIN
     internal var _attr: _CFThreadAttributes =
-        _CFThreadAttributes(dwSizeOfAttributes: MemoryLayout<_CFThreadAttributes>.size,
+        _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
                             dwThreadStackReservation: 0)
 #elseif CYGWIN
     internal var _attr : pthread_attr_t? = nil
@@ -264,7 +264,7 @@ open class Thread : NSObject {
         return Int(ulLowLimit)
       }
       set {
-        _attr.dwThreadStackReservation = newValue
+        _attr.dwThreadStackReservation = DWORD(newValue)
       }
     }
 #else
