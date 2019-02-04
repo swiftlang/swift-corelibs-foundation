@@ -481,7 +481,7 @@ open class HTTPCookie : NSObject {
     //Cookie attribute names are case-insensitive as per RFC6265: https://tools.ietf.org/html/rfc6265
     //but HTTPCookie needs only the first letter of each attribute in uppercase
     private class func canonicalize(_ name: String) -> HTTPCookiePropertyKey {
-        let idx = _attributes.index(where: {$0.rawValue.caseInsensitiveCompare(name) == .orderedSame})!
+        let idx = _attributes.firstIndex(where: {$0.rawValue.caseInsensitiveCompare(name) == .orderedSame})!
         return _attributes[idx]
     }
 
