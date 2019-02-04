@@ -13,7 +13,7 @@ open class FileHandle : NSObject, NSSecureCoding {
 #if os(Windows)
     private var _handle: HANDLE
 
-    @available(windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
+    @available(Windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
     open var fileDescriptor: Int32 {
         NSUnsupported()
     }
