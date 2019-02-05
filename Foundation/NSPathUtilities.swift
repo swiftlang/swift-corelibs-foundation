@@ -612,8 +612,9 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
     let length = GetTempPathW(DWORD(MAX_PATH), &buf)
     precondition(length <= MAX_PATH - 14, "temp path too long")
-    if GetTempFileNameW(buf, unsafeBitCast("SCF".utf16, to: LPCWSTR?.self), 0,
-                        &buf) == FALSE {
+    if "SCF".withCString(encodedAs: UTF16.self, {
+      return GetTempFileNameW(buf, $0, 0, &buf)
+    }) == FALSE {
       throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
                               path: filePath)
     }
