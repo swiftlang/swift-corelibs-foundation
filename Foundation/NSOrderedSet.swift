@@ -72,7 +72,7 @@ open class NSOrderedSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     }
 
     open func index(of object: Any) -> Int {
-        return _orderedStorage.index(of: __SwiftValue.store(object)) ?? NSNotFound
+        return _orderedStorage.firstIndex(of: __SwiftValue.store(object)) ?? NSNotFound
     }
 
     public convenience override init() {
