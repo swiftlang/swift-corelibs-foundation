@@ -12,6 +12,7 @@ fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())
 #elseif os(Windows)
+import WinSDK
 fileprivate var _NSPageSize: Int {
   var siInfo: SYSTEM_INFO = SYSTEM_INFO()
   GetSystemInfo(&siInfo)
