@@ -457,11 +457,11 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         } else {
             // _convert(comps.week, type: "^", vector: &vector, compDesc: &compDesc)
         }
+        _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekOfMonth, type: "W", vector: &vector, compDesc: &compDesc)
         _convert(comps.yearForWeekOfYear, type: "Y", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekday, type: "E", vector: &vector, compDesc: &compDesc)
         _convert(comps.weekdayOrdinal, type: "F", vector: &vector, compDesc: &compDesc)
-        _convert(comps.month, type: "M", vector: &vector, compDesc: &compDesc)
         _convert(comps.isLeapMonth, type: "l", vector: &vector, compDesc: &compDesc)
         _convert(comps.day, type: "d", vector: &vector, compDesc: &compDesc)
         _convert(comps.hour, type: "H", vector: &vector, compDesc: &compDesc)
@@ -497,19 +497,21 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    private func _setup(_ unitFlags: Unit) -> [Int8] {
+    private func _setup(_ unitFlags: Unit, addIsLeapMonth: Bool = true) -> [Int8] {
         var compDesc = [Int8]()
         _setup(unitFlags, field: .era, type: "G", compDesc: &compDesc)
         _setup(unitFlags, field: .year, type: "y", compDesc: &compDesc)
         _setup(unitFlags, field: .quarter, type: "Q", compDesc: &compDesc)
-        _setup(unitFlags, field: .month, type: "M", compDesc: &compDesc)
-        _setup(unitFlags, field: .month, type: "l", compDesc: &compDesc)
-        _setup(unitFlags, field: .day, type: "d", compDesc: &compDesc)
         _setup(unitFlags, field: .weekOfYear, type: "w", compDesc: &compDesc)
+        _setup(unitFlags, field: .month, type: "M", compDesc: &compDesc)
+        if addIsLeapMonth {
+            _setup(unitFlags, field: .month, type: "l", compDesc: &compDesc)
+        }
         _setup(unitFlags, field: .weekOfMonth, type: "W", compDesc: &compDesc)
         _setup(unitFlags, field: .yearForWeekOfYear, type: "Y", compDesc: &compDesc)
         _setup(unitFlags, field: .weekday, type: "E", compDesc: &compDesc)
         _setup(unitFlags, field: .weekdayOrdinal, type: "F", compDesc: &compDesc)
+        _setup(unitFlags, field: .day, type: "d", compDesc: &compDesc)
         _setup(unitFlags, field: .hour, type: "H", compDesc: &compDesc)
         _setup(unitFlags, field: .minute, type: "m", compDesc: &compDesc)
         _setup(unitFlags, field: .second, type: "s", compDesc: &compDesc)
@@ -520,27 +522,27 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     private func _setComp(_ unitFlags: Unit, field: Unit, vector: [Int32], compIndex: inout Int, setter: (Int32) -> Void) {
         if unitFlags.contains(field) {
-            if vector[compIndex] != -1 {
-                setter(vector[compIndex])
-            }
+            setter(vector[compIndex])
             compIndex += 1
         }
     }
     
-    private func _components(_ unitFlags: Unit, vector: [Int32]) -> DateComponents {
+    private func _components(_ unitFlags: Unit, vector: [Int32], addIsLeapMonth: Bool = true) -> DateComponents {
         var compIdx = 0
         var comps = DateComponents()
         _setComp(unitFlags, field: .era, vector: vector, compIndex: &compIdx) { comps.era = Int($0) }
         _setComp(unitFlags, field: .year, vector: vector, compIndex: &compIdx) { comps.year = Int($0) }
         _setComp(unitFlags, field: .quarter, vector: vector, compIndex: &compIdx) { comps.quarter = Int($0) }
-        _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.month = Int($0) }
-        _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.isLeapMonth = $0 != 0 }
-        _setComp(unitFlags, field: .day, vector: vector, compIndex: &compIdx) { comps.day = Int($0) }
         _setComp(unitFlags, field: .weekOfYear, vector: vector, compIndex: &compIdx) { comps.weekOfYear = Int($0) }
+        _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.month = Int($0) }
+        if addIsLeapMonth {
+            _setComp(unitFlags, field: .month, vector: vector, compIndex: &compIdx) { comps.isLeapMonth = $0 != 0 }
+        }
         _setComp(unitFlags, field: .weekOfMonth, vector: vector, compIndex: &compIdx) { comps.weekOfMonth = Int($0) }
         _setComp(unitFlags, field: .yearForWeekOfYear, vector: vector, compIndex: &compIdx) { comps.yearForWeekOfYear = Int($0) }
         _setComp(unitFlags, field: .weekday, vector: vector, compIndex: &compIdx) { comps.weekday = Int($0) }
         _setComp(unitFlags, field: .weekdayOrdinal, vector: vector, compIndex: &compIdx) { comps.weekdayOrdinal = Int($0) }
+        _setComp(unitFlags, field: .day, vector: vector, compIndex: &compIdx) { comps.day = Int($0) }
         _setComp(unitFlags, field: .hour, vector: vector, compIndex: &compIdx) { comps.hour = Int($0) }
         _setComp(unitFlags, field: .minute, vector: vector, compIndex: &compIdx) { comps.minute = Int($0) }
         _setComp(unitFlags, field: .second, vector: vector, compIndex: &compIdx) { comps.second = Int($0) }
@@ -599,7 +601,14 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     }
     
     open func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
-        let compDesc = _setup(unitFlags)
+        let validUnitFlags: NSCalendar.Unit = [
+            .era, .year, .month, .day, .hour, .minute, .second, .weekOfYear, .weekOfMonth, .yearForWeekOfYear, .weekday, .weekdayOrdinal ]
+
+        let invalidUnitFlags: NSCalendar.Unit = [ .quarter, .nanosecond, .timeZone, .calendar]
+
+        // Mask off the unsupported fields
+        let newUnitFlags = Unit(rawValue: unitFlags.rawValue & validUnitFlags.rawValue)
+        let compDesc = _setup(newUnitFlags, addIsLeapMonth: false)
         var ints = [Int32](repeating: 0, count: 20)
         let res = ints.withUnsafeMutableBufferPointer { (intArrayBuffer: inout UnsafeMutableBufferPointer<Int32>) -> Bool in
             var vector: [UnsafeMutablePointer<Int32>] = (0..<20).map { idx in
@@ -612,7 +621,19 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             }
         }
         if res {
-            return _components(unitFlags, vector: ints)
+            let emptyUnitFlags = Unit(rawValue: unitFlags.rawValue & invalidUnitFlags.rawValue)
+            var components = _components(newUnitFlags, vector: ints, addIsLeapMonth: false)
+
+            // nanosecond and quarter always get set to zero if requested in the output
+            if emptyUnitFlags.contains(.nanosecond) {
+                components.nanosecond = 0
+            }
+            if emptyUnitFlags.contains(.quarter) {
+                components.quarter = 0
+            }
+            // isLeapMonth is always set
+            components.isLeapMonth = false
+            return components
         }
         fatalError()
     }
