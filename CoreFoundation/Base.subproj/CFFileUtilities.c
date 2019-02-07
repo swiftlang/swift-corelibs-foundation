@@ -1015,6 +1015,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFInde
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define	DT_LNK		10
+#define	DT_UNKNOWN	 0
 #endif
 
 // NOTE: on Windows the filename is UTF16-encoded, the fileNameLen is result of wcslen. This function automatically skips '.' and '..', and '._' files
@@ -1023,7 +1024,6 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     if (!CFStringGetFileSystemRepresentation(directoryPath, directoryPathBuf, CFMaxPathSize)) return;
     
 #if DEPLOYMENT_TARGET_WINDOWS
-#error this path does not support calculateFullResultPath but it must do so someday
     CFIndex cpathLen = strlen(directoryPathBuf);
     // Make sure there is room for the additional space we need in the win32 api
     if (cpathLen + 2 < CFMaxPathSize) {
@@ -1059,7 +1059,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 }
                 
                 Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-                Boolean result = fileHandler(fileName, isDirectory ? DT_DIR : DT_REG);
+                Boolean result = fileHandler(fileName, NULL, isDirectory ? DT_DIR : DT_REG);
                 CFRelease(fileName);
                 if (!result) break;
             } while (FindNextFileW(handle, &file));
@@ -1075,6 +1075,23 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
         while ((dent = readdir(dirp))) {
 #if DEPLOYMENT_TARGET_LINUX
             CFIndex nameLen = strlen(dent->d_name);
+            if (dent->d_type == DT_UNKNOWN) {
+                // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
+                struct stat statBuf;
+                char pathToStat[sizeof(dent->d_name)];
+                strncpy(pathToStat, directoryPathBuf, sizeof(pathToStat));
+                strlcat(pathToStat, "/", sizeof(pathToStat));
+                strlcat(pathToStat, dent->d_name, sizeof(pathToStat));
+                if (stat(pathToStat, &statBuf) == 0) {
+                    if (S_ISDIR(statBuf.st_mode)) {
+                        dent->d_type = DT_DIR;
+                    } else if (S_ISREG(statBuf.st_mode)) {
+                        dent->d_type = DT_REG;
+                    } else if (S_ISLNK(statBuf.st_mode)) {
+                        dent->d_type = DT_LNK;
+                    }
+                }
+            }
 #else
             CFIndex nameLen = dent->d_namlen;
 #endif

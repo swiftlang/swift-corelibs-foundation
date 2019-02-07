@@ -383,30 +383,44 @@ fileprivate struct _JSONKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCon
         self.container = container
     }
 
+    // MARK: - Coding Path Operations
+
+    private func _converted(_ key: CodingKey) -> CodingKey {
+        switch encoder.options.keyEncodingStrategy {
+        case .useDefaultKeys:
+            return key
+        case .convertToSnakeCase:
+            let newKeyString = JSONEncoder.KeyEncodingStrategy._convertToSnakeCase(key.stringValue)
+            return _JSONKey(stringValue: newKeyString, intValue: key.intValue)
+        case .custom(let converter):
+            return converter(codingPath + [key])
+        }
+    }
+
     // MARK: - KeyedEncodingContainerProtocol Methods
 
-    public mutating func encodeNil(forKey key: Key)               throws { self.container[key.stringValue._bridgeToObjectiveC()] = NSNull() }
-    public mutating func encode(_ value: Bool, forKey key: Key)   throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: Int, forKey key: Key)    throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: Int8, forKey key: Key)   throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: Int16, forKey key: Key)  throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: Int32, forKey key: Key)  throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: Int64, forKey key: Key)  throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: UInt, forKey key: Key)   throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: UInt8, forKey key: Key)  throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: UInt16, forKey key: Key) throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: UInt32, forKey key: Key) throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: UInt64, forKey key: Key) throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
-    public mutating func encode(_ value: String, forKey key: Key) throws { self.container[key.stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encodeNil(forKey key: Key)               throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = NSNull() }
+    public mutating func encode(_ value: Bool, forKey key: Key)   throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: Int, forKey key: Key)    throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: Int8, forKey key: Key)   throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: Int16, forKey key: Key)  throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: Int32, forKey key: Key)  throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: Int64, forKey key: Key)  throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: UInt, forKey key: Key)   throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: UInt8, forKey key: Key)  throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: UInt16, forKey key: Key) throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: UInt32, forKey key: Key) throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: UInt64, forKey key: Key) throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
+    public mutating func encode(_ value: String, forKey key: Key) throws { self.container[_converted(key).stringValue._bridgeToObjectiveC()] = self.encoder.box(value) }
 
     public mutating func encode(_ value: Float, forKey key: Key)  throws {
         // Since the float may be invalid and throw, the coding path needs to contain this key.
         self.encoder.codingPath.append(key)
         defer { self.encoder.codingPath.removeLast() }
         #if DEPLOYMENT_RUNTIME_SWIFT
-        self.container[key.stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
         #else
-        self.container[key.stringValue] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue] = try self.encoder.box(value)
         #endif
     }
 
@@ -415,9 +429,9 @@ fileprivate struct _JSONKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCon
         self.encoder.codingPath.append(key)
         defer { self.encoder.codingPath.removeLast() }
         #if DEPLOYMENT_RUNTIME_SWIFT
-        self.container[key.stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
         #else
-        self.container[key.stringValue] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue] = try self.encoder.box(value)
         #endif
     }
 
@@ -425,18 +439,18 @@ fileprivate struct _JSONKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCon
         self.encoder.codingPath.append(key)
         defer { self.encoder.codingPath.removeLast() }
         #if DEPLOYMENT_RUNTIME_SWIFT
-        self.container[key.stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue._bridgeToObjectiveC()] = try self.encoder.box(value)
         #else
-        self.container[key.stringValue] = try self.encoder.box(value)
+        self.container[_converted(key).stringValue] = try self.encoder.box(value)
         #endif
     }
 
     public mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> {
         let dictionary = NSMutableDictionary()
         #if DEPLOYMENT_RUNTIME_SWIFT
-        self.container[key.stringValue._bridgeToObjectiveC()] = dictionary
+        self.container[_converted(key).stringValue._bridgeToObjectiveC()] = dictionary
         #else
-        self.container[key.stringValue] = dictionary
+        self.container[_converted(key).stringValue] = dictionary
         #endif
 
         self.codingPath.append(key)
@@ -449,9 +463,9 @@ fileprivate struct _JSONKeyedEncodingContainer<K : CodingKey> : KeyedEncodingCon
     public mutating func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
         let array = NSMutableArray()
         #if DEPLOYMENT_RUNTIME_SWIFT
-        self.container[key.stringValue._bridgeToObjectiveC()] = array
+        self.container[_converted(key).stringValue._bridgeToObjectiveC()] = array
         #else
-        self.container[key.stringValue] = array
+        self.container[_converted(key).stringValue] = array
         #endif
 
         self.codingPath.append(key)
@@ -1001,7 +1015,7 @@ open class JSONDecoder {
             guard !stringKey.isEmpty else { return stringKey }
             
             // Find the first non-underscore character
-            guard let firstNonUnderscore = stringKey.index(where: { $0 != "_" }) else {
+            guard let firstNonUnderscore = stringKey.firstIndex(where: { $0 != "_" }) else {
                 // Reached the end without finding an _
                 return stringKey
             }

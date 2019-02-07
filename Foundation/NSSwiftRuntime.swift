@@ -12,15 +12,22 @@ import CoreFoundation
 
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
 #elseif os(Linux) || os(Android) || CYGWIN
 @_exported import Glibc
+#elseif os(Windows)
+@_exported import MSVCRT
 #endif
 
 @_exported import Dispatch
 
-#if os(Android) // shim required for bzero
+#if os(Windows)
+import WinSDK
+#endif
+
+// shim required for bzero
+#if os(Android) || os(Windows)
 @_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
     memset(ptr, 0, size)
 }
@@ -88,11 +95,11 @@ extension ObjCBool : CustomStringConvertible {
 
 @usableFromInline
 internal class __NSCFType : NSObject {
-    private var _cfinfo : Int32
+    private var _cfinfo : _CFInfo
     
     override init() {
         // This is not actually called; _CFRuntimeCreateInstance will initialize _cfinfo
-        _cfinfo = 0
+        _cfinfo = _CFInfo(typeID: 0)
     }
     
     override var hash: Int {
@@ -288,6 +295,18 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
     __CFSwiftBridge.NSData.copy = _CFSwiftDataCreateCopy
+    
+    __CFSwiftBridge.NSCalendar.calendarIdentifier = _CFSwiftCalendarGetCalendarIdentifier
+    __CFSwiftBridge.NSCalendar.copyLocale = _CFSwiftCalendarCopyLocale
+    __CFSwiftBridge.NSCalendar.setLocale = _CFSwiftCalendarSetLocale
+    __CFSwiftBridge.NSCalendar.copyTimeZone = _CFSwiftCalendarCopyTimeZone
+    __CFSwiftBridge.NSCalendar.setTimeZone = _CFSwiftCalendarSetTimeZone
+    __CFSwiftBridge.NSCalendar.firstWeekday = _CFSwiftCalendarGetFirstWeekday
+    __CFSwiftBridge.NSCalendar.setFirstWeekday = _CFSwiftCalendarSetFirstWeekday
+    __CFSwiftBridge.NSCalendar.minimumDaysInFirstWeek = _CFSwiftCalendarGetMinimumDaysInFirstWeek
+    __CFSwiftBridge.NSCalendar.setMinimumDaysInFirstWeek = _CFSwiftCalendarSetMinimumDaysInFirstWeek
+    __CFSwiftBridge.NSCalendar.copyGregorianStartDate = _CFSwiftCalendarCopyGregorianStartDate
+    __CFSwiftBridge.NSCalendar.setGregorianStartDate = _CFSwiftCalendarSetGregorianStartDate
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }

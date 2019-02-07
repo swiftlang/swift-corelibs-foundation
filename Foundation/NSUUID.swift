@@ -10,12 +10,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin.uuid
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 open class NSUUID : NSObject, NSCopying, NSSecureCoding, NSCoding {
     internal var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
 

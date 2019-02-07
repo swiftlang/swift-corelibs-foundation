@@ -92,8 +92,10 @@ class TestNSString: LoopbackServerTest {
             ("test_replacingOccurrences", test_replacingOccurrences),
             ("test_getLineStart", test_getLineStart),
             ("test_substringWithRange", test_substringWithRange),
+            ("test_substringFromCFString", test_substringFromCFString),
             ("test_createCopy", test_createCopy),
-            ("test_commonPrefix", test_commonPrefix)
+            ("test_commonPrefix", test_commonPrefix),
+            ("test_lineRangeFor", test_lineRangeFor)
         ]
     }
 
@@ -832,19 +834,17 @@ class TestNSString: LoopbackServerTest {
             XCTAssertEqual(string, "Default value is 1000 (42.0)")
         }
         
-#if false // these two tests expose bugs in icu4c's localization on some linux builds (disable until we can get a uniform fix for this)
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(localeIdentifier: "en_GB"), arguments: pointer)
+            let string = NSString(format: "en_GB value is %d (%.1f)", locale: Locale.init(identifier: "en_GB") as AnyObject, arguments: pointer)
             XCTAssertEqual(string, "en_GB value is 1,000 (42.0)")
         }
 
         withVaList(argument) {
             pointer in
-            let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(localeIdentifier: "de_DE"), arguments: pointer)
+            let string = NSString(format: "de_DE value is %d (%.1f)", locale: Locale.init(identifier: "de_DE") as AnyObject, arguments: pointer)
             XCTAssertEqual(string, "de_DE value is 1.000 (42,0)")
         }
-#endif
         
         withVaList(argument) {
             pointer in
@@ -1297,7 +1297,15 @@ class TestNSString: LoopbackServerTest {
         let s6 = NSString(string: "Beyonce\u{301} and Tay")
         XCTAssertEqual(s6.substring(with: NSRange(location: 7, length: 9)), "\u{301} and Tay")
     }
-    
+
+    func test_substringFromCFString() {
+        let cfString = kCFStringTransformStripCombiningMarks!
+        let range = NSRange(location: 0, length: CFStringGetLength(cfString))
+        let substring = unsafeBitCast(cfString, to: NSString.self).substring(with: range)
+
+        XCTAssertEqual(CFStringGetLength(cfString), substring.utf16.count)
+    }
+
     func test_createCopy() {
         let string: NSMutableString = "foo"
         let stringCopy = string.copy() as! NSString
@@ -1322,6 +1330,18 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual("Ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.literal]), "M")
         XCTAssertEqual("m\u{E4}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "mädchen")
         XCTAssertEqual("ma\u{308}dchen".commonPrefix(with: "M\u{E4}dchenschule", options: [.caseInsensitive, .literal]), "m")
+    }
+
+    func test_lineRangeFor() {
+        // column     1 2 3 4 5 6 7 8 9  10 11
+        // line 1     L I N E 1 _ 6 7 あ \n
+        // line 2     L I N E 2 _ 7 8 9  0 \n
+        // line 3     L I N E 3 _ 8 9 0  1 \n
+        let string = "LINE1_67あ\nLINE2_7890\nLINE3_8901\n"
+        let rangeOfFirstLine = string.lineRange(for: string.startIndex..<string.startIndex)
+        XCTAssertEqual(string.distance(from: rangeOfFirstLine.lowerBound, to: rangeOfFirstLine.upperBound), 10)
+        let firstLine = string[rangeOfFirstLine]
+        XCTAssertEqual(firstLine, "LINE1_67あ\n")
     }
 }
 

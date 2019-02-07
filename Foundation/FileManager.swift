@@ -7,14 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if canImport(Darwin)
-    import Darwin
-#endif
-
-#if canImport(Glibc)
-    import Glibc
-#endif
-
 #if os(Android) // struct stat.st_mode is UInt32
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
@@ -231,7 +223,24 @@ open class FileManager : NSObject {
         return urls
     }
     #endif
-    
+
+    private lazy var xdgHomeDirectory: String = {
+        let key = "HOME="
+        if let contents = try? String(contentsOfFile: "/etc/default/useradd", encoding: .utf8) {
+            for line in contents.components(separatedBy: "\n") {
+                if line.hasPrefix(key) {
+                    let index = line.index(line.startIndex, offsetBy: key.count)
+                    let str = String(line[index...]) as NSString
+                    let homeDir = str.trimmingCharacters(in: CharacterSet.whitespaces)
+                    if homeDir.count > 0 {
+                        return homeDir
+                    }
+                }
+            }
+        }
+        return "/home"
+    }()
+
     private func xdgURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
         // FHS/XDG-compliant OSes:
         switch directory {
@@ -263,7 +272,7 @@ open class FileManager : NSObject {
             
         case .userDirectory:
             guard domain == .local else { return [] }
-            return [ URL(fileURLWithPath: "/home", isDirectory: true) ]
+            return [ URL(fileURLWithPath: xdgHomeDirectory, isDirectory: true) ]
             
         case .moviesDirectory:
             return [ _XDGUserDirectory.videos.url ]
@@ -507,9 +516,7 @@ open class FileManager : NSObject {
     
     /* Instances of FileManager may now have delegates. Each instance has one delegate, and the delegate is not retained. In versions of Mac OS X prior to 10.5, the behavior of calling [[NSFileManager alloc] init] was undefined. In Mac OS X 10.5 "Leopard" and later, calling [[NSFileManager alloc] init] returns a new instance of an FileManager.
      */
-    open weak var delegate: FileManagerDelegate? {
-        NSUnimplemented()
-    }
+    open weak var delegate: FileManagerDelegate?
     
     /* setAttributes:ofItemAtPath:error: returns YES when the attributes specified in the 'attributes' dictionary are set successfully on the item specified by 'path'. If this method returns NO, a presentable NSError will be provided by-reference in the 'error' parameter. If no error is required, you may pass 'nil' for the error.
      
@@ -575,7 +582,8 @@ open class FileManager : NSObject {
         defer { fsRep.deallocate() }
 
         guard let dir = opendir(fsRep) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue, userInfo: [NSFilePathErrorKey: path])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue,
+                          userInfo: [NSFilePathErrorKey: path, "NSUserStringVariant": NSArray(object: "Folder")])
         }
         defer { closedir(dir) }
 
@@ -776,7 +784,7 @@ open class FileManager : NSObject {
         var bytesRead = 0
 
         repeat {
-            bytesRead = read(fd, buffer, bytesToRead)
+            bytesRead = numericCast(read(fd, buffer, numericCast(bytesToRead)))
         } while bytesRead < 0 && errno == EINTR
         guard bytesRead >= 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: filename)
@@ -790,7 +798,9 @@ open class FileManager : NSObject {
             var written = 0
             let bytesLeftToWrite = bytesToWrite - bytesWritten
             repeat {
-                written = write(fd, buffer.advanced(by: bytesWritten), bytesLeftToWrite)
+                written =
+                    numericCast(write(fd, buffer.advanced(by: bytesWritten),
+                                      numericCast(bytesLeftToWrite)))
             } while written < 0 && errno == EINTR
             guard written >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: false, path: filename)
@@ -798,8 +808,16 @@ open class FileManager : NSObject {
             bytesWritten += written
         }
     }
-
-    private func _copyRegularFile(atPath srcPath: String, toPath dstPath: String) throws {
+    
+    private func extraErrorInfo(srcPath: String?, dstPath: String?, userVariant: String?) -> [String : Any] {
+        var result = [String : Any]()
+        result["NSSourceFilePathErrorKey"] = srcPath
+        result["NSDestinationFilePath"] = dstPath
+        result["NSUserStringVariant"] = userVariant.map(NSArray.init(object:))
+        return result
+    }
+    
+    private func _copyRegularFile(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
         let srcRep = fileSystemRepresentation(withPath: srcPath)
         let dstRep = fileSystemRepresentation(withPath: dstPath)
         defer {
@@ -809,18 +827,21 @@ open class FileManager : NSObject {
 
         var fileInfo = stat()
         guard stat(srcRep, &fileInfo) >= 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+            throw _NSErrorWithErrno(errno, reading: true, path: srcPath,
+                                    extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
 
         let srcfd = open(srcRep, O_RDONLY)
         guard srcfd >= 0 else {
-            throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+            throw _NSErrorWithErrno(errno, reading: true, path: srcPath,
+                                    extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
         defer { close(srcfd) }
 
         let dstfd = open(dstRep, O_WRONLY | O_CREAT | O_TRUNC, 0o666)
         guard dstfd >= 0 else {
-            throw _NSErrorWithErrno(errno, reading: false, path: dstPath)
+            throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
+                                    extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
         defer { close(dstfd) }
 
@@ -846,24 +867,26 @@ open class FileManager : NSObject {
         }
     }
 
-    private func _copySymlink(atPath srcPath: String, toPath dstPath: String) throws {
+    private func _copySymlink(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
         let bufSize = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: bufSize)
 
         try _fileSystemRepresentation(withPath: srcPath) { srcFsRep in
             let len = readlink(srcFsRep, &buf, bufSize)
             if len < 0 {
-                throw _NSErrorWithErrno(errno, reading: true, path: srcPath)
+                throw _NSErrorWithErrno(errno, reading: true, path: srcPath,
+                                        extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
             }
             try _fileSystemRepresentation(withPath: dstPath) { dstFsRep in
                 if symlink(buf, dstFsRep) == -1 {
-                    throw _NSErrorWithErrno(errno, reading: false, path: dstPath)
+                    throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
+                                            extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
                 }
             }
         }
     }
-
-    private func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, _ body: (String, String, FileAttributeType) throws -> ()) throws {
+    
+    private func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy", _ body: (String, String, FileAttributeType) throws -> ()) throws {
         guard let stat = try? _lstatFile(atPath: srcPath) else {
                 return
         }
@@ -892,94 +915,243 @@ open class FileManager : NSObject {
             try body(srcPath, dstPath, fileType)
         }
     }
-
-    open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+    
+    private func shouldProceedAfterError(_ error: Error, copyingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return false }
+        if isURL {
+            return delegate.fileManager(self, shouldProceedAfterError: error, copyingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldProceedAfterError: error, copyingItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    private func shouldCopyItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return true }
+        if isURL {
+            return delegate.fileManager(self, shouldCopyItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldCopyItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    fileprivate func _copyItem(atPath srcPath: String, toPath dstPath: String, isURL: Bool) throws {
         try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
-            if fileType == .typeSymbolicLink {
-                try _copySymlink(atPath: srcPath, toPath: dstPath)
-            } else if fileType == .typeRegular {
-                try _copyRegularFile(atPath: srcPath, toPath: dstPath)
+            guard shouldCopyItemAtPath(srcPath, toPath: dstPath, isURL: isURL) else {
+                return
+            }
+            
+            do {
+                switch fileType {
+                case .typeRegular:
+                    try _copyRegularFile(atPath: srcPath, toPath: dstPath)
+                case .typeSymbolicLink:
+                    try _copySymlink(atPath: srcPath, toPath: dstPath)
+                default:
+                    break
+                }
+            } catch {
+                if !shouldProceedAfterError(error, copyingItemAtPath: srcPath, toPath: dstPath, isURL: isURL) {
+                    throw error
+                }
             }
         }
     }
     
-    open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
+    private func shouldProceedAfterError(_ error: Error, movingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return false }
+        if isURL {
+            return delegate.fileManager(self, shouldProceedAfterError: error, movingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldProceedAfterError: error, movingItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    private func shouldMoveItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return true }
+        if isURL {
+            return delegate.fileManager(self, shouldMoveItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldMoveItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    private func _moveItem(atPath srcPath: String, toPath dstPath: String, isURL: Bool) throws {
+        guard shouldMoveItemAtPath(srcPath, toPath: dstPath, isURL: isURL) else {
+            return
+        }
+        
         guard !self.fileExists(atPath: dstPath) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteFileExists.rawValue, userInfo: [NSFilePathErrorKey : NSString(dstPath)])
         }
         try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
             if rename($0, $1) != 0 {
                 if errno == EXDEV {
-                    // TODO: Copy and delete.
-                    NSUnimplemented("Cross-device moves not yet implemented")
+                    try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath, variant: "Move") { (srcPath, dstPath, fileType) in
+                        do {
+                            switch fileType {
+                            case .typeRegular:
+                                try _copyRegularFile(atPath: srcPath, toPath: dstPath, variant: "Move")
+                            case .typeSymbolicLink:
+                                try _copySymlink(atPath: srcPath, toPath: dstPath, variant: "Move")
+                            default:
+                                break
+                            }
+                        } catch {
+                            if !shouldProceedAfterError(error, movingItemAtPath: srcPath, toPath: dstPath, isURL: isURL) {
+                                throw error
+                            }
+                        }
+                    }
+                    
+                    // Remove source directory/file after successful moving
+                    try _removeItem(atPath: srcPath, isURL: isURL, alreadyConfirmed: true)
                 } else {
-                    throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
+                    throw _NSErrorWithErrno(errno, reading: false, path: srcPath,
+                                            extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: "Move"))
                 }
             }
         })
     }
     
-    open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
+    private func shouldProceedAfterError(_ error: Error, linkingItemAtPath path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return false }
+        if isURL {
+            return delegate.fileManager(self, shouldProceedAfterError: error, linkingItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldProceedAfterError: error, linkingItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    private func shouldLinkItemAtPath(_ path: String, toPath: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return true }
+        if isURL {
+            return delegate.fileManager(self, shouldLinkItemAt: URL(fileURLWithPath: path), to: URL(fileURLWithPath: toPath))
+        } else {
+            return delegate.fileManager(self, shouldLinkItemAtPath: path, toPath: toPath)
+        }
+    }
+    
+    private func _linkItem(atPath srcPath: String, toPath dstPath: String, isURL: Bool) throws {
         try _copyOrLinkDirectoryHelper(atPath: srcPath, toPath: dstPath) { (srcPath, dstPath, fileType) in
-            if fileType == .typeSymbolicLink {
-                try _copySymlink(atPath: srcPath, toPath: dstPath)
-            } else if fileType == .typeRegular {
-                try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
-                    if link($0, $1) == -1 {
-                        throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
-                    }
-                })
+            guard shouldLinkItemAtPath(srcPath, toPath: dstPath, isURL: isURL) else {
+                return
+            }
+            
+            do {
+                switch fileType {
+                case .typeRegular:
+                    try _fileSystemRepresentation(withPath: srcPath, andPath: dstPath, {
+                        if link($0, $1) == -1 {
+                            throw _NSErrorWithErrno(errno, reading: false, path: srcPath)
+                        }
+                    })
+                case .typeSymbolicLink:
+                    try _copySymlink(atPath: srcPath, toPath: dstPath)
+                default:
+                    break
+                }
+            } catch {
+                if !shouldProceedAfterError(error, linkingItemAtPath: srcPath, toPath: dstPath, isURL: isURL) {
+                    throw error
+                }
             }
         }
     }
-
-    open func removeItem(atPath path: String) throws {
+    
+    private func shouldProceedAfterError(_ error: Error, removingItemAtPath path: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return false }
+        if isURL {
+            return delegate.fileManager(self, shouldProceedAfterError: error, removingItemAt: URL(fileURLWithPath: path))
+        } else {
+            return delegate.fileManager(self, shouldProceedAfterError: error, removingItemAtPath: path)
+        }
+    }
+    
+    private func shouldRemoveItemAtPath(_ path: String, isURL: Bool) -> Bool {
+        guard let delegate = self.delegate else { return true }
+        if isURL {
+            return delegate.fileManager(self, shouldRemoveItemAt: URL(fileURLWithPath: path))
+        } else {
+            return delegate.fileManager(self, shouldRemoveItemAtPath: path)
+        }
+    }
+    
+    private func _removeItem(atPath path: String, isURL: Bool, alreadyConfirmed: Bool = false) throws {
+        guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
+            return
+        }
+        
         if rmdir(path) == 0 {
             return
         } else if errno == ENOTEMPTY {
 
-            let fsRep = FileManager.default.fileSystemRepresentation(withPath: path)
-            let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-            ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
-            ps.advanced(by: 1).initialize(to: nil)
-            let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
-            ps.deinitialize(count: 2)
-            ps.deallocate()
-            fsRep.deallocate()
-
+            let stream = URL(fileURLWithPath: path).withUnsafeFileSystemRepresentation { (fsRep) -> UnsafeMutablePointer<FTS>? in
+                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
+                ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
+                ps.advanced(by: 1).initialize(to: nil)
+                defer {
+                    ps.deinitialize(count: 2)
+                    ps.deallocate()
+                }
+                return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+            }
+            
             if stream != nil {
                 defer {
                     fts_close(stream)
                 }
 
-                var current = fts_read(stream)
-                while current != nil {
-                    switch Int32(current!.pointee.fts_info) {
+                while let current = fts_read(stream)?.pointee {
+                    let itemPath = string(withFileSystemRepresentation: current.fts_path, length: Int(current.fts_pathlen))
+                    guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
+                        continue
+                    }
+                    
+                    do {
+                        switch Int32(current.fts_info) {
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            if unlink(current!.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                                throw _NSErrorWithErrno(errno, reading: false, path: str)
+                            if unlink(current.fts_path) == -1 {
+                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
                             }
                         case FTS_DP:
-                            if rmdir(current!.pointee.fts_path) == -1 {
-                                let str = NSString(bytes: current!.pointee.fts_path, length: Int(strlen(current!.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
-                                throw _NSErrorWithErrno(errno, reading: false, path: str)
+                            if rmdir(current.fts_path) == -1 {
+                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
                             }
+                        case FTS_DNR, FTS_ERR, FTS_NS:
+                            throw _NSErrorWithErrno(current.fts_errno, reading: false, path: itemPath)
                         default:
                             break
+                        }
+                    } catch {
+                        if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
+                            throw error
+                        }
                     }
-                    current = fts_read(stream)
                 }
             } else {
                 let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
             }
-            // TODO: Error handling if fts_read fails.
-
         } else if errno != ENOTDIR {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
         } else if _fileSystemRepresentation(withPath: path, { unlink($0) != 0 }) {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
         }
+    }
+    
+    open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try _copyItem(atPath: srcPath, toPath: dstPath, isURL: false)
+    }
+    
+    open func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try _moveItem(atPath: srcPath, toPath: dstPath, isURL: false)
+    }
+    
+    open func linkItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try _linkItem(atPath: srcPath, toPath: dstPath, isURL: false)
+    }
+    
+    open func removeItem(atPath path: String) throws {
+        try _removeItem(atPath: path, isURL: false)
     }
     
     open func copyItem(at srcURL: URL, to dstURL: URL) throws {
@@ -989,7 +1161,7 @@ open class FileManager : NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        try copyItem(atPath: srcURL.path, toPath: dstURL.path)
+        try _copyItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
     }
     
     open func moveItem(at srcURL: URL, to dstURL: URL) throws {
@@ -999,7 +1171,7 @@ open class FileManager : NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        try moveItem(atPath: srcURL.path, toPath: dstURL.path)
+        try _moveItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
     }
     
     open func linkItem(at srcURL: URL, to dstURL: URL) throws {
@@ -1009,14 +1181,14 @@ open class FileManager : NSObject {
         guard dstURL.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : dstURL])
         }
-        try linkItem(atPath: srcURL.path, toPath: dstURL.path)
+        try _linkItem(atPath: srcURL.path, toPath: dstURL.path, isURL: true)
     }
     
     open func removeItem(at url: URL) throws {
         guard url.isFileURL else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnsupportedScheme.rawValue, userInfo: [NSURLErrorKey : url])
         }
-        try self.removeItem(atPath: url.path)
+        try _removeItem(atPath: url.path, isURL: true)
     }
     
     /* Process working directory management. Despite the fact that these are instance methods on FileManager, these methods report and change (respectively) the working directory for the entire process. Developers are cautioned that doing so is fraught with peril.
@@ -1319,7 +1491,8 @@ open class FileManager : NSObject {
     open func contents(atPath path: String) -> Data? {
         return try? Data(contentsOf: URL(fileURLWithPath: path))
     }
-    
+
+    @discardableResult
     open func createFile(atPath path: String, contents data: Data?, attributes attr: [FileAttributeKey : Any]? = nil) -> Bool {
         do {
             try (data ?? Data()).write(to: URL(fileURLWithPath: path), options: .atomic)
@@ -1609,28 +1782,28 @@ public protocol FileManagerDelegate : NSObjectProtocol {
 
 extension FileManagerDelegate {
     func fileManager(_ fileManager: FileManager, shouldCopyItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldCopyItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldCopyItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
 
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, copyingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
 
     func fileManager(_ fileManager: FileManager, shouldMoveItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldMoveItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldMoveItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
 
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, movingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
 
     func fileManager(_ fileManager: FileManager, shouldLinkItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldLinkItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldLinkItemAt srcURL: URL, to dstURL: URL) -> Bool { return true }
 
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAtPath srcPath: String, toPath dstPath: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAtURL srcURL: URL, toURL dstURL: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, linkingItemAt srcURL: URL, to dstURL: URL) -> Bool { return false }
 
     func fileManager(_ fileManager: FileManager, shouldRemoveItemAtPath path: String) -> Bool { return true }
-    func fileManager(_ fileManager: FileManager, shouldRemoveItemAtURL url: URL) -> Bool { return true }
+    func fileManager(_ fileManager: FileManager, shouldRemoveItemAt URL: URL) -> Bool { return true }
 
     func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAtPath path: String) -> Bool { return false }
-    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAtURL url: URL) -> Bool { return false }
+    func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: Error, removingItemAt URL: URL) -> Bool { return false }
 }
 
 extension FileManager {
@@ -1767,7 +1940,7 @@ extension FileManager {
 
                 _current = fts_read(stream)
                 while let current = _current {
-                    let filename = NSString(bytes: current.pointee.fts_path, length: Int(strlen(current.pointee.fts_path)), encoding: String.Encoding.utf8.rawValue)!._swiftObject
+                    let filename = FileManager.default.string(withFileSystemRepresentation: current.pointee.fts_path, length: Int(current.pointee.fts_pathlen))
 
                     switch Int32(current.pointee.fts_info) {
                         case FTS_D:

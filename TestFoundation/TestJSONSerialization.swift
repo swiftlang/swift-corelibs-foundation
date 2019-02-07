@@ -115,6 +115,7 @@ extension TestJSONSerialization {
             ("test_deserialize_invalidValueInArray_withData", test_deserialize_invalidValueInArray_withData),
             ("test_deserialize_badlyFormedArray_withData", test_deserialize_badlyFormedArray_withData),
             ("test_deserialize_invalidEscapeSequence_withData", test_deserialize_invalidEscapeSequence_withData),
+            ("test_deserialize_unicodeMissingLeadingSurrogate_withData", test_deserialize_unicodeMissingLeadingSurrogate_withData),
             ("test_deserialize_unicodeMissingTrailingSurrogate_withData", test_deserialize_unicodeMissingTrailingSurrogate_withData),
 
             //Deserialization with Stream
@@ -146,6 +147,7 @@ extension TestJSONSerialization {
             ("test_deserialize_invalidValueInArray_withStream", test_deserialize_invalidValueInArray_withStream),
             ("test_deserialize_badlyFormedArray_withStream", test_deserialize_badlyFormedArray_withStream),
             ("test_deserialize_invalidEscapeSequence_withStream", test_deserialize_invalidEscapeSequence_withStream),
+            ("test_deserialize_unicodeMissingLeadingSurrogate_withStream", test_deserialize_unicodeMissingLeadingSurrogate_withStream),
             ("test_deserialize_unicodeMissingTrailingSurrogate_withStream", test_deserialize_unicodeMissingTrailingSurrogate_withStream),
             ("test_JSONObjectWithStream_withFile", test_JSONObjectWithStream_withFile),
             ("test_JSONObjectWithStream_withURL", test_JSONObjectWithStream_withURL),
@@ -242,6 +244,10 @@ extension TestJSONSerialization {
         deserialize_invalidEscapeSequence(objectType: .data)
     }
 
+    func test_deserialize_unicodeMissingLeadingSurrogate_withData() {
+        deserialize_unicodeMissingLeadingSurrogate(objectType: .data)
+    }
+
     func test_deserialize_unicodeMissingTrailingSurrogate_withData() {
         deserialize_unicodeMissingTrailingSurrogate(objectType: .data)
     }
@@ -334,6 +340,10 @@ extension TestJSONSerialization {
 
     func test_deserialize_invalidEscapeSequence_withStream() {
         deserialize_invalidEscapeSequence(objectType: .stream)
+    }
+
+    func test_deserialize_unicodeMissingLeadingSurrogate_withStream() {
+        deserialize_unicodeMissingLeadingSurrogate(objectType: .stream)
     }
 
     func test_deserialize_unicodeMissingTrailingSurrogate_withStream() {
@@ -487,7 +497,7 @@ extension TestJSONSerialization {
 
     //MARK: - Number parsing
     func deserialize_numbers(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -504,6 +514,11 @@ extension TestJSONSerialization {
                 XCTAssertEqual(result?[5] as? Double, 0.001)
                 XCTAssertEqual(result?[6] as? Int,    10)
                 XCTAssertEqual(result?[6] as? Double, 10.0)
+                XCTAssertEqual(result?[7] as? Double, -12.34e56)
+                XCTAssertEqual(result?[8] as? Double, 12.34e-56)
+                XCTAssertEqual(result?[9] as? Double, 12.34e6)
+                XCTAssertEqual(result?[10] as? Double, 2e-3)
+                XCTAssertEqual(result?[11] as? Double, 43)
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -511,7 +526,7 @@ extension TestJSONSerialization {
     }
 
     func deserialize_numbers_as_reference_types(objectType: ObjectType) {
-        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10]"
+        let subject = "[1, -1, 1.3, -1.3, 1e3, 1E-3, 10, -12.34e56, 12.34e-56, 12.34e+6, 0.002, 0.0043e+4]"
 
         do {
             for encoding in supportedEncodings {
@@ -528,6 +543,12 @@ extension TestJSONSerialization {
                 XCTAssertEqual(result?[5] as? NSNumber, 0.001)
                 XCTAssertEqual(result?[6] as? NSNumber, 10)
                 XCTAssertEqual(result?[6] as? NSNumber, 10.0)
+                XCTAssertEqual(result?[7] as? NSNumber, -12.34e56)
+                XCTAssertEqual(result?[8] as? NSNumber, 12.34e-56)
+                XCTAssertEqual(result?[9] as? NSNumber, 12.34e6)
+                XCTAssertEqual(result?[10] as? NSNumber, 2e-3)
+                XCTAssertEqual(result?[11] as? NSNumber, 43)
+
             }
         } catch {
             XCTFail("Unexpected error: \(error)")
@@ -724,6 +745,20 @@ extension TestJSONSerialization {
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
+        }
+    }
+
+    func deserialize_unicodeMissingLeadingSurrogate(objectType: ObjectType) {
+        let subject = "[\"\\uDFF3\"]"
+        do {
+            guard let data = subject.data(using: .utf8) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let _ = try getjsonObjectResult(data, objectType) as? [String]
+            XCTFail("Expected error: Missing Leading Surrogate")
+        } catch {
+            // Passing case; the unicode character is malformed
         }
     }
 
@@ -1232,18 +1267,35 @@ extension TestJSONSerialization {
     }
 
     func test_serialize_Float() {
-        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[340282346638529000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,0,1]")
+        XCTAssertEqual(try trySerialize([-Float.leastNonzeroMagnitude, Float.leastNonzeroMagnitude]), "[-1e-45,1e-45]")
+        XCTAssertEqual(try trySerialize([-Float.greatestFiniteMagnitude]), "[-3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float.greatestFiniteMagnitude]), "[3.4028235e+38]")
+        XCTAssertEqual(try trySerialize([Float(-1), Float.leastNonzeroMagnitude, Float(1)]), "[-1,1e-45,1]")
     }
 
     func test_serialize_Double() {
-        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-0,0]")
-        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
-        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[179769313486232000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000]")
+        XCTAssertEqual(try trySerialize([-Double.leastNonzeroMagnitude, Double.leastNonzeroMagnitude]), "[-5e-324,5e-324]")
+        XCTAssertEqual(try trySerialize([-Double.leastNormalMagnitude, Double.leastNormalMagnitude]), "[-2.2250738585072014e-308,2.2250738585072014e-308]")
+        XCTAssertEqual(try trySerialize([-Double.greatestFiniteMagnitude]), "[-1.7976931348623157e+308]")
+        XCTAssertEqual(try trySerialize([Double.greatestFiniteMagnitude]), "[1.7976931348623157e+308]")
         XCTAssertEqual(try trySerialize([Double(-1.0),  Double(1.0)]), "[-1,1]")
+
+        // Test round-tripping Double values
+        let value1 = 7.7087009966199993
+        let value2 = 7.7087009966200002
+        let dict1 = ["value": value1]
+        let dict2 = ["value": value2]
+        let jsonData1 = try! JSONSerialization.data(withJSONObject: dict1)
+        let jsonData2 = try! JSONSerialization.data(withJSONObject: dict2)
+        let jsonString1 = String(decoding: jsonData1, as: UTF8.self)
+        let jsonString2 = String(decoding: jsonData2, as: UTF8.self)
+
+        XCTAssertEqual(jsonString1, "{\"value\":7.708700996619999}")
+        XCTAssertEqual(jsonString2, "{\"value\":7.70870099662}")
+        let decodedDict1 = try! JSONSerialization.jsonObject(with: jsonData1) as! [String : Double]
+        let decodedDict2 = try! JSONSerialization.jsonObject(with: jsonData2) as! [String : Double]
+        XCTAssertEqual(decodedDict1["value"], value1)
+        XCTAssertEqual(decodedDict2["value"], value2)
     }
 
     func test_serialize_Decimal() {

@@ -410,11 +410,11 @@ open class NSKeyedArchiver : NSCoder {
         let encodingContext = self._containers.last!
         var encodingKey : String
  
-        if key != nil {
+        if let key = key {
             if escape {
-                encodingKey = escapeArchiverKey(key!)
+                encodingKey = escapeArchiverKey(key)
             } else {
-                encodingKey = key!
+                encodingKey = key
             }
         } else {
             encodingKey = _nextGenericKey()

@@ -26,7 +26,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             NSRequiresConcreteImplementation()
         }
         let value = __SwiftValue.store(object)
-        guard let idx = _storage.index(of: value) else { return nil }
+        guard let idx = _storage.firstIndex(of: value) else { return nil }
         return _storage[idx]
     }
     
@@ -208,6 +208,11 @@ extension NSSet {
     }
     
     open func isSubset(of otherSet: Set<AnyHashable>) -> Bool {
+        // If self is larger then self cannot be a subset of otherSet
+        if count > otherSet.count {
+            return false
+        }
+        
         // `true` if we don't contain any object that `otherSet` doesn't contain.
         for item in self {
             if !otherSet.contains(item as! AnyHashable) {

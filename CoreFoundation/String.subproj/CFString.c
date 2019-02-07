@@ -138,6 +138,8 @@ struct __notInlineMutable {
     unsigned int capacityProvidedExternally:1;
 #if __LP64__
     unsigned long desiredCapacity:60;
+#elif __LLP64__
+    unsigned long long desiredCapacity:60;
 #else
     unsigned long desiredCapacity:28;
 #endif
@@ -533,7 +535,7 @@ CFStringEncoding __CFStringComputeEightBitStringEncoding(void) {
 /* Returns whether the provided bytes can be stored in ASCII
 */
 CF_INLINE Boolean __CFBytesInASCII(const uint8_t *bytes, CFIndex len) {
-#if __LP64__
+#if TARGET_RT_64_BIT
     /* A bit of unrolling; go by 32s, 16s, and 8s first */
     while (len >= 32) {
         uint64_t val = *(const uint64_t *)bytes;
@@ -621,7 +623,7 @@ Additional complications are applied in the following order:
 */
 #define SHRINKFACTOR(c) (c / 2)
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define GROWFACTOR(c) ((c * 3 + 1) / 2)
 #else
 #define GROWFACTOR(c) (((c) >= (ULONG_MAX / 3UL)) ? __CFMax(LONG_MAX - 4095, (c)) : (((unsigned long)c * 3 + 1) / 2))
@@ -5984,7 +5986,7 @@ enum {
     CFFormatSize4 = 3,
     CFFormatSize8 = 4,
     CFFormatSize16 = 5,
-#if __LP64__
+#if TARGET_RT_64_BIT
     CFFormatSizeLong = CFFormatSize8,
     CFFormatSizePointer = CFFormatSize8
 #else
@@ -6013,7 +6015,7 @@ enum {
     CFFormatDummyPointerType = 42	/* special case for %n */
 };
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 /* Only come in here if spec->type is CFFormatLongType or CFFormatDoubleType. Pass in 0 for width or precision if not specified. Returns false if couldn't do the format (with the assumption the caller falls back to unlocalized).
 */
 static Boolean __CFStringFormatLocalizedNumber(CFMutableStringRef output, CFLocaleRef locale, const CFPrintValue *values, const CFFormatSpec *spec, SInt32 width, SInt32 precision, Boolean hasPrecision) {
@@ -7109,7 +7111,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 	switch (specs[curSpec].type) {
 	case CFFormatLongType:
 	case CFFormatDoubleType:
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
             if (localizedFormatting && (specs[curSpec].flags & kCFStringFormatLocalizable)) {    // We have a locale, so we do localized formatting
                 if (__CFStringFormatLocalizedNumber(outputString, (CFLocaleRef)formatOptions, values, &specs[curSpec], width, precision, hasPrecision)) break;
             }

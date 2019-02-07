@@ -7,13 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 import CoreFoundation
 
 open class Host: NSObject {
@@ -40,6 +33,23 @@ open class Host: NSObject {
     }
     
     static internal func currentHostName() -> String {
+#if os(Windows)
+      var dwLength: DWORD = 0
+      GetComputerNameExA(ComputerNameDnsHostname, nil, &dwLength)
+      guard dwLength > 0 else { return "localhost" }
+
+      guard let hostname: UnsafeMutablePointer<Int8> =
+          UnsafeMutableBufferPointer<Int8>
+              .allocate(capacity: Int(dwLength + 1))
+              .baseAddress else {
+        return "localhost"
+      }
+      defer { hostname.deallocate() }
+      guard GetComputerNameExA(ComputerNameDnsHostname, hostname, &dwLength) != FALSE else {
+        return "localhost"
+      }
+      return String(cString: hostname)
+#else
         let hname = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         defer {
             hname.deallocate()
@@ -49,6 +59,7 @@ open class Host: NSObject {
             return "localhost"
         }
         return String(cString: hname)
+#endif
     }
     
     open class func current() -> Host {
@@ -70,6 +81,45 @@ open class Host: NSObject {
     internal func _resolveCurrent() {
 #if os(Android)
         return
+#elseif os(Windows)
+        var ulSize: ULONG = 0
+        var ulResult: ULONG =
+            GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, nil, &ulSize)
+
+        let arAdapterInfo: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES> =
+            UnsafeMutablePointer<IP_ADAPTER_ADDRESSES_LH>
+                .allocate(capacity: Int(ulSize) / MemoryLayout<IP_ADAPTER_ADDRESSES>.size)
+        defer { arAdapterInfo.deallocate() }
+
+        ulResult = GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, arAdapterInfo, &ulSize)
+
+        var buffer: UnsafeMutablePointer<WCHAR> =
+            UnsafeMutablePointer<WCHAR>.allocate(capacity: Int(NI_MAXHOST))
+        defer { buffer.deallocate() }
+
+        var arCurrentAdapterInfo: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES>? =
+          arAdapterInfo
+        while arCurrentAdapterInfo != nil {
+          var arAddress: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS>? =
+              arCurrentAdapterInfo!.pointee.FirstUnicastAddress
+          while arAddress != nil {
+            let arCurrentAddress: IP_ADAPTER_UNICAST_ADDRESS = arAddress!.pointee
+            switch arCurrentAddress.Address.lpSockaddr.pointee.sa_family {
+            case ADDRESS_FAMILY(AF_INET), ADDRESS_FAMILY(AF_INET6):
+              if GetNameInfoW(arCurrentAddress.Address.lpSockaddr,
+                              arCurrentAddress.Address.iSockaddrLength,
+                              buffer, DWORD(NI_MAXHOST),
+                              nil, 0, NI_NUMERICHOST) == 0 {
+                _addresses.append(String(decodingCString: buffer,
+                                         as: UTF16.self))
+              }
+            default: break
+            }
+            arAddress = arCurrentAddress.Next
+          }
+          arCurrentAdapterInfo = arCurrentAdapterInfo!.pointee.Next
+        }
+        _resolved = true
 #else
         var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
         if getifaddrs(&ifaddr) != 0 {
@@ -98,12 +148,74 @@ open class Host: NSObject {
     }
     
     internal func _resolve() {
+        guard _resolved == false else { return }
 #if os(Android)
         return
-#else
-        if _resolved {
-            return
+#elseif os(Windows)
+        if let info = _info {
+          if _type == .current { return _resolveCurrent() }
+
+          var hints: ADDRINFOW = ADDRINFOW()
+          memset(&hints, 0, MemoryLayout<ADDRINFOW>.size)
+
+          switch (_type) {
+          case .name:
+            hints.ai_flags = AI_PASSIVE | AI_CANONNAME
+          case .address:
+            hints.ai_flags = AI_PASSIVE | AI_CANONNAME | AI_NUMERICHOST
+          case .current:
+            break
+          }
+          hints.ai_family = AF_UNSPEC
+          hints.ai_socktype = SOCK_STREAM
+          hints.ai_protocol = IPPROTO_TCP.rawValue
+
+          var aiResult: UnsafeMutablePointer<ADDRINFOW>?
+          var bSucceeded: Bool = false
+          info.withCString(encodedAs: UTF16.self) {
+            if GetAddrInfoW($0, nil, &hints, &aiResult) == 0 {
+              bSucceeded = true
+            }
+          }
+          guard bSucceeded == true else { return }
+          defer { FreeAddrInfoW(aiResult) }
+
+          let wszHostName =
+              UnsafeMutablePointer<WCHAR>.allocate(capacity: Int(NI_MAXHOST))
+          defer { wszHostName.deallocate() }
+
+          while aiResult != nil {
+            let aiInfo: ADDRINFOW = aiResult!.pointee
+            var sa_len: socklen_t = 0
+
+            switch aiInfo.ai_family {
+            case AF_INET:
+              sa_len = socklen_t(MemoryLayout<sockaddr_in>.size)
+            case AF_INET6:
+              sa_len = socklen_t(MemoryLayout<sockaddr_in6>.size)
+            default:
+              aiResult = aiInfo.ai_next
+              continue
+            }
+
+            let lookup = { (content: inout [String], flags: Int32) in
+              if GetNameInfoW(aiInfo.ai_addr, sa_len, wszHostName,
+                              DWORD(NI_MAXHOST), nil, 0, flags) == 0 {
+                content.append(String(decodingCString: wszHostName,
+                                      as: UTF16.self))
+              }
+            }
+
+            lookup(&_addresses, NI_NUMERICHOST)
+            lookup(&_names, NI_NAMEREQD)
+            lookup(&_names, NI_NOFQDN | NI_NAMEREQD)
+
+            aiResult = aiInfo.ai_next
+          }
+
+          _resolved = true
         }
+#else
         if let info = _info {
             var flags: Int32 = 0
             switch (_type) {

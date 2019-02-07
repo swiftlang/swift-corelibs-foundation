@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 public func NSTemporaryDirectory() -> String {
     #if os(macOS) || os(iOS)
     var buf = [Int8](repeating: 0, count: 100)
@@ -285,7 +279,7 @@ extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.index(of: "/") ?? _swiftObject.endIndex
+        let endOfUserName = _swiftObject.firstIndex(of: "/") ?? _swiftObject.endIndex
         let startOfUserName = _swiftObject.index(after: _swiftObject.startIndex)
         let userName = String(_swiftObject[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
@@ -613,6 +607,20 @@ public func NSFullUserName() -> String {
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
     let template = filePath + ".tmp.XXXXXX"
+#if os(Windows)
+    let maxLength: Int = Int(MAX_PATH + 1)
+    var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
+    let length = GetTempPathW(DWORD(MAX_PATH), &buf)
+    precondition(length <= MAX_PATH - 14, "temp path too long")
+    if "SCF".withCString(encodedAs: UTF16.self, {
+      return GetTempFileNameW(buf, $0, 0, &buf)
+    }) == FALSE {
+      throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
+                              path: filePath)
+    }
+    let pathResult = FileManager.default.string(withFileSystemRepresentation: String(decoding: buf, as: UTF16.self), length: wcslen(buf))
+    let fd = open(pathResult, _O_CREAT)
+#else
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
     let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
@@ -621,6 +629,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
     let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+#endif
     return (fd, pathResult)
 }
 

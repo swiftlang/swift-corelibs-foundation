@@ -7,12 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-#endif
-
 import Dispatch
 
 /**
@@ -537,7 +531,7 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     public static let fileCompletedCountKey = ProgressUserInfoKey(rawValue: "NSProgressFileCompletedCountKey")
 }
 
-fileprivate class _ProgressTSD {
+fileprivate class _ProgressTSD : NSObject {
     /// The thread's default progress.
     fileprivate var currentProgress : Progress
     

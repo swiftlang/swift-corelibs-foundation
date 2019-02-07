@@ -117,7 +117,7 @@ internal func _CFSwiftSetGetValues(_ set: AnyObject, _ values: UnsafeMutablePoin
 internal func _CFSwiftSetGetValue(_ set: AnyObject, value: AnyObject, key: AnyObject) -> Unmanaged<AnyObject>? {
     let set = set as! NSSet
     if type(of: set) === NSSet.self || type(of: set) === NSMutableSet.self {
-        if let idx = set._storage.index(of: value as! NSObject){
+        if let idx = set._storage.firstIndex(of: value as! NSObject){
             return Unmanaged<AnyObject>.passUnretained(set._storage[idx])
         }
         

@@ -109,11 +109,8 @@ class TestNSOrderedSet : XCTestCase {
 
     func test_ObjectsAtIndexes() {
         let set = NSOrderedSet(array: ["foo", "bar", "baz", "1", "2", "3"])
-        var indexSet = IndexSet()
-        indexSet.insert(1)
-        indexSet.insert(3)
-        indexSet.insert(5)
-        let objects = set.objects(at: indexSet)
+        let objects = set.objects(at: [1, 3, 5])
+        XCTAssertEqual(objects.count, 3)
         XCTAssertEqual(objects[0] as? String, "bar")
         XCTAssertEqual(objects[1] as? String, "1")
         XCTAssertEqual(objects[2] as? String, "3")

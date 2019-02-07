@@ -23,9 +23,13 @@
 #endif /* USE_DYLD_PRIV */
 #endif /* BINARY_SUPPORT_DYLD */
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
+#endif
 #include <fcntl.h>
+#if !DEPLOYMENT_TARGET_WINDOWS
 #include <sys/mman.h>
+#endif
 
 #if BINARY_SUPPORT_DLFCN
 #include <dlfcn.h>
@@ -42,9 +46,10 @@
 
 // Windows isspace implementation limits the input chars to < 256 in the ASCII range.  It will
 // assert in debug builds.  This is annoying.  We merrily grok chars > 256.
-static inline BOOL isspace(char c) {
+static inline _Bool _CF_isspace(int c) {
     return (c == ' ' || c == '\t' || c == '\n' || c == '\r'|| c == '\v' || c == '\f');
 }
+#define isspace _CF_isspace
 
 #else
 #define statinfo stat
@@ -133,19 +138,19 @@ static char *_CFBundleGetSectData(const char *segname, const char *sectname, uns
     
     for (i = 0; i < numImages; i++) {
         if (mhp == (void *)_dyld_get_image_header(i)) {
-#if __LP64__
+#if TARGET_RT_64_BIT
             const struct section_64 *sp = getsectbynamefromheader_64((const struct mach_header_64 *)mhp, segname, sectname);
             if (sp) {
                 retval = (char *)(sp->addr + _dyld_get_image_vmaddr_slide(i));
                 localSize = (unsigned long)sp->size;
             }
-#else /* __LP64__ */
+#else /* TARGET_RT_64_BIT */
             const struct section *sp = getsectbynamefromheader((const struct mach_header *)mhp, segname, sectname);
             if (sp) {
                 retval = (char *)(sp->addr + _dyld_get_image_vmaddr_slide(i));
                 localSize = (unsigned long)sp->size;
             }
-#endif /* __LP64__ */
+#endif /* TARGET_RT_64_BIT */
             break;
         }
     }
@@ -165,11 +170,11 @@ CF_PRIVATE Boolean _CFBundleGrokObjCImageInfoFromMainExecutable(uint32_t *objcVe
     uint32_t localVersion = 0, localFlags = 0;
     char *bytes = NULL;
     unsigned long length = 0;
-#if __LP64__
+#if TARGET_RT_64_BIT
     if (getsegbyname(OBJC_SEGMENT_64)) bytes = _CFBundleGetSectData(OBJC_SEGMENT_64, IMAGE_INFO_SECTION_64, &length);
-#else /* __LP64__ */
+#else /* TARGET_RT_64_BIT */
     if (getsegbyname(OBJC_SEGMENT)) bytes = _CFBundleGetSectData(OBJC_SEGMENT, IMAGE_INFO_SECTION, &length);
-#endif /* __LP64__ */
+#endif /* TARGET_RT_64_BIT */
     if (bytes && length >= 8) {
         localVersion = *(uint32_t *)bytes;
         localFlags = *(uint32_t *)(bytes + 4);

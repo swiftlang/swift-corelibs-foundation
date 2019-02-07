@@ -101,16 +101,20 @@ CF_EXTERN_C_BEGIN
 #include <xlocale.h>
 #endif // !TARGET_OS_CYGWIN && !defined(__linux__)
 
-#include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
 #endif // TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 
+#if __has_include(<unistd.h>)
+#include <unistd.h>
+#endif
+#if _POSIX_THREADS
 #include <pthread.h>
+#endif
 
 #if !DEPLOYMENT_RUNTIME_SWIFT && __has_include(<os/log.h>)
-#import <os/log.h>
+#include <os/log.h>
 #else
 typedef struct os_log_s *os_log_t;
 #define os_log(...) do { } while (0)
@@ -225,7 +229,7 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if __LP64__ || DEPLOYMENT_TARGET_ANDROID
+#if TARGET_RT_64_BIT || DEPLOYMENT_TARGET_ANDROID
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else
@@ -287,13 +291,13 @@ CF_PRIVATE void __CFRuntimeSetRC(CFTypeRef cf, uint32_t rc);
 // On systems where we have ObjC support (DEPLOYMENT_RUNTIME_OBJC), STATIC_CLASS_REF(…) can statically produce a reference to the ObjC class symbol that ties into this particular type.
 // When compiling for Swift Foundation, STATIC_CLASS_REF returns a Swift class. There's a mapping of ObjC name classes to Swift symbols in the header that defines it that should be kept up to date if more constant objects are defined.
 // On all other platforms, it returns NULL, which is okay; we only need the type ID if CF is to be used by itself.
-#if __LP64__
+#if TARGET_RT_64_BIT
     #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
     #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
-#else // if !__LP64__
+#else // if !TARGET_RT_64_BIT
     #define INIT_CFRUNTIME_BASE_WITH_CLASS(CLASS, TYPEID) { ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS) , ._cfinfoa = 0x00000080UL | ((TYPEID) << 8), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
     #define INIT_CFRUNTIME_BASE_WITH_CLASS_AND_FLAGS(CLASS, TYPEID, FLAGS) {  ._cfisa = (uintptr_t)STATIC_CLASS_REF(CLASS), ._cfinfoa = 0x0000000000000080ULL | ((TYPEID) << 8) | (FLAGS), _CFRUNTIME_BASE_INIT_SWIFT_RETAIN_COUNT }
-#endif // __LP64__
+#endif // TARGET_RT_64_BIT
 
 #define __CFBitIsSet(V, N)  (((V) & (1UL << (N))) != 0)
 #define __CFBitSet(V, N)  ((V) |= (1UL << (N)))
@@ -406,6 +410,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 #if DEPLOYMENT_TARGET_WINDOWS
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
+#define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
 #else
 // Declare and allocate a stack buffer. Max is the max size (in bytes) before falling over to malloc.
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? alloca((Count) * sizeof(Type)) : NULL
@@ -421,7 +426,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
-#if DEPLOYMENT_RUNTIME_SWIFT
+#if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
 #if DEPLOYMENT_TARGET_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
@@ -574,13 +579,96 @@ typedef CFLock_t OSSpinLock;
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>
-#else
+#elif _POSIX_THREADS
 #define OS_UNFAIR_LOCK_INIT PTHREAD_MUTEX_INITIALIZER
 typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
 static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
 static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
+#elif defined(_WIN32)
+#define OS_UNFAIR_LOCK_INIT CFLockInit
+#define os_unfair_lock CFLock_t
+#define os_unfair_lock_lock __CFLock
+#define os_unfair_lock_unlock __CFUnlock
 #endif // __has_include(<os/lock.h>)
+
+#if _POSIX_THREADS
+typedef pthread_mutex_t _CFMutex;
+#define _CF_MUTEX_STATIC_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+static int _CFMutexCreate(_CFMutex *lock) {
+  return pthread_mutex_init(lock, NULL);
+}
+static int _CFMutexDestroy(_CFMutex *lock) {
+  return pthread_mutex_destroy(lock);
+}
+static int _CFMutexLock(_CFMutex *lock) {
+  return pthread_mutex_lock(lock);
+}
+static int _CFMutexUnlock(_CFMutex *lock) {
+  return pthread_mutex_unlock(lock);
+}
+
+typedef pthread_mutex_t _CFRecursiveMutex;
+static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+
+  int result = pthread_mutex_init(mutex, &attr);
+
+  pthread_mutexattr_destroy(&attr);
+
+  return result;
+}
+static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_destroy(mutex);
+}
+static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_lock(mutex);
+}
+static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+  return pthread_mutex_unlock(mutex);
+}
+#elif defined(_WIN32)
+typedef SRWLOCK _CFMutex;
+#define _CF_MUTEX_STATIC_INITIALIZER SRWLOCK_INIT
+static int _CFMutexCreate(_CFMutex *lock) {
+  InitializeSRWLock(lock);
+  return 0;
+}
+static int _CFMutexDestroy(_CFMutex *lock) {
+  (void)lock;
+  return 0;
+}
+static int _CFMutexLock(_CFMutex *lock) {
+  AcquireSRWLockExclusive(lock);
+  return 0;
+}
+static int _CFMutexUnlock(_CFMutex *lock) {
+  ReleaseSRWLockExclusive(lock);
+  return 0;
+}
+
+typedef CRITICAL_SECTION _CFRecursiveMutex;
+static int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
+  InitializeCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
+  DeleteCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
+  EnterCriticalSection(mutex);
+  return 0;
+}
+static int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
+  LeaveCriticalSection(mutex);
+  return 0;
+}
+#else
+#error "do not know how to define mutex and recursive mutex for this OS"
+#endif
 
 #if !__HAS_DISPATCH__
 
@@ -682,6 +770,7 @@ CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, cha
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
+#define	DT_UNKNOWN	 0
 #endif
 
 /*
@@ -863,10 +952,11 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 
 // These are replacements for pthread calls on Windows
 CF_EXPORT int _NS_pthread_main_np();
-CF_EXPORT int _NS_pthread_setspecific(pthread_key_t key, const void *val);
-CF_EXPORT void* _NS_pthread_getspecific(pthread_key_t key);
+CF_EXPORT int _NS_pthread_setspecific(_CFThreadSpecificKey key, const void *val);
+CF_EXPORT void* _NS_pthread_getspecific(_CFThreadSpecificKey key);
 CF_EXPORT int _NS_pthread_key_init_np(int key, void (*destructor)(void *));
 CF_EXPORT void _NS_pthread_setname_np(const char *name);
+CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 
 // map use of pthread_set/getspecific to internal API
 #define pthread_setspecific _NS_pthread_setspecific
@@ -874,16 +964,14 @@ CF_EXPORT void _NS_pthread_setname_np(const char *name);
 #define pthread_key_init_np _NS_pthread_key_init_np
 #define pthread_main_np _NS_pthread_main_np
 #define pthread_setname_np _NS_pthread_setname_np
+#define pthread_equal _NS_pthread_equal
+
+#define pthread_self() GetCurrentThread()
+
 #endif
 
 #if DEPLOYMENT_TARGET_LINUX
 #define pthread_main_np _CFIsMainThread
-#endif
-
-#if DEPLOYMENT_TARGET_WINDOWS
-// replacement for DISPATCH_QUEUE_OVERCOMMIT until we get a bug fix in dispatch on Windows
-// <rdar://problem/7923891> dispatch on Windows: Need queue_private.h
-#define DISPATCH_QUEUE_OVERCOMMIT 2
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -937,7 +1025,7 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW
@@ -1004,6 +1092,12 @@ extern void __CFRecordAllocationEvent(int eventnum, void *ptr, int64_t size, uin
 enum {
     __kCFZombieMessagedEvent = 21,
 };
+
+#define _CFReleaseDeferred __attribute__((__cleanup__(_CFReleaseOnCleanup)))
+static inline void _CFReleaseOnCleanup(void * CF_RELEASES_ARGUMENT ptr) {
+    CFTypeRef cf = *(CFTypeRef *)ptr;
+    if (cf) CFRelease(cf);
+}
 
 #pragma mark - CF Private Globals
 

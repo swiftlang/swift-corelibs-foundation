@@ -31,11 +31,15 @@ let kNullString = "<null>"
 private func getTestData() -> [Any]? {
     let testFilePath = testBundle().url(forResource: "NSURLTestData", withExtension: "plist")
     let data = try! Data(contentsOf: testFilePath!)
-    guard let testRoot = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String : Any] else {
+    guard let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) else {
         XCTFail("Unable to deserialize property list data")
         return nil
     }
-    guard let parsingTests = testRoot![kURLTestParsingTestsKey] as? [Any] else {
+    guard let testRoot = plist as? [String : Any] else {
+        XCTFail("Unable to deserialize property list data")
+        return nil
+    }
+    guard let parsingTests = testRoot[kURLTestParsingTestsKey] as? [Any] else {
         XCTFail("Unable to create the parsingTests dictionary")
         return nil
     }

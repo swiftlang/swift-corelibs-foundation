@@ -889,7 +889,7 @@ open class NumberFormatter : Formatter {
     internal var _format: String?
     open var format: String {
         get {
-            return _format ?? "#;0;#"
+            return _format ?? "#"
         }
         set {
             _reset()

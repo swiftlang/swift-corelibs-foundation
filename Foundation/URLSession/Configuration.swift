@@ -101,7 +101,6 @@ internal extension URLSession._Configuration {
 // Configure NSURLRequests
 internal extension URLSession._Configuration {
     func configure(request: URLRequest) -> URLRequest {
-        var request = request
         return setCookies(on: request)
     }
 

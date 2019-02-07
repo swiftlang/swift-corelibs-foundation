@@ -310,7 +310,7 @@ static void _setCachedCurrentLocale(CFLocaleRef newLocale) {
 #define FALLBACK_LOCALE_NAME CFSTR("en_US")
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
 static CFStringRef _CFLocaleCopyLocaleIdentifierByAddingLikelySubtags(CFStringRef localeID)
 {
     CFStringRef result = NULL;

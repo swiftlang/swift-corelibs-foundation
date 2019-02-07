@@ -8,6 +8,7 @@
         Responsibility: Tony Parker
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFBundle.h>
 #include "CFBundle_Internal.h"
 
@@ -18,11 +19,11 @@
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
     #if DEPLOYMENT_TARGET_LINUX
-        #if __LP64__
+        #if TARGET_RT_64_BIT
             #define _CFBundleFHSArchDirectorySuffix "64"
-        #else // !__LP64__
+        #else // !TARGET_RT_64_BIT
             #define _CFBundleFHSArchDirectorySuffix "32"
-        #endif // __LP64__
+        #endif // TARGET_RT_64_BIT
     #endif // DEPLOYMENT_TARGET_LINUX
 
     CONST_STRING_DECL(_kCFBundleFHSDirectory_bin, "bin");
@@ -119,7 +120,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
 #elif DEPLOYMENT_TARGET_WINDOWS
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLWindowsPathStyle, false, urlPath);
-        if (executableURL && !_urlExists(executableURL)) {
+        if (executableURL && !_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
             executableURL = NULL;
         }

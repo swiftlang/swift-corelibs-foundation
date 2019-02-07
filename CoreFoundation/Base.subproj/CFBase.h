@@ -127,16 +127,20 @@
 #endif
 
 #if TARGET_OS_WIN32
-    #if !defined(CF_EXPORT)
-        #if defined(CF_BUILDING_CF) && defined(__cplusplus)
-            #define CF_EXPORT extern "C" __declspec(dllexport)
-        #elif defined(CF_BUILDING_CF) && !defined(__cplusplus)
-            #define CF_EXPORT extern __declspec(dllexport)
-        #elif defined(__cplusplus)
-            #define CF_EXPORT extern "C" __declspec(dllimport)
+    #if defined(__cplusplus)
+        #define _CF_EXTERN extern "C"
+    #else
+        #define _CF_EXTERN extern
+    #endif
+
+    #if defined(_USRDLL)
+        #if defined(CoreFoundation_EXPORTS) || defined(CF_BUILDING_CF)
+            #define CF_EXPORT _CF_EXTERN __declspec(dllexport)
         #else
-            #define CF_EXPORT extern __declspec(dllimport)
+            #define CF_EXPORT _CF_EXTERN __declspec(dllimport)
         #endif
+    #else
+        #define CF_EXPORT _CF_EXTERN
     #endif
 #else
 #define CF_EXPORT extern

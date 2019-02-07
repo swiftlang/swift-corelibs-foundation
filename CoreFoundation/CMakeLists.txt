@@ -25,6 +25,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+if(CMAKE_VERSION VERSION_LESS 3.10)
+  if(CMAKE_CROSSCOMPILING)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES Clang OR CMAKE_C_SIMULATE_ID STREQUAL MSVC)
+      set(THREADS_HAVE_PTHREAD_ARG FALSE)
+    else()
+      set(THREADS_HAVE_PTHREAD_ARG TRUE)
+    endif()
+  endif()
+endif()
 find_package(Threads)
 
 include(GNUInstallDirs)
@@ -54,16 +63,22 @@ add_framework(CoreFoundation
                 Base.subproj/CFKnownLocations.h
                 Base.subproj/CFLogUtilities.h
                 Base.subproj/CFPriv.h
+                Base.subproj/CFOverflow.h
                 Base.subproj/CFRuntime.h
+                Base.subproj/CFRuntime_Internal.h
                 Base.subproj/ForFoundationOnly.h
                 Base.subproj/ForSwiftFoundationOnly.h
                 # Collections
                 Collections.subproj/CFBasicHash.h
                 Collections.subproj/CFStorage.h
+                Collections.subproj/CFCollections_Internal.h
                 # Error
-                Error.subproj//CFError_Private.h
+                Error.subproj/CFError_Private.h
                 # Locale
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
                 Locale.subproj/CFDateFormatter_Private.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
                 Locale.subproj/CFLocaleInternal.h
                 Locale.subproj/CFLocale_Private.h
@@ -78,15 +93,20 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_BinaryTypes.h
                 PlugIn.subproj/CFBundle_Internal.h
                 PlugIn.subproj/CFPlugIn_Factory.h
+                # RunLoop
+                RunLoop.subproj/CFMachPort_Internal.h
+                RunLoop.subproj/CFMachPort_Lifetime.h
                 # Stream
                 Stream.subproj/CFStreamAbstract.h
                 Stream.subproj/CFStreamInternal.h
                 Stream.subproj/CFStreamPriv.h
                 # String
+                String.subproj/CFAttributedStringPriv.h
                 String.subproj/CFBurstTrie.h
                 String.subproj/CFCharacterSetPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
+                String.subproj/CFString_Internal.h
                 String.subproj/CFStringDefaultEncoding.h
                 String.subproj/CFStringLocalizedFormattingInternal.h
                 # StringEncodings
@@ -111,12 +131,17 @@ add_framework(CoreFoundation
                 Base.subproj/CFRuntime.h
                 Base.subproj/ForFoundationOnly.h
                 Base.subproj/ForSwiftFoundationOnly.h
+                Locale.subproj/CFCalendar_Internal.h
+                Locale.subproj/CFDateComponents.h
+                Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFLocaleInternal.h
                 Parsing.subproj/CFXMLInterface.h
                 PlugIn.subproj/CFBundlePriv.h
                 Stream.subproj/CFStreamPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
+                StringEncodings.subproj/CFStringEncodingConverter.h
+                StringEncodings.subproj/CFStringEncodingConverterExt.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
 
@@ -188,6 +213,7 @@ add_framework(CoreFoundation
                 Base.subproj/CFSystemDirectories.c
                 Base.subproj/CFUtilities.c
                 Base.subproj/CFUUID.c
+                Base.subproj/CFWindowsUtilities.c
                 # Collections
                 Collections.subproj/CFArray.c
                 Collections.subproj/CFBag.c
@@ -203,7 +229,10 @@ add_framework(CoreFoundation
                 Error.subproj/CFError.c
                 # Locale
                 Locale.subproj/CFCalendar.c
+                Locale.subproj/CFCalendar_Enumerate.c
+                Locale.subproj/CFDateComponents.c
                 Locale.subproj/CFDateFormatter.c
+                Locale.subproj/CFDateInterval.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
                 Locale.subproj/CFLocaleKeys.c
@@ -213,15 +242,15 @@ add_framework(CoreFoundation
                 NumberDate.subproj/CFDate.c
                 NumberDate.subproj/CFNumber.c
                 NumberDate.subproj/CFTimeZone.c
-                # Parsring
+                # Parsing
                 Parsing.subproj/CFBinaryPList.c
                 Parsing.subproj/CFOldStylePList.c
                 Parsing.subproj/CFPropertyList.c
                 Parsing.subproj/CFXMLInputStream.c
+                Parsing.subproj/CFXMLInterface.c
                 Parsing.subproj/CFXMLNode.c
                 Parsing.subproj/CFXMLParser.c
                 Parsing.subproj/CFXMLTree.c
-                Parsing.subproj/CFXMLInterface.c
                 # PlugIn
                 PlugIn.subproj/CFBundle_Binary.c
                 PlugIn.subproj/CFBundle.c
@@ -234,6 +263,7 @@ add_framework(CoreFoundation
                 PlugIn.subproj/CFBundle_ResourceFork.c
                 PlugIn.subproj/CFBundle_Resources.c
                 PlugIn.subproj/CFBundle_Strings.c
+                PlugIn.subproj/CFBundle_Tables.c
                 PlugIn.subproj/CFPlugIn.c
                 PlugIn.subproj/CFPlugIn_Factory.c
                 PlugIn.subproj/CFPlugIn_Instance.c
@@ -243,6 +273,10 @@ add_framework(CoreFoundation
                 Preferences.subproj/CFPreferences.c
                 Preferences.subproj/CFXMLPreferencesDomain.c
                 # RunLoop
+                # TODO(compnerd) make this empty on non-Mach targets
+                # RunLoop.subproj/CFMachPort.c
+                # RunLoop.subproj/CFMachPort_Lifetime.c
+                # RunLoop.subproj/CFMessagePort.c
                 RunLoop.subproj/CFRunLoop.c
                 RunLoop.subproj/CFSocket.c
                 # Stream
@@ -273,8 +307,8 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFUnicodeDecomposition.c
                 StringEncodings.subproj/CFUnicodePrecomposition.c
                 # URL
-                URL.subproj/CFURL.c
                 URL.subproj/CFURLAccess.c
+                URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
@@ -291,6 +325,20 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_TARGET_MACOSX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # NOTE(compnerd) we only support building with the dynamic CRT as using the
+  # static CRT causes problems for users of the library.
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -D_DLL)
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DDEPLOYMENT_TARGET_WINDOWS)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -D_USRDLL)
+  endif()
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE
@@ -316,18 +364,11 @@ target_compile_definitions(CoreFoundation
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICHAR_DB="CharacterSets/CFUniCharPropertyDatabase.data">
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_B="CharacterSets/CFUnicodeData-B.mapping">
                               $<$<COMPILE_LANGUAGE:ASM>:CF_CHARACTERSET_UNICODE_DATA_L="CharacterSets/CFUnicodeData-L.mapping">)
-if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  # FIXME(compnerd) why is /usr/local/include added manually?  clang will do so
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               "/usr/local/include"
-                               "/usr/local/include/libxml2"
-                               "/usr/local/include/curl")
-endif()
+
 target_include_directories(CoreFoundation
                            PRIVATE
                              ${CMAKE_SOURCE_DIR})
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
   target_include_directories(CoreFoundation
                              PRIVATE
@@ -336,21 +377,59 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
-else()
+  find_package(ICU COMPONENTS uc i18n REQUIRED)
   target_include_directories(CoreFoundation
                              PRIVATE
-                               "/usr/include"
-                               "/usr/include/libxml2")
+                               ${ICU_INCLUDE_DIR})
 endif()
-target_compile_options(CoreFoundation
-                       PRIVATE
-                         $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
-target_compile_options(CoreFoundation
-                       PRIVATE
-                         -fblocks
-                         -fconstant-cfstrings
-                         -fdollars-in-identifiers
-                         -fexceptions)
+if(CF_ENABLE_LIBDISPATCH)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}
+                               ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    target_include_directories(CoreFoundation
+                               SYSTEM PRIVATE
+                                 ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
+  endif()
+endif()
+
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:/FI${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+else()
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+endif()
+
+if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fblocks
+                           /EHsc)
+else()
+  target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fblocks
+                           -fconstant-cfstrings
+                           -fdollars-in-identifiers
+                           -fexceptions
+                           -fno-common)
+endif()
+if(CF_DEPLOYMENT_SWIFT)
+  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             /clang:-fcf-runtime-abi=swift)
+  else()
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             -fcf-runtime-abi=swift)
+  endif()
+endif()
+
 target_compile_options(CoreFoundation
                        PRIVATE
                          -Wno-shorten-64-to-32
@@ -359,17 +438,14 @@ target_compile_options(CoreFoundation
                          -Wno-conditional-uninitialized
                          -Wno-unused-variable
                          -Wno-int-conversion
-                         -Wno-unused-function)
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
+                         -Wno-unused-function
+                         -Wno-microsoft-enum-forward-reference)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           ${CURL_LIBRARIES}
                           ${LIBXML2_LIBRARIES})
-else()
-  target_link_libraries(CoreFoundation
-                        PRIVATE
-                          curl
-                          xml2)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation
@@ -380,7 +456,7 @@ target_link_libraries(CoreFoundation
                       PRIVATE
                         Threads::Threads
                         ${CMAKE_DL_LIBS})
-if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           m)
@@ -390,11 +466,7 @@ if(CF_ENABLE_LIBDISPATCH)
                         PRIVATE
                           dispatch)
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
-  set_target_properties(CoreFoundation
-                        PROPERTIES LINK_FLAGS
-                          -Xlinker;@${CMAKE_SOURCE_DIR}/linux.ld;-Bsymbolic)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           icucore)
@@ -413,18 +485,4 @@ install(DIRECTORY
           ${CMAKE_INSTALL_PREFIX}/System/Library/Frameworks
         USE_SOURCE_PERMISSIONS
         PATTERN PrivateHeaders EXCLUDE)
-
-
-# TODO(compnerd) formalize this
-if(CF_ENABLE_LIBDISPATCH)
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                               ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
-    target_include_directories(CoreFoundation
-                               SYSTEM PRIVATE
-                                 ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
-  endif()
-endif()
 

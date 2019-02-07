@@ -8,6 +8,7 @@
 	Responsibility: Kevin Perry
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
@@ -17,14 +18,14 @@
 
 
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define CFDATA_MAX_SIZE	    ((1ULL << 42) - 1)
 #else
 #define CFDATA_MAX_SIZE	    ((1ULL << 31) - 1)
 #endif
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
-#import <mach/mach.h>
+#include <mach/mach.h>
 CF_INLINE unsigned long __CFPageSize() { return vm_page_size; }
 #elif DEPLOYMENT_TARGET_WINDOWS
 CF_INLINE unsigned long __CFPageSize() {
@@ -86,9 +87,6 @@ typedef enum {
     kCFFixedMutable = 0x1,	/* changeable and fixed capacity */
     kCFMutable = 0x3		/* changeable and variable capacity */
 } _CFDataMutableVariety;
-
-#define __CFGenericValidateMutability(variety) \
-    CFAssert1((variety != kCFFixedMutable && variety != kCFMutable), __kCFLogAssertion, "%s(): variety is not mutable", __PRETTY_FUNCTION__);
 
 CF_INLINE Boolean __CFDataIsMutable(CFDataRef data) {
     return __CFRuntimeGetFlag(data, __kCFMutable);
@@ -161,7 +159,7 @@ CF_INLINE void __CFDataSetNumBytes(CFMutableDataRef data, CFIndex v) {
     data->_capacity = v;
 }
 
-#if __LP64__
+#if TARGET_RT_64_BIT
 #define CHUNK_SIZE (1ULL << 29)
 #define LOW_THRESHOLD (1ULL << 20)
 #define HIGH_THRESHOLD (1ULL << 32)
@@ -183,7 +181,7 @@ CF_INLINE CFIndex __CFDataRoundUpCapacity(CFIndex capacity) {
 	return (1L << (long)flsl(capacity));
     } else {
 	/* Round up to next multiple of CHUNK_SIZE */
-	unsigned long newCapacity = CHUNK_SIZE * (1+(capacity >> ((long)flsl(CHUNK_SIZE)-1)));
+	unsigned long long newCapacity = CHUNK_SIZE * (1+(capacity >> ((long)flsl(CHUNK_SIZE)-1)));
 	return __CFMin(newCapacity, CFDATA_MAX_SIZE);
     }
 }
@@ -376,7 +374,6 @@ static Boolean __CFDataShouldUseAllocator(CFAllocatorRef allocator) {
 // that there should be no deallocator, and the bytes should be copied.
 static CFMutableDataRef __CFDataInit(CFAllocatorRef allocator, _CFDataMutableVariety variety, CFIndex capacity, const uint8_t *bytes, CFIndex length, CFAllocatorRef bytesDeallocator) CF_RETURNS_RETAINED {
     CFMutableDataRef memory;
-    __CFGenericValidateMutability(variety);
     CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFAssert3(kCFFixedMutable != variety || length <= capacity, __kCFLogAssertion, "%s(): for kCFFixedMutable type, capacity (%ld) must be greater than or equal to number of initial elements (%ld)", __PRETTY_FUNCTION__, capacity, length);
     CFAssert2(0 <= length, __kCFLogAssertion, "%s(): length (%ld) cannot be less than zero", __PRETTY_FUNCTION__, length);
@@ -841,7 +838,6 @@ CFRange CFDataFind(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CF
 }
 
 #undef __CFDataValidateRange
-#undef __CFGenericValidateMutability
 #undef INLINE_BYTES_THRESHOLD
 #undef CFDATA_MAX_SIZE
 #undef REVERSE_BUFFER

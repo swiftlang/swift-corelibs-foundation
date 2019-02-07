@@ -9,26 +9,50 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-internal let kCFCalendarUnitEra = CFCalendarUnit.era.rawValue
-internal let kCFCalendarUnitYear = CFCalendarUnit.year.rawValue
-internal let kCFCalendarUnitMonth = CFCalendarUnit.month.rawValue
-internal let kCFCalendarUnitDay = CFCalendarUnit.day.rawValue
-internal let kCFCalendarUnitHour = CFCalendarUnit.hour.rawValue
-internal let kCFCalendarUnitMinute = CFCalendarUnit.minute.rawValue
-internal let kCFCalendarUnitSecond = CFCalendarUnit.second.rawValue
-internal let kCFCalendarUnitWeekday = CFCalendarUnit.weekday.rawValue
-internal let kCFCalendarUnitWeekdayOrdinal = CFCalendarUnit.weekdayOrdinal.rawValue
-internal let kCFCalendarUnitQuarter = CFCalendarUnit.quarter.rawValue
-internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit.weekOfMonth.rawValue
-internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit.weekOfYear.rawValue
-internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit.yearForWeekOfYear.rawValue
+#if canImport(ObjectiveC) // automatic CF_OPTIONS(…) OptionSet hoisting depends on the objc_fixed_enum attribute
+internal let kCFCalendarUnitEra = CFCalendarUnit.era
+internal let kCFCalendarUnitYear = CFCalendarUnit.year
+internal let kCFCalendarUnitMonth = CFCalendarUnit.month
+internal let kCFCalendarUnitDay = CFCalendarUnit.day
+internal let kCFCalendarUnitHour = CFCalendarUnit.hour
+internal let kCFCalendarUnitMinute = CFCalendarUnit.minute
+internal let kCFCalendarUnitSecond = CFCalendarUnit.second
+internal let kCFCalendarUnitWeekday = CFCalendarUnit.weekday
+internal let kCFCalendarUnitWeekdayOrdinal = CFCalendarUnit.weekdayOrdinal
+internal let kCFCalendarUnitQuarter = CFCalendarUnit.quarter
+internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit.weekOfMonth
+internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit.weekOfYear
+internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit.yearForWeekOfYear
+internal let kCFCalendarUnitNanosecond = CFCalendarUnit(rawValue: CFOptionFlags(CoreFoundation.kCFCalendarUnitNanosecond))
+
+internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
+    return unit.rawValue
+}
 
 internal let kCFDateFormatterNoStyle = CFDateFormatterStyle.noStyle
 internal let kCFDateFormatterShortStyle = CFDateFormatterStyle.shortStyle
 internal let kCFDateFormatterMediumStyle = CFDateFormatterStyle.mediumStyle
 internal let kCFDateFormatterLongStyle = CFDateFormatterStyle.longStyle
 internal let kCFDateFormatterFullStyle = CFDateFormatterStyle.fullStyle
+#else
+internal let kCFCalendarUnitEra = CFCalendarUnit(CoreFoundation.kCFCalendarUnitEra)
+internal let kCFCalendarUnitYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitYear)
+internal let kCFCalendarUnitMonth = CFCalendarUnit(CoreFoundation.kCFCalendarUnitMonth)
+internal let kCFCalendarUnitDay = CFCalendarUnit(CoreFoundation.kCFCalendarUnitDay)
+internal let kCFCalendarUnitHour = CFCalendarUnit(CoreFoundation.kCFCalendarUnitHour)
+internal let kCFCalendarUnitMinute = CFCalendarUnit(CoreFoundation.kCFCalendarUnitMinute)
+internal let kCFCalendarUnitSecond = CFCalendarUnit(CoreFoundation.kCFCalendarUnitSecond)
+internal let kCFCalendarUnitWeekday = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekday)
+internal let kCFCalendarUnitWeekdayOrdinal = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekdayOrdinal)
+internal let kCFCalendarUnitQuarter = CFCalendarUnit(CoreFoundation.kCFCalendarUnitQuarter)
+internal let kCFCalendarUnitWeekOfMonth = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekOfMonth)
+internal let kCFCalendarUnitWeekOfYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitWeekOfYear)
+internal let kCFCalendarUnitYearForWeekOfYear = CFCalendarUnit(CoreFoundation.kCFCalendarUnitYearForWeekOfYear)
+internal let kCFCalendarUnitNanosecond = CFCalendarUnit(CoreFoundation.kCFCalendarUnitNanosecond)
+
+internal func _CFCalendarUnitRawValue(_ unit: CFCalendarUnit) -> CFOptionFlags {
+    return unit
+}
 #endif
 
 extension NSCalendar {
@@ -70,19 +94,19 @@ extension NSCalendar {
             self.rawValue = rawValue
         }
 
-        public static let era = Unit(rawValue: UInt(kCFCalendarUnitEra))
-        public static let year = Unit(rawValue: UInt(kCFCalendarUnitYear))
-        public static let month = Unit(rawValue: UInt(kCFCalendarUnitMonth))
-        public static let day = Unit(rawValue: UInt(kCFCalendarUnitDay))
-        public static let hour = Unit(rawValue: UInt(kCFCalendarUnitHour))
-        public static let minute = Unit(rawValue: UInt(kCFCalendarUnitMinute))
-        public static let second = Unit(rawValue: UInt(kCFCalendarUnitSecond))
-        public static let weekday = Unit(rawValue: UInt(kCFCalendarUnitWeekday))
-        public static let weekdayOrdinal = Unit(rawValue: UInt(kCFCalendarUnitWeekdayOrdinal))
-        public static let quarter = Unit(rawValue: UInt(kCFCalendarUnitQuarter))
-        public static let weekOfMonth = Unit(rawValue: UInt(kCFCalendarUnitWeekOfMonth))
-        public static let weekOfYear = Unit(rawValue: UInt(kCFCalendarUnitWeekOfYear))
-        public static let yearForWeekOfYear = Unit(rawValue: UInt(kCFCalendarUnitYearForWeekOfYear))
+        public static let era = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitEra))
+        public static let year = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitYear))
+        public static let month = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitMonth))
+        public static let day = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitDay))
+        public static let hour = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitHour))
+        public static let minute = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitMinute))
+        public static let second = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitSecond))
+        public static let weekday = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekday))
+        public static let weekdayOrdinal = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekdayOrdinal))
+        public static let quarter = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitQuarter))
+        public static let weekOfMonth = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekOfMonth))
+        public static let weekOfYear = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitWeekOfYear))
+        public static let yearForWeekOfYear = Unit(rawValue: _CFCalendarUnitRawValue(kCFCalendarUnitYearForWeekOfYear))
 
         public static let nanosecond = Unit(rawValue: UInt(1 << 15))
         public static let calendar = Unit(rawValue: UInt(1 << 20))
@@ -127,9 +151,14 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private var _base = _CFInfo(typeID: CFCalendarGetTypeID())
     private var _identifier: UnsafeMutableRawPointer? = nil
     private var _locale: UnsafeMutableRawPointer? = nil
-    private var _localeID: UnsafeMutableRawPointer? = nil
     private var _tz: UnsafeMutableRawPointer? = nil
+    private var _firstWeekday: CFIndex = 0
+    private var _minDaysInFirstWeek: CFIndex = 0
+    private var _gregorianStart: UnsafeMutableRawPointer? = nil
     private var _cal: UnsafeMutableRawPointer? = nil
+    private var _userSet_firstWeekday: Bool = false
+    private var _userSet_minDaysInFirstWeek: Bool = false
+    private var _userSet_gregorianStart: Bool = false
     
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFCalendar.self)
@@ -154,18 +183,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
         self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
         if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
-            self._startDate = startDate._swiftObject
-        }
-    }
-    
-    private var _startDate : Date? {
-        get {
-            return CFCalendarCopyGregorianStartDate(self._cfObject)?._swiftObject
-        }
-        set {
-            if let startDate = newValue {
-                CFCalendarSetGregorianStartDate(self._cfObject, startDate._cfObject)
-            }
+            self.gregorianStartDate = startDate._swiftObject
         }
     }
     
@@ -178,7 +196,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         aCoder.encode(self.locale?._bridgeToObjectiveC(), forKey: "NS.locale")
         aCoder.encode(self.firstWeekday, forKey: "NS.firstwkdy")
         aCoder.encode(self.minimumDaysInFirstWeek, forKey: "NS.mindays")
-        aCoder.encode(self._startDate?._nsObject, forKey: "NS.gstartdate")
+        aCoder.encode(self.gregorianStartDate?._nsObject, forKey: "NS.gstartdate")
     }
     
     static public var supportsSecureCoding: Bool {
@@ -195,16 +213,19 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         copy.timeZone = timeZone
         copy.firstWeekday = firstWeekday
         copy.minimumDaysInFirstWeek = minimumDaysInFirstWeek
-        copy._startDate = _startDate
+        copy.gregorianStartDate = gregorianStartDate
         return copy
     }
     
 
     open class var current: Calendar {
-        return CFCalendarCopyCurrent()._swiftObject
+        return Calendar.current
     }
     
-    open class var autoupdatingCurrent: Calendar { NSUnimplemented() }  // tracks changes to user's preferred calendar identifier
+    open class var autoupdatingCurrent: Calendar {
+        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current calendar (which will not change).
+        return Calendar.autoupdatingCurrent
+    }
     
     public /*not inherited*/ init?(identifier calendarIdentifierConstant: Identifier) {
         super.init()
@@ -220,19 +241,29 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
+    internal override init() {
+        super.init()
+    }
+    
     open override var hash: Int {
         return Int(bitPattern: CFHash(_cfObject))
     }
     
     open override func isEqual(_ value: Any?) -> Bool {
-        switch value {
-        case let other as Calendar:
-            return CFEqual(_cfObject, other._cfObject)
-        case let other as NSCalendar:
-            return other === self || CFEqual(_cfObject, other._cfObject)
-        default:
-            return false
+        if let value = value, self === value as AnyObject {
+            return true
         }
+        
+        if let calendar = __SwiftValue.fetch(value as AnyObject) as? NSCalendar {
+            return calendar.calendarIdentifier == calendarIdentifier &&
+                calendar.timeZone == timeZone &&
+                calendar.locale == locale &&
+                calendar.firstWeekday == firstWeekday &&
+                calendar.minimumDaysInFirstWeek == minimumDaysInFirstWeek &&
+                calendar.gregorianStartDate == gregorianStartDate
+        }
+        
+        return false
     }
     
     open override var description: String {
@@ -281,6 +312,16 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         }
         set {
             CFCalendarSetMinimumDaysInFirstWeek(_cfObject, CFIndex(newValue))
+        }
+    }
+    
+    internal var gregorianStartDate: Date? {
+        get {
+            return CFCalendarCopyGregorianStartDate(_cfObject)?._swiftObject
+        }
+        set {
+            let date = newValue as NSDate?
+            CFCalendarSetGregorianStartDate(_cfObject, date?._cfObject)
         }
     }
     
@@ -659,7 +700,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         let comps = components([.era, .yearForWeekOfYear, .weekOfYear, .weekday], from: date)
 
         eraValuePointer?.pointee = comps.era ?? NSDateComponentUndefined
-        yearValuePointer?.pointee = comps.year ?? NSDateComponentUndefined
+        yearValuePointer?.pointee = comps.yearForWeekOfYear ?? NSDateComponentUndefined
         weekValuePointer?.pointee = comps.weekOfYear ?? NSDateComponentUndefined
         weekdayValuePointer?.pointee = comps.weekday ?? NSDateComponentUndefined
     }
@@ -756,8 +797,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 return .orderedSame
             case .timeZone:
                 return .orderedSame
-            case .day:
-                fallthrough
+            case .day: fallthrough
             case .hour:
                 let range = self.range(of: unit, for: date1)
                 let ats = range!.start.timeIntervalSinceReferenceDate
@@ -833,15 +873,15 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         let comp1 = components(reducedUnits, from: date1)
         let comp2 = components(reducedUnits, from: date2)
     
-        for unit in units {
-            let value1 = comp1.value(for: Calendar._fromCalendarUnit(unit))
-            let value2 = comp2.value(for: Calendar._fromCalendarUnit(unit))
+        for testedUnit in units {
+            let value1 = comp1.value(for: Calendar._fromCalendarUnit(testedUnit))
+            let value2 = comp2.value(for: Calendar._fromCalendarUnit(testedUnit))
             if value1! > value2! {
                 return .orderedDescending
             } else if value1! < value2! {
                 return .orderedAscending
             }
-            if unit == .month && calendarIdentifier == .chinese {
+            if testedUnit == .month && calendarIdentifier == .chinese {
                 if let leap1 = comp1.isLeapMonth {
                     if let leap2 = comp2.isLeapMonth {
                         if !leap1 && leap2 {
@@ -853,7 +893,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 }
                 
             }
-            if unit == reducedUnits {
+            if testedUnit == unit {
                 return .orderedSame
             }
         }
@@ -909,7 +949,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     This API reports if the date is within a weekend period, as defined by the calendar and calendar's locale.
     */
     open func isDateInWeekend(_ date: Date) -> Bool {
-        return _CFCalendarIsWeekend(_cfObject, date.timeIntervalSince1970)
+        return _CFCalendarIsDateInWeekend(_cfObject, date._cfObject)
     }
     
     /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer.
@@ -924,7 +964,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     open func range(ofWeekendContaining date: Date) -> DateInterval? {
         if let next = nextWeekendAfter(date, options: []) {
             if let prev = nextWeekendAfter(next.start, options: .searchBackwards) {
-                if prev.start.timeIntervalSinceReferenceDate <= date.timeIntervalSinceReferenceDate && date.timeIntervalSinceReferenceDate <= prev.end.timeIntervalSinceReferenceDate {
+                if prev.start <= date && date < prev.end /* exclude the end since it's the start of the next day */ {
                     return prev
                 }
             }
@@ -950,17 +990,10 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             var comp = DateComponents()
             comp.weekday = range.start
             if let nextStart = nextDate(after: date, matching: comp, options: options.union(.matchNextTime)) {
-                let start = nextStart + range.onsetTime
+                let start = startOfDay(for: nextStart + range.onsetTime)
                 comp.weekday = range.end
-                if let nextEnd = nextDate(after: date, matching: comp, options: options.union(.matchNextTime)) {
+                if let nextEnd = nextDate(after: start, matching: comp, options: .matchNextTime) {
                     var end = nextEnd
-                    if end.compare(start) == .orderedAscending {
-                        if let nextOrderedEnd = nextDate(after: end, matching: comp, options: options.union(.matchNextTime)) {
-                            end = nextOrderedEnd
-                        } else {
-                            return nil
-                        }
-                    }
                     if range.ceaseTime > 0 {
                         end = end + range.ceaseTime
                     } else {
@@ -1038,7 +1071,47 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     The enumeration is stopped by setting *stop = YES in the block and return.  It is not necessary to set *stop to NO to keep the enumeration going.
     */
     open func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Swift.Void) {
-        NSUnimplemented()
+        if !verifyCalendarOptions(opts) {
+            return
+        }
+        
+        withoutActuallyEscaping(block) { (nonescapingBlock) in
+            _CFCalendarEnumerateDates(_cfObject, start._cfObject, comps._createCFDateComponents(), CFOptionFlags(opts.rawValue)) { (cfDate, exact, stop) in
+                var ourStop: ObjCBool = false
+                nonescapingBlock(cfDate._swiftObject, exact, &ourStop)
+                if ourStop.boolValue {
+                    stop.pointee = true
+                }
+            }
+        }
+    }
+    
+    private func verifyCalendarOptions(_ options: NSCalendar.Options) -> Bool {
+        var optionsAreValid = true
+        
+        let matchStrictly = options.contains(.matchStrictly)
+        let matchPrevious = options.contains(.matchPreviousTimePreservingSmallerUnits)
+        let matchNextKeepSmaller = options.contains(.matchNextTimePreservingSmallerUnits)
+        let matchNext = options.contains(.matchNextTime)
+        let matchFirst = options.contains(.matchFirst)
+        let matchLast = options.contains(.matchLast)
+        
+        if matchStrictly && (matchPrevious || matchNextKeepSmaller || matchNext) {
+            // We can't throw here because we've never thrown on this case before, even though it is technically an invalid case.  The next best thing is to return.
+            optionsAreValid = false
+        }
+        
+        if !matchStrictly {
+            if (matchPrevious && matchNext) || (matchPrevious && matchNextKeepSmaller) || (matchNext && matchNextKeepSmaller) || (!matchPrevious && !matchNext && !matchNextKeepSmaller) {
+                fatalError("Exactly one option from the set {NSCalendarMatchPreviousTimePreservingSmallerUnits, NSCalendarMatchNextTimePreservingSmallerUnits, NSCalendarMatchNextTime} must be specified.")
+            }
+        }
+        
+        if (matchFirst && matchLast) {
+            fatalError("Only one option from the set {NSCalendarMatchFirst, NSCalendarMatchLast} can be specified.")
+        }
+        
+        return optionsAreValid
     }
     
     /*
@@ -1153,7 +1226,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var tempComp = components
         tempComp.isLeapMonth = comp.isLeapMonth
         if let nanosecond = comp.value(for: .nanosecond) {
-            if labs(nanosecond - tempComp.value(for: .nanosecond)!) > 500 {
+            if labs(numericCast(nanosecond - tempComp.value(for: .nanosecond)!)) > 500 {
                 return false
             } else {
                 compareComp.nanosecond = 0
@@ -1164,6 +1237,164 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         return false
     }
     
+}
+
+/// MARK: Current calendar.
+
+internal class _NSCopyOnWriteCalendar: NSCalendar {
+    private let lock = NSLock()
+    private var needsLocking_isMutated: Bool
+    private var needsLocking_backingCalendar: NSCalendar
+    
+    var backingCalendar: NSCalendar {
+        lock.lock()
+        let it = needsLocking_backingCalendar
+        lock.unlock()
+        return it
+    }
+    
+    init(backingCalendar: NSCalendar) {
+        self.needsLocking_isMutated = false
+        self.needsLocking_backingCalendar = backingCalendar
+        super.init()
+    }
+    
+    public convenience required init?(coder aDecoder: NSCoder) {
+        fatalError() // Encoding
+    }
+    
+    override var classForCoder: AnyClass { return NSCalendar.self }
+    
+    override func encode(with aCoder: NSCoder) {
+        backingCalendar.encode(with: aCoder)
+    }
+    
+    override func copy(with zone: NSZone? = nil) -> Any {
+        return backingCalendar.copy(with: zone)
+    }
+    
+    // -- Mutating the current calendar
+    
+    private func copyBackingCalendarIfNeededWithMutation(_ block: (NSCalendar) -> Void) {
+        lock.lock()
+        if !needsLocking_isMutated {
+            needsLocking_isMutated = true
+            needsLocking_backingCalendar = needsLocking_backingCalendar.copy() as! NSCalendar
+        }
+        block(needsLocking_backingCalendar)
+        lock.unlock()
+    }
+    
+    override var firstWeekday: Int {
+        get { return backingCalendar.firstWeekday }
+        set {
+            copyBackingCalendarIfNeededWithMutation {
+                $0.firstWeekday = newValue
+            }
+        }
+    }
+    
+    override var locale: Locale? {
+        get { return backingCalendar.locale }
+        set {
+            copyBackingCalendarIfNeededWithMutation {
+                $0.locale = newValue
+            }
+        }
+    }
+    
+    override var timeZone: TimeZone {
+        get { return backingCalendar.timeZone }
+        set {
+            copyBackingCalendarIfNeededWithMutation {
+                $0.timeZone = newValue
+            }
+        }
+    }
+    
+    override var minimumDaysInFirstWeek: Int {
+        get { return backingCalendar.minimumDaysInFirstWeek }
+        set {
+            copyBackingCalendarIfNeededWithMutation {
+                $0.minimumDaysInFirstWeek = newValue
+            }
+        }
+    }
+    
+    override var gregorianStartDate: Date? {
+        get { return backingCalendar.gregorianStartDate }
+        set {
+            copyBackingCalendarIfNeededWithMutation {
+                $0.gregorianStartDate = newValue
+            }
+        }
+    }
+    
+    override func isEqual(_ value: Any?) -> Bool {
+        return backingCalendar.isEqual(value)
+    }
+    
+    override var hash: Int {
+        return backingCalendar.hashValue
+    }
+    
+    // Delegation:
+    
+    override var calendarIdentifier: NSCalendar.Identifier {
+        return backingCalendar.calendarIdentifier
+    }
+    
+    override func minimumRange(of unit: NSCalendar.Unit) -> NSRange {
+        return backingCalendar.minimumRange(of: unit)
+    }
+    
+    override func maximumRange(of unit: NSCalendar.Unit) -> NSRange {
+        return backingCalendar.maximumRange(of: unit)
+    }
+    
+    override func range(of smaller: NSCalendar.Unit, in larger: NSCalendar.Unit, for date: Date) -> NSRange {
+        return backingCalendar.range(of: smaller, in: larger, for: date)
+    }
+    
+    override func ordinality(of smaller: NSCalendar.Unit, in larger: NSCalendar.Unit, for date: Date) -> Int {
+        return backingCalendar.ordinality(of: smaller, in: larger, for: date)
+    }
+    
+    override func range(of unit: NSCalendar.Unit, for date: Date) -> DateInterval? {
+        return backingCalendar.range(of: unit, for: date)
+    }
+    
+    override func date(from comps: DateComponents) -> Date? {
+        return backingCalendar.date(from: comps)
+    }
+    
+    override func component(_ unit: NSCalendar.Unit, from date: Date) -> Int {
+        return backingCalendar.component(unit, from: date)
+    }
+    
+    override func date(byAdding comps: DateComponents, to date: Date, options opts: NSCalendar.Options = []) -> Date? {
+        return backingCalendar.date(byAdding: comps, to: date, options: opts)
+    }
+    
+    override func components(_ unitFlags: NSCalendar.Unit, from startingDateComp: DateComponents, to resultDateComp: DateComponents, options: NSCalendar.Options = []) -> DateComponents {
+        return backingCalendar.components(unitFlags, from: startingDateComp, to: resultDateComp, options: options)
+    }
+    
+    override func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
+        return backingCalendar.components(unitFlags, from: startingDate, to: resultDate, options: opts)
+    }
+    
+    override func nextWeekendAfter(_ date: Date, options: NSCalendar.Options) -> DateInterval? {
+        return backingCalendar.nextWeekendAfter(date, options: options)
+    }
+    
+    override func isDateInWeekend(_ date: Date) -> Bool {
+        return backingCalendar.isDateInWeekend(date)
+    }
+    
+    override func enumerateDates(startingAfter start: Date, matching comps: DateComponents, options opts: NSCalendar.Options = [], using block: (Date?, Bool, UnsafeMutablePointer<ObjCBool>) -> Void) {
+        return backingCalendar.enumerateDates(startingAfter: start, matching: comps, options: opts, using: block)
+    }
 }
 
 // This notification is posted through [NSNotificationCenter defaultCenter]
@@ -1808,5 +2039,143 @@ extension NSDateComponents : _StructTypeBridgeable {
     
     public func _bridgeToSwift() -> DateComponents {
         return DateComponents._unconditionallyBridgeFromObjectiveC(self)
+    }
+}
+
+fileprivate extension NSDateComponents {
+    func _createCFDateComponents() -> CFDateComponents {
+        let components = CFDateComponentsCreate(kCFAllocatorSystemDefault)!
+        CFDateComponentsSetValue(components, kCFCalendarUnitEra, era)
+        CFDateComponentsSetValue(components, kCFCalendarUnitYear, year)
+        CFDateComponentsSetValue(components, kCFCalendarUnitMonth, month)
+        CFDateComponentsSetValue(components, kCFCalendarUnitDay, day)
+        CFDateComponentsSetValue(components, kCFCalendarUnitHour, hour)
+        CFDateComponentsSetValue(components, kCFCalendarUnitMinute, minute)
+        CFDateComponentsSetValue(components, kCFCalendarUnitSecond, second)
+        CFDateComponentsSetValue(components, kCFCalendarUnitWeekday, weekday)
+        CFDateComponentsSetValue(components, kCFCalendarUnitWeekdayOrdinal, weekdayOrdinal)
+        CFDateComponentsSetValue(components, kCFCalendarUnitQuarter, quarter)
+        CFDateComponentsSetValue(components, kCFCalendarUnitWeekOfMonth, weekOfMonth)
+        CFDateComponentsSetValue(components, kCFCalendarUnitWeekOfYear, weekOfYear)
+        CFDateComponentsSetValue(components, kCFCalendarUnitYearForWeekOfYear, yearForWeekOfYear)
+        CFDateComponentsSetValue(components, kCFCalendarUnitNanosecond, nanosecond)
+        return components
+    }
+}
+
+fileprivate extension DateComponents {
+    func _createCFDateComponents() -> CFDateComponents {
+        return _nsObject._createCFDateComponents()
+    }
+}
+
+// CF Bridging:
+
+internal func _CFSwiftCalendarGetCalendarIdentifier(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef> {
+//    It is tempting to just:
+//    return Unmanaged.passUnretained(unsafeBitCast(calendar, to: NSCalendar.self).calendarIdentifier.rawValue._cfObject)
+//    The problem is that Swift will then release the ._cfObject from under us. It needs to be retained, but Swift objects do not necessarily have a way to retain that CFObject to be alive for the caller because, outside of ObjC, there is no autorelease pool to save us from this. This is a problem with the fact that we're bridging a Get function; Copy functions of course just return +1 and live happily.
+//    So, the solution here is to canonicalize to one of the CFString constants, which are immortal. If someone is using a nonstandard calendar identifier, well, this will currently explode :( TODO.
+    let result: CFString
+    switch unsafeBitCast(calendar, to: NSCalendar.self).calendarIdentifier {
+    case .gregorian:
+        result = kCFCalendarIdentifierGregorian
+    case .buddhist:
+        result = kCFCalendarIdentifierBuddhist
+    case .chinese:
+        result = kCFCalendarIdentifierChinese
+    case .coptic:
+        result = kCFCalendarIdentifierCoptic
+    case .ethiopicAmeteMihret:
+        result = kCFCalendarIdentifierEthiopicAmeteMihret
+    case .ethiopicAmeteAlem:
+        result = kCFCalendarIdentifierEthiopicAmeteAlem
+    case .hebrew:
+        result = kCFCalendarIdentifierHebrew
+    case .ISO8601:
+        result = kCFCalendarIdentifierISO8601
+    case .indian:
+        result = kCFCalendarIdentifierIndian
+    case .islamic:
+        result = kCFCalendarIdentifierIslamic
+    case .islamicCivil:
+        result = kCFCalendarIdentifierIslamicCivil
+    case .japanese:
+        result = kCFCalendarIdentifierJapanese
+    case .persian:
+        result = kCFCalendarIdentifierPersian
+    case .republicOfChina:
+        result = kCFCalendarIdentifierRepublicOfChina
+    case .islamicTabular:
+        result = kCFCalendarIdentifierIslamicTabular
+    case .islamicUmmAlQura:
+        result = kCFCalendarIdentifierIslamicUmmAlQura
+    default:
+        fatalError("Calendars returning a non-system calendar identifier in Swift Foundation are not supported.")
+    }
+    
+    return Unmanaged.passUnretained(result)
+}
+
+internal func _CFSwiftCalendarCopyLocale(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef>? {
+    if let locale = unsafeBitCast(calendar, to: NSCalendar.self).locale {
+        return Unmanaged.passRetained(locale._cfObject)
+    } else {
+        return nil
+    }
+}
+
+internal func _CFSwiftCalendarSetLocale(_ calendar: CFTypeRef, _ locale: CFTypeRef?) {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    if let locale = locale {
+        calendar.locale = unsafeBitCast(locale, to: NSLocale.self)._swiftObject
+    } else {
+        calendar.locale = nil
+    }
+}
+
+internal func _CFSwiftCalendarCopyTimeZone(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef> {
+    return Unmanaged.passRetained(unsafeBitCast(calendar, to: NSCalendar.self).timeZone._cfObject)
+}
+
+internal func _CFSwiftCalendarSetTimeZone(_ calendar: CFTypeRef, _ timeZone: CFTypeRef) {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    calendar.timeZone = unsafeBitCast(timeZone, to: NSTimeZone.self)._swiftObject
+}
+
+internal func _CFSwiftCalendarGetFirstWeekday(_ calendar: CFTypeRef) -> CFIndex {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    return calendar.firstWeekday
+}
+
+internal func _CFSwiftCalendarSetFirstWeekday(_ calendar: CFTypeRef, _ firstWeekday: CFIndex) {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    calendar.firstWeekday = firstWeekday
+}
+
+internal func _CFSwiftCalendarGetMinimumDaysInFirstWeek(_ calendar: CFTypeRef) -> CFIndex {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    return calendar.minimumDaysInFirstWeek
+}
+
+internal func _CFSwiftCalendarSetMinimumDaysInFirstWeek(_ calendar: CFTypeRef, _ minimumDaysInFirstWeek: CFIndex) {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    calendar.minimumDaysInFirstWeek = minimumDaysInFirstWeek
+}
+
+internal func _CFSwiftCalendarCopyGregorianStartDate(_ calendar: CFTypeRef) -> Unmanaged<CFTypeRef>? {
+    if let date = unsafeBitCast(calendar, to: NSCalendar.self).gregorianStartDate {
+        return Unmanaged.passRetained(date._cfObject)
+    } else {
+        return nil
+    }
+}
+
+internal func _CFSwiftCalendarSetGregorianStartDate(_ calendar: CFTypeRef, _ date: CFTypeRef?) {
+    let calendar = unsafeBitCast(calendar, to: NSCalendar.self)
+    if let date = date {
+        calendar.gregorianStartDate = unsafeBitCast(date, to: NSDate.self)._swiftObject
+    } else {
+        calendar.gregorianStartDate = nil
     }
 }

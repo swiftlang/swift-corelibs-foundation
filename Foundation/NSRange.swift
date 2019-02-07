@@ -258,7 +258,7 @@ extension NSRange {
     }
     
     public init<R: RangeExpression, S: StringProtocol>(_ region: R, in target: S)
-        where R.Bound == S.Index, S.Index == String.Index {
+        where R.Bound == S.Index {
             let r = region.relative(to: target)
             self = NSRange(
                 location: r.lowerBound.encodedOffset - target.startIndex.encodedOffset,
@@ -309,10 +309,9 @@ extension NSRange : CustomReflectable {
     }
 }
 
-extension NSRange : CustomPlaygroundQuickLookable {
-    @available(*, deprecated, message: "NSRange.customPlaygroundQuickLook will be removed in a future Swift version")
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-        return .range(Int64(location), Int64(length))
+extension NSRange : CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
+        return (Int64(location), Int64(length))
     }
 }
 

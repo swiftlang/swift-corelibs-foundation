@@ -7,17 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-// It is necessary to explicitly cast strlen to UInt to match the type
-// of prefixLen because currently, strlen (and other functions that
-// rely on swift_ssize_t) use the machine word size (int on 32 bit and
-// long in on 64 bit).  I've filed a bug at bugs.swift.org:
-// https://bugs.swift.org/browse/SR-314
-
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
 import CoreFoundation
 
 extension XMLParser {
@@ -471,21 +460,19 @@ open class XMLParser : NSObject {
         if let p = parser {
             Thread.current.threadDictionary["__CurrentNSXMLParser"] = p
         } else {
-            Thread.current.threadDictionary.removeValue(forKey: "__CurrentNSXMLParser")
+            Thread.current.threadDictionary.removeObject(forKey: "__CurrentNSXMLParser")
         }
     }
     
     internal func _handleParseResult(_ parseResult: Int32) -> Bool {
-        return true
-        /*
-        var result = true
-        if parseResult != 0 {
-            if parseResult != -1 {
-                // TODO: determine if this result is a fatal error from libxml via the CF implementations
+        if parseResult == 0 {
+            return true
+        } else {
+            if _parserError == nil {
+                _parserError = NSError(domain: XMLParser.errorDomain, code: Int(parseResult))
             }
         }
-        return result
-        */
+        return false
     }
 
     internal func parseData(_ data: Data) -> Bool {

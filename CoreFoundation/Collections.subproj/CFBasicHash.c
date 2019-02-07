@@ -8,16 +8,17 @@
 	Responsibility: Christopher Kane
 */
 
-#import "CFBasicHash.h"
-#import <CoreFoundation/CFRuntime.h>
-#import "CFRuntime_Internal.h"
-#import <CoreFoundation/CFSet.h>
-#import <Block.h>
-#import <math.h>
+#include "CFBasicHash.h"
+#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFRuntime.h>
+#include "CFRuntime_Internal.h"
+#include <CoreFoundation/CFSet.h>
+#include <Block.h>
+#include <math.h>
 #if __HAS_DISPATCH__
-#import <dispatch/dispatch.h>
+#include <dispatch/dispatch.h>
 #endif
-#import "CFOverflow.h"
+#include "CFOverflow.h"
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #define __SetLastAllocationEventName(A, B) do { if (__CFOASafe && (A)) __CFSetLastAllocationEventName(A, B); } while (0)
@@ -199,10 +200,6 @@ extern int __dtrace_isenabled$Cocoa_HashTable$test_equal$v1(void);
 #endif
 
 
-#if !defined(__LP64__)
-#define __LP64__ 0
-#endif
-
 // Prime numbers. Values above 100 have been adjusted up so that the
 // malloced block size will be just below a multiple of 512; values
 // above 1200 have been adjusted up to just below a multiple of 4096.
@@ -212,7 +209,7 @@ static const uintptr_t __CFBasicHashTableSizes[64] = {
     214519, 346607, 561109, 907759, 1468927, 2376191, 3845119,
     6221311, 10066421, 16287743, 26354171, 42641881, 68996069,
     111638519, 180634607, 292272623, 472907251,
-#if __LP64__
+#if TARGET_RT_64_BIT
     765180413UL, 1238087663UL, 2003267557UL, 3241355263UL, 5244622819UL,
 #if 0
     8485977589UL, 13730600407UL, 22216578047UL, 35947178479UL,
@@ -230,7 +227,7 @@ static const uintptr_t __CFBasicHashTableCapacities[64] = {
     132580, 214215, 346784, 561026, 907847, 1468567, 2376414,
     3844982, 6221390, 10066379, 16287773, 26354132, 42641916,
     68996399, 111638327, 180634415, 292272755,
-#if __LP64__
+#if TARGET_RT_64_BIT
     472907503UL, 765180257UL, 1238087439UL, 2003267722UL, 3241355160UL,
 #if 0
     5244622578UL, 8485977737UL, 13730600347UL, 22216578100UL,
@@ -249,7 +246,7 @@ static const uintptr_t __CFBasicHashPrimitiveRoots[64] = {
     3, 5, 10, 3, 3, 22, 3,
     3, 3, 5, 2, 22, 2,
     11, 5, 5, 2,
-#if __LP64__
+#if TARGET_RT_64_BIT
     3, 10, 2, 3, 10,
     2, 3, 5, 3,
     3, 2, 7, 2,

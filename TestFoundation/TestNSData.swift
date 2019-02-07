@@ -185,6 +185,7 @@ class TestNSData: LoopbackServerTest {
             ("test_openingNonExistentFile", test_openingNonExistentFile),
             ("test_contentsOfFile", test_contentsOfFile),
             ("test_contentsOfZeroFile", test_contentsOfZeroFile),
+            ("test_wrongSizedFile", test_wrongSizedFile),
             ("test_contentsOfURL", test_contentsOfURL),
             ("test_basicReadWrite", test_basicReadWrite),
             ("test_bufferSizeCalculation", test_bufferSizeCalculation),
@@ -503,6 +504,7 @@ class TestNSData: LoopbackServerTest {
             ("test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound", test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
             ("test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound",
              test_validateMutation_slice_customMutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound),
+            ("test_nskeyedarchiving", test_nskeyedarchiving),
             ("test_discontiguousEnumerateBytes", test_discontiguousEnumerateBytes),
             ("testBridgingCustom", testBridgingCustom),
             ("testCustomData", testCustomData),
@@ -1419,10 +1421,6 @@ extension TestNSData {
     }
     
     func test_dataHash() {
-        let dataStruct = "Hello World".data(using: .utf8)!
-        let dataObj = dataStruct._bridgeToObjectiveC()
-        XCTAssertEqual(dataObj.hashValue, dataStruct.hashValue, "Data and NSData should have the same hash value")
-
         XCTAssertEqual(NSData().hash, 0)
         XCTAssertEqual(NSMutableData().hash, 0)
 
@@ -1490,6 +1488,17 @@ extension TestNSData {
         } catch {
             XCTFail("Cannot read /proc/self/maps: \(String(describing: error))")
         }
+#endif
+    }
+
+    func test_wrongSizedFile() {
+#if os(Linux)
+        // Some files in /sys report a non-zero st_size often bigger than the contents
+        guard let data = NSData.init(contentsOfFile: "/sys/kernel/profiling") else {
+            XCTFail("Cant read /sys/kernel/profiling")
+            return
+        }
+        XCTAssert(data.length > 0)
 #endif
     }
 
@@ -4450,7 +4459,20 @@ extension TestNSData {
         let data = "FooBar".data(using: .ascii)!
         let slice = data[3...] // Bar
         let range = slice.range(of: "a".data(using: .ascii)!)
-        XCTAssertEqual(range, Range<Data.Index>(4..<5))
+        XCTAssertEqual(range, 4..<5)
+    }
+
+    func test_nskeyedarchiving() {
+        let bytes: [UInt8] = [0xd, 0xe, 0xa, 0xd, 0xb, 0xe, 0xe, 0xf]
+        let data = NSData(bytes: bytes, length: bytes.count)
+
+        let archiver = NSKeyedArchiver()
+        data.encode(with: archiver)
+        let encodedData = archiver.encodedData
+
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: encodedData)
+        let decodedData = NSData(coder: unarchiver)
+        XCTAssertEqual(data, decodedData)
     }
 }
 

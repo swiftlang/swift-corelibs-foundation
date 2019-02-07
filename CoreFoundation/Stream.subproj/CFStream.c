@@ -15,6 +15,9 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <stdio.h>
+#if DEPLOYMENT_TARGET_WINDOWS
+#include <process.h>
+#endif
 
 #if defined(DEBUG)
 #include <assert.h>
@@ -1755,15 +1758,23 @@ static CFRunLoopRef _legacyStreamRunLoop()
         if (sLegacyRL == NULL) {
             dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
+#if DEPLOYMENT_TARGET_WINDOWS
+            HANDLE hThread =
+                (HANDLE)_beginthreadex(NULL, 0,
+                                       (_beginthreadex_proc_type)_legacyStreamRunLoop_workThread,
+                                       &sem, 0, NULL);
+            CloseHandle(hThread);
+#else
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
-            pthread_t workThread;
+            _CFThreadRef workThread;
             (void) pthread_create(&workThread, &attr, _legacyStreamRunLoop_workThread, &sem);
             pthread_attr_destroy(&attr);
+#endif
 
             dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
             dispatch_release(sem);
@@ -1859,11 +1870,11 @@ static void waitForOpen(struct _CFStream *stream) {
     _CFStreamUnscheduleFromRunLoop(stream, runLoop, privateMode);
 }
 
-CF_EXPORT CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream) {
+CFArrayRef _CFReadStreamCopyRunLoopsAndModes(CFReadStreamRef readStream) {
     return _CFStreamCopyRunLoopsAndModes((struct _CFStream *)readStream);
 }
 
-CF_EXPORT CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream) {
+CFArrayRef _CFWriteStreamCopyRunLoopsAndModes(CFWriteStreamRef writeStream) {
     return _CFStreamCopyRunLoopsAndModes((struct _CFStream *)writeStream);
 }
 
@@ -1940,7 +1951,7 @@ void __CFStreamCleanup(void) {
             int i;
 #endif
             CFDictionaryGetKeysAndValues(sSharedSources, keys, NULL);
-             fprintf(stderr, "*** CFNetwork is shutting down, but %ld streams are still scheduled.\n", count);
+             fprintf(stderr, "*** CFNetwork is shutting down, but %lld streams are still scheduled.\n", (long long)count);
 #if defined(DEBUG)
             for (i = 0; i < count;i ++) {
                 if ((CFGetTypeID(keys[i]) == _kCFRuntimeIDCFReadStream) || (CFGetTypeID(keys[i]) == _kCFRuntimeIDCFWriteStream)) {

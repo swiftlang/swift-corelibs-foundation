@@ -23,9 +23,7 @@ import Dispatch
 /// Turn `Data` into `DispatchData`
 internal func createDispatchData(_ data: Data) -> DispatchData {
     //TODO: Avoid copying data
-    let buffer = UnsafeRawBufferPointer(start: data._backing.bytes,
-                                        count: data.count)
-    return DispatchData(bytes: buffer)
+    return data.withUnsafeBytes { DispatchData(bytes: $0) }
 }
 
 /// Copy data from `DispatchData` into memory pointed to by an `UnsafeMutableBufferPointer`.

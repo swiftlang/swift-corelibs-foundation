@@ -34,6 +34,10 @@ open class NSNull : NSObject, NSCopying, NSSecureCoding {
         return true
     }
     
+    open override var description: String {
+        return "<null>"
+    }
+    
     open override func isEqual(_ object: Any?) -> Bool {
         return object is NSNull
     }

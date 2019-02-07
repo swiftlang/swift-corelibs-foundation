@@ -50,7 +50,7 @@ typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingFlags) {
 
 typedef const struct CF_BRIDGED_TYPE(_NSCFRegex) ___CFRegularExpression * _CFRegularExpressionRef;
 
-typedef void (*_CFRegularExpressionMatch)(void *_Nullable context, CFRange * _Nullable ranges, CFIndex count, _CFRegularExpressionMatchingOptions options, Boolean *stop);
+typedef void (*_CFRegularExpressionMatch)(void *_Nullable context, CFRange * _Nullable ranges, CFIndex count, _CFRegularExpressionMatchingFlags flags, Boolean *stop);
 
 CFStringRef _CFRegularExpressionCreateEscapedPattern(CFStringRef pattern);
 _CFRegularExpressionRef _Nullable _CFRegularExpressionCreate(CFAllocatorRef allocator, CFStringRef pattern, _CFRegularExpressionOptions options, CFErrorRef *errorPtr);

@@ -339,6 +339,14 @@ open class OutputStream : Stream {
         CFWriteStreamClose(_cfObject)
     }
     
+    open override var streamStatus: Status {
+#if os(Windows)
+        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_cfObject).rawValue))!
+#else
+        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_cfObject)))!
+#endif
+    }
+    
     open class func toMemory() -> Self {
         return self.init(toMemory: ())
     }
@@ -357,10 +365,6 @@ open class OutputStream : Stream {
     
     open override func remove(from aRunLoop: RunLoop, forMode mode: RunLoopMode) {
         CFWriteStreamUnscheduleFromRunLoop(_cfObject, aRunLoop.getCFRunLoop(), mode.rawValue._cfObject)
-    }
-    
-    open override var streamStatus: Status {
-        return Stream.Status(rawValue: UInt(CFWriteStreamGetStatus(_cfObject)))!
     }
     
     open override var streamError: Error? {

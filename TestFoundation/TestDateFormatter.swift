@@ -378,7 +378,6 @@ class TestDateFormatter: XCTestCase {
     }
 
     func test_expectedTimeZone() {
-        let gmt = TimeZone(abbreviation: DEFAULT_TIMEZONE)
         let newYork = TimeZone(identifier: "America/New_York")!
         let losAngeles = TimeZone(identifier: "America/Los_Angeles")!
 
@@ -397,8 +396,10 @@ class TestDateFormatter: XCTestCase {
         // it would benefit from a more specific test that fails when
         // TimeZone.current is GMT as well.
         // (ex. TestTimeZone.test_systemTimeZoneName)
-        f.timeZone = TimeZone.current
-        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
+
+// Disabled because of: https://bugs.swift.org/browse/SR-8994
+//        f.timeZone = TimeZone.current
+//        XCTAssertEqual(f.string(from: now), TimeZone.current.abbreviation())
 
         // Case 2: New York
         f.timeZone = newYork

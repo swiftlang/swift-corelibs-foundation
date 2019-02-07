@@ -201,20 +201,19 @@ extension Decimal {
 
 extension Decimal : Hashable, Comparable {
     internal var doubleValue: Double {
-        var d = 0.0
-        if _length == 0 && _isNegative == 1 {
-            return Double.nan
+        if _length == 0 {
+            if _isNegative == 1 {
+                return Double.nan
+            } else {
+                return 0
+            }
         }
-        
-        d = d * 65536 + Double(_mantissa.7)
-        d = d * 65536 + Double(_mantissa.6)
-        d = d * 65536 + Double(_mantissa.5)
-        d = d * 65536 + Double(_mantissa.4)
-        d = d * 65536 + Double(_mantissa.3)
-        d = d * 65536 + Double(_mantissa.2)
-        d = d * 65536 + Double(_mantissa.1)
-        d = d * 65536 + Double(_mantissa.0)
-        
+
+        var d = 0.0
+        for idx in stride(from: min(_length, 8), to: 0, by: -1) {
+            d = d * 65536 + Double(self[idx - 1])
+        }
+
         if _exponent < 0 {
             for _ in _exponent..<0 {
                 d /= 10.0
@@ -226,9 +225,11 @@ extension Decimal : Hashable, Comparable {
         }
         return _isNegative != 0 ? -d : d
     }
+
     public var hashValue: Int {
         return Int(bitPattern: __CFHashDouble(doubleValue))
     }
+
     public static func ==(lhs: Decimal, rhs: Decimal) -> Bool {
         if lhs.isNaN {
             return rhs.isNaN

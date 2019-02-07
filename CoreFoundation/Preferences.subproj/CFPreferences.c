@@ -170,7 +170,7 @@ CF_PRIVATE CFStringRef _CFPreferencesGetByHostIdentifierString(void) {
 static unsigned long __CFSafeLaunchLevel = 0;
 
 #if TARGET_OS_WIN32
-#include <shfolder.h>
+#include <ShlObj.h>
 
 #endif
 

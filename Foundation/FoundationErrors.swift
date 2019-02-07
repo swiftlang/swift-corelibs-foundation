@@ -164,12 +164,6 @@ public var NSCoderReadCorruptError: Int                      { return CocoaError
 
 public var NSCoderValueNotFoundError: Int                    { return CocoaError.Code.coderValueNotFound.rawValue }
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
     var cocoaError : CocoaError.Code
     if reading {
@@ -185,7 +179,11 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
             case ENOENT: cocoaError = .fileNoSuchFile
             case EPERM, EACCES: cocoaError = .fileWriteNoPermission
             case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
+#if os(Windows)
+            case ENOSPC: cocoaError = .fileWriteOutOfSpace
+#else
             case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
+#endif
             case EROFS: cocoaError = .fileWriteVolumeReadOnly
             case EEXIST: cocoaError = .fileWriteFileExists
             default: cocoaError = .fileWriteUnknown

@@ -141,9 +141,9 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
     
     /// Returns `true` if `self` contains `date`.
     public func contains(_ date: Date) -> Bool {
-        let timeIntervalForGivenDate = date.timeIntervalSinceReferenceDate
-        let timeIntervalForSelfStart = start.timeIntervalSinceReferenceDate
-        let timeIntervalforSelfEnd = end.timeIntervalSinceReferenceDate
+        let timeIntervalForGivenDate = abs(date.timeIntervalSinceReferenceDate)
+        let timeIntervalForSelfStart = abs(start.timeIntervalSinceReferenceDate)
+        let timeIntervalforSelfEnd = abs(end.timeIntervalSinceReferenceDate)
         if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalforSelfEnd) {
             return true
         }
