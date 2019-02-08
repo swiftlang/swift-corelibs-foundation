@@ -31,6 +31,7 @@ class TestNSString: LoopbackServerTest {
     
     static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
         return [
+            ("test_initData", test_initData),
             ("test_boolValue", test_boolValue ),
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_integerValue", test_integerValue ),
@@ -93,6 +94,70 @@ class TestNSString: LoopbackServerTest {
             ("test_createCopy", test_createCopy),
             ("test_commonPrefix", test_commonPrefix)
         ]
+    }
+
+    func test_initData() {
+        let testString = "\u{00} This is a test string"
+        let data = testString.data(using: .utf8)!
+        XCTAssertEqual(data.count, 23)
+        _ = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
+            if let text1 = NSString(bytes: bytes , length: data.count, encoding: String.Encoding.utf8.rawValue) {
+                XCTAssertEqual(text1.length, data.count)
+                XCTAssertEqual(text1, testString as NSString)
+            } else {
+                XCTFail("Cant convert Data to NSString")
+            }
+        }
+
+        if let text2 = String(data: data, encoding: .utf8) {
+            XCTAssertEqual(text2.count, data.count)
+            XCTAssertEqual(text2, testString)
+        } else {
+            XCTFail("Cant convert Data to String")
+        }
+
+        // Test multibyte UTF8 and UTF16
+        // kra ("ĸ") has codepoint value 312,
+        // as UTF-8  bytes it is 0xC4 0xB8
+        // as UTF-16 bytes it is 0x1, 0x38
+        let kra = "ĸ"
+        let utf8KraData = Data(bytes: [0xc4, 0xb8])
+        if let utf8kra = utf8KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
+            return NSString(bytes: bytes, length: utf8KraData.count, encoding: String.Encoding.utf8.rawValue)
+        }) {
+            XCTAssertEqual(kra.count, 1)
+            XCTAssertEqual(kra.utf8.count, 2)
+            XCTAssertEqual(kra.utf16.count, 1)
+            XCTAssertEqual(kra, utf8kra as String)
+        } else {
+            XCTFail("Cant create UTF8 kra")
+        }
+
+        let utf16KraData = Data(bytes: [0x1, 0x38])
+        if let utf16kra = utf16KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
+            return NSString(bytes: bytes, length: utf16KraData.count, encoding: String.Encoding.utf16.rawValue)
+        }) {
+            XCTAssertEqual(kra.count, 1)
+            XCTAssertEqual(kra.utf8.count, 2)
+            XCTAssertEqual(kra.utf16.count, 1)
+            XCTAssertEqual(kra, utf16kra as String)
+        } else {
+            XCTFail("Cant create UTF16 kra")
+        }
+
+        // Test a large string > 255 characters
+        let largeString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut at tincidunt arcu. Suspendisse nec sodales erat, sit amet imperdiet ipsum. Etiam sed ornare felis. Nunc mauris turpis, bibendum non lectus quis, malesuada placerat turpis. Nam adipiscing non massa et semper. Nulla convallis semper bibendum."
+        XCTAssertTrue(largeString.count > 255)
+        let largeData = largeString.data(using: .utf8)!
+        if let largeText = largeData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
+            return NSString(bytes: bytes, length: largeData.count, encoding: String.Encoding.ascii.rawValue)
+        }) {
+            XCTAssertEqual(largeText.length, largeString.count)
+            XCTAssertEqual(largeText.length, largeData.count)
+            XCTAssertEqual(largeString, largeText as String)
+        } else {
+            XCTFail("Cant convert large Data string to String")
+        }
     }
 
     func test_boolValue() {
@@ -303,6 +368,16 @@ class TestNSString: LoopbackServerTest {
         if let contents = contents {
             XCTAssertEqual(contents, "This file is encoded as ISO-8859-1\nÀÁÂÃÄÅÿ\n±\n")
         }
+
+        guard let zeroFileURL = testBundle().url(forResource: "TestFileWithZeros", withExtension: "txt") else {
+            XCTFail("Cant get URL for TestFileWithZeros.txt")
+           return
+        }
+        guard let zeroString = try? String(contentsOf: zeroFileURL, encoding: .utf8) else {
+            XCTFail("Cant create string from \(zeroFileURL)")
+            return
+        }
+        XCTAssertEqual(zeroString, "Some\u{00}text\u{00}with\u{00}NUL\u{00}bytes\u{00}instead\u{00}of\u{00}spaces.\u{00}\n")
     }
 
     func test_FromContentOfFileUsedEncodingIgnored() {
