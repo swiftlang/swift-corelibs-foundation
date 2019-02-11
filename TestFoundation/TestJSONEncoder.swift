@@ -499,6 +499,79 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_snake_case_encoding() throws {
+        struct MyTestData: Codable, Equatable {
+            let thisIsAString: String
+            let thisIsABool: Bool
+            let thisIsAnInt: Int
+            let thisIsAnInt8: Int8
+            let thisIsAnInt16: Int16
+            let thisIsAnInt32: Int32
+            let thisIsAnInt64: Int64
+            let thisIsAUint: UInt
+            let thisIsAUint8: UInt8
+            let thisIsAUint16: UInt16
+            let thisIsAUint32: UInt32
+            let thisIsAUint64: UInt64
+            let thisIsAFloat: Float
+            let thisIsADouble: Double
+            let thisIsADate: Date
+            let thisIsAnArray: Array<Int>
+            let thisIsADictionary: Dictionary<String, Bool>
+        }
+
+        let data = MyTestData(thisIsAString: "Hello",
+                              thisIsABool: true,
+                              thisIsAnInt: 1,
+                              thisIsAnInt8: 2,
+                              thisIsAnInt16: 3,
+                              thisIsAnInt32: 4,
+                              thisIsAnInt64: 5,
+                              thisIsAUint: 6,
+                              thisIsAUint8: 7,
+                              thisIsAUint16: 8,
+                              thisIsAUint32: 9,
+                              thisIsAUint64: 10,
+                              thisIsAFloat: 11,
+                              thisIsADouble: 12,
+                              thisIsADate: Date.init(timeIntervalSince1970: 0),
+                              thisIsAnArray: [1, 2, 3],
+                              thisIsADictionary: [ "trueValue": true, "falseValue": false]
+        )
+
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        encoder.dateEncodingStrategy = .iso8601
+        let encodedData = try encoder.encode(data)
+        guard let jsonObject = try JSONSerialization.jsonObject(with: encodedData) as? [String: Any] else {
+            XCTFail("Cant decode json object")
+            return
+        }
+        XCTAssertEqual(jsonObject["this_is_a_string"] as? String, "Hello")
+        XCTAssertEqual(jsonObject["this_is_a_bool"] as? Bool, true)
+        XCTAssertEqual(jsonObject["this_is_an_int"] as? Int, 1)
+        XCTAssertEqual(jsonObject["this_is_an_int8"] as? Int8, 2)
+        XCTAssertEqual(jsonObject["this_is_an_int16"] as? Int16, 3)
+        XCTAssertEqual(jsonObject["this_is_an_int32"] as? Int32, 4)
+        XCTAssertEqual(jsonObject["this_is_an_int64"] as? Int64, 5)
+        XCTAssertEqual(jsonObject["this_is_a_uint"] as? UInt, 6)
+        XCTAssertEqual(jsonObject["this_is_a_uint8"] as? UInt8, 7)
+        XCTAssertEqual(jsonObject["this_is_a_uint16"] as? UInt16, 8)
+        XCTAssertEqual(jsonObject["this_is_a_uint32"] as? UInt32, 9)
+        XCTAssertEqual(jsonObject["this_is_a_uint64"] as? UInt64, 10)
+        XCTAssertEqual(jsonObject["this_is_a_float"] as? Float, 11)
+        XCTAssertEqual(jsonObject["this_is_a_double"] as? Double, 12)
+        XCTAssertEqual(jsonObject["this_is_a_date"] as? String, "1970-01-01T00:00:00Z")
+        XCTAssertEqual(jsonObject["this_is_an_array"] as? [Int], [1, 2, 3])
+        XCTAssertEqual(jsonObject["this_is_a_dictionary"] as? [String: Bool], ["true_value": true, "false_value": false ])
+
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+        let decodedData = try decoder.decode(MyTestData.self, from: encodedData)
+        XCTAssertEqual(data, decodedData)
+    }
+
     // MARK: - Helper Functions
     private var _jsonEmptyDictionary: Data {
         return "{}".data(using: .utf8)!
@@ -1089,6 +1162,7 @@ extension TestJSONEncoder {
             ("test_codingOfDouble", test_codingOfDouble),
             ("test_codingOfString", test_codingOfString),
             ("test_codingOfURL", test_codingOfURL),
+            ("test_snake_case_encoding", test_snake_case_encoding),
         ]
     }
 }
