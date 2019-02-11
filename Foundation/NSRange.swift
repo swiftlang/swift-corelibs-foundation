@@ -260,11 +260,7 @@ extension NSRange {
     public init<R: RangeExpression, S: StringProtocol>(_ region: R, in target: S)
         where R.Bound == S.Index, S.Index == String.Index {
             let r = region.relative(to: target)
-            let u = target.utf16
-            self = NSRange(
-                location: u.distance(from: target.startIndex, to: r.lowerBound),
-                length: u.distance(from: r.lowerBound, to: r.upperBound)
-            )
+            self.init(target._toUTF16Offsets(r))
     }
     
     @available(swift, deprecated: 4, renamed: "Range.init(_:)")
