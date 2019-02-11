@@ -19,6 +19,8 @@ class TestNSRange : XCTestCase {
             ("test_NSUnionRange", test_NSUnionRange),
             ("test_NSIntersectionRange", test_NSIntersectionRange),
             ("test_NSStringFromRange", test_NSStringFromRange),
+            ("test_init_region_in_ascii_string", test_init_region_in_ascii_string),
+            ("test_init_region_in_unicode_string", test_init_region_in_unicode_string),
         ]
     }
     
@@ -125,5 +127,53 @@ class TestNSRange : XCTestCase {
         for (string, range) in ranges {
             XCTAssertEqual(NSStringFromRange(range), string)
         }
+    }
+    
+    private func _assert<S: StringProtocol, R: RangeExpression>(
+        _ region: R, in target: S, is rangeString: String
+    ) where R.Bound == S.Index {
+        XCTAssertEqual(NSStringFromRange(NSRange(region, in: target)), rangeString)
+    }
+    
+    func test_init_region_in_ascii_string() {
+        // all count = 18
+        let normalString = "1;DROP TABLE users"
+        
+        _assert(normalString.index(normalString.startIndex, offsetBy: 2)..<normalString.index(normalString.endIndex, offsetBy: -6), in: normalString, is: "{2, 10}")
+        _assert(normalString.index(after: normalString.startIndex)...normalString.index(before: normalString.endIndex), in: normalString, is: "{1, 17}")
+        _assert(normalString.startIndex..., in: normalString, is: "{0, 18}")
+        _assert(...normalString.firstIndex(of: " ")!, in: normalString, is: "{0, 7}")
+        _assert(..<normalString.lastIndex(of: " ")!, in: normalString, is: "{0, 12}")
+        
+        let normalSubstring: Substring = normalString.split(separator: ";")[1]
+        
+        _assert(normalSubstring.range(of: "TABLE")!, in: normalSubstring, is: "{5, 5}")
+        _assert(normalSubstring.index(after: normalSubstring.firstIndex(of: " ")!)..<normalSubstring.lastIndex(of: " ")!, in: normalString, is: "{7, 5}")
+        _assert(normalSubstring.firstIndex(of: "u")!...normalSubstring.lastIndex(of: "u")!, in: normalSubstring, is: "{11, 1}")
+        _assert(normalSubstring.startIndex..., in: normalSubstring, is: "{0, 16}")
+        _assert(normalSubstring.startIndex..., in: normalString, is: "{2, 16}")
+        _assert(...normalSubstring.lastIndex(of: " ")!, in: normalSubstring, is: "{0, 11}")
+        _assert(..<normalSubstring.lastIndex(of: " ")!, in: normalString, is: "{0, 12}")
+    }
+    
+    func test_init_region_in_unicode_string() {
+        // count: 46, utf8: 90, utf16: 54
+        let unicodeString = "This  is a #naughty👻 string (╯°□°）╯︵ ┻━┻👨‍👩‍👧‍👦)"
+        
+        _assert(unicodeString.index(unicodeString.startIndex, offsetBy: 10)..<unicodeString.index(unicodeString.startIndex, offsetBy: 28), in: unicodeString, is: "{10, 19}")
+        _assert(unicodeString.index(after: unicodeString.startIndex)...unicodeString.index(before: unicodeString.endIndex), in: unicodeString, is: "{1, 53}")
+        _assert(unicodeString.startIndex..., in: unicodeString, is: "{0, 54}")
+        _assert(...unicodeString.firstIndex(of: "👻")!, in: unicodeString, is: "{0, 22}")
+        _assert(..<unicodeString.range(of: "👨‍👩‍👧‍👦")!.lowerBound, in: unicodeString, is: "{0, 42}")
+        
+        let unicodeSubstring: Substring = unicodeString[unicodeString.firstIndex(of: "👻")!...]
+        
+        _assert(unicodeSubstring.range(of: "👨‍👩‍👧‍👦")!, in: unicodeSubstring, is: "{22, 11}")
+        _assert(unicodeSubstring.range(of: "👨")!.lowerBound..<unicodeSubstring.range(of: "👦")!.upperBound, in: unicodeString, is: "{42, 11}")
+        _assert(unicodeSubstring.index(after: unicodeSubstring.startIndex)...unicodeSubstring.index(before: unicodeSubstring.endIndex), in: unicodeSubstring, is: "{2, 32}")
+        _assert(unicodeSubstring.startIndex..., in: unicodeSubstring, is: "{0, 34}")
+        _assert(unicodeSubstring.startIndex..., in: unicodeString, is: "{20, 34}")
+        _assert(...unicodeSubstring.firstIndex(of: "╯")!, in: unicodeSubstring, is: "{0, 12}")
+        _assert(..<unicodeSubstring.firstIndex(of: "╯")!, in: unicodeString, is: "{0, 31}")
     }
 }
