@@ -244,79 +244,161 @@ extension OperationQueue {
     public static let defaultMaxConcurrentOperationCount: Int = Int.max
 }
 
+internal class _IndexedOperationLinkedList {
+    
+    internal class Node {
+        var operation: Operation
+        var next: _IndexedOperationLinkedList.Node? = nil
+        weak var previous: _IndexedOperationLinkedList.Node? = nil
+        
+        init(operation: Operation) {
+            self.operation = operation
+        }
+    }
+    
+    private(set) var root: _IndexedOperationLinkedList.Node? = nil
+    private(set) weak var tail: _IndexedOperationLinkedList.Node? = nil
+    private(set) var count: Int = 0
+    private var nodeForOperation: [Operation: _IndexedOperationLinkedList.Node] = [:]
+    
+    func insert(_ operation: Operation) {
+        let node = _IndexedOperationLinkedList.Node(operation: operation)
+        
+        if root == nil {
+            root = node
+            tail = node
+        } else {
+            node.previous = tail
+            tail?.next = node
+            tail = node
+        }
+        nodeForOperation[node.operation] = node
+        count += 1
+    }
+    
+    func remove(_ operation: Operation) {
+        guard let node = nodeForOperation.removeValue(forKey: operation) else {
+            return
+        }
+        
+        guard let unwrappedRoot = root, let unwrappedTail = tail else {
+            // There cannot be a case where `nodeForOperation` contains a node and either `root` or `tail` is nil
+            // When root and tail are `nil`, `nodeForOperation` dictionary must be empty.
+            fatalError()
+        }
+        
+        if node === unwrappedRoot {
+            let next = unwrappedTail.next
+            next?.previous = nil
+            root = next
+            count -= 1
+            return
+        }
+        
+        if node === unwrappedTail {
+            tail = node.previous
+            tail?.next = nil
+            count -= 1
+            return
+        }
+        
+        // Middle Node
+        let previous = node.previous
+        let next = node.next
+        
+        previous?.next = next
+        next?.previous = previous
+        
+        node.next = nil
+        node.previous = nil
+        count -= 1
+    }
+    
+    func removeFirst() -> Operation? {
+        guard let returnNode = root else {
+            return nil
+        }
+        
+        remove(returnNode.operation)
+        return returnNode.operation
+    }
+    
+    func map<T>(_ transform: (Operation) throws -> T) rethrows -> [T] {
+        var result: [T] = []
+        var current = root
+        while let node = current {
+            result.append(try transform(node.operation))
+            current = current?.next
+        }
+        return result
+    }
+    
+}
+
+
 internal struct _OperationList {
-    var veryLow = [Operation]()
-    var low = [Operation]()
-    var normal = [Operation]()
-    var high = [Operation]()
-    var veryHigh = [Operation]()
-    var all = [Operation]()
+    var veryLow = _IndexedOperationLinkedList()
+    var low = _IndexedOperationLinkedList()
+    var normal = _IndexedOperationLinkedList()
+    var high = _IndexedOperationLinkedList()
+    var veryHigh = _IndexedOperationLinkedList()
+    var all = _IndexedOperationLinkedList()
+    
+    var count: Int {
+        return all.count
+    }
     
     mutating func insert(_ operation: Operation) {
-        all.append(operation)
+        all.insert(operation)
+        
         switch operation.queuePriority {
         case .veryLow:
-            veryLow.append(operation)
+            veryLow.insert(operation)
         case .low:
-            low.append(operation)
+            low.insert(operation)
         case .normal:
-            normal.append(operation)
+            normal.insert(operation)
         case .high:
-            high.append(operation)
+            high.insert(operation)
         case .veryHigh:
-            veryHigh.append(operation)
+            veryHigh.insert(operation)
         }
     }
     
     mutating func remove(_ operation: Operation) {
-        if let idx = all.firstIndex(of: operation) {
-            all.remove(at: idx)
-        }
+        all.remove(operation)
+        
         switch operation.queuePriority {
         case .veryLow:
-            if let idx = veryLow.firstIndex(of: operation) {
-                veryLow.remove(at: idx)
-            }
+            veryLow.remove(operation)
         case .low:
-            if let idx = low.firstIndex(of: operation) {
-                low.remove(at: idx)
-            }
+            low.remove(operation)
         case .normal:
-            if let idx = normal.firstIndex(of: operation) {
-                normal.remove(at: idx)
-            }
+            normal.remove(operation)
         case .high:
-            if let idx = high.firstIndex(of: operation) {
-                high.remove(at: idx)
-            }
+            high.remove(operation)
         case .veryHigh:
-            if let idx = veryHigh.firstIndex(of: operation) {
-                veryHigh.remove(at: idx)
-            }
+            veryHigh.remove(operation)
         }
     }
     
     mutating func dequeue() -> Operation? {
-        if !veryHigh.isEmpty {
-            return veryHigh.remove(at: 0)
+        if let operation = veryHigh.removeFirst() {
+            return operation
         }
-        if !high.isEmpty {
-            return high.remove(at: 0)
+        if let operation = high.removeFirst() {
+            return operation
         }
-        if !normal.isEmpty {
-            return normal.remove(at: 0)
+        if let operation = normal.removeFirst() {
+            return operation
         }
-        if !low.isEmpty {
-            return low.remove(at: 0)
+        if let operation = low.removeFirst() {
+            return operation
         }
-        if !veryLow.isEmpty {
-            return veryLow.remove(at: 0)
+        if let operation = veryLow.removeFirst() {
+            return operation
         }
         return nil
-    }
-    
-    var count: Int {
-        return all.count
     }
     
     func map<T>(_ transform: (Operation) throws -> T) rethrows -> [T] {
