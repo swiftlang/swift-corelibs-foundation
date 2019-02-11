@@ -1,21 +1,41 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016. 2018 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-class TestPipe : XCTestCase {
+class TestPipe: XCTestCase {
     
     static var allTests: [(String, (TestPipe) -> () throws -> Void)] {
         return [
-             ("test_NSPipe", test_NSPipe)
+            ("test_MaxPipes", test_MaxPipes),
+            ("test_Pipe", test_Pipe),
         ]
     }
-    
-    func test_NSPipe() {
+
+    func test_MaxPipes() {
+        // Try and create enough pipes to exhaust the process's limits. 1024 is a reasonable
+        // hard limit for the test. This is reached when testing on Linux (at around 488 pipes)
+        // but not on macOS.
+
+        var pipes: [Pipe] = []
+        let maxPipes = 1024
+        pipes.reserveCapacity(maxPipes)
+        for _ in 1...maxPipes {
+            let pipe = Pipe()
+            if pipe.fileHandleForReading.fileDescriptor == -1 {
+                XCTAssertEqual(pipe.fileHandleForReading.fileDescriptor, pipe.fileHandleForWriting.fileDescriptor)
+                break
+            }
+            pipes.append(pipe)
+        }
+        pipes = []
+    }
+
+    func test_Pipe() {
         let aPipe = Pipe()
         let text = "test-pipe"
         
