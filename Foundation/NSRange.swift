@@ -260,9 +260,10 @@ extension NSRange {
     public init<R: RangeExpression, S: StringProtocol>(_ region: R, in target: S)
         where R.Bound == S.Index, S.Index == String.Index {
             let r = region.relative(to: target)
+            let u = target.utf16
             self = NSRange(
-                location: r.lowerBound.encodedOffset - target.startIndex.encodedOffset,
-                length: r.upperBound.encodedOffset - r.lowerBound.encodedOffset
+                location: u.distance(from: target.startIndex, to: r.lowerBound),
+                length: u.distance(from: r.lowerBound, to: r.upperBound)
             )
     }
     
