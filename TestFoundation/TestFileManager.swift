@@ -326,6 +326,15 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail("Failed to clean up files")
         }
+
+        // test non existant file
+        let noSuchFile = NSTemporaryDirectory() + "fileThatDoesntExist"
+        try? fm.removeItem(atPath: noSuchFile)
+        do {
+            try fm.setAttributes([.posixPermissions: 0], ofItemAtPath: noSuchFile)
+            XCTFail("Setting permissions of non-existant file should throw")
+        } catch {
+        }
     }
     
     func test_pathEnumerator() {

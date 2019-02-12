@@ -188,9 +188,11 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
-                if chmod(path, mode_t(modeT)) != 0 {
-                    fatalError("errno \(errno)")
-                }
+                try _fileSystemRepresentation(withPath: path, {
+                    guard chmod($0, mode_t(modeT)) == 0 else {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
+                })
             } else {
                 fatalError("Attribute type not implemented: \(attribute)")
             }
@@ -964,7 +966,13 @@ open class FileManager : NSObject {
         }
         return UnsafePointer(buf)
     }
-    
+
+    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) rethrows -> ResultType {
+        let fsRep = fileSystemRepresentation(withPath: path)
+        defer { fsRep.deallocate() }
+        return try body(fsRep)
+    }
+
     /* stringWithFileSystemRepresentation:length: returns an NSString created from an array of bytes that are in the filesystem representation.
      */
     open func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {
