@@ -9,6 +9,18 @@
 
 import CoreFoundation
 
+// FileHandle has a .read(upToCount:) method. Just invoking read() will cause an ambiguity warning. Use _read instead.
+// Same with close()/.close().
+#if canImport(Darwin)
+import Darwin
+fileprivate let _read = Darwin.read(_:_:_:)
+fileprivate let _close = Darwin.close(_:)
+#elseif canImport(Glibc)
+import Glibc
+fileprivate let _read = Glibc.read(_:_:_:)
+fileprivate let _close = Glibc.close(_:)
+#endif
+
 open class FileHandle : NSObject, NSSecureCoding {
 #if os(Windows)
     private var _handle: HANDLE
@@ -22,6 +34,9 @@ open class FileHandle : NSObject, NSSecureCoding {
         precondition(_handle != INVALID_HANDLE_VALUE, "Invalid file handle")
     }
 
+    private var _isPlatformHandleValid: Bool {
+        return _handle != INVALID_HANDLE_VALUE
+    }
 #else
     private var _fd: Int32
 
@@ -31,6 +46,10 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private func _checkFileHandle() {
         precondition(_fd >= 0, "Bad file descriptor")
+    }
+    
+    private var _isPlatformHandleValid: Bool {
+        return fileDescriptor >= 0
     }
 #endif
 
@@ -55,24 +74,10 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
     }
     
-    open func readDataToEndOfFile() -> Data {
-        _checkFileHandle()
-        return readData(ofLength: Int.max)
-    }
-
-    open func readData(ofLength length: Int) -> Data {
-        _checkFileHandle()
-        do {
-            let readResult = try _readDataOfLength(length, untilEOF: true)
-            return readResult.toData()
-        } catch {
-            fatalError("\(error)")
-        }
-    }
-
     internal func _readDataOfLength(_ length: Int, untilEOF: Bool, options: NSData.ReadingOptions = []) throws -> NSData.NSDataReadResult {
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
+        
 #if os(Windows)
-
         if length == 0 && !untilEOF {
           // Nothing requested, return empty response
           return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
@@ -80,8 +85,7 @@ open class FileHandle : NSObject, NSSecureCoding {
 
         var fiFileInfo: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
         if GetFileInformationByHandle(_handle, &fiFileInfo) == FALSE {
-          throw NSError(domain: NSPOSIXErrorDomain, code: Int(GetLastError()),
-                        userInfo: nil)
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
 
         if fiFileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_NORMAL) == FILE_ATTRIBUTE_NORMAL {
@@ -125,7 +129,7 @@ open class FileHandle : NSObject, NSSecureCoding {
           var BytesRead: DWORD = 0
           if ReadFile(_handle, buffer.advanced(by: total), BytesToRead, &BytesRead, nil) == FALSE {
             free(buffer)
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(GetLastError()), userInfo: nil)
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
           }
           total += Int(BytesRead)
           if BytesRead == 0 || !untilEOF {
@@ -151,7 +155,7 @@ open class FileHandle : NSObject, NSSecureCoding {
 
         var statbuf = stat()
         if fstat(_fd, &statbuf) < 0 {
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+            throw _NSErrorWithErrno(errno, reading: true)
         }
 
         let readBlockSize: Int
@@ -190,10 +194,10 @@ open class FileHandle : NSObject, NSSecureCoding {
                 currentAllocationSize *= 2
                 dynamicBuffer = _CFReallocf(dynamicBuffer, currentAllocationSize)
             }
-            let amtRead = read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
+            let amtRead = _read(_fd, dynamicBuffer.advanced(by: total), amountToRead)
             if amtRead < 0 {
                 free(dynamicBuffer)
-                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+                throw _NSErrorWithErrno(errno, reading: true)
             }
             total += amtRead
             if amtRead == 0 || !untilEOF { // If there is nothing more to read or we shouldnt keep reading then exit
@@ -209,115 +213,6 @@ open class FileHandle : NSObject, NSSecureCoding {
         let bytePtr = dynamicBuffer.bindMemory(to: UInt8.self, capacity: total)
         return NSData.NSDataReadResult(bytes: bytePtr, length: total) { buffer, length in
             free(buffer)
-        }
-#endif
-    }
-
-    open func write(_ data: Data) {
-        _checkFileHandle()
-#if os(Windows)
-      data.enumerateBytes() { (bytes, range, stop) in
-        do {
-          try NSData.write(toHandle: self._handle, path: nil,
-                           buf: UnsafeRawPointer(bytes.baseAddress!),
-                           length: bytes.count)
-        } catch {
-          fatalError("Write failure")
-        }
-      }
-#else
-        data.enumerateBytes() { (bytes, range, stop) in
-            do {
-                try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
-            } catch {
-                fatalError("Write failure")
-            }
-        }
-#endif
-    }
-
-    // TODO: Error handling.
-
-    open var offsetInFile: UInt64 {
-        _checkFileHandle()
-#if os(Windows)
-        var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0),
-                            &liPointer, DWORD(FILE_CURRENT)) == FALSE {
-          fatalError("SetFilePointerEx failed")
-        }
-        return UInt64(liPointer.QuadPart)
-#else
-        return UInt64(lseek(_fd, 0, SEEK_CUR))
-#endif
-    }
-
-    @discardableResult
-    open func seekToEndOfFile() -> UInt64 {
-        _checkFileHandle()
-#if os(Windows)
-        var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
-        if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0),
-                            &liPointer, DWORD(FILE_END)) == FALSE {
-          fatalError("SetFilePointerEx failed")
-        }
-        return UInt64(liPointer.QuadPart)
-#else
-        return UInt64(lseek(_fd, 0, SEEK_END))
-#endif
-    }
-
-    open func seek(toFileOffset offset: UInt64) {
-        _checkFileHandle()
-#if os(Windows)
-        if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)),
-                            nil, DWORD(FILE_BEGIN)) == FALSE {
-          fatalError("SetFilePointerEx failed")
-        }
-#else
-        lseek(_fd, off_t(offset), SEEK_SET)
-#endif
-    }
-
-    open func truncateFile(atOffset offset: UInt64) {
-        _checkFileHandle()
-#if os(Windows)
-        if SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)),
-                            nil, DWORD(FILE_BEGIN)) == FALSE {
-          fatalError("SetFilePointerEx failed")
-        }
-        if SetEndOfFile(_handle) == FALSE {
-          fatalError("SetEndOfFile failed")
-        }
-#else
-        if lseek(_fd, off_t(offset), SEEK_SET) < 0 { fatalError("lseek() failed.") }
-        if ftruncate(_fd, off_t(offset)) < 0 { fatalError("ftruncate() failed.") }
-#endif
-    }
-
-    open func synchronizeFile() {
-        _checkFileHandle()
-#if os(Windows)
-        if FlushFileBuffers(_handle) == FALSE {
-          fatalError("FlushFileBuffers failed: \(GetLastError())")
-        }
-#else
-        fsync(_fd)
-#endif
-    }
-
-    open func closeFile() {
-#if os(Windows)
-        if _handle != INVALID_HANDLE_VALUE {
-          if CloseHandle(_handle) == FALSE {
-            fatalError("CloseHandle failed")
-          }
-          _handle = INVALID_HANDLE_VALUE
-        }
-#else
-        if _fd >= 0 {
-            close(_fd)
-            _fd = -1
         }
 #endif
     }
@@ -378,20 +273,7 @@ open class FileHandle : NSObject, NSSecureCoding {
 #endif
 
     deinit {
-      guard _closeOnDealloc == true else { return }
-#if os(Windows)
-        if _handle != INVALID_HANDLE_VALUE {
-          if CloseHandle(_handle) == FALSE {
-            fatalError("CloseHandle failed")
-          }
-          _handle = INVALID_HANDLE_VALUE
-        }
-#else
-        if _fd >= 0 {
-            close(_fd)
-            _fd = -1
-        }
-#endif
+      try? self.close()
     }
 
     public required init?(coder: NSCoder) {
@@ -404,6 +286,222 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     public static var supportsSecureCoding: Bool {
         return true
+    }
+    
+    // MARK: -
+    // MARK: New API.
+    
+    @available(swift 5.0)
+    public func readToEnd() throws -> Data? {
+        guard self != FileHandle._nulldeviceFileHandle else { return nil }
+        
+        return try read(upToCount: Int.max)
+    }
+    
+    @available(swift 5.0)
+    public func read(upToCount count: Int) throws -> Data? {
+        guard self != FileHandle._nulldeviceFileHandle else { return nil }
+        
+        let result = try _readDataOfLength(count, untilEOF: true)
+        return result.length == 0 ? nil : result.toData()
+    }
+    
+    @available(swift 5.0)
+    public func write<T: DataProtocol>(contentsOf data: T) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
+        
+        for region in data.regions {
+            try region.withUnsafeBytes { (bytes) in
+                #if os(Windows)
+                try NSData.write(toHandle: self._handle, path: nil,
+                                 buf: UnsafeRawPointer(bytes.baseAddress!),
+                                 length: bytes.count)
+                #else
+                try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
+                #endif
+            }
+        }
+    }
+    
+    @available(swift 5.0)
+    public func offset() throws -> UInt64 {
+        guard self != FileHandle._nulldeviceFileHandle else { return 0 }
+        
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
+
+        #if os(Windows)
+        var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
+        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_CURRENT)) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        return UInt64(liPointer.QuadPart)
+        #else
+        let offset = lseek(_fd, 0, SEEK_CUR)
+        guard offset >= 0 else { throw _NSErrorWithErrno(errno, reading: true) }
+        return UInt64(offset)
+        #endif
+    }
+    
+    @available(swift 5.0)
+    @discardableResult
+    public func seekToEnd() throws -> UInt64 {
+        guard self != FileHandle._nulldeviceFileHandle else { return 0 }
+        
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
+
+        #if os(Windows)
+        var liPointer: LARGE_INTEGER = LARGE_INTEGER(QuadPart: 0)
+        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: 0), &liPointer, DWORD(FILE_END)) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        return UInt64(liPointer.QuadPart)
+        #else
+        let offset = lseek(_fd, 0, SEEK_END)
+        guard offset >= 0 else { throw _NSErrorWithErrno(errno, reading: true) }
+        return UInt64(offset)
+        #endif
+    }
+    
+    @available(swift 5.0)
+    public func seek(toOffset offset: UInt64) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
+
+        #if os(Windows)
+        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)), nil, DWORD(FILE_BEGIN)) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        #else
+        guard lseek(_fd, off_t(offset), SEEK_SET) >= 0 else { throw _NSErrorWithErrno(errno, reading: true) }
+        #endif
+    }
+    
+    @available(swift 5.0)
+    public func truncate(toOffset offset: UInt64) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
+        guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
+
+        #if os(Windows)
+        guard SetFilePointerEx(_handle, LARGE_INTEGER(QuadPart: LONGLONG(offset)),
+                            nil, DWORD(FILE_BEGIN)) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+        }
+        guard SetEndOfFile(_handle) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+        }
+        #else
+        guard lseek(_fd, off_t(offset), SEEK_SET) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        guard ftruncate(_fd, off_t(offset)) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        #endif
+    }
+    
+    @available(swift 5.0)
+    public func synchronize() throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
+        #if os(Windows)
+        guard FlushFileBuffers(_handle) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+        }
+        #else
+        guard fsync(_fd) >= 0 else { throw _NSErrorWithErrno(errno, reading: false) }
+        #endif
+    }
+    
+    @available(swift 5.0)
+    public func close() throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        guard _isPlatformHandleValid else { return }
+        
+        #if os(Windows)
+        guard CloseHandle(_handle) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        _handle = INVALID_HANDLE_VALUE
+        #else
+        guard _close(_fd) >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: true)
+        }
+        _fd = -1
+        #endif
+    }
+    
+    // MARK: -
+    // MARK: To-be-deprecated API.
+    
+    // This matches the effect of API_TO_BE_DEPRECATED in ObjC headers:
+    @available(swift, deprecated: 100000, renamed: "readToEnd()")
+    open func readDataToEndOfFile() -> Data {
+        return try! readToEnd() ?? Data()
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "read(upToCount:)")
+    open func readData(ofLength length: Int) -> Data {
+        return try! read(upToCount: length) ?? Data()
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "write(contentsOf:)")
+    open func write(_ data: Data) {
+        #if os(Windows)
+        precondition(_handle != INVALID_HANDLE_VALUE, "invalid file handle")
+        for region in data.regions {
+            region.withUnsafeBytes { (bytes) in
+                do {
+                    try NSData.write(toHandle: self._handle, path: nil,
+                                     buf: UnsafeRawPointer(bytes.baseAddress!),
+                                     length: bytes.count)
+                } catch {
+                    fatalError("Write failure")
+                }
+            }
+        }
+        #else
+        guard _fd >= 0 else { return }
+        for region in data.regions {
+            region.withUnsafeBytes { (bytes) in
+                do {
+                    try NSData.write(toFileDescriptor: self._fd, path: nil, buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
+                } catch {
+                    fatalError("Write failure")
+                }
+            }
+        }
+        #endif
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "offset()")
+    open var offsetInFile: UInt64 {
+        return try! offset()
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "seekToEnd()")
+    @discardableResult
+    open func seekToEndOfFile() -> UInt64 {
+        return try! seekToEnd()
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "seek(toOffset:)")
+    open func seek(toFileOffset offset: UInt64) {
+        try! seek(toOffset: offset)
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "truncate(toOffset:)")
+    open func truncateFile(atOffset offset: UInt64) {
+        try! truncate(toOffset: offset)
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "synchronize()")
+    open func synchronizeFile() {
+        try! synchronize()
+    }
+    
+    @available(swift, deprecated: 100000, renamed: "close()")
+    open func closeFile() {
+        try! self.close()
     }
 }
 
@@ -604,3 +702,4 @@ open class Pipe: NSObject {
         super.init()
     }
 }
+

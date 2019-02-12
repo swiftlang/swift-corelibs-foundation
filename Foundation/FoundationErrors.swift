@@ -197,5 +197,21 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
         userInfo[NSURLErrorKey] = url
     }
     
+    userInfo[NSUnderlyingErrorKey] = NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno))
+    
     return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: userInfo)
 }
+
+#if os(Windows)
+// The codes in this domain are codes returned by GetLastError in the Windows SDK (in WinError.h):
+// https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes
+internal let _NSWindowsErrorDomain = "org.swift.Foundation.WindowsError"
+
+internal func _NSErrorWithWindowsError(_ windowsError: Int32, reading: Bool) -> NSError {
+    // <#TODO#> os(Windows): Map Win32 errors to Cocoa errors as _NSErrorWithErrno() does.
+    let code: CocoaError.Code = reading ? .fileReadUnknown : .fileWriteUnknown
+    return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: [
+        NSUnderlyingErrorKey: NSError(domain: _NSWindowsErrorDomain, code: Int(windowsError))
+    ])
+}
+#endif
