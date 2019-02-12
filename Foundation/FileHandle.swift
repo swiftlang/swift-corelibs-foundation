@@ -8,6 +8,7 @@
 //
 
 import CoreFoundation
+import Dispatch
 
 // FileHandle has a .read(upToCount:) method. Just invoking read() will cause an ambiguity warning. Use _read instead.
 // Same with close()/.close().
@@ -22,6 +23,20 @@ fileprivate let _read = Glibc.read(_:_:_:)
 fileprivate let _write = Glibc.write(_:_:_:)
 fileprivate let _close = Glibc.close(_:)
 #endif
+
+extension NSError {
+    internal var errnoIfAvailable: Int? {
+        if domain == NSPOSIXErrorDomain {
+            return code
+        }
+        
+        if let underlying = userInfo[NSUnderlyingErrorKey] as? NSError {
+            return underlying.errnoIfAvailable
+        }
+        
+        return nil
+    }
+}
 
 open class FileHandle : NSObject, NSSecureCoding {
 #if os(Windows)
@@ -61,14 +76,129 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private var _closeOnDealloc: Bool
 
+    private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
+    
+    private var readabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
+    private var writabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
+    
+    private var privateAsyncVariablesLock = NSLock()
+    
+    // matches Darwin.
+    private var _queue: DispatchQueue? // Guarded by privateAsyncVariablesLock
+    private var queue: DispatchQueue {
+        privateAsyncVariablesLock.lock()
+        defer { privateAsyncVariablesLock.unlock() }
+        
+        if let queue = _queue {
+            return queue
+        } else {
+            let storage = DispatchQueue(label: "com.apple.NSFileHandle.fd_monitoring")
+            _queue = storage
+            return storage
+        }
+    }
+    private var queueIfExists: DispatchQueue? {
+        privateAsyncVariablesLock.lock()
+        defer { privateAsyncVariablesLock.unlock() }
+        
+        return _queue
+    }
+    
+    private func monitor(forReading reading: Bool, resumed: Bool = true, handler: @escaping (FileHandle, DispatchSourceProtocol) -> Void) -> DispatchSourceProtocol {
+        _checkFileHandle()
+        
+        // Duplicate the file descriptor.
+        // Closing the file descriptor while Dispatch is monitoring it leads to undefined behavior; guard against that.
+        let fd = dup(fileDescriptor)
+        let source: DispatchSourceProtocol
+        if reading {
+            source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
+        } else {
+            source = DispatchSource.makeWriteSource(fileDescriptor: fd, queue: queue)
+        }
+        source.setEventHandler { [weak self, weak source] in
+            if let me = self, let source = source {
+                handler(me, source)
+            }
+        }
+        source.setCancelHandler {
+            _ = _close(fd)
+        }
+        
+        if resumed {
+            source.resume()
+        }
+        
+        return source
+    }
 
+    #if os(Windows)
+    @available(*, unavailable, message: "Not yet implemented on Windows")
     open var readabilityHandler: ((FileHandle) -> Void)? = {
       (FileHandle) -> Void in NSUnimplemented()
     }
 
+    @available(*, unavailable, message: "Not yet implemented on Windows")
     open var writeabilityHandler: ((FileHandle) -> Void)? = {
       (FileHandle) -> Void in NSUnimplemented()
     }
+    #else
+    private var _readabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
+    open var readabilityHandler: ((FileHandle) -> Void)? {
+        get {
+            privateAsyncVariablesLock.lock()
+            let handler = _readabilityHandler
+            privateAsyncVariablesLock.unlock()
+            return handler
+        }
+        set {
+            privateAsyncVariablesLock.lock()
+            _readabilityHandler = newValue
+            if let oldSource = readabilitySource {
+                oldSource.cancel()
+                readabilitySource = nil
+            }
+            privateAsyncVariablesLock.unlock()
+            
+            if let handler = newValue {
+                // The handler can be called as part of the creation of the monitoring source, which can then call into FileHandle code again. Make sure we do not hold the lock when this is invoked.
+                let source = monitor(forReading: true, handler: { (fh, _) in handler(fh) })
+                
+                privateAsyncVariablesLock.lock()
+                readabilitySource = source
+                privateAsyncVariablesLock.unlock()
+            }
+        }
+    }
+    
+    private var _writeabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
+    open var writeabilityHandler: ((FileHandle) -> Void)? {
+        get {
+            privateAsyncVariablesLock.lock()
+            let handler = _writeabilityHandler
+            privateAsyncVariablesLock.unlock()
+            return handler
+        }
+        set {
+            privateAsyncVariablesLock.lock()
+            _writeabilityHandler = newValue
+            if let oldSource = writabilitySource {
+                oldSource.cancel()
+                writabilitySource = nil
+            }
+            privateAsyncVariablesLock.unlock()
+            
+            if let handler = newValue {
+                // The handler can be called as part of the creation of the monitoring source, which can then call into FileHandle code again. Make sure we do not hold the lock when this is invoked.
+                let source = monitor(forReading: false, handler: { (fh, _) in handler(fh) })
+                
+                privateAsyncVariablesLock.lock()
+                writabilitySource = source
+                privateAsyncVariablesLock.unlock()
+            }
+        }
+    }
+    #endif
 
     open var availableData: Data {
         _checkFileHandle()
@@ -307,7 +437,16 @@ open class FileHandle : NSObject, NSSecureCoding {
 #endif
 
     deinit {
-      try? self.close()
+        // .close() tries to wait after operations in flight on the handle queue, if one exists, and then close. It does so by sending .sync { … } work to it.
+        // if we try to do that here, we may end up in a situation where:
+        // - the last reference is held by the handle queue;
+        // - the last operation holding onto the handle finishes, and the block is released;
+        // - the handle is released;
+        // - the handle's deinit is invoked;
+        // - deinit tries to .sync { … } to serialize the work on the handle queue, _which we're already on_
+        // - deadlock! DispatchQueue's deadlock detection triggers and crashes us.
+        // since all operations on the handle queue retain the handle during use, if the handle is being deinited, then there are no more operations on the queue, so this is serial with respect to them anyway. Just close the handle immediately.
+        try? _immediatelyClose()
     }
 
     public required init?(coder: NSCoder) {
@@ -440,10 +579,39 @@ open class FileHandle : NSObject, NSSecureCoding {
         #endif
     }
     
+    private func performOnQueueIfExists(_ block: () throws -> Void) throws {
+        if let queue = queueIfExists {
+            var theError: Swift.Error?
+            queue.sync {
+                do { try block() } catch { theError = error }
+            }
+            if let error = theError {
+                throw error
+            }
+        } else {
+            try block()
+        }
+    }
+    
     @available(swift 5.0)
     public func close() throws {
+        try performOnQueueIfExists {
+            try _immediatelyClose()
+        }
+    }
+    
+    private func _immediatelyClose() throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
+        
+        privateAsyncVariablesLock.lock()
+        writabilitySource?.cancel()
+        readabilitySource?.cancel()
+        _readabilityHandler = nil
+        _writeabilityHandler = nil
+        writabilitySource = nil
+        readabilitySource = nil
+        privateAsyncVariablesLock.unlock()
         
         #if os(Windows)
         guard CloseHandle(_handle) != FALSE else {
@@ -632,36 +800,143 @@ public let NSFileHandleNotificationDataItem: String = "NSFileHandleNotificationD
 public let NSFileHandleNotificationFileHandleItem: String = "NSFileHandleNotificationFileHandleItem"
 
 extension FileHandle {
-    open func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
-        NSUnimplemented()
-    }
-
     open func readInBackgroundAndNotify() {
-        NSUnimplemented()
+        readInBackgroundAndNotify(forModes: [.default])
     }
 
-    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
-        NSUnimplemented()
+    open func readInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+        _checkFileHandle()
+        
+        privateAsyncVariablesLock.lock()
+        guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
+        let token = NSObject()
+        currentBackgroundActivityOwner = token
+        privateAsyncVariablesLock.unlock()
+        
+        DispatchIO.read(fromFileDescriptor: fileDescriptor, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
+            self.privateAsyncVariablesLock.lock()
+            if self.currentBackgroundActivityOwner === token {
+                self.currentBackgroundActivityOwner = nil
+            }
+            self.privateAsyncVariablesLock.unlock()
+            
+            var userInfo: [String: Any] = [:]
+            if error == 0 {
+                userInfo[NSFileHandleNotificationDataItem] = Data(data)
+            } else {
+                userInfo["NSFileHandleError"] = Int(error)
+            }
+            
+            DispatchQueue.main.async {
+                NotificationQueue.default.enqueue(Notification(name: FileHandle.readCompletionNotification, object: self, userInfo: userInfo), postingStyle: .asap, coalesceMask: .none, forModes: modes)
+            }
+        }
     }
-
+    
     open func readToEndOfFileInBackgroundAndNotify() {
-        NSUnimplemented()
+        readToEndOfFileInBackgroundAndNotify(forModes: [.default])
     }
     
-    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
-        NSUnimplemented()
+    open func readToEndOfFileInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+        privateAsyncVariablesLock.lock()
+        guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
+        
+        let token = NSObject()
+        currentBackgroundActivityOwner = token
+        privateAsyncVariablesLock.unlock()
+
+        queue.async {
+            let data: Data?
+            let error: Int?
+            
+            do {
+                data = try self.readToEnd()
+                error = nil
+            } catch let thrown {
+                data = nil
+                if let thrown = thrown as? NSError {
+                    error = thrown.errnoIfAvailable
+                } else {
+                    error = nil
+                }
+            }
+            
+            DispatchQueue.main.async {
+                self.privateAsyncVariablesLock.lock()
+                if token === self.currentBackgroundActivityOwner {
+                    self.currentBackgroundActivityOwner = nil
+                }
+                self.privateAsyncVariablesLock.unlock()
+                
+                var userInfo: [String: Any] = [:]
+                if let data = data {
+                    userInfo[NSFileHandleNotificationDataItem] = data
+                }
+                if let error = error {
+                    userInfo["NSFileHandleError"] = error
+                }
+                
+                NotificationQueue.default.enqueue(Notification(name: .NSFileHandleReadToEndOfFileCompletion, object: self, userInfo: userInfo), postingStyle: .asap, coalesceMask: .none, forModes: modes)
+            }
+        }
+    }
+    
+    open func acceptConnectionInBackgroundAndNotify() {
+        acceptConnectionInBackgroundAndNotify(forModes: [.default])
     }
 
-    open func acceptConnectionInBackgroundAndNotify() {
-        NSUnimplemented()
-    }
-    
-    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
-        NSUnimplemented()
+    open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+        let owner = monitor(forReading: true, resumed: false) { (handle, source) in
+            var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
+            let userInfo: [AnyHashable : Any]
+            
+            let acceptedFD = accept(handle.fileDescriptor, nil, nil)
+            if acceptedFD >= 0 {
+                userInfo = [NSFileHandleNotificationFileHandleItem: FileHandle(fileDescriptor: acceptedFD)]
+            } else {
+                userInfo = ["NSFileHandleError": NSNumber(value: errno)]
+            }
+            notification.userInfo = userInfo
+            
+            DispatchQueue.main.async {
+                handle.privateAsyncVariablesLock.lock()
+                handle.currentBackgroundActivityOwner = nil
+                handle.privateAsyncVariablesLock.unlock()
+                
+                NotificationQueue.default.enqueue(Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:]), postingStyle: .asap, coalesceMask: .none, forModes: modes)
+            }
+        }
+        
+        privateAsyncVariablesLock.lock()
+        guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
+        currentBackgroundActivityOwner = owner
+        privateAsyncVariablesLock.unlock()
+        
+        owner.resume()
     }
 
     open func waitForDataInBackgroundAndNotify() {
-        NSUnimplemented()
+        waitForDataInBackgroundAndNotify(forModes: [.default])
+    }
+    
+    open func waitForDataInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+        let owner = monitor(forReading: true, resumed: false) { (handle, source) in
+            source.cancel()
+            DispatchQueue.main.async {
+                handle.privateAsyncVariablesLock.lock()
+                handle.currentBackgroundActivityOwner = nil
+                handle.privateAsyncVariablesLock.unlock()
+                
+                NotificationQueue.default.enqueue(Notification(name: .NSFileHandleDataAvailable, object: handle, userInfo: [:]), postingStyle: .asap, coalesceMask: .none, forModes: modes)
+            }
+        }
+        
+        privateAsyncVariablesLock.lock()
+        guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
+        currentBackgroundActivityOwner = owner
+        privateAsyncVariablesLock.unlock()
+        
+        owner.resume()
     }
 }
 
