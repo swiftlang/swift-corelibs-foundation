@@ -12,6 +12,7 @@ class TestFileHandle : XCTestCase {
         return [
             ("test_constants", test_constants),
             ("test_nullDevice", test_nullDevice),
+            ("test_truncate", test_truncate),
         ]
     }
 
@@ -37,5 +38,30 @@ class TestFileHandle : XCTestCase {
         fh.write(Data(bytes: [1,2]))
         fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
+    }
+
+    func test_truncate() throws {
+        let fm = FileManager.default
+        let tempDir = fm.temporaryDirectory
+        let filePath = tempDir.appendingPathComponent("temp_file")
+        guard fm.createFile(atPath: filePath.path, contents: nil, attributes: nil) else {
+            XCTAssertTrue(false, "Unable to create temporary file");
+            return
+        }
+        guard let fh = FileHandle(forWritingAtPath: filePath.path) else {
+            XCTAssertTrue(false, "Unable to open temporary file")
+            return
+        }
+        defer { try? fm.removeItem(atPath: filePath.path) }
+
+        for newSize: UInt64 in [0, 100, 5, 1] {
+            fh.truncateFile(atOffset: newSize)
+            guard let size = (try fm.attributesOfItem(atPath: filePath.path))[.size] as? NSNumber else {
+                XCTFail("Cant get size")
+                continue
+            }
+            XCTAssertEqual(newSize, size.uint64Value)
+            XCTAssertEqual(newSize, fh.offsetInFile)
+        }
     }
 }
