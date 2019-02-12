@@ -533,9 +533,9 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
-                _fileSystemRepresentation(withPath: path, {
-                    if chmod($0, mode_t(modeT)) != 0 {
-                        fatalError("errno \(errno)")
+                try _fileSystemRepresentation(withPath: path, {
+                    guard chmod($0, mode_t(modeT)) == 0 else {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 })
             } else {
