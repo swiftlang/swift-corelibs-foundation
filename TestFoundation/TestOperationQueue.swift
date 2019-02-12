@@ -139,12 +139,14 @@ class TestOperationQueue : XCTestCase {
         
         let operation1 = BlockOperation {
             valueOperations.append(0)
+            sleep(2)
         }
         operation1.queuePriority = .high
         operations.append(operation1)
         
         let operation2 = BlockOperation {
             valueOperations.append(1)
+            sleep(2)
         }
         operation2.queuePriority = .high
         operations.append(operation2)

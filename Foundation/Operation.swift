@@ -288,7 +288,7 @@ internal class _IndexedOperationLinkedList {
         }
         
         if node === unwrappedRoot {
-            let next = unwrappedTail.next
+            let next = node.next
             next?.previous = nil
             root = next
             count -= 1
