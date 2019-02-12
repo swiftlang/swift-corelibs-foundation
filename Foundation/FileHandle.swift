@@ -34,6 +34,9 @@ open class FileHandle : NSObject, NSSecureCoding {
         precondition(_handle != INVALID_HANDLE_VALUE, "Invalid file handle")
     }
 
+    private var _isPlatformHandleValid: Bool {
+        return _handle != INVALID_HANDLE_VALUE
+    }
 #else
     private var _fd: Int32
 
@@ -43,6 +46,10 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private func _checkFileHandle() {
         precondition(_fd >= 0, "Bad file descriptor")
+    }
+    
+    private var _isPlatformHandleValid: Bool {
+        return fileDescriptor >= 0
     }
 #endif
 
@@ -281,30 +288,28 @@ open class FileHandle : NSObject, NSSecureCoding {
         return true
     }
     
-    private var _isPlatformHandleValid: Bool {
-        #if os(Windows)
-        return _handle != INVALID_HANDLE_VALUE
-        #else
-        return fileDescriptor >= 0
-        #endif
-    }
-
     // MARK: -
     // MARK: New API.
     
     @available(swift 5.0)
     public func readToEnd() throws -> Data? {
+        guard self != FileHandle._nulldeviceFileHandle else { return nil }
+        
         return try read(upToCount: Int.max)
     }
     
     @available(swift 5.0)
     public func read(upToCount count: Int) throws -> Data? {
+        guard self != FileHandle._nulldeviceFileHandle else { return nil }
+        
         let result = try _readDataOfLength(count, untilEOF: true)
         return result.length == 0 ? nil : result.toData()
     }
     
     @available(swift 5.0)
     public func write<T: DataProtocol>(contentsOf data: T) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
         
         for region in data.regions {
@@ -322,6 +327,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift 5.0)
     public func offset() throws -> UInt64 {
+        guard self != FileHandle._nulldeviceFileHandle else { return 0 }
+        
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
 
         #if os(Windows)
@@ -340,6 +347,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     @available(swift 5.0)
     @discardableResult
     public func seekToEnd() throws -> UInt64 {
+        guard self != FileHandle._nulldeviceFileHandle else { return 0 }
+        
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
 
         #if os(Windows)
@@ -357,6 +366,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift 5.0)
     public func seek(toOffset offset: UInt64) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
 
         #if os(Windows)
@@ -370,6 +381,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift 5.0)
     public func truncate(toOffset offset: UInt64) throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue) }
 
         #if os(Windows)
@@ -388,6 +401,8 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift 5.0)
     public func synchronize() throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        
         #if os(Windows)
         guard FlushFileBuffers(_handle) != FALSE else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
@@ -399,18 +414,19 @@ open class FileHandle : NSObject, NSSecureCoding {
     
     @available(swift 5.0)
     public func close() throws {
+        guard self != FileHandle._nulldeviceFileHandle else { return }
+        guard _isPlatformHandleValid else { return }
+        
         #if os(Windows)
-        if _handle != INVALID_HANDLE_VALUE {
-            guard CloseHandle(_handle) != FALSE else {
-                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
-            }
-            _handle = INVALID_HANDLE_VALUE
+        guard CloseHandle(_handle) != FALSE else {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
+        _handle = INVALID_HANDLE_VALUE
         #else
-        if _fd >= 0 {
-            guard _close(_fd) >= 0 else { throw _NSErrorWithErrno(errno, reading: true) }
-            _fd = -1
+        guard _close(_fd) >= 0 else {
+            throw _NSErrorWithErrno(errno, reading: true)
         }
+        _fd = -1
         #endif
     }
     
