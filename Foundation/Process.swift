@@ -477,21 +477,7 @@ open class Process: NSObject {
                                                            hash: nil,
                                                            schedule: nil,
                                                            cancel: nil,
-                                                           perform: { emptyRunLoopCallback($0) }
-        )
-        
-        var runLoopContext = CFRunLoopSourceContext()
-        runLoopContext.version = 0
-        runLoopContext.retain = runLoopSourceRetain
-        runLoopContext.release = runLoopSourceRelease
-        runLoopContext.equal = processIsEqual
-        runLoopContext.perform = emptyRunLoopCallback
-        self.withUnretainedReference {
-            (refPtr: UnsafeMutablePointer<UInt8>) in
-            runLoopContext.info = UnsafeMutableRawPointer(refPtr)
-        }
-        self.runLoopSourceContext = runLoopContext
-        
+                                                           perform: { emptyRunLoopCallback($0) })
         self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)
         
