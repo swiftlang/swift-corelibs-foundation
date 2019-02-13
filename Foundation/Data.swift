@@ -12,7 +12,7 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-#if os(Linux)
+#if !os(iOS) && !os(macOS) && !os(watchOS) && !os(tvOS)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
     return size
