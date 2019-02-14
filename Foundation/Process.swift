@@ -777,7 +777,7 @@ open class Process: NSObject {
     // status
 #if os(Windows)
     open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
-    open private(set) var processIdentifier: Int32 {
+    open var processIdentifier: Int32 {
       return Int32(GetProcessId(processHandle))
     }
     open private(set) var isRunning: Bool = false
