@@ -227,8 +227,8 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
         }
     }
     
-    public var hashValue: Int {
-        return _handle.map { $0.hashValue }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_handle.map { $0 })
     }
     
     public static func ==(lhs: URLRequest, rhs: URLRequest) -> Bool {

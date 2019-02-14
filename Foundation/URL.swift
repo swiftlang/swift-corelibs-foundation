@@ -503,8 +503,8 @@ public struct URL : ReferenceConvertible, Equatable {
         _url = URL._converted(from: NSURL(fileURLWithFileSystemRepresentation: path, isDirectory: isDirectory, relativeTo: baseURL))
     }
     
-    public var hashValue: Int {
-        return _url.hash
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_url)
     }
     
     // MARK: -
