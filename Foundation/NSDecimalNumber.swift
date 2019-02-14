@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 /***************	Exceptions		***********/
@@ -358,43 +358,55 @@ open class NSDecimalNumber : NSNumber {
     // return 'd' for double
     
     open override var int8Value: Int8 {
-        return Int8(exactly: decimal.doubleValue) ?? 0 as Int8
+        return Int8(truncatingIfNeeded: decimal.int64Value)
     }
+
     open override var uint8Value: UInt8 {
-        return UInt8(exactly: decimal.doubleValue) ?? 0 as UInt8
+        return UInt8(truncatingIfNeeded: decimal.uint64Value)
     }
+
     open override var int16Value: Int16 {
-        return Int16(exactly: decimal.doubleValue) ?? 0 as Int16
+        return Int16(truncatingIfNeeded: decimal.int64Value)
     }
+
     open override var uint16Value: UInt16 {
-        return UInt16(exactly: decimal.doubleValue) ?? 0 as UInt16
+        return UInt16(truncatingIfNeeded: decimal.uint64Value)
     }
+
     open override var int32Value: Int32 {
-        return Int32(exactly: decimal.doubleValue) ?? 0 as Int32
+        return Int32(truncatingIfNeeded: decimal.int64Value)
     }
+
     open override var uint32Value: UInt32 {
-        return UInt32(exactly: decimal.doubleValue) ?? 0 as UInt32
+        return UInt32(truncatingIfNeeded: decimal.uint64Value)
     }
+
     open override var int64Value: Int64 {
-        return Int64(exactly: decimal.doubleValue) ?? 0 as Int64
+        return decimal.int64Value
     }
+
     open override var uint64Value: UInt64 {
-        return UInt64(exactly: decimal.doubleValue) ?? 0 as UInt64
+        return decimal.uint64Value
     }
+
     open override var floatValue: Float {
         return Float(decimal.doubleValue)
     }
+
     open override var doubleValue: Double {
         return decimal.doubleValue
     }
+
     open override var boolValue: Bool {
         return !decimal.isZero
     }
+
     open override var intValue: Int {
-        return Int(exactly: decimal.doubleValue) ?? 0 as Int
+        return Int(truncatingIfNeeded: decimal.int64Value)
     }
+
     open override var uintValue: UInt {
-        return UInt(exactly: decimal.doubleValue) ?? 0 as UInt
+        return UInt(truncatingIfNeeded: decimal.uint64Value)
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
