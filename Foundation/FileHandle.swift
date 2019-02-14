@@ -27,6 +27,10 @@ open class FileHandle : NSObject, NSSecureCoding {
 #if os(Windows)
     private var _handle: HANDLE
 
+    internal var handle: HANDLE {
+      return _handle
+    }
+
     @available(Windows, unavailable, message: "Cannot perform non-owning handle to fd conversion")
     open var fileDescriptor: Int32 {
         NSUnsupported()
@@ -49,7 +53,7 @@ open class FileHandle : NSObject, NSSecureCoding {
     private func _checkFileHandle() {
         precondition(_fd >= 0, "Bad file descriptor")
     }
-    
+
     private var _isPlatformHandleValid: Bool {
         return fileDescriptor >= 0
     }
@@ -248,7 +252,7 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
 #if os(Windows)
-    public init(handle: HANDLE, closeOnDealloc closeopt: Bool) {
+    internal init(handle: HANDLE, closeOnDealloc closeopt: Bool) {
       _handle = handle
       _closeOnDealloc = closeopt
     }
