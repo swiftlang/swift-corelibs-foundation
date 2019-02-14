@@ -63,7 +63,7 @@ open class Scanner: NSObject, NSCopying {
     }
     
     open var caseSensitive: Bool = false
-    open var locale: Locale?
+    open var locale: Any?
     
     internal static let defaultSkipSet = CharacterSet.whitespacesAndNewlines
     
@@ -72,6 +72,89 @@ open class Scanner: NSObject, NSCopying {
         _skipSet = Scanner.defaultSkipSet
         _scanLocation = 0
     }
+    
+    // On overflow, the below methods will return success and clamp
+    @discardableResult
+    open func scanInt32(_ result: UnsafeMutablePointer<Int32>) -> Bool {
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanInt(_ result: UnsafeMutablePointer<Int>) -> Bool {
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanInt64(_ result: UnsafeMutablePointer<Int64>) -> Bool {
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
+        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
+        return _scanString.scan(_skipSet, locale: locale as? Locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
+        return _scanString.scan(_skipSet, locale: locale as? Locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>) -> Bool {
+        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
+        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanHexFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
+        return _scanString.scanHex(_skipSet, locale: locale as? Locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    @discardableResult
+    open func scanHexDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
+        return _scanString.scanHex(_skipSet, locale: locale as? Locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
+            result.pointee = value
+        }
+    }
+    
+    open var isAtEnd: Bool {
+        var stringLoc = scanLocation
+        let stringLen = string.length
+        if let invSet = invertedSkipSet {
+            let range = string._nsObject.rangeOfCharacter(from: invSet, options: [], range: NSRange(location: stringLoc, length: stringLen - stringLoc))
+            stringLoc = range.length > 0 ? range.location : stringLen
+        }
+        return stringLoc == stringLen
+    }
+    
+    open class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
 }
 
 internal struct _NSStringBuffer {
@@ -416,93 +499,6 @@ extension String {
     }
 }
 
-extension Scanner {
-    
-    // On overflow, the below methods will return success and clamp
-    @discardableResult
-    public func scanInt32(_ result: UnsafeMutablePointer<Int32>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int32) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanInt(_ result: UnsafeMutablePointer<Int>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanInt64(_ result: UnsafeMutablePointer<Int64>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: Int64) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanUnsignedLongLong(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
-        return _scanString.scan(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
-        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
-        return _scanString.scan(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanHexInt32(_ result: UnsafeMutablePointer<UInt32>) -> Bool {
-        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt32) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanHexInt64(_ result: UnsafeMutablePointer<UInt64>) -> Bool {
-        return _scanString.scanHex(_skipSet, locationToScanFrom: &_scanLocation) { (value: UInt64) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanHexFloat(_ result: UnsafeMutablePointer<Float>) -> Bool {
-        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Float) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    @discardableResult
-    public func scanHexDouble(_ result: UnsafeMutablePointer<Double>) -> Bool {
-        return _scanString.scanHex(_skipSet, locale: locale, locationToScanFrom: &_scanLocation) { (value: Double) -> Void in
-            result.pointee = value
-        }
-    }
-    
-    public var isAtEnd: Bool {
-        var stringLoc = scanLocation
-        let stringLen = string.length
-        if let invSet = invertedSkipSet {
-            let range = string._nsObject.rangeOfCharacter(from: invSet, options: [], range: NSRange(location: stringLoc, length: stringLen - stringLoc))
-            stringLoc = range.length > 0 ? range.location : stringLen
-        }
-        return stringLoc == stringLen
-    }
-    
-    open class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
-}
-
-
 /// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer and better Optional usage.
 /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
 /// - Note: Since this API is under consideration it may be either removed or revised in the near future
@@ -619,7 +615,7 @@ extension Scanner {
     
     @discardableResult
     public func scanString(_ string:String, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
-        if let str = scanString(string) {
+        if let str = _scanStringSplittingGraphemes(string) {
             ptr?.pointee = str
             return true
         }
@@ -628,7 +624,7 @@ extension Scanner {
     
     // These methods avoid calling the private API for _invertedSkipSet and manually re-construct them so that it is only usage of public API usage
     // Future implementations on Darwin of these methods will likely be more optimized to take advantage of the cached values.
-    public func scanString(_ searchString: String) -> String? {
+    private func _scanStringSplittingGraphemes(_ searchString: String) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -649,6 +645,7 @@ extension Scanner {
         return nil
     }
     
+    @available(swift, deprecated: 5.0, renamed: "scanCharacters(from:)")
     public func scanCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
@@ -670,7 +667,16 @@ extension Scanner {
         return nil
     }
     
-    public func scanUpToString(_ string: String) -> String? {
+    @discardableResult
+    public func scanUpTo(_ string:String, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
+        if let str = _scanUpToStringSplittingGraphemes(string) {
+            ptr?.pointee = str
+            return true
+        }
+        return false
+    }
+    
+    public func _scanUpToStringSplittingGraphemes(_ string: String) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -700,6 +706,7 @@ extension Scanner {
         return false
     }
     
+    @available(swift, deprecated: 5.0, renamed: "scanUpToCharacters(from:)")
     public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
