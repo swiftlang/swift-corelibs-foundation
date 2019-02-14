@@ -207,7 +207,7 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
 // https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes
 internal let _NSWindowsErrorDomain = "org.swift.Foundation.WindowsError"
 
-internal func _NSErrorWithWindowsError(_ windowsError: Int32, reading: Bool) -> NSError {
+internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> NSError {
     // <#TODO#> os(Windows): Map Win32 errors to Cocoa errors as _NSErrorWithErrno() does.
     let code: CocoaError.Code = reading ? .fileReadUnknown : .fileWriteUnknown
     return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: [
