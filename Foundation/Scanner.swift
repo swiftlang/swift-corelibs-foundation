@@ -7,8 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-
 import CoreFoundation
 
 open class Scanner: NSObject, NSCopying {
@@ -499,120 +497,53 @@ extension String {
     }
 }
 
-/// Revised API for avoiding usage of AutoreleasingUnsafeMutablePointer and better Optional usage.
-/// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
-/// - Note: Since this API is under consideration it may be either removed or revised in the near future
+// This extension used to house the experimental API for Scanner. This is all deprecated in favor of API with newer semantics. Some of the experimental API have been promoted to full API with slightly different semantics; see ScannerAPI.swift.
 extension Scanner {
-    public func scanInt32() -> Int32? {
-        var value: Int32 = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int32>) -> Int32? in
-            if scanInt32(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    // These methods are in a special bit of mess:
+    // - They used to exist here; but
+    // - They have all been replaced by methods called scan<Type>(representation:); but
+    // - The representation parameter has a default value, so scan<Type>() is still valid and has the same semantics as the below.
+    // This means that the new methods _aren't_ fully source compatible — most source will correctly pick up the new .scan<Type>(representation:) with the default, but things like let method = scanner.scanInt32 may or may not work any longer.
+    // Make sure that the signatures exist here so that in case the compiler would pick them up, we can direct people to the new ones. This should be rare.
     
-    public func scanInt() -> Int? {
-        var value: Int = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int>) -> Int? in
-            if scanInt(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    // scanDecimal() is not among these methods and has not changed at all, though it has been promoted to non-experimental API.
     
-    public func scanInt64() -> Int64? {
-        var value: Int64 = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Int64>) -> Int64? in
-            if scanInt64(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, obsoleted: 5.0, renamed: "scanInt(representation:)")
+    public func scanInt() -> Int? { return scanInt(representation: .decimal) }
     
-    public func scanUnsignedLongLong() -> UInt64? {
-        var value: UInt64 = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
-            if scanUnsignedLongLong(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, obsoleted: 5.0, renamed: "scanInt32(representation:)")
+    public func scanInt32() -> Int32? { return scanInt32(representation: .decimal) }
     
-    public func scanFloat() -> Float? {
-        var value: Float = 0.0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
-            if scanFloat(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, obsoleted: 5.0, renamed: "scanInt64(representation:)")
+    public func scanInt64() -> Int64? { return scanInt64(representation: .decimal) }
     
-    public func scanDouble() -> Double? {
-        var value: Double = 0.0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
-            if scanDouble(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, obsoleted: 5.0, renamed: "scanUInt64(representation:)")
+    public func scanUInt64() -> UInt64? { return scanUInt64(representation: .decimal) }
     
+    @available(swift, obsoleted: 5.0, renamed: "scanFloat(representation:)")
+    public func scanFloat() -> Float? { return scanFloat(representation: .decimal) }
+    
+    @available(swift, obsoleted: 5.0, renamed: "scanDouble(representation:)")
+    public func scanDouble() -> Double? { return scanDouble(representation: .decimal) }
+    
+    // These existed but are now deprecated in favor of the new methods:
+    
+    @available(swift, deprecated: 5.0, renamed: "scanUInt64(representation:)")
     public func scanHexInt32() -> UInt32? {
-        var value: UInt32 = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt32>) -> UInt32? in
-            if scanHexInt32(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
+        guard let value = scanUInt64(representation: .hexadecimal) else { return nil }
+        return UInt32(min(value, UInt64(UInt32.max)))
     }
     
-    public func scanHexInt64() -> UInt64? {
-        var value: UInt64 = 0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<UInt64>) -> UInt64? in
-            if scanHexInt64(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, deprecated: 5.0, renamed: "scanUInt64(representation:)")
+    public func scanHexInt64() -> UInt64? { return scanUInt64(representation: .hexadecimal) }
     
-    public func scanHexFloat() -> Float? {
-        var value: Float = 0.0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Float>) -> Float? in
-            if scanHexFloat(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, deprecated: 5.0, renamed: "scanFloat(representation:)")
+    public func scanHexFloat() -> Float? { return scanFloat(representation: .hexadecimal) }
     
-    public func scanHexDouble() -> Double? {
-        var value: Double = 0.0
-        return withUnsafeMutablePointer(to: &value) { (ptr: UnsafeMutablePointer<Double>) -> Double? in
-            if scanHexDouble(ptr) {
-                return ptr.pointee
-            } else {
-                return nil
-            }
-        }
-    }
+    @available(swift, deprecated: 5.0, renamed: "scanDouble(representation:)")
+    public func scanHexDouble() -> Double? { return scanDouble(representation: .hexadecimal) }
     
+    @available(swift, deprecated: 5.0, renamed: "scanString(_:)")
     @discardableResult
     public func scanString(_ string:String, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
         if let str = _scanStringSplittingGraphemes(string) {
@@ -647,6 +578,19 @@ extension Scanner {
     
     @available(swift, deprecated: 5.0, renamed: "scanCharacters(from:)")
     public func scanCharactersFromSet(_ set: CharacterSet) -> String? {
+        return _scanCharactersSplittingGraphemes(from: set)
+    }
+    
+    @available(swift, deprecated: 5.0, renamed: "scanCharacters(from:)")
+    public func scanCharacters(from set: CharacterSet, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
+        if let str = _scanCharactersSplittingGraphemes(from: set) {
+            ptr?.pointee = str
+            return true
+        }
+        return false
+    }
+    
+    private func _scanCharactersSplittingGraphemes(from set: CharacterSet) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length
@@ -667,6 +611,7 @@ extension Scanner {
         return nil
     }
     
+    @available(swift, deprecated: 5.0, renamed: "scanUpToString(_:)")
     @discardableResult
     public func scanUpTo(_ string:String, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
         if let str = _scanUpToStringSplittingGraphemes(string) {
@@ -697,9 +642,10 @@ extension Scanner {
         return nil
     }
     
+    @available(swift, deprecated: 5.0, renamed: "scanUpToCharacters(from:)")
     @discardableResult
     public func scanUpToCharacters(from set: CharacterSet, into ptr: UnsafeMutablePointer<String?>?) -> Bool {
-        if let result = scanUpToCharactersFromSet(set) {
+        if let result = _scanSplittingGraphemesUpToCharacters(from: set) {
             ptr?.pointee = result
             return true
         }
@@ -708,6 +654,10 @@ extension Scanner {
     
     @available(swift, deprecated: 5.0, renamed: "scanUpToCharacters(from:)")
     public func scanUpToCharactersFromSet(_ set: CharacterSet) -> String? {
+        return _scanSplittingGraphemesUpToCharacters(from: set)
+    }
+    
+    private func _scanSplittingGraphemesUpToCharacters(from set: CharacterSet) -> String? {
         let str = self.string._bridgeToObjectiveC()
         var stringLoc = scanLocation
         let stringLen = str.length

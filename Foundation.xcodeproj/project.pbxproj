@@ -11,7 +11,7 @@
 		03B6F5841F15F339004F25AF /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestURLProtocol.swift */; };
 		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
-		153CC8332214C3D100BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
+		153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
@@ -2369,7 +2369,7 @@
 				5B23AB871CE62D17000DB898 /* Boxing.swift in Sources */,
 				5BF7AEA41BCD51F9008F214A /* Bundle.swift in Sources */,
 				5B23AB891CE62D4D000DB898 /* ReferenceConvertible.swift in Sources */,
-				153CC8332214C3D100BFE8F3 /* ScannerAPI.swift in Sources */,
+				153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */,
 				D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* PortMessage.swift in Sources */,
 				5BD31D201D5CE8C400563814 /* Bridging.swift in Sources */,
