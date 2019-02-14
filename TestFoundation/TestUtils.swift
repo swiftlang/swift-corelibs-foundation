@@ -42,3 +42,19 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
     }
     return result
 }
+
+
+enum TestError: Error {
+    case unexpectedNil
+}
+
+extension Optional {
+    func unwrapped(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) throws -> Wrapped {
+        if let x = self {
+            return x
+        } else {
+            XCTFail("Tried to invoke .unwrapped() on nil in \(file):\(line):\(fn)")
+            throw TestError.unexpectedNil
+        }
+    }
+}
