@@ -57,10 +57,12 @@ CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 CF_EXPORT const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
+
+#if !TARGET_OS_WIN32
 CF_EXPORT void _CFGetUGIDs(uid_t *euid, gid_t *egid);
 CF_EXPORT uid_t _CFGetEUID(void);
 CF_EXPORT uid_t _CFGetEGID(void);
-
+#endif
 
 #if (TARGET_OS_MAC && !(TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || TARGET_OS_LINUX))
 CF_EXPORT void _CFRunLoopSetCurrent(CFRunLoopRef rl);
@@ -220,8 +222,10 @@ typedef CF_OPTIONS(CFOptionFlags, CFSearchPathDomainMask) {
     kCFAllDomainsMask = 0x0ffff	/* all domains: all of the above and more, future items */
 };
 
+#if TARGET_OS_MAC || TARGET_OS_EMBEDDED
 CF_EXPORT
 CFArrayRef CFCopySearchPathForDirectoriesInDomains(CFSearchPathDirectory directory, CFSearchPathDomainMask domainMask, Boolean expandTilde);
+#endif
 
 
 /* Obsolete keys */
@@ -609,7 +613,6 @@ CF_EXPORT CFPropertyListRef _CFBundleCreateFilteredLocalizedInfoPlist(CFBundleRe
 
 CF_EXPORT CFStringRef _CFGetWindowsAppleAppDataDirectory(void);
 CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
-CF_EXPORT CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 
 // If your Windows application does not use a CFRunLoop on the main thread (perhaps because it is reserved for handling UI events via Windows API), then call this function to make distributed notifications arrive using a different run loop.
 CF_EXPORT void _CFNotificationCenterSetRunLoop(CFNotificationCenterRef nc, CFRunLoopRef rl);

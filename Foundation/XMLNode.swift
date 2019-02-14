@@ -467,7 +467,7 @@ open class XMLNode: NSObject, NSCopying {
     */
     open var index: Int {
         if let siblings = self.parent?.children,
-            let index = siblings.index(of: self) {
+            let index = siblings.firstIndex(of: self) {
             return index
         }
 

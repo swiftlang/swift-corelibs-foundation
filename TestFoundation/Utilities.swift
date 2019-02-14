@@ -128,3 +128,34 @@ extension Optional {
         }
     }
 }
+
+// Shims for StdlibUnittest:
+// These allow for test code to be written targeting the overlay and then ported to s-c-f, or vice versa.
+// You can use the FOUNDATION_XCTEST compilation condition to distinguish between tests running in XCTest
+// or in StdlibUnittest.
+
+func expectThrows<Error: Swift.Error & Equatable>(_ expectedError: Error, _ test: () throws -> Void, _ message: @autoclosure () -> String = "") {
+    var caught = false
+    do {
+        try test()
+    } catch let error as Error {
+        caught = true
+        XCTAssertEqual(error, expectedError, message())
+    } catch {
+        caught = true
+        XCTFail("Incorrect error thrown: \(error) -- \(message())")
+    }
+    XCTAssert(caught, "No error thrown -- \(message())")
+}
+
+func expectDoesNotThrow(_ test: () throws -> Void, _ message: @autoclosure () -> String = "") {
+    XCTAssertNoThrow(try test(), message())
+}
+
+func expectTrue(_ actual: Bool, _ message: @autoclosure () -> String = "") {
+    XCTAssertTrue(actual, message())
+}
+
+func expectEqual<T: Equatable>(_ expected: T, _ actual: T, _ message: @autoclosure () -> String = "") {
+    XCTAssertEqual(expected, actual, message())
+}

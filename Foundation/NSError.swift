@@ -162,7 +162,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     // -- NSObject Overrides --
     // The compiler has special paths for attempting to do some bridging on NSError (and equivalent Error instances) -- in particular, in the lookup of NSError objects' superclass.
     // On platforms where we don't have bridging (i.e. Linux), this causes a silgen failure. We can avoid the issue by overriding methods inherited by NSObject ourselves.
-    override open var hashValue: Int {
+    override open var hash: Int {
         // CFHash does the appropriate casting/bridging on platforms where we support it.
         return Int(bitPattern: CFHash(self))
     }
@@ -170,7 +170,10 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     override open func isEqual(_ object: Any?) -> Bool {
         // Pulled from NSObject itself; this works on all platforms.
         guard let obj = object as? NSError else { return false }
-        return obj === self
+        guard obj.domain == self.domain && obj.code == self.code else { return false }
+        
+        // NSDictionaries are comparable, and that's the actual equality ObjC Foundation cares about.
+        return (self.userInfo as NSDictionary) == (obj.userInfo as NSDictionary)
     }
 }
 

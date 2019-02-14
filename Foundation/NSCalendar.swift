@@ -1226,7 +1226,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
         var tempComp = components
         tempComp.isLeapMonth = comp.isLeapMonth
         if let nanosecond = comp.value(for: .nanosecond) {
-            if labs(nanosecond - tempComp.value(for: .nanosecond)!) > 500 {
+            if labs(numericCast(nanosecond - tempComp.value(for: .nanosecond)!)) > 500 {
                 return false
             } else {
                 compareComp.nanosecond = 0
@@ -1334,7 +1334,7 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
         return backingCalendar.isEqual(value)
     }
     
-    override var hashValue: Int {
+    override var hash: Int {
         return backingCalendar.hashValue
     }
     

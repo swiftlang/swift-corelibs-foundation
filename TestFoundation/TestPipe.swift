@@ -35,20 +35,19 @@ class TestPipe: XCTestCase {
         pipes = []
     }
 
-    func test_Pipe() {
+    func test_Pipe() throws {
         let aPipe = Pipe()
         let text = "test-pipe"
         
         // First write some data into the pipe
-        let stringAsData = text.data(using: .utf8)
-        XCTAssertNotNil(stringAsData)
-        aPipe.fileHandleForWriting.write(stringAsData!)
+        let stringAsData = try text.data(using: .utf8).unwrapped()
+        try aPipe.fileHandleForWriting.write(contentsOf: stringAsData)
         
         // Then read it out again
-        let data = aPipe.fileHandleForReading.readData(ofLength: text.count)
+        let data = try aPipe.fileHandleForReading.read(upToCount: stringAsData.count).unwrapped()
         
         // Confirm that we did read data
-        XCTAssertEqual(data.count, stringAsData?.count, "Expected to read \(String(describing:stringAsData?.count)) from pipe but read \(data.count) instead")
+        XCTAssertEqual(data.count, stringAsData.count, "Expected to read \(String(describing:stringAsData.count)) from pipe but read \(data.count) instead")
         
         // Confirm the data can be converted to a String
         let convertedData = String(data: data, encoding: .utf8)

@@ -66,7 +66,7 @@ public struct UUID : ReferenceConvertible, Hashable, Equatable, CustomStringConv
             valPtr.withMemoryRebound(to: UInt8.self, capacity: MemoryLayout<uuid_t>.size) { val in
                 withUnsafeMutablePointer(to: &bytes) { strPtr in
                     strPtr.withMemoryRebound(to: CChar.self, capacity: MemoryLayout<uuid_string_t>.size) { str in
-                        _cf_uuid_unparse(val, str)
+                        _cf_uuid_unparse_upper(val, str)
                         return String(cString: str, encoding: .utf8)!
                     }
                 }

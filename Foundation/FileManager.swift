@@ -7,14 +7,6 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if canImport(Darwin)
-    import Darwin
-#endif
-
-#if canImport(Glibc)
-    import Glibc
-#endif
-
 #if os(Android) // struct stat.st_mode is UInt32
 internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
@@ -231,7 +223,24 @@ open class FileManager : NSObject {
         return urls
     }
     #endif
-    
+
+    private lazy var xdgHomeDirectory: String = {
+        let key = "HOME="
+        if let contents = try? String(contentsOfFile: "/etc/default/useradd", encoding: .utf8) {
+            for line in contents.components(separatedBy: "\n") {
+                if line.hasPrefix(key) {
+                    let index = line.index(line.startIndex, offsetBy: key.count)
+                    let str = String(line[index...]) as NSString
+                    let homeDir = str.trimmingCharacters(in: CharacterSet.whitespaces)
+                    if homeDir.count > 0 {
+                        return homeDir
+                    }
+                }
+            }
+        }
+        return "/home"
+    }()
+
     private func xdgURLs(for directory: SearchPathDirectory, in domain: _SearchPathDomain) -> [URL] {
         // FHS/XDG-compliant OSes:
         switch directory {
@@ -263,7 +272,7 @@ open class FileManager : NSObject {
             
         case .userDirectory:
             guard domain == .local else { return [] }
-            return [ URL(fileURLWithPath: "/home", isDirectory: true) ]
+            return [ URL(fileURLWithPath: xdgHomeDirectory, isDirectory: true) ]
             
         case .moviesDirectory:
             return [ _XDGUserDirectory.videos.url ]
@@ -524,9 +533,9 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
-                _fileSystemRepresentation(withPath: path, {
-                    if chmod($0, mode_t(modeT)) != 0 {
-                        fatalError("errno \(errno)")
+                try _fileSystemRepresentation(withPath: path, {
+                    guard chmod($0, mode_t(modeT)) == 0 else {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 })
             } else {
@@ -775,7 +784,7 @@ open class FileManager : NSObject {
         var bytesRead = 0
 
         repeat {
-            bytesRead = read(fd, buffer, bytesToRead)
+            bytesRead = numericCast(read(fd, buffer, numericCast(bytesToRead)))
         } while bytesRead < 0 && errno == EINTR
         guard bytesRead >= 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: filename)
@@ -789,7 +798,9 @@ open class FileManager : NSObject {
             var written = 0
             let bytesLeftToWrite = bytesToWrite - bytesWritten
             repeat {
-                written = write(fd, buffer.advanced(by: bytesWritten), bytesLeftToWrite)
+                written =
+                    numericCast(write(fd, buffer.advanced(by: bytesWritten),
+                                      numericCast(bytesLeftToWrite)))
             } while written < 0 && errno == EINTR
             guard written >= 0 else {
                 throw _NSErrorWithErrno(errno, reading: false, path: filename)
@@ -1379,6 +1390,11 @@ open class FileManager : NSObject {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
         return statInfo
+    }
+
+    internal func _permissionsOfItem(atPath path: String) throws -> Int {
+        let fileInfo = try _lstatFile(atPath: path)
+        return Int(fileInfo.st_mode & 0o777)
     }
 
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.

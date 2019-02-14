@@ -88,9 +88,6 @@ typedef enum {
     kCFMutable = 0x3		/* changeable and variable capacity */
 } _CFDataMutableVariety;
 
-#define __CFGenericValidateMutability(variety) \
-    CFAssert1((variety != kCFFixedMutable && variety != kCFMutable), __kCFLogAssertion, "%s(): variety is not mutable", __PRETTY_FUNCTION__);
-
 CF_INLINE Boolean __CFDataIsMutable(CFDataRef data) {
     return __CFRuntimeGetFlag(data, __kCFMutable);
 }
@@ -377,7 +374,6 @@ static Boolean __CFDataShouldUseAllocator(CFAllocatorRef allocator) {
 // that there should be no deallocator, and the bytes should be copied.
 static CFMutableDataRef __CFDataInit(CFAllocatorRef allocator, _CFDataMutableVariety variety, CFIndex capacity, const uint8_t *bytes, CFIndex length, CFAllocatorRef bytesDeallocator) CF_RETURNS_RETAINED {
     CFMutableDataRef memory;
-    __CFGenericValidateMutability(variety);
     CFAssert2(0 <= capacity, __kCFLogAssertion, "%s(): capacity (%ld) cannot be less than zero", __PRETTY_FUNCTION__, capacity);
     CFAssert3(kCFFixedMutable != variety || length <= capacity, __kCFLogAssertion, "%s(): for kCFFixedMutable type, capacity (%ld) must be greater than or equal to number of initial elements (%ld)", __PRETTY_FUNCTION__, capacity, length);
     CFAssert2(0 <= length, __kCFLogAssertion, "%s(): length (%ld) cannot be less than zero", __PRETTY_FUNCTION__, length);
@@ -842,7 +838,6 @@ CFRange CFDataFind(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CF
 }
 
 #undef __CFDataValidateRange
-#undef __CFGenericValidateMutability
 #undef INLINE_BYTES_THRESHOLD
 #undef CFDATA_MAX_SIZE
 #undef REVERSE_BUFFER

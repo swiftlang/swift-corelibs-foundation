@@ -57,7 +57,7 @@ extension URLSession {
 
 extension URLSession._MultiHandle {
     func configure(with configuration: URLSession._Configuration) {
-        try! CFURLSession_multi_setopt_l(rawHandle, CFURLSessionMultiOptionMAX_HOST_CONNECTIONS, configuration.httpMaximumConnectionsPerHost).asError()
+        try! CFURLSession_multi_setopt_l(rawHandle, CFURLSessionMultiOptionMAX_HOST_CONNECTIONS, numericCast(configuration.httpMaximumConnectionsPerHost)).asError()
         try! CFURLSession_multi_setopt_l(rawHandle, CFURLSessionMultiOptionPIPELINING, configuration.httpShouldUsePipelining ? 3 : 2).asError()
         //TODO: We may want to set
         //    CFURLSessionMultiOptionMAXCONNECTS
@@ -83,9 +83,14 @@ fileprivate extension URLSession._MultiHandle {
             }.asError()
         // Timeout:
         try! CFURLSession_multi_setopt_ptr(rawHandle, CFURLSessionMultiOptionTIMERDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
-        try! CFURLSession_multi_setopt_tf(rawHandle, CFURLSessionMultiOptionTIMERFUNCTION) { (_, timeout: Int, userdata: UnsafeMutableRawPointer?) -> Int32 in
+#if os(Windows) && (arch(arm64) || arch(x86_64))
+        typealias CFURLSessionMultiOption = Int32
+#else
+        typealias CFURLSessionMultiOption = Int
+#endif
+        try! CFURLSession_multi_setopt_tf(rawHandle, CFURLSessionMultiOptionTIMERFUNCTION) { (_, timeout: CFURLSessionMultiOption, userdata: UnsafeMutableRawPointer?) -> Int32 in
             guard let handle = URLSession._MultiHandle.from(callbackUserData: userdata) else { fatalError() }
-            handle.updateTimeoutTimer(to: timeout)
+            handle.updateTimeoutTimer(to: numericCast(timeout))
             return 0
             }.asError()
     }
@@ -152,7 +157,7 @@ internal extension URLSession._MultiHandle {
     }
     /// Remove an easy handle -- stop its transfer.
     func remove(_ handle: _EasyHandle) {
-        guard let idx = self.easyHandles.index(of: handle) else {
+        guard let idx = self.easyHandles.firstIndex(of: handle) else {
             fatalError("Handle not in list.")
         }
         self.easyHandles.remove(at: idx)
@@ -197,7 +202,7 @@ fileprivate extension URLSession._MultiHandle {
     /// Transfer completed.
     func completedTransfer(forEasyHandle handle: CFURLSessionEasyHandle, easyCode: CFURLSessionEasyCode) {
         // Look up the matching wrapper:
-        guard let idx = easyHandles.index(where: { $0.rawHandle == handle }) else {
+        guard let idx = easyHandles.firstIndex(where: { $0.rawHandle == handle }) else {
             fatalError("Tansfer completed for easy handle, but it is not in the list of added handles.")
         }
         let easyHandle = easyHandles[idx]

@@ -19,7 +19,6 @@ option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 find_package(CURL REQUIRED)
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
-find_package(UUID REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
@@ -35,8 +34,11 @@ ExternalProject_Add(CoreFoundation
                       ${CMAKE_COMMAND}
                     CMAKE_ARGS
                       -DBUILD_SHARED_LIBS=NO
-                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+                      # NOTE(compnerd) ensure that we build it as a DLL as we
+                      # wish to re-export the symbols from Foundation
+                      -DCMAKE_C_FLAGS=-D_USRDLL
                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                       -DCMAKE_INSTALL_LIBDIR=usr/lib
@@ -57,6 +59,27 @@ ExternalProject_Add(CoreFoundation
                       ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
 ExternalProject_Get_Property(CoreFoundation install_dir)
 
+add_library(uuid
+            STATIC
+              uuid/uuid.h
+              uuid/uuid.c)
+set_target_properties(uuid
+                      PROPERTIES
+                        POSITION_INDEPENDENT_CODE YES)
+# Add an include directory for the CoreFoundation framework headers to satisfy
+# the dependency on TargetConditionals.h
+target_compile_options(uuid
+                       PUBLIC
+                         -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_compile_definitions(uuid
+                             PRIVATE
+                               _CRT_NONSTDC_NO_WARNINGS
+                               _CRT_SECURE_NO_DEPRECATE
+                               _CRT_SECURE_NO_WARNINGS)
+endif()
+add_dependencies(uuid CoreFoundation)
+
 set(swift_optimization_flags)
 if(CMAKE_BUILD_TYPE MATCHES Release)
   set(swift_optimization_flags -O)
@@ -71,7 +94,7 @@ set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(deployment_enable_libdispatch -DDEPLOYMENT_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
-  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch)
+  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
   if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
   endif()
@@ -79,10 +102,12 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
+  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
 endif()
@@ -105,15 +130,19 @@ add_swift_library(Foundation
                     Foundation/CGFloat.swift
                     Foundation/CharacterSet.swift
                     Foundation/Codable.swift
+                    Foundation/Collections+DataProtocol.swift
+                    Foundation/ContiguousBytes.swift
                     Foundation/Data.swift
-                    Foundation/DateComponentsFormatter.swift
-                    Foundation/DateComponents.swift
-                    Foundation/DateFormatter.swift
-                    Foundation/DateIntervalFormatter.swift
-                    Foundation/DateInterval.swift
+                    Foundation/DataProtocol.swift
                     Foundation/Date.swift
+                    Foundation/DateComponents.swift
+                    Foundation/DateComponentsFormatter.swift
+                    Foundation/DateFormatter.swift
+                    Foundation/DateInterval.swift
+                    Foundation/DateIntervalFormatter.swift
                     Foundation/Decimal.swift
                     Foundation/Dictionary.swift
+                    Foundation/DispatchData+DataProtocol.swift
                     Foundation/EnergyFormatter.swift
                     Foundation/ExtraStringAPIs.swift
                     Foundation/FileHandle.swift
@@ -122,8 +151,8 @@ add_swift_library(Foundation
                     Foundation/Formatter.swift
                     Foundation/FoundationErrors.swift
                     Foundation/Host.swift
-                    Foundation/HTTPCookieStorage.swift
                     Foundation/HTTPCookie.swift
+                    Foundation/HTTPCookieStorage.swift
                     Foundation/IndexPath.swift
                     Foundation/IndexSet.swift
                     Foundation/ISO8601DateFormatter.swift
@@ -132,10 +161,10 @@ add_swift_library(Foundation
                     Foundation/LengthFormatter.swift
                     Foundation/Locale.swift
                     Foundation/MassFormatter.swift
-                    Foundation/MeasurementFormatter.swift
                     Foundation/Measurement.swift
-                    Foundation/NotificationQueue.swift
+                    Foundation/MeasurementFormatter.swift
                     Foundation/Notification.swift
+                    Foundation/NotificationQueue.swift
                     Foundation/NSArray.swift
                     Foundation/NSAttributedString.swift
                     Foundation/NSCache.swift
@@ -151,6 +180,7 @@ add_swift_library(Foundation
                     Foundation/NSComparisonPredicate.swift
                     Foundation/NSCompoundPredicate.swift
                     Foundation/NSConcreteValue.swift
+                    Foundation/NSData+DataProtocol.swift
                     Foundation/NSData.swift
                     Foundation/NSDate.swift
                     Foundation/NSDecimalNumber.swift
@@ -161,8 +191,8 @@ add_swift_library(Foundation
                     Foundation/NSGeometry.swift
                     Foundation/NSIndexPath.swift
                     Foundation/NSIndexSet.swift
-                    Foundation/NSKeyedArchiverHelpers.swift
                     Foundation/NSKeyedArchiver.swift
+                    Foundation/NSKeyedArchiverHelpers.swift
                     Foundation/NSKeyedCoderOldStyleArray.swift
                     Foundation/NSKeyedUnarchiver.swift
                     Foundation/NSLocale.swift
@@ -184,68 +214,70 @@ add_swift_library(Foundation
                     Foundation/NSSet.swift
                     Foundation/NSSortDescriptor.swift
                     Foundation/NSSpecialValue.swift
-                    Foundation/NSStringAPI.swift
                     Foundation/NSString.swift
+                    Foundation/NSStringAPI.swift
                     Foundation/NSSwiftRuntime.swift
                     Foundation/NSTextCheckingResult.swift
                     Foundation/NSTimeZone.swift
+                    Foundation/NSURL.swift
                     Foundation/NSURLError.swift
                     Foundation/NSURLRequest.swift
-                    Foundation/NSURL.swift
                     Foundation/NSUUID.swift
                     Foundation/NSValue.swift
                     Foundation/NumberFormatter.swift
                     Foundation/Operation.swift
-                    Foundation/PersonNameComponentsFormatter.swift
                     Foundation/PersonNameComponents.swift
-                    Foundation/PortMessage.swift
+                    Foundation/PersonNameComponentsFormatter.swift
+                    Foundation/Pointers+DataProtocol.swift
                     Foundation/Port.swift
-                    Foundation/ProcessInfo.swift
+                    Foundation/PortMessage.swift
                     Foundation/Process.swift
-                    Foundation/ProgressFraction.swift
+                    Foundation/ProcessInfo.swift
                     Foundation/Progress.swift
+                    Foundation/ProgressFraction.swift
+                    Foundation/PropertyListEncoder.swift
                     Foundation/PropertyListSerialization.swift
                     Foundation/ReferenceConvertible.swift
                     Foundation/RunLoop.swift
                     Foundation/Scanner.swift
                     Foundation/Set.swift
                     Foundation/Stream.swift
-                    Foundation/StringEncodings.swift
                     Foundation/String.swift
+                    Foundation/StringEncodings.swift
                     Foundation/Thread.swift
                     Foundation/Timer.swift
                     Foundation/TimeZone.swift
                     Foundation/Unit.swift
+                    Foundation/URL.swift
                     Foundation/URLAuthenticationChallenge.swift
                     Foundation/URLCache.swift
                     Foundation/URLComponents.swift
-                    Foundation/URLCredentialStorage.swift
                     Foundation/URLCredential.swift
+                    Foundation/URLCredentialStorage.swift
                     Foundation/URLProtectionSpace.swift
                     Foundation/URLProtocol.swift
                     Foundation/URLRequest.swift
                     Foundation/URLResponse.swift
                     Foundation/URLSession/BodySource.swift
                     Foundation/URLSession/Configuration.swift
-                    Foundation/URLSession/Message.swift
                     Foundation/URLSession/http/HTTPMessage.swift
                     Foundation/URLSession/http/HTTPURLProtocol.swift
                     Foundation/URLSession/libcurl/EasyHandle.swift
                     Foundation/URLSession/libcurl/libcurlHelpers.swift
                     Foundation/URLSession/libcurl/MultiHandle.swift
+                    Foundation/URLSession/Message.swift
                     Foundation/URLSession/NativeProtocol.swift
                     Foundation/URLSession/TaskRegistry.swift
                     Foundation/URLSession/TransferState.swift
+                    Foundation/URLSession/URLSession.swift
                     Foundation/URLSession/URLSessionConfiguration.swift
                     Foundation/URLSession/URLSessionDelegate.swift
-                    Foundation/URLSession/URLSession.swift
                     Foundation/URLSession/URLSessionTask.swift
-                    Foundation/URL.swift
                     Foundation/UserDefaults.swift
                     Foundation/UUID.swift
                     Foundation/XMLDocument.swift
-                    Foundation/XMLDTDNode.swift
                     Foundation/XMLDTD.swift
+                    Foundation/XMLDTDNode.swift
                     Foundation/XMLElement.swift
                     Foundation/XMLNode.swift
                     Foundation/XMLParser.swift
@@ -255,6 +287,7 @@ add_swift_library(Foundation
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${install_dir}/System/Library/Frameworks
+                    -D_DLL
                   LINK_FLAGS
                     -L${install_dir}/usr/lib
                     -lCoreFoundation
@@ -262,8 +295,9 @@ add_swift_library(Foundation
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
-                    ${uuid_LIBRARIES}
-                    -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN"
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    -luuid
+                    ${Foundation_rpath_flags}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -278,11 +312,12 @@ if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES
       -L${install_dir}/usr/lib
       -lCoreFoundation
+      -L${CMAKE_CURRENT_BINARY_DIR}
+      -luuid
       ${CURL_LIBRARIES}
       ${ICU_UC_LIBRARY}
       ${ICU_I18N_LIBRARY}
-      ${LIBXML2_LIBRARIES}
-      ${uuid_LIBRARIES})
+      ${LIBXML2_LIBRARIES})
 endif()
 
 add_swift_executable(plutil
@@ -293,8 +328,8 @@ add_swift_executable(plutil
                        ${deployment_enable_libdispatch}
                        -F${install_dir}/System/Library/Frameworks
                      LINK_FLAGS
-                       -L${CMAKE_CURRENT_BINARY_DIR}
                        ${libdispatch_ldflags}
+                       -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
                        -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
@@ -307,6 +342,7 @@ add_swift_executable(plutil
                        ${swift_enable_testing}
                        ${swift_optimization_flags}
                      DEPENDS
+                       uuid
                        Foundation
                        CoreFoundation)
 
@@ -328,6 +364,7 @@ if(ENABLE_TESTING)
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
                        DEPENDS
+                         uuid
                          Foundation
                          CoreFoundation)
 
@@ -359,6 +396,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestIndexSet.swift
                          TestFoundation/TestISO8601DateFormatter.swift
                          TestFoundation/TestJSONEncoder.swift
+                         TestFoundation/TestPropertyListEncoder.swift
                          TestFoundation/TestJSONSerialization.swift
                          TestFoundation/TestLengthFormatter.swift
                          TestFoundation/TestMassFormatter.swift
@@ -418,6 +456,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestURL.swift
                          TestFoundation/TestUserDefaults.swift
                          TestFoundation/TestUtils.swift
+                         TestFoundation/TestUUID.swift
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS

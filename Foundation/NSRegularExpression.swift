@@ -106,7 +106,11 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
     open var numberOfCaptureGroups: Int {
         return _CFRegularExpressionGetNumberOfCaptureGroups(_internal)
     }
-    
+
+    internal func _captureGroupNumber(withName name: String) -> Int {
+        return _CFRegularExpressionGetCaptureGroupNumberWithName(_internal, name._cfObject)
+    }
+
     /* This class method will produce a string by adding backslash escapes as necessary to the given string, to escape any characters that would otherwise be treated as pattern metacharacters.
     */
     open class func escapedPattern(for string: String) -> String { 

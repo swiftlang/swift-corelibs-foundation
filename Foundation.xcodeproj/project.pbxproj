@@ -18,8 +18,6 @@
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
 		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
-		1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA72187D156009518FA /* CFDateFormatter.c */; };
-		1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA82187D156009518FA /* CFDateFormatter.h */; };
 		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
 		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
@@ -269,6 +267,12 @@
 		5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */; };
 		5BB2C75F1ED9F96200B7BDBD /* CFUserNotification.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D89391BBDA7AB00234F36 /* CFUserNotification.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5BB5256C1BEC057200E63BE3 /* module.map in Headers */ = {isa = PBXBuildFile; fileRef = 5BDC3F721BCC60EF00ED97BB /* module.map */; settings = {ATTRIBUTES = (Public, ); }; };
+		5BC1B9A421F2757F00524D8C /* ContiguousBytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9A321F2757F00524D8C /* ContiguousBytes.swift */; };
+		5BC1B9A621F2759C00524D8C /* DataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9A521F2759C00524D8C /* DataProtocol.swift */; };
+		5BC1B9A821F275B000524D8C /* Collections+DataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9A721F275B000524D8C /* Collections+DataProtocol.swift */; };
+		5BC1B9AA21F275C400524D8C /* DispatchData+DataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9A921F275C400524D8C /* DispatchData+DataProtocol.swift */; };
+		5BC1B9AC21F275D500524D8C /* NSData+DataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9AB21F275D500524D8C /* NSData+DataProtocol.swift */; };
+		5BC1B9AE21F275E900524D8C /* Pointers+DataProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC1B9AD21F275E900524D8C /* Pointers+DataProtocol.swift */; };
 		5BC2C00F1C07833200CC214E /* CFStringTransform.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BC2C00D1C07832E00CC214E /* CFStringTransform.c */; };
 		5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC46D531D05D6D900005853 /* DateInterval.swift */; };
 		5BCCA8D91CE6697F0059B963 /* URLComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BCCA8D81CE6697F0059B963 /* URLComponents.swift */; };
@@ -348,6 +352,8 @@
 		9F0DD3521ECD73D000F68030 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0041781ECD5962004138BD /* main.swift */; };
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
+		AA9E0E0B21FA6C5600963F4C /* PropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */; };
+		AA9E0E0D21FA6E0700963F4C /* TestPropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */; };
 		AE35A1861CBAC85E0042DB84 /* SwiftFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B907F36B20BB07A700013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */; };
@@ -372,6 +378,7 @@
 		BDFDF0A71DFF5B3E00C04CC5 /* TestPersonNameComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDFDF0A61DFF5B3E00C04CC5 /* TestPersonNameComponents.swift */; };
 		BF85E9D81FBDCC2000A79793 /* TestHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF85E9D71FBDCC2000A79793 /* TestHost.swift */; };
 		BF8E65311DC3B3CB005AB5C3 /* TestNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */; };
+		C7DE1FCC21EEE67200174F35 /* TestUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7DE1FCB21EEE67200174F35 /* TestUUID.swift */; };
 		CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */; };
 		CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1C7F7C1E303B47008E331C /* TestNSError.swift */; };
 		CE19A88C1C23AA2300B4CB6A /* NSStringTestData.txt in Resources */ = {isa = PBXBuildFile; fileRef = CE19A88B1C23AA2300B4CB6A /* NSStringTestData.txt */; };
@@ -546,8 +553,6 @@
 		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
 		1569BFA32187D0E0009518FA /* CFDateInterval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateInterval.c; sourceTree = "<group>"; };
 		1569BFA42187D0E0009518FA /* CFDateInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateInterval.h; sourceTree = "<group>"; };
-		1569BFA72187D156009518FA /* CFDateFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateFormatter.c; sourceTree = "<group>"; };
-		1569BFA82187D156009518FA /* CFDateFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateFormatter.h; sourceTree = "<group>"; };
 		1569BFAB2187D529009518FA /* CFDateComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateComponents.c; sourceTree = "<group>"; };
 		1569BFAC2187D529009518FA /* CFDateComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateComponents.h; sourceTree = "<group>"; };
 		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
@@ -773,6 +778,12 @@
 		5BA9BEA51CF3D747009DBD6C /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		5BA9BEA71CF3E7E7009DBD6C /* CharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CharacterSet.swift; sourceTree = "<group>"; };
 		5BA9BEBC1CF4F3B8009DBD6C /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		5BC1B9A321F2757F00524D8C /* ContiguousBytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContiguousBytes.swift; sourceTree = "<group>"; };
+		5BC1B9A521F2759C00524D8C /* DataProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataProtocol.swift; sourceTree = "<group>"; };
+		5BC1B9A721F275B000524D8C /* Collections+DataProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collections+DataProtocol.swift"; sourceTree = "<group>"; };
+		5BC1B9A921F275C400524D8C /* DispatchData+DataProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchData+DataProtocol.swift"; sourceTree = "<group>"; };
+		5BC1B9AB21F275D500524D8C /* NSData+DataProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSData+DataProtocol.swift"; sourceTree = "<group>"; };
+		5BC1B9AD21F275E900524D8C /* Pointers+DataProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Pointers+DataProtocol.swift"; sourceTree = "<group>"; };
 		5BC1D8BC1BF3ADFE009D3973 /* TestCharacterSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCharacterSet.swift; sourceTree = "<group>"; };
 		5BC2C00D1C07832E00CC214E /* CFStringTransform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFStringTransform.c; sourceTree = "<group>"; };
 		5BC46D531D05D6D900005853 /* DateInterval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateInterval.swift; sourceTree = "<group>"; };
@@ -868,6 +879,8 @@
 		9F4ADBB61ECD445E001F0B3D /* SymbolAliases */ = {isa = PBXFileReference; lastKnownFileType = text; path = SymbolAliases; sourceTree = "<group>"; };
 		A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestMassFormatter.swift; sourceTree = "<group>"; };
 		A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestByteCountFormatter.swift; sourceTree = "<group>"; };
+		AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PropertyListEncoder.swift; sourceTree = "<group>"; };
+		AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPropertyListEncoder.swift; sourceTree = "<group>"; };
 		AE35A1851CBAC85E0042DB84 /* SwiftFoundation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SwiftFoundation.h; sourceTree = "<group>"; };
 		B167A6641ED7303F0040B09A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B907F36A20BB07A700013CBE /* NSString-ISO-8859-1-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-ISO-8859-1-data.txt"; sourceTree = "<group>"; };
@@ -891,6 +904,7 @@
 		BF85E9D71FBDCC2000A79793 /* TestHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHost.swift; sourceTree = "<group>"; };
 		BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNotification.swift; sourceTree = "<group>"; };
 		C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSUUID.swift; sourceTree = "<group>"; };
+		C7DE1FCB21EEE67200174F35 /* TestUUID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUUID.swift; sourceTree = "<group>"; };
 		C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestAffineTransform.swift; sourceTree = "<group>"; };
 		CC5249BF1D341D23007CB54D /* TestUnitConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUnitConverter.swift; sourceTree = "<group>"; };
 		CD1C7F7C1E303B47008E331C /* TestNSError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSError.swift; sourceTree = "<group>"; };
@@ -1064,13 +1078,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		3EDCE5121EF04D8600C2EC04 /* JSONEncoder */ = {
+		3EDCE5121EF04D8600C2EC04 /* Codable */ = {
 			isa = PBXGroup;
 			children = (
 				3EDCE5051EF04D8100C2EC04 /* Codable.swift */,
 				3EDCE5091EF04D8100C2EC04 /* JSONEncoder.swift */,
+				AA9E0E0A21FA6C5600963F4C /* PropertyListEncoder.swift */,
 			);
-			name = JSONEncoder;
+			name = Codable;
 			sourceTree = "<group>";
 		};
 		5B1FD9C71D6D162D0080E83C /* Session */ = {
@@ -1274,8 +1289,6 @@
 				1569BFAC2187D529009518FA /* CFDateComponents.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
-				1569BFA72187D156009518FA /* CFDateFormatter.c */,
-				1569BFA82187D156009518FA /* CFDateFormatter.h */,
 				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
@@ -1548,6 +1561,7 @@
 		EA66F65A1BF1976100136161 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				C7DE1FCB21EEE67200174F35 /* TestUUID.swift */,
 				7D0DE86D211883F500540061 /* Utilities.swift */,
 				7D0DE86C211883F500540061 /* TestDateComponents.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
@@ -1561,6 +1575,7 @@
 				A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */,
 				BF8E65301DC3B3CB005AB5C3 /* TestNotification.swift */,
 				3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */,
+				AA9E0E0C21FA6E0700963F4C /* TestPropertyListEncoder.swift */,
 				DCA8120A1F046D13000D0C86 /* TestCodable.swift */,
 				C93559281C12C49F009FD6A9 /* TestAffineTransform.swift */,
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
@@ -1757,7 +1772,7 @@
 		EAB57B6C1BD1A852004AC5C5 /* Serialization */ = {
 			isa = PBXGroup;
 			children = (
-				3EDCE5121EF04D8600C2EC04 /* JSONEncoder */,
+				3EDCE5121EF04D8600C2EC04 /* Codable */,
 				EADE0B641BD15DFF00C49C64 /* JSONSerialization.swift */,
 				EADE0B651BD15DFF00C49C64 /* NSKeyedArchiver.swift */,
 				D3BCEB9F1C2F6DDB00295652 /* NSKeyedCoderOldStyleArray.swift */,
@@ -1932,6 +1947,12 @@
 				EADE0B6B1BD15DFF00C49C64 /* NSNull.swift */,
 				5BDC3F331BCC5DCB00ED97BB /* NSData.swift */,
 				5BA9BEA51CF3D747009DBD6C /* Data.swift */,
+				5BC1B9A321F2757F00524D8C /* ContiguousBytes.swift */,
+				5BC1B9A721F275B000524D8C /* Collections+DataProtocol.swift */,
+				5BC1B9A921F275C400524D8C /* DispatchData+DataProtocol.swift */,
+				5BC1B9AB21F275D500524D8C /* NSData+DataProtocol.swift */,
+				5BC1B9AD21F275E900524D8C /* Pointers+DataProtocol.swift */,
+				5BC1B9A521F2759C00524D8C /* DataProtocol.swift */,
 				EADE0B741BD15DFF00C49C64 /* Progress.swift */,
 				EA0812681DA71C8A00651B70 /* ProgressFraction.swift */,
 				5BDC3F381BCC5DCB00ED97BB /* NSError.swift */,
@@ -1979,7 +2000,6 @@
 				5B7C8AE01BEA80FC00C5B690 /* CFStringEncodingExt.h in Headers */,
 				5B7C8AE11BEA80FC00C5B690 /* CFURL.h in Headers */,
 				1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */,
-				1569BFAA2187D156009518FA /* CFDateFormatter.h in Headers */,
 				1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */,
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
@@ -2292,6 +2312,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63DCE9D21EAA430100E9CB02 /* ISO8601DateFormatter.swift in Sources */,
+				5BC1B9A621F2759C00524D8C /* DataProtocol.swift in Sources */,
 				5BF7AE831BCD50CD008F214A /* NSArray.swift in Sources */,
 				B9974B971EDF4A22007F15B8 /* MultiHandle.swift in Sources */,
 				EADE0B991BD15DFF00C49C64 /* EnergyFormatter.swift in Sources */,
@@ -2305,6 +2326,7 @@
 				EADE0BC01BD15E0000C49C64 /* URLProtectionSpace.swift in Sources */,
 				5BF7AEAC1BCD51F9008F214A /* NSEnumerator.swift in Sources */,
 				5BA9BEA81CF3E7E7009DBD6C /* CharacterSet.swift in Sources */,
+				5BC1B9AA21F275C400524D8C /* DispatchData+DataProtocol.swift in Sources */,
 				61E0117E1C1B55B9000037DD /* Timer.swift in Sources */,
 				EADE0BCD1BD15E0000C49C64 /* XMLParser.swift in Sources */,
 				5BDC3FD01BCF17E600ED97BB /* NSCFSet.swift in Sources */,
@@ -2319,8 +2341,10 @@
 				EADE0BB01BD15E0000C49C64 /* Port.swift in Sources */,
 				EADE0BB91BD15E0000C49C64 /* NSTextCheckingResult.swift in Sources */,
 				EA0812691DA71C8A00651B70 /* ProgressFraction.swift in Sources */,
+				5BC1B9A821F275B000524D8C /* Collections+DataProtocol.swift in Sources */,
 				5BF7AEBE1BCD51F9008F214A /* NSTimeZone.swift in Sources */,
 				EADE0B951BD15DFF00C49C64 /* DateComponentsFormatter.swift in Sources */,
+				5BC1B9AE21F275E900524D8C /* Pointers+DataProtocol.swift in Sources */,
 				EADE0BBD1BD15E0000C49C64 /* URLCredential.swift in Sources */,
 				EADE0BCA1BD15E0000C49C64 /* XMLElement.swift in Sources */,
 				EADE0BA21BD15E0000C49C64 /* JSONSerialization.swift in Sources */,
@@ -2353,6 +2377,7 @@
 				5BF7AEAE1BCD51F9008F214A /* Formatter.swift in Sources */,
 				EADE0B9C1BD15DFF00C49C64 /* FileManager.swift in Sources */,
 				5BF7AEA61BCD51F9008F214A /* NSCharacterSet.swift in Sources */,
+				AA9E0E0B21FA6C5600963F4C /* PropertyListEncoder.swift in Sources */,
 				5BD70FB41D3D4F8B003B9BF8 /* Calendar.swift in Sources */,
 				5BA9BEBD1CF4F3B8009DBD6C /* Notification.swift in Sources */,
 				5BD70FB21D3D4CDC003B9BF8 /* Locale.swift in Sources */,
@@ -2426,6 +2451,7 @@
 				B9974B991EDF4A22007F15B8 /* HTTPURLProtocol.swift in Sources */,
 				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* URLCache.swift in Sources */,
+				5BC1B9AC21F275D500524D8C /* NSData+DataProtocol.swift in Sources */,
 				5B4092121D1B30B40022B067 /* ExtraStringAPIs.swift in Sources */,
 				5BC46D541D05D6D900005853 /* DateInterval.swift in Sources */,
 				EADE0BC51BD15E0000C49C64 /* UserDefaults.swift in Sources */,
@@ -2436,6 +2462,7 @@
 				5BDC3FCC1BCF177E00ED97BB /* NSCFString.swift in Sources */,
 				B9974B9A1EDF4A22007F15B8 /* HTTPMessage.swift in Sources */,
 				EADE0BAC1BD15E0000C49C64 /* NSOrderedSet.swift in Sources */,
+				5BC1B9A421F2757F00524D8C /* ContiguousBytes.swift in Sources */,
 				EADE0BC31BD15E0000C49C64 /* URLResponse.swift in Sources */,
 				EADE0B971BD15DFF00C49C64 /* Decimal.swift in Sources */,
 				EADE0B9F1BD15DFF00C49C64 /* HTTPCookieStorage.swift in Sources */,
@@ -2471,7 +2498,6 @@
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
 				5B7C8AB01BEA801700C5B690 /* CFBuiltinConverters.c in Sources */,
 				5B7C8A761BEA7FCE00C5B690 /* CFSortFunctions.c in Sources */,
-				1569BFA92187D156009518FA /* CFDateFormatter.c in Sources */,
 				5B2B59831C24D00C00271109 /* CFSocketStream.c in Sources */,
 				5B7C8A941BEA7FEC00C5B690 /* CFXMLParser.c in Sources */,
 				5B7C8AA11BEA800400C5B690 /* CFApplicationPreferences.c in Sources */,
@@ -2581,6 +2607,7 @@
 				5B13B33E1C582D4C00651CE2 /* TestProcessInfo.swift in Sources */,
 				5B13B33F1C582D4C00651CE2 /* TestPropertyListSerialization.swift in Sources */,
 				5B13B32C1C582D4C00651CE2 /* TestDate.swift in Sources */,
+				C7DE1FCC21EEE67200174F35 /* TestUUID.swift in Sources */,
 				231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */,
 				7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */,
 				5B13B33B1C582D4C00651CE2 /* TestNumberFormatter.swift in Sources */,
@@ -2592,6 +2619,7 @@
 				5B13B34E1C582D4C00651CE2 /* TestXMLDocument.swift in Sources */,
 				5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */,
 				5B13B34C1C582D4C00651CE2 /* TestURLResponse.swift in Sources */,
+				AA9E0E0D21FA6E0700963F4C /* TestPropertyListEncoder.swift in Sources */,
 				0383A1751D2E558A0052E5D1 /* TestStream.swift in Sources */,
 				5B13B3481C582D4C00651CE2 /* TestTimer.swift in Sources */,
 				5B13B32D1C582D4C00651CE2 /* TestNSDictionary.swift in Sources */,
@@ -2734,7 +2762,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "FOUNDATION_XCTEST NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT DEBUG";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -2854,14 +2882,14 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -2929,13 +2957,13 @@
 					r,
 					r,
 				);
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -3039,12 +3067,12 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -3065,11 +3093,11 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -3092,7 +3120,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -3112,7 +3140,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.xdgTestHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -3124,7 +3152,7 @@
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -3135,7 +3163,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				HEADER_SEARCH_PATHS = "$(CONFIGURATION_BUILD_DIR)/usr/local/include";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

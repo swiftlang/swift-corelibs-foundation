@@ -126,11 +126,13 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
+#endif
 
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 #if DEPLOYMENT_TARGET_MACOSX
@@ -1357,9 +1359,20 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
 #if DEPLOYMENT_TARGET_WINDOWS
-    return (_CFThreadRef)_beginthreadex(NULL, 0,
+    DWORD dwCreationFlags = 0;
+    DWORD dwStackSize = 0;
+    if (attrs.dwSizeOfAttributes >=
+            offsetof(struct _CFThreadAttributes,
+                     dwThreadStackReservation) + sizeof(dwStackSize)) {
+      dwStackSize = attrs.dwThreadStackReservation;
+      if (dwStackSize) {
+        dwCreationFlags |= STACK_SIZE_PARAM_IS_A_RESERVATION;
+      }
+    }
+
+    return (_CFThreadRef)_beginthreadex(NULL, dwStackSize,
                                         (_beginthreadex_proc_type)startfn,
-                                        context, 0, NULL);
+                                        context, dwCreationFlags, NULL);
 #else
     _CFThreadRef thread;
     pthread_create(&thread, &attrs, startfn, context);

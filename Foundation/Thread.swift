@@ -7,13 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
 import CoreFoundation
+
+// WORKAROUND_SR9811
+#if os(Windows)
+internal typealias _swift_CFThreadRef = HANDLE
+#else
+internal typealias _swift_CFThreadRef = pthread_t
+#endif
 
 internal class NSThreadSpecific<T: NSObject> {
     private var key = _CFThreadSpecificKeyCreate()
@@ -44,7 +45,11 @@ private func NSThreadStart(_ context: UnsafeMutableRawPointer?) -> UnsafeMutable
     let thread: Thread = NSObject.unretainedReference(context!)
     Thread._currentThread.set(thread)
     if let name = thread.name {
+#if os(Windows)
+        _CFThreadSetName(GetCurrentThread(), name)
+#else
         _CFThreadSetName(pthread_self(), name)
+#endif
     }
     thread._status = .executing
     thread.main()
@@ -61,7 +66,11 @@ open class Thread : NSObject {
             if Thread.isMainThread {
                 return mainThread
             } else {
+#if os(Windows)
+                return Thread(thread: GetCurrentThread())
+#else
                 return Thread(thread: pthread_self())
+#endif
             }
         }
     }
@@ -95,6 +104,19 @@ open class Thread : NSObject {
     }
 
     open class func sleep(until date: Date) {
+#if os(Windows)
+        var hTimer: HANDLE = CreateWaitableTimerW(nil, TRUE, nil)
+        // FIXME(compnerd) how to check that hTimer is not NULL?
+        defer { CloseHandle(hTimer) }
+
+        // the timeout is in 100ns units
+        var liTimeout: LARGE_INTEGER =
+            LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceReferenceDate) * -10000000)
+        if SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, FALSE) == FALSE {
+          return
+        }
+        WaitForSingleObject(hTimer, WinSDK.INFINITE)
+#else
         let start_ut = CFGetSystemUptime()
         let start_at = CFAbsoluteTimeGetCurrent()
         let end_at = date.timeIntervalSinceReferenceDate
@@ -115,9 +137,23 @@ open class Thread : NSObject {
             }
             ti = end_ut - CFGetSystemUptime()
         }
+#endif
     }
 
     open class func sleep(forTimeInterval interval: TimeInterval) {
+#if os(Windows)
+        var hTimer: HANDLE = CreateWaitableTimerW(nil, TRUE, nil)
+        // FIXME(compnerd) how to check that hTimer is not NULL?
+        defer { CloseHandle(hTimer) }
+
+        // the timeout is in 100ns units
+        var liTimeout: LARGE_INTEGER =
+            LARGE_INTEGER(QuadPart: LONGLONG(interval) * -10000000)
+        if SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, FALSE) == FALSE {
+          return
+        }
+        WaitForSingleObject(hTimer, WinSDK.INFINITE)
+#else
         var ti = interval
         let start_ut = CFGetSystemUptime()
         let end_ut = start_ut + ti
@@ -136,37 +172,48 @@ open class Thread : NSObject {
             }
             ti = end_ut - CFGetSystemUptime()
         }
+#endif
     }
 
     open class func exit() {
         Thread.current._status = .finished
+#if os(Windows)
+        ExitThread(0)
+#else
         pthread_exit(nil)
+#endif
     }
 
     internal var _main: () -> Void = {}
-    private var _thread: pthread_t? = nil
+    private var _thread: _swift_CFThreadRef? = nil
 
-#if CYGWIN
+#if os(Windows) && !CYGWIN
+    internal var _attr: _CFThreadAttributes =
+        _CFThreadAttributes(dwSizeOfAttributes: DWORD(MemoryLayout<_CFThreadAttributes>.size),
+                            dwThreadStackReservation: 0)
+#elseif CYGWIN
     internal var _attr : pthread_attr_t? = nil
 #else
     internal var _attr = pthread_attr_t()
 #endif
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
-    
+
     open private(set) var threadDictionary: NSMutableDictionary = NSMutableDictionary()
 
-    internal init(thread: pthread_t) {
-        // Note: even on Darwin this is a non-optional pthread_t; this is only used for valid threads, which are never null pointers.
+    internal init(thread: _swift_CFThreadRef) {
+        // Note: even on Darwin this is a non-optional _CFThreadRef; this is only used for valid threads, which are never null pointers.
         _thread = thread
     }
 
     public override init() {
+#if !os(Windows)
         let _ = withUnsafeMutablePointer(to: &_attr) { attr in
             pthread_attr_init(attr)
             pthread_attr_setscope(attr, Int32(PTHREAD_SCOPE_SYSTEM))
             pthread_attr_setdetachstate(attr, Int32(PTHREAD_CREATE_DETACHED))
         }
+#endif
     }
 
     public convenience init(block: @escaping () -> Swift.Void) {
@@ -208,6 +255,19 @@ open class Thread : NSObject {
         }
     }
 
+#if os(Windows)
+    open var stackSize: Int {
+      get {
+        var ulLowLimit: ULONG_PTR = 0
+        var ulHighLimit: ULONG_PTR = 0
+        GetCurrentThreadStackLimits(&ulLowLimit, &ulHighLimit)
+        return Int(ulLowLimit)
+      }
+      set {
+        _attr.dwThreadStackReservation = DWORD(newValue)
+      }
+    }
+#else
     open var stackSize: Int {
         get {
             var size: Int = 0
@@ -229,6 +289,7 @@ open class Thread : NSObject {
             }
         }
     }
+#endif
 
     open var isExecuting: Bool {
         return _status == .executing
@@ -258,6 +319,9 @@ open class Thread : NSObject {
         defer { addrs.deallocate() }
 #if os(Android)
         let count = 0
+#elseif os(Windows)
+        let count = RtlCaptureStackBackTrace(0, DWORD(maxSupportedStackDepth),
+                                             addrs, nil)
 #else
         let count = backtrace(addrs, Int32(maxSupportedStackDepth))
 #endif
@@ -276,6 +340,39 @@ open class Thread : NSObject {
     open class var callStackSymbols: [String] {
 #if os(Android)
         return []
+#elseif os(Windows)
+        let hProcess: HANDLE = GetCurrentProcess()
+        SymSetOptions(DWORD(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS))
+        if SymInitializeW(hProcess, nil, TRUE) == FALSE {
+          return []
+        }
+        return backtraceAddresses { (addresses, count) in
+          var symbols: [String] = []
+
+          var buffer: UnsafeMutablePointer<Int8> =
+              UnsafeMutablePointer<Int8>
+                  .allocate(capacity: MemoryLayout<SYMBOL_INFO>.size + 128)
+          defer { buffer.deallocate() }
+
+          buffer.withMemoryRebound(to: SYMBOL_INFO.self, capacity: 1) {
+            $0.pointee.SizeOfStruct = ULONG(MemoryLayout<SYMBOL_INFO>.size)
+            $0.pointee.MaxNameLen = 128
+
+            var address = addresses
+            for _ in 1...count {
+              var dwDisplacement: DWORD64 = 0
+              if SymFromAddr(hProcess, unsafeBitCast(address.pointee,
+                                                     to: DWORD64.self),
+                             &dwDisplacement, $0) == FALSE {
+                symbols.append("\($0.pointee)")
+              } else {
+                symbols.append(String(cString: &$0.pointee.Name))
+              }
+              address = address.successor()
+            }
+          }
+          return symbols
+        }
 #else
         return backtraceAddresses({ (addrs, count) in
             var symbols: [String] = []

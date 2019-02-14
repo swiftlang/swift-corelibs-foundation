@@ -12,15 +12,22 @@ import CoreFoundation
 
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
 #elseif os(Linux) || os(Android) || CYGWIN
 @_exported import Glibc
+#elseif os(Windows)
+@_exported import MSVCRT
 #endif
 
 @_exported import Dispatch
 
-#if os(Android) // shim required for bzero
+#if os(Windows)
+import WinSDK
+#endif
+
+// shim required for bzero
+#if os(Android) || os(Windows)
 @_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
     memset(ptr, 0, size)
 }

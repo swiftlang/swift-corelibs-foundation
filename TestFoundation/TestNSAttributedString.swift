@@ -296,11 +296,11 @@ class TestNSAttributedString : XCTestCase {
 
 fileprivate extension TestNSAttributedString {
     
-    fileprivate func describe(range: NSRange) -> String {
+    func describe(range: NSRange) -> String {
         return "(\(range.location),\(range.length))"
     }
     
-    fileprivate func describe(attr: Any?) -> String {
+    func describe(attr: Any?) -> String {
         if let attr = attr {
             return "\(attr)" + "|"
         } else {
@@ -308,7 +308,7 @@ fileprivate extension TestNSAttributedString {
         }
     }
     
-    fileprivate func describe(attrs: [NSAttributedStringKey : Any]) -> String {
+    func describe(attrs: [NSAttributedStringKey : Any]) -> String {
         if attrs.count > 0 {
             let mapped: [String] = attrs.map({ "\($0.rawValue):\($1)" })
             let sorted: [String] = mapped.sorted(by: { $0 < $1 })
