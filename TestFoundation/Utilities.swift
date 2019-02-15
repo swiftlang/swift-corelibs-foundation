@@ -156,6 +156,22 @@ func expectTrue(_ actual: Bool, _ message: @autoclosure () -> String = "") {
     XCTAssertTrue(actual, message())
 }
 
+func expectFalse(_ actual: Bool, _ message: @autoclosure () -> String = "") {
+    XCTAssertFalse(actual, message())
+}
+
 func expectEqual<T: Equatable>(_ expected: T, _ actual: T, _ message: @autoclosure () -> String = "") {
     XCTAssertEqual(expected, actual, message())
 }
+
+func expectEqual<T: FloatingPoint>(_ expected: T, _ actual: T, within: T, _ message: @autoclosure () -> String = "") {
+    XCTAssertEqual(expected, actual, accuracy: within, message())
+}
+
+func expectEqual<T: FloatingPoint>(_ expected: T?, _ actual: T, within: T, _ message: @autoclosure () -> String = "") {
+    XCTAssertNotNil(expected, message())
+    if let expected = expected {
+        XCTAssertEqual(expected, actual, accuracy: within, message())
+    }
+}
+

@@ -240,6 +240,7 @@ add_swift_library(Foundation
                     Foundation/ReferenceConvertible.swift
                     Foundation/RunLoop.swift
                     Foundation/Scanner.swift
+                    Foundation/ScannerAPI.swift
                     Foundation/Set.swift
                     Foundation/Stream.swift
                     Foundation/String.swift

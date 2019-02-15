@@ -2068,6 +2068,7 @@ extension Scanner {
         }
 
     }
+    
     public func scanDecimal() -> Decimal? {
 
         var result = Decimal()
@@ -2076,7 +2077,7 @@ extension Scanner {
         let length = string.length
         var buf = _NSStringBuffer(string: string, start: self._scanLocation, end: length)
 
-        let ds_chars = decimalSep(locale).utf16
+        let ds_chars = decimalSep(locale as? Locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         buf.skip(_skipSet)
         var neg = false
