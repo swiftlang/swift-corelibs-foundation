@@ -186,6 +186,16 @@ extension Operation {
             finish()
         }
     }
+    
+    public func willChangeValue<Value>(for keyPath: KeyPath<Operation, Value>) {
+        // do nothing
+    }
+    
+    public func didChangeValue<Value>(for keyPath: KeyPath<Operation, Value>) {
+        if keyPath == \Operation.isFinished {
+            finish()
+        }
+    }
 }
 
 extension Operation {

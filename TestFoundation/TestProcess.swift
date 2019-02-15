@@ -248,35 +248,38 @@ class TestProcess : XCTestCase {
         }
     }
     
-    func test_passthrough_environment() {
-        do {
-            let (output, _) = try runTask(["/usr/bin/env"], environment: nil)
-            let env = try parseEnv(output)
-            XCTAssertGreaterThan(env.count, 0)
-        } catch {
-            XCTFail("Test failed: \(error)")
+    func helperToolEnvironment(from environment: [String: String]) -> [String: String] {
+        var result = environment
+        let importantEnvVars = ProcessInfo.processInfo.environment.filter {
+            $0.key.hasPrefix("LD_") || $0.key.hasPrefix("DYLD_")
         }
+        for entry in importantEnvVars {
+            result[entry.key] = entry.value
+        }
+        return result
+    }
+    
+    func test_passthrough_environment() throws {
+        let helper = xdgTestHelperURL()
+        let (output, _) = try runTask([helper.path, "--env"], environment: nil)
+        let env = try parseEnv(output)
+        XCTAssertGreaterThan(env.count, 0)
     }
 
-    func test_no_environment() {
-        do {
-            let (output, _) = try runTask(["/usr/bin/env"], environment: [:])
-            let env = try parseEnv(output)
-            XCTAssertEqual(env.count, 0)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+    func test_no_environment() throws {
+        let helper = xdgTestHelperURL()
+        let input = helperToolEnvironment(from: [:])
+        let (output, _) = try runTask([helper.path, "--env"], environment: input)
+        let env = try parseEnv(output)
+        XCTAssertEqual(env, input)
     }
 
-    func test_custom_environment() {
-        do {
-            let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
-            let (output, _) = try runTask(["/usr/bin/env"], environment: input)
-            let env = try parseEnv(output)
-            XCTAssertEqual(env, input)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+    func test_custom_environment() throws {
+        let helper = xdgTestHelperURL()
+        let input = helperToolEnvironment(from: ["HELLO": "WORLD", "HOME": "CUPERTINO"])
+        let (output, _) = try runTask([helper.path, "--env"], environment: input)
+        let env = try parseEnv(output)
+        XCTAssertEqual(env, input)
     }
 
     private func realpathOf(path: String) -> String? {
@@ -652,14 +655,8 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 }
 
 private func parseEnv(_ env: String) throws -> [String: String] {
-    var result = [String: String]()
-    for line in env.components(separatedBy: "\n") where line != "" {
-        guard let range = line.range(of: "=") else {
-            throw Error.InvalidEnvironmentVariable(line)
-        }
-        result[String(line[..<range.lowerBound])] = String(line[range.upperBound...])
-    }
-    return result
+    let dictionary = try PropertyListSerialization.propertyList(from: try env.data(using: .utf8).unwrapped(), format: nil) as? [String: String]
+    return try dictionary.unwrapped()
 }
 #endif
 

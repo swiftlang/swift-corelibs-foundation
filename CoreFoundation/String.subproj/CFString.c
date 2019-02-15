@@ -6028,7 +6028,7 @@ static Boolean __CFStringFormatLocalizedNumber(CFMutableStringRef output, CFLoca
     static SInt32 secondaryGroupingSize = 0;
     
     // !!! This code should be removed before shipping
-    static char disableLocalizedFormatting = -1;
+    static int disableLocalizedFormatting = -1;
     if (disableLocalizedFormatting == -1) disableLocalizedFormatting = (getenv("CFStringDisableLocalizedNumberFormatting") != NULL) ? 1 : 0;
     if (disableLocalizedFormatting) return false;
 

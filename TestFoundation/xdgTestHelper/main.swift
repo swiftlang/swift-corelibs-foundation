@@ -168,6 +168,9 @@ guard let arg = arguments.next() else {
 }
 
 switch arg {
+case "--env":
+    try! FileHandle.standardOutput.write(contentsOf: PropertyListSerialization.data(fromPropertyList: ProcessInfo.processInfo.environment, format: .xml, options: 0))
+    
 case "--xdgcheck":
     XDGCheck.run()
     

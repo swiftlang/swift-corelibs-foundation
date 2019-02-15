@@ -533,9 +533,9 @@ open class FileManager : NSObject {
                 #elseif os(Linux) || os(Android) || CYGWIN
                     let modeT = number.uint32Value
                 #endif
-                _fileSystemRepresentation(withPath: path, {
-                    if chmod($0, mode_t(modeT)) != 0 {
-                        fatalError("errno \(errno)")
+                try _fileSystemRepresentation(withPath: path, {
+                    guard chmod($0, mode_t(modeT)) == 0 else {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 })
             } else {
@@ -1390,6 +1390,11 @@ open class FileManager : NSObject {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
         return statInfo
+    }
+
+    internal func _permissionsOfItem(atPath path: String) throws -> Int {
+        let fileInfo = try _lstatFile(atPath: path)
+        return Int(fileInfo.st_mode & 0o777)
     }
 
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.

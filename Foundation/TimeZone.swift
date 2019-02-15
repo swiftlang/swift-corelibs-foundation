@@ -210,11 +210,11 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     
     // MARK: -
     
-    public var hashValue : Int {
+    public func hash(into hasher: inout Hasher) {
         if _autoupdating {
-            return 1
+            hasher.combine(1 as Int8)
         } else {
-            return _wrapped.hash
+            hasher.combine(_wrapped)
         }
     }
 

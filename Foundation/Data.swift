@@ -12,7 +12,7 @@
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-#if os(Linux)
+#if !canImport(Darwin)
 @inlinable // This is @inlinable as trivially computable.
 internal func malloc_good_size(_ size: Int) -> Int {
     return size
@@ -22,7 +22,11 @@ internal func malloc_good_size(_ size: Int) -> Int {
 import CoreFoundation
 
 internal func __NSDataInvokeDeallocatorUnmap(_ mem: UnsafeMutableRawPointer, _ length: Int) {
+#if os(Windows)
+    UnmapViewOfFile(mem)
+#else
     munmap(mem, length)
+#endif
 }
 
 internal func __NSDataInvokeDeallocatorFree(_ mem: UnsafeMutableRawPointer, _ length: Int) {

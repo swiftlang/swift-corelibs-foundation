@@ -169,8 +169,8 @@ public struct CharacterSet : ReferenceConvertible, Equatable, Hashable, SetAlgeb
         }
     }
     
-    public var hashValue: Int {
-        return _mapUnmanaged { $0.hashValue }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_mapUnmanaged { $0 })
     }
     
     public var description: String {
