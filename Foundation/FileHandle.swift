@@ -61,13 +61,62 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private var _closeOnDealloc: Bool
 
+    static private let ioQueue = DispatchQueue(label: "FileHandle IO Q")
+    private var _readSource: DispatchSourceRead? = nil
+    private var _writeSource: DispatchSourceWrite? = nil
+    private var _readabilityHandler: ((FileHandle) -> Void)? = nil
+    private var _writeabilityHandler: ((FileHandle) -> Void)? = nil
 
-    open var readabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
+    open var readabilityHandler: ((FileHandle) -> Void)? {
+        get {
+            return FileHandle.ioQueue.sync {
+                return _readabilityHandler
+            }
+        }
+
+        set {
+            FileHandle.ioQueue.sync { _readabilityHandler = newValue }
+            if newValue != nil && _fd >= 0 {
+                if _readSource == nil {
+                    _readSource = DispatchSource.makeReadSource(fileDescriptor: _fd, queue: FileHandle.ioQueue)
+                    _readSource?.setEventHandler(handler: DispatchWorkItem { [weak self] in
+                        if let strongSelf = self, let handler = strongSelf._readabilityHandler {
+                            handler(strongSelf)
+                        }
+                    })
+                    _readSource?.resume()
+                }
+            } else {
+                _readSource?.cancel()
+                _readSource = nil
+            }
+        }
     }
 
-    open var writeabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
+    open var writeabilityHandler: ((FileHandle) -> Void)? {
+        get {
+            return FileHandle.ioQueue.sync {
+                return _writeabilityHandler
+            }
+        }
+
+        set {
+            FileHandle.ioQueue.sync { _writeabilityHandler = newValue }
+            if newValue != nil && _fd >= 0 {
+                if _writeSource == nil {
+                    _writeSource = DispatchSource.makeWriteSource(fileDescriptor: _fd, queue: FileHandle.ioQueue)
+                    _writeSource?.setEventHandler(handler: DispatchWorkItem { [weak self] in
+                        if let strongSelf = self, let handler = strongSelf._writeabilityHandler {
+                            handler(strongSelf)
+                        }
+                    })
+                    _writeSource?.resume()
+                }
+            } else {
+                _writeSource?.cancel()
+                _writeSource = nil
+            }
+        }
     }
 
     open var availableData: Data {
@@ -444,7 +493,10 @@ open class FileHandle : NSObject, NSSecureCoding {
     public func close() throws {
         guard self != FileHandle._nulldeviceFileHandle else { return }
         guard _isPlatformHandleValid else { return }
-        
+
+        readabilityHandler = nil
+        writeabilityHandler = nil
+
         #if os(Windows)
         guard CloseHandle(_handle) != FALSE else {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)

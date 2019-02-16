@@ -537,8 +537,7 @@ class _SignalHelperRunner {
     let semaphore = DispatchSemaphore(value: 0)
 
     private let outputPipe = Pipe()
-    private let sQueue = DispatchQueue(label: "io queue")
-    private let source: DispatchSourceRead
+    private let sQueue = DispatchQueue(label: "signal queue")
 
     private var gotReady = false
     private var bytesIn = Data()
@@ -554,17 +553,16 @@ class _SignalHelperRunner {
         process.arguments = ["--signal-test"]
         process.standardOutput = outputPipe.fileHandleForWriting
 
-        source = DispatchSource.makeReadSource(fileDescriptor: outputPipe.fileHandleForReading.fileDescriptor, queue: sQueue)
-        let workItem = DispatchWorkItem(block: { [weak self] in
+        outputPipe.fileHandleForReading.readabilityHandler = { [weak self] fh in
             if let strongSelf = self {
                 let newLine = UInt8(ascii: "\n")
 
-                strongSelf.bytesIn.append(strongSelf.outputPipe.fileHandleForReading.availableData)
+                strongSelf.bytesIn.append(fh.availableData)
                 if strongSelf.bytesIn.isEmpty {
                     return
                 }
                 // Split the incoming data into lines.
-                while let index = strongSelf.bytesIn.index(of: newLine) {
+                while let index = strongSelf.bytesIn.firstIndex(of: newLine) {
                     if index >= strongSelf.bytesIn.startIndex {
                         // dont include the newline when converting to string
                         let line = String(data: strongSelf.bytesIn[strongSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
@@ -587,18 +585,15 @@ class _SignalHelperRunner {
                     }
                 }
             }
-        })
-        source.setEventHandler(handler: workItem)
+        }
     }
 
     deinit {
-        source.cancel()
         process.terminate()
         process.waitUntilExit()
     }
 
     func start() throws {
-        source.resume()
         try process.run()
     }
 
