@@ -1141,10 +1141,9 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: -0.99 as Double).description(withLocale: Locale(identifier: "en_GB")), "-0.99")
         XCTAssertEqual(NSNumber(value: Double.zero).description(withLocale: Locale(identifier: "en_GB")), "0")
         XCTAssertEqual(NSNumber(value: Double.nan).description(withLocale: Locale(identifier: "en_GB")), "NaN")
-        // Disable following three tests due to SR-9699 - ICU not built for CI testing for Foundation pull requests
-        //XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "en_GB")), "2.225073858507201E-308")
-        //XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "5E-324")
-        //XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.797693134862316E+308")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "en_GB")), "2.225073858507201E-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "en_GB")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "en_GB")), "1.797693134862316E+308")
 
         // de_DE Locale
         XCTAssertEqual(NSNumber(value: 1000).description(withLocale: Locale(identifier: "de_DE")), "1.000")
@@ -1186,10 +1185,9 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: -0.99 as Double).description(withLocale: Locale(identifier: "de_DE")), "-0,99")
         XCTAssertEqual(NSNumber(value: Double.zero).description(withLocale: Locale(identifier: "de_DE")), "0")
         XCTAssertEqual(NSNumber(value: Double.nan).description(withLocale: Locale(identifier: "de_DE")), "NaN")
-        // Disable following three tests due to SR-9699 - ICU not built for CI testing for Foundation pull requests
-        //XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "de_DE")), "2,225073858507201E-308")
-        //XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "5E-324")
-        //XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,797693134862316E+308")
+        XCTAssertEqual(NSNumber(value: Double.leastNormalMagnitude).description(withLocale: Locale(identifier: "de_DE")), "2,225073858507201E-308")
+        XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).description(withLocale: Locale(identifier: "de_DE")), "5E-324")
+        XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).description(withLocale: Locale(identifier: "de_DE")), "1,797693134862316E+308")
     }
 
     func test_objCType() {
