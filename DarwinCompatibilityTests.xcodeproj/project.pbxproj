@@ -114,6 +114,7 @@
 		B9C89FCE1F6DCAEB00087AF4 /* Test.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9C89FB91F6DCAEB00087AF4 /* Test.plist */; };
 		B9F137A120B998D0000B7577 /* xdgTestHelper in CopyFiles */ = {isa = PBXBuildFile; fileRef = B917D31C20B0DB8B00728EE0 /* xdgTestHelper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B9F326A01FC714DD003C3599 /* DarwinShims.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9F3269E1FC714DD003C3599 /* DarwinShims.swift */; };
+		B9FFA8CA221E96DF004CB11F /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FFA8C9221E96DF004CB11F /* TestDateIntervalFormatter.swift */; };
 		DAE7D0F320D8224200DC6C54 /* TestURLProtectionSpace.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */; };
 /* End PBXBuildFile section */
 
@@ -262,6 +263,7 @@
 		B9C89FB81F6DCAEB00087AF4 /* PropertyList-1.0.dtd */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "PropertyList-1.0.dtd"; path = "TestFoundation/Resources/PropertyList-1.0.dtd"; sourceTree = "<group>"; };
 		B9C89FB91F6DCAEB00087AF4 /* Test.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Test.plist; path = TestFoundation/Resources/Test.plist; sourceTree = "<group>"; };
 		B9F3269E1FC714DD003C3599 /* DarwinShims.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DarwinShims.swift; sourceTree = "<group>"; };
+		B9FFA8C9221E96DF004CB11F /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDateIntervalFormatter.swift; path = TestFoundation/TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
 		DAE7D0F220D8224200DC6C54 /* TestURLProtectionSpace.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestURLProtectionSpace.swift; path = TestFoundation/TestURLProtectionSpace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -294,6 +296,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B9FFA8C9221E96DF004CB11F /* TestDateIntervalFormatter.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				B9C89FB31F6DCAE900087AF4 /* NSKeyedUnarchiver-ComplexTest.plist */,
@@ -558,6 +561,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9FFA8CA221E96DF004CB11F /* TestDateIntervalFormatter.swift in Sources */,
 				B94897772135E7AD00FB930E /* Utilities.swift in Sources */,
 				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,

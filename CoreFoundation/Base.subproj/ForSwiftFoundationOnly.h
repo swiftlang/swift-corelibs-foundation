@@ -52,6 +52,8 @@
 #include <malloc/malloc.h>
 #endif
 
+#include <unicode/udateintervalformat.h>
+
 _CF_EXPORT_SCOPE_BEGIN
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
@@ -483,6 +485,25 @@ static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
 #endif
+
+// ICU functions can be renamed on some platforms eg on Linux udtivfmt_open() -> udtitvfmt_open_61_swift() so wrap the functions
+// to provide a platform independent interface. These functions are used by DateIntervalFormatter.swift
+static inline UDateIntervalFormat * _Nullable
+date_interval_formatter_open(const char * _Nullable locale, const UChar * _Nonnull skeleton, int32_t skeletonLength, const UChar * _Nullable tzID, int32_t tzIDLength, UErrorCode *status) {
+    return udtitvfmt_open (locale, skeleton, skeletonLength, tzID, tzIDLength, status);
+}
+
+static inline int32_t
+date_interval_formatter_format(const UDateIntervalFormat * _Nonnull formatter, UDate fromDate, UDate toDate, UChar *result, int32_t resultCapacity, UFieldPosition * _Nullable position, UErrorCode *status) {
+
+    return udtitvfmt_format (formatter, fromDate, toDate, result, resultCapacity, position, status);
+}
+
+static inline void
+date_interval_formatter_close(UDateIntervalFormat * _Nonnull formatter) {
+    udtitvfmt_close (formatter);
+}
+
 
 _CF_EXPORT_SCOPE_END
 

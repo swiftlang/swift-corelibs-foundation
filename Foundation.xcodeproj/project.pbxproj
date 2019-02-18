@@ -372,6 +372,7 @@
 		B9974B9A1EDF4A22007F15B8 /* HTTPMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */; };
 		B9974B9B1EDF4A22007F15B8 /* BodySource.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B941EDF4A22007F15B8 /* BodySource.swift */; };
 		B9974B9C1EDF4A22007F15B8 /* EasyHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9974B951EDF4A22007F15B8 /* EasyHandle.swift */; };
+		B99DA247221B643800E44F3F /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99DA246221B643800E44F3F /* TestDateIntervalFormatter.swift */; };
 		B9C0E89620C31AB60064C68C /* CFInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5B5D888A1BBC963C00234F36 /* CFInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		BB3D7558208A1E500085CFDC /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3D7557208A1E500085CFDC /* TestImports.swift */; };
 		BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8042151E09857800487EB8 /* TestLengthFormatter.swift */; };
@@ -899,6 +900,7 @@
 		B9974B931EDF4A22007F15B8 /* HTTPMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTPMessage.swift; path = http/HTTPMessage.swift; sourceTree = "<group>"; };
 		B9974B941EDF4A22007F15B8 /* BodySource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BodySource.swift; sourceTree = "<group>"; };
 		B9974B951EDF4A22007F15B8 /* EasyHandle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyHandle.swift; sourceTree = "<group>"; };
+		B99DA246221B643800E44F3F /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDateIntervalFormatter.swift; path = TestFoundation/TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
 		BB3D7557208A1E500085CFDC /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestImports.swift; sourceTree = "<group>"; };
 		BD8042151E09857800487EB8 /* TestLengthFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestLengthFormatter.swift; sourceTree = "<group>"; };
 		BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestEnergyFormatter.swift; sourceTree = "<group>"; };
@@ -1113,6 +1115,7 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
+				B99DA246221B643800E44F3F /* TestDateIntervalFormatter.swift */,
 				B167A6641ED7303F0040B09A /* README.md */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
@@ -2630,6 +2633,7 @@
 				5B13B3261C582D4C00651CE2 /* TestAffineTransform.swift in Sources */,
 				2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */,
 				5B13B3291C582D4C00651CE2 /* TestCalendar.swift in Sources */,
+				B99DA247221B643800E44F3F /* TestDateIntervalFormatter.swift in Sources */,
 				5B13B34F1C582D4C00651CE2 /* TestXMLParser.swift in Sources */,
 				BF85E9D81FBDCC2000A79793 /* TestHost.swift in Sources */,
 				D5C40F331CDA1D460005690C /* TestOperationQueue.swift in Sources */,
@@ -2840,6 +2844,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
 					/usr/include/libxml2,
+					"$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/local/include",
 				);
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
@@ -2914,6 +2919,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(CONFIGURATION_BUILD_DIR)/usr/local/include",
 					/usr/include/libxml2,
+					"$(SRCROOT)/bootstrap/x86_64-apple-darwin/usr/local/include",
 				);
 				INFOPLIST_FILE = Foundation/Info.plist;
 				INIT_ROUTINE = "___CFInitialize";
