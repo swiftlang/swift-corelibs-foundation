@@ -24,6 +24,7 @@
 #include <CoreFoundation/CFRegularExpression.h>
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/CFURLSessionInterface.h>
+#include <CoreFoundation/CFDateIntervalFormatter.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #if DEPLOYMENT_TARGET_WINDOWS
 #define NOMINMAX

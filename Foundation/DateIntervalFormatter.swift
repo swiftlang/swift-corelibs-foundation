@@ -7,37 +7,140 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
+
+#if _runtime(_ObjC)
+internal let kCFDateIntervalFormatterNoStyle = CFDateIntervalFormatterStyle.noStyle
+internal let kCFDateIntervalFormatterShortStyle = CFDateIntervalFormatterStyle.shortStyle
+internal let kCFDateIntervalFormatterMediumStyle = CFDateIntervalFormatterStyle.mediumStyle
+internal let kCFDateIntervalFormatterLongStyle = CFDateIntervalFormatterStyle.longStyle
+internal let kCFDateIntervalFormatterFullStyle = CFDateIntervalFormatterStyle.fullStyle
+
+internal let kCFDateIntervalFormatterBoundaryStyleDefault = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleDefault
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+internal let kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths
+#endif
+#endif
 
 extension DateIntervalFormatter {
-    public enum Style : UInt {
-        
-        case noStyle
-        case shortStyle
-        case mediumStyle
-        case longStyle
-        case fullStyle
+    // Keep these in sync with CFDateIntervalFormatterStyle.
+    public enum Style: UInt {
+        case none = 0
+        case short = 1
+        case medium = 2
+        case long = 3
+        case full = 4
+    }
+}
+
+internal extension DateIntervalFormatter.Style {
+    init(_ cfStyle: CFDateIntervalFormatterStyle) {
+        switch cfStyle {
+        case kCFDateIntervalFormatterNoStyle: self = .none
+        case kCFDateIntervalFormatterShortStyle: self = .short
+        case kCFDateIntervalFormatterMediumStyle: self = .medium
+        case kCFDateIntervalFormatterLongStyle: self = .long
+        case kCFDateIntervalFormatterFullStyle: self = .full
+        default: fatalError()
+        }
+    }
+}
+
+internal extension CFDateIntervalFormatterStyle {
+    init(_ style: DateIntervalFormatter.Style) {
+        switch style {
+        case .none: self = kCFDateIntervalFormatterNoStyle
+        case .short: self = kCFDateIntervalFormatterShortStyle
+        case .medium: self = kCFDateIntervalFormatterMediumStyle
+        case .long: self = kCFDateIntervalFormatterLongStyle
+        case .full: self = kCFDateIntervalFormatterFullStyle
+        }
+    }
+}
+
+internal extension DateIntervalFormatter.BoundaryStyle {
+    init(_ cfStyle: _CFDateIntervalFormatterBoundaryStyle) {
+        switch cfStyle {
+        case kCFDateIntervalFormatterBoundaryStyleDefault: self = .default
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+        case kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths: self = .minimizeAdjacentMonths
+#endif
+        default: fatalError()
+        }
+    }
+}
+
+internal extension _CFDateIntervalFormatterBoundaryStyle {
+    init(_ style: DateIntervalFormatter.BoundaryStyle) {
+        switch style {
+        case .default: self = kCFDateIntervalFormatterBoundaryStyleDefault
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+        case .minimizeAdjacentMonths: self = kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths
+#endif
+        }
     }
 }
 
 // DateIntervalFormatter is used to format the range between two NSDates in a locale-sensitive way.
 // DateIntervalFormatter returns nil and NO for all methods in Formatter.
 
-open class DateIntervalFormatter : Formatter {
+open class DateIntervalFormatter: Formatter {
+    let core: CFDateIntervalFormatter
     
     public override init() {
-        NSUnimplemented()
+        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterMediumStyle, kCFDateIntervalFormatterMediumStyle)
+        super.init()
     }
 
+    private init(cfFormatter: CFDateIntervalFormatter) {
+        self.core = cfFormatter
+        super.init()
+    }
+    
     public required init?(coder: NSCoder) {
         NSUnimplemented()
     }
     
-    /*@NSCopying*/ open var locale: Locale! // default is [NSLocale currentLocale]
-    /*@NSCopying*/ open var calendar: Calendar! // default is the calendar of the locale
-    /*@NSCopying*/ open var timeZone: TimeZone! // default is [NSTimeZone defaultTimeZone]
-    open var dateTemplate: String! // default is an empty string
-    open var dateStyle: Style // default is .noStyle
-    open var timeStyle: Style // default is .noStyle
+    /*@NSCopying*/ open var locale: Locale! {
+        get { return CFDateIntervalFormatterCopyLocale(core)._swiftObject }
+        set { CFDateIntervalFormatterSetLocale(core, newValue?._cfObject) }
+    }
+    
+    /*@NSCopying*/ open var calendar: Calendar! {
+        get { return CFDateIntervalFormatterCopyCalendar(core)._swiftObject }
+        set { CFDateIntervalFormatterSetCalendar(core, newValue?._cfObject) }
+    }
+    
+    /*@NSCopying*/ open var timeZone: TimeZone! {
+        get { return CFDateIntervalFormatterCopyTimeZone(core)._swiftObject }
+        set { CFDateIntervalFormatterSetTimeZone(core, newValue?._cfObject) }
+    }
+    
+    open var dateTemplate: String! {
+        get { return CFDateIntervalFormatterCopyDateTemplate(core)._swiftObject }
+        set { CFDateIntervalFormatterSetDateTemplate(core, newValue?._cfObject) }
+    }
+    
+    open var dateStyle: Style {
+        get { return Style(CFDateIntervalFormatterGetDateStyle(core)) }
+        set { CFDateIntervalFormatterSetDateStyle(core, CFDateIntervalFormatterStyle(newValue)) }
+    }
+    open var timeStyle: Style {
+        get { return Style(CFDateIntervalFormatterGetTimeStyle(core)) }
+        set { CFDateIntervalFormatterSetTimeStyle(core, CFDateIntervalFormatterStyle(newValue)) }
+    }
+    
+    internal enum BoundaryStyle: UInt {
+        case `default` = 0
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+        case minimizeAdjacentMonths = 1
+#endif
+    }
+    
+    internal var boundaryStyle: BoundaryStyle {
+        get { return BoundaryStyle(_CFDateIntervalFormatterGetBoundaryStyle(core)) }
+        set { _CFDateIntervalFormatterSetBoundaryStyle(core, _CFDateIntervalFormatterBoundaryStyle(newValue) )}
+    }
     
     /*
          If the range smaller than the resolution specified by the dateTemplate, a single date format will be produced. If the range is larger than the format specified by the dateTemplate, a locale-specific fallback will be used to format the items missing from the pattern.
@@ -57,7 +160,32 @@ open class DateIntervalFormatter : Formatter {
             for en_US, "Mar 4-8"
             for en_GB, "4-8 Mar"
     */
-    open func string(from fromDate: Date, to toDate: Date) -> String { NSUnimplemented() }
+    open func string(from fromDate: Date, to toDate: Date) -> String {
+        return CFDateIntervalFormatterCreateStringFromDateToDate(core, fromDate._cfObject, toDate._cfObject)._swiftObject
+    }
     
-    open func string(from dateInterval: DateInterval) -> String? { NSUnimplemented() }
+    open func string(from dateInterval: DateInterval) -> String? {
+        let result = CFDateIntervalFormatterCreateStringFromDateToDate(core, dateInterval.start._cfObject, dateInterval.end._cfObject)._swiftObject
+        return result.isEmpty ? nil : result
+    }
+    
+    open override func string(for obj: Any) -> String? {
+        guard let interval = obj as? DateInterval else {
+            return nil
+        }
+        
+        return string(from: interval)
+    }
+    
+    open override func editingString(for obj: Any) -> String? {
+        return nil
+    }
+    
+    open override func objectValue(_ string: String) throws -> Any? {
+        return nil
+    }
+    
+    open override func copy(with zone: NSZone? = nil) -> Any {
+        return DateIntervalFormatter(cfFormatter: CFDateIntervalFormatterCreateCopy(nil, core))
+    }
 }

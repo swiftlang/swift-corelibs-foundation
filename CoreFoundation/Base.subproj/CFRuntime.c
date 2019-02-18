@@ -213,6 +213,7 @@ static CFRuntimeClass const * __CFRuntimeClassTable[__CFRuntimeClassTableSize] _
     [_kCFRuntimeIDCFDateFormatter] = &__CFDateFormatterClass,
     [_kCFRuntimeIDCFNumberFormatter] = &__CFNumberFormatterClass,
     [_kCFRuntimeIDCFCalendar] = &__CFCalendarClass,
+    [_kCFRuntimeIDCFDateIntervalFormatter] = &__CFDateIntervalFormatterClass,
     [_kCFRuntimeIDCFDate] = &__CFDateClass,
     [_kCFRuntimeIDCFTimeZone] = &__CFTimeZoneClass,
     [_kCFRuntimeIDCFKeyedArchiverUID] = &__CFKeyedArchiverUIDClass,

@@ -382,6 +382,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestCodable.swift
                          TestFoundation/TestDateComponents.swift
                          TestFoundation/TestDateFormatter.swift
+                         TestFoundation/TestDateIntervalFormatter.swift
                          TestFoundation/TestDate.swift
                          TestFoundation/TestDecimal.swift
                          TestFoundation/TestEnergyFormatter.swift
