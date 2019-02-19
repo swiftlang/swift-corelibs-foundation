@@ -78,8 +78,8 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
     
-    private var readabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
-    private var writabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
+    private var readabilitySource: (AnyObject & DispatchSourceProtocol)? // Guarded by privateAsyncVariablesLock
+    private var writabilitySource: (AnyObject & DispatchSourceProtocol)? // Guarded by privateAsyncVariablesLock
     
     private var privateAsyncVariablesLock = NSLock()
     
