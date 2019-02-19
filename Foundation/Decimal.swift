@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2016 - 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
@@ -226,6 +226,66 @@ extension Decimal : Hashable, Comparable {
         return _isNegative != 0 ? -d : d
     }
 
+    // Return the low 64bits of the integer part
+    private var _unsignedInt64Value: UInt64 {
+        if _exponent < -20 || _exponent > 20 {
+            return 0
+        }
+
+        if _length == 0 || isZero || magnitude < Decimal(0) {
+            return 0
+        }
+
+        var copy = self.significand
+
+        if _exponent < 0 {
+            for _ in _exponent..<0 {
+                _ = divideByShort(&copy, 10)
+            }
+        } else if _exponent > 0 {
+            for _ in 0..<_exponent {
+                _ = multiplyByShort(&copy, 10)
+            }
+        }
+        let uint64 = UInt64(copy._mantissa.3) << 48 | UInt64(copy._mantissa.2) << 32 | UInt64(copy._mantissa.1) << 16 | UInt64(copy._mantissa.0)
+        return uint64
+    }
+
+    // Perform a best effort conversion of the integer value, trying to match Darwin for
+    // values outside of UInt64.min .. UInt64.max. Used by NSDecimalNumber.
+    internal var uint64Value: UInt64 {
+        let value = _unsignedInt64Value
+        if !self.isNegative {
+            return value
+        }
+
+        if value == Int64.max.magnitude + 1 {
+            return UInt64(bitPattern: Int64.min)
+        } else if value <= Int64.max.magnitude {
+            var value = Int64(value)
+            value.negate()
+            return UInt64(bitPattern: value)
+        } else {
+            return value
+        }
+    }
+
+    // Perform a best effort conversion of the integer value, trying to match Darwin for
+    // values outside of Int64.min .. Int64.max. Used by NSDecimalNumber.
+    internal var int64Value: Int64 {
+        let uint64Value = _unsignedInt64Value
+        if self.isNegative {
+            if uint64Value == Int64.max.magnitude + 1 {
+                return Int64.min
+            } else if uint64Value <= Int64.max.magnitude {
+                var value = Int64(uint64Value)
+                value.negate()
+                return value
+            }
+        }
+        return Int64(bitPattern: uint64Value)
+    }
+
     public var hashValue: Int {
         return Int(bitPattern: __CFHashDouble(doubleValue))
     }
@@ -250,6 +310,7 @@ extension Decimal : Hashable, Comparable {
         var rhsVal = rhs
         return NSDecimalCompare(&lhsVal, &rhsVal) == .orderedSame
     }
+
     public static func <(lhs: Decimal, rhs: Decimal) -> Bool {
         var lhsVal = lhs
         var rhsVal = rhs
