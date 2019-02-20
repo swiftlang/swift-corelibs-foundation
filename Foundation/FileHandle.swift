@@ -78,8 +78,8 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
     
-    private var readabilitySource: AnyObject? // Guarded by privateAsyncVariablesLock
-    private var writabilitySource: AnyObject? // Guarded by privateAsyncVariablesLock
+    private var readabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
+    private var writabilitySource: DispatchSourceProtocol? // Guarded by privateAsyncVariablesLock
     
     private var privateAsyncVariablesLock = NSLock()
     
@@ -167,7 +167,7 @@ open class FileHandle : NSObject, NSSecureCoding {
                 let source = monitor(forReading: true, handler: { (fh, _) in handler(fh) })
                 
                 privateAsyncVariablesLock.lock()
-                readabilitySource = source as AnyObject
+                readabilitySource = source
                 privateAsyncVariablesLock.unlock()
             }
         }
@@ -195,7 +195,7 @@ open class FileHandle : NSObject, NSSecureCoding {
                 let source = monitor(forReading: false, handler: { (fh, _) in handler(fh) })
                 
                 privateAsyncVariablesLock.lock()
-                writabilitySource = source as AnyObject
+                writabilitySource = source
                 privateAsyncVariablesLock.unlock()
             }
         }
@@ -911,7 +911,7 @@ extension FileHandle {
         
         privateAsyncVariablesLock.lock()
         guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
-        currentBackgroundActivityOwner = owner
+        currentBackgroundActivityOwner = owner as AnyObject
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
@@ -935,7 +935,7 @@ extension FileHandle {
         
         privateAsyncVariablesLock.lock()
         guard currentBackgroundActivityOwner == nil else { fatalError("No two activities can occur at the same time") }
-        currentBackgroundActivityOwner = owner
+        currentBackgroundActivityOwner = owner as AnyObject
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
