@@ -110,7 +110,7 @@ open class FileHandle : NSObject, NSSecureCoding {
         // Duplicate the file descriptor.
         // Closing the file descriptor while Dispatch is monitoring it leads to undefined behavior; guard against that.
         let fd = dup(fileDescriptor)
-        let source: DispatchSourceProtocol
+        let source: AnyObject & DispatchSourceProtocol
         if reading {
             source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
         } else {
