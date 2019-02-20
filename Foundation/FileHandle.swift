@@ -78,8 +78,8 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     private var currentBackgroundActivityOwner: AnyObject? // Guarded by privateAsyncVariablesLock
     
-    private var readabilitySource: (AnyObject & DispatchSourceProtocol)? // Guarded by privateAsyncVariablesLock
-    private var writabilitySource: (AnyObject & DispatchSourceProtocol)? // Guarded by privateAsyncVariablesLock
+    private var readabilitySource: AnyObject? // Guarded by privateAsyncVariablesLock
+    private var writabilitySource: AnyObject? // Guarded by privateAsyncVariablesLock
     
     private var privateAsyncVariablesLock = NSLock()
     
@@ -110,14 +110,14 @@ open class FileHandle : NSObject, NSSecureCoding {
         // Duplicate the file descriptor.
         // Closing the file descriptor while Dispatch is monitoring it leads to undefined behavior; guard against that.
         let fd = dup(fileDescriptor)
-        let source: AnyObject & DispatchSourceProtocol
+        let source: AnyObject
         if reading {
-            source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
+            source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue) as AnyObject
         } else {
-            source = DispatchSource.makeWriteSource(fileDescriptor: fd, queue: queue)
+            source = DispatchSource.makeWriteSource(fileDescriptor: fd, queue: queue) as AnyObject
         }
         source.setEventHandler { [weak self, weak source] in
-            if let me = self, let source = source {
+            if let me = self, let source = source as? DispatchSourceProtocol {
                 handler(me, source)
             }
         }
