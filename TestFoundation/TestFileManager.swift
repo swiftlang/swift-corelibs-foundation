@@ -1078,13 +1078,15 @@ class TestFileManager : XCTestCase {
         let srcFile = tmpDir.appendingPathComponent("file1.txt")
         let destFile = tmpDir.appendingPathComponent("file2.txt")
 
+        let source = "This is the source file"
         try? fm.removeItem(at: srcFile)
-        try "This is the source file".write(toFile: srcFile.path, atomically: false, encoding: .utf8)
+        try source.write(toFile: srcFile.path, atomically: false, encoding: .utf8)
 
         func testCopy() throws {
             try? fm.removeItem(at: destFile)
             try fm.copyItem(at: srcFile, to: destFile)
-
+            let copy = try String(contentsOf: destFile)
+            XCTAssertEqual(source, copy)
             if let srcPerms = (try fm.attributesOfItem(atPath: srcFile.path)[.posixPermissions] as? NSNumber)?.intValue,
                 let destPerms = (try fm.attributesOfItem(atPath: destFile.path)[.posixPermissions] as? NSNumber)?.intValue {
                 XCTAssertEqual(srcPerms, destPerms)
