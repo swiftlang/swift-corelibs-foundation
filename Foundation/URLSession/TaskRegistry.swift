@@ -94,6 +94,10 @@ extension URLSession._TaskRegistry {
     var isEmpty: Bool {
         return tasks.isEmpty
     }
+    
+    var allTasks: [URLSessionTask] {
+        return tasks.map { $0.value }
+    }
 }
 extension URLSession._TaskRegistry {
     /// The behaviour that's registered for the given task.

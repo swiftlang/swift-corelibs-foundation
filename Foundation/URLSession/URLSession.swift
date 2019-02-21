@@ -316,7 +316,31 @@ open class URLSession : NSObject {
      * cancellation is subject to the state of the task, and some tasks may
      * have already have completed at the time they are sent -cancel.
      */
-    open func invalidateAndCancel() { NSUnimplemented() }
+    open func invalidateAndCancel() {
+        /*
+         As per documentation,
+         Calling this method on the session returned by the sharedSession method has no effect.
+         */
+        guard self !== URLSession.shared else { return }
+        
+        workQueue.sync {
+            self.invalidated = true
+        }
+        
+        for task in taskRegistry.allTasks {
+            task.cancel()
+        }
+        
+        // Don't allow creation of new tasks from this point onwards
+        workQueue.async {
+            guard let sessionDelegate = self.delegate else { return }
+            
+            self.delegateQueue.addOperation {
+                sessionDelegate.urlSession(self, didBecomeInvalidWithError: nil)
+                self.delegate = nil
+            }
+        }
+    }
     
     open func reset(completionHandler: @escaping () -> Void) { NSUnimplemented() } /* empty all cookies, cache and credential stores, removes disk files, issues -flushWithCompletionHandler:. Invokes completionHandler() on the delegate queue if not nil. */
     
@@ -324,7 +348,14 @@ open class URLSession : NSObject {
     
     open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  { NSUnimplemented() }/* invokes completionHandler with outstanding data, upload and download tasks. */
     
-    open func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void)  { NSUnimplemented() }/* invokes completionHandler with all outstanding tasks. */
+    /* invokes completionHandler with all outstanding tasks. */
+    open func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void)  {
+        workQueue.async {
+            self.delegateQueue.addOperation {
+                completionHandler(self.taskRegistry.allTasks.filter { $0.state == .running || $0.state == .suspended })
+            }
+        }
+    }
     
     /*
      * URLSessionTask objects are always created in a suspended state and
