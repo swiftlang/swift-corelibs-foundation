@@ -41,6 +41,7 @@ class TestFileManager : XCTestCase {
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
+            ("test_copyItemsPermissions", test_copyItemsPermissions),
         ]
         
 #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
@@ -1066,6 +1067,50 @@ class TestFileManager : XCTestCase {
         try? data.write(to: dataFile1)
         XCTAssertFalse(fm.contentsEqual(atPath: dataFile1.path, andPath: dataFile2.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.path, andPath: testDir2.path))
+    }
+
+    func test_copyItemsPermissions() throws {
+        let fm = FileManager.default
+        let tmpDir = fm.temporaryDirectory.appendingPathComponent("test_copyItemsPermissions")
+        try fm.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(atPath: tmpDir.path) }
+
+        let srcFile = tmpDir.appendingPathComponent("file1.txt")
+        let destFile = tmpDir.appendingPathComponent("file2.txt")
+
+        let source = "This is the source file"
+        try? fm.removeItem(at: srcFile)
+        try source.write(toFile: srcFile.path, atomically: false, encoding: .utf8)
+
+        func testCopy() throws {
+            try? fm.removeItem(at: destFile)
+            try fm.copyItem(at: srcFile, to: destFile)
+            let copy = try String(contentsOf: destFile)
+            XCTAssertEqual(source, copy)
+            if let srcPerms = (try fm.attributesOfItem(atPath: srcFile.path)[.posixPermissions] as? NSNumber)?.intValue,
+                let destPerms = (try fm.attributesOfItem(atPath: destFile.path)[.posixPermissions] as? NSNumber)?.intValue {
+                XCTAssertEqual(srcPerms, destPerms)
+            } else {
+                XCTFail("Cant get file permissions")
+            }
+        }
+
+        try testCopy()
+
+        try fm.setAttributes([ .posixPermissions: 0o417], ofItemAtPath: srcFile.path)
+        try testCopy()
+
+        try fm.setAttributes([ .posixPermissions: 0o400], ofItemAtPath: srcFile.path)
+        try testCopy()
+
+        try fm.setAttributes([ .posixPermissions: 0o700], ofItemAtPath: srcFile.path)
+        try testCopy()
+
+        try fm.setAttributes([ .posixPermissions: 0o707], ofItemAtPath: srcFile.path)
+        try testCopy()
+
+        try fm.setAttributes([ .posixPermissions: 0o411], ofItemAtPath: srcFile.path)
+        try testCopy()
     }
     
 #if !DEPLOYMENT_RUNTIME_OBJC // XDG tests require swift-corelibs-foundation
