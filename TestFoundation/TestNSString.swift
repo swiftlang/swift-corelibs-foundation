@@ -36,6 +36,7 @@ class TestNSString: LoopbackServerTest {
             ("test_BridgeConstruction", test_BridgeConstruction ),
             ("test_integerValue", test_integerValue ),
             ("test_intValue", test_intValue ),
+            ("test_doubleValue", test_doubleValue),
             ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
             ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
             ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
@@ -251,6 +252,28 @@ class TestNSString: LoopbackServerTest {
 
         let string10: NSString = "-999999999999999999999999999999"
         XCTAssertEqual(string10.intValue, Int32.min)
+    }
+
+    func test_doubleValue() {
+        XCTAssertEqual(NSString(string: ".2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "+.2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "-.2").doubleValue, -0.2)
+        XCTAssertEqual(NSString(string: "1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "-1.23015e+3").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e+02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-31.25e-04").doubleValue, -0.003125)
+
+        XCTAssertEqual(NSString(string: ".e12").doubleValue, 0)
+        XCTAssertEqual(NSString(string: "2e3.12").doubleValue, 2000)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "12.e4").doubleValue, 120000)
+        XCTAssertEqual(NSString(string: "1.2.3.4").doubleValue, 1.2)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "1E3").doubleValue, 1000)
     }
     
     func test_isEqualToStringWithSwiftString() {
