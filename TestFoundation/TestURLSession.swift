@@ -825,15 +825,11 @@ class TestURLSession : LoopbackServerTest {
     }
 
     func test_sessionDelegateAfterInvalidateAndCancel() {
-        let expect = expectation(description: "Check nillify 'sessionDelegate' after invalidateAndCancel")
-        
         let delegate = SessionDelegate()
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         session.invalidateAndCancel()
         sleep(2)
         XCTAssertNil(session.delegate)
-        expect.fulfill()
-        waitForExpectations(timeout: 5)
     }
 
 }
