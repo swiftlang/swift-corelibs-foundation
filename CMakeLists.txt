@@ -99,14 +99,30 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
-  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
-  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
+  # FIXME(compnerd) these are not all CoreFoundation dependencies, some of them
+  # are Foundation's.  We should split them up accordingly.
+  set(CoreFoundation_INTERFACE_LIBRARIES
+      -lAdvAPI32
+      -lDbgHelp
+      -lShell32
+      -lOle32
+      -lRpcRT4
+      -lSecur32
+      -lShLwApi
+      -lUser32
+      -lWS2_32
+      -liphlpapi
+      -lpathcch
+      -lucrt
+      -lshell32)
 endif()
 
 add_swift_library(Foundation
@@ -295,7 +311,8 @@ add_swift_library(Foundation
                     ${libdispatch_ldflags}
                     -L${CMAKE_CURRENT_BINARY_DIR}
                     -luuid
-                    ${Foundation_rpath_flags}
+                    ${Foundation_RPATH}
+                    ${CoreFoundation_INTERFACE_LIBRARIES}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
