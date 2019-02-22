@@ -255,25 +255,25 @@ class TestNSString: LoopbackServerTest {
     }
 
     func test_doubleValue() {
-        XCTAssertEqual(NSString(".2").doubleValue, 0.2)
-        XCTAssertEqual(NSString("+.2").doubleValue, 0.2)
-        XCTAssertEqual(NSString("-.2").doubleValue, -0.2)
-        XCTAssertEqual(NSString("1.23015e+3").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("12.3015e+02").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("+1.23015e+3").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("+12.3015e+02").doubleValue, 1230.15)
-        XCTAssertEqual(NSString("-1.23015e+3").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-12.3015e+02").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-12.3015e02").doubleValue, -1230.15)
-        XCTAssertEqual(NSString("-31.25e-04").doubleValue, -0.003125)
+        XCTAssertEqual(NSString(string: ".2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "+.2").doubleValue, 0.2)
+        XCTAssertEqual(NSString(string: "-.2").doubleValue, -0.2)
+        XCTAssertEqual(NSString(string: "1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+1.23015e+3").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "+12.3015e+02").doubleValue, 1230.15)
+        XCTAssertEqual(NSString(string: "-1.23015e+3").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e+02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-12.3015e02").doubleValue, -1230.15)
+        XCTAssertEqual(NSString(string: "-31.25e-04").doubleValue, -0.003125)
 
-        XCTAssertEqual(NSString(".e12").doubleValue, 0)
-        XCTAssertEqual(NSString("2e3.12").doubleValue, 2000)
-        XCTAssertEqual(NSString("1e2.3").doubleValue, 100)
-        XCTAssertEqual(NSString("12.e4").doubleValue, 120000)
-        XCTAssertEqual(NSString("1.2.3.4").doubleValue, 1.2)
-        XCTAssertEqual(NSString("1e2.3").doubleValue, 100)
-        XCTAssertEqual(NSString("1E3").doubleValue, 1000)
+        XCTAssertEqual(NSString(string: ".e12").doubleValue, 0)
+        XCTAssertEqual(NSString(string: "2e3.12").doubleValue, 2000)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "12.e4").doubleValue, 120000)
+        XCTAssertEqual(NSString(string: "1.2.3.4").doubleValue, 1.2)
+        XCTAssertEqual(NSString(string: "1e2.3").doubleValue, 100)
+        XCTAssertEqual(NSString(string: "1E3").doubleValue, 1000)
     }
     
     func test_isEqualToStringWithSwiftString() {
