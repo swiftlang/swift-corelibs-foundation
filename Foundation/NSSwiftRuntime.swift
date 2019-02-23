@@ -26,13 +26,6 @@ import CoreFoundation
 import WinSDK
 #endif
 
-// shim required for bzero
-#if os(Android) || os(Windows)
-@_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
-    memset(ptr, 0, size)
-}
-#endif
-
 #if !_runtime(_ObjC)
 /// The Objective-C BOOL type.
 ///
@@ -144,7 +137,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(UnsafeMutableRawPointer(ptr), MemoryLayout<T>.size)
+        memset(UnsafeMutableRawPointer(ptr), 0, MemoryLayout<T>.size)
     }
 }
 
