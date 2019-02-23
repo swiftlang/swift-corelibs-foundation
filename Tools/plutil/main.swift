@@ -12,6 +12,9 @@ import SwiftFoundation
 #elseif os(Linux)
 import Foundation
 import Glibc
+#elseif os(Windows)
+import Foundation
+import MSVCRT
 #endif
 
 func help() -> Int32 {
