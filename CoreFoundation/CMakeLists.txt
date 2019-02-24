@@ -339,6 +339,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
                                PRIVATE
                                  -D_WINDLL)
   endif()
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DCURL_STATICLIB)
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE

@@ -108,9 +108,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
   # FIXME(compnerd) these are not all CoreFoundation dependencies, some of them
-  # are Foundation's.  We should split them up accordingly.
+  # are Foundation's and others are libcurl's.  We should split them up
+  # accordingly.
   set(CoreFoundation_INTERFACE_LIBRARIES
       -lAdvAPI32
+      -lCrypt32
       -lDbgHelp
       -lShell32
       -lOle32
@@ -118,11 +120,17 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
       -lSecur32
       -lShLwApi
       -lUser32
+      -lWldap32
       -lWS2_32
       -liphlpapi
+      -lmincore
+      -lnormaliz
       -lpathcch
       -lucrt
       -lshell32)
+  # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
+  set(WORKAROUND_SR9138 -Xlinker;-ignore:4217)
+  set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)
 endif()
 
 add_swift_library(Foundation
@@ -313,6 +321,8 @@ add_swift_library(Foundation
                     -luuid
                     ${Foundation_RPATH}
                     ${CoreFoundation_INTERFACE_LIBRARIES}
+                    ${WORKAROUND_SR9138}
+                    ${WORKAROUND_SR9995}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -347,7 +357,8 @@ add_swift_executable(plutil
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
-                       -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
+                       ${Foundation_RPATH}
+                       ${WORKAROUND_SR9995}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
