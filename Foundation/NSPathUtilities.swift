@@ -10,13 +10,16 @@
 import CoreFoundation
 
 public func NSTemporaryDirectory() -> String {
-    #if os(macOS) || os(iOS)
-    var buf = [Int8](repeating: 0, count: 100)
-    let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
-    if r != 0 && r < buf.count {
-        return String(cString: buf, encoding: .utf8)!
+#if canImport(Darwin)
+    var length: Int = confstr(_CS_DARWIN_USER_TEMP_DIR, nil, 0)
+    if length > 0 {
+      var buffer: [Int8] = Array<Int8>(repeating: 0, count: length)
+      length = confstr(_CS_DARWIN_USER_TEMP_DIR, &buffer, buffer.count)
+      if length > 0 && length < buffer.count {
+        return String(cString: buffer, encoding: .utf8)!
+      }
     }
-    #endif
+#endif
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         if !tmpdir.hasSuffix("/") {
             return tmpdir + "/"
