@@ -10,6 +10,14 @@
 import CoreFoundation
 
 public func NSTemporaryDirectory() -> String {
+#if os(Windows)
+    let cchLength: DWORD = GetTempPathW(0, nil)
+    var wszPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(cchLength + 1))
+    guard GetTempPathW(DWORD(wszPath.count), &wszPath) == cchLength else {
+      precondition(false, "GetTempPathW mutation race")
+    }
+    return String(decodingCString: wszPath, as: UTF16.self)
+#else
 #if canImport(Darwin)
     var length: Int = confstr(_CS_DARWIN_USER_TEMP_DIR, nil, 0)
     if length > 0 {
@@ -28,6 +36,7 @@ public func NSTemporaryDirectory() -> String {
         }
     }
     return "/tmp/"
+#endif
 }
 
 extension String {
