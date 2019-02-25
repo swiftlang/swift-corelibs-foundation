@@ -1,6 +1,6 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2018 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -664,7 +664,7 @@ open class FileManager : NSObject {
 #endif
         result[.modificationDate] = Date(timeIntervalSinceReferenceDate: ti)
         
-        result[.posixPermissions] = NSNumber(value: UInt64(s.st_mode & 0o7777))
+        result[.posixPermissions] = NSNumber(value: UInt64(s.st_mode & ~S_IFMT))
         result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
         result[.systemNumber] = NSNumber(value: UInt64(s.st_dev))
         result[.systemFileNumber] = NSNumber(value: UInt64(s.st_ino))
@@ -835,6 +835,13 @@ open class FileManager : NSObject {
                                     extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
         defer { close(dstfd) }
+
+        // Set the file permissions using fchmod() instead of when open()ing to avoid umask() issues
+        let permissions = fileInfo.st_mode & ~S_IFMT
+        guard fchmod(dstfd, permissions) == 0 else {
+            throw _NSErrorWithErrno(errno, reading: false, path: dstPath,
+                extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
+        }
 
         if fileInfo.st_size == 0 {
             // no copying required
