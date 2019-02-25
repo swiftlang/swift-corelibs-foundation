@@ -145,6 +145,7 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFStringEncodingConverterExt.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
+                Locale.subproj/CFDateIntervalFormatter.h
 
                 # AppServices
                 AppServices.subproj/CFNotificationCenter.h

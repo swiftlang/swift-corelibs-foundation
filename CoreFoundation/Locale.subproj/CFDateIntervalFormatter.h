@@ -33,7 +33,9 @@ typedef CF_ENUM(CFIndex, CFDateIntervalFormatterStyle) {
 
 typedef CF_ENUM(CFIndex, _CFDateIntervalFormatterBoundaryStyle) {
     kCFDateIntervalFormatterBoundaryStyleDefault = 0,
+#if TARGET_OS_MAC
     kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = 1,
+#endif
 };
 
 CF_EXPORT CFDateIntervalFormatterRef CFDateIntervalFormatterCreate(CFAllocatorRef _Nullable allocator, CFLocaleRef _Nullable locale, CFDateIntervalFormatterStyle dateStyle, CFDateIntervalFormatterStyle timeStyle);

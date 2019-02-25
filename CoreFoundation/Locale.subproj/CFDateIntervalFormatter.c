@@ -151,6 +151,7 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
             CFLog(kCFLogLevelError, CFSTR("udtitvfmt_open failed!  Formatter is NULL! -- locale: %s, template: %@, timezone: %@, status: %s"), localeBuffer, unretainedTemplate, unretainedTimeZoneName, u_errorName(status));
         }
         
+#if TARGET_OS_MAC
         UDateIntervalFormatAttributeValue uDateIntervalMinimizationStyle = UDTITVFMT_MINIMIZE_NONE;
         const _CFDateIntervalFormatterBoundaryStyle type = dif->_boundaryStyle;
         switch (type) {
@@ -167,6 +168,7 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
                 CFLog(kCFLogLevelError, CFSTR("udtitvfmt_setAttribute failed!  Tried to set minimize type: %d and got status code: %s"), (int)dif->_boundaryStyle, u_errorName(status));
             }
         }
+#endif
         
         CFRelease(locale);
         CFRelease(timeZone);

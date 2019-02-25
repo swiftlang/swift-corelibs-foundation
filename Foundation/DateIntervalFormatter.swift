@@ -17,7 +17,9 @@ internal let kCFDateIntervalFormatterLongStyle = CFDateIntervalFormatterStyle.lo
 internal let kCFDateIntervalFormatterFullStyle = CFDateIntervalFormatterStyle.fullStyle
 
 internal let kCFDateIntervalFormatterBoundaryStyleDefault = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleDefault
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 internal let kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths = _CFDateIntervalFormatterBoundaryStyle.cfDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths
+#endif
 #endif
 
 extension DateIntervalFormatter {
@@ -60,7 +62,9 @@ internal extension DateIntervalFormatter.BoundaryStyle {
     init(_ cfStyle: _CFDateIntervalFormatterBoundaryStyle) {
         switch cfStyle {
         case kCFDateIntervalFormatterBoundaryStyleDefault: self = .default
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
         case kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths: self = .minimizeAdjacentMonths
+#endif
         default: fatalError()
         }
     }
@@ -70,7 +74,9 @@ internal extension _CFDateIntervalFormatterBoundaryStyle {
     init(_ style: DateIntervalFormatter.BoundaryStyle) {
         switch style {
         case .default: self = kCFDateIntervalFormatterBoundaryStyleDefault
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
         case .minimizeAdjacentMonths: self = kCFDateIntervalFormatterBoundaryStyleMinimizeAdjacentMonths
+#endif
         }
     }
 }
@@ -126,7 +132,9 @@ open class DateIntervalFormatter: Formatter {
     
     internal enum BoundaryStyle: UInt {
         case `default` = 0
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
         case minimizeAdjacentMonths = 1
+#endif
     }
     
     internal var boundaryStyle: BoundaryStyle {
