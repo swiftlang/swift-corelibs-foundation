@@ -101,7 +101,7 @@ class TestDateIntervalFormatter: XCTestCase {
         }
     }
     
-    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
     func testStringFromDateToDateAcrossOneWeekWithMonthMinimization() {
         formatter.dateTemplate = "MMMd"
         formatter.boundaryStyle = .minimizeAdjacentMonths
@@ -134,7 +134,7 @@ class TestDateIntervalFormatter: XCTestCase {
                        "Jan 1 – Mar 2")
     }
     
-    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
     func testStringFromDateToDateAcrossSixtyDaysWithMonthMinimization() {
         formatter.dateTemplate = "MMMd"
         formatter.boundaryStyle = .minimizeAdjacentMonths
@@ -189,7 +189,7 @@ class TestDateIntervalFormatter: XCTestCase {
             ("testStringFromDateToDateAcrossEighteenHours", testStringFromDateToDateAcrossEighteenHours),
         ]
         
-        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
         tests.append(contentsOf: [
             ("testStringFromDateToDateAcrossOneWeekWithMonthMinimization", testStringFromDateToDateAcrossOneWeekWithMonthMinimization),
             ("testStringFromDateToDateAcrossSixtyDaysWithMonthMinimization", testStringFromDateToDateAcrossSixtyDaysWithMonthMinimization),
