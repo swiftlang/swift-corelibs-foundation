@@ -12,14 +12,8 @@ project(CoreFoundation
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED YES)
 
-# TODO(compnerd): this should be re-enabled once CoreFoundation annotations have
-# been reconciled.  Hidden visibility should ensure that internal interfaces are
-# not accidentally exposed on platforms without exports lists and explicit
-# annotations (i.e. ELFish and MachO targets).
-if(0)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_C_VISIBILITY_INLINES_HIDDEN ON)
-endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 

@@ -142,6 +142,18 @@
     #else
         #define CF_EXPORT _CF_EXTERN
     #endif
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID
+
+#if 0
+#if defined(CoreFoundation_EXPORTS)
+#define CF_EXPORT extern __attribute__((__visibility__("default")))
+#else
+#define CF_EXPORT extern
+#endif
+#else
+#define CF_EXPORT extern __attribute__((__visibility__("default")))
+#endif
+
 #else
 #define CF_EXPORT extern
 #endif
