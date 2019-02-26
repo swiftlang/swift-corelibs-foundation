@@ -20,12 +20,6 @@ find_package(CURL REQUIRED)
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
 
-set(ICU_MINIMUM_VERSION 61)
-if(ICU_VERSION VERSION_LESS ${ICU_MINIMUM_VERSION})
-  message(FATAL_ERROR "ICU version ${ICU_VERSION} is less than required version ${ICU_MINIMUM_VERSION}")
-endif()
-
-
 include(SwiftSupport)
 include(GNUInstallDirs)
 include(ExternalProject)

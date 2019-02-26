@@ -381,12 +381,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
   find_package(ICU COMPONENTS uc i18n REQUIRED)
-
-  set(ICU_MINIMUM_VERSION 61)
-  if(ICU_VERSION VERSION_LESS ${ICU_MINIMUM_VERSION})
-    message(FATAL_ERROR "ICU version ${ICU_VERSION} is less than required version ${ICU_MINIMUM_VERSION}")
-  endif()
-  message(STATUS "ICU_INCLUDE_DIR: ${ICU_INCLUDE_DIR}")
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${ICU_INCLUDE_DIR})
