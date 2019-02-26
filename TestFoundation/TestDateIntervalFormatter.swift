@@ -15,6 +15,25 @@
     #endif
 #endif
 
+extension String {
+    func containsInOrder(requiresLastToBeAtEnd: Bool = false, _ substrings: String...) -> Bool {
+        var foundRange: Range<String.Index> = startIndex ..< startIndex
+        for substring in substrings {
+            if let newRange = range(of: substring, options: [], range: foundRange.upperBound..<endIndex, locale: nil) {
+                foundRange = newRange
+            } else {
+                return false
+            }
+        }
+        
+        if requiresLastToBeAtEnd {
+            return foundRange.upperBound == endIndex
+        } else {
+            return true
+        }
+    }
+}
+
 class TestDateIntervalFormatter: XCTestCase {
     private var formatter: DateIntervalFormatter!
     
@@ -38,47 +57,52 @@ class TestDateIntervalFormatter: XCTestCase {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3e9)
         
-        XCTAssertEqual(formatter.string(from: older, to: newer),
-                       "January 1, 2001, 12:00:00 AM Greenwich Mean Time – January 25, 2096, 5:20:00 AM Greenwich Mean Time")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder("January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time",
+                                         "January 25", "2096", "5:20:00 AM",  "Greenwich Mean Time"))
     }
     
     func testStringFromDateToDateAcrossThreeMillionSeconds() {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3e6)
         
-        XCTAssertEqual(formatter.string(from: older, to: newer),
-                       "January 1, 2001, 12:00:00 AM Greenwich Mean Time – February 4, 2001, 5:20:00 PM Greenwich Mean Time")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder("January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time",
+                                         "February 4", "2001", "5:20:00 AM",  "Greenwich Mean Time"))
     }
     
     func testStringFromDateToDateAcrossThreeBillionSecondsReversed() {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3e9)
         
-        XCTAssertEqual(formatter.string(from: newer, to: older),
-                       "January 25, 2096, 5:20:00 AM Greenwich Mean Time – January 1, 2001, 12:00:00 AM Greenwich Mean Time")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder("January 25", "2096", "5:20:00 AM",  "Greenwich Mean Time",
+                                         "January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time"))
     }
     
     func testStringFromDateToDateAcrossThreeMillionSecondsReversed() {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3e6)
         
-        XCTAssertEqual(formatter.string(from: newer, to: older),
-                       "February 4, 2001, 5:20:00 PM Greenwich Mean Time – January 1, 2001, 12:00:00 AM Greenwich Mean Time")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder("February 4", "2001", "5:20:00 AM",  "Greenwich Mean Time",
+                                         "January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time"))
     }
     
     func testStringFromDateToSameDate() {
         let date = Date(timeIntervalSinceReferenceDate: 3e6)
         
         // For a range from a date to itself, we represent the date only once, with no interdate separator.
-        XCTAssertEqual(formatter.string(from: date, to: date),
-                       "February 4, 2001, 5:20:00 PM Greenwich Mean Time")
+        let result = formatter.string(from: date, to: date)
+        XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "February 4", "2001", "5:20:00 AM",  "Greenwich Mean Time"))
     }
     
-    func testStringFromDateIntervalAcrossThreeMillionSeconds() {
+    func testStringFromDateIntervalAcrossThreeMillionSeconds() throws {
         let interval = DateInterval(start: Date(timeIntervalSinceReferenceDate: 0), duration: 3e6)
         
-        XCTAssertEqual(formatter.string(from: interval),
-                       "January 1, 2001, 12:00:00 AM Greenwich Mean Time – February 4, 2001, 5:20:00 PM Greenwich Mean Time")
+        let result = try formatter.string(from: interval).unwrapped()
+        XCTAssert(result.containsInOrder("January 1",  "2001", "12:00:00 AM", "Greenwich Mean Time",
+                                         "February 4", "2001", "5:20:00 AM",  "Greenwich Mean Time"))
     }
     
     func testStringFromDateToDateAcrossOneWeek() {
@@ -88,16 +112,16 @@ class TestDateIntervalFormatter: XCTestCase {
             let older = Date(timeIntervalSinceReferenceDate: 0)
             let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 7)
             
-            XCTAssertEqual(formatter.string(from: older, to: newer),
-                           "Jan 1 – 8")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "1", "8"))
         }
         
         do {
             let older = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 28)
             let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 34)
             
-            XCTAssertEqual(formatter.string(from: older, to: newer),
-                           "Jan 29 – Feb 4")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "29", "Feb", "4"))
         }
     }
     
@@ -110,16 +134,17 @@ class TestDateIntervalFormatter: XCTestCase {
             let older = Date(timeIntervalSinceReferenceDate: 0)
             let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 7)
             
-            XCTAssertEqual(formatter.string(from: older, to: newer),
-                           "Jan 1 – 8")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "1", "8"))
         }
         
         do {
             let older = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 28)
             let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 34)
             
-            XCTAssertEqual(formatter.string(from: older, to: newer),
-                           "Jan 29 – 4")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "29", "4"))
+            XCTAssertNil(result.range(of: "Feb"))
         }
     }
     #endif
@@ -130,8 +155,8 @@ class TestDateIntervalFormatter: XCTestCase {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 60)
         
-        XCTAssertEqual(formatter.string(from: older, to: newer),
-                       "Jan 1 – Mar 2")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "1", "Mar", "2"))
     }
     
     #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
@@ -143,18 +168,21 @@ class TestDateIntervalFormatter: XCTestCase {
         let newer = Date(timeIntervalSinceReferenceDate: 3600 * 24 * 60)
         
         // Minimization shouldn't do anything since this spans more than a month
-        XCTAssertEqual(formatter.string(from: older, to: newer),
-                       "Jan 1 – Mar 2")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "Jan", "1", "Mar", "2"))
     }
     #endif
     
-    func testStringFromDateToDateAcrossFiveHours() {
+    func testStringFromDateToDateAcrossFiveHours() throws {
         do {
             let older = Date(timeIntervalSinceReferenceDate: 0)
             let newer = Date(timeIntervalSinceReferenceDate: 3600 * 5)
             
-            XCTAssertEqual(formatter.string(from: older, to: newer),
-                           "January 1, 2001, 12:00:00 AM GMT – 5:00:00 AM GMT")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "January", "1", "2001", "12:00:00 AM", "5:00:00 AM"))
+            
+            let firstJanuary = try result.range(of: "January").unwrapped()
+            XCTAssertNil(result[firstJanuary.upperBound...].range(of: "January")) // January appears only once.
         }
         
         do {
@@ -163,16 +191,20 @@ class TestDateIntervalFormatter: XCTestCase {
             
             XCTAssertEqual(formatter.string(from: older, to: newer),
                            "January 1, 2001, 10:00:00 PM Greenwich Mean Time – January 2, 2001, 3:00:00 AM Greenwich Mean Time")
+            let result = formatter.string(from: older, to: newer)
+            XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "January", "1", "2001", "10:00:00 AM", "5:00:00 AM"))
         }
     }
     
-    func testStringFromDateToDateAcrossEighteenHours() {
+    func testStringFromDateToDateAcrossEighteenHours() throws {
         let older = Date(timeIntervalSinceReferenceDate: 0)
         let newer = Date(timeIntervalSinceReferenceDate: 3600 * 18)
         
-        // Minimization shouldn't do anything since this spans more than a month
-        XCTAssertEqual(formatter.string(from: older, to: newer),
-                       "January 1, 2001, 12:00:00 AM GMT – 6:00:00 PM GMT")
+        let result = formatter.string(from: older, to: newer)
+        XCTAssert(result.containsInOrder(requiresLastToBeAtEnd: true, "January", "1", "2001", "12:00:00 AM", "6:00:00 PM"))
+        
+        let firstJanuary = try result.range(of: "January").unwrapped()
+        XCTAssertNil(result[firstJanuary.upperBound...].range(of: "January")) // January appears only once.
     }
     
     static var allTests: [(String, (TestDateIntervalFormatter) -> () throws -> Void)] {
