@@ -114,7 +114,7 @@ open class Stream: NSObject {
 // InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
 open class InputStream: Stream {
-    enum _Error: Error {
+    enum Error: Swift.Error {
         case cantSeekInputStream
     }
     
@@ -159,7 +159,7 @@ open class InputStream: Stream {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
     
-    open override var streamError: Error? {
+    open override var streamError: Swift.Error? {
         return CFReadStreamCopyError(_stream)
     }
 }
@@ -234,7 +234,7 @@ extension InputStream {
             return
         }
         
-        guard position < Int.max else { throw _Error.cantSeekInputStream }
+        guard position < Int.max else { throw Error.cantSeekInputStream }
         
         let bufferSize = 1024
         var remainingBytes = Int(position)
@@ -243,7 +243,7 @@ extension InputStream {
         
         guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
             buffer.deallocate()
-            throw _Error.cantSeekInputStream
+            throw Error.cantSeekInputStream
         }
         
         if self.streamStatus == .notOpen {
@@ -253,14 +253,14 @@ extension InputStream {
         while remainingBytes > 0 && self.hasBytesAvailable {
             let read = self.read(pointer, maxLength: min(bufferSize, remainingBytes))
             if read == -1 {
-                throw _Error.cantSeekInputStream
+                throw Error.cantSeekInputStream
             }
             remainingBytes -= read
         }
         
         buffer.deallocate()
         if remainingBytes != 0 {
-            throw _Error.cantSeekInputStream
+            throw Error.cantSeekInputStream
         }
     }
 }
