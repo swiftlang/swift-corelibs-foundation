@@ -28,6 +28,9 @@
 		1578DA11212B407B003C9516 /* CFString_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA10212B407B003C9516 /* CFString_Internal.h */; };
 		1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA12212B4C35003C9516 /* CFOverflow.h */; };
 		1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA14212B6F33003C9516 /* CFCollections_Internal.h */; };
+		158BCCAA2220A12600750239 /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */; };
+		158BCCAD2220A18F00750239 /* CFDateIntervalFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		158BCCAE2220A18F00750239 /* CFDateIntervalFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */; };
 		159884921DCC877700E3314C /* TestHTTPCookieStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */; };
 		15F10CDC218909BF00D88114 /* TestNSCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F10CDB218909BF00D88114 /* TestNSCalendar.swift */; };
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
@@ -564,6 +567,9 @@
 		1578DA10212B407B003C9516 /* CFString_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFString_Internal.h; sourceTree = "<group>"; };
 		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
 		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
+		158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
+		158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateIntervalFormatter.h; sourceTree = "<group>"; };
+		158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateIntervalFormatter.c; sourceTree = "<group>"; };
 		159884911DCC877700E3314C /* TestHTTPCookieStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHTTPCookieStorage.swift; sourceTree = "<group>"; };
 		15F10CDB218909BF00D88114 /* TestNSCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSCalendar.swift; sourceTree = "<group>"; };
 		22B9C1E01C165D7A00DECFF9 /* TestDate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDate.swift; sourceTree = "<group>"; };
@@ -1291,6 +1297,8 @@
 				1569BFAC2187D529009518FA /* CFDateComponents.h */,
 				5B5D890B1BBC9BEF00234F36 /* CFDateFormatter.c */,
 				5B5D89091BBC9BEF00234F36 /* CFDateFormatter.h */,
+				158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */,
+				158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */,
 				5B6E11A81DA45EB5009B48A3 /* CFDateFormatter_Private.h */,
 				5B5D88AC1BBC974700234F36 /* CFLocale.c */,
 				5B5D88AB1BBC974700234F36 /* CFLocale.h */,
@@ -1569,6 +1577,7 @@
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
 				A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */,
 				2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */,
+				158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */,
 				BDBB658F1E256BFA001A7286 /* TestEnergyFormatter.swift */,
 				D512D17B1CD883F00032E6A5 /* TestFileHandle.swift */,
 				525AECEB1BF2C96400D15BB0 /* TestFileManager.swift */,
@@ -2007,6 +2016,7 @@
 				5B7C8ABF1BEA807A00C5B690 /* CFUtilities.h in Headers */,
 				5B7C8ADD1BEA80FC00C5B690 /* CFStream.h in Headers */,
 				5B40F9F01C125011000E72E3 /* CFXMLInterface.h in Headers */,
+				158BCCAD2220A18F00750239 /* CFDateIntervalFormatter.h in Headers */,
 				5B7C8AD71BEA80FC00C5B690 /* CFPlugInCOM.h in Headers */,
 				5B7C8AFA1BEA81AC00C5B690 /* CFUniChar.h in Headers */,
 				5B7C8AC91BEA80FC00C5B690 /* CFTree.h in Headers */,
@@ -2497,6 +2507,7 @@
 				1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */,
 				5BF9B8001FABD5DA00EE1A7C /* CFBundle_Main.c in Sources */,
 				5B7C8AB51BEA801700C5B690 /* CFUniChar.c in Sources */,
+				158BCCAE2220A18F00750239 /* CFDateIntervalFormatter.c in Sources */,
 				61E011811C1B5998000037DD /* CFMessagePort.c in Sources */,
 				5B7C8AB61BEA801700C5B690 /* CFUnicodeDecomposition.c in Sources */,
 				5B7C8A881BEA7FDB00C5B690 /* CFLocaleIdentifier.c in Sources */,
@@ -2630,6 +2641,7 @@
 				5B13B3261C582D4C00651CE2 /* TestAffineTransform.swift in Sources */,
 				2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */,
 				5B13B3291C582D4C00651CE2 /* TestCalendar.swift in Sources */,
+				158BCCAA2220A12600750239 /* TestDateIntervalFormatter.swift in Sources */,
 				5B13B34F1C582D4C00651CE2 /* TestXMLParser.swift in Sources */,
 				BF85E9D81FBDCC2000A79793 /* TestHost.swift in Sources */,
 				D5C40F331CDA1D460005690C /* TestOperationQueue.swift in Sources */,
@@ -2762,11 +2774,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "FOUNDATION_XCTEST NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT DEBUG";
+				SWIFT_FORCE_DYNAMIC_LINK_STDLIB = YES;
+				SWIFT_FORCE_STATIC_LINK_STDLIB = NO;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -2814,9 +2829,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				SWIFT_FORCE_DYNAMIC_LINK_STDLIB = YES;
+				SWIFT_FORCE_STATIC_LINK_STDLIB = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";

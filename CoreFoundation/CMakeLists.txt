@@ -78,6 +78,7 @@ add_framework(CoreFoundation
                 Locale.subproj/CFCalendar_Internal.h
                 Locale.subproj/CFDateComponents.h
                 Locale.subproj/CFDateFormatter_Private.h
+                Locale.subproj/CFDateIntervalFormatter.h
                 Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
                 Locale.subproj/CFLocaleInternal.h
@@ -144,6 +145,7 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFStringEncodingConverterExt.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
+                Locale.subproj/CFDateIntervalFormatter.h
 
                 # AppServices
                 AppServices.subproj/CFNotificationCenter.h
@@ -232,6 +234,7 @@ add_framework(CoreFoundation
                 Locale.subproj/CFCalendar_Enumerate.c
                 Locale.subproj/CFDateComponents.c
                 Locale.subproj/CFDateFormatter.c
+                Locale.subproj/CFDateIntervalFormatter.c
                 Locale.subproj/CFDateInterval.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
