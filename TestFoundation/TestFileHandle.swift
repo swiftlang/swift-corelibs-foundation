@@ -7,6 +7,8 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import Dispatch
+
 class TestFileHandle : XCTestCase {
     var allHandles: [FileHandle] = []
     var allTemporaryFileURLs: [URL] = []
@@ -311,6 +313,153 @@ class TestFileHandle : XCTestCase {
         }
     }
     
+    func test_readabilityHandlerCloseFileRace() throws {
+        for _ in 0..<10 {
+            let handle = createFileHandle()
+            handle.readabilityHandler = { _ = $0.offsetInFile }
+            handle.closeFile()
+            usleep(1000)
+        }
+    }
+    
+    func test_readabilityHandlerCloseFileRaceWithError() throws {
+        for _ in 0..<10 {
+            let handle = createFileHandle()
+            handle.readabilityHandler = { _ = try? $0.offset() }
+            try handle.close()
+            usleep(1000)
+        }
+    }
+    
+    func test_fileDescriptor() throws {
+        let handle = createFileHandle()
+        #if !os(Windows)
+        XCTAssertTrue(handle.fileDescriptor > 0, "File descriptor after opening should be valid (is \(handle.fileDescriptor))")
+        #endif
+        
+        try handle.close()
+        XCTAssertEqual(handle.fileDescriptor, -1, "File descriptor after closing should not be valid")
+    }
+    
+    func test_availableData() {
+        let handle = createFileHandle()
+        
+        let availableData = handle.availableData
+        XCTAssertEqual(availableData, content, "Available data should be the same as input")
+        
+        let eofData = handle.availableData
+        XCTAssertTrue(eofData.isEmpty, "Should return empty data for EOF")
+    }
+    
+    func test_readToEndOfFileInBackgroundAndNotify() {
+        let handle = createFileHandle()
+        let done = expectation(forNotification: .NSFileHandleReadToEndOfFileCompletion, object: handle, notificationCenter: .default) { (notification) -> Bool in
+            XCTAssertEqual(notification.userInfo as? [String: AnyHashable], [NSFileHandleNotificationDataItem: self.content], "User info was incorrect")
+            return true
+        }
+        
+        handle.readToEndOfFileInBackgroundAndNotify()
+        
+        wait(for: [done], timeout: 10)
+    }
+    
+    func test_readToEndOfFileAndNotify() {
+        let handle = createFileHandle()
+        var readSomeData = false
+        
+        let done = expectation(forNotification: FileHandle.readCompletionNotification, object: handle, notificationCenter: .default) { (notification) -> Bool in
+            guard let data = notification.userInfo?[NSFileHandleNotificationDataItem] as? Data else {
+                XCTFail("Couldn't find the data in the user info: \(notification)")
+                return true
+            }
+            
+            if !data.isEmpty {
+                readSomeData = true
+                handle.readInBackgroundAndNotify()
+                return false
+            } else {
+                return true
+            }
+        }
+        
+        handle.readInBackgroundAndNotify()
+        
+        wait(for: [done], timeout: 10)
+        XCTAssertTrue(readSomeData, "At least some data must've been read")
+    }
+    
+    func test_readToEndOfFileAndNotify_readError() {
+        let handle = createFileHandleForReadErrors()
+        
+        let done = expectation(forNotification: FileHandle.readCompletionNotification, object: handle, notificationCenter: .default) { (notification) -> Bool in
+            guard let error = notification.userInfo?["NSFileHandleError"] as? NSNumber else {
+                XCTFail("Couldn't find the data in the user info: \(notification)")
+                return true
+            }
+            
+            XCTAssertNil(notification.userInfo?[NSFileHandleNotificationDataItem])
+            XCTAssertEqual(error, NSNumber(value: EISDIR))
+            return true
+        }
+        
+        handle.readInBackgroundAndNotify()
+        
+        wait(for: [done], timeout: 10)
+    }
+    
+    func test_waitForDataInBackgroundAndNotify() {
+        let handle = createFileHandle()
+        let done = expectation(forNotification: .NSFileHandleDataAvailable, object: handle, notificationCenter: .default) { (notification) in
+            let count = notification.userInfo?.count ?? 0
+            XCTAssertEqual(count, 0)
+            return true
+        }
+        
+        handle.waitForDataInBackgroundAndNotify()
+        
+        wait(for: [done], timeout: 10)
+    }
+    
+    func test_readWriteHandlers() {
+        for _ in 0..<100 {
+            let pipe = Pipe()
+            let write = pipe.fileHandleForWriting
+            let read = pipe.fileHandleForReading
+            
+            var notificationReceived = false
+            let semaphore = DispatchSemaphore(value: 0)
+            let count = content.count
+            read.readabilityHandler = { (handle) in
+                // Check that we can reentrantly set the handler:
+                handle.readabilityHandler = { (handle2) in
+                    if let readData = try? handle2.read(upToCount: count) {
+                        XCTAssertEqual(readData.count, count, "Should have read as much data as was sent")
+                        semaphore.signal()
+                    } else {
+                        // EOF:
+                        handle2.readabilityHandler = nil
+                    }
+                }
+                notificationReceived = true
+                if let readData = try? handle.read(upToCount: count) {
+                    XCTAssertEqual(readData.count, count, "Should have read as much data as was sent")
+                }
+            }
+            
+            write.writeabilityHandler = { (handle) in
+                handle.writeabilityHandler = { (handle2) in
+                    handle2.writeabilityHandler = nil
+                    try? handle2.write(contentsOf: self.content)
+                }
+                try? handle.write(contentsOf: self.content)
+            }
+            
+            let result = semaphore.wait(timeout: .distantFuture)
+            XCTAssertEqual(result, .success, "Waiting on the semaphore should not have had time to time out")
+            XCTAssertTrue(notificationReceived, "Notification should be sent")
+        }
+    }
+    
     static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
         return [
             ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
@@ -322,7 +471,16 @@ class TestFileHandle : XCTestCase {
             ("testWritingWithMultiregionData", testWritingWithMultiregionData),
             ("test_constants", test_constants),
             ("test_nullDevice", test_nullDevice),
-            ("test_truncateFile", test_truncateFile)
+            ("test_truncateFile", test_truncateFile),
+            ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
+            ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
+            ("test_fileDescriptor", test_fileDescriptor),
+            ("test_availableData", test_availableData),
+            ("test_readToEndOfFileInBackgroundAndNotify", test_readToEndOfFileInBackgroundAndNotify),
+            ("test_readToEndOfFileAndNotify", test_readToEndOfFileAndNotify),
+            ("test_readToEndOfFileAndNotify_readError", test_readToEndOfFileAndNotify_readError),
+            ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
+            ("test_readWriteHandlers", test_readWriteHandlers),
         ]
     }
 }
