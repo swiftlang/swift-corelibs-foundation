@@ -15,26 +15,33 @@
     #endif
 #endif
 
+enum ContainsInOrderResult: Equatable {
+    case success
+    case missed(String)
+    case doesNotEndWithLastElement
+}
+
 extension String {
-    func containsInOrder(requiresLastToBeAtEnd: Bool = false, _ substrings: [String]) -> Bool {
+    func containsInOrder(requiresLastToBeAtEnd: Bool = false, _ substrings: [String]) -> ContainsInOrderResult {
         var foundRange: Range<String.Index> = startIndex ..< startIndex
         for substring in substrings {
             if let newRange = range(of: substring, options: [], range: foundRange.upperBound..<endIndex, locale: nil) {
                 foundRange = newRange
             } else {
-                return false
+                return .missed(substring)
             }
         }
         
         if requiresLastToBeAtEnd {
-            return foundRange.upperBound == endIndex
+            return foundRange.upperBound == endIndex ? .success : .doesNotEndWithLastElement
         } else {
-            return true
+            return .success
         }
     }
     
     func assertContainsInOrder(requiresLastToBeAtEnd: Bool = false, _ substrings: String...) {
-        XCTAssert(containsInOrder(requiresLastToBeAtEnd: requiresLastToBeAtEnd, substrings), "String '\(self)' (must end with: \(requiresLastToBeAtEnd)) does not contain in sequence: \(substrings)")
+        let result = containsInOrder(requiresLastToBeAtEnd: requiresLastToBeAtEnd, substrings)
+        XCTAssert(result == .success, "String '\(self)' (must end with: \(requiresLastToBeAtEnd)) does not contain in sequence: \(substrings) — reason: \(result)")
     }
 }
 
