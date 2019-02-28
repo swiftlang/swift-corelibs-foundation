@@ -53,6 +53,16 @@
 #include <malloc/malloc.h>
 #endif
 
+#if TARGET_OS_LINUX
+// required for statx() system call
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <linux/stat.h>
+#define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
+#endif
+
+
 _CF_EXPORT_SCOPE_BEGIN
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFCalendarGetNextWeekend(CFCalendarRef calendar, _CFCalendarWeekendRange *range);
@@ -483,6 +493,77 @@ static inline unsigned int _dev_major(dev_t rdev) {
 static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
+
+static inline dev_t _dev_makedev(unsigned int major, unsigned int minor) {
+    return makedev(major, minor);
+}
+#endif
+
+
+#if TARGET_OS_LINUX
+#ifdef __NR_statx
+
+// There is no glibc statx() function, it must be called using syscall().
+
+static inline ssize_t
+_statx(int dfd, const char *filename, unsigned int flags, unsigned int mask, struct statx *buffer) {
+    return syscall(__NR_statx, dfd, filename, flags, mask, buffer);
+}
+
+// At the moment the only extra information statx() is used for is to get the btime (file creation time).
+// This function is here instead of in FileManager.swift because there is no way of setting a conditional
+// define that could be used with a #if in the Swift code.
+static inline ssize_t
+_stat_with_btime(const char *filename, struct stat *buffer, struct timespec *btime) {
+    struct statx statx_buffer = {0};
+    *btime = (struct timespec) {0};
+
+    ssize_t ret = _statx(AT_FDCWD, filename, AT_SYMLINK_NOFOLLOW | AT_STATX_SYNC_AS_STAT, STATX_ALL, &statx_buffer);
+    if (ret == 0) {
+        *buffer = (struct stat) {
+            .st_dev = makedev(statx_buffer.stx_dev_major, statx_buffer.stx_dev_minor),
+            .st_ino = statx_buffer.stx_ino,
+            .st_mode = statx_buffer.stx_mode,
+            .st_nlink = statx_buffer.stx_nlink,
+            .st_uid = statx_buffer.stx_uid,
+            .st_gid = statx_buffer.stx_gid,
+            .st_rdev = makedev(statx_buffer.stx_rdev_major, statx_buffer.stx_rdev_minor),
+            .st_size = statx_buffer.stx_size,
+            .st_blksize = statx_buffer.stx_blksize,
+            .st_blocks = statx_buffer.stx_blocks,
+            .st_atim = { .tv_sec = statx_buffer.stx_atime.tv_sec, .tv_nsec = statx_buffer.stx_atime.tv_nsec },
+            .st_mtim = { .tv_sec = statx_buffer.stx_mtime.tv_sec, .tv_nsec = statx_buffer.stx_mtime.tv_nsec },
+            .st_ctim = { .tv_sec = statx_buffer.stx_ctime.tv_sec, .tv_nsec = statx_buffer.stx_ctime.tv_nsec },
+        };
+        // Check that stx_btime was set in the response, not all filesystems support it.
+        if (statx_buffer.stx_mask & STATX_BTIME) {
+            *btime = (struct timespec) {
+                .tv_sec = statx_buffer.stx_btime.tv_sec,
+                .tv_nsec = statx_buffer.stx_btime.tv_nsec
+            };
+        } else {
+            *btime = (struct timespec) {
+                .tv_sec = 0,
+                .tv_nsec = 0
+            };
+        }
+    }
+    return ret;
+}
+#else
+
+// Dummy version when compiled where struct statx is not defined in the headers.
+// Just calles lstat() instead.
+static inline ssize_t
+_stat_with_btime(const char *filename, struct stat *buffer, struct timespec *btime) {
+    *btime = (struct timespec) {0};
+    return lstat(filename, buffer);
+}
+#endif // __NR_statx
+#endif // TARGET_OS_LINUX
+
+#if __HAS_STATX
+#warning "Enabling statx"
 #endif
 
 _CF_EXPORT_SCOPE_END

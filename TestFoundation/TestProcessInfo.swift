@@ -25,6 +25,11 @@ class TestProcessInfo : XCTestCase {
         
         let version = processInfo.operatingSystemVersion
         XCTAssert(version.majorVersion != 0)
+
+#if os(Linux) || canImport(Darwin)
+        let minVersion = OperatingSystemVersion(majorVersion: 1, minorVersion: 0, patchVersion: 0)
+        XCTAssertTrue(processInfo.isOperatingSystemAtLeast(minVersion))
+#endif
     }
     
     func test_processName() {

@@ -878,7 +878,14 @@ open class FileManager : NSObject {
         result[.modificationDate] = Date(timeIntervalSinceReferenceDate: TimeInterval(faAttributes.ftLastWriteTime))
         // FIXME(compnerd) what about .posixPermissions, .referenceCount, .systemNumber, .systemFileNumber, .ownerAccountName, .groupOwnerAccountName, .type, .immuatable, .appendOnly, .ownerAccountID, .groupOwnerAccountID
 #else
+   
+#if os(Linux)
+        let (s, creationDate) = try _statxFile(atPath: path)
+        result[.creationDate] = creationDate
+#else
         let s = try _lstatFile(atPath: path)
+#endif
+
         result[.size] = NSNumber(value: UInt64(s.st_size))
 
 #if os(macOS) || os(iOS)
@@ -1827,6 +1834,48 @@ open class FileManager : NSObject {
         return Int(fileInfo.st_mode & ~S_IFMT)
 #endif
     }
+
+
+#if os(Linux)
+    // statx() is only supported by Linux kernels >= 4.11.0
+    private lazy var supportsStatx: Bool = {
+        let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
+        return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
+    }()
+
+    // This is only used on Linux and the only extra information it returns in addition
+    // to a normal stat() call is the file creation date (stx_btime). It is only
+    // used by attributesOfItem(atPath:) which is why the return is a simple stat()
+    // structure and optional creation date.
+
+    private func _statxFile(atPath path: String) throws -> (stat, Date?) {
+        let fsRep = fileSystemRepresentation(withPath: path)
+        defer { fsRep.deallocate() }
+
+        if supportsStatx {
+            var statInfo = stat()
+            var btime = timespec()
+            guard _stat_with_btime(fsRep, &statInfo, &btime) == 0 else {
+                throw _NSErrorWithErrno(errno, reading: true, path: path)
+            }
+
+            let sec = btime.tv_sec
+            let nsec = btime.tv_nsec
+            let creationDate: Date?
+            if sec == 0 && nsec == 0 {
+                creationDate = nil
+            } else {
+                let ti = (TimeInterval(sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(nsec))
+                creationDate = Date(timeIntervalSinceReferenceDate: ti)
+            }
+            return (statInfo, creationDate)
+        } else {
+            // fallback if statx() is unavailable or fails
+            let statInfo = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+            return (statInfo, nil)
+        }
+    }
+#endif
 
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
