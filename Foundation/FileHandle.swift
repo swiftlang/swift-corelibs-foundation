@@ -609,8 +609,13 @@ open class FileHandle : NSObject, NSSecureCoding {
         privateAsyncVariablesLock.lock()
         writabilitySource?.cancel()
         readabilitySource?.cancel()
+#if os(Windows)
+        // TODO(compnerd) provide implementation for readabilityhandler and
+        // writabilityHandler
+#else
         _readabilityHandler = nil
         _writeabilityHandler = nil
+#endif
         writabilitySource = nil
         readabilitySource = nil
         privateAsyncVariablesLock.unlock()
@@ -892,6 +897,10 @@ extension FileHandle {
     }
 
     open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+#if os(Windows)
+        // TODO(compnerd) implement this for Windows, which does not allow
+        // treating the socket as a FD
+#else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
             let userInfo: [AnyHashable : Any]
@@ -919,6 +928,7 @@ extension FileHandle {
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
+#endif
     }
 
     open func waitForDataInBackgroundAndNotify() {
