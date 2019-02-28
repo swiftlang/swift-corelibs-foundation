@@ -977,17 +977,28 @@ open class NSMutableData : NSData {
         super.init(base64Encoded: base64Data, options: options)
     }
 
+    open override var bytes: UnsafeRawPointer {
+        return UnsafeRawPointer(_CFDataGetBytePtrNoBridging(_cfObject))
+    }
+    
+    open override func copy() -> Any {
+        return _CFDataCreateCopyNoBridging(kCFAllocatorSystemDefault, _cfObject)._nsObject
+    }
 
     // MARK: - Funnel Methods
     /// A pointer to the data contained by the mutable data object.
     open var mutableBytes: UnsafeMutableRawPointer {
-        return UnsafeMutableRawPointer(CFDataGetMutableBytePtr(_cfMutableObject))
+        return UnsafeMutableRawPointer(_CFDataGetMutableBytePtrNoBridging(_cfMutableObject))
+    }
+    
+    open override func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
+        return _CFDataGetBytesNoBridging(_cfObject, CFRange(range), buffer)
     }
 
     /// The number of bytes contained in the mutable data object.
     open override var length: Int {
         get {
-            return CFDataGetLength(_cfObject)
+            return _CFDataGetLengthNoBridging(_cfObject)
         }
         set {
             CFDataSetLength(_cfMutableObject, newValue)
@@ -1063,4 +1074,20 @@ extension NSData : _StructTypeBridgeable {
     public func _bridgeToSwift() -> Data {
         return Data._unconditionallyBridgeFromObjectiveC(self)
     }
+}
+
+internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+    return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
+}
+
+internal func _CFSwiftDataGetLength(_ data: AnyObject) -> CFIndex {
+    return CFIndex((data as! NSData).length)
+}
+
+internal func _CFSwiftDataGetBytePtr(_ data: AnyObject) -> UnsafeRawPointer {
+    return (data as! NSData).bytes
+}
+
+internal func _CFSwiftDataGetBytes(_ data: AnyObject, _ range: CFRange, _ buffer: UnsafeMutableRawPointer) {
+    (data as! NSData).getBytes(buffer, range: NSRange(range))
 }

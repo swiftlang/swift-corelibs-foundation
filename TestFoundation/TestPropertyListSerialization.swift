@@ -8,14 +8,6 @@
 //
 
 class TestPropertyListSerialization : XCTestCase {
-    static var allTests: [(String, (TestPropertyListSerialization) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_decodeData", test_decodeData),
-            ("test_decodeStream", test_decodeStream),
-        ]
-    }
-    
     func test_BasicConstruction() {
         let dict = NSMutableDictionary(capacity: 0)
 //        dict["foo"] = "bar"
@@ -78,5 +70,45 @@ class TestPropertyListSerialization : XCTestCase {
         } else {
             XCTFail("value stored is not a string")
         }
+    }
+    
+    func test_roundtripBasicTypes() throws {
+        let name: String = "my name"
+        let age: Int = 100
+        let data: Data = "helloworld".data(using: .utf8)!
+        
+        let properties: [String: Any] = [
+            "name": name,
+            "age": age,
+            "data": data
+        ]
+        
+        // pack
+        let serialized = try PropertyListSerialization.data(fromPropertyList: properties, format: .binary, options: 0)
+        
+        // unpack
+        let deserialized = try PropertyListSerialization.propertyList(from: serialized, options: [], format: nil)
+        let dictionary = try (deserialized as? [String: Any]).unwrapped()
+        
+        XCTAssertNotNil(dictionary["name"])
+        XCTAssertNotNil(dictionary["name"] as? String)
+        XCTAssertEqual(name, dictionary["name"] as? String)
+        
+        XCTAssertNotNil(dictionary["age"])
+        XCTAssertNotNil(dictionary["age"] as? Int)
+        XCTAssertEqual(age, dictionary["age"] as? Int)
+        
+        XCTAssertNotNil(dictionary["data"])
+        XCTAssertNotNil(dictionary["data"] as? Data)
+        XCTAssertEqual(data, dictionary["data"] as? Data)
+    }
+    
+    static var allTests: [(String, (TestPropertyListSerialization) -> () throws -> Void)] {
+        return [
+            ("test_BasicConstruction", test_BasicConstruction),
+            ("test_decodeData", test_decodeData),
+            ("test_decodeStream", test_decodeStream),
+            ("test_roundtripBasicTypes", test_roundtripBasicTypes),
+        ]
     }
 }

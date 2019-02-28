@@ -239,6 +239,13 @@ struct _NSNumberBridge {
     bool (*_Nonnull _getValue)(CFTypeRef number, void *value, CFNumberType type);
 };
 
+struct _NSDataBridge {
+    _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
+    CFIndex (*_Nonnull length)(CFTypeRef obj);
+    const void *_Nonnull (*_Nonnull bytePtr)(CFTypeRef obj);
+    void (*_Nonnull getBytes)(CFTypeRef obj, CFRange range, void *_Nonnull buffer);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -254,6 +261,7 @@ struct _CFSwiftBridge {
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;
     struct _NSNumberBridge NSNumber;
+    struct _NSDataBridge NSData;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
@@ -422,6 +430,14 @@ static inline unsigned int _dev_major(dev_t rdev) {
 static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
+
+#pragma mark - Data Functions
+
+CF_CROSS_PLATFORM_EXPORT CFDataRef _CFDataCreateCopyNoBridging(CFAllocatorRef allocator, CFDataRef data);
+CF_CROSS_PLATFORM_EXPORT const uint8_t *_CFDataGetBytePtrNoBridging(CFDataRef data);
+CF_CROSS_PLATFORM_EXPORT uint8_t *_CFDataGetMutableBytePtrNoBridging(CFDataRef data);
+CF_CROSS_PLATFORM_EXPORT void _CFDataGetBytesNoBridging(CFDataRef data, CFRange range, void *buffer);
+CF_CROSS_PLATFORM_EXPORT CFIndex _CFDataGetLengthNoBridging(CFDataRef data);
 
 _CF_EXPORT_SCOPE_END
 
