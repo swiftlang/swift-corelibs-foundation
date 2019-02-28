@@ -62,16 +62,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
 #if os(Windows)
     public convenience override init() {
-      var stTime: SYSTEMTIME = SYSTEMTIME()
-      var ftTime: FILETIME = FILETIME()
-
-      GetSystemTime(&stTime)
-      SystemTimeToFileTime(&stTime, &ftTime)
-
-      let timestamp: UInt64 = (UInt64(ftTime.dwLowDateTime) << 0)
-                            + (UInt64(ftTime.dwHighDateTime) << 32)
-                            - UInt64(NSTimeIntervalSince1970)
-      self.init(timeIntervalSinceReferenceDate: TimeInterval(timestamp))
+      self.init(timeIntervalSinceReferenceDate: CFAbsoluteTimeGetCurrent())
     }
 #else
     public convenience override init() {
@@ -164,6 +155,15 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return CFDateGetTypeID()
     }
 }
+
+// SPI for XCTest
+#if os(Windows)
+extension NSDate {
+  public static func _currentAbsoluteTime() -> TimeInterval {
+    return CFAbsoluteTimeGetCurrent()
+  }
+}
+#endif
 
 extension NSDate {
     

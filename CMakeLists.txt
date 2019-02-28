@@ -36,9 +36,6 @@ ExternalProject_Add(CoreFoundation
                       -DBUILD_SHARED_LIBS=NO
                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                       -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                      # NOTE(compnerd) ensure that we build it as a DLL as we
-                      # wish to re-export the symbols from Foundation
-                      -DCMAKE_C_FLAGS=-D_USRDLL
                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                       -DCMAKE_INSTALL_LIBDIR=usr/lib
@@ -102,14 +99,38 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
-  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
-  set(Foundation_rpath_flags -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
+  # FIXME(compnerd) these are not all CoreFoundation dependencies, some of them
+  # are Foundation's and others are libcurl's.  We should split them up
+  # accordingly.
+  set(CoreFoundation_INTERFACE_LIBRARIES
+      -lAdvAPI32
+      -lCrypt32
+      -lDbgHelp
+      -lShell32
+      -lOle32
+      -lRpcRT4
+      -lSecur32
+      -lShLwApi
+      -lUser32
+      -lWldap32
+      -lWS2_32
+      -liphlpapi
+      -lmincore
+      -lnormaliz
+      -lpathcch
+      -lucrt
+      -lshell32)
+  # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
+  set(WORKAROUND_SR9138 -Xlinker;-ignore:4217)
+  set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)
 endif()
 
 add_swift_library(Foundation
@@ -240,6 +261,7 @@ add_swift_library(Foundation
                     Foundation/ReferenceConvertible.swift
                     Foundation/RunLoop.swift
                     Foundation/Scanner.swift
+                    Foundation/ScannerAPI.swift
                     Foundation/Set.swift
                     Foundation/Stream.swift
                     Foundation/String.swift
@@ -297,7 +319,10 @@ add_swift_library(Foundation
                     ${libdispatch_ldflags}
                     -L${CMAKE_CURRENT_BINARY_DIR}
                     -luuid
-                    ${Foundation_rpath_flags}
+                    ${Foundation_RPATH}
+                    ${CoreFoundation_INTERFACE_LIBRARIES}
+                    ${WORKAROUND_SR9138}
+                    ${WORKAROUND_SR9995}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -332,7 +357,8 @@ add_swift_executable(plutil
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
-                       -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}"
+                       ${Foundation_RPATH}
+                       ${WORKAROUND_SR9995}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
@@ -383,6 +409,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestCodable.swift
                          TestFoundation/TestDateComponents.swift
                          TestFoundation/TestDateFormatter.swift
+                         TestFoundation/TestDateIntervalFormatter.swift
                          TestFoundation/TestDate.swift
                          TestFoundation/TestDecimal.swift
                          TestFoundation/TestEnergyFormatter.swift

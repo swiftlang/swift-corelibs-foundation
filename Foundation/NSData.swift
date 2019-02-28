@@ -971,7 +971,7 @@ open class NSMutableData : NSData {
 
     /// Replaces with zeroes the contents of the data object in a given range.
     open func resetBytes(in range: NSRange) {
-        bzero(mutableBytes.advanced(by: range.location), range.length)
+        memset(mutableBytes.advanced(by: range.location), 0, range.length)
     }
 
     /// Replaces the entire contents of the data object with the contents of another data object.

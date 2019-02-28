@@ -10,13 +10,46 @@
 import CoreFoundation
 
 public func NSTemporaryDirectory() -> String {
-    #if os(macOS) || os(iOS)
-    var buf = [Int8](repeating: 0, count: 100)
-    let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
-    if r != 0 && r < buf.count {
-        return String(cString: buf, encoding: .utf8)!
+#if os(Windows)
+    let cchLength: DWORD = GetTempPathW(0, nil)
+    var wszPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(cchLength + 1))
+    guard GetTempPathW(DWORD(wszPath.count), &wszPath) == cchLength else {
+      precondition(false, "GetTempPathW mutation race")
     }
-    #endif
+    return String(decodingCString: wszPath, as: UTF16.self)
+#else
+#if canImport(Darwin)
+    let safe_confstr = { (name: Int32, buf: UnsafeMutablePointer<Int8>?, len: Int) -> Int in
+        // POSIX moment of weird: confstr() is one of those annoying APIs which
+        // can return zero for both error and non-error conditions, so the only
+        // way to disambiguate is to put errno in a known state before calling.
+        errno = 0
+        let result = confstr(name, buf, len)
+        
+        // result == 0 is only error if errno is not zero. But, if there was an
+        // error, bail; all possible errors from confstr() are Very Bad Things.
+        let err = errno // only read errno once in the failure case.
+        precondition(result > 0 || err == 0, "Unexpected confstr() error: \(err)")
+        
+        // This is extreme paranoia and should never happen; this would mean
+        // confstr() returned < 0, which would only happen for impossibly long
+        // sizes of value or long-dead versions of the OS.
+        assert(result >= 0, "confstr() returned impossible result: \(result)")
+
+        return result
+    }
+
+    let length: Int = safe_confstr(_CS_DARWIN_USER_TEMP_DIR, nil, 0)
+    if length > 0 {
+      var buffer: [Int8] = Array<Int8>(repeating: 0, count: length)
+      let final_length = safe_confstr(_CS_DARWIN_USER_TEMP_DIR, &buffer, buffer.count)
+      
+      assert(length == final_length, "Value of _CS_DARWIN_USER_TEMP_DIR changed?")
+      if length > 0 && length < buffer.count {
+        return String(cString: buffer, encoding: .utf8)!
+      }
+    }
+#endif
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         if !tmpdir.hasSuffix("/") {
             return tmpdir + "/"
@@ -25,6 +58,7 @@ public func NSTemporaryDirectory() -> String {
         }
     }
     return "/tmp/"
+#endif
 }
 
 extension String {

@@ -232,8 +232,77 @@ open class Process: NSObject {
         }
     }
 
+    #if os(Windows)
+    private func _socketpair() -> (first: SOCKET, second: SOCKET) {
+      let listener: SOCKET = socket(AF_INET, SOCK_STREAM, 0)
+      if listener == INVALID_SOCKET {
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+      defer { closesocket(listener) }
+
+      var result: Int32 = SOCKET_ERROR
+
+      var address: sockaddr_in =
+          sockaddr_in(sin_family: ADDRESS_FAMILY(AF_INET), sin_port: USHORT(0),
+                      sin_addr: IN_ADDR(S_un: in_addr.__Unnamed_union_S_un(S_addr: ULONG("127.0.0.1")!)),
+                      sin_zero: (CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0)))
+      withUnsafePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+          result = bind(listener, $0, Int32(MemoryLayout<sockaddr_in>.size))
+        }
+      }
+
+      if result == SOCKET_ERROR {
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      if listen(listener, 1) == SOCKET_ERROR {
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      withUnsafeMutablePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+          var value: Int32 = Int32(MemoryLayout<sockaddr_in>.size)
+          result = getsockname(listener, $0, &value)
+        }
+      }
+      if result == SOCKET_ERROR {
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      let first: SOCKET = socket(AF_INET, SOCK_STREAM, 0)
+      if first == INVALID_SOCKET {
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      var value: u_long = 1
+      if ioctlsocket(first, FIONBIO, &value) == SOCKET_ERROR {
+        closesocket(first)
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      withUnsafePointer(to: &address) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+          result = connect(first, $0, Int32(MemoryLayout<sockaddr_in>.size))
+        }
+      }
+
+      if result == SOCKET_ERROR {
+        closesocket(first)
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      let second: SOCKET = accept(listener, nil, nil)
+      if second == INVALID_SOCKET {
+        closesocket(first)
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      return (first: first, second: second)
+    }
+    #endif
+
     open func run() throws {
-        
         self.processLaunchedCondition.lock()
         defer {
             self.processLaunchedCondition.broadcast()
@@ -241,14 +310,160 @@ open class Process: NSObject {
         }
 
         // Dispatch the manager thread if it isn't already running
-        
         Process.setup()
-        
+
         // Ensure that the launch path is set
         guard let launchPath = self.executableURL?.path else {
             throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
         }
 
+#if os(Windows)
+        // TODO(compnerd) quote the commandline correctly
+        // https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
+        var command: [String] = [launchPath]
+        if let arguments = self.arguments {
+          command.append(contentsOf: arguments)
+        }
+
+        var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
+        siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
+
+        switch standardInput {
+        case let pipe as Pipe:
+          siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
+        case let handle as FileHandle:
+          siStartupInfo.hStdInput = handle.handle
+        default: break
+        }
+
+        switch standardOutput {
+        case let pipe as Pipe:
+          siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
+        case let handle as FileHandle:
+          siStartupInfo.hStdOutput = handle.handle
+        default: break
+        }
+
+        switch standardError {
+        case let pipe as Pipe:
+          siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
+        case let handle as FileHandle:
+          siStartupInfo.hStdError = handle.handle
+        default: break
+        }
+
+        var piProcessInfo: PROCESS_INFORMATION = PROCESS_INFORMATION()
+
+        var environment: [String:String] = [:]
+        if let env = self.environment {
+          environment = env
+        } else {
+          environment = ProcessInfo.processInfo.environment
+          environment["PWD"] = currentDirectoryURL.path
+        }
+
+        let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0")
+
+        let sockets: (first: SOCKET, second: SOCKET) = _socketpair()
+
+        var context: CFSocketContext = CFSocketContext()
+        context.version = 0
+        context.retain = runLoopSourceRetain
+        context.release = runLoopSourceRelease
+        context.info = Unmanaged.passUnretained(self).toOpaque()
+
+        let socket: CFSocket =
+            CFSocketCreateWithNative(nil, CFSocketNativeHandle(sockets.first), CFOptionFlags(kCFSocketDataCallBack), { (socket, type, address, data, info) in
+          let process: Process = NSObject.unretainedReference(info!)
+          process.processLaunchedCondition.lock()
+          while process.isRunning == false {
+            process.processLaunchedCondition.wait()
+          }
+          process.processLaunchedCondition.unlock()
+
+          WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
+
+          var dwExitCode: DWORD = 0
+          // FIXME(compnerd) how do we handle errors here?
+          GetExitCodeProcess(process.processHandle, &dwExitCode)
+
+          // TODO(compnerd) check if the process terminated abnormally
+          process._terminationStatus = Int32(dwExitCode)
+          process._terminationReason = .exit
+
+          if let handler = process.terminationHandler {
+            let thread: Thread = Thread { handler(process) }
+            thread.start()
+          }
+
+          process.isRunning = false
+
+          // Invalidate the source and wake up the run loop, if it is available
+          CFRunLoopSourceInvalidate(process.runLoopSource)
+          if let runloop = process.runLoop {
+            CFRunLoopWakeUp(runloop._cfRunLoop)
+          }
+
+          CFSocketInvalidate(socket)
+        }, &context)
+        CFSocketSetSocketFlags(socket, CFOptionFlags(kCFSocketCloseOnInvalidate))
+
+        let source: CFRunLoopSource =
+            CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
+        CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
+
+        try command.joined(separator: " ").withCString(encodedAs: UTF16.self) { wszCommandLine in
+          try currentDirectoryURL.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
+            try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
+              if CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
+                                nil, nil, TRUE,
+                                DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
+                                wszCurrentDirectory,
+                                &siStartupInfo, &piProcessInfo) == FALSE {
+                throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+              }
+            }
+          }
+        }
+
+        self.processHandle = piProcessInfo.hProcess
+        if CloseHandle(piProcessInfo.hThread) == FALSE {
+          throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+        }
+
+        if let pipe = standardInput as? Pipe {
+          pipe.fileHandleForReading.closeFile()
+          pipe.fileHandleForWriting.closeFile()
+        }
+        if let pipe = standardOutput as? Pipe {
+          pipe.fileHandleForReading.closeFile()
+          pipe.fileHandleForWriting.closeFile()
+        }
+        if let pipe = standardError as? Pipe {
+          pipe.fileHandleForWriting.closeFile()
+          pipe.fileHandleForReading.closeFile()
+        }
+
+        self.runLoop = RunLoop.current
+        self.runLoopSourceContext =
+            CFRunLoopSourceContext(version: 0,
+                                   info: Unmanaged.passUnretained(self).toOpaque(),
+                                   retain: { runLoopSourceRetain($0) },
+                                   release: { runLoopSourceRelease($0) },
+                                   copyDescription: nil,
+                                   equal: { processIsEqual($0, $1) },
+                                   hash: nil,
+                                   schedule: nil,
+                                   cancel: nil,
+                                   perform: { emptyRunLoopCallback($0) })
+        self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &self.runLoopSourceContext!)
+
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, kCFRunLoopDefaultMode)
+
+        isRunning = true
+
+        closesocket(sockets.second)
+#else
         // Initial checks that the launchPath points to an executable file. posix_spawn()
         // can return success even if executing the program fails, eg fork() works but execve()
         // fails, so try and check as much as possible beforehand.
@@ -258,9 +473,11 @@ open class Process: NSObject {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
 
-            guard statInfo.st_mode & S_IFMT == S_IFREG else {
+            let isRegularFile: Bool = statInfo.st_mode & S_IFMT == S_IFREG
+            guard isRegularFile == true else {
                 throw NSError(domain: NSCocoaErrorDomain, code: NSFileNoSuchFileError)
             }
+
             guard access(fsRep, X_OK) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
             }
@@ -484,35 +701,73 @@ open class Process: NSObject {
         isRunning = true
         
         self.processIdentifier = pid
+#endif
     }
     
     open func interrupt() {
         precondition(hasStarted, "task not launched")
+#if os(Windows)
+        TerminateProcess(processHandle, UINT(SIGINT))
+#else
         kill(processIdentifier, SIGINT)
+#endif
     }
 
     open func terminate() {
         precondition(hasStarted, "task not launched")
+#if os(Windows)
+        TerminateProcess(processHandle, UINT(SIGTERM))
+#else
         kill(processIdentifier, SIGTERM)
+#endif
     }
 
     // Every suspend() has to be balanced with a resume() so keep a count of both.
     private var suspendCount = 0
 
     open func suspend() -> Bool {
+#if os(Windows)
+      let pNTSuspendProcess: Optional<(HANDLE) -> LONG> =
+          unsafeBitCast(GetProcAddress(GetModuleHandleA("ntdll.dll"),
+                                       "NtSuspendProcess"),
+                        to: Optional<(HANDLE) -> LONG>.self)
+      if let pNTSuspendProcess = pNTSuspendProcess {
+        if pNTSuspendProcess(processHandle) < 0 {
+          return false
+        }
+        suspendCount += 1
+        return true
+      }
+      return false
+#else
         if kill(processIdentifier, SIGSTOP) == 0 {
             suspendCount += 1
             return true
         } else {
             return false
         }
+#endif
     }
 
     open func resume() -> Bool {
-        var success = true
+        var success: Bool = true
+#if os(Windows)
+        if suspendCount == 1 {
+          let pNTResumeProcess: Optional<(HANDLE) -> NTSTATUS> =
+              unsafeBitCast(GetProcAddress(GetModuleHandleA("ntdll.dll"),
+                                           "NtResumeProcess"),
+                            to: Optional<(HANDLE) -> NTSTATUS>.self)
+          if let pNTResumeProcess = pNTResumeProcess {
+            if pNTResumeProcess(processHandle) < 0 {
+              success = false
+            }
+          }
+        }
+#else
         if suspendCount == 1 {
             success = kill(processIdentifier, SIGCONT) == 0
         }
+#endif
         if success {
             suspendCount -= 1
         }
@@ -520,10 +775,25 @@ open class Process: NSObject {
     }
     
     // status
+#if os(Windows)
+    open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
+    open var processIdentifier: Int32 {
+      return Int32(GetProcessId(processHandle))
+    }
+    open private(set) var isRunning: Bool = false
+
+    private var hasStarted: Bool {
+      return processHandle != INVALID_HANDLE_VALUE
+    }
+    private var hasFinished: Bool {
+      return hasStarted && !isRunning
+    }
+#else
     open private(set) var processIdentifier: Int32 = 0
     open private(set) var isRunning: Bool = false
     private var hasStarted: Bool { return processIdentifier > 0 }
     private var hasFinished: Bool { return !isRunning && processIdentifier > 0 }
+#endif
 
     private var _terminationStatus: Int32 = 0
     public var terminationStatus: Int32 {

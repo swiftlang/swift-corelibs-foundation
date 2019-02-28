@@ -261,7 +261,40 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
 
     func seekInputStream(to position: UInt64) throws {
         // We will reset the body source and seek forward.
-        NSUnimplemented()
+        guard let session = task?.session as? URLSession else { fatalError() }
+        
+        var currentInputStream: InputStream?
+        
+        if let delegate = session.delegate as? URLSessionTaskDelegate {
+            let dispatchGroup = DispatchGroup()
+            dispatchGroup.enter()
+            
+            delegate.urlSession(session, task: task!, needNewBodyStream: { inputStream in
+                currentInputStream = inputStream
+                dispatchGroup.leave()
+            })
+            
+            _ = dispatchGroup.wait(timeout: .now() + 7)
+        }
+      
+        if let url = self.request.url, let inputStream = currentInputStream {
+            switch self.internalState {
+            case .transferInProgress(let currentTransferState):
+                switch currentTransferState.requestBodySource {
+                case is _BodyStreamSource:
+                    try inputStream.seek(to: position)
+                    let drain = self.createTransferBodyDataDrain()
+                    let source = _BodyStreamSource(inputStream: inputStream)
+                    let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
+                    self.internalState = .transferInProgress(transferState)
+                default:
+                    NSUnimplemented()
+                }
+            default:
+                //TODO: it's possible?
+                break
+            }
+        }
     }
 
     func updateProgressMeter(with propgress: _EasyHandle._Progress) {
@@ -313,8 +346,9 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
                 self?.easyHandle.unpauseSend()
             })
             return _TransferState(url: url, bodyDataDrain: drain,bodySource: source)
-        case .stream:
-            NSUnimplemented()
+        case .stream(let inputStream):
+            let source = _BodyStreamSource(inputStream: inputStream)
+            return _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
         }
     }
 

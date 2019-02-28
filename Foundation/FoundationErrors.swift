@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(Windows)
+import WinSDK
+#endif
+
 /// File-system operation attempted on non-existent file.
 public var NSFileNoSuchFileError: Int                        { return CocoaError.Code.fileNoSuchFile.rawValue }
 

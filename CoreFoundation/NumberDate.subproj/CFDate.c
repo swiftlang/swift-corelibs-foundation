@@ -40,6 +40,7 @@
 
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1970 = 978307200.0L;
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0L;
+static const CFTimeInterval kCFAbsoluteTimeIntervalSince1601 = 12622780800.0L;
 
 CF_PRIVATE double __CFTSRRate;
 double __CFTSRRate = 0.0;
@@ -91,7 +92,10 @@ CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     GetSystemTime(&stTime);
     SystemTimeToFileTime(&stTime, &ftTime);
 
-    return (uint64_t)ftTime.dwLowDateTime + ((uint64_t)ftTime.dwHighDateTime << 32) - kCFAbsoluteTimeIntervalSince1970;
+    // 100ns intervals since NT Epoch
+    uint64_t result = ((uint64_t)ftTime.dwHighDateTime << 32)
+                    | ((uint64_t)ftTime.dwLowDateTime << 0);
+    return result * 1.0e-7 - kCFAbsoluteTimeIntervalSince1601;
 }
 #else
 CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {

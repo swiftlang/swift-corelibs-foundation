@@ -133,7 +133,7 @@
         #define _CF_EXTERN extern
     #endif
 
-    #if defined(_USRDLL)
+    #if defined(_WINDLL)
         #if defined(CoreFoundation_EXPORTS) || defined(CF_BUILDING_CF)
             #define CF_EXPORT _CF_EXTERN __declspec(dllexport)
         #else

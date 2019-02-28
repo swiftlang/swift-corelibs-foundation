@@ -158,3 +158,13 @@ extension RunLoop {
         perform(inModes: [.default], block: block)
     }
 }
+
+// SPI for XCTest
+#if os(Windows)
+extension RunLoop {
+  public func _stop() {
+    CFRunLoopStop(getCFRunLoop())
+  }
+}
+#endif
+
