@@ -156,15 +156,6 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 }
 
-// SPI for XCTest
-#if os(Windows)
-extension NSDate {
-  public static func _currentAbsoluteTime() -> TimeInterval {
-    return CFAbsoluteTimeGetCurrent()
-  }
-}
-#endif
-
 extension NSDate {
     
     open func timeIntervalSince(_ anotherDate: Date) -> TimeInterval {
