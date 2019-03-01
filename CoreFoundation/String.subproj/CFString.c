@@ -6971,11 +6971,8 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
     if (values != localValuesBuffer && __CFOASafe) __CFSetLastAllocationEventName(values, "CFString (temp)");
     memset(values, 0, sizeArgNum * sizeof(CFPrintValue));
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    // va_copy is a C99 extension. No support on Windows
     va_list copiedArgs;
     if (numConfigs > 0) va_copy(copiedArgs, args); // we need to preserve the original state for passing down
-#endif
 
     /* Compute values array */
     argNum = initialArgPosition;
@@ -7460,10 +7457,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 
 cleanup:
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
-    // va_copy is a C99 extension. No support on Windows
     if (numConfigs > 0) va_end(copiedArgs);
-#endif 
     if (specs != localSpecsBuffer) CFAllocatorDeallocate(tmpAlloc, specs);
     if (values != localValuesBuffer) CFAllocatorDeallocate(tmpAlloc, values);
     if (formatChars && (formatChars != localFormatBuffer)) CFAllocatorDeallocate(tmpAlloc, formatChars);
