@@ -103,6 +103,13 @@ open class ProcessInfo: NSObject {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
         versionString = productVersion._swiftObject
+#elseif os(Windows)
+        var siVersionInfo: OSVERSIONINFOW = OSVERSIONINFOW()
+        siVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<OSVERSIONINFOEXW>.size)
+        if GetVersionExW(&siVersionInfo) == FALSE {
+          return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        return OperatingSystemVersion(majorVersion: Int(siVersionInfo.dwMajorVersion), minorVersion: Int(siVersionInfo.dwMinorVersion), patchVersion: Int(siVersionInfo.dwBuildNumber))
 #else
         var utsNameBuffer = utsname()
         guard uname(&utsNameBuffer) == 0 else {
