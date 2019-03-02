@@ -1,6 +1,37 @@
 
 include(CMakeParseArguments)
 
+# Creates an output file map give a target and its list of sources at
+# output_path
+#
+# Usage:
+#   create_output_file_map(target sources output_path)
+function(create_output_file_map target sources output_path)
+  set(output_list)
+  set(output_file_map "{\n")
+  foreach(source ${sources})
+    get_filename_component(name ${source} NAME)
+
+    set(obj ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}${CMAKE_C_OUTPUT_EXTENSION})
+    set(deps ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}.d)
+    set(swiftdeps ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}.swiftdeps)
+    set(dia ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}.dia)
+    set(output_entry "\"${source}\": {\n\
+    \"object\": \"${obj}\",\n\
+    \"dependencies\": \"${deps}\",\n\
+    \"swift-dependencies\": \"${swiftdeps}\",\n\
+    \"diagnostics\": \"${dia}\"\n\
+},\n")
+    string(APPEND output_file_map ${output_entry})
+  endforeach()
+  set(master_deps ${CMAKE_CURRENT_BINARY_DIR}/${target}.swiftdeps)
+  string(APPEND output_file_map "\"\": {\n\
+  \"swift-dependencies\": \"${master_deps}\"\n\
+  }\n")
+  string(APPEND output_file_map "}\n")
+  file(WRITE ${output_path} ${output_file_map})
+endfunction()
+
 function(add_swift_target target)
   set(options LIBRARY;SHARED;STATIC)
   set(single_value_options MODULE_NAME;MODULE_LINK_NAME;MODULE_PATH;MODULE_CACHE_PATH;OUTPUT;TARGET)
@@ -11,6 +42,7 @@ function(add_swift_target target)
   set(compile_flags ${CMAKE_SWIFT_FLAGS})
   set(link_flags)
 
+  list(APPEND compile_flags -incremental)
   if(AST_TARGET)
     list(APPEND compile_flags -target;${AST_TARGET})
     list(APPEND link_flags -target;${AST_TARGET})
@@ -25,6 +57,11 @@ function(add_swift_target target)
   endif()
   if(AST_MODULE_CACHE_PATH)
     list(APPEND compile_flags -module-cache-path;${AST_MODULE_CACHE_PATH})
+  endif()
+  if(AST_MODULE_PATH)
+      get_filename_component(module_location ${AST_MODULE_PATH} PATH)
+      file(MAKE_DIRECTORY "${module_location}")
+      list(APPEND compile_flags "-emit-module-path;${AST_MODULE_PATH}")
   endif()
   if(CMAKE_BUILD_TYPE MATCHES Debug OR CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
     list(APPEND compile_flags -g)
@@ -75,74 +112,37 @@ function(add_swift_target target)
   endif()
 
   set(sources)
+  set(rsp_text)
   foreach(source ${AST_SOURCES})
     get_filename_component(location ${source} PATH)
     if(IS_ABSOLUTE ${location})
       list(APPEND sources ${source})
+      string(APPEND rsp_text "${source} ")
     else()
       list(APPEND sources ${CMAKE_CURRENT_SOURCE_DIR}/${source})
+      string(APPEND rsp_text "${CMAKE_CURRENT_SOURCE_DIR}/${source} ")
     endif()
   endforeach()
 
-  set(objs)
-  set(mods)
-  set(docs)
-  set(i 0)
-  foreach(source ${sources})
-    get_filename_component(name ${source} NAME)
+  set(output_map_path ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/output-file-map.json)
+  create_output_file_map(${target} "${sources}" ${output_map_path})
+  list(APPEND compile_flags -output-file-map;${output_map_path})
 
-    set(obj ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}${CMAKE_C_OUTPUT_EXTENSION})
-    set(mod ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}.swiftmodule)
-    set(doc ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${name}.swiftdoc)
-
-    set(all_sources ${sources})
-    list(INSERT all_sources ${i} -primary-file)
-
-    add_custom_command(OUTPUT
-                         ${obj}
-                         ${mod}
-                         ${doc}
-                       DEPENDS
-                         ${source}
-                         ${AST_DEPENDS}
-                       COMMAND
-                         ${CMAKE_SWIFT_COMPILER} -frontend ${compile_flags} -emit-module-path ${mod} -emit-module-doc-path ${doc} -o ${obj} -c ${all_sources})
-
-    list(APPEND objs ${obj})
-    list(APPEND mods ${mod})
-    list(APPEND docs ${doc})
-
-    math(EXPR i "${i}+1")
-  endforeach()
+  string(LENGTH sources source_length)
+  set(rsp_file ${CMAKE_CURRENT_BINARY_DIR}/${target}.dir/${target}.rsp)
+  file(WRITE ${rsp_file} ${rsp_text})
 
   if(AST_LIBRARY)
-    get_filename_component(module_directory ${AST_MODULE_PATH} DIRECTORY)
-
-    set(module ${AST_MODULE_PATH})
-    set(documentation ${module_directory}/${AST_MODULE_NAME}.swiftdoc)
-
-    add_custom_command(OUTPUT
-                         ${module}
-                         ${documentation}
-                       DEPENDS
-                         ${mods}
-                         ${docs}
-                         ${AST_DEPENDS}
-                       COMMAND
-                         ${CMAKE_SWIFT_COMPILER} -frontend ${compile_flags} -sil-merge-partial-modules -emit-module ${mods} -o ${module} -emit-module-doc-path ${documentation})
-  endif()
-
-  if(AST_LIBRARY)
-    set(emit_library -emit-library)
+      set(emit_library -emit-library)
   endif()
   if(NOT AST_LIBRARY OR library_kind STREQUAL SHARED)
     add_custom_command(OUTPUT
                          ${AST_OUTPUT}
                        DEPENDS
-                         ${objs}
+                         ${sources}
                          ${AST_DEPENDS}
                        COMMAND
-                         ${CMAKE_SWIFT_COMPILER} ${emit_library} ${link_flags} -o ${AST_OUTPUT} ${objs})
+                         ${CMAKE_SWIFT_COMPILER} ${emit_library} ${compile_flags} ${link_flags} -o ${AST_OUTPUT} @${rsp_file})
     add_custom_target(${target}
                       ALL
                       DEPENDS
@@ -150,7 +150,7 @@ function(add_swift_target target)
                          ${module}
                          ${documentation})
   else()
-    add_library(${target}-static STATIC ${objs})
+    add_library(${target}-static STATIC ${sources})
     if(AST_DEPENDS)
       add_dependencies(${target}-static ${AST_DEPENDS})
     endif()
