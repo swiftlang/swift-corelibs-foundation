@@ -265,7 +265,7 @@ class TestNSURLRequest : XCTestCase {
         let requestA = NSMutableURLRequest(url: url)
         requestA.mainDocumentURL = urlForDocument
         //Also checks crash on NSData.bytes
-        requestA.httpBody = Data(bytes: [1, 2, 3])
+        requestA.httpBody = Data([1, 2, 3])
         let requestB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: requestA)) as! NSURLRequest
         XCTAssertEqual(requestA, requestB, "Archived then unarchived url request must be equal.")
         //Check `.httpBody` as it is not checked in `isEqual(_:)`
