@@ -184,7 +184,13 @@ extension String {
 extension NSString {
     
     public var isAbsolutePath: Bool {
+#if os(Windows)
+        return self._swiftObject.withCString(encodedAs: UTF16.self) {
+          PathIsRelativeW($0) == FALSE
+        }
+#else
         return hasPrefix("~") || hasPrefix("/")
+#endif
     }
     
     public static func pathWithComponents(_ components: [String]) -> String {
