@@ -331,6 +331,7 @@ add_swift_library(Foundation
                     ${swift_enable_testing}
                     ${swift_optimization_flags}
                   DEPENDS
+                    uuid
                     CoreFoundation)
 
 if(NOT BUILD_SHARED_LIBS)
