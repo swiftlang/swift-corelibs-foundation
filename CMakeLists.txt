@@ -488,6 +488,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
+                         ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
