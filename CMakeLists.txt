@@ -331,6 +331,7 @@ add_swift_library(Foundation
                     ${swift_enable_testing}
                     ${swift_optimization_flags}
                   DEPENDS
+                    uuid
                     CoreFoundation)
 
 if(NOT BUILD_SHARED_LIBS)
@@ -487,6 +488,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
+                         ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${install_dir}/System/Library/Frameworks
                        LINK_FLAGS
