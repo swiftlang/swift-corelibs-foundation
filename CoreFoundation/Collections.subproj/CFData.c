@@ -456,11 +456,13 @@ CFDataRef CFDataCreateWithBytesNoCopy(CFAllocatorRef allocator, const uint8_t *b
     return __CFDataInit(allocator, kCFImmutable, length, bytes, length, bytesDeallocator);
 }
 
-CFDataRef CFDataCreateCopy(CFAllocatorRef allocator, CFDataRef data) {
+static CFDataRef _CFDataCreateCopyAllowingBridging(CFAllocatorRef allocator, CFDataRef data, Boolean allowBridging) {
     Boolean allowRetain = true;
     if (allowRetain) {
-        CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (NSData *)data, copy);
-        CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSObject.copyWithZone, NULL);
+        if (allowBridging) {
+            CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (NSData *)data, copy);
+            CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSData.copy);
+        }
 
         // If the data isn't mutable...
         if (!__CFDataIsMutable(data)) {
@@ -485,6 +487,16 @@ CFDataRef CFDataCreateCopy(CFAllocatorRef allocator, CFDataRef data) {
     return __CFDataInit(allocator, kCFImmutable, length, CFDataGetBytePtr(data), length, NULL);
 }
 
+CFDataRef CFDataCreateCopy(CFAllocatorRef allocator, CFDataRef data) {
+    return _CFDataCreateCopyAllowingBridging(allocator, data, true);
+}
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_CROSS_PLATFORM_EXPORT CFDataRef _CFDataCreateCopyNoBridging(CFAllocatorRef allocator, CFDataRef data) {
+    return _CFDataCreateCopyAllowingBridging(allocator, data, false);
+}
+#endif
+
 CF_PRIVATE CFMutableDataRef _CFDataCreateFixedMutableWithBuffer(CFAllocatorRef allocator, CFIndex capacity, const uint8_t *bytes, CFAllocatorRef bytesDeallocator) {
     return (CFMutableDataRef)__CFDataInit(allocator, kCFFixedMutable, capacity, bytes, 0, bytesDeallocator);
 }
@@ -501,9 +513,17 @@ CFMutableDataRef CFDataCreateMutableCopy(CFAllocatorRef allocator, CFIndex capac
 
 CFIndex CFDataGetLength(CFDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFIndex, (NSData *)data, length);
+    CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFIndex, (CFSwiftRef)data, NSData.length);
     __CFGenericValidateType(data, CFDataGetTypeID());
     return __CFDataLength(data);
 }
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_CROSS_PLATFORM_EXPORT CFIndex _CFDataGetLengthNoBridging(CFDataRef data) {
+    __CFGenericValidateType(data, CFDataGetTypeID());
+    return __CFDataLength(data);
+}
+#endif
 
 CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data) {
     __CFGenericValidateType(data, CFDataGetTypeID());
@@ -512,8 +532,15 @@ CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data) {
 
 const uint8_t *CFDataGetBytePtr(CFDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), const uint8_t *, (NSData *)data, bytes);
+    CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), const uint8_t *, (CFSwiftRef)data, NSData.bytePtr);
     return _CFDataGetBytePtrNonObjC(data);
 }
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_CROSS_PLATFORM_EXPORT const uint8_t *_CFDataGetBytePtrNoBridging(CFDataRef data) {
+    return _CFDataGetBytePtrNonObjC(data);
+}
+#endif
 
 uint8_t *CFDataGetMutableBytePtr(CFMutableDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), uint8_t *, (NSMutableData *)data, mutableBytes);
@@ -521,11 +548,25 @@ uint8_t *CFDataGetMutableBytePtr(CFMutableDataRef data) {
     return _CFDataGetBytePtrNonObjC(data);
 }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_CROSS_PLATFORM_EXPORT uint8_t *_CFDataGetMutableBytePtrNoBridging(CFDataRef data) {
+    return _CFDataGetBytePtrNonObjC(data);
+}
+#endif
+
 void CFDataGetBytes(CFDataRef data, CFRange range, uint8_t *buffer) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSData *)data, getBytes:(void *)buffer range:NSMakeRange(range.location, range.length));
+    CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), void, (CFSwiftRef)data, NSData.getBytes, range, buffer);
     __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
     memmove(buffer, _CFDataGetBytePtrNonObjC(data) + range.location, range.length);
 }
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+CF_CROSS_PLATFORM_EXPORT void _CFDataGetBytesNoBridging(CFDataRef data, CFRange range, void *buffer) {
+    __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
+    memmove(buffer, _CFDataGetBytePtrNonObjC(data) + range.location, range.length);
+}
+#endif
 
 /* Allocates new block of data with at least numNewValues more bytes than the current length. If clear is true, the new bytes up to at least the new length with be zeroed. */
 static void __CFDataGrow(CFMutableDataRef data, CFIndex numNewValues, Boolean clear) {

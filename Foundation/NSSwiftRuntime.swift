@@ -286,6 +286,11 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber._getValue = _CFSwiftNumberGetValue
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
+    __CFSwiftBridge.NSData.copy = _CFSwiftDataCreateCopy
+    __CFSwiftBridge.NSData.bytePtr = _CFSwiftDataGetBytePtr
+    __CFSwiftBridge.NSData.length = _CFSwiftDataGetLength
+    __CFSwiftBridge.NSData.getBytes = _CFSwiftDataGetBytes
+    
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
 }
 
