@@ -413,9 +413,9 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
 
     internal convenience init?(path: String, flags: Int32, createMode: Int) {
-      self.init(fileDescriptor: _CFOpenFileWithMode(path, flags,
-                                                    mode_t(createMode)),
-                closeOnDealloc: true)
+      let fd = _CFOpenFileWithMode(path, flags, mode_t(createMode))
+      guard fd > 0 else { return nil }
+      self.init(fileDescriptor: fd, closeOnDealloc: true)
       if _handle == INVALID_HANDLE_VALUE { return nil }
     }
 #else
