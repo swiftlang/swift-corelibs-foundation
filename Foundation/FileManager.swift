@@ -15,6 +15,21 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 
 import CoreFoundation
 
+#if os(Windows)
+internal func joinPath(prefix: String, suffix: String) -> String {
+    var pszPath: PWSTR?
+    _ = prefix.withCString(encodedAs: UTF16.self) { prefix in
+        _ = suffix.withCString(encodedAs: UTF16.self) { suffix in
+            PathAllocCombine(prefix, suffix, ULONG(PATHCCH_ALLOW_LONG_PATHS.rawValue), &pszPath)
+        }
+    }
+
+    let path: String = String(decodingCString: pszPath!, as: UTF16.self)
+    LocalFree(pszPath)
+    return path
+}
+#endif
+
 open class FileManager : NSObject {
     
     /* Returns the default singleton instance.
@@ -800,21 +815,6 @@ open class FileManager : NSObject {
         })
         return contents
     }
-
-#if os(Windows)
-    private func joinPath(prefix: String, suffix: String) -> String {
-      var pszPath: PWSTR?
-      _ = prefix.withCString(encodedAs: UTF16.self) { prefix in
-        _ = suffix.withCString(encodedAs: UTF16.self) { suffix in
-          PathAllocCombine(prefix, suffix, ULONG(PATHCCH_ALLOW_LONG_PATHS.rawValue), &pszPath)
-        }
-      }
-
-      let path: String = String(decodingCString: pszPath!, as: UTF16.self)
-      LocalFree(pszPath)
-      return path
-    }
-#endif
 
     /**
     Performs a deep enumeration of the specified directory and returns the paths of all of the contained subdirectories.
@@ -2377,7 +2377,6 @@ extension FileManager {
             self.innerEnumerator = ie
         }
         
-        @available(Windows, deprecated, message: "Not Yet Implemented")
         override func nextObject() -> Any? {
             let o = innerEnumerator.nextObject()
             guard let url = o as? URL else {
@@ -2385,24 +2384,104 @@ extension FileManager {
             }
 
 #if os(Windows)
-            NSUnimplemented()
+            var relativePath = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(MAX_PATH))
+            defer { relativePath.deallocate() }
+            func withURLCString<Result>(url: URL, _ f: (UnsafePointer<WCHAR>) -> Result?) -> Result? {
+                return url.withUnsafeFileSystemRepresentation { fsr in
+                    (fsr.flatMap { String(utf8String: $0) })?.withCString(encodedAs: UTF16.self) { f($0) }
+                }
+            }
+            let result = withURLCString(url: baseURL) { pszFrom -> BOOL? in
+                withURLCString(url: url) { pszTo in
+                    let fromAttrs = GetFileAttributesW(pszFrom)
+                    let toAttrs = GetFileAttributesW(pszTo)
+                    guard fromAttrs != INVALID_FILE_ATTRIBUTES, toAttrs != INVALID_FILE_ATTRIBUTES else {
+                        return FALSE
+                    }
+                    return PathRelativePathToW(relativePath.baseAddress, pszFrom, fromAttrs, pszTo, toAttrs)
+                }
+            }
+
+            guard result == TRUE, let (path, _) = String.decodeCString(relativePath.baseAddress, as: UTF16.self) else {
+                return nil
+            }
 #else
             let path = url.path.replacingOccurrences(of: baseURL.path+"/", with: "")
-            _currentItemPath = path
-            return path
 #endif
+            _currentItemPath = path
+            return _currentItemPath
         }
     }
 
+    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
 #if os(Windows)
-    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
-        internal typealias ErrorHandler = /* @escaping */ (URL, Error) -> Bool
+        var _options : FileManager.DirectoryEnumerationOptions
+        var _errorHandler : ((URL, Error) -> Bool)?
+        var _stack: [URL]
+        var _current: URL?
+        var _rootDepth : Int
 
-        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: ErrorHandler?) {
+        init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, Error) -> Bool)?) {
+            _options = options
+            _errorHandler = errorHandler
+            _stack = [url]
+            _rootDepth = url.pathComponents.count
         }
-    }
+
+        override func nextObject() -> Any? {
+            func contentsOfDir(directory: URL) -> [URL]? {
+                var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
+                guard let dirFSR = directory.withUnsafeFileSystemRepresentation({ $0.flatMap { fsr in String(utf8String: fsr) } })
+                else { return nil }
+                let dirPath = joinPath(prefix: dirFSR, suffix: "*")
+                let h: HANDLE = dirPath.withCString(encodedAs: UTF16.self) {
+                  FindFirstFileW($0, &ffd)
+                }
+                guard h != INVALID_HANDLE_VALUE else { return nil }
+                defer { FindClose(h) }
+
+                var files: [URL] = []
+                repeat {
+                    let fileArr = Array<WCHAR>(
+                      UnsafeBufferPointer(start: &ffd.cFileName.0,
+                                          count: MemoryLayout.size(ofValue: ffd.cFileName)))
+                    let file = String(decodingCString: fileArr, as: UTF16.self)
+                    if file != "."
+                        && file != ".."
+                        && (!_options.contains(.skipsHiddenFiles)
+                            || (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == 0)) {
+                        files.append(URL(fileURLWithPath: joinPath(prefix: dirFSR, suffix: file)))
+                      }
+                } while(FindNextFileW(h, &ffd) != 0)
+                return files
+            }
+            while let url = _stack.popLast() {
+                if url.hasDirectoryPath && !_options.contains(.skipsSubdirectoryDescendants) {
+                    guard let dirContents = contentsOfDir(directory: url)?.reversed() else {
+                        if let handler = _errorHandler {
+                           let dirFSR = url.withUnsafeFileSystemRepresentation { $0.flatMap { fsr in String(utf8String: fsr) } }
+                           let keepGoing = handler(URL(fileURLWithPath: dirFSR ?? ""),
+                               _NSErrorWithWindowsError(GetLastError(), reading: true))
+                           if !keepGoing { return nil }
+                        }
+                        continue
+                    }
+                    _stack.append(contentsOf: dirContents)
+                }
+                _current = url
+                return url
+            }
+            return nil
+        }
+
+        override var level: Int {
+            return _rootDepth - (_current?.pathComponents.count ?? _rootDepth)
+        }
+
+        override func skipDescendants() {
+            _options.insert(.skipsSubdirectoryDescendants)
+        }
 #else
-    internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
         var _url : URL
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
@@ -2410,13 +2489,14 @@ extension FileManager {
         var _current : UnsafeMutablePointer<FTSENT>? = nil
         var _rootError : Error? = nil
         var _gotRoot : Bool = false
-        
+
+
         // See @escaping comments above.
         init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, Error) -> Bool)?) {
             _url = url
             _options = options
             _errorHandler = errorHandler
-            
+
             if FileManager.default.fileExists(atPath: _url.path) {
                 let fsRep = FileManager.default.fileSystemRepresentation(withPath: _url.path)
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
@@ -2430,15 +2510,15 @@ extension FileManager {
                 _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
             }
         }
-        
+
         deinit {
             if let stream = _stream {
                 fts_close(stream)
             }
         }
-        
-        override func nextObject() -> Any? {
 
+
+        override func nextObject() -> Any? {
             func match(filename: String, to options: DirectoryEnumerationOptions, isDir: Bool) -> (Bool, Bool) {
                 var showFile = true
                 var skipDescendants = false
@@ -2459,10 +2539,10 @@ extension FileManager {
 
 
             if let stream = _stream {
-                
+
                 if !_gotRoot  {
                     _gotRoot = true
-                    
+
                     // Skip the root.
                     _current = fts_read(stream)
                 }
@@ -2504,7 +2584,7 @@ extension FileManager {
                     _current = fts_read(stream)
                 }
                 // TODO: Error handling if fts_read fails.
-                
+
             } else if let error = _rootError {
                 // Was there an error opening the stream?
                 if let handler = _errorHandler {
@@ -2513,24 +2593,21 @@ extension FileManager {
             }
             return nil
         }
-        
-        override var directoryAttributes : [FileAttributeKey : Any]? {
-            return nil
-        }
-        
-        override var fileAttributes: [FileAttributeKey : Any]? {
-            return nil
-        }
-        
         override var level: Int {
             return Int(_current?.pointee.fts_level ?? 0)
         }
-        
+
         override func skipDescendants() {
             if let stream = _stream, let current = _current {
                 fts_set(stream, current, FTS_SKIP)
             }
         }
-    }
 #endif
+        override var directoryAttributes : [FileAttributeKey : Any]? {
+            return nil
+        }
+        override var fileAttributes: [FileAttributeKey : Any]? {
+            return nil
+        }
+    }
 }
