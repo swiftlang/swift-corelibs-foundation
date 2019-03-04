@@ -33,6 +33,7 @@ class TestDecimal: XCTestCase {
             ("test_ZeroPower", test_ZeroPower),
             ("test_doubleValue", test_doubleValue),
             ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
+            ("test_bridging", test_bridging),
         ]
     }
 
@@ -1035,5 +1036,20 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).uint64Value, 65535)
         XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint64Value, 4294967295)
         XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).uint64Value, UInt64.max)
+    }
+
+    func test_bridging() {
+        let d1 = Decimal(1)
+        let nsd1 = d1 as NSDecimalNumber
+        XCTAssertEqual(nsd1 as Decimal, d1)
+
+        let d2 = nsd1 as Decimal
+        XCTAssertEqual(d1, d2)
+
+        let ns = d1 as NSNumber
+        XCTAssertTrue(type(of: ns) == NSDecimalNumber.self)
+
+        // NSNumber does NOT bridge to Decimal
+        XCTAssertNil(NSNumber(value: 1) as? Decimal)
     }
 }

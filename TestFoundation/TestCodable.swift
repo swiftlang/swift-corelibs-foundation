@@ -121,7 +121,8 @@ class TestCodable : XCTestCase {
     func test_URL_JSON() {
         for url in urlValues {
             do {
-                try expectRoundTripEqualityThroughJSON(for: url)
+                // Wrap in an array as URL is not a top-level type.
+                try expectRoundTripEqualityThroughJSON(for: [url.absoluteURL])
             } catch {
                 XCTFail("\(error) for \(url)")
             }
@@ -243,7 +244,8 @@ class TestCodable : XCTestCase {
     func test_Decimal_JSON() {
         for decimal in decimalValues {
             do {
-                try expectRoundTripEqualityThroughJSON(for: decimal)
+                // Wrap in an array as Decimal is not a top-level type.
+                try expectRoundTripEqualityThroughJSON(for: [decimal])
             } catch {
                 XCTFail("\(error) for \(decimal)")
             }
@@ -560,13 +562,13 @@ extension TestCodable {
         return [
             ("test_PersonNameComponents_JSON", test_PersonNameComponents_JSON),
             ("test_UUID_JSON", test_UUID_JSON),
-           // ("test_URL_JSON", test_URL_JSON),
+            ("test_URL_JSON", test_URL_JSON),
             ("test_NSRange_JSON", test_NSRange_JSON),
             ("test_Locale_JSON", test_Locale_JSON),
             ("test_IndexSet_JSON", test_IndexSet_JSON),
             ("test_IndexPath_JSON", test_IndexPath_JSON),
             ("test_AffineTransform_JSON", test_AffineTransform_JSON),
-            //("test_Decimal_JSON", test_Decimal_JSON),
+            ("test_Decimal_JSON", test_Decimal_JSON),
             ("test_CGPoint_JSON", test_CGPoint_JSON),
             ("test_CGSize_JSON", test_CGSize_JSON),
             ("test_CGRect_JSON", test_CGRect_JSON),
