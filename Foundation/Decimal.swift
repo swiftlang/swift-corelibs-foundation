@@ -1105,7 +1105,7 @@ public func NSDecimalRound(_ result: UnsafeMutablePointer<Decimal>, _ number: Un
 // scale indicates number of significant digits after the decimal point
 
 public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMutablePointer<Decimal>, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
-    var diffexp = a.pointee.__exponent - b.pointee.__exponent
+    var diffexp = Int(a.pointee.__exponent) - Int(b.pointee.__exponent)
     var result = Decimal()
 
     //
@@ -1142,7 +1142,7 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     // Try to multiply aa to reach the same exponent level than bb
     //
 
-    if integerMultiplyByPowerOf10(&result, aa.pointee, Int(diffexp)) == .noError {
+    if integerMultiplyByPowerOf10(&result, aa.pointee, diffexp) == .noError {
         // Succeed. Adjust the length/exponent info
         // and return no errorNSDecimalNormalize
         aa.pointee.copyMantissa(from: result)
@@ -1165,10 +1165,10 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     //
     // Divide bb by this value
     //
-    _ = integerMultiplyByPowerOf10(&result, bb.pointee, Int(maxpow10 - diffexp))
+    _ = integerMultiplyByPowerOf10(&result, bb.pointee, Int(maxpow10) - diffexp)
 
     bb.pointee.copyMantissa(from: result)
-    bb.pointee._exponent -= Int32(maxpow10 - diffexp);
+    bb.pointee._exponent -= (Int32(maxpow10) - Int32(diffexp))
 
     //
     // If bb > 0 multiply aa by the same value
