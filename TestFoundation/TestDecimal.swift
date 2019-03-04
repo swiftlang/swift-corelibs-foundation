@@ -517,6 +517,27 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(Decimal(10), ten)
         XCTAssertEqual(1, one._length)
         XCTAssertEqual(1, ten._length)
+
+        // Check equality with numbers with large exponent difference
+        var small = Decimal.leastNonzeroMagnitude
+        var large = Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(Int(large.exponent) - Int(small.exponent) > Int(Int8.max))
+        XCTAssertTrue(Int(small.exponent) - Int(large.exponent) < Int(Int8.min))
+        XCTAssertNotEqual(small, large)
+
+        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(large.exponent, 127)
+        XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&small, &large, .plain))
+        XCTAssertEqual(small.exponent, 127)
+        XCTAssertEqual(large.exponent, 127)
+
+        small = Decimal.leastNonzeroMagnitude
+        large = Decimal.greatestFiniteMagnitude
+        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(large.exponent, 127)
+        XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&large, &small, .plain))
+        XCTAssertEqual(small.exponent, 127)
+        XCTAssertEqual(large.exponent, 127)
     }
 
     func test_NSDecimal() throws {
