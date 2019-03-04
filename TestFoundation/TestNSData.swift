@@ -848,7 +848,7 @@ class TestNSData: LoopbackServerTest {
     }
 
     func test_initNSMutableDataFromData() {
-        let data = Data(bytes: [1, 2, 3])
+        let data = Data([1, 2, 3])
         let mData = NSMutableData(data: data)
         XCTAssertEqual(mData.length, 3)
         XCTAssertEqual(NSData(data: data), mData)
@@ -939,8 +939,8 @@ class TestNSData: LoopbackServerTest {
     }
 
     func test_replaceBytes() {
-        var data = Data(bytes: [0, 0, 0, 0, 0])
-        let newData = Data(bytes: [1, 2, 3, 4, 5])
+        var data = Data([0, 0, 0, 0, 0])
+        let newData = Data([1, 2, 3, 4, 5])
 
         // test replaceSubrange(_, with:)
         XCTAssertFalse(data == newData)
@@ -950,7 +950,7 @@ class TestNSData: LoopbackServerTest {
         // subscript(index:) uses replaceBytes so use it to test edge conditions
         data[0] = 0
         data[4] = 0
-        XCTAssertTrue(data == Data(bytes: [0, 2, 3, 4, 0]))
+        XCTAssertTrue(data == Data([0, 2, 3, 4, 0]))
 
         // test NSMutableData.replaceBytes(in:withBytes:length:) directly
         func makeData(_ data: [UInt8]) -> NSData {
@@ -989,7 +989,7 @@ class TestNSData: LoopbackServerTest {
         let dataSize = 1024
         let data = Data(count: dataSize)
         XCTAssertEqual(data.count, dataSize)
-        if let index = (data.index { $0 != 0 }) {
+        if let index = (data.firstIndex { $0 != 0 }) {
             XCTFail("Byte at index: \(index) is not zero: \(data[index])")
             return
         }
@@ -1022,13 +1022,13 @@ extension TestNSData {
     }
     
     func testInitializationWithArray() {
-        let data = Data(bytes: [1, 2, 3])
+        let data = Data([1, 2, 3])
         XCTAssertEqual(3, data.count)
         
-        let data2 = Data(bytes: [1, 2, 3].filter { $0 >= 2 })
+        let data2 = Data([1, 2, 3].filter { $0 >= 2 })
         XCTAssertEqual(2, data2.count)
         
-        let data3 = Data(bytes: [1, 2, 3, 4, 5][1..<3])
+        let data3 = Data([1, 2, 3, 4, 5][1..<3])
         XCTAssertEqual(2, data3.count)
     }
     
@@ -1161,11 +1161,11 @@ extension TestNSData {
     
     func testReplaceSubrange4() {
         let expectedBytes : [UInt8] = [1, 2, 9, 10, 11, 12, 13]
-        let expected = Data(bytes: expectedBytes)
+        let expected = Data(expectedBytes)
         
         // The data we'll mutate
         let someBytes : [UInt8] = [1, 2, 3, 4, 5]
-        var a = Data(bytes: someBytes)
+        var a = Data(someBytes)
         
         // The bytes we'll insert
         let b : [UInt8] = [9, 10, 11, 12, 13]
@@ -1174,24 +1174,24 @@ extension TestNSData {
     }
     
     func testReplaceSubrange5() {
-        var d = Data(bytes: [1, 2, 3])
+        var d = Data([1, 2, 3])
         d.replaceSubrange(0..<0, with: [4])
-        XCTAssertEqual(Data(bytes: [4, 1, 2, 3]), d)
+        XCTAssertEqual(Data([4, 1, 2, 3]), d)
         
         d.replaceSubrange(0..<4, with: [9])
-        XCTAssertEqual(Data(bytes: [9]), d)
+        XCTAssertEqual(Data([9]), d)
         
         d.replaceSubrange(0..<d.count, with: [])
         XCTAssertEqual(Data(), d)
         
         d.replaceSubrange(0..<0, with: [1, 2, 3, 4])
-        XCTAssertEqual(Data(bytes: [1, 2, 3, 4]), d)
+        XCTAssertEqual(Data([1, 2, 3, 4]), d)
         
         d.replaceSubrange(1..<3, with: [9, 8])
-        XCTAssertEqual(Data(bytes: [1, 9, 8, 4]), d)
+        XCTAssertEqual(Data([1, 9, 8, 4]), d)
         
         d.replaceSubrange(d.count..<d.count, with: [5])
-        XCTAssertEqual(Data(bytes: [1, 9, 8, 4, 5]), d)
+        XCTAssertEqual(Data([1, 9, 8, 4, 5]), d)
     }
     
     func testRange() {
@@ -1687,7 +1687,7 @@ extension TestNSData {
     
     func test_replaceSubrange() {
         // https://bugs.swift.org/browse/SR-4462
-        let data = Data(bytes: [0x01, 0x02])
+        let data = Data([0x01, 0x02])
         var dataII = Data(base64Encoded: data.base64EncodedString())!
         dataII.replaceSubrange(0..<1, with: Data())
         XCTAssertEqual(dataII[0], 0x02)
@@ -1714,29 +1714,29 @@ extension TestNSData {
     }
 
         func test_validateMutation_withUnsafeMutableBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
             ptr.advanced(by: 5).pointee = 0xFF
         }
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
     }
     
     func test_validateMutation_appendBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         data.append("hello", count: 5)
         XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0x5)
     }
     
     func test_validateMutation_appendData() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        let other = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let other = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         data.append(other)
         XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 9)
         XCTAssertEqual(data[data.startIndex.advanced(by: 10)], 0)
     }
     
     func test_validateMutation_appendBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         bytes.withUnsafeBufferPointer { data.append($0) }
         XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 9)
@@ -1744,7 +1744,7 @@ extension TestNSData {
     }
     
     func test_validateMutation_appendSequence() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let seq = repeatElement(UInt8(1), count: 10)
         data.append(contentsOf: seq)
         XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 9)
@@ -1752,7 +1752,7 @@ extension TestNSData {
     }
     
     func test_validateMutation_appendContentsOf() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         data.append(contentsOf: bytes)
         XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 9)
@@ -1760,160 +1760,160 @@ extension TestNSData {
     }
     
     func test_validateMutation_resetBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
     }
     
     func test_validateMutation_replaceSubrange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_replaceSubrangeRange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_replaceSubrangeWithBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer {
             data.replaceSubrange(range, with: $0)
         }
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_replaceSubrangeWithCollection() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let bytes: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with: bytes)
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_replaceSubrangeWithBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBytes {
             data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
         }
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_slice_withUnsafeMutableBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
             ptr.advanced(by: 1).pointee = 0xFF
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 6, 7, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 6, 7, 8]))
     }
     
     func test_validateMutation_slice_appendBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0.baseAddress!, count: $0.count) }
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_appendData() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
-        let other = Data(bytes: [0xFF, 0xFF])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        let other = Data([0xFF, 0xFF])
         data.append(other)
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_appendBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0) }
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_appendSequence() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let seq = repeatElement(UInt8(0xFF), count: 2)
         data.append(contentsOf: seq)
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_appendContentsOf() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let bytes: [UInt8] = [0xFF, 0xFF]
         data.append(contentsOf: bytes)
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_resetBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+        XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
     }
     
     func test_validateMutation_slice_replaceSubrange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_replaceSubrangeRange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_replaceSubrangeWithBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer {
             data.replaceSubrange(range, with: $0)
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_replaceSubrangeWithCollection() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let bytes: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with: bytes)
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_replaceSubrangeWithBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBytes {
             data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_cow_withUnsafeMutableBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
                 ptr.advanced(by: 5).pointee = 0xFF
             }
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
         }
     }
     
     func test_validateMutation_cow_appendBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             data.append("hello", count: 5)
             XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 0x9)
@@ -1922,9 +1922,9 @@ extension TestNSData {
     }
     
     func test_validateMutation_cow_appendData() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
-            let other = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            let other = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
             data.append(other)
             XCTAssertEqual(data[data.startIndex.advanced(by: 9)], 9)
             XCTAssertEqual(data[data.startIndex.advanced(by: 10)], 0)
@@ -1932,7 +1932,7 @@ extension TestNSData {
     }
     
     func test_validateMutation_cow_appendBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             bytes.withUnsafeBufferPointer { data.append($0) }
@@ -1942,7 +1942,7 @@ extension TestNSData {
     }
     
     func test_validateMutation_cow_appendSequence() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let seq = repeatElement(UInt8(1), count: 10)
             data.append(contentsOf: seq)
@@ -1952,7 +1952,7 @@ extension TestNSData {
     }
     
     func test_validateMutation_cow_appendContentsOf() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             data.append(contentsOf: bytes)
@@ -1962,79 +1962,79 @@ extension TestNSData {
     }
     
     func test_validateMutation_cow_resetBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
         }
     }
     
     func test_validateMutation_cow_replaceSubrange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
         }
     }
     
     func test_validateMutation_cow_replaceSubrangeRange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
         }
     }
     
     func test_validateMutation_cow_replaceSubrangeWithBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer {
                 data.replaceSubrange(range, with: $0)
             }
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
         }
     }
     
     func test_validateMutation_cow_replaceSubrangeWithCollection() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.replaceSubrange(range, with: bytes)
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
         }
     }
     
     func test_validateMutation_cow_replaceSubrangeWithBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBytes {
                 data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
             }
-            XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 0xFF, 0xFF, 9]))
+            XCTAssertEqual(data, Data([0, 1, 2, 3, 0xFF, 0xFF, 9]))
         }
     }
     
     func test_validateMutation_slice_cow_withUnsafeMutableBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
                 ptr.advanced(by: 1).pointee = 0xFF
             }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 6, 7, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 6, 7, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_appendBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             data.append("hello", count: 5)
             XCTAssertEqual(data[data.startIndex.advanced(by: 4)], 0x8)
@@ -2043,100 +2043,100 @@ extension TestNSData {
     }
     
     func test_validateMutation_slice_cow_appendData() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
-            let other = Data(bytes: [0xFF, 0xFF])
+            let other = Data([0xFF, 0xFF])
             data.append(other)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
     func test_validateMutation_slice_cow_appendBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer { data.append($0) }
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
     func test_validateMutation_slice_cow_appendSequence() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let seq = repeatElement(UInt8(0xFF), count: 2)
             data.append(contentsOf: seq)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
     func test_validateMutation_slice_cow_appendContentsOf() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.append(contentsOf: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
     func test_validateMutation_slice_cow_resetBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+            XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_replaceSubrange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_replaceSubrangeRange() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_replaceSubrangeWithBuffer() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer {
                 data.replaceSubrange(range, with: $0)
             }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_replaceSubrangeWithCollection() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.replaceSubrange(range, with: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
     func test_validateMutation_slice_cow_replaceSubrangeWithBytes() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBytes {
                 data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
             }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2157,7 +2157,7 @@ extension TestNSData {
     
     func test_validateMutation_immutableBacking_appendData() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
-        let other = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let other = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         data.append(other)
         XCTAssertEqual(data[data.startIndex.advanced(by: 10)], 0x64)
         XCTAssertEqual(data[data.startIndex.advanced(by: 11)], 0)
@@ -2190,23 +2190,23 @@ extension TestNSData {
     func test_validateMutation_immutableBacking_resetBytes() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64]))
     }
     
     func test_validateMutation_immutableBacking_replaceSubrange() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
     func test_validateMutation_immutableBacking_replaceSubrangeRange() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
     func test_validateMutation_immutableBacking_replaceSubrangeWithBuffer() {
@@ -2216,7 +2216,7 @@ extension TestNSData {
         bytes.withUnsafeBufferPointer {
             data.replaceSubrange(range, with: $0)
         }
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
     func test_validateMutation_immutableBacking_replaceSubrangeWithCollection() {
@@ -2224,7 +2224,7 @@ extension TestNSData {
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let bytes: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with: bytes)
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
     func test_validateMutation_immutableBacking_replaceSubrangeWithBytes() {
@@ -2232,7 +2232,7 @@ extension TestNSData {
         let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
         let bytes: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with: bytes)
-        XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
+        XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xFF, 0xFF, 0x6c, 0x64]))
     }
     
     func test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes() {
@@ -2250,7 +2250,7 @@ extension TestNSData {
         }
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0.baseAddress!, count: $0.count) }
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_appendData() {
@@ -2258,8 +2258,8 @@ extension TestNSData {
         var data = base.withUnsafeBufferPointer {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
-        data.append(Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        data.append(Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_appendBuffer() {
@@ -2269,7 +2269,7 @@ extension TestNSData {
         }
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0) }
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_appendSequence() {
@@ -2278,7 +2278,7 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         data.append(contentsOf: repeatElement(UInt8(0xFF), count: 2))
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_appendContentsOf() {
@@ -2287,7 +2287,7 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         data.append(contentsOf: [0xFF, 0xFF])
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_resetBytes() {
@@ -2296,7 +2296,7 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+        XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
     }
     
     func test_validateMutation_slice_immutableBacking_replaceSubrange() {
@@ -2305,8 +2305,8 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_immutableBacking_replaceSubrangeRange() {
@@ -2315,8 +2315,8 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_immutableBacking_replaceSubrangeWithBuffer() {
@@ -2329,7 +2329,7 @@ extension TestNSData {
         replacement.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<UInt8>) in
             data.replaceSubrange(range, with: buffer)
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_immutableBacking_replaceSubrangeWithCollection() {
@@ -2340,7 +2340,7 @@ extension TestNSData {
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let replacement: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with:replacement)
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_slice_immutableBacking_replaceSubrangeWithBytes() {
@@ -2353,7 +2353,7 @@ extension TestNSData {
         replacement.withUnsafeBytes {
             data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+        XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
     }
     
     func test_validateMutation_cow_immutableBacking_withUnsafeMutableBytes() {
@@ -2378,7 +2378,7 @@ extension TestNSData {
     func test_validateMutation_cow_immutableBacking_appendData() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
-            let other = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            let other = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
             data.append(other)
             XCTAssertEqual(data[data.startIndex.advanced(by: 10)], 0x64)
             XCTAssertEqual(data[data.startIndex.advanced(by: 11)], 0)
@@ -2419,7 +2419,7 @@ extension TestNSData {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64]))
         }
     }
     
@@ -2427,9 +2427,9 @@ extension TestNSData {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64]))
         }
     }
     
@@ -2437,9 +2437,9 @@ extension TestNSData {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64]))
         }
     }
     
@@ -2451,7 +2451,7 @@ extension TestNSData {
             replacement.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<UInt8>) in
                 data.replaceSubrange(range, with: buffer)
             }
-            XCTAssertEqual(data, Data(bytes: [0x68, 0xff, 0xff, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0xff, 0xff, 0x64]))
         }
     }
     
@@ -2461,7 +2461,7 @@ extension TestNSData {
             let replacement: [UInt8] = [0xFF, 0xFF]
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0xff, 0xff, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0xff, 0xff, 0x64]))
         }
     }
     
@@ -2473,7 +2473,7 @@ extension TestNSData {
             replacement.withUnsafeBytes {
                 data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
             }
-            XCTAssertEqual(data, Data(bytes: [0x68, 0xff, 0xff, 0x64]))
+            XCTAssertEqual(data, Data([0x68, 0xff, 0xff, 0x64]))
         }
     }
     
@@ -2495,7 +2495,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer { data.append($0.baseAddress!, count: $0.count) }
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -2505,8 +2505,8 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))[4..<9]
         }
         holdReference(data) {
-            data.append(Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            data.append(Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -2515,7 +2515,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer{ data.append($0) }
-            XCTAssertEqual(data, Data(bytes: [0x6f, 0x20, 0x77, 0x6f, 0x72, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([0x6f, 0x20, 0x77, 0x6f, 0x72, 0xFF, 0xFF]))
         }
     }
     
@@ -2527,7 +2527,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes = repeatElement(UInt8(0xFF), count: 2)
             data.append(contentsOf: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -2539,7 +2539,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.append(contentsOf: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -2550,7 +2550,7 @@ extension TestNSData {
         }
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+            XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
         }
     }
     
@@ -2561,8 +2561,8 @@ extension TestNSData {
         }
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2573,8 +2573,8 @@ extension TestNSData {
         }
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2587,7 +2587,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer { data.replaceSubrange(range, with: $0) }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2600,7 +2600,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.replaceSubrange(range, with: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2613,7 +2613,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBytes { data.replaceSubrange(range, with: $0.baseAddress!, count: 2) }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -2637,7 +2637,7 @@ extension TestNSData {
         data.append(contentsOf: [7, 8, 9])
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0.baseAddress!, count: $0.count) }
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_mutableBacking_appendData() {
@@ -2646,8 +2646,8 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))
         }
         data.append(contentsOf: [7, 8, 9])
-        data.append(Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
+        data.append(Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_mutableBacking_appendBuffer() {
@@ -2658,7 +2658,7 @@ extension TestNSData {
         data.append(contentsOf: [7, 8, 9])
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0) }
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_mutableBacking_appendSequence() {
@@ -2668,7 +2668,7 @@ extension TestNSData {
         }
         data.append(contentsOf: [7, 8, 9])
         data.append(contentsOf: repeatElement(UInt8(0xFF), count: 2))
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_mutableBacking_appendContentsOf() {
@@ -2678,7 +2678,7 @@ extension TestNSData {
         }
         data.append(contentsOf: [7, 8, 9])
         data.append(contentsOf: [0xFF, 0xFF])
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_mutableBacking_resetBytes() {
@@ -2688,7 +2688,7 @@ extension TestNSData {
         }
         data.append(contentsOf: [7, 8, 9])
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
+        XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0, 0, 0, 8, 9]))
     }
     
     func test_validateMutation_mutableBacking_replaceSubrange() {
@@ -2698,9 +2698,9 @@ extension TestNSData {
         }
         data.append(contentsOf: [7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_mutableBacking_replaceSubrangeRange() {
@@ -2710,9 +2710,9 @@ extension TestNSData {
         }
         data.append(contentsOf: [7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        let replacement = Data(bytes: [0xFF, 0xFF])
+        let replacement = Data([0xFF, 0xFF])
         data.replaceSubrange(range, with: replacement)
-        XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_mutableBacking_replaceSubrangeWithBuffer() {
@@ -2726,7 +2726,7 @@ extension TestNSData {
         bytes.withUnsafeBufferPointer {
             data.replaceSubrange(range, with: $0)
         }
-        XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_mutableBacking_replaceSubrangeWithCollection() {
@@ -2737,7 +2737,7 @@ extension TestNSData {
         data.append(contentsOf: [7, 8, 9])
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         data.replaceSubrange(range, with: [0xFF, 0xFF])
-        XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_mutableBacking_replaceSubrangeWithBytes() {
@@ -2751,7 +2751,7 @@ extension TestNSData {
         bytes.withUnsafeBytes {
             data.replaceSubrange(range, with: $0.baseAddress!, count: $0.count)
         }
-        XCTAssertEqual(data, Data(bytes: [0, 0xFF, 0xFF, 9]))
+        XCTAssertEqual(data, Data([0, 0xFF, 0xFF, 9]))
     }
     
     func test_validateMutation_slice_mutableBacking_withUnsafeMutableBytes() {
@@ -2773,7 +2773,7 @@ extension TestNSData {
         var data = base[4..<9]
         let bytes: [UInt8] = [0xFF, 0xFF]
         bytes.withUnsafeBufferPointer { data.append($0.baseAddress!, count: $0.count) }
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_mutableBacking_appendData() {
@@ -2783,8 +2783,8 @@ extension TestNSData {
         }
         base.append(contentsOf: [7, 8, 9])
         var data = base[4..<9]
-        data.append(Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+        data.append(Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
     }
     
     func test_validateMutation_slice_mutableBacking_appendBuffer() {
@@ -2793,7 +2793,7 @@ extension TestNSData {
         var data = base[4..<9]
         let bytes: [UInt8] = [1, 2, 3]
         bytes.withUnsafeBufferPointer { data.append($0) }
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x2, 0x3]))
+        XCTAssertEqual(data, Data([0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x2, 0x3]))
     }
     
     func test_validateMutation_slice_mutableBacking_appendSequence() {
@@ -2802,7 +2802,7 @@ extension TestNSData {
         var data = base[4..<9]
         let seq = repeatElement(UInt8(1), count: 3)
         data.append(contentsOf: seq)
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x1, 0x1]))
+        XCTAssertEqual(data, Data([0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x1, 0x1]))
     }
     
     func test_validateMutation_slice_mutableBacking_appendContentsOf() {
@@ -2811,7 +2811,7 @@ extension TestNSData {
         var data = base[4..<9]
         let bytes: [UInt8] = [1, 2, 3]
         data.append(contentsOf: bytes)
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x2, 0x3]))
+        XCTAssertEqual(data, Data([0x6f, 0x20, 0x77, 0x6f, 0x72, 0x1, 0x2, 0x3]))
     }
     
     func test_validateMutation_slice_mutableBacking_resetBytes() {
@@ -2822,7 +2822,7 @@ extension TestNSData {
         base.append(contentsOf: [7, 8, 9])
         var data = base[4..<9]
         data.resetBytes(in: 5..<8)
-        XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+        XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
     }
     
     func test_validateMutation_slice_mutableBacking_replaceSubrange() {
@@ -2830,8 +2830,8 @@ extension TestNSData {
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
+        data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0x6f, 0xFF, 0xFF, 0x72]))
     }
     
     func test_validateMutation_slice_mutableBacking_replaceSubrangeRange() {
@@ -2839,8 +2839,8 @@ extension TestNSData {
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<9]
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-        data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
+        data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+        XCTAssertEqual(data, Data([0x6f, 0xFF, 0xFF, 0x72]))
     }
     
     func test_validateMutation_slice_mutableBacking_replaceSubrangeWithBuffer() {
@@ -2852,7 +2852,7 @@ extension TestNSData {
         replacement.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<UInt8>) in
             data.replaceSubrange(range, with: buffer)
         }
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
+        XCTAssertEqual(data, Data([0x6f, 0xFF, 0xFF, 0x72]))
     }
     
     func test_validateMutation_slice_mutableBacking_replaceSubrangeWithCollection() {
@@ -2862,7 +2862,7 @@ extension TestNSData {
         let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
         let replacement: [UInt8] = [0xFF, 0xFF]
         data.replaceSubrange(range, with:replacement)
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
+        XCTAssertEqual(data, Data([0x6f, 0xFF, 0xFF, 0x72]))
     }
     
     func test_validateMutation_slice_mutableBacking_replaceSubrangeWithBytes() {
@@ -2874,7 +2874,7 @@ extension TestNSData {
         replacement.withUnsafeBytes {
             data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
         }
-        XCTAssertEqual(data, Data(bytes: [0x6f, 0xFF, 0xFF, 0x72]))
+        XCTAssertEqual(data, Data([0x6f, 0xFF, 0xFF, 0x72]))
     }
     
     func test_validateMutation_cow_mutableBacking_withUnsafeMutableBytes() {
@@ -2912,7 +2912,7 @@ extension TestNSData {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
-            let other = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+            let other = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
             data.append(other)
             XCTAssertEqual(data[data.startIndex.advanced(by: 16)], 6)
             XCTAssertEqual(data[data.startIndex.advanced(by: 17)], 0)
@@ -2946,7 +2946,7 @@ extension TestNSData {
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x00, 0x00, 0x00, 0x72, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -2955,9 +2955,9 @@ extension TestNSData {
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -2966,9 +2966,9 @@ extension TestNSData {
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
-            let replacement = Data(bytes: [0xFF, 0xFF])
+            let replacement = Data([0xFF, 0xFF])
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -2981,7 +2981,7 @@ extension TestNSData {
             replacement.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<UInt8>) in
                 data.replaceSubrange(range, with: buffer)
             }
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -2992,7 +2992,7 @@ extension TestNSData {
             let replacement: [UInt8] = [0xFF, 0xFF]
             let range: Range<Data.Index> = data.startIndex.advanced(by: 4)..<data.startIndex.advanced(by: 9)
             data.replaceSubrange(range, with: replacement)
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -3005,7 +3005,7 @@ extension TestNSData {
             replacement.withUnsafeBytes {
                 data.replaceSubrange(range, with: $0.baseAddress!, count: 2)
             }
-            XCTAssertEqual(data, Data(bytes: [0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
+            XCTAssertEqual(data, Data([0x68, 0x65, 0x6c, 0x6c, 0xff, 0xff, 0x6c, 0x64, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06]))
         }
     }
     
@@ -3033,7 +3033,7 @@ extension TestNSData {
             bytesToAppend.withUnsafeBytes { (ptr) in
                 data.append(ptr.baseAddress!.assumingMemoryBound(to: UInt8.self), count: ptr.count)
             }
-            XCTAssertEqual(data, Data(bytes: [1, 2, 3, 6, 7, 8]))
+            XCTAssertEqual(data, Data([1, 2, 3, 6, 7, 8]))
         }
     }
     
@@ -3045,8 +3045,8 @@ extension TestNSData {
         base.append(contentsOf: [7, 8, 9])
         var data = base[4..<9]
         holdReference(data) {
-            data.append(Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            data.append(Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -3060,7 +3060,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer{ data.append($0) }
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -3074,7 +3074,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes = repeatElement(UInt8(0xFF), count: 2)
             data.append(contentsOf: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -3088,7 +3088,7 @@ extension TestNSData {
         holdReference(data) {
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.append(contentsOf: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 8, 0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 5, 6, 7, 8, 0xFF, 0xFF]))
         }
     }
     
@@ -3101,7 +3101,7 @@ extension TestNSData {
         var data = base[4..<9]
         holdReference(data) {
             data.resetBytes(in: 5..<8)
-            XCTAssertEqual(data, Data(bytes: [4, 0, 0, 0, 8]))
+            XCTAssertEqual(data, Data([4, 0, 0, 0, 8]))
         }
     }
     
@@ -3114,8 +3114,8 @@ extension TestNSData {
         var data = base[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -3128,8 +3128,8 @@ extension TestNSData {
         var data = base[4..<9]
         holdReference(data) {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
-            data.replaceSubrange(range, with: Data(bytes: [0xFF, 0xFF]))
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            data.replaceSubrange(range, with: Data([0xFF, 0xFF]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -3144,7 +3144,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBufferPointer { data.replaceSubrange(range, with: $0) }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -3159,7 +3159,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             data.replaceSubrange(range, with: bytes)
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -3174,7 +3174,7 @@ extension TestNSData {
             let range: Range<Data.Index> = data.startIndex.advanced(by: 1)..<data.endIndex.advanced(by: -1)
             let bytes: [UInt8] = [0xFF, 0xFF]
             bytes.withUnsafeBytes { data.replaceSubrange(range, with: $0.baseAddress!, count: 2) }
-            XCTAssertEqual(data, Data(bytes: [4, 0xFF, 0xFF, 8]))
+            XCTAssertEqual(data, Data([4, 0xFF, 0xFF, 8]))
         }
     }
     
@@ -3183,7 +3183,7 @@ extension TestNSData {
         data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
             ptr.advanced(by: 5).pointee = 0xFF
         }
-        XCTAssertEqual(data, Data(bytes: [1, 1, 1, 1, 1, 0xFF, 1, 1, 1, 1]))
+        XCTAssertEqual(data, Data([1, 1, 1, 1, 1, 0xFF, 1, 1, 1, 1]))
     }
     
 #if false // this requires factory patterns
@@ -4050,10 +4050,10 @@ extension TestNSData {
 #endif
     
     func test_sliceHash() {
-        let base1 = Data(bytes: [0, 0xFF, 0xFF, 0])
-        let base2 = Data(bytes: [0, 0xFF, 0xFF, 0])
-        let base3 = Data(bytes: [0xFF, 0xFF, 0xFF, 0])
-        let sliceEmulation = Data(bytes: [0xFF, 0xFF])
+        let base1 = Data([0, 0xFF, 0xFF, 0])
+        let base2 = Data([0, 0xFF, 0xFF, 0])
+        let base3 = Data([0xFF, 0xFF, 0xFF, 0])
+        let sliceEmulation = Data([0xFF, 0xFF])
         XCTAssertEqual(base1.hashValue, base2.hashValue)
         let slice1 = base1[base1.startIndex.advanced(by: 1)..<base1.endIndex.advanced(by: -1)]
         let slice2 = base2[base2.startIndex.advanced(by: 1)..<base2.endIndex.advanced(by: -1)]
@@ -4064,9 +4064,9 @@ extension TestNSData {
     }
 
     func test_slice_resize_growth() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         data.resetBytes(in: data.endIndex.advanced(by: -1)..<data.endIndex.advanced(by: 1))
-        XCTAssertEqual(data, Data(bytes: [4, 5, 6, 7, 0, 0]))
+        XCTAssertEqual(data, Data([4, 5, 6, 7, 0, 0]))
     }
     
     /*
@@ -4120,11 +4120,11 @@ extension TestNSData {
     }
     
     func test_validateMutation_slice_withUnsafeMutableBytes_lengthLessThanLowerBound() {
-        var data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<6]
+        var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<6]
         data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
             ptr.advanced(by: 1).pointee = 0xFF
         }
-        XCTAssertEqual(data, Data(bytes: [4, 0xFF]))
+        XCTAssertEqual(data, Data([4, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
@@ -4258,7 +4258,7 @@ extension TestNSData {
         let r3 = ClosedRange(0..<1)
         let r4 = ClosedRange(0..<1)
 
-        let data = Data(bytes: [8, 1, 2, 3, 4])
+        let data = Data([8, 1, 2, 3, 4])
         let slice1: Data = data[r1]
         let slice2: Data = data[r2]
         let slice3: Data = data[r3]
@@ -4270,20 +4270,20 @@ extension TestNSData {
     }
 
     func test_sliceIndexing() {
-        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let d = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         let slice = d[5..<10]
         XCTAssertEqual(slice[5], d[5])
     }
 
     func test_sliceEquality() {
-        let d = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let d = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         let slice = d[5..<7]
-        let expected = Data(bytes: [5, 6])
+        let expected = Data([5, 6])
         XCTAssertEqual(expected, slice)
     }
 
     func test_sliceEquality2() {
-        let d = Data(bytes: [5, 6, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        let d = Data([5, 6, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
         let slice1 = d[0..<2]
         let slice2 = d[5..<7]
         XCTAssertEqual(slice1, slice2)
@@ -4322,7 +4322,7 @@ extension TestNSData {
     }
 
     func test_map() {
-        let d1 = Data(bytes: [81, 0, 0, 0, 14])
+        let d1 = Data([81, 0, 0, 0, 14])
         let d2 = d1[1...4]
         XCTAssertEqual(4, d2.count)
         let expected: [UInt8] = [0, 0, 0, 14]
@@ -4353,7 +4353,7 @@ extension TestNSData {
 
     func test_copyBytes1() {
         var array: [UInt8] = [0, 1, 2, 3]
-        var data = Data(bytes: array)
+        var data = Data(array)
 
         array.withUnsafeMutableBufferPointer {
             data[1..<3].copyBytes(to: $0.baseAddress!, from: 1..<3)
@@ -4363,7 +4363,7 @@ extension TestNSData {
 
     func test_copyBytes2() {
         let array: [UInt8] = [0, 1, 2, 3]
-        var data = Data(bytes: array)
+        var data = Data(array)
 
         let expectedSlice = array[1..<3]
 
@@ -4374,22 +4374,22 @@ extension TestNSData {
     }
 
     func test_sliceOfSliceViaRangeExpression() {
-        let data = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
         let slice = data[2..<7]
 
         let sliceOfSlice1 = slice[..<(slice.startIndex + 2)] // this triggers the range expression
         let sliceOfSlice2 = slice[(slice.startIndex + 2)...] // also triggers range expression
-        XCTAssertEqual(Data(bytes: [2, 3]), sliceOfSlice1)
-        XCTAssertEqual(Data(bytes: [4, 5, 6]), sliceOfSlice2)
+        XCTAssertEqual(Data([2, 3]), sliceOfSlice1)
+        XCTAssertEqual(Data([4, 5, 6]), sliceOfSlice2)
     }
 
     func test_appendingSlices() {
-        let d1 = Data(bytes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let d1 = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         let slice = d1[1..<2]
         var d2 = Data()
         d2.append(slice)
-        XCTAssertEqual(Data(bytes: [1]), slice)
+        XCTAssertEqual(Data([1]), slice)
     }
 
     func test_sequenceInitializers() {
@@ -4417,7 +4417,7 @@ extension TestNSData {
         XCTAssertEqual(slice.first, dataFromSlice.first)
         XCTAssertEqual(slice.last, dataFromSlice.last)
 
-        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let data = Data([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
         let dataFromData = Data(data)
         XCTAssertEqual(data, dataFromData)
@@ -4429,9 +4429,9 @@ extension TestNSData {
     }
 
     func test_reversedDataInit() {
-        let data = Data(bytes: [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        let data = Data([1, 2, 3, 4, 5, 6, 7, 8, 9])
         let reversedData = Data(data.reversed())
-        let expected = Data(bytes: [9, 8, 7, 6, 5, 4, 3, 2, 1])
+        let expected = Data([9, 8, 7, 6, 5, 4, 3, 2, 1])
         XCTAssertEqual(expected, reversedData)
     }
 
@@ -4439,9 +4439,9 @@ extension TestNSData {
         let mdataObj = NSMutableData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
         var data = Data(referencing: mdataObj)
         let expected = data.count
-        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        data.replaceSubrange(4 ..< 4, with: Data([]))
         XCTAssertEqual(expected, data.count)
-        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        data.replaceSubrange(4 ..< 4, with: Data([]))
         XCTAssertEqual(expected, data.count)
     }
 
@@ -4449,9 +4449,9 @@ extension TestNSData {
         let dataObj = NSData(bytes: [0x01, 0x02, 0x03, 0x04], length: 4)
         var data = Data(referencing: dataObj)
         let expected = data.count
-        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        data.replaceSubrange(4 ..< 4, with: Data([]))
         XCTAssertEqual(expected, data.count)
-        data.replaceSubrange(4 ..< 4, with: Data(bytes: []))
+        data.replaceSubrange(4 ..< 4, with: Data([]))
         XCTAssertEqual(expected, data.count)
     }
 

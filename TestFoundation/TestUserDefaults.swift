@@ -110,7 +110,7 @@ class TestUserDefaults : XCTestCase {
 		//make sure we don't have anything in the saved plist.
 		defaults.removeObject(forKey: "key1")
 		
-		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes: bytes))
+		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes))
 	}
 	
 	func test_getRegisteredDefaultItem_Data() {
@@ -118,12 +118,12 @@ class TestUserDefaults : XCTestCase {
 		let bytes = [0, 1, 2, 3, 4] as [UInt8]
 		
 		// Register a Data value. UserDefaults.data(forKey:) is supposed to return the Data
-		defaults.register(defaults: ["key1": Data(bytes: bytes)])
+		defaults.register(defaults: ["key1": Data(bytes)])
 		
 		//make sure we don't have anything in the saved plist.
 		defaults.removeObject(forKey: "key1")
 		
-		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes: bytes))
+		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes))
 	}
 
 	func test_getRegisteredDefaultItem_BoolFromString() {
@@ -205,7 +205,7 @@ class TestUserDefaults : XCTestCase {
 		// Set a NSData value. UserDefaults.data(forKey:) is supposed to return the Data
 		defaults.set(NSData(bytes: bytes, length: bytes.count), forKey: "key1")
 		
-		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes: bytes))
+		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes))
 	}
 	
 	func test_setValue_Data() {
@@ -213,9 +213,9 @@ class TestUserDefaults : XCTestCase {
 		let bytes = [0, 1, 2, 3, 4] as [UInt8]
 		
 		// Set a Data value. UserDefaults.data(forKey:) is supposed to return the Data
-		defaults.set(Data(bytes: bytes), forKey: "key1")
+		defaults.set(Data(bytes), forKey: "key1")
 		
-		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes: bytes))
+		XCTAssertEqual(defaults.data(forKey: "key1"), Data(bytes))
 	}
 
 	func test_setValue_BoolFromString() {

@@ -2103,7 +2103,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     }
     
     @available(swift, introduced: 4.2)
-    @available(swift, deprecated: 5, message: "use `init(_:)` instead")
+    @available(swift, deprecated: 5, renamed: "init(_:)")
     public init<S: Sequence>(bytes elements: S) where S.Iterator.Element == UInt8 {
         self.init(elements)
     }

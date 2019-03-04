@@ -215,7 +215,7 @@ class TestJSONEncoder : XCTestCase {
 
     // MARK: - Data Strategy Tests
     func test_encodingBase64Data() {
-        let data = Data(bytes: [0xDE, 0xAD, 0xBE, 0xEF])
+        let data = Data([0xDE, 0xAD, 0xBE, 0xEF])
 
         // We can't encode a top-level Data, so it'll be wrapped in an array.
         let expectedJSON = "[\"3q2+7w==\"]".data(using: .utf8)!

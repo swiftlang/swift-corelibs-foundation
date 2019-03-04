@@ -124,7 +124,7 @@ class TestNSString: LoopbackServerTest {
         // as UTF-8  bytes it is 0xC4 0xB8
         // as UTF-16 bytes it is 0x1, 0x38
         let kra = "ĸ"
-        let utf8KraData = Data(bytes: [0xc4, 0xb8])
+        let utf8KraData = Data([0xc4, 0xb8])
         if let utf8kra = utf8KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
             return NSString(bytes: bytes, length: utf8KraData.count, encoding: String.Encoding.utf8.rawValue)
         }) {
@@ -136,7 +136,7 @@ class TestNSString: LoopbackServerTest {
             XCTFail("Cant create UTF8 kra")
         }
 
-        let utf16KraData = Data(bytes: [0x1, 0x38])
+        let utf16KraData = Data([0x1, 0x38])
         if let utf16kra = utf16KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
             return NSString(bytes: bytes, length: utf16KraData.count, encoding: String.Encoding.utf16.rawValue)
         }) {
