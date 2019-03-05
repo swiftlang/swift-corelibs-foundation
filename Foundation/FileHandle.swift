@@ -392,12 +392,12 @@ open class FileHandle : NSObject, NSSecureCoding {
     public init(fileDescriptor fd: Int32, closeOnDealloc closeopt: Bool) {
       if (closeopt) {
         var handle: HANDLE?
-          if DuplicateHandle(GetCurrentProcess(),
-                             HANDLE(bitPattern: _get_osfhandle(fd))!,
-                             GetCurrentProcess(), &handle,
-                             DWORD(DUPLICATE_SAME_ACCESS), FALSE, 0) == FALSE {
-            fatalError("DuplicateHandle() failed")
-          }
+        if DuplicateHandle(GetCurrentProcess(),
+                           HANDLE(bitPattern: _get_osfhandle(fd))!,
+                           GetCurrentProcess(), &handle,
+                           0, FALSE, DWORD(DUPLICATE_SAME_ACCESS)) == FALSE {
+          fatalError("DuplicateHandle() failed: \(GetLastError())")
+        }
         _close(fd)
         _handle = handle!
         _closeOnDealloc = true
