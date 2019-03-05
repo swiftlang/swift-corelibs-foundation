@@ -740,7 +740,11 @@ extension FileHandle {
             deinit {}
         }
 
+#if os(Windows)
+        return NullDevice(handle: INVALID_HANDLE_VALUE, closeOnDealloc: false)
+#else
         return NullDevice(fileDescriptor: -1, closeOnDealloc: false)
+#endif
     }()
 
     open class var nullDevice: FileHandle {
