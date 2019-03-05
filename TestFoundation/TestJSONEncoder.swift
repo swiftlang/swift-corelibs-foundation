@@ -456,11 +456,15 @@ class TestJSONEncoder : XCTestCase {
     }
 
     func test_codingOfFloat() {
-        test_codingOf(value: Double(1.5), toAndFrom: "1.5")
+        test_codingOf(value: Float(1.5), toAndFrom: "1.5")
     }
 
     func test_codingOfDouble() {
-        test_codingOf(value: Float(1.5), toAndFrom: "1.5")
+        test_codingOf(value: Double(1.5), toAndFrom: "1.5")
+    }
+
+    func test_codingOfDecimal() {
+        test_codingOf(value: Decimal.pi, toAndFrom: "3.14159265358979323846264338327950288419")
     }
 
     func test_codingOfString() {
@@ -1266,6 +1270,7 @@ extension TestJSONEncoder {
             ("test_codingOfUIntMinMax", test_codingOfUIntMinMax),
             ("test_codingOfFloat", test_codingOfFloat),
             ("test_codingOfDouble", test_codingOfDouble),
+            ("test_codingOfDecimal", test_codingOfDecimal),
             ("test_codingOfString", test_codingOfString),
             ("test_codingOfURL", test_codingOfURL),
             ("test_numericLimits", test_numericLimits),

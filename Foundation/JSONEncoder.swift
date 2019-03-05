@@ -818,10 +818,8 @@ extension _JSONEncoder {
             // Encode URLs as single strings.
             return self.box((value as! URL).absoluteString)
         } else if T.self == Decimal.self {
-            // On Darwin we get ((value as! Decimal) as NSDecimalNumber) since JSONSerialization can consume NSDecimalNumber values.
-            // FIXME: Attempt to create a Decimal value if JSONSerialization on Linux consume one.
-            let doubleValue = (value as! Decimal).doubleValue
-            return try self.box(doubleValue)
+            // JSONSerialization can consume NSDecimalNumber values.
+            return NSDecimalNumber(decimal: value as! Decimal)
         }
         
         #else
@@ -835,10 +833,8 @@ extension _JSONEncoder {
             // Encode URLs as single strings.
             return self.box((value as! URL).absoluteString)
         } else if T.self == Decimal.self {
-            // On Darwin we get ((value as! Decimal) as NSDecimalNumber) since JSONSerialization can consume NSDecimalNumber values.
-            // FIXME: Attempt to create a Decimal value if JSONSerialization on Linux consume one.
-            let doubleValue = (value as! Decimal).doubleValue
-            return try self.box(doubleValue)
+            // JSONSerialization can consume NSDecimalNumber values.
+            return NSDecimalNumber(decimal: value as! Decimal)
         }
         #endif
         
@@ -2368,13 +2364,6 @@ extension _JSONDecoder {
     fileprivate func unbox(_ value: Any, as type: Decimal.Type) throws -> Decimal? {
         guard !(value is NSNull) else { return nil }
 
-        #if DEPLOYMENT_RUNTIME_SWIFT
-        // Bridging differences require us to split implementations here
-        // On Darwin we get (value as? Decimal) since JSONSerialization can produce NSDecimalNumber values.
-        // FIXME: Attempt to grab a Decimal value if JSONSerialization on Linux produces one.
-        let doubleValue = try self.unbox(value, as: Double.self)!
-        return Decimal(doubleValue)
-        #else
         // Attempt to bridge from NSDecimalNumber.
         if let decimal = value as? Decimal {
             return decimal
@@ -2382,7 +2371,6 @@ extension _JSONDecoder {
             let doubleValue = try self.unbox(value, as: Double.self)!
             return Decimal(doubleValue)
         }
-        #endif
     }
 
     fileprivate func unbox<T : Decodable>(_ value: Any, as type: T.Type) throws -> T? {

@@ -397,6 +397,30 @@ extension Decimal : SignedNumeric {
     }
 }
 
+
+extension Decimal: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSDecimalNumber {
+        return NSDecimalNumber(decimal: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) {
+        result = _unconditionallyBridgeFromObjectiveC(x)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) -> Bool {
+        result = x.decimalValue
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
+        var result: Decimal?
+        guard let src = source else { return Decimal(0) }
+        guard _conditionallyBridgeFromObjectiveC(src, result: &result) else { return Decimal(0) }
+        return result!
+    }
+}
+
+
 extension Decimal {
     @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
     @_transparent
