@@ -1441,14 +1441,68 @@ open class FileManager : NSObject {
         }
     }
 
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     private func _removeItem(atPath path: String, isURL: Bool, alreadyConfirmed: Bool = false) throws {
         guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
             return
         }
 
 #if os(Windows)
-        NSUnimplemented()
+        let faAttributes = try! windowsFileAttributes(atPath: path)
+        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
+            if path.withCString(encodedAs: UTF16.self, DeleteFileW) == 0 {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+            return
+        }
+        var dirStack = [path]
+        var itemPath = ""
+        while let currentDir = dirStack.popLast() {
+            do {
+                itemPath = currentDir
+                guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
+                    continue
+                }
+                guard path.withCString(encodedAs: UTF16.self, RemoveDirectoryW) == 0 else {
+                    continue
+                }
+                guard GetLastError() == ERROR_DIR_NOT_EMPTY else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+                }
+                dirStack.append(path)
+                var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
+                let h: HANDLE = (path + "\\*").withCString(encodedAs: UTF16.self, {
+                    FindFirstFileW($0, &ffd)
+                })
+                guard h != INVALID_HANDLE_VALUE else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+                }
+                defer { FindClose(h) }
+
+                repeat {
+                    let fileArr = Array<WCHAR>(
+                        UnsafeBufferPointer(start: &ffd.cFileName.0,
+                                            count: MemoryLayout.size(ofValue: ffd.cFileName)))
+                    let file = String(decodingCString: fileArr, as: UTF16.self)
+                    itemPath = "\(currentDir)\\\(file)"
+                    if (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0) {
+                        if file != "." && file != ".." {
+                            dirStack.append(itemPath)
+                        }
+                    } else {
+                        guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
+                            continue
+                        }
+                        if itemPath.withCString(encodedAs: UTF16.self, DeleteFileW) == 0 {
+                            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+                        }
+                    }
+                } while(FindNextFileW(h, &ffd) != 0)
+            } catch {
+                if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
+                    throw error
+                }
+            }
+        }
 #else
         if rmdir(path) == 0 {
             return
