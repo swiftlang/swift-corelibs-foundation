@@ -197,12 +197,14 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     }
 
     internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (NSData, URLResponse?) {
-        let readResult: NSData
+        var readResult: NSData = NSData()
         var urlResponse: URLResponse?
 
         if url.isFileURL {
-            let data = try NSData.readBytesFromFileWithExtendedAttributes(url.path, options: readOptionsMask)
-            readResult = data.toNSData()
+            try url.withUnsafeFileSystemRepresentation {
+              let data = try NSData.readBytesFromFileWithExtendedAttributes(String(cString: $0!), options: readOptionsMask)
+              readResult = data.toNSData()
+            }
         } else {
             let session = URLSession(configuration: URLSessionConfiguration.default)
             let cond = NSCondition()

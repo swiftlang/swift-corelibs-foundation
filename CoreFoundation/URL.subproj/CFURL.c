@@ -4459,7 +4459,32 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
     
     if ( relPath ) {
         // relPath is not absolute if it is zero length or doesn't start with a slash
-        Boolean relPathIsRelative = ((CFStringGetLength(relPath) != 0) ? (CFStringGetCharacterAtIndex(relPath, 0) != '/') : TRUE);
+        CFIndex length = CFStringGetLength(relPath);
+        Boolean relPathIsRelative = TRUE;
+        switch (fsType) {
+        case kCFURLPOSIXPathStyle:
+          relPathIsRelative = length > 0 && CFStringGetCharacterAtIndex(relPath, 0) != '/';
+          break;
+        case kCFURLHFSPathStyle:
+          relPathIsRelative = length > 0 && CFStringGetCharacterAtIndex(relPath, 0) == ':';
+          break;
+        case kCFURLWindowsPathStyle:
+          // In theory, on TARGET_DEPLOYMENT_WINDOWS we could use
+          // PathIsRelativeW here.
+
+          // UNC paths are always absolute
+          if (length > 2 && CFStringGetCharacterAtIndex(relPath, 0) == '\\' && CFStringGetCharacterAtIndex(relPath, 1) == '\\')
+            relPathIsRelative = FALSE;
+          else if (length > 1 && CFStringGetCharacterAtIndex(relPath, 1) == ':')
+            // This is not really ideal, but, since a drive letter a single
+            // character, and ':' is not a valid path character, and ':' is
+            // reserved for the ADS separator, this works.
+            relPathIsRelative = FALSE;
+          else
+            relPathIsRelative = TRUE;
+
+          break;
+        }
         if ( basePath && relPathIsRelative ) {
             // we have both basePath and relPath, and relPath is not absolute -- resolve them
             CFStringRef result = _resolveFileSystemPaths(relPath, basePath, CFURLHasDirectoryPath(base), fsType, allocator);
