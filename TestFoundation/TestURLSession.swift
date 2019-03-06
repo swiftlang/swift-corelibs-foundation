@@ -523,7 +523,7 @@ class TestURLSession : LoopbackServerTest {
                 XCTAssertNil(response)
                 XCTAssertNotNil(error)
 
-                defer { expect.fulfill() }
+                expect.fulfill()
             }
             task.resume()
             waitForExpectations(timeout: 12)
