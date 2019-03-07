@@ -28,7 +28,7 @@ class TestOperationQueue : XCTestCase {
     
     func test_OperationCount() {
         let queue = OperationQueue()
-        let op1 = BlockOperation(block: { sleep(2) })
+        let op1 = BlockOperation(block: { Thread.sleep(forTimeInterval: 2) })
         queue.addOperation(op1)
         XCTAssertTrue(queue.operationCount == 1)
         queue.waitUntilAllOperationsAreFinished()
@@ -252,7 +252,7 @@ class AsyncOperation: Operation {
         isExecuting = true
 
         queue.async {
-            sleep(1)
+            Thread.sleep(forTimeInterval: 1)
             self.isExecuting = false
             self.isFinished = true
         }

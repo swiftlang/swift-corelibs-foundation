@@ -318,7 +318,7 @@ class TestFileHandle : XCTestCase {
             let handle = createFileHandle()
             handle.readabilityHandler = { _ = $0.offsetInFile }
             handle.closeFile()
-            usleep(1000)
+            Thread.sleep(forTimeInterval: 0.001)
         }
     }
     
@@ -327,7 +327,7 @@ class TestFileHandle : XCTestCase {
             let handle = createFileHandle()
             handle.readabilityHandler = { _ = try? $0.offset() }
             try handle.close()
-            usleep(1000)
+            Thread.sleep(forTimeInterval: 0.001)
         }
     }
     
