@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android) || os(Windows)
 import Foundation
 #else
 import SwiftFoundation

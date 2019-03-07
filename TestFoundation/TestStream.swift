@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if (os(Linux) || os(Android))
+#if os(Linux) || os(Android) || os(Windows)
     @testable import Foundation
 #else
     @testable import SwiftFoundation

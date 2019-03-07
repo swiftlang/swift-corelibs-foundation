@@ -9,7 +9,7 @@
 
 // Centralized conditional imports for all test sources
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
+#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android) || os(Windows)
 @_exported import Foundation
 @_exported import XCTest
 #else

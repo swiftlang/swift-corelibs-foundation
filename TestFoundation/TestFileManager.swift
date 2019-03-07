@@ -8,7 +8,7 @@
 //
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    #if (os(Linux) || os(Android))
+    #if os(Linux) || os(Android) || os(Windows)
         @testable import Foundation
     #else
         @testable import SwiftFoundation
