@@ -55,6 +55,7 @@ class XDGCheck {
     }
 }
 
+#if !os(Windows)
 // -----
 
 // Used by TestProcess: test_interrupt(), test_suspend_resume()
@@ -103,6 +104,7 @@ func signalTest() {
         }
     }
 }
+#endif
 
 // -----
 
@@ -190,8 +192,10 @@ case "--nspathfor":
     test.run()
 #endif
 
+#if !os(Windows)
 case "--signal-test":
     signalTest()
+#endif
     
 default:
     fatalError("These arguments are not recognized. Only run this from a unit test.")
