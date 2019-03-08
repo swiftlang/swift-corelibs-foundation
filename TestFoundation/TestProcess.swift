@@ -8,6 +8,9 @@
 //
 
 @testable import Foundation
+#if os(Windows)
+import WinSDK
+#endif
 
 class TestProcess : XCTestCase {
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
@@ -286,6 +289,20 @@ class TestProcess : XCTestCase {
 
     private func realpathOf(path: String) -> String? {
         let fm = FileManager.default
+#if os(Windows)
+        var hFile: HANDLE = INVALID_HANDLE_VALUE
+        path.withCString(encodedAs: UTF16.self) {
+          hFile = CreateFileW($0, GENERIC_READ, DWORD(FILE_SHARE_WRITE), nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS), nil)
+        }
+        if hFile == INVALID_HANDLE_VALUE { return nil }
+
+        let dwLength: DWORD  = GetFinalPathNameByHandleW(hFile, nil, 0, DWORD(FILE_NAME_NORMALIZED))
+        let szPath: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwLength + 1))
+        defer { szPath.deallocate() }
+
+        GetFinalPathNameByHandleW(hFile, szPath.baseAddress, dwLength, DWORD(FILE_NAME_NORMALIZED))
+        let result = String(decodingCString: szPath.baseAddress!, as: UTF16.self)
+#else
         let length = Int(PATH_MAX) + 1
         var buf = [Int8](repeating: 0, count: length)
         let fsRep = fm.fileSystemRepresentation(withPath: path)
@@ -295,6 +312,7 @@ class TestProcess : XCTestCase {
         guard let result = realpath(fsRep, &buf) else {
             return nil
         }
+#endif
         return fm.string(withFileSystemRepresentation: result, length: strlen(result))
     }
 
