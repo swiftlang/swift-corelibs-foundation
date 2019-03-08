@@ -502,6 +502,7 @@ if(ENABLE_TESTING)
                          ${Foundation_INTERFACE_LIBRARIES}
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
+                         -Xlinker -ignore:4049 -Xlinker -ignore:4217
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist
