@@ -345,6 +345,10 @@ if(NOT BUILD_SHARED_LIBS)
       ${ICU_I18N_LIBRARY}
       ${LIBXML2_LIBRARIES})
 endif()
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  list(APPEND Foundation_INTERFACE_LIBRARIES
+    -lWS2_32)
+endif()
 
 add_swift_executable(plutil
                      SOURCES
