@@ -17,6 +17,27 @@ option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
 option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 
 find_package(CURL REQUIRED)
+
+# When using find_package for ICU, if ICU is custom built then ICU_{UC,I18N_LIBRARY_{DEBUG,RELEASE}
+# also need to be set.
+if(NOT "${ICU_UC_LIBRARY}" STREQUAL "")
+  if("${ICU_UC_LIBRARY_DEBUG}" STREQUAL "")
+    set(ICU_UC_LIBRARY_DEBUG "${ICU_UC_LIBRARY}")
+  endif()
+  if("${ICU_UC_LIBRARY_RELEASE}" STREQUAL "")
+    set(ICU_UC_LIBRARY_RELEASE "${ICU_UC_LIBRARY}")
+  endif()
+endif()
+
+if(NOT "${ICU_I18N_LIBRARY}" STREQUAL "")
+  if("${ICU_I18N_LIBRARY_DEBUG}" STREQUAL "")
+    set(ICU_I18N_LIBRARY_DEBUG "${ICU_I18N_LIBRARY}")
+  endif()
+  if("${ICU_I18N_LIBRARY_RELEASE}" STREQUAL "")
+    set(ICU_I18N_LIBRARY_RELEASE "${ICU_I18N_LIBRARY}")
+  endif()
+endif()
+
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
 
