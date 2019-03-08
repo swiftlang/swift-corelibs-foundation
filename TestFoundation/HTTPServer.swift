@@ -20,6 +20,11 @@ import Dispatch
     import Glibc
 #elseif os(Windows)
     import MSVCRT
+    import WinSDK
+#endif
+
+#if !os(Windows)
+  typealias SOCKET = Int32
 #endif
 
 
@@ -42,11 +47,12 @@ extension UInt16 {
 }
 
 class _TCPSocket {
-
+#if !os(Windows)
     private let sendFlags: CInt
-    private var listenSocket: Int32!
+#endif
+    private var listenSocket: SOCKET!
     private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1) 
-    private var connectionSocket: Int32!
+    private var connectionSocket: SOCKET!
     
     private func isNotNegative(r: CInt) -> Bool {
         return r != -1
@@ -56,7 +62,7 @@ class _TCPSocket {
         return r == 0
     }
 
-    private func attempt(_ name: String, file: String = #file, line: UInt = #line, valid: (CInt) -> Bool,  _ b: @autoclosure () -> CInt) throws -> CInt {
+    private func attempt<T>(_ name: String, file: String = #file, line: UInt = #line, valid: (T) -> Bool,  _ b: @autoclosure () -> T) throws -> T {
         let r = b()
         guard valid(r) else {
             throw ServerError(operation: name, errno: errno, file: file, line: line)
@@ -67,21 +73,31 @@ class _TCPSocket {
     public private(set) var port: UInt16
 
     init(port: UInt16?) throws {
-#if canImport(Darwin)
-        sendFlags = 0
-#else
+#if !os(Windows)
+#if os(Linux) || os(Android) || os(FreeBSD)
         sendFlags = CInt(MSG_NOSIGNAL)
+#else
+        sendFlags = 0
+#endif
 #endif
 
-#if os(Linux) && !os(Android)
-            let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
-#else
-            let SOCKSTREAM = SOCK_STREAM
-#endif
         self.port = port ?? 0
-        listenSocket = try attempt("socket", valid: isNotNegative, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
+
+#if os(Windows)
+        listenSocket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, 0))
+
+        var value: Int8 = Int8(TRUE)
+        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
+#else
+#if os(Linux) && !os(Android)
+        let SOCKSTREAM = Int32(SOCK_STREAM.rawValue)
+#else
+        let SOCKSTREAM = SOCK_STREAM
+#endif
+        listenSocket = try attempt("socket", valid: { $0 >= 0 }, socket(AF_INET, SOCKSTREAM, Int32(IPPROTO_TCP)))
         var on: CInt = 1
-        _ = try attempt("setsockopt", valid: isZero, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<CInt>.size)))
+        _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout<CInt>.size)))
+#endif
 
         let sa = createSockaddr(port)
         socketAddress.initialize(to: sa)
@@ -111,6 +127,8 @@ class _TCPSocket {
             return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), __pad: (0,0,0,0,0,0,0,0))
         #elseif os(Linux)
             return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+        #elseif os(Windows)
+            return sockaddr_in(sin_family: ADDRESS_FAMILY(AF_INET), sin_port: USHORT(netPort), sin_addr: IN_ADDR(S_un: in_addr.__Unnamed_union_S_un(S_addr: addr)), sin_zero: (CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0)))
         #else
             return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #endif
@@ -120,7 +138,11 @@ class _TCPSocket {
         try socketAddress.withMemoryRebound(to: sockaddr.self, capacity: MemoryLayout<sockaddr>.size, {
             let addr = UnsafeMutablePointer<sockaddr>($0)
             var sockLen = socklen_t(MemoryLayout<sockaddr>.size) 
-            connectionSocket = try attempt("accept", valid: isNotNegative, accept(listenSocket, addr, &sockLen))
+#if os(Windows)
+            connectionSocket = try attempt("WSAAccept", valid: { $0 != INVALID_SOCKET }, WSAAccept(listenSocket, addr, &sockLen, nil, 0))
+#else
+            connectionSocket = try attempt("accept", valid: { $0 >= 0 }, accept(listenSocket, addr, &sockLen))
+#endif
 #if canImport(Dawin)
             // Disable SIGPIPEs when writing to closed sockets
             var on: CInt = 1
@@ -130,8 +152,16 @@ class _TCPSocket {
     }
  
     func readData() throws -> String {
-        var buffer = [UInt8](repeating: 0, count: 4096)
-        _ = try attempt("read", valid: isNotNegative, CInt(read(connectionSocket, &buffer, buffer.count)))
+        var buffer = [CChar](repeating: 0, count: 4096)
+#if os(Windows)
+        var dwNumberOfBytesRecieved: DWORD = 0;
+        try buffer.withUnsafeMutableBufferPointer {
+          var wsaBuffer: WSABUF = WSABUF(len: ULONG($0.count), buf: $0.baseAddress)
+          _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, nil, nil, nil))
+        }
+#else
+        _ = try attempt("read", valid: { $0 >= 0 }, read(connectionSocket, &buffer, buffer.count))
+#endif
         return String(cString: &buffer)
     }
     
@@ -144,14 +174,33 @@ class _TCPSocket {
     }
 
     func writeRawData(_ data: Data) throws {
+#if os(Windows)
+        _ = try data.withUnsafeBytes {
+          var dwNumberOfBytesSent: DWORD = 0
+          var wsaBuffer: WSABUF = WSABUF(len: ULONG(data.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
+          _ = try attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil))
+        }
+#else
         _ = try data.withUnsafeBytes { ptr in
             try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, ptr, data.count, sendFlags)))
         }
+#endif
     }
-   
+
+    private func _send(_ bytes: [UInt8]) throws -> Int {
+#if os(Windows)
+      return try bytes.withUnsafeBytes {
+        var dwNumberOfBytesSent: DWORD = 0
+        var wsaBuffer: WSABUF = WSABUF(len: ULONG(bytes.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
+        return try Int(attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil)))
+      }
+#else
+      return try attempt("send", valid: { $0 >= 0 }, send(connectionSocket, &bytes, bytes.count, sendFlags))
+#endif
+    }
+
     func writeData(header: String, body: String, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
-        var _header = Array(header.utf8)
-        _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &_header, _header.count, sendFlags)))
+        _ = try _send(Array(header.utf8))
 
         if let sendDelay = sendDelay, let bodyChunks = bodyChunks {
             let count = max(1, Int(Double(body.utf8.count) / Double(bodyChunks)))
@@ -159,26 +208,33 @@ class _TCPSocket {
             
             for item in texts {
                 Thread.sleep(forTimeInterval: sendDelay)
-                var bytes = Array(item.utf8)
-                _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
+                _ = try _send(Array(item.utf8))
             }
         } else {
-            var bytes = Array(body.utf8)
-            _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
+            _ = try _send(Array(body.utf8))
         }
     }
 
     func closeClient() {
         if let connectionSocket = self.connectionSocket {
+#if os(Windows)
+            closesocket(connectionSocket)
+#else
             close(connectionSocket)
+#endif
             self.connectionSocket = nil
         }
     }
 
     func shutdownListener() {
         closeClient()
+#if os(Windows)
+        shutdown(listenSocket, SD_BOTH)
+        closesocket(listenSocket)
+#else
         shutdown(listenSocket, CInt(SHUT_RDWR))
         close(listenSocket)
+#endif
     }
 }
 
