@@ -134,17 +134,6 @@ open class FileHandle : NSObject, NSSecureCoding {
         return source
     }
 
-    #if os(Windows)
-    @available(*, unavailable, message: "Not yet implemented on Windows")
-    open var readabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
-    }
-
-    @available(*, unavailable, message: "Not yet implemented on Windows")
-    open var writeabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
-    }
-    #else
     private var _readabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
     open var readabilityHandler: ((FileHandle) -> Void)? {
         get {
@@ -200,7 +189,6 @@ open class FileHandle : NSObject, NSSecureCoding {
             }
         }
     }
-    #endif
 
     open var availableData: Data {
         _checkFileHandle()
@@ -900,6 +888,7 @@ extension FileHandle {
 #if os(Windows)
         // TODO(compnerd) implement this for Windows, which does not allow
         // treating the socket as a FD
+        NSUnimplemented()
 #else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])

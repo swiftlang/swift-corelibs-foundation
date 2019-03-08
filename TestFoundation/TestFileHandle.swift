@@ -9,6 +9,9 @@
 
 import Dispatch
 @testable import Foundation
+#if os(Windows)
+import WinSDK
+#endif
 
 class TestFileHandle : XCTestCase {
     var allHandles: [FileHandle] = []
@@ -67,6 +70,19 @@ class TestFileHandle : XCTestCase {
     }
     
     func createFileHandleForSeekErrors() -> FileHandle {
+#if os(Windows)
+      var hReadPipe: HANDLE? = INVALID_HANDLE_VALUE
+      var hWritePipe: HANDLE? = INVALID_HANDLE_VALUE
+      if CreatePipe(&hReadPipe, &hWritePipe, nil, 0) == FALSE {
+        assert(false)
+      }
+
+      if CloseHandle(hWritePipe) == FALSE {
+        assert(false)
+      }
+
+      let fh = FileHandle(handle: hReadPipe!, closeOnDealloc: true)
+#else
         var fds: [Int32] = [-1, -1]
         fds.withUnsafeMutableBufferPointer { (pointer) -> Void in
             pipe(pointer.baseAddress)
@@ -75,6 +91,7 @@ class TestFileHandle : XCTestCase {
         close(fds[1])
         
         let fh = FileHandle(fileDescriptor: fds[0], closeOnDealloc: true)
+#endif
         allHandles.append(fh)
         return fh
     }
