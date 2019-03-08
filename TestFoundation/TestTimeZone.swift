@@ -166,6 +166,7 @@ class TestTimeZone: XCTestCase {
     }
 
     func test_systemTimeZoneUsesSystemTime() {
+#if !os(Windows)
         tzset()
         var t = time(nil)
         var lt = tm()
@@ -173,6 +174,7 @@ class TestTimeZone: XCTestCase {
         let zoneName = NSTimeZone.system.abbreviation() ?? "Invalid Abbreviation"
         let expectedName = String(cString: lt.tm_zone, encoding: .ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
+#endif
     }
 
     func test_tz_customMirror() {
