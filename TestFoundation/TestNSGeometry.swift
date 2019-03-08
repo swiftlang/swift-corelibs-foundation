@@ -653,6 +653,13 @@ class TestNSGeometry : XCTestCase {
         XCTAssertEqual(i9.origin.y, 0)
         XCTAssertEqual(i9.size.width, 0)
         XCTAssertEqual(i9.size.height, 0)
+
+        let r8 = CGRect(x: 10.33333333333333333, y: 0, width: 10, height: 10)
+        let i10 = CGRect.infinite.intersection(r8)
+        XCTAssertEqual(r8.origin.x, i10.origin.x)
+        XCTAssertEqual(r8.origin.y, i10.origin.y)
+        XCTAssertEqual(r8.size.width, i10.size.width)
+        XCTAssertEqual(r8.size.height, i10.size.height)
     }
 
     func test_CGRect_Intersects() {
