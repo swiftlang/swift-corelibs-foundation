@@ -8,6 +8,7 @@
 //
 
 import Dispatch
+@testable import Foundation
 
 class TestFileHandle : XCTestCase {
     var allHandles: [FileHandle] = []
@@ -279,38 +280,39 @@ class TestFileHandle : XCTestCase {
     }
 
     func test_truncateFile() {
-        mkstemp(template: "test_truncateFile.XXXXXX") { (fh) in
-            fh.truncateFile(atOffset: 50)
-            XCTAssertEqual(fh.offsetInFile, 50)
+        let (fd, path) = try! _NSCreateTemporaryFile("test_truncate")
+        let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
 
-            fh.truncateFile(atOffset: 0)
-            XCTAssertEqual(fh.offsetInFile, 0)
+        fh.truncateFile(atOffset: 50)
+        XCTAssertEqual(fh.offsetInFile, 50)
 
-            fh.truncateFile(atOffset: 100)
-            XCTAssertEqual(fh.offsetInFile, 100)
+        fh.truncateFile(atOffset: 0)
+        XCTAssertEqual(fh.offsetInFile, 0)
 
-            fh.write(Data([1, 2]))
-            XCTAssertEqual(fh.offsetInFile, 102)
+        fh.truncateFile(atOffset: 100)
+        XCTAssertEqual(fh.offsetInFile, 100)
 
-            fh.seek(toFileOffset: 4)
-            XCTAssertEqual(fh.offsetInFile, 4)
+        fh.write(Data([1, 2]))
+        XCTAssertEqual(fh.offsetInFile, 102)
 
-            (0..<20).forEach { fh.write(Data([$0])) }
-            XCTAssertEqual(fh.offsetInFile, 24)
+        fh.seek(toFileOffset: 4)
+        XCTAssertEqual(fh.offsetInFile, 4)
 
-            fh.seekToEndOfFile()
-            XCTAssertEqual(fh.offsetInFile, 102)
+        (0..<20).forEach { fh.write(Data([$0])) }
+        XCTAssertEqual(fh.offsetInFile, 24)
 
-            fh.truncateFile(atOffset: 10)
-            XCTAssertEqual(fh.offsetInFile, 10)
+        fh.seekToEndOfFile()
+        XCTAssertEqual(fh.offsetInFile, 102)
 
-            fh.seek(toFileOffset: 0)
-            XCTAssertEqual(fh.offsetInFile, 0)
+        fh.truncateFile(atOffset: 10)
+        XCTAssertEqual(fh.offsetInFile, 10)
 
-            let data = fh.readDataToEndOfFile()
-            XCTAssertEqual(data.count, 10)
-            XCTAssertEqual(data, Data([0, 0, 0, 0, 0, 1, 2, 3, 4, 5]))
-        }
+        fh.seek(toFileOffset: 0)
+        XCTAssertEqual(fh.offsetInFile, 0)
+
+        let data = fh.readDataToEndOfFile()
+        XCTAssertEqual(data.count, 10)
+        XCTAssertEqual(data, Data([0, 0, 0, 0, 0, 1, 2, 3, 4, 5]))
     }
     
     func test_readabilityHandlerCloseFileRace() throws {

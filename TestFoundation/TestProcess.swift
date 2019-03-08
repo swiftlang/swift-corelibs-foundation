@@ -7,6 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+@testable import Foundation
+
 class TestProcess : XCTestCase {
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
 #if os(Android)
@@ -231,21 +233,22 @@ class TestProcess : XCTestCase {
         process.launchPath = "/usr/bin/which"
         process.arguments = ["which"]
 
-        mkstemp(template: "TestProcess.XXXXXX") { handle in
-            process.standardOutput = handle
+        let (fd, path) = try! _NSCreateTemporaryFile("TestProcess")
+        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
 
-            process.launch()
-            process.waitUntilExit()
-            XCTAssertEqual(process.terminationStatus, 0)
+        process.standardOutput = handle
 
-            handle.seek(toFileOffset: 0)
-            let data = handle.readDataToEndOfFile()
-            guard let string = String(data: data, encoding: .ascii) else {
-                XCTFail("Could not read stdout")
-                return
-            }
-            XCTAssertTrue(string.hasSuffix("/which\n"))
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+
+        handle.seek(toFileOffset: 0)
+        let data = handle.readDataToEndOfFile()
+        guard let string = String(data: data, encoding: .ascii) else {
+            XCTFail("Could not read stdout")
+            return
         }
+        XCTAssertTrue(string.hasSuffix("/which\n"))
     }
     
     func test_passthrough_environment() {
