@@ -533,10 +533,20 @@ typedef const struct CF_BRIDGED_TYPE(id) __CFAllocator * CFAllocatorRef;
 
 /* This is a synonym for NULL, if you'd rather use a named constant. */
 CF_EXPORT
+#if CF_BUILDING_CF
+__declspec(dllexport)
+#else
+__declspec(dllimport)
+#endif
 const CFAllocatorRef kCFAllocatorDefault;
 
 /* Default system allocator; you rarely need to use this. */
 CF_EXPORT
+#if CF_BUILDING_CF
+__declspec(dllexport)
+#else
+__declspec(dllimport)
+#endif
 const CFAllocatorRef kCFAllocatorSystemDefault;
 
 /* This allocator uses malloc(), realloc(), and free(). This should not be

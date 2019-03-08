@@ -530,7 +530,7 @@ void CFArrayInsertValueAtIndex(CFMutableArrayRef theArray, CFIndex idx, const vo
 		retain callback, the behavior is undefined. The indices of
 		other values is not affected.
 */
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 void CFArraySetValueAtIndex(CFMutableArrayRef theArray, CFIndex idx, const void *value);
 
 /*!

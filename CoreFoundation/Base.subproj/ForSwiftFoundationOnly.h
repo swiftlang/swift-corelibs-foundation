@@ -381,7 +381,7 @@ CF_EXPORT _CFThreadSpecificKey _CFThreadSpecificKeyCreate(void);
 CF_EXPORT _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context);
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name);
-CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
+CF_CROSS_PLATFORM_EXPORT __declspec(dllexport) int _CFThreadGetName(char *_Nonnull buf, int length);
 
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
@@ -391,7 +391,7 @@ CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspe
 
 CF_EXPORT _Nullable CFErrorRef CFWriteStreamCopyError(CFWriteStreamRef _Null_unspecified stream);
 
-CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
+CF_CROSS_PLATFORM_EXPORT __declspec(dllexport) Boolean _CFBundleSupportsFHSBundles(void);
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8

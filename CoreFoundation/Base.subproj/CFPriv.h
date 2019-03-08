@@ -54,7 +54,7 @@ CF_EXTERN_C_BEGIN
 
 CF_EXPORT void _CFRuntimeSetCFMPresent(void *a);
 
-CF_EXPORT const char *_CFProcessPath(void);
+CF_EXPORT __declspec(dllexport) const char *_CFProcessPath(void);
 CF_EXPORT const char **_CFGetProcessPath(void);
 CF_EXPORT const char **_CFGetProgname(void);
 

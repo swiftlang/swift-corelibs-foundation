@@ -384,7 +384,9 @@ static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorNull = {
     {0, NULL, NULL, NULL, NULL, __CFAllocatorNullAllocate, __CFAllocatorNullReallocate, NULL, NULL}
 };
 
+__declspec(dllexport)
 const CFAllocatorRef kCFAllocatorDefault = NULL;
+__declspec(dllexport)
 const CFAllocatorRef kCFAllocatorSystemDefault = &__kCFAllocatorSystemDefault;
 const CFAllocatorRef kCFAllocatorMalloc = &__kCFAllocatorMalloc;
 const CFAllocatorRef kCFAllocatorMallocZone = &__kCFAllocatorMallocZone;

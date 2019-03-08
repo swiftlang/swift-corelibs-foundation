@@ -25,7 +25,7 @@ CF_EXTERN_C_BEGIN
 CF_EXPORT
 CFTypeID CFTimeZoneGetTypeID(void);
 
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFTimeZoneRef CFTimeZoneCopySystem(void);
 
 CF_EXPORT
@@ -55,7 +55,7 @@ CFTimeZoneRef CFTimeZoneCreateWithTimeIntervalFromGMT(CFAllocatorRef allocator, 
 CF_EXPORT
 CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef name, Boolean tryAbbrev);
 
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFStringRef CFTimeZoneGetName(CFTimeZoneRef tz);
 
 CF_EXPORT

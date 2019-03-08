@@ -37,7 +37,7 @@ CFMutableDataRef CFDataCreateMutable(CFAllocatorRef allocator, CFIndex capacity)
 CF_EXPORT
 CFMutableDataRef CFDataCreateMutableCopy(CFAllocatorRef allocator, CFIndex capacity, CFDataRef theData);
 
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFIndex CFDataGetLength(CFDataRef theData);
 
 CF_EXPORT

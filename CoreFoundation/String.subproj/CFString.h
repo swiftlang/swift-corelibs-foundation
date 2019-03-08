@@ -218,7 +218,7 @@ CFStringRef CFStringCreateWithCString(CFAllocatorRef alloc, const char *cStr, CF
 
 /* The following takes an explicit length, and allows you to specify whether the data is an external format --- that is, whether to pay attention to the BOM character (if any) and do byte swapping if necessary
 */
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFStringRef CFStringCreateWithBytes(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, CFStringEncoding encoding, Boolean isExternalRepresentation);
 
 CF_EXPORT
@@ -276,7 +276,7 @@ CFStringRef CFStringCreateWithFormatAndArguments(CFAllocatorRef alloc, CFDiction
 CF_EXPORT
 CFMutableStringRef CFStringCreateMutable(CFAllocatorRef alloc, CFIndex maxLength);
 
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFMutableStringRef CFStringCreateMutableCopy(CFAllocatorRef alloc, CFIndex maxLength, CFStringRef theString);
 
 /* This function creates a mutable string that has a developer supplied and directly editable backing store.
@@ -292,7 +292,7 @@ CFMutableStringRef CFStringCreateMutableWithExternalCharactersNoCopy(CFAllocator
 
 /* Number of 16-bit Unicode characters in the string.
 */
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFIndex CFStringGetLength(CFStringRef theString);
 
 /* Extracting the contents of the string. For obtaining multiple characters, calling
@@ -353,7 +353,7 @@ const UniChar *CFStringGetCharactersPtr(CFStringRef theString);  /* May return N
        only UTF-8, UTF-16, and UTF-32 define the handling of the byte order mark character, and the "LE"
        and "BE" variants of UTF-16 and UTF-32 don't.
 */
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFIndex CFStringGetBytes(CFStringRef theString, CFRange range, CFStringEncoding encoding, UInt8 lossByte, Boolean isExternalRepresentation, UInt8 *buffer, CFIndex maxBufLen, CFIndex *usedBufLen);
 
 /* Convenience functions String <-> Data. These generate "external" formats, that is, formats that
@@ -365,7 +365,7 @@ CFIndex CFStringGetBytes(CFStringRef theString, CFRange range, CFStringEncoding 
 CF_EXPORT
 CFStringRef CFStringCreateFromExternalRepresentation(CFAllocatorRef alloc, CFDataRef data, CFStringEncoding encoding);	/* May return NULL on conversion error */
 
-CF_EXPORT
+CF_EXPORT __declspec(dllexport)
 CFDataRef CFStringCreateExternalRepresentation(CFAllocatorRef alloc, CFStringRef theString, CFStringEncoding encoding, UInt8 lossByte);	/* May return NULL on conversion error */	
 
 /* Hints about the contents of a string
@@ -740,7 +740,13 @@ Boolean CFStringTransform(CFMutableStringRef string, CFRange *range, CFStringRef
 
 /* Transform identifiers for CFStringTransform()
 */
-CF_EXPORT const CFStringRef kCFStringTransformStripCombiningMarks;
+CF_EXPORT
+#if CF_BUILDING_CF
+__declspec(dllexport)
+#else
+__declspec(dllimport)
+#endif
+  const CFStringRef kCFStringTransformStripCombiningMarks;
 CF_EXPORT const CFStringRef kCFStringTransformToLatin;
 CF_EXPORT const CFStringRef kCFStringTransformFullwidthHalfwidth;
 CF_EXPORT const CFStringRef kCFStringTransformLatinKatakana;

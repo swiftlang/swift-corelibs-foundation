@@ -426,6 +426,7 @@ struct transform_map {
 
 /* Use leading ) to avoid collisions with legal ICU identifiers
 */
+__declspec(dllexport)
 CONST_STRING_DECL(kCFStringTransformStripCombiningMarks, ")kCFStringTransformStripCombiningMarks")
 CONST_STRING_DECL(kCFStringTransformToLatin, ")kCFStringTransformToLatin")
 CONST_STRING_DECL(kCFStringTransformFullwidthHalfwidth, ")kCFStringTransformFullwidthHalfwidth")
