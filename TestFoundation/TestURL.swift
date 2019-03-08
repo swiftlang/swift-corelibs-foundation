@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(Windows)
+import WinSDK
+#endif
+
 let kURLTestParsingTestsKey = "ParsingTests"
 
 let kURLTestTitleKey = "In-Title"
@@ -77,6 +81,9 @@ class TestURL : XCTestCase {
         #elseif os(Linux)
         let baseURL = URL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
+        #elseif os(Windows)
+        let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
+        let relativePath = "Documents"
         #endif
         // we're telling fileURLWithPath:isDirectory:relativeTo: Documents is a directory
         let url1 = URL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeTo: baseURL)
@@ -224,10 +231,19 @@ class TestURL : XCTestCase {
     
     static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
     static var gBaseCurrentWorkingDirectoryPath : String {
+#if os(Windows)
+        let dwLength: DWORD = GetCurrentDirectoryW(0, nil)
+        var szDirectory: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer.allocate(capacity: Int(dwLength + 1))
+        defer { szDirectory.deallocate() }
+
+        GetCurrentDirectoryW(dwLength, szDirectory.baseAddress)
+        return String(decodingCString: szDirectory.baseAddress!, as: UTF16.self)
+#else
         let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
         var buf : [Int8] = Array(repeating: 0, count: count)
         getcwd(&buf, count)
         return String(cString: buf)
+#endif
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
@@ -240,6 +256,42 @@ class TestURL : XCTestCase {
     static let gDirectoryDoesNotExistPath = gBaseTemporaryDirectoryPath + gDirectoryDoesNotExistName
 
     static func setup_test_paths() -> Bool {
+#if os(Windows)
+        if !gFileExistsPath.withCString(encodedAs: UTF16.self, {
+          let hFile: HANDLE = CreateFileW($0, GENERIC_READ | UInt32(GENERIC_WRITE), 0, nil, DWORD(CREATE_ALWAYS), DWORD(FILE_ATTRIBUTE_NORMAL), nil)
+          if hFile == INVALID_HANDLE_VALUE { return false }
+          if CloseHandle(hFile) == FALSE { }
+          return true
+        }) { return false }
+
+        if !gFileDoesNotExistPath.withCString(encodedAs: UTF16.self, {
+          if DeleteFileW($0) == FALSE {
+            if GetLastError() != ERROR_FILE_NOT_FOUND {
+              return false
+            }
+          }
+          return true
+        }) { return false }
+
+        if !gDirectoryExistsPath.withCString(encodedAs: UTF16.self, {
+          if CreateDirectoryW($0, nil) == FALSE {
+            if GetLastError() != ERROR_ALREADY_EXISTS {
+              return false
+            }
+          }
+          return true
+        }) { return false }
+
+        if !gDirectoryDoesNotExistPath.withCString(encodedAs: UTF16.self, {
+          if RemoveDirectoryW($0) == FALSE {
+            if GetLastError() != ERROR_PATH_NOT_FOUND {
+              return false
+            }
+          }
+          return true
+        }) { return false }
+#else
+        // FIXME: this leaks the fd?
         if creat(gFileExistsPath, S_IRWXU) < 0 && errno != EEXIST {
             return false
         }
@@ -252,7 +304,8 @@ class TestURL : XCTestCase {
         if rmdir(gDirectoryDoesNotExistPath) != 0 && errno != ENOENT {
             return false
         }
-        
+#endif
+
         #if os(Android)
         chdir("/data/local/tmp")
         #endif
@@ -263,7 +316,6 @@ class TestURL : XCTestCase {
         cwdURL.withUnsafeFileSystemRepresentation {
             gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
         }
-        
         
         return true
     }
