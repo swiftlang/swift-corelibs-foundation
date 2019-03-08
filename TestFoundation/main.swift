@@ -81,6 +81,7 @@ var allTestCases = [
     testCase(TestTimer.allTests),
     testCase(TestTimeZone.allTests),
     testCase(TestURL.allTests),
+    testCase(TestURLCache.allTests),
     testCase(TestURLComponents.allTests),
     testCase(TestURLCredential.allTests),
     testCase(TestURLProtectionSpace.allTests),
