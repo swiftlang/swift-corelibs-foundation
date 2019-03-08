@@ -347,7 +347,7 @@ extension CGRect {
         let height: CGFloat
         if overlapV == rect1SpanV {
             height = rect1.height
-        } else if overlapH == rect2SpanH {
+        } else if overlapV == rect2SpanV {
             height = rect2.height
         } else {
             height = overlapV.upperBound - overlapV.lowerBound
