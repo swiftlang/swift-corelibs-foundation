@@ -13,7 +13,7 @@ public func NSTemporaryDirectory() -> String {
 #if os(Windows)
     let cchLength: DWORD = GetTempPathW(0, nil)
     var wszPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(cchLength + 1))
-    guard GetTempPathW(DWORD(wszPath.count), &wszPath) == cchLength else {
+    guard GetTempPathW(DWORD(wszPath.count), &wszPath) <= cchLength else {
       precondition(false, "GetTempPathW mutation race")
     }
     return String(decodingCString: wszPath, as: UTF16.self)
