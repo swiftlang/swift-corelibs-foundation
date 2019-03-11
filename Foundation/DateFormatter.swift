@@ -182,13 +182,13 @@ open class DateFormatter : Formatter {
     /*@NSCopying*/ internal var _timeZone: TimeZone? { willSet { _reset() } }
     open var timeZone: TimeZone! {
         get {
-            guard let timeZone = _timeZone else {
+            guard let tz = _timeZone else {
                 return (CFDateFormatterCopyProperty(_cfObject, kCFDateFormatterTimeZone) as! NSTimeZone)._swiftObject
             }
-            return timeZone
+            return tz
         }
         set {
-            _timeZone = timeZone
+            _timeZone = newValue
         }
     }
 
