@@ -12,6 +12,10 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
     return mode_t(left) & right
 }
 #endif
+#if os(Windows)
+fileprivate let rmdir = _NS_rmdir
+fileprivate let unlink = _NS_unlink
+#endif
 
 import CoreFoundation
 
@@ -1441,73 +1445,48 @@ open class FileManager : NSObject {
         }
     }
 
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     private func _removeItem(atPath path: String, isURL: Bool, alreadyConfirmed: Bool = false) throws {
         guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
             return
         }
 
-#if os(Windows)
-        NSUnimplemented()
-#else
-        if rmdir(path) == 0 {
-            return
-        } else if errno == ENOTEMPTY {
-
-            let stream = URL(fileURLWithPath: path).withUnsafeFileSystemRepresentation { (fsRep) -> UnsafeMutablePointer<FTS>? in
-                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-                ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
-                ps.advanced(by: 1).initialize(to: nil)
-                defer {
-                    ps.deinitialize(count: 2)
-                    ps.deallocate()
+        var isDir: ObjCBool = false
+        let _ = fileExists(atPath: path, isDirectory: &isDir)
+        if isDir.boolValue {
+            let stream =  NSURLDirectoryEnumerator(
+              url: URL(fileURLWithPath: path),
+              options: [],
+              errorHandler: {(url, err) in
+                self.shouldProceedAfterError(err,
+                                             removingItemAtPath: url.absoluteString,
+                                             isURL: true)
+              })
+            while let itemPath = stream.nextObject() as? String {
+              do {
+                guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: true) else {
+                  continue
                 }
-                return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                let _ = fileExists(atPath: itemPath, isDirectory: &isDir)
+                if isDir.boolValue {
+                  if rmdir(itemPath) == -1 {
+                    throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
+                  }
+                } else {
+                  if unlink(itemPath) == -1 {
+                    throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
+                  }
+                }
+              } catch {
+                if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: true) {
+                  throw error
+                }
+              }
             }
-            
-            if stream != nil {
-                defer {
-                    fts_close(stream)
-                }
-
-                while let current = fts_read(stream)?.pointee {
-                    let itemPath = string(withFileSystemRepresentation: current.fts_path, length: Int(current.fts_pathlen))
-                    guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
-                        continue
-                    }
-                    
-                    do {
-                        switch Int32(current.fts_info) {
-                        case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            if unlink(current.fts_path) == -1 {
-                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
-                            }
-                        case FTS_DP:
-                            if rmdir(current.fts_path) == -1 {
-                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
-                            }
-                        case FTS_DNR, FTS_ERR, FTS_NS:
-                            throw _NSErrorWithErrno(current.fts_errno, reading: false, path: itemPath)
-                        default:
-                            break
-                        }
-                    } catch {
-                        if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
-                            throw error
-                        }
-                    }
-                }
-            } else {
-                let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
-            }
-        } else if errno != ENOTDIR {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
         } else if _fileSystemRepresentation(withPath: path, { unlink($0) != 0 }) {
             throw _NSErrorWithErrno(errno, reading: false, path: path)
         }
-#endif
     }
-    
+
     open func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
         try _copyItem(atPath: srcPath, toPath: dstPath, isURL: false)
     }
