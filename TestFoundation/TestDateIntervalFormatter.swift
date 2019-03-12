@@ -8,10 +8,10 @@
 //
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-    #if (os(Linux) || os(Android))
-        @testable import Foundation
-    #else
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
         @testable import SwiftFoundation
+    #else
+        @testable import Foundation
     #endif
 #endif
 

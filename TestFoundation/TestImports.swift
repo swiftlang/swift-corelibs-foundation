@@ -9,10 +9,10 @@
 
 // Centralized conditional imports for all test sources
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux) || os(Android)
-@_exported import Foundation
-@_exported import XCTest
-#else
+#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftXCTest)
 @_exported import SwiftFoundation
 @_exported import SwiftXCTest
+#else
+@_exported import Foundation
+@_exported import XCTest
 #endif
