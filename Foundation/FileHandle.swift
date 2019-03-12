@@ -752,8 +752,10 @@ extension FileHandle {
     }
     
     internal static func _openFileDescriptorForURL(_ url : URL, flags: Int32, reading: Bool) throws -> Int32 {
-        let path = url.path
-        let fd = _CFOpenFile(path, flags)
+        let fd = url.withUnsafeFileSystemRepresentation( { (fsRep) -> Int32 in
+            guard let fsRep = fsRep else { return -1 }
+            return _CFOpenFile(fsRep, flags)
+        })
         if fd < 0 {
             throw _NSErrorWithErrno(errno, reading: reading, url: url)
         }

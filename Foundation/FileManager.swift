@@ -1450,61 +1450,58 @@ open class FileManager : NSObject {
 #if os(Windows)
         NSUnimplemented()
 #else
-        if rmdir(path) == 0 {
-            return
-        } else if errno == ENOTEMPTY {
-
-            let stream = URL(fileURLWithPath: path).withUnsafeFileSystemRepresentation { (fsRep) -> UnsafeMutablePointer<FTS>? in
+        try _fileSystemRepresentation(withPath: path, { fsRep in
+            if rmdir(fsRep) == 0 {
+                return
+            } else if errno == ENOTEMPTY {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                defer {
-                    ps.deinitialize(count: 2)
-                    ps.deallocate()
-                }
-                return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
-            }
-            
-            if stream != nil {
-                defer {
-                    fts_close(stream)
-                }
+                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                ps.deinitialize(count: 2)
+                ps.deallocate()
 
-                while let current = fts_read(stream)?.pointee {
-                    let itemPath = string(withFileSystemRepresentation: current.fts_path, length: Int(current.fts_pathlen))
-                    guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
-                        continue
+                if stream != nil {
+                    defer {
+                        fts_close(stream)
                     }
-                    
-                    do {
-                        switch Int32(current.fts_info) {
-                        case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
-                            if unlink(current.fts_path) == -1 {
-                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
-                            }
-                        case FTS_DP:
-                            if rmdir(current.fts_path) == -1 {
-                                throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
-                            }
-                        case FTS_DNR, FTS_ERR, FTS_NS:
-                            throw _NSErrorWithErrno(current.fts_errno, reading: false, path: itemPath)
-                        default:
-                            break
+
+                    while let current = fts_read(stream)?.pointee {
+                        let itemPath = string(withFileSystemRepresentation: current.fts_path, length: Int(current.fts_pathlen))
+                        guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
+                            continue
                         }
-                    } catch {
-                        if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
-                            throw error
+
+                        do {
+                            switch Int32(current.fts_info) {
+                            case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
+                                if unlink(current.fts_path) == -1 {
+                                    throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
+                                }
+                            case FTS_DP:
+                                if rmdir(current.fts_path) == -1 {
+                                    throw _NSErrorWithErrno(errno, reading: false, path: itemPath)
+                                }
+                            case FTS_DNR, FTS_ERR, FTS_NS:
+                                throw _NSErrorWithErrno(current.fts_errno, reading: false, path: itemPath)
+                            default:
+                                break
+                            }
+                        } catch {
+                            if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
+                                throw error
+                            }
                         }
                     }
+                } else {
+                    let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
                 }
-            } else {
-                let _ = _NSErrorWithErrno(ENOTEMPTY, reading: false, path: path)
+            } else if errno != ENOTDIR {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
+            } else if unlink(fsRep) != 0 {
+                throw _NSErrorWithErrno(errno, reading: false, path: path)
             }
-        } else if errno != ENOTDIR {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        } else if _fileSystemRepresentation(withPath: path, { unlink($0) != 0 }) {
-            throw _NSErrorWithErrno(errno, reading: false, path: path)
-        }
+        })
 #endif
     }
     
