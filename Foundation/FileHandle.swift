@@ -134,17 +134,6 @@ open class FileHandle : NSObject, NSSecureCoding {
         return source
     }
 
-    #if os(Windows)
-    @available(*, unavailable, message: "Not yet implemented on Windows")
-    open var readabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
-    }
-
-    @available(*, unavailable, message: "Not yet implemented on Windows")
-    open var writeabilityHandler: ((FileHandle) -> Void)? = {
-      (FileHandle) -> Void in NSUnimplemented()
-    }
-    #else
     private var _readabilityHandler: ((FileHandle) -> Void)? = nil // Guarded by privateAsyncVariablesLock
     open var readabilityHandler: ((FileHandle) -> Void)? {
         get {
@@ -200,7 +189,6 @@ open class FileHandle : NSObject, NSSecureCoding {
             }
         }
     }
-    #endif
 
     open var availableData: Data {
         _checkFileHandle()
@@ -891,7 +879,11 @@ extension FileHandle {
         acceptConnectionInBackgroundAndNotify(forModes: [.default])
     }
 
+    @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
+#if os(Windows)
+        NSUnavailable()
+#else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
             let userInfo: [AnyHashable : Any]
@@ -919,6 +911,7 @@ extension FileHandle {
         privateAsyncVariablesLock.unlock()
         
         owner.resume()
+#endif
     }
 
     open func waitForDataInBackgroundAndNotify() {
