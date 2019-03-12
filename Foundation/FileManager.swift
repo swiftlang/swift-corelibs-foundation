@@ -857,9 +857,9 @@ open class FileManager : NSObject {
       var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
       return try path.withCString(encodedAs: UTF16.self) {
         if GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) == FALSE {
-          return faAttributes
+          throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
-        throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        return faAttributes
       }
     }
 #endif
