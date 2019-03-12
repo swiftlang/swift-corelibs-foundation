@@ -806,13 +806,18 @@ class TestNSArray : XCTestCase {
     }
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
-        let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
+        let tempDir: URL = URL(fileURLWithPath: "TestFoundation_Playground_" + NSUUID().uuidString, isDirectory: true,
+                               relativeTo: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true))
         do {
-            try FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: false, attributes: nil)
-            if FileManager.default.createFile(atPath: tempDir + "/" + path, contents: _contents, attributes: nil) {
-                return tempDir + path
-            } else {
-                return nil
+            try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: false, attributes: nil)
+            let tempFile: URL = tempDir.appendingPathComponent(path, isDirectory: false)
+            return tempFile.withUnsafeFileSystemRepresentation {
+              guard let fsr = $0, let path: String = String(cString: fsr) else { return nil }
+              if FileManager.default.createFile(atPath: path, contents: _contents, attributes: nil) {
+                  return path
+              } else {
+                  return nil
+              }
             }
         } catch {
             return nil
