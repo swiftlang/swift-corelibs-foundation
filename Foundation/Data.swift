@@ -2085,9 +2085,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 // ... and append the rest byte-wise, buffering through an InlineData.
                 var buffer = InlineData()
                 while let element = iter.next() {
-                    if buffer.count < buffer.capacity {
-                        buffer.append(byte: element)
-                    } else {
+                    buffer.append(byte: element)
+                    if buffer.count == buffer.capacity {
                         buffer.withUnsafeBytes { _representation.append(contentsOf: $0) }
                         buffer.count = 0
                     }
@@ -2379,9 +2378,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             // ... and append the rest byte-wise, buffering through an InlineData.
             var buffer = InlineData()
             while let element = iter.next() {
-                if buffer.count < buffer.capacity {
-                    buffer.append(byte: element)
-                } else {
+                buffer.append(byte: element)
+                if buffer.count == buffer.capacity {
                     buffer.withUnsafeBytes { _representation.append(contentsOf: $0) }
                     buffer.count = 0
                 }
