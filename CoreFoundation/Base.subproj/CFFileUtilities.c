@@ -1044,26 +1044,43 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
         CFStringGetCharacters(cfStr, CFRangeMake(0, cpathLen), (UniChar *)wideBuf);
         wideBuf[cpathLen] = 0;
         CFRelease(cfStr);
-        
+
+        WCHAR directory[MAX_PATH + 1];
+        if (!CFStringGetCString(directoryPath, directory, MAX_PATH, kCFStringEncodingUTF16))
+          return;
+
         handle = FindFirstFileW(wideBuf, (LPWIN32_FIND_DATAW)&file);
         if (handle != INVALID_HANDLE_VALUE) {
+            WCHAR path[MAX_PATH + 1];
+
             do {
                 CFIndex nameLen = wcslen(file.cFileName);
                 if (file.cFileName[0] == '.' && (nameLen == 1 || (nameLen == 2  && file.cFileName[1] == '.'))) {
                     continue;
                 }
-                
-                CFStringRef fileName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)file.cFileName, nameLen * sizeof(wchar_t), kCFStringEncodingUTF16, NO);
-                if (!fileName) {
+
+                if (!PathCombineW(path, directory, file.cFileName)) {
                     continue;
                 }
-                
+
+                CFStringRef filePath = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)path, wcslen(path) * sizeof(WCHAR), kCFStringEncodingUTF16, NO);
+                if (!filePath) {
+                    continue;
+                }
+
+                CFStringRef fileName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)file.cFileName, nameLen * sizeof(wchar_t), kCFStringEncodingUTF16, NO);
+                if (!fileName) {
+                    CFRelease(filePath);
+                    continue;
+                }
+
                 Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-                Boolean result = fileHandler(fileName, NULL, isDirectory ? DT_DIR : DT_REG);
+                Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
                 CFRelease(fileName);
+                CFRelease(filePath);
                 if (!result) break;
             } while (FindNextFileW(handle, &file));
-            
+
             FindClose(handle);
         }
         free(wideBuf);
