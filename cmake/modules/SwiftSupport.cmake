@@ -177,6 +177,11 @@ function(add_swift_target target)
   endif()
 
   if(AST_RESOURCES)
+    if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+      set(resources_dir ${target}.resources)
+    else()
+      set(resources_dir Resources)
+    endif()
     add_custom_command(TARGET
                          ${target}
                        POST_BUILD
@@ -185,13 +190,13 @@ function(add_swift_target target)
                        COMMAND
                          ${CMAKE_COMMAND} -E copy ${AST_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/${target}
                        COMMAND
-                         ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources)
+                         ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}/${resources_dir})
     foreach(resource ${AST_RESOURCES})
       add_custom_command(TARGET
                            ${target}
                          POST_BUILD
                          COMMAND
-                           ${CMAKE_COMMAND} -E copy ${resource} ${CMAKE_CURRENT_BINARY_DIR}/${target}/Resources/)
+                           ${CMAKE_COMMAND} -E copy ${resource} ${CMAKE_CURRENT_BINARY_DIR}/${target}/${resources_dir}/)
     endforeach()
   else()
     add_custom_command(TARGET
