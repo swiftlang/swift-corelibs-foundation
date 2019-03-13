@@ -86,6 +86,7 @@ class TestURLCache: XCTestCase {
         }
         
         XCTAssertTrue(indicesNotExist.count == 0, "Indices not created: \(indicesNotExist.map({ $0.key }).joined(separator: ", "))")
+        sqlite3_close_v2(db!)
     }
     
 }
