@@ -39,6 +39,9 @@
 #include <unistd.h>
 #elif defined(_WIN32)
 #include <io.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <bcrypt.h>
 #endif
 #include <stdio.h>
 
@@ -68,9 +71,6 @@ static inline void nanotime(struct timespec *tv) {
 #elif TARGET_OS_WINDOWS
 #include <time.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 static inline void nanotime(struct timespec *tv) {
   FILETIME ftTime;
 
@@ -83,11 +83,18 @@ static inline void nanotime(struct timespec *tv) {
 }
 #endif
 
+#if TARGET_OS_WINDOWS
+static inline void read_random(void *buffer, unsigned numBytes) {
+    BCryptGenRandom(NULL, buffer, numBytes,
+                    BCRYPT_RNG_USE_ENTROPY_IN_BUFFER | BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+}
+#else
 static inline void read_random(void *buffer, unsigned numBytes) {
     int fd = open("/dev/urandom", O_RDONLY);
     read(fd, buffer, numBytes);
     close(fd);
 }
+#endif
 
 
 UUID_DEFINE(UUID_NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
