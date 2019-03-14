@@ -373,7 +373,7 @@ target_compile_definitions(CoreFoundation
 
 target_include_directories(CoreFoundation
                            PRIVATE
-                             ${CMAKE_SOURCE_DIR})
+                             ${PROJECT_SOURCE_DIR})
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   find_package(LibXml2 REQUIRED)
   target_include_directories(CoreFoundation
@@ -403,11 +403,11 @@ endif()
 if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   target_compile_options(CoreFoundation
                          PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:/FI${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+                           $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
 else()
   target_compile_options(CoreFoundation
                          PRIVATE
-                           $<$<COMPILE_LANGUAGE:C>:-include;${CMAKE_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+                           $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
 endif()
 
 if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
@@ -462,6 +462,14 @@ target_link_libraries(CoreFoundation
                       PRIVATE
                         Threads::Threads
                         ${CMAKE_DL_LIBS})
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  target_link_libraries(CoreFoundation
+                        PRIVATE
+                          AdvAPI32
+                          Secur32
+                          User32
+                          mincore)
+endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
