@@ -42,16 +42,3 @@ func ensureFiles(_ fileNames: [String]) -> Bool {
     }
     return result
 }
-
-func mkstemp(template: String, body: (FileHandle) throws -> Void) rethrows {
-    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(template)
-
-    try url.withUnsafeFileSystemRepresentation {
-        switch mkstemp(UnsafeMutablePointer(mutating: $0!)) {
-        case -1: XCTFail("Could not create temporary file")
-        case let fd:
-            defer { url.withUnsafeFileSystemRepresentation { _ = unlink($0!) } }
-            try body(FileHandle(fileDescriptor: fd, closeOnDealloc: true))
-        }
-    }
-}

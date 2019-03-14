@@ -231,21 +231,24 @@ class TestProcess : XCTestCase {
         process.launchPath = "/usr/bin/which"
         process.arguments = ["which"]
 
-        mkstemp(template: "TestProcess.XXXXXX") { handle in
-            process.standardOutput = handle
+        let url: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: false)
+        _ = FileManager.default.createFile(atPath: url.path, contents: Data())
 
-            process.launch()
-            process.waitUntilExit()
-            XCTAssertEqual(process.terminationStatus, 0)
+        let handle: FileHandle = FileHandle(forUpdatingAtPath: url.path)!
 
-            handle.seek(toFileOffset: 0)
-            let data = handle.readDataToEndOfFile()
-            guard let string = String(data: data, encoding: .ascii) else {
-                XCTFail("Could not read stdout")
-                return
-            }
-            XCTAssertTrue(string.hasSuffix("/which\n"))
+        process.standardOutput = handle
+
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+
+        handle.seek(toFileOffset: 0)
+        let data = handle.readDataToEndOfFile()
+        guard let string = String(data: data, encoding: .ascii) else {
+            XCTFail("Could not read stdout")
+            return
         }
+        XCTAssertTrue(string.hasSuffix("/which\n"))
     }
     
     func test_passthrough_environment() {
