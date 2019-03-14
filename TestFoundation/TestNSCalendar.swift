@@ -751,6 +751,7 @@ class TestNSCalendar: XCTestCase {
     }
     
     func test_rangeOfWeekendStartDate_interval_containingDate() throws {
+#if !DARWIN_COMPATIBILITY_TESTS // NSCalender range(ofWeekendContaining:) is experimental
         try enumerateTestWeekends() { (calendar, interval) in
             let startDateResult = calendar.range(ofWeekendContaining: interval.start)
             XCTAssertEqual(startDateResult, interval)
@@ -764,6 +765,7 @@ class TestNSCalendar: XCTestCase {
             let oneSecondBeforeEndResult = calendar.range(ofWeekendContaining: interval.end - 1)
             XCTAssertEqual(oneSecondBeforeEndResult, interval)
         }
+#endif
     }
     
     func test_enumerateDatesStartingAfterDate_chineseEra_matchYearOne() throws {
