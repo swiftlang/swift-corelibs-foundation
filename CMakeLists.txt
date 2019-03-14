@@ -424,7 +424,6 @@ if(ENABLE_TESTING)
                          TestFoundation/TestIndexSet.swift
                          TestFoundation/TestISO8601DateFormatter.swift
                          TestFoundation/TestJSONEncoder.swift
-                         TestFoundation/TestPropertyListEncoder.swift
                          TestFoundation/TestJSONSerialization.swift
                          TestFoundation/TestLengthFormatter.swift
                          TestFoundation/TestMassFormatter.swift
@@ -449,7 +448,6 @@ if(ENABLE_TESTING)
                          TestFoundation/TestNSNumber.swift
                          TestFoundation/TestNSOrderedSet.swift
                          TestFoundation/TestNSPredicate.swift
-                         TestFoundation/TestNSProgressFraction.swift
                          TestFoundation/TestNSRange.swift
                          TestFoundation/TestNSRegularExpression.swift
                          TestFoundation/TestNSSet.swift
@@ -466,6 +464,8 @@ if(ENABLE_TESTING)
                          TestFoundation/TestProcessInfo.swift
                          TestFoundation/TestProcess.swift
                          TestFoundation/TestProgress.swift
+                         TestFoundation/TestProgressFraction.swift
+                         TestFoundation/TestPropertyListEncoder.swift
                          TestFoundation/TestPropertyListSerialization.swift
                          TestFoundation/TestRunLoop.swift
                          TestFoundation/TestScanner.swift
