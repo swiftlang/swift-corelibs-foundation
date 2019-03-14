@@ -882,7 +882,7 @@ extension FileHandle {
     @available(Windows, unavailable, message: "A SOCKET cannot be treated as a fd")
     open func acceptConnectionInBackgroundAndNotify(forModes modes: [RunLoop.Mode]?) {
 #if os(Windows)
-        NSUnavailable()
+        NSUnsupported()
 #else
         let owner = monitor(forReading: true, resumed: false) { (handle, source) in
             var notification = Notification(name: .NSFileHandleConnectionAccepted, object: handle, userInfo: [:])
