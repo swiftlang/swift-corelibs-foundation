@@ -156,7 +156,7 @@ class _TCPSocket {
             let texts = split(body, count)
             
             for item in texts {
-                sleep(UInt32(sendDelay))
+                Thread.sleep(forTimeInterval: sendDelay)
                 var bytes = Array(item.utf8)
                 _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
             }
