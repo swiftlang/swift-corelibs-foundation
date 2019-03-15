@@ -15,8 +15,10 @@
     import Glibc
 #endif
 
+#if !os(Windows)
 // ignore SIGPIPE which is sent when writing to closed file descriptors.
 _ = signal(SIGPIPE, SIG_IGN)
+#endif
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
 XCTMain([
