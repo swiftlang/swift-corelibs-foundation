@@ -281,27 +281,8 @@ class TestProcess : XCTestCase {
         }
     }
 
-    private func realpathOf(path: String) -> String? {
-        let fm = FileManager.default
-        let length = Int(PATH_MAX) + 1
-        var buf = [Int8](repeating: 0, count: length)
-        let fsRep = fm.fileSystemRepresentation(withPath: path)
-#if !DARWIN_COMPATIBILITY_TESTS
-       defer { fsRep.deallocate() }
-#endif
-        guard let result = realpath(fsRep, &buf) else {
-            return nil
-        }
-        return fm.string(withFileSystemRepresentation: result, length: strlen(result))
-    }
-
     func test_current_working_directory() {
-        let tmpDir = "/tmp"
-
-        guard let resolvedTmpDir = realpathOf(path: tmpDir) else {
-            XCTFail("Cant find realpath of /tmp")
-            return
-        }
+        let tmpDir = "/tmp".standardizingPath
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
@@ -310,7 +291,7 @@ class TestProcess : XCTestCase {
         do {
             let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
             // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), resolvedTmpDir)
+            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
         } catch {
             XCTFail("Test failed: \(error)")
         }
