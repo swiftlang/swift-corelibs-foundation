@@ -1133,99 +1133,71 @@ Boolean _CFTimeZoneInitWithTimeIntervalFromGMT(CFTimeZoneRef result, CFTimeInter
 }
 
 Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data) {
-    if (name && __nameStringOK(name)) {
-        if (data) {
-            CFTZPeriod *tzp = NULL;
-            CFIndex cnt = 0;
-            __CFTimeZoneLockGlobal();
-            if (__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
-                __CFTimeZoneUnlockGlobal();
-                
-            } else {
-                __CFTimeZoneUnlockGlobal();
-                return false;
-            }
-            ((struct __CFTimeZone *)timeZone)->_name = (CFStringRef)CFStringCreateCopy(kCFAllocatorSystemDefault, name);
-            ((struct __CFTimeZone *)timeZone)->_data = CFDataCreateCopy(kCFAllocatorSystemDefault, data);
-            ((struct __CFTimeZone *)timeZone)->_periods = tzp;
-            ((struct __CFTimeZone *)timeZone)->_periodCnt = cnt;
-            return true;
-        } else {
-            CFStringRef tzName = NULL;
-            CFDataRef data = NULL;
+    if (!name || !__nameStringOK(name)) {
+        return false;
+    }
+
+    if (data) {
+        CFTZPeriod *tzp = NULL;
+        CFIndex cnt = 0;
+        __CFTimeZoneLockGlobal();
+        if (__CFParseTimeZoneData(kCFAllocatorSystemDefault, data, &tzp, &cnt)) {
+            __CFTimeZoneUnlockGlobal();
             
-            CFIndex len = CFStringGetLength(name);
-            if (6 == len || 8 == len) {
-                UniChar buffer[8];
-                CFStringGetCharacters(name, CFRangeMake(0, len), buffer);
-                if ('G' == buffer[0] && 'M' == buffer[1] && 'T' == buffer[2] && ('+' == buffer[3] || '-' == buffer[3])) {
-                    if (('0' <= buffer[4] && buffer[4] <= '9') && ('0' <= buffer[5] && buffer[5] <= '9')) {
-                        int32_t hours = (buffer[4] - '0') * 10 + (buffer[5] - '0');
-                        if (-14 <= hours && hours <= 14) {
-                            CFTimeInterval ti = hours * 3600.0;
-                            if (6 == len) {
-                                return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
-                            } else {
-                                if (('0' <= buffer[6] && buffer[6] <= '9') && ('0' <= buffer[7] && buffer[7] <= '9')) {
-                                    int32_t minutes = (buffer[6] - '0') * 10 + (buffer[7] - '0');
-                                    if ((-14 == hours && 0 == minutes) || (14 == hours && 0 == minutes) || (0 <= minutes && minutes <= 59)) {
-                                        ti = ti + minutes * 60.0;
-                                        return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
-                                    }
+        } else {
+            __CFTimeZoneUnlockGlobal();
+            return false;
+        }
+        ((struct __CFTimeZone *)timeZone)->_name = (CFStringRef)CFStringCreateCopy(kCFAllocatorSystemDefault, name);
+        ((struct __CFTimeZone *)timeZone)->_data = CFDataCreateCopy(kCFAllocatorSystemDefault, data);
+        ((struct __CFTimeZone *)timeZone)->_periods = tzp;
+        ((struct __CFTimeZone *)timeZone)->_periodCnt = cnt;
+        return true;
+    } else {
+        CFStringRef tzName = NULL;
+        CFDataRef data = NULL;
+        
+        CFIndex len = CFStringGetLength(name);
+        if (6 == len || 8 == len) {
+            UniChar buffer[8];
+            CFStringGetCharacters(name, CFRangeMake(0, len), buffer);
+            if ('G' == buffer[0] && 'M' == buffer[1] && 'T' == buffer[2] && ('+' == buffer[3] || '-' == buffer[3])) {
+                if (('0' <= buffer[4] && buffer[4] <= '9') && ('0' <= buffer[5] && buffer[5] <= '9')) {
+                    int32_t hours = (buffer[4] - '0') * 10 + (buffer[5] - '0');
+                    if (-14 <= hours && hours <= 14) {
+                        CFTimeInterval ti = hours * 3600.0;
+                        if (6 == len) {
+                            return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
+                        } else {
+                            if (('0' <= buffer[6] && buffer[6] <= '9') && ('0' <= buffer[7] && buffer[7] <= '9')) {
+                                int32_t minutes = (buffer[6] - '0') * 10 + (buffer[7] - '0');
+                                if ((-14 == hours && 0 == minutes) || (14 == hours && 0 == minutes) || (0 <= minutes && minutes <= 59)) {
+                                    ti = ti + minutes * 60.0;
+                                    return _CFTimeZoneInitWithTimeIntervalFromGMT(timeZone, ('-' == buffer[3] ? -1.0 : 1.0) * ti);
                                 }
                             }
                         }
                     }
                 }
             }
-            Boolean tryAbbrev = true;
-            CFURLRef baseURL, tempURL;
-            void *bytes;
-            CFIndex length;
-            Boolean result = false;
-            
-            if (!__tzZoneInfo) __InitTZStrings();
-            if (!__tzZoneInfo) return NULL;
+        }
+        Boolean tryAbbrev = true;
+        CFURLRef baseURL, tempURL;
+        void *bytes;
+        CFIndex length;
+        Boolean result = false;
+        
+        if (!__tzZoneInfo) __InitTZStrings();
+        if (!__tzZoneInfo) return NULL;
 #if TARGET_OS_WIN32
-            baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
+        baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
 #else
-            baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
+        baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
 #endif
-            if (tryAbbrev) {
-                CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
-                tzName = CFDictionaryGetValue(abbrevs, name);
-                if (NULL != tzName) {
-                    tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-                    if (NULL != tempURL) {
-                        if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-                            data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-                        }
-                        CFRelease(tempURL);
-                    }
-                }
-                CFRelease(abbrevs);
-            }
-            if (NULL == data) {
-                CFDictionaryRef dict = __CFTimeZoneCopyCompatibilityDictionary();
-                CFStringRef mapping = CFDictionaryGetValue(dict, name);
-                if (mapping) {
-                    name = mapping;
-                } else if (CFStringHasPrefix(name, __tzZoneInfo)) {
-                    CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
-                    CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
-                    mapping = CFDictionaryGetValue(dict, unprefixed);
-                    if (mapping) {
-                        name = mapping;
-                    }
-                    CFRelease(unprefixed);
-                }
-                CFRelease(dict);
-                if (CFEqual(CFSTR(""), name)) {
-                    return false;
-                }
-            }
-            if (NULL == data) {
-                tzName = name;
+        if (tryAbbrev) {
+            CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
+            tzName = CFDictionaryGetValue(abbrevs, name);
+            if (NULL != tzName) {
                 tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
                 if (NULL != tempURL) {
                     if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
@@ -1234,15 +1206,44 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
                     CFRelease(tempURL);
                 }
             }
-            CFRelease(baseURL);
-            if (NULL != data) {
-                result = _CFTimeZoneInit(timeZone, tzName, data);
-                CFRelease(data);
-            }
-            return result;
+            CFRelease(abbrevs);
         }
+        if (NULL == data) {
+            CFDictionaryRef dict = __CFTimeZoneCopyCompatibilityDictionary();
+            CFStringRef mapping = CFDictionaryGetValue(dict, name);
+            if (mapping) {
+                name = mapping;
+            } else if (CFStringHasPrefix(name, __tzZoneInfo)) {
+                CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
+                CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
+                mapping = CFDictionaryGetValue(dict, unprefixed);
+                if (mapping) {
+                    name = mapping;
+                }
+                CFRelease(unprefixed);
+            }
+            CFRelease(dict);
+            if (CFEqual(CFSTR(""), name)) {
+                return false;
+            }
+        }
+        if (NULL == data) {
+            tzName = name;
+            tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
+            if (NULL != tempURL) {
+                if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
+                    data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
+                }
+                CFRelease(tempURL);
+            }
+        }
+        CFRelease(baseURL);
+        if (NULL != data) {
+            result = _CFTimeZoneInit(timeZone, tzName, data);
+            CFRelease(data);
+        }
+        return result;
     }
-    return false;
 }
 
 CFTimeZoneRef CFTimeZoneCreate(CFAllocatorRef allocator, CFStringRef name, CFDataRef data) {
