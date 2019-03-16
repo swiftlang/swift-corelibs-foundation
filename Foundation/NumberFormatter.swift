@@ -174,6 +174,11 @@ open class NumberFormatter : Formatter {
             CFNumberFormatterSetProperty(formatter, attributeName, value)
         }
     }
+
+    internal func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
+        return CFNumberFormatterCopyProperty(formatter, attributeName) as? String
+    }
+
     
     // Attributes of a NumberFormatter
     internal var _numberStyle: Style = .none
@@ -320,7 +325,7 @@ open class NumberFormatter : Formatter {
     internal var _decimalSeparator: String!
     open var decimalSeparator: String! {
         get {
-            return _decimalSeparator
+            return _decimalSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterDecimalSeparator)
         }
         set {
             _reset()
@@ -342,7 +347,7 @@ open class NumberFormatter : Formatter {
     internal var _currencyDecimalSeparator: String!
     open var currencyDecimalSeparator: String! {
         get {
-            return _currencyDecimalSeparator
+            return _currencyDecimalSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyDecimalSeparator)
         }
         set {
             _reset()
@@ -364,7 +369,7 @@ open class NumberFormatter : Formatter {
     internal var _groupingSeparator: String!
     open var groupingSeparator: String! {
         get {
-            return _groupingSeparator
+            return _groupingSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterGroupingSeparator)
         }
         set {
             _reset()
@@ -377,7 +382,7 @@ open class NumberFormatter : Formatter {
     internal var _zeroSymbol: String?
     open var zeroSymbol: String? {
         get {
-            return _zeroSymbol
+            return _zeroSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterZeroSymbol)
         }
         set {
             _reset()
@@ -421,7 +426,7 @@ open class NumberFormatter : Formatter {
     internal var _notANumberSymbol: String!
     open var notANumberSymbol: String! {
         get {
-            return _notANumberSymbol
+            return _notANumberSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNaNSymbol)
         }
         set {
             _reset()
@@ -489,7 +494,7 @@ open class NumberFormatter : Formatter {
     internal var _positivePrefix: String!
     open var positivePrefix: String! {
         get {
-            return _positivePrefix
+            return _positivePrefix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPositivePrefix)
         }
         set {
             _reset()
@@ -500,7 +505,7 @@ open class NumberFormatter : Formatter {
     internal var _positiveSuffix: String!
     open var positiveSuffix: String! {
         get {
-            return _positiveSuffix
+            return _positiveSuffix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPositiveSuffix)
         }
         set {
             _reset()
@@ -511,7 +516,7 @@ open class NumberFormatter : Formatter {
     internal var _negativePrefix: String!
     open var negativePrefix: String! {
         get {
-            return _negativePrefix
+            return _negativePrefix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNegativePrefix)
         }
         set {
             _reset()
@@ -522,7 +527,7 @@ open class NumberFormatter : Formatter {
     internal var _negativeSuffix: String!
     open var negativeSuffix: String! {
         get {
-            return _negativeSuffix
+            return _negativeSuffix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNegativeSuffix)
         }
         set {
             _reset()
@@ -533,7 +538,7 @@ open class NumberFormatter : Formatter {
     internal var _currencyCode: String!
     open var currencyCode: String! {
         get {
-            return _currencyCode
+            return _currencyCode ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyCode)
         }
         set {
             _reset()
@@ -544,7 +549,7 @@ open class NumberFormatter : Formatter {
     internal var _currencySymbol: String!
     open var currencySymbol: String! {
         get {
-            return _currencySymbol
+            return _currencySymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencySymbol)
         }
         set {
             _reset()
@@ -555,7 +560,7 @@ open class NumberFormatter : Formatter {
     internal var _internationalCurrencySymbol: String!
     open var internationalCurrencySymbol: String! {
         get {
-            return _internationalCurrencySymbol
+            return _internationalCurrencySymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterInternationalCurrencySymbol)
         }
         set {
             _reset()
@@ -566,7 +571,7 @@ open class NumberFormatter : Formatter {
     internal var _percentSymbol: String!
     open var percentSymbol: String! {
         get {
-            return _percentSymbol
+            return _percentSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPercentSymbol) ?? "%"
         }
         set {
             _reset()
@@ -577,7 +582,7 @@ open class NumberFormatter : Formatter {
     internal var _perMillSymbol: String!
     open var perMillSymbol: String! {
         get {
-            return _perMillSymbol
+            return _perMillSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPerMillSymbol)
         }
         set {
             _reset()
@@ -588,7 +593,7 @@ open class NumberFormatter : Formatter {
     internal var _minusSign: String!
     open var minusSign: String! {
         get {
-            return _minusSign
+            return _minusSign ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterMinusSign)
         }
         set {
             _reset()
@@ -599,7 +604,7 @@ open class NumberFormatter : Formatter {
     internal var _plusSign: String!
     open var plusSign: String! {
         get {
-            return _plusSign
+            return _plusSign ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPlusSign)
         }
         set {
             _reset()
@@ -610,7 +615,7 @@ open class NumberFormatter : Formatter {
     internal var _exponentSymbol: String!
     open var exponentSymbol: String! {
         get {
-            return _exponentSymbol
+            return _exponentSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterExponentSymbol)
         }
         set {
             _reset()
@@ -667,7 +672,7 @@ open class NumberFormatter : Formatter {
     internal var _paddingCharacter: String!
     open var paddingCharacter: String! {
         get {
-            return _paddingCharacter
+            return _paddingCharacter ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPaddingCharacter)
         }
         set {
             _reset()
@@ -782,7 +787,7 @@ open class NumberFormatter : Formatter {
     internal var _currencyGroupingSeparator: String!
     open var currencyGroupingSeparator: String! {
         get {
-            return _currencyGroupingSeparator
+            return _currencyGroupingSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyGroupingSeparator)
         }
         set {
             _reset()
@@ -889,6 +894,9 @@ open class NumberFormatter : Formatter {
     internal var _format: String?
     open var format: String {
         get {
+            if _format == nil {
+                _format = CFNumberFormatterGetFormat(_cfFormatter)._swiftObject
+            }
             return _format ?? "#"
         }
         set {
