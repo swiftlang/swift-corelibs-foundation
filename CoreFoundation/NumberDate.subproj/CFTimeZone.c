@@ -1186,7 +1186,6 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     }
 
     CFStringRef tzName = NULL;
-    Boolean tryAbbrev = true;
     CFURLRef baseURL, tempURL;
     void *bytes;
     CFIndex length;
@@ -1199,20 +1198,20 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 #else
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
 #endif
-    if (tryAbbrev) {
-        CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
-        tzName = CFDictionaryGetValue(abbrevs, name);
-        if (NULL != tzName) {
-            tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-            if (NULL != tempURL) {
-                if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-                    data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-                }
-                CFRelease(tempURL);
+
+    CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
+    tzName = CFDictionaryGetValue(abbrevs, name);
+    if (NULL != tzName) {
+        tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
+        if (NULL != tempURL) {
+            if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
+                data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
             }
+            CFRelease(tempURL);
         }
-        CFRelease(abbrevs);
     }
+    CFRelease(abbrevs);
+
     if (NULL == data) {
         CFDictionaryRef dict = __CFTimeZoneCopyCompatibilityDictionary();
         CFStringRef mapping = CFDictionaryGetValue(dict, name);
