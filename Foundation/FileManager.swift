@@ -705,7 +705,7 @@ open class FileManager : NSObject {
 
 
         try path.withCString(encodedAs: UTF16.self) {
-          if CreateDirectoryW($0, psaAttributes) != FALSE {
+          if CreateDirectoryW($0, psaAttributes) == FALSE {
             // FIXME(compnerd) pass along path
             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
           }
