@@ -205,6 +205,7 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLAccess.h
                 URL.subproj/CFURLComponents.h
               SOURCES
+                $<$<PLATFORM_ID:Windows>:CoreFoundation.rc>
                 # Base
                 Base.subproj/CFBase.c
                 Base.subproj/CFFileUtilities.c
