@@ -15,12 +15,14 @@
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
+		155D3BBC22401D1100B0D38E /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155D3BBB22401D1100B0D38E /* FixtureValues.swift */; };
 		1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */; };
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFA52187D0E0009518FA /* CFDateInterval.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFA32187D0E0009518FA /* CFDateInterval.c */; };
 		1569BFA62187D0E0009518FA /* CFDateInterval.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFA42187D0E0009518FA /* CFDateInterval.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1569BFAD2187D529009518FA /* CFDateComponents.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BFAB2187D529009518FA /* CFDateComponents.c */; };
 		1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BFAC2187D529009518FA /* CFDateComponents.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		156C846E224069A100607D44 /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 156C846D224069A000607D44 /* Fixtures */; };
 		1578DA09212B4061003C9516 /* CFRuntime_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA08212B4060003C9516 /* CFRuntime_Internal.h */; };
 		1578DA0D212B4070003C9516 /* CFMachPort_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */; };
 		1578DA0E212B4070003C9516 /* CFMachPort_Lifetime.c in Sources */ = {isa = PBXBuildFile; fileRef = 1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */; };
@@ -554,12 +556,14 @@
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
 		15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedStringPriv.h; sourceTree = "<group>"; };
+		155D3BBB22401D1100B0D38E /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureValues.swift; sourceTree = "<group>"; };
 		1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCalendar_Internal.h; sourceTree = "<group>"; };
 		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
 		1569BFA32187D0E0009518FA /* CFDateInterval.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateInterval.c; sourceTree = "<group>"; };
 		1569BFA42187D0E0009518FA /* CFDateInterval.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateInterval.h; sourceTree = "<group>"; };
 		1569BFAB2187D529009518FA /* CFDateComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateComponents.c; sourceTree = "<group>"; };
 		1569BFAC2187D529009518FA /* CFDateComponents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateComponents.h; sourceTree = "<group>"; };
+		156C846D224069A000607D44 /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fixtures; path = TestFoundation/Fixtures; sourceTree = SOURCE_ROOT; };
 		1578DA08212B4060003C9516 /* CFRuntime_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFRuntime_Internal.h; sourceTree = "<group>"; };
 		1578DA0A212B406F003C9516 /* CFMachPort_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFMachPort_Internal.h; sourceTree = "<group>"; };
 		1578DA0B212B406F003C9516 /* CFMachPort_Lifetime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFMachPort_Lifetime.c; sourceTree = "<group>"; };
@@ -1543,6 +1547,7 @@
 		EA66F6391BF1619600136161 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				156C846D224069A000607D44 /* Fixtures */,
 				B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */,
 				D370696D1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist */,
 				D3E8D6D41C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist */,
@@ -1575,6 +1580,7 @@
 			children = (
 				C7DE1FCB21EEE67200174F35 /* TestUUID.swift */,
 				7D0DE86D211883F500540061 /* Utilities.swift */,
+				155D3BBB22401D1100B0D38E /* FixtureValues.swift */,
 				7D0DE86C211883F500540061 /* TestDateComponents.swift */,
 				6E203B8C1C1303BB003B2576 /* TestBundle.swift */,
 				A5A34B551C18C85D00FD972B /* TestByteCountFormatter.swift */,
@@ -2242,6 +2248,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -2284,6 +2291,7 @@
 				B910957A1EEF237800A71930 /* NSString-UTF16-LE-data.txt in Resources */,
 				D3E8D6D51C36AC0C00295652 /* NSKeyedUnarchiver-RectTest.plist in Resources */,
 				D3A597F81C3415CC00295652 /* NSKeyedUnarchiver-URLTest.plist in Resources */,
+				156C846E224069A100607D44 /* Fixtures in Resources */,
 				D3E8D6D31C36982700295652 /* NSKeyedUnarchiver-EdgeInsetsTest.plist in Resources */,
 				B907F36B20BB07A700013CBE /* NSString-ISO-8859-1-data.txt in Resources */,
 				D370696E1C394FBF00295652 /* NSKeyedUnarchiver-RangeTest.plist in Resources */,
@@ -2633,6 +2641,7 @@
 				5B13B3391C582D4C00651CE2 /* TestNSNull.swift in Sources */,
 				BD8042161E09857800487EB8 /* TestLengthFormatter.swift in Sources */,
 				5B13B3421C582D4C00651CE2 /* TestRunLoop.swift in Sources */,
+				155D3BBC22401D1100B0D38E /* FixtureValues.swift in Sources */,
 				5B13B34E1C582D4C00651CE2 /* TestXMLDocument.swift in Sources */,
 				5B13B32B1C582D4C00651CE2 /* TestNSData.swift in Sources */,
 				5B13B34C1C582D4C00651CE2 /* TestURLResponse.swift in Sources */,
@@ -3091,7 +3100,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -3117,7 +3126,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_execute;
-				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -swift-version 4.2";
+				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.TestFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

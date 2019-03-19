@@ -8,22 +8,6 @@
 //
 
 class TestNSAttributedString : XCTestCase {
-    
-    static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
-        return [
-            ("test_initWithString", test_initWithString),
-            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
-            ("test_initWithAttributedString", test_initWithAttributedString),
-            ("test_attributedSubstring", test_attributedSubstring),
-            ("test_longestEffectiveRange", test_longestEffectiveRange),
-            ("test_enumerateAttributeWithName", test_enumerateAttributeWithName),
-            ("test_enumerateAttributes", test_enumerateAttributes),
-            ("test_copy", test_copy),
-            ("test_mutableCopy", test_mutableCopy),
-            ("test_isEqual", test_isEqual),
-        ]
-    }
-    
     func test_initWithString() {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
         let attrString = NSAttributedString(string: string)
@@ -292,6 +276,47 @@ class TestNSAttributedString : XCTestCase {
         XCTAssertFalse(attrString.isEqual(to: mutableAttrString))
         XCTAssertFalse(mutableAttrString.isEqual(to: attrString))
     }
+    
+    func test_archivingRoundtrip() throws {
+        let string = try Fixtures.attributedString.make()
+        
+        let data = NSMutableData()
+        let archiver = NSKeyedArchiver(forWritingWith: data)
+        archiver.requiresSecureCoding = true
+        archiver.encode(string, forKey: NSKeyedArchiveRootObjectKey)
+        archiver.finishEncoding()
+        
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
+        unarchiver.requiresSecureCoding = true
+        let unarchived = try unarchiver.decodeTopLevelObject(of: NSAttributedString.self, forKey: NSKeyedArchiveRootObjectKey)
+        
+        XCTAssertEqual(string, unarchived)
+    }
+    
+    func test_unarchivingFixtures() throws {
+        let string = try Fixtures.attributedString.make()
+        try Fixtures.attributedString.loadEach { (unarchived, variant) in
+            XCTAssertEqual(string, unarchived, "Object loaded from \(variant) didn't match fixture.")
+        }
+    }
+    
+    static var allTests: [(String, (TestNSAttributedString) -> () throws -> Void)] {
+        return [
+            ("test_initWithString", test_initWithString),
+            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
+            ("test_initWithAttributedString", test_initWithAttributedString),
+            ("test_attributedSubstring", test_attributedSubstring),
+            ("test_longestEffectiveRange", test_longestEffectiveRange),
+            ("test_enumerateAttributeWithName", test_enumerateAttributeWithName),
+            ("test_enumerateAttributes", test_enumerateAttributes),
+            ("test_copy", test_copy),
+            ("test_mutableCopy", test_mutableCopy),
+            ("test_isEqual", test_isEqual),
+            ("test_archivingRoundtrip", test_archivingRoundtrip),
+            ("test_unarchivingFixtures", test_unarchivingFixtures),
+        ]
+    }
+    
 }
 
 fileprivate extension TestNSAttributedString {
@@ -321,23 +346,6 @@ fileprivate extension TestNSAttributedString {
 }
 
 class TestNSMutableAttributedString : XCTestCase {
-    
-    static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
-        return [
-            ("test_initWithString", test_initWithString),
-            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
-            ("test_initWithAttributedString", test_initWithAttributedString),
-            ("test_addAttribute", test_addAttribute),
-            ("test_addAttributes", test_addAttributes),
-            ("test_setAttributes", test_setAttributes),
-            ("test_replaceCharactersWithString", test_replaceCharactersWithString),
-            ("test_replaceCharactersWithAttributedString", test_replaceCharactersWithAttributedString),
-            ("test_insert", test_insert),
-            ("test_append", test_append),
-            ("test_deleteCharacters", test_deleteCharacters),
-            ("test_setAttributedString", test_setAttributedString),
-        ]
-    }
     
     func test_initWithString() {
         let string = "Lorem 😀 ipsum dolor sit amet, consectetur adipiscing elit. ⌘ Phasellus consectetur et sem vitae consectetur. Nam venenatis lectus a laoreet blandit. ಠ_ರೃ"
@@ -601,5 +609,47 @@ class TestNSMutableAttributedString : XCTestCase {
         // changing the replacement attr string should not affect the replaced attr string
         replacementAttrString.append(replacementAttrString)
         XCTAssertEqual(mutableAttrString.string, string2)
+    }
+    
+    func test_archivingRoundtrip() throws {
+        let string = try Fixtures.mutableAttributedString.make()
+        
+        let data = NSMutableData()
+        let archiver = NSKeyedArchiver(forWritingWith: data)
+        archiver.requiresSecureCoding = true
+        archiver.encode(string, forKey: NSKeyedArchiveRootObjectKey)
+        archiver.finishEncoding()
+        
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
+        unarchiver.requiresSecureCoding = true
+        let unarchived = try unarchiver.decodeTopLevelObject(of: NSMutableAttributedString.self, forKey: NSKeyedArchiveRootObjectKey)
+        
+        XCTAssertEqual(string, unarchived)
+    }
+    
+    func test_unarchivingFixtures() throws {
+        let mutableString = try Fixtures.mutableAttributedString.make()
+        try Fixtures.mutableAttributedString.loadEach { (unarchived, variant) in
+            XCTAssertEqual(mutableString, unarchived, "Object loaded from \(variant) didn't match fixture.")
+        }
+    }
+
+    static var allTests: [(String, (TestNSMutableAttributedString) -> () throws -> Void)] {
+        return [
+            ("test_initWithString", test_initWithString),
+            ("test_initWithStringAndAttributes", test_initWithStringAndAttributes),
+            ("test_initWithAttributedString", test_initWithAttributedString),
+            ("test_addAttribute", test_addAttribute),
+            ("test_addAttributes", test_addAttributes),
+            ("test_setAttributes", test_setAttributes),
+            ("test_replaceCharactersWithString", test_replaceCharactersWithString),
+            ("test_replaceCharactersWithAttributedString", test_replaceCharactersWithAttributedString),
+            ("test_insert", test_insert),
+            ("test_append", test_append),
+            ("test_deleteCharacters", test_deleteCharacters),
+            ("test_setAttributedString", test_setAttributedString),
+            ("test_archivingRoundtrip", test_archivingRoundtrip),
+            ("test_unarchivingFixtures", test_unarchivingFixtures),
+        ]
     }
 }
