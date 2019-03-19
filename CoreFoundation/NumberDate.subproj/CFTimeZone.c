@@ -70,9 +70,11 @@ struct tzhead {
 
 #include <time.h>
 
+#if !TARGET_OS_WIN32
 static CFStringRef __tzZoneInfo = NULL;
 static char *__tzDir = NULL;
 static void __InitTZStrings(void);
+#endif
 
 CONST_STRING_DECL(kCFTimeZoneSystemTimeZoneDidChangeNotification, "kCFTimeZoneSystemTimeZoneDidChangeNotification")
 
@@ -116,6 +118,9 @@ CF_INLINE void __CFTimeZoneUnlockCompatibilityMapping(void) {
 }
 
 #if TARGET_OS_WIN32
+#define CF_TIME_ZONES_KEY L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"
+#define COUNT_OF(array) (sizeof((array)) / sizeof((array)[0]))
+
 /* This function should be used for WIN32 instead of
  * __CFCopyRecursiveDirectoryList function.
  * It takes TimeZone names from the registry
@@ -124,32 +129,59 @@ CF_INLINE void __CFTimeZoneUnlockCompatibilityMapping(void) {
 static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     CFMutableArrayRef result = NULL;
     HKEY hkResult;
-    TCHAR lpName[MAX_PATH+1];
+    WCHAR szName[MAX_PATH + 1];
     DWORD dwIndex, retCode;
 
-    if (RegOpenKey(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"), &hkResult) !=
-        ERROR_SUCCESS )
+    if (RegOpenKeyW(HKEY_LOCAL_MACHINE, CF_TIME_ZONES_KEY, &hkResult) != ERROR_SUCCESS)
         return NULL;
 
     result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
-    for (dwIndex=0; (retCode = RegEnumKey(hkResult,dwIndex,lpName,MAX_PATH)) != ERROR_NO_MORE_ITEMS ; dwIndex++) {
+    for (dwIndex = 0; (retCode = RegEnumKeyW(hkResult, dwIndex, szName, COUNT_OF(szName) - 1)) != ERROR_NO_MORE_ITEMS; dwIndex++) {
         if (retCode != ERROR_SUCCESS) {
             RegCloseKey(hkResult);
             CFRelease(result);
             return NULL;
         } else {
-#if defined(UNICODE)
-	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const UInt8 *)lpName, (_tcslen(lpName) * sizeof(UniChar)), kCFStringEncodingUnicode, false);
-#else
-	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const unsigned char *)lpName, _tcslen(lpName), CFStringGetSystemEncoding(), false);
-#endif
-	    CFArrayAppendValue(result, string);
-	    CFRelease(string);
+            CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const UInt8 *)szName, (wcslen(szName) * sizeof(WCHAR)), kCFStringEncodingUTF16, false);
+            CFArrayAppendValue(result, string);
+            CFRelease(string);
         }
     }
 
     RegCloseKey(hkResult);
     return result;
+}
+
+static void __CFTimeZoneGetOffset(CFStringRef timezone, int32_t *offset) {
+    typedef struct _REG_TZI_FORMAT {
+        LONG Bias;
+        LONG StandardBias;
+        LONG DaylightBias;
+        SYSTEMTIME StandardDate;
+        SYSTEMTIME DaylightDate;
+    } REG_TZI_FORMAT;
+
+    WCHAR szRegKey[COUNT_OF(CF_TIME_ZONES_KEY) + 1 + COUNT_OF(((TIME_ZONE_INFORMATION *)0)->StandardName) + 1];
+    REG_TZI_FORMAT tziInfo;
+    Boolean bResult;
+    DWORD cbData;
+    HKEY hKey;
+
+    *offset = 0;
+
+    memset(szRegKey, 0, sizeof(szRegKey));
+    wcscpy(szRegKey, CF_TIME_ZONES_KEY);
+    szRegKey[COUNT_OF(CF_TIME_ZONES_KEY) - 1] = L'\\';
+    CFStringGetBytes(timezone, CFRangeMake(0, CFStringGetLength(timezone)), kCFStringEncodingUnicode, FALSE, FALSE, (uint8_t *)&szRegKey[wcslen(CF_TIME_ZONES_KEY) + 1], sizeof(((TIME_ZONE_INFORMATION *)0)->StandardName) + sizeof(WCHAR), NULL);
+
+    if (RegOpenKeyW(HKEY_LOCAL_MACHINE, szRegKey, &hKey) != ERROR_SUCCESS)
+        return;
+
+    cbData = sizeof(tziInfo);
+    if (RegQueryValueExW(hKey, L"TZI", NULL, NULL, (LPBYTE)&tziInfo, &cbData) == ERROR_SUCCESS)
+        *offset = tziInfo.Bias;
+
+    RegCloseKey(hKey);
 }
 #elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
@@ -476,21 +508,27 @@ CF_INLINE void __CFTimeZoneUnlockWinToOlson(void) {
     __CFUnlock(&__CFTimeZoneWinToOlsonLock);
 }
 
-static Boolean CFTimeZoneLoadWindowsOlsonPlist(LPVOID *ppResource, LPDWORD pdwSize) {
+static Boolean CFTimeZoneLoadPlistResource(LPCSTR lpName, LPVOID *ppResource, LPDWORD pdwSize) {
     HRSRC hResource;
     HGLOBAL hMemory;
+    HMODULE hModule;
 
-    hResource = FindResourceA(NULL, MAKEINTRESOURCEA(IDR_WINDOWS_OLSON_MAPPING), "PLIST");
+    if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                            (LPCWSTR)&CFTimeZoneLoadPlistResource, &hModule)) {
+        return FALSE;
+    }
+
+    hResource = FindResourceA(hModule, lpName, "PLIST");
     if (hResource == NULL) {
         return FALSE;
     }
 
-    hMemory = LoadResource(NULL, hResource);
+    hMemory = LoadResource(hModule, hResource);
     if (hMemory == NULL) {
         return FALSE;
     }
 
-    *pdwSize = SizeofResource(NULL, hResource);
+    *pdwSize = SizeofResource(hModule, hResource);
     *ppResource = LockResource(hMemory);
 
     return *pdwSize && *ppResource;
@@ -504,7 +542,7 @@ CFDictionaryRef CFTimeZoneCopyWinToOlsonDictionary(void) {
         const uint8_t *plist;
         DWORD dwSize;
 
-        if (CFTimeZoneLoadWindowsOlsonPlist(&plist, &dwSize)) {
+        if (CFTimeZoneLoadPlistResource(MAKEINTRESOURCEA(IDR_WINDOWS_OLSON_MAPPING), (LPVOID *)&plist, &dwSize)) {
             CFDataRef data = CFDataCreate(kCFAllocatorSystemDefault, plist, dwSize);
             __CFTimeZoneWinToOlsonDict = (CFDictionaryRef)CFPropertyListCreateFromXMLData(kCFAllocatorSystemDefault, data, kCFPropertyListImmutable, NULL);
             CFRelease(data);
@@ -517,6 +555,26 @@ CFDictionaryRef CFTimeZoneCopyWinToOlsonDictionary(void) {
 
     dict = __CFTimeZoneWinToOlsonDict ? (CFDictionaryRef)CFRetain(__CFTimeZoneWinToOlsonDict) : NULL;
     return dict;
+}
+
+static CFDictionaryRef CFTimeZoneCopyOlsonToWindowsDictionary(void) {
+    static CFDictionaryRef dict;
+    static CFLock_t lock;
+
+    __CFLock(&lock);
+    if (dict == NULL) {
+      const uint8_t *plist;
+      DWORD dwSize;
+
+      if (CFTimeZoneLoadPlistResource(MAKEINTRESOURCEA(IDR_OLSON_WINDOWS_MAPPING), (LPVOID *)&plist, &dwSize)) {
+          CFDataRef data = CFDataCreate(kCFAllocatorSystemDefault, plist, dwSize);
+          dict = CFPropertyListCreateFromXMLData(kCFAllocatorSystemDefault, data, kCFPropertyListImmutable, NULL);
+          CFRelease(data);
+      }
+    }
+    __CFUnlock(&lock);
+
+    return dict ? CFRetain(dict) : NULL;
 }
 
 void CFTimeZoneSetWinToOlsonDictionary(CFDictionaryRef dict) {
@@ -544,23 +602,6 @@ CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFString
     CFRelease(winToOlson);
     return retval;
 }
-
-static void __InitTZStrings(void) {
-    static CFLock_t __CFTZDirLock = CFLockInit;
-    __CFLock(&__CFTZDirLock);
-    // TODO(compnerd) figure out how to initialize __tzZoneInfo
-    if (!__tzDir && __tzZoneInfo) {
-        int length = CFStringGetLength(__tzZoneInfo) + sizeof("\\zone.tab") + 1;
-        __tzDir = malloc(length); // If we don't use ascii, we'll need to malloc more space
-        if (!__tzDir || !CFStringGetCString(__tzZoneInfo, __tzDir, length, kCFStringEncodingASCII)) {
-            free(__tzDir);
-        } else {
-            strcat(__tzDir, "\\zone.tab");
-        }
-    }
-    __CFUnlock(&__CFTZDirLock);
-}
-
 #elif TARGET_OS_MAC
 static void __InitTZStrings(void) {
     static dispatch_once_t initOnce = 0;
@@ -1056,14 +1097,33 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     void *bytes;
     CFIndex length;
     Boolean result = false;
-    
+
+#if TARGET_OS_WIN32
+    CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
+
+    tzName = CFDictionaryGetValue(abbrevs, name);
+    if (tzName == NULL) {
+        CFDictionaryRef olson = CFTimeZoneCopyOlsonToWindowsDictionary();
+        tzName = CFDictionaryGetValue(olson, name);
+        CFRelease(olson);
+    }
+
+    CFRelease(abbrevs);
+
+    if (tzName) {
+        int32_t offset;
+        __CFTimeZoneGetOffset(tzName, &offset);
+        CFRelease(tzName);
+        // TODO(compnerd) handle DST
+        __CFTimeZoneInitFixed(timeZone, offset, name, 0);
+        return TRUE;
+    }
+
+    return FALSE;
+#else
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
-#if TARGET_OS_WIN32
-    baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
-#else
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
-#endif
 
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
     tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1113,6 +1173,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         CFRelease(data);
     }
     return result;
+#endif
 }
 
 CFTimeZoneRef CFTimeZoneCreate(CFAllocatorRef allocator, CFStringRef name, CFDataRef data) {
@@ -1254,13 +1315,31 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     void *bytes;
     CFIndex length;
 
+#if TARGET_OS_WIN32
+    CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
+
+    tzName = CFDictionaryGetValue(abbrevs, name);
+    if (tzName == NULL) {
+        CFDictionaryRef olson = CFTimeZoneCopyOlsonToWindowsDictionary();
+        tzName = CFDictionaryGetValue(olson, name);
+        CFRelease(olson);
+    }
+
+    CFRelease(abbrevs);
+
+    if (tzName) {
+        int32_t offset;
+        __CFTimeZoneGetOffset(tzName, &offset);
+        CFRelease(tzName);
+        // TODO(compnerd) handle DST
+        result = __CFTimeZoneCreateFixed(allocator, offset, name, 0);
+    }
+
+    return result;
+#else
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
-#if TARGET_OS_WIN32
-    baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLWindowsPathStyle, true);
-#else
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
-#endif
     if (tryAbbrev) {
 	CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
 	tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1317,6 +1396,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	CFRelease(data);
     }
     return result;
+#endif
 }
 
 CFStringRef CFTimeZoneGetName(CFTimeZoneRef tz) {
