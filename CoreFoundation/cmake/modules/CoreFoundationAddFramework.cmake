@@ -63,7 +63,7 @@ function(add_framework NAME)
   endif()
   target_compile_options(${NAME}
                          PRIVATE
-                           -I;${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders)
+                           $<$<OR:$<COMPILE_LANGUAGE:ASM>,$<COMPILE_LANGUAGE:C>>:-I;${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders>)
   add_dependencies(${NAME} ${NAME}_POPULATE_HEADERS)
 
   if(AF_FRAMEWORK_DIRECTORY)
