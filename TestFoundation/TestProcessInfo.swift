@@ -68,6 +68,13 @@ class TestProcessInfo : XCTestCase {
     }
 
     func test_environment() {
+#if os(Windows)
+        func setenv(_ key: String, _ value: String, _ overwrite: Int) -> Int32 {
+          assert(overwrite == 1)
+          return putenv("\(key)=\(value)")
+        }
+#endif
+
         let preset = ProcessInfo.processInfo.environment["test"]
         setenv("test", "worked", 1)
         let postset = ProcessInfo.processInfo.environment["test"]
