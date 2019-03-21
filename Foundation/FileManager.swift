@@ -1804,7 +1804,6 @@ open class FileManager : NSObject {
         return path1entries.isEmpty
     }
 
-#if !os(Windows)
     private func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
@@ -1818,19 +1817,64 @@ open class FileManager : NSObject {
         }
 
         var statInfo = stat()
+#if os(Windows)
+        let h = path.withCString(encodedAs: UTF16.self) {
+            CreateFileW(/*lpFileName=*/$0,
+                        /*dwDesiredAccess=*/DWORD(0),
+                        /*dwShareMode=*/DWORD(FILE_SHARE_READ),
+                        /*lpSecurityAttributes=*/nil,
+                        /*dwCreationDisposition=*/DWORD(OPEN_EXISTING),
+                        /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                        /*hTemplateFile=*/nil)
+        }
+        if h == INVALID_HANDLE_VALUE {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+        }
+        var info: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
+        GetFileInformationByHandle(h, &info)
+        // Group id is always 0 on Windows
+        statInfo.st_gid = 0
+        statInfo.st_atime = info.ftLastAccessTime.time_t
+        statInfo.st_ctime = info.ftCreationTime.time_t
+        statInfo.st_dev = info.dwVolumeSerialNumber
+        // inodes have meaning on FAT/HPFS/NTFS
+        statInfo.st_ino = 0
+        statInfo.st_rdev = info.dwVolumeSerialNumber
+
+        let isReparsePoint = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) != 0
+        let isDir = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0
+        let fileMode = isDir ? _S_IFDIR : _S_IFREG
+        // On a symlink to a directory, Windows sets both the REPARSE_POINT and
+        // DIRECTORY attributes. Since Windows doesn't provide S_IFLNK and we
+        // want unix style "symlinks to directories are not directories
+        // themselves, we say symlinks are regular files
+        statInfo.st_mode = UInt16(isReparsePoint ? _S_IFREG : fileMode)
+        let isReadOnly = info.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) != 0
+        statInfo.st_mode |= UInt16(isReadOnly ? _S_IREAD : (_S_IREAD | _S_IWRITE))
+        statInfo.st_mode |= UInt16(_S_IEXEC)
+
+        statInfo.st_mtime = info.ftLastWriteTime.time_t
+        statInfo.st_nlink = Int16(info.nNumberOfLinks)
+        if info.nFileSizeHigh != 0 {
+            throw _NSErrorWithErrno(EOVERFLOW, reading: true, path: path)
+        }
+        statInfo.st_size = Int32(info.nFileSizeLow)
+        // Uid is always 0 on Windows systems
+        statInfo.st_uid = 0
+        CloseHandle(h)
+#else
         guard lstat(_fsRep, &statInfo) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: path)
         }
+#endif
         return statInfo
     }
-#endif
 
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     internal func _permissionsOfItem(atPath path: String) throws -> Int {
-#if os(Windows)
-        NSUnimplemented()
-#else
         let fileInfo = try _lstatFile(atPath: path)
+#if os(Windows)
+        return Int(fileInfo.st_mode & ~UInt16(ucrt.S_IFMT))
+#else
         return Int(fileInfo.st_mode & ~S_IFMT)
 #endif
     }
