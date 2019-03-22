@@ -626,6 +626,11 @@ class TestNSNumberBridging : XCTestCase {
     }
 
     func testNSNumberToBool() {
+        // FIXME: When running swift-corelibs-foundation on Darwin, these tests all give the warning:
+        // 'Conditional cast from 'NSNumber' to 'Bool' always succeeds' and never return nil so these tests fail.
+        // These tests work on Darwin using normal Foundation (when testing with DarwinCompatibilityTests)
+        // and also work on Linux, so just disable them on Darwin/swift-corelibs-foundation.
+#if !canImport(SwiftFoundation)
         let b0 = NSNumber(value: 0) as? Bool
         XCTAssertNotNil(b0)
         XCTAssertEqual(b0, false)
@@ -664,6 +669,7 @@ class TestNSNumberBridging : XCTestCase {
         XCTAssertNil(NSNumber(value: Int64.max) as? Bool)
         XCTAssertNil(NSNumber(value: Int.min) as? Bool)
         XCTAssertNil(NSNumber(value: Int.max) as? Bool)
+#endif
     }
 }
 
