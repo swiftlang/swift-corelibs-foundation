@@ -1737,18 +1737,14 @@ open class FileManager : NSObject {
             guard let file1BytesRead = try? file1._readBytes(into: buffer1, length: bytesToRead), file1BytesRead == bytesToRead else {
                 return false
             }
-            
             guard let file2BytesRead = try? file2._readBytes(into: buffer2, length: bytesToRead), file2BytesRead == bytesToRead else {
                 return false
             }
-            
             guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
                 return false
             }
-            
             bytesLeft -= Int64(bytesToRead)
         }
-        
         return true
 #endif
     }

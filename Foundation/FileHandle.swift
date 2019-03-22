@@ -433,14 +433,16 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
     }
 #endif
-    
-    internal init?(fileSystemRepresentation: UnsafePointer<Int8>, flags: Int32, createMode: Int) {
-        _fd = _CFOpenFileWithMode(fileSystemRepresentation, flags, mode_t(createMode))
-        _closeOnDealloc = true
-        super.init()
-        if _fd < 0 {
-            return nil
-        }
+
+    internal convenience init?(fileSystemRepresentation: UnsafePointer<Int8>, flags: Int32, createMode: Int) {
+        let fd = _CFOpenFileWithMode(fileSystemRepresentation, flags, mode_t(createMode))
+        guard fd > 0 else { return nil }
+        
+#if os(Windows)
+        self.init(handle: HANDLE(bitPattern: _get_osfhandle(fd))!, closeOnDealloc: true)
+#else
+        self.init(fileDescriptor: fd, closeOnDealloc: true)
+#endif
     }
 
     deinit {
