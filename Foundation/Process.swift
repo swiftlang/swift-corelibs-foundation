@@ -102,6 +102,67 @@ private func processIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) ->
     return true
 }
 
+#if os(Windows)
+
+private func quoteWindowsCommandLine(_ commandLine: [String]) -> String {
+    func quoteWindowsCommandArg(arg: String) -> String {
+        // Windows escaping, adapted from Daniel Colascione's "Everyone quotes
+        // command line arguments the wrong way" - Microsoft Developer Blog
+        if !arg.contains(where: {" \t\n\"".contains($0)}) {
+            return arg
+        }
+
+        // To escape the command line, we surround the argument with quotes. However
+        // the complication comes due to how the Windows command line parser treats
+        // backslashes (\) and quotes (")
+        //
+        // - \ is normally treated as a literal backslash
+        //     - e.g. foo\bar\baz => foo\bar\baz
+        // - However, the sequence \" is treated as a literal "
+        //     - e.g. foo\"bar => foo"bar
+        //
+        // But then what if we are given a path that ends with a \? Surrounding
+        // foo\bar\ with " would be "foo\bar\" which would be an unterminated string
+
+        // since it ends on a literal quote. To allow this case the parser treats:
+        //
+        // - \\" as \ followed by the " metachar
+        // - \\\" as \ followed by a literal "
+        // - In general:
+        //     - 2n \ followed by " => n \ followed by the " metachar
+        //     - 2n+1 \ followed by " => n \ followed by a literal "
+        var quoted = "\""
+        var unquoted = arg.unicodeScalars
+
+        while !unquoted.isEmpty {
+            guard let firstNonBackslash = unquoted.firstIndex(where: { $0 != "\\" }) else {
+                // String ends with a backslash e.g. foo\bar\, escape all the backslashes
+                // then add the metachar " below
+                let backslashCount = unquoted.count
+                quoted.append(String(repeating: "\\", count: backslashCount * 2))
+                break
+            }
+            let backslashCount = unquoted.distance(from: unquoted.startIndex, to: firstNonBackslash)
+            if (unquoted[firstNonBackslash] == "\"") {
+                // This is  a string of \ followed by a " e.g. foo\"bar. Escape the
+                // backslashes and the quote
+                quoted.append(String(repeating: "\\", count: backslashCount * 2 + 1))
+                quoted.append(String(unquoted[firstNonBackslash]))
+            } else {
+                // These are just literal backslashes
+                quoted.append(String(repeating: "\\", count: backslashCount))
+                quoted.append(String(unquoted[firstNonBackslash]))
+            }
+            // Drop the backslashes and the following character
+            unquoted.removeFirst(backslashCount + 1)
+        }
+        quoted.append("\"")
+        return quoted
+    }
+    return commandLine.map(quoteWindowsCommandArg).joined(separator: " ")
+}
+#endif
+
 open class Process: NSObject {
     private static func setup() {
         struct Once {
@@ -318,8 +379,6 @@ open class Process: NSObject {
         }
 
 #if os(Windows)
-        // TODO(compnerd) quote the commandline correctly
-        // https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
         var command: [String] = [launchPath]
         if let arguments = self.arguments {
           command.append(contentsOf: arguments)
@@ -412,7 +471,7 @@ open class Process: NSObject {
             CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
-        try command.joined(separator: " ").withCString(encodedAs: UTF16.self) { wszCommandLine in
+        try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
           try currentDirectoryURL.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
               if CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
