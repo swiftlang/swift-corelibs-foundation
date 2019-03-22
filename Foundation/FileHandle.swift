@@ -342,6 +342,14 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
 #endif
     }
+    
+    internal func _readBytes(into buffer: UnsafeMutablePointer<UInt8>, length: Int) throws -> Int {
+        let amtRead = _read(_fd, buffer, length)
+        if amtRead < 0 {
+            throw _NSErrorWithErrno(errno, reading: true)
+        }
+        return amtRead
+    }
 
     internal func _writeBytes(buf: UnsafeRawPointer, length: Int) throws {
 #if os(Windows)
@@ -425,6 +433,15 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
     }
 #endif
+    
+    internal init?(fileSystemRepresentation: UnsafePointer<Int8>, flags: Int32, createMode: Int) {
+        _fd = _CFOpenFileWithMode(fileSystemRepresentation, flags, mode_t(createMode))
+        _closeOnDealloc = true
+        super.init()
+        if _fd < 0 {
+            return nil
+        }
+    }
 
     deinit {
         // .close() tries to wait after operations in flight on the handle queue, if one exists, and then close. It does so by sending .sync { … } work to it.

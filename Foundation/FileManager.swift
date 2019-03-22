@@ -1720,25 +1720,29 @@ open class FileManager : NSObject {
 #if os(Windows)
         NSUnimplemented()
 #else
-        guard let file1 = FileHandle(forReadingAtPath: String(cString: file1Rep)) else {
-            return false
+        guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
+        guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
+        
+        var buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        var buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        defer {
+            buffer1.deallocate()
+            buffer2.deallocate()
         }
-        
-        defer { try? file1.close() }
-        
-        guard let file2 = FileHandle(forReadingAtPath: String(cString: file2Rep)) else {
-            return false
-        }
-        
-        defer { try? file2.close() }
         
         var bytesLeft = size
         while bytesLeft > 0 {
             let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
-            let file1Data = file1.readData(ofLength: bytesToRead)
-            let file2Data = file2.readData(ofLength: bytesToRead)
             
-            guard file1Data.count == bytesToRead, file2Data.count == bytesToRead, file1Data == file2Data else {
+            guard let file1BytesRead = try? file1._readBytes(into: buffer1, length: bytesToRead), file1BytesRead == bytesToRead else {
+                return false
+            }
+            
+            guard let file2BytesRead = try? file2._readBytes(into: buffer2, length: bytesToRead), file2BytesRead == bytesToRead else {
+                return false
+            }
+            
+            guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
                 return false
             }
             
