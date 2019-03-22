@@ -1729,7 +1729,6 @@ open class FileManager : NSObject {
             buffer1.deallocate()
             buffer2.deallocate()
         }
-        
         var bytesLeft = size
         while bytesLeft > 0 {
             let bytesToRead = Int(min(Int64(bufSize), bytesLeft))

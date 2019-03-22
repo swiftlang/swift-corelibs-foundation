@@ -344,11 +344,20 @@ open class FileHandle : NSObject, NSSecureCoding {
     }
     
     internal func _readBytes(into buffer: UnsafeMutablePointer<UInt8>, length: Int) throws -> Int {
+#if os(Windows)
+        var BytesRead: DWORD = 0
+        let BytesToRead: DWORD = DWORD(length)
+        if ReadFile(_handle, buffer, BytesToRead, &BytesRead, nil) == FALSE {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        return Int(BytesRead)
+#else
         let amtRead = _read(_fd, buffer, length)
         if amtRead < 0 {
             throw _NSErrorWithErrno(errno, reading: true)
         }
         return amtRead
+#endif
     }
 
     internal func _writeBytes(buf: UnsafeRawPointer, length: Int) throws {
@@ -438,11 +447,7 @@ open class FileHandle : NSObject, NSSecureCoding {
         let fd = _CFOpenFileWithMode(fileSystemRepresentation, flags, mode_t(createMode))
         guard fd > 0 else { return nil }
         
-#if os(Windows)
-        self.init(handle: HANDLE(bitPattern: _get_osfhandle(fd))!, closeOnDealloc: true)
-#else
         self.init(fileDescriptor: fd, closeOnDealloc: true)
-#endif
     }
 
     deinit {
