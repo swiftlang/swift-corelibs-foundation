@@ -29,7 +29,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle, Boolean alreadyLocked) {
     
     CFStringRef bundleID = CFBundleGetIdentifier(bundle);
     
-    if (!alreadyLocked) pthread_mutex_lock(&CFBundleGlobalDataLock);
+    if (!alreadyLocked) _CFMutexLock(&CFBundleGlobalDataLock);
     
     // Add to the _allBundles list
     if (!_allBundles) {
@@ -84,7 +84,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle, Boolean alreadyLocked) {
             CFRelease(bundlesWithThisID);
         }
     }
-    if (!alreadyLocked) pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    if (!alreadyLocked) _CFMutexUnlock(&CFBundleGlobalDataLock);
 }
 
 static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CFStringRef bundleID) {
@@ -96,7 +96,7 @@ static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CF
         // Unique bundles aren't in the tables anyway
         if (bundle->_isUnique) return;
         
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        _CFMutexLock(&CFBundleGlobalDataLock);
         // Remove from the table of all bundles
         if (_allBundles) {
             CFIndex i = CFArrayGetFirstIndexOfValue(_allBundles, CFRangeMake(0, CFArrayGetCount(_allBundles)), bundle);
@@ -118,7 +118,7 @@ static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CF
                 if (0 == CFArrayGetCount(bundlesWithThisID)) CFDictionaryRemoveValue(_bundlesByIdentifier, bundleID);
             }
         }
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        _CFMutexUnlock(&CFBundleGlobalDataLock);
     }
 #endif
 }
@@ -129,14 +129,14 @@ CF_PRIVATE CFBundleRef _CFBundleCopyBundleForURL(CFURLRef url, Boolean alreadyLo
     if (main->_url && url && CFEqual(main->_url, url)) {
         return main;
     }
-    if (!alreadyLocked) pthread_mutex_lock(&CFBundleGlobalDataLock);
+    if (!alreadyLocked) _CFMutexLock(&CFBundleGlobalDataLock);
     if (_bundlesByURL) result = (CFBundleRef)CFDictionaryGetValue(_bundlesByURL, url);
     if (result && !result->_url) {
         result = NULL;
         CFDictionaryRemoveValue(_bundlesByURL, url);
     }
     if (result) CFRetain(result);
-    if (!alreadyLocked) pthread_mutex_unlock(&CFBundleGlobalDataLock);
+    if (!alreadyLocked) _CFMutexUnlock(&CFBundleGlobalDataLock);
     return result;
 }
 
@@ -176,7 +176,7 @@ CF_EXPORT CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
                 }
             }
         }
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        _CFMutexLock(&CFBundleGlobalDataLock);
         result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
         if (!result) {
@@ -208,15 +208,15 @@ CF_EXPORT CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
             _CFBundleEnsureBundlesUpToDateWithHintAlreadyLocked(bundleID);
             result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
         }
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        _CFMutexUnlock(&CFBundleGlobalDataLock);
     }
     
     if (!result) {
-        pthread_mutex_lock(&CFBundleGlobalDataLock);
+        _CFMutexLock(&CFBundleGlobalDataLock);
         // Make sure all bundles have been created and try again.
         _CFBundleEnsureAllBundlesUpToDateAlreadyLocked();
         result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
-        pthread_mutex_unlock(&CFBundleGlobalDataLock);
+        _CFMutexUnlock(&CFBundleGlobalDataLock);
     }
     
     return result;

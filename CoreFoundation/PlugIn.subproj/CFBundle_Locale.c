@@ -891,9 +891,6 @@ CF_EXPORT void _CFBundleSetDefaultLocalization(CFStringRef localizationName) {
 // This is the funnel point for looking up languages for a particular bundle. The returned order reflects the user preferences.
 CF_PRIVATE CFArrayRef _CFBundleCopyLanguageSearchListInBundle(CFBundleRef bundle) {
     if (!bundle->_searchLanguages) {
-#if DEPLOYMENT_TARGET_WINDOWS
-        if (_defaultLocalization) CFArrayAppendValue(langs, _defaultLocalization);
-#endif
         // includes predefined localizations
         CFArrayRef localizationsForBundle = CFBundleCopyBundleLocalizations(bundle);
         CFArrayRef userLanguages = _CFBundleCopyUserLanguages();

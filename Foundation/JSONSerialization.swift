@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 extension JSONSerialization {
     public struct ReadingOptions : OptionSet {
         public let rawValue: UInt
@@ -152,17 +146,13 @@ open class JSONSerialization : NSObject {
         } else {
             fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
         }
-        
-        let count = jsonStr.lengthOfBytes(using: .utf8)
-        let bufferLength = count+1 // Allow space for null terminator
-        var utf8: [CChar] = Array<CChar>(repeating: 0, count: bufferLength)
-        if !jsonStr.getCString(&utf8, maxLength: bufferLength, encoding: .utf8) {
-            fatalError("Failed to generate a CString from a String")
+
+        let count = jsonStr.utf8.count
+        return jsonStr.withCString {
+            Data(bytes: $0, count: count)
         }
-        let rawBytes = UnsafeRawPointer(UnsafePointer(utf8))
-        let result = Data(bytes: rawBytes.bindMemory(to: UInt8.self, capacity: count), count: count)
-        return result
     }
+
     open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
         return try _data(withJSONObject: value, options: opt, stream: false)
     }
@@ -738,19 +728,40 @@ private struct JSONReader {
             return nil
         }
 
-        if !UTF16.isLeadSurrogate(codeUnit) {
+        let isLeadSurrogate = UTF16.isLeadSurrogate(codeUnit)
+        let isTrailSurrogate = UTF16.isTrailSurrogate(codeUnit)
+
+        guard isLeadSurrogate || isTrailSurrogate else {
+            // The code units that are neither lead surrogates nor trail surrogates
+            // form valid unicode scalars.
             return (String(UnicodeScalar(codeUnit)!), index)
         }
 
-        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit) , UTF16.isTrailSurrogate(trailCodeUnit) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to convert unicode escape sequence (no low-surrogate code point) to UTF8-encoded character at position \(source.distanceFromStart(input))"
-            ])
+        // Surrogates must always come in pairs.
+
+        guard isLeadSurrogate else {
+            // Trail surrogate must come after lead surrogate
+            throw CocoaError.error(.propertyListReadCorrupt,
+                                   userInfo: [
+                                     "NSDebugDescription" : """
+                                      Unable to convert unicode escape sequence (no high-surrogate code point) \
+                                      to UTF8-encoded character at position \(source.distanceFromStart(input))
+                                      """
+                                   ])
         }
 
-        let highValue = (UInt32(codeUnit  - 0xD800) << 10)
-        let lowValue  =  UInt32(trailCodeUnit - 0xDC00)
-        return (String(UnicodeScalar(highValue + lowValue + 0x10000)!), finalIndex)
+        guard let (trailCodeUnit, finalIndex) = try consumeASCIISequence("\\u", input: index).flatMap(parseCodeUnit),
+              UTF16.isTrailSurrogate(trailCodeUnit) else {
+            throw CocoaError.error(.propertyListReadCorrupt,
+                                   userInfo: [
+                                     "NSDebugDescription" : """
+                                      Unable to convert unicode escape sequence (no low-surrogate code point) \
+                                      to UTF8-encoded character at position \(source.distanceFromStart(input))
+                                      """
+                                   ])
+        }
+
+        return (String(UTF16.decode(UTF16.EncodedScalar([codeUnit, trailCodeUnit]))), finalIndex)
     }
 
     func isHexChr(_ byte: UInt8) -> Bool {

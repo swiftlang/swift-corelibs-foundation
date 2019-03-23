@@ -258,12 +258,9 @@ extension NSRange {
     }
     
     public init<R: RangeExpression, S: StringProtocol>(_ region: R, in target: S)
-        where R.Bound == S.Index, S.Index == String.Index {
+        where R.Bound == S.Index {
             let r = region.relative(to: target)
-            self = NSRange(
-                location: r.lowerBound.encodedOffset - target.startIndex.encodedOffset,
-                length: r.upperBound.encodedOffset - r.lowerBound.encodedOffset
-            )
+            self.init(target._toUTF16Offsets(r))
     }
     
     @available(swift, deprecated: 4, renamed: "Range.init(_:)")

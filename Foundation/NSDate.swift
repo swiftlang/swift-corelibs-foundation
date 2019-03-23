@@ -9,17 +9,19 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 public typealias TimeInterval = Double
 
 public var NSTimeIntervalSince1970: Double {
     return 978307200.0
 }
+
+#if os(Windows)
+extension TimeInterval {
+  init(_ ftTime: FILETIME) {
+    self = Double((ftTime.dwHighDateTime << 32) | ftTime.dwLowDateTime) - NSTimeIntervalSince1970;
+  }
+}
+#endif
 
 open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
     typealias CFType = CFDate
@@ -58,6 +60,11 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         return Date().timeIntervalSinceReferenceDate
     }
 
+#if os(Windows)
+    public convenience override init() {
+      self.init(timeIntervalSinceReferenceDate: CFAbsoluteTimeGetCurrent())
+    }
+#else
     public convenience override init() {
         var tv = timeval()
         let _ = withUnsafeMutablePointer(to: &tv) { t in
@@ -67,6 +74,7 @@ open class NSDate : NSObject, NSCopying, NSSecureCoding, NSCoding {
         timestamp += TimeInterval(tv.tv_usec) / 1000000.0
         self.init(timeIntervalSinceReferenceDate: timestamp)
     }
+#endif
 
     public required init(timeIntervalSinceReferenceDate ti: TimeInterval) {
         _timeIntervalSinceReferenceDate = ti

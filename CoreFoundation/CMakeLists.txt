@@ -25,6 +25,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE YES)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+if(CMAKE_VERSION VERSION_LESS 3.10)
+  if(CMAKE_CROSSCOMPILING)
+    if(NOT CMAKE_C_COMPILER_ID MATCHES Clang OR CMAKE_C_SIMULATE_ID STREQUAL MSVC)
+      set(THREADS_HAVE_PTHREAD_ARG FALSE)
+    else()
+      set(THREADS_HAVE_PTHREAD_ARG TRUE)
+    endif()
+  endif()
+endif()
 find_package(Threads)
 
 include(GNUInstallDirs)
@@ -69,6 +78,7 @@ add_framework(CoreFoundation
                 Locale.subproj/CFCalendar_Internal.h
                 Locale.subproj/CFDateComponents.h
                 Locale.subproj/CFDateFormatter_Private.h
+                Locale.subproj/CFDateIntervalFormatter.h
                 Locale.subproj/CFDateInterval.h
                 Locale.subproj/CFICULogging.h
                 Locale.subproj/CFLocaleInternal.h
@@ -135,6 +145,7 @@ add_framework(CoreFoundation
                 StringEncodings.subproj/CFStringEncodingConverterExt.h
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
+                Locale.subproj/CFDateIntervalFormatter.h
 
                 # AppServices
                 AppServices.subproj/CFNotificationCenter.h
@@ -223,6 +234,7 @@ add_framework(CoreFoundation
                 Locale.subproj/CFCalendar_Enumerate.c
                 Locale.subproj/CFDateComponents.c
                 Locale.subproj/CFDateFormatter.c
+                Locale.subproj/CFDateIntervalFormatter.c
                 Locale.subproj/CFDateInterval.c
                 Locale.subproj/CFLocale.c
                 Locale.subproj/CFLocaleIdentifier.c
@@ -317,9 +329,22 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  # NOTE(compnerd) we only support building with the dynamic CRT as using the
+  # static CRT causes problems for users of the library.
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -D_DLL)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_TARGET_WINDOWS)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -D_WINDLL)
+  endif()
+  target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DCURL_STATICLIB)
 endif()
 target_compile_definitions(CoreFoundation
                            PRIVATE
@@ -400,9 +425,15 @@ else()
                            -fno-common)
 endif()
 if(CF_DEPLOYMENT_SWIFT)
-  target_compile_options(CoreFoundation
-                         PRIVATE
-                           -fcf-runtime-abi=swift)
+  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             /clang:-fcf-runtime-abi=swift)
+  else()
+    target_compile_options(CoreFoundation
+                           PRIVATE
+                             -fcf-runtime-abi=swift)
+  endif()
 endif()
 
 target_compile_options(CoreFoundation

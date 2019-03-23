@@ -23,9 +23,7 @@ import Dispatch
 /// Turn `Data` into `DispatchData`
 internal func createDispatchData(_ data: Data) -> DispatchData {
     //TODO: Avoid copying data
-    let buffer = UnsafeRawBufferPointer(start: data._backing.bytes,
-                                        count: data.count)
-    return DispatchData(bytes: buffer)
+    return data.withUnsafeBytes { DispatchData(bytes: $0) }
 }
 
 /// Copy data from `DispatchData` into memory pointed to by an `UnsafeMutableBufferPointer`.
@@ -55,6 +53,43 @@ internal enum _BodySourceDataChunk {
     /// Retry later to get more data.
     case retryLater
     case error
+}
+
+internal final class _BodyStreamSource {
+    let inputStream: InputStream
+    
+    init(inputStream: InputStream) {
+        self.inputStream = inputStream
+    }
+}
+
+extension _BodyStreamSource : _BodySource {
+    func getNextChunk(withLength length: Int) -> _BodySourceDataChunk {
+        guard inputStream.hasBytesAvailable else {
+            return .done
+        }
+        
+        let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: length, alignment: MemoryLayout<UInt8>.alignment)
+        
+        guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            buffer.deallocate()
+            return .error
+        }
+        
+        let readBytes = self.inputStream.read(pointer, maxLength: length)
+        if readBytes > 0 {
+            let dispatchData = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(buffer), deallocator: .custom(nil, { buffer.deallocate() }))
+            return .data(dispatchData.subdata(in: 0 ..< readBytes))
+        }
+        else if readBytes == 0 {
+            buffer.deallocate()
+            return .done
+        }
+        else {
+            buffer.deallocate()
+            return .error
+        }
+    }
 }
 
 /// A body data source backed by `DispatchData`.

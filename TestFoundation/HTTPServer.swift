@@ -156,7 +156,7 @@ class _TCPSocket {
             let texts = split(body, count)
             
             for item in texts {
-                sleep(UInt32(sendDelay))
+                Thread.sleep(forTimeInterval: sendDelay)
                 var bytes = Array(item.utf8)
                 _  = try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, &bytes, bytes.count, sendFlags)))
             }
@@ -210,7 +210,30 @@ class _HTTPServer {
     }
    
     public func request() throws -> _HTTPRequest {
-       return try _HTTPRequest(request: socket.readData())
+        var request = try _HTTPRequest(request: socket.readData())
+       
+        if Int(request.getHeader(for: "Content-Length") ?? "0") ?? 0 > 0
+            || (request.getHeader(for: "Transfer-Encoding") ?? "").lowercased() == "chunked" {
+            
+            // According to RFC7230 https://tools.ietf.org/html/rfc7230#section-3
+            // We receive messageBody after the headers, so we need read from socket minimun 2 times
+            //
+            // HTTP-message structure
+            //
+            // start-line
+            // *( header-field CRLF )
+            // CRLF
+            // [ message-body ]
+            // We receives '{numofbytes}\r\n{data}\r\n'
+            // TODO read data until the end
+            
+            let substr = try socket.readData().split(separator: "\r\n")
+            if substr.count >= 2 {
+                request.messageBody = String(substr[1])
+            }
+        }
+        
+        return request
     }
 
     public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
@@ -231,7 +254,7 @@ class _HTTPServer {
                  server using HTTP/1.1. Curl interprets that as a HTTP/0.9
                  simple-response and therefore sends this back as a response
                  body. Go figure! */
-                responseData = Data(bytes: [
+                responseData = Data([
                     0x00, 0x00, 0x18, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x01, 0x00, 0x00, 0x10, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
                     0x01, 0x00, 0x05, 0x00, 0x00, 0x40, 0x00, 0x00, 0x06, 0x00,
@@ -324,6 +347,7 @@ struct _HTTPRequest {
     let method: Method
     let uri: String 
     let body: String
+    var messageBody: String?
     let headers: [String]
 
     public init(request: String) {
@@ -533,12 +557,18 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: \(value)", body: text)
             return httpResponse
         }
+        
+        if uri == "/echo" {
+            return _HTTPResponse(response: .OK, body: request.messageBody ?? request.body)
+        }
+        
         if uri == "/redirect-with-default-port" {
             let text = request.getCommaSeparatedHeaders()
             let host = request.headers[1].components(separatedBy: " ")[1]
             let ip = host.components(separatedBy: ":")[0]
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
             return httpResponse
+
         }
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }

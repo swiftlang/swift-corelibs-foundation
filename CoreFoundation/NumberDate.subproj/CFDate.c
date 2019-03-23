@@ -40,6 +40,7 @@
 
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1970 = 978307200.0L;
 const CFTimeInterval kCFAbsoluteTimeIntervalSince1904 = 3061152000.0L;
+static const CFTimeInterval kCFAbsoluteTimeIntervalSince1601 = 12622780800.0L;
 
 CF_PRIVATE double __CFTSRRate;
 double __CFTSRRate = 0.0;
@@ -83,6 +84,20 @@ CF_PRIVATE dispatch_time_t __CFTSRToDispatchTime(uint64_t tsr) {
 }
 #endif
 
+#if TARGET_OS_WIN32
+CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
+    SYSTEMTIME stTime;
+    FILETIME ftTime;
+
+    GetSystemTime(&stTime);
+    SystemTimeToFileTime(&stTime, &ftTime);
+
+    // 100ns intervals since NT Epoch
+    uint64_t result = ((uint64_t)ftTime.dwHighDateTime << 32)
+                    | ((uint64_t)ftTime.dwLowDateTime << 0);
+    return result * 1.0e-7 - kCFAbsoluteTimeIntervalSince1601;
+}
+#else
 CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     CFAbsoluteTime ret;
     struct timeval tv;
@@ -91,6 +106,7 @@ CFAbsoluteTime CFAbsoluteTimeGetCurrent(void) {
     ret += (1.0E-6 * (CFTimeInterval)tv.tv_usec);
     return ret;
 }
+#endif
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
@@ -104,6 +120,9 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
         HALT;
     }
     return (double)res.tv_sec + ((double)res.tv_nsec)/1.0E9;
+#elif DEPLOYMENT_TARGET_WINDOWS
+    ULONGLONG ullTickCount = GetTickCount64();
+    return ullTickCount / 1000;
 #else
 #error Unable to calculate uptime for this platform
 #endif

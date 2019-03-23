@@ -76,6 +76,7 @@ enum {
     _kCFRuntimeIDCFSocket = 61,
     _kCFRuntimeIDCFAttributedString = 62,
     _kCFRuntimeIDCFRunArray = 63,
+    _kCFRuntimeIDCFDateIntervalFormatter = 64,
     // If you are adding a new value, it goes below this line.
     
     // Stuff not in CF goes here. This value should be one more than the last one above.
@@ -124,7 +125,6 @@ CF_PRIVATE const CFRuntimeClass __CFPreferencesDomainClass;
 
 CF_PRIVATE const CFRuntimeClass __CFMachPortClass;
 
-
 #if (TARGET_OS_MAC || TARGET_OS_WIN32 || DEPLOYMENT_RUNTIME_SWIFT)
 CF_PRIVATE const CFRuntimeClass __CFMessagePortClass;
 #endif
@@ -143,6 +143,7 @@ CF_PRIVATE const CFRuntimeClass __CFWindowsNamedPipeClass;
 #endif
 CF_PRIVATE const CFRuntimeClass __CFTimeZoneClass;
 CF_PRIVATE const CFRuntimeClass __CFCalendarClass;
+CF_PRIVATE const CFRuntimeClass __CFDateIntervalFormatterClass;
 
 #pragma mark - Private initialiers to run at process start time
 
@@ -151,7 +152,6 @@ CF_PRIVATE void __CFCharacterSetInitialize(void);
 
 #if TARGET_OS_WIN32
 CF_PRIVATE void __CFTSDWindowsInitialize(void);
-CF_PRIVATE void __CFWindowsNamedPipeInitialize(void);
 #endif
 
 #if TARGET_OS_MAC || TARGET_OS_IPHONE || TARGET_OS_WIN32

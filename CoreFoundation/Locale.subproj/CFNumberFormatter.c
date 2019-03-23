@@ -8,6 +8,7 @@
 	Responsibility: David Smith
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <CoreFoundation/CFBigNumber.h>
@@ -488,7 +489,7 @@ CFStringRef CFNumberFormatterCreateStringWithValue(CFAllocatorRef allocator, CFN
     } else if (numberType == kCFNumberSInt64Type || numberType == kCFNumberLongLongType) {
 	FORMAT_INT(int64_t, _CFBigNumInitWithInt64)
     } else if (numberType == kCFNumberLongType || numberType == kCFNumberCFIndexType) {
-#if __LP64__
+#if TARGET_RT_64_BIT
 	FORMAT_INT(int64_t, _CFBigNumInitWithInt64)
 #else
 	FORMAT_INT(int32_t, _CFBigNumInitWithInt32)
@@ -733,7 +734,7 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
 	}
 	break;
     case kCFNumberSInt32Type: case kCFNumberIntType:
-#if !__LP64__
+#if !TARGET_RT_64_BIT
     case kCFNumberLongType: case kCFNumberCFIndexType:
 #endif
 	if (INT32_MIN <= dreti && dreti <= INT32_MAX) {
@@ -742,7 +743,7 @@ Boolean CFNumberFormatterGetValueFromString(CFNumberFormatterRef formatter, CFSt
 	}
 	break;
     case kCFNumberSInt64Type: case kCFNumberLongLongType:
-#if __LP64__
+#if TARGET_RT_64_BIT
     case kCFNumberLongType: case kCFNumberCFIndexType:
 #endif
 	if (INT64_MIN <= dreti && dreti <= INT64_MAX) {

@@ -1,10 +1,10 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2016 - 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
@@ -226,6 +226,66 @@ extension Decimal : Hashable, Comparable {
         return _isNegative != 0 ? -d : d
     }
 
+    // Return the low 64bits of the integer part
+    private var _unsignedInt64Value: UInt64 {
+        if _exponent < -20 || _exponent > 20 {
+            return 0
+        }
+
+        if _length == 0 || isZero || magnitude < Decimal(0) {
+            return 0
+        }
+
+        var copy = self.significand
+
+        if _exponent < 0 {
+            for _ in _exponent..<0 {
+                _ = divideByShort(&copy, 10)
+            }
+        } else if _exponent > 0 {
+            for _ in 0..<_exponent {
+                _ = multiplyByShort(&copy, 10)
+            }
+        }
+        let uint64 = UInt64(copy._mantissa.3) << 48 | UInt64(copy._mantissa.2) << 32 | UInt64(copy._mantissa.1) << 16 | UInt64(copy._mantissa.0)
+        return uint64
+    }
+
+    // Perform a best effort conversion of the integer value, trying to match Darwin for
+    // values outside of UInt64.min .. UInt64.max. Used by NSDecimalNumber.
+    internal var uint64Value: UInt64 {
+        let value = _unsignedInt64Value
+        if !self.isNegative {
+            return value
+        }
+
+        if value == Int64.max.magnitude + 1 {
+            return UInt64(bitPattern: Int64.min)
+        } else if value <= Int64.max.magnitude {
+            var value = Int64(value)
+            value.negate()
+            return UInt64(bitPattern: value)
+        } else {
+            return value
+        }
+    }
+
+    // Perform a best effort conversion of the integer value, trying to match Darwin for
+    // values outside of Int64.min .. Int64.max. Used by NSDecimalNumber.
+    internal var int64Value: Int64 {
+        let uint64Value = _unsignedInt64Value
+        if self.isNegative {
+            if uint64Value == Int64.max.magnitude + 1 {
+                return Int64.min
+            } else if uint64Value <= Int64.max.magnitude {
+                var value = Int64(uint64Value)
+                value.negate()
+                return value
+            }
+        }
+        return Int64(bitPattern: uint64Value)
+    }
+
     public var hashValue: Int {
         return Int(bitPattern: __CFHashDouble(doubleValue))
     }
@@ -250,6 +310,7 @@ extension Decimal : Hashable, Comparable {
         var rhsVal = rhs
         return NSDecimalCompare(&lhsVal, &rhsVal) == .orderedSame
     }
+
     public static func <(lhs: Decimal, rhs: Decimal) -> Bool {
         var lhsVal = lhs
         var rhsVal = rhs
@@ -335,6 +396,30 @@ extension Decimal : SignedNumeric {
         _isNegative = _isNegative == 0 ? 1 : 0
     }
 }
+
+
+extension Decimal: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSDecimalNumber {
+        return NSDecimalNumber(decimal: self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) {
+        result = _unconditionallyBridgeFromObjectiveC(x)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) -> Bool {
+        result = x.decimalValue
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
+        var result: Decimal?
+        guard let src = source else { return Decimal(0) }
+        guard _conditionallyBridgeFromObjectiveC(src, result: &result) else { return Decimal(0) }
+        return result!
+    }
+}
+
 
 extension Decimal {
     @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
@@ -1044,7 +1129,7 @@ public func NSDecimalRound(_ result: UnsafeMutablePointer<Decimal>, _ number: Un
 // scale indicates number of significant digits after the decimal point
 
 public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMutablePointer<Decimal>, _ roundingMode: NSDecimalNumber.RoundingMode) -> NSDecimalNumber.CalculationError {
-    var diffexp = a.pointee.__exponent - b.pointee.__exponent
+    var diffexp = Int(a.pointee.__exponent) - Int(b.pointee.__exponent)
     var result = Decimal()
 
     //
@@ -1081,7 +1166,7 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     // Try to multiply aa to reach the same exponent level than bb
     //
 
-    if integerMultiplyByPowerOf10(&result, aa.pointee, Int(diffexp)) == .noError {
+    if integerMultiplyByPowerOf10(&result, aa.pointee, diffexp) == .noError {
         // Succeed. Adjust the length/exponent info
         // and return no errorNSDecimalNormalize
         aa.pointee.copyMantissa(from: result)
@@ -1104,10 +1189,10 @@ public func NSDecimalNormalize(_ a: UnsafeMutablePointer<Decimal>, _ b: UnsafeMu
     //
     // Divide bb by this value
     //
-    _ = integerMultiplyByPowerOf10(&result, bb.pointee, Int(maxpow10 - diffexp))
+    _ = integerMultiplyByPowerOf10(&result, bb.pointee, Int(maxpow10) - diffexp)
 
     bb.pointee.copyMantissa(from: result)
-    bb.pointee._exponent -= Int32(maxpow10 - diffexp);
+    bb.pointee._exponent -= (Int32(maxpow10) - Int32(diffexp))
 
     //
     // If bb > 0 multiply aa by the same value
@@ -2007,6 +2092,7 @@ extension Scanner {
         }
 
     }
+    
     public func scanDecimal() -> Decimal? {
 
         var result = Decimal()
@@ -2015,7 +2101,7 @@ extension Scanner {
         let length = string.length
         var buf = _NSStringBuffer(string: string, start: self._scanLocation, end: length)
 
-        let ds_chars = decimalSep(locale).utf16
+        let ds_chars = decimalSep(locale as? Locale).utf16
         let ds = ds_chars[ds_chars.startIndex]
         buf.skip(_skipSet)
         var neg = false

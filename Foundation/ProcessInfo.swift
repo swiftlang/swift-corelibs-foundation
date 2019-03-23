@@ -7,13 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 import CoreFoundation
 
 public struct OperatingSystemVersion {
@@ -49,7 +42,8 @@ open class ProcessInfo: NSObject {
         var idx = 0
 
         while let entry = envp.advanced(by: idx).pointee {
-            if let entry = String(cString: entry, encoding: strEncoding), let i = entry.index(of: equalSign) {
+            if let entry = String(cString: entry, encoding: strEncoding),
+               let i = entry.firstIndex(of: equalSign) {
                 let key = String(entry.prefix(upTo: i))
                 let value = String(entry.suffix(from: i).dropFirst())
                 env[key] = value
@@ -83,7 +77,13 @@ open class ProcessInfo: NSObject {
     }
 
     open var operatingSystemVersionString: String {
-        return CFCopySystemVersionString()?._swiftObject ?? "Unknown"
+        let fallback = "Unknown"
+#if os(Linux)
+        let version = try? String(contentsOf: URL(fileURLWithPath: "/proc/version_signature", isDirectory: false), encoding: .utf8)
+        return version ?? fallback
+#else
+        return CFCopySystemVersionString()?._swiftObject ?? fallback
+#endif
     }
     
     open var operatingSystemVersion: OperatingSystemVersion {
@@ -91,7 +91,9 @@ open class ProcessInfo: NSObject {
         let fallbackMajor = -1
         let fallbackMinor = 0
         let fallbackPatch = 0
-        
+        let versionString: String
+
+#if canImport(Darwin)
         guard let systemVersionDictionary = _CFCopySystemVersionDictionary() else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
@@ -100,8 +102,26 @@ open class ProcessInfo: NSObject {
         guard let productVersion = unsafeBitCast(CFDictionaryGetValue(systemVersionDictionary, productVersionKey), to: NSString?.self) else {
             return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
-        
-        let versionComponents = productVersion._swiftObject.split(separator: ".").map(String.init).compactMap({ Int($0) })
+        versionString = productVersion._swiftObject
+#elseif os(Windows)
+        var siVersionInfo: OSVERSIONINFOW = OSVERSIONINFOW()
+        siVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<OSVERSIONINFOEXW>.size)
+        if GetVersionExW(&siVersionInfo) == FALSE {
+          return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        return OperatingSystemVersion(majorVersion: Int(siVersionInfo.dwMajorVersion), minorVersion: Int(siVersionInfo.dwMinorVersion), patchVersion: Int(siVersionInfo.dwBuildNumber))
+#else
+        var utsNameBuffer = utsname()
+        guard uname(&utsNameBuffer) == 0 else {
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        let release = withUnsafePointer(to: &utsNameBuffer.release.0) {
+            return String(cString: $0)
+        }
+        let idx = release.firstIndex(of: "-") ?? release.endIndex
+        versionString = String(release[..<idx])
+#endif
+        let versionComponents = versionString.split(separator: ".").map(String.init).compactMap({ Int($0) })
         let majorVersion = versionComponents.dropFirst(0).first ?? fallbackMajor
         let minorVersion = versionComponents.dropFirst(1).first ?? fallbackMinor
         let patchVersion = versionComponents.dropFirst(2).first ?? fallbackPatch

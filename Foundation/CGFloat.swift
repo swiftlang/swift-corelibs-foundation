@@ -863,11 +863,13 @@ public func scalbn(_ x: CGFloat, _ n: Int) -> CGFloat {
     return CGFloat(scalbn(x.native, n))
 }
 
+#if !os(Windows)
 @_transparent
 public func lgamma(_ x: CGFloat) -> (CGFloat, Int) {
     let (value, sign) = lgamma(x.native)
     return (CGFloat(value), sign)
 }
+#endif
 
 @_transparent
 public func remquo(_ x: CGFloat, _ y: CGFloat) -> (CGFloat, Int) {

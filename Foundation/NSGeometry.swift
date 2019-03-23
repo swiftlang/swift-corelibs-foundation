@@ -7,12 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 public struct CGPoint {
     public var x: CGFloat
     public var y: CGFloat
@@ -341,10 +335,28 @@ extension CGRect {
         let overlapH = rect1SpanH.clamped(to: rect2SpanH)
         let overlapV = rect1SpanV.clamped(to: rect2SpanV)
 
+        let width: CGFloat
+        if overlapH == rect1SpanH {
+            width = rect1.width
+        } else if overlapH == rect2SpanH {
+            width = rect2.width
+        } else {
+            width = overlapH.upperBound - overlapH.lowerBound
+        }
+
+        let height: CGFloat
+        if overlapV == rect1SpanV {
+            height = rect1.height
+        } else if overlapV == rect2SpanV {
+            height = rect2.height
+        } else {
+            height = overlapV.upperBound - overlapV.lowerBound
+        }
+
         return CGRect(x: overlapH.lowerBound,
                       y: overlapV.lowerBound,
-                      width: overlapH.upperBound - overlapH.lowerBound,
-                      height: overlapV.upperBound - overlapV.lowerBound)
+                      width: width,
+                      height: height)
     }
 
     public func intersects(_ r2: CGRect) -> Bool {

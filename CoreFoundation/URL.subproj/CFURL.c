@@ -2323,7 +2323,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #elif DEPLOYMENT_TARGET_WINDOWS
         CFStringRef filePath = CFStringCreateWithBytes(allocator, buffer, bufLen, CFStringFileSystemEncoding(), false);
         if ( filePath ) {
-            result = _CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
+            result = (struct __CFURL *)_CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
             CFRelease(filePath);
         }
 #endif
@@ -4459,7 +4459,32 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
     
     if ( relPath ) {
         // relPath is not absolute if it is zero length or doesn't start with a slash
-        Boolean relPathIsRelative = ((CFStringGetLength(relPath) != 0) ? (CFStringGetCharacterAtIndex(relPath, 0) != '/') : TRUE);
+        CFIndex length = CFStringGetLength(relPath);
+        Boolean relPathIsRelative = TRUE;
+        switch (fsType) {
+        case kCFURLPOSIXPathStyle:
+          relPathIsRelative = length > 0 && CFStringGetCharacterAtIndex(relPath, 0) != '/';
+          break;
+        case kCFURLHFSPathStyle:
+          relPathIsRelative = length > 0 && CFStringGetCharacterAtIndex(relPath, 0) == ':';
+          break;
+        case kCFURLWindowsPathStyle:
+          // In theory, on TARGET_DEPLOYMENT_WINDOWS we could use
+          // PathIsRelativeW here.
+
+          // UNC paths are always absolute
+          if (length > 2 && CFStringGetCharacterAtIndex(relPath, 0) == '\\' && CFStringGetCharacterAtIndex(relPath, 1) == '\\')
+            relPathIsRelative = FALSE;
+          else if (length > 1 && CFStringGetCharacterAtIndex(relPath, 1) == ':')
+            // This is not really ideal, but, since a drive letter a single
+            // character, and ':' is not a valid path character, and ':' is
+            // reserved for the ADS separator, this works.
+            relPathIsRelative = FALSE;
+          else
+            relPathIsRelative = TRUE;
+
+          break;
+        }
         if ( basePath && relPathIsRelative ) {
             // we have both basePath and relPath, and relPath is not absolute -- resolve them
             CFStringRef result = _resolveFileSystemPaths(relPath, basePath, CFURLHasDirectoryPath(base), fsType, allocator);
@@ -4699,6 +4724,53 @@ CFStringRef CFURLCopyPathExtension(CFURLRef url) {
         CFRelease(lastPathComp);
     }
     return ext;
+}
+
+static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
+{
+    Boolean result;
+    CFURLRef baseURL = CFURLGetBaseURL(url);
+
+    if ( baseURL ) {
+        result = _CFURLHasFileURLScheme(baseURL, hasScheme);
+    }
+    else {
+        if ( CF_IS_OBJC(CFURLGetTypeID(), url) || (_getSchemeTypeFromFlags(url->_flags) == kHasUncommonScheme) ) {
+            // if it's not a CFURL or the scheme is not a common canonical-form scheme, determine the scheme the slower way.
+            CFStringRef scheme = CFURLCopyScheme(url);
+            if ( scheme ) {
+                if ( scheme == kCFURLFileScheme ) {
+                    result = true;
+                }
+                else {
+                    result = CFStringCompare(scheme, kCFURLFileScheme, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
+                }
+                if ( hasScheme ) {
+                    *hasScheme = true;
+                }
+                CFRelease(scheme);
+            }
+            else {
+                if ( hasScheme ) {
+                    *hasScheme = false;
+                }
+                result = false;
+            }
+        }
+        else {
+            if ( hasScheme ) {
+                *hasScheme = (url->_flags & HAS_SCHEME) != 0;
+            }
+            result = (_getSchemeTypeFromFlags(url->_flags) == kHasFileScheme);
+        }
+    }
+    return ( result );
+}
+
+Boolean _CFURLIsFileURL(CFURLRef url)
+{
+    Boolean result = _CFURLHasFileURLScheme(url, NULL);
+    return ( result );
 }
 
 CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRef url, CFStringRef pathComponent, Boolean isDirectory) {
@@ -5083,53 +5155,6 @@ Boolean CFURLIsFileReferenceURL(CFURLRef url)
     return ( result );
 }
 #endif
-
-static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme)
-{
-    Boolean result;
-    CFURLRef baseURL = CFURLGetBaseURL(url);
-    
-    if ( baseURL ) {
-	result = _CFURLHasFileURLScheme(baseURL, hasScheme);
-    }
-    else {
-        if ( CF_IS_OBJC(CFURLGetTypeID(), url) || (_getSchemeTypeFromFlags(url->_flags) == kHasUncommonScheme) ) {
-            // if it's not a CFURL or the scheme is not a common canonical-form scheme, determine the scheme the slower way.
-            CFStringRef scheme = CFURLCopyScheme(url);
-            if ( scheme ) {
-                if ( scheme == kCFURLFileScheme ) {
-                    result = true;
-                }
-                else {
-                    result = CFStringCompare(scheme, kCFURLFileScheme, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
-                }
-                if ( hasScheme ) {
-                    *hasScheme = true;
-                }
-                CFRelease(scheme);
-            }
-            else {
-                if ( hasScheme ) {
-                    *hasScheme = false;
-                }
-                result = false;
-            }
-        }
-        else {
-            if ( hasScheme ) {
-                *hasScheme = (url->_flags & HAS_SCHEME) != 0;
-            }
-            result = (_getSchemeTypeFromFlags(url->_flags) == kHasFileScheme);
-        }
-    }
-    return ( result );
-}
-
-Boolean _CFURLIsFileURL(CFURLRef url)
-{
-    Boolean result = _CFURLHasFileURLScheme(url, NULL);
-    return ( result );
-}
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 

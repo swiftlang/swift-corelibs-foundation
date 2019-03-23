@@ -8,15 +8,16 @@
 //
 
 #if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux)
-import Glibc
-#endif
-
-#if os(macOS) || os(iOS)
 fileprivate let _NSPageSize = Int(vm_page_size)
 #elseif os(Linux) || os(Android)
 fileprivate let _NSPageSize = Int(getpagesize())
+#elseif os(Windows)
+import WinSDK
+fileprivate var _NSPageSize: Int {
+  var siInfo: SYSTEM_INFO = SYSTEM_INFO()
+  GetSystemInfo(&siInfo)
+  return Int(siInfo.dwPageSize)
+}
 #endif
 
 public func NSPageSize() -> Int {

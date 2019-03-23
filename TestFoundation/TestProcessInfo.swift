@@ -25,6 +25,11 @@ class TestProcessInfo : XCTestCase {
         
         let version = processInfo.operatingSystemVersion
         XCTAssert(version.majorVersion != 0)
+
+#if os(Linux) || canImport(Darwin)
+        let minVersion = OperatingSystemVersion(majorVersion: 1, minorVersion: 0, patchVersion: 0)
+        XCTAssertTrue(processInfo.isOperatingSystemAtLeast(minVersion))
+#endif
     }
     
     func test_processName() {
@@ -63,6 +68,13 @@ class TestProcessInfo : XCTestCase {
     }
 
     func test_environment() {
+#if os(Windows)
+        func setenv(_ key: String, _ value: String, _ overwrite: Int) -> Int32 {
+          assert(overwrite == 1)
+          return putenv("\(key)=\(value)")
+        }
+#endif
+
         let preset = ProcessInfo.processInfo.environment["test"]
         setenv("test", "worked", 1)
         let postset = ProcessInfo.processInfo.environment["test"]

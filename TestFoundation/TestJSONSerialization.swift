@@ -115,6 +115,7 @@ extension TestJSONSerialization {
             ("test_deserialize_invalidValueInArray_withData", test_deserialize_invalidValueInArray_withData),
             ("test_deserialize_badlyFormedArray_withData", test_deserialize_badlyFormedArray_withData),
             ("test_deserialize_invalidEscapeSequence_withData", test_deserialize_invalidEscapeSequence_withData),
+            ("test_deserialize_unicodeMissingLeadingSurrogate_withData", test_deserialize_unicodeMissingLeadingSurrogate_withData),
             ("test_deserialize_unicodeMissingTrailingSurrogate_withData", test_deserialize_unicodeMissingTrailingSurrogate_withData),
 
             //Deserialization with Stream
@@ -146,6 +147,7 @@ extension TestJSONSerialization {
             ("test_deserialize_invalidValueInArray_withStream", test_deserialize_invalidValueInArray_withStream),
             ("test_deserialize_badlyFormedArray_withStream", test_deserialize_badlyFormedArray_withStream),
             ("test_deserialize_invalidEscapeSequence_withStream", test_deserialize_invalidEscapeSequence_withStream),
+            ("test_deserialize_unicodeMissingLeadingSurrogate_withStream", test_deserialize_unicodeMissingLeadingSurrogate_withStream),
             ("test_deserialize_unicodeMissingTrailingSurrogate_withStream", test_deserialize_unicodeMissingTrailingSurrogate_withStream),
             ("test_JSONObjectWithStream_withFile", test_JSONObjectWithStream_withFile),
             ("test_JSONObjectWithStream_withURL", test_JSONObjectWithStream_withURL),
@@ -242,6 +244,10 @@ extension TestJSONSerialization {
         deserialize_invalidEscapeSequence(objectType: .data)
     }
 
+    func test_deserialize_unicodeMissingLeadingSurrogate_withData() {
+        deserialize_unicodeMissingLeadingSurrogate(objectType: .data)
+    }
+
     func test_deserialize_unicodeMissingTrailingSurrogate_withData() {
         deserialize_unicodeMissingTrailingSurrogate(objectType: .data)
     }
@@ -334,6 +340,10 @@ extension TestJSONSerialization {
 
     func test_deserialize_invalidEscapeSequence_withStream() {
         deserialize_invalidEscapeSequence(objectType: .stream)
+    }
+
+    func test_deserialize_unicodeMissingLeadingSurrogate_withStream() {
+        deserialize_unicodeMissingLeadingSurrogate(objectType: .stream)
     }
 
     func test_deserialize_unicodeMissingTrailingSurrogate_withStream() {
@@ -735,6 +745,20 @@ extension TestJSONSerialization {
             XCTFail("Expected error: Invalid escape sequence")
         } catch {
             // Passing case; the escape sequence is invalid
+        }
+    }
+
+    func deserialize_unicodeMissingLeadingSurrogate(objectType: ObjectType) {
+        let subject = "[\"\\uDFF3\"]"
+        do {
+            guard let data = subject.data(using: .utf8) else {
+                XCTFail("Unable to convert string to data")
+                return
+            }
+            let _ = try getjsonObjectResult(data, objectType) as? [String]
+            XCTFail("Expected error: Missing Leading Surrogate")
+        } catch {
+            // Passing case; the unicode character is malformed
         }
     }
 

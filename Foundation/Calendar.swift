@@ -859,12 +859,12 @@ public struct Calendar : Hashable, Equatable, ReferenceConvertible, _MutableBoxi
     
     // MARK: -
     
-    public var hashValue: Int {
+    public func hash(into hasher: inout Hasher) {
         // We implement hash ourselves, because we need to make sure autoupdating calendars have the same hash
         if _autoupdating {
-            return 1
+            hasher.combine(1 as Int8)
         } else {
-            return _handle.map { $0.hash }
+            hasher.combine(_handle.map { $0 })
         }
     }
     

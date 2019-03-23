@@ -7,7 +7,7 @@ Although macOS is not a deployment platform for Swift Foundation, it is useful f
 In order to build on macOS, you will need:
 
 * The latest version of Xcode
-* The latest version of the macOS SDK (at this time: 10.13.2)
+* The latest version of the macOS SDK (at this time: 10.14)
 * The [current Swift toolchain](https://swift.org/download/#snapshots).
 
 Foundation is developed at the same time as the rest of Swift, so the most recent version of the compiler is required in order to build it.
@@ -34,7 +34,7 @@ Build and test steps:
 
 You will need:
 
-* A supported distribution of Linux. At this time, we support [Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 16.10](http://www.ubuntu.com).
+* A supported distribution of Linux. At this time, we support [Ubuntu 14.04, Ubuntu 16.04 and Ubuntu 18.04](http://www.ubuntu.com).
 
 To get started, follow the instructions on how to [build Swift](https://github.com/apple/swift#building-swift). Foundation is developed at the same time as the rest of Swift, so the most recent version of the `clang` and `swift` compilers are required in order to build it. The easiest way to make sure you have all of the correct dependencies is to build everything together.
 

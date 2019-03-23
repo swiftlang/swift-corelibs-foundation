@@ -9,20 +9,47 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
 public func NSTemporaryDirectory() -> String {
-    #if os(macOS) || os(iOS)
-    var buf = [Int8](repeating: 0, count: 100)
-    let r = confstr(_CS_DARWIN_USER_TEMP_DIR, &buf, buf.count)
-    if r != 0 && r < buf.count {
-        return String(cString: buf, encoding: .utf8)!
+#if os(Windows)
+    let cchLength: DWORD = GetTempPathW(0, nil)
+    var wszPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(cchLength + 1))
+    guard GetTempPathW(DWORD(wszPath.count), &wszPath) <= cchLength else {
+      precondition(false, "GetTempPathW mutation race")
     }
-    #endif
+    return String(decodingCString: wszPath, as: UTF16.self)
+#else
+#if canImport(Darwin)
+    let safe_confstr = { (name: Int32, buf: UnsafeMutablePointer<Int8>?, len: Int) -> Int in
+        // POSIX moment of weird: confstr() is one of those annoying APIs which
+        // can return zero for both error and non-error conditions, so the only
+        // way to disambiguate is to put errno in a known state before calling.
+        errno = 0
+        let result = confstr(name, buf, len)
+        
+        // result == 0 is only error if errno is not zero. But, if there was an
+        // error, bail; all possible errors from confstr() are Very Bad Things.
+        let err = errno // only read errno once in the failure case.
+        precondition(result > 0 || err == 0, "Unexpected confstr() error: \(err)")
+        
+        // This is extreme paranoia and should never happen; this would mean
+        // confstr() returned < 0, which would only happen for impossibly long
+        // sizes of value or long-dead versions of the OS.
+        assert(result >= 0, "confstr() returned impossible result: \(result)")
+
+        return result
+    }
+
+    let length: Int = safe_confstr(_CS_DARWIN_USER_TEMP_DIR, nil, 0)
+    if length > 0 {
+      var buffer: [Int8] = Array<Int8>(repeating: 0, count: length)
+      let final_length = safe_confstr(_CS_DARWIN_USER_TEMP_DIR, &buffer, buffer.count)
+      
+      assert(length == final_length, "Value of _CS_DARWIN_USER_TEMP_DIR changed?")
+      if length > 0 && length < buffer.count {
+        return String(cString: buffer, encoding: .utf8)!
+      }
+    }
+#endif
     if let tmpdir = ProcessInfo.processInfo.environment["TMPDIR"] {
         if !tmpdir.hasSuffix("/") {
             return tmpdir + "/"
@@ -31,6 +58,7 @@ public func NSTemporaryDirectory() -> String {
         }
     }
     return "/tmp/"
+#endif
 }
 
 extension String {
@@ -156,7 +184,13 @@ extension String {
 extension NSString {
     
     public var isAbsolutePath: Bool {
+#if os(Windows)
+        return self._swiftObject.withCString(encodedAs: UTF16.self) {
+          PathIsRelativeW($0) == FALSE
+        }
+#else
         return hasPrefix("~") || hasPrefix("/")
+#endif
     }
     
     public static func pathWithComponents(_ components: [String]) -> String {
@@ -285,7 +319,7 @@ extension NSString {
             return _swiftObject
         }
 
-        let endOfUserName = _swiftObject.index(of: "/") ?? _swiftObject.endIndex
+        let endOfUserName = _swiftObject.firstIndex(of: "/") ?? _swiftObject.endIndex
         let startOfUserName = _swiftObject.index(after: _swiftObject.startIndex)
         let userName = String(_swiftObject[startOfUserName..<endOfUserName])
         let optUserName: String? = userName.isEmpty ? nil : userName
@@ -613,6 +647,20 @@ public func NSFullUserName() -> String {
 
 internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, String) {
     let template = filePath + ".tmp.XXXXXX"
+#if os(Windows)
+    let maxLength: Int = Int(MAX_PATH + 1)
+    var buf: [UInt16] = Array<UInt16>(repeating: 0, count: maxLength)
+    let length = GetTempPathW(DWORD(MAX_PATH), &buf)
+    precondition(length <= MAX_PATH - 14, "temp path too long")
+    if "SCF".withCString(encodedAs: UTF16.self, {
+      return GetTempFileNameW(buf, $0, 0, &buf)
+    }) == FALSE {
+      throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
+                              path: filePath)
+    }
+    let pathResult = FileManager.default.string(withFileSystemRepresentation: String(decoding: buf, as: UTF16.self), length: wcslen(buf))
+    let fd = open(pathResult, _O_CREAT)
+#else
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
     let _ = template._nsObject.getFileSystemRepresentation(&buf, maxLength: maxLength)
@@ -621,6 +669,7 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
         throw _NSErrorWithErrno(errno, reading: false, path: filePath)
     }
     let pathResult = FileManager.default.string(withFileSystemRepresentation: buf, length: Int(strlen(buf)))
+#endif
     return (fd, pathResult)
 }
 

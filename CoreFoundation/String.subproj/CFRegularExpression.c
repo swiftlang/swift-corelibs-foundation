@@ -171,6 +171,41 @@ CFIndex _CFRegularExpressionGetNumberOfCaptureGroups(_CFRegularExpressionRef reg
     return (CFIndex)uregex_groupCount(regex->regex, &errorCode);
 }
 
+CFIndex _CFRegularExpressionGetCaptureGroupNumberWithName(_CFRegularExpressionRef regex, CFStringRef groupName) {
+    UniChar stackBuffer[STACK_BUFFER_SIZE], *nameBuffer = NULL;
+    Boolean freeNameBuffer = false;
+
+    CFIndex nameLength = CFStringGetLength(groupName);
+    UErrorCode errorCode = U_ZERO_ERROR;
+
+    nameBuffer = (UniChar *)CFStringGetCharactersPtr(groupName);
+    if (!nameBuffer) {
+        if (nameLength <= STACK_BUFFER_SIZE) {
+            nameBuffer = stackBuffer;
+            CFStringGetCharacters(groupName, CFRangeMake(0, nameLength), nameBuffer);
+        } else {
+            nameBuffer = (UniChar *)malloc(sizeof(UniChar) * nameLength);
+            if (nameBuffer) {
+                CFStringGetCharacters(groupName, CFRangeMake(0, nameLength), nameBuffer);
+                freeNameBuffer = true;
+            } else {
+                HALT;
+            }
+        }
+    }
+
+    CFIndex idx = uregex_groupNumberFromName(regex->regex, nameBuffer, nameLength, &errorCode);
+    if (U_FAILURE(errorCode) || idx < 0) {
+        idx = kCFNotFound;
+    }
+
+    if (freeNameBuffer) {
+        free(nameBuffer);
+    }
+
+    return idx;
+}
+
 struct regexCallBackContext {
     void *context;
     void (*match)(void *context, CFRange *ranges, CFIndex count, _CFRegularExpressionMatchingFlags flags, Boolean *stop);
@@ -333,7 +368,7 @@ void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexO
     void *bufferToFree = NULL, *utextToFree = NULL;
     struct regexCallBackContext context;
     CFIndex offset, length = CFStringGetLength(string);
-    _CFRegularExpressionMatchingOptions flags;
+    _CFRegularExpressionMatchingFlags flags;
     Boolean checkedOutRegex = true;
     Boolean stop = false;
     Boolean reportProgress = ((options & _kCFRegularExpressionMatchingReportProgress) != 0);

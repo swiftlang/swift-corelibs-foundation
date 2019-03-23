@@ -130,7 +130,7 @@ open class Operation : NSObject {
         _dependencies.remove(op)
         op.lock.lock()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
-        let groupIndex = op._groups.index(where: { $0 === self._depGroup })
+        let groupIndex = op._groups.firstIndex(where: { $0 === self._depGroup })
         if let idx = groupIndex {
             let group = op._groups.remove(at: idx)
             group.leave()
@@ -183,6 +183,16 @@ extension Operation {
 
     public func didChangeValue(forKey key: String) {
         if key == "isFinished" && isFinished {
+            finish()
+        }
+    }
+    
+    public func willChangeValue<Value>(for keyPath: KeyPath<Operation, Value>) {
+        // do nothing
+    }
+    
+    public func didChangeValue<Value>(for keyPath: KeyPath<Operation, Value>) {
+        if keyPath == \Operation.isFinished {
             finish()
         }
     }
@@ -259,28 +269,28 @@ internal struct _OperationList {
     }
     
     mutating func remove(_ operation: Operation) {
-        if let idx = all.index(of: operation) {
+        if let idx = all.firstIndex(of: operation) {
             all.remove(at: idx)
         }
         switch operation.queuePriority {
         case .veryLow:
-            if let idx = veryLow.index(of: operation) {
+            if let idx = veryLow.firstIndex(of: operation) {
                 veryLow.remove(at: idx)
             }
         case .low:
-            if let idx = low.index(of: operation) {
+            if let idx = low.firstIndex(of: operation) {
                 low.remove(at: idx)
             }
         case .normal:
-            if let idx = normal.index(of: operation) {
+            if let idx = normal.firstIndex(of: operation) {
                 normal.remove(at: idx)
             }
         case .high:
-            if let idx = high.index(of: operation) {
+            if let idx = high.firstIndex(of: operation) {
                 high.remove(at: idx)
             }
         case .veryHigh:
-            if let idx = veryHigh.index(of: operation) {
+            if let idx = veryHigh.firstIndex(of: operation) {
                 veryHigh.remove(at: idx)
             }
         }

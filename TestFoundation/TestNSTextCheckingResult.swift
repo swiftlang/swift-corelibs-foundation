@@ -11,11 +11,13 @@ class TestNSTextCheckingResult: XCTestCase {
     static var allTests: [(String, (TestNSTextCheckingResult) -> () throws -> Void)] {
         return [
            ("test_textCheckingResult", test_textCheckingResult),
+           ("test_multipleMatches", test_multipleMatches),
+           ("test_rangeWithName", test_rangeWithName),
         ]
     }
     
     func test_textCheckingResult() {
-       let patternString = "(a|b)x|123|(c|d)y"
+       let patternString = "(a|b)x|123|(?<aname>c|d)y"
        do {
            let patternOptions: NSRegularExpression.Options = []
            let regex = try NSRegularExpression(pattern: patternString, options: patternOptions)
@@ -28,16 +30,76 @@ class TestNSTextCheckingResult: XCTestCase {
            XCTAssertEqual(result.range(at: 0).location, 6)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 6)
+           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+               XCTAssertEqual(result.range(withName: "aname").location, 6)
+           }
            //Negative offset
            result = match.adjustingRanges(offset: -2)
            XCTAssertEqual(result.range(at: 0).location, 3)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 3)
+           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+               XCTAssertEqual(result.range(withName: "aname").location, 3)
+           }
            //ZeroOffset
            result = match.adjustingRanges(offset: 0)
            XCTAssertEqual(result.range(at: 0).location, 5)
            XCTAssertEqual(result.range(at: 1).location, NSNotFound)
            XCTAssertEqual(result.range(at: 2).location, 5)
+           if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+               XCTAssertEqual(result.range(withName: "aname").location, 5)
+           }
+       } catch {
+            XCTFail("Unable to build regular expression for pattern \(patternString)")
+       }
+    }
+
+    func test_multipleMatches() {
+        let patternString = "(?<name>hello)[0-9]"
+
+        do {
+            let regex = try NSRegularExpression(pattern: patternString, options: [])
+            let searchString = "hello1 hello2"
+            let searchRange = NSRange(location: 0, length: searchString.count)
+            let matches = regex.matches(in: searchString, options: [], range: searchRange)
+            XCTAssertEqual(matches.count, 2)
+            XCTAssertEqual(matches[0].numberOfRanges, 2)
+            XCTAssertEqual(matches[0].range, NSRange(location: 0, length: 6))
+            XCTAssertEqual(matches[0].range(at: 0), NSRange(location: 0, length: 6))
+            XCTAssertEqual(matches[0].range(at: 1), NSRange(location: 0, length: 5))
+            if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+                XCTAssertEqual(matches[0].range(withName: "name"), NSRange(location: 0, length: 5))
+            }
+            XCTAssertEqual(matches[1].numberOfRanges, 2)
+            XCTAssertEqual(matches[1].range, NSRange(location: 7, length: 6))
+            XCTAssertEqual(matches[1].range(at: 0), NSRange(location: 7, length: 6))
+            XCTAssertEqual(matches[1].range(at: 1), NSRange(location: 7, length: 5))
+            if #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) {
+                XCTAssertEqual(matches[1].range(withName: "name"), NSRange(location: 7, length: 5))
+            }
+        } catch {
+            XCTFail("Unable to build regular expression for pattern \(patternString)")
+        }
+    }
+
+
+    func test_rangeWithName() {
+        guard #available(OSX 10.13, iOS 11.0, watchOS 4.0, tvOS 11.0, *) else {
+            return
+        }
+
+        let patternString = "(?<name1>hel)lo, (?<name2>worl)d"
+
+        do {
+            let regex = try NSRegularExpression(pattern: patternString, options: [])
+            let searchString = "hello, world"
+            let searchRange = NSRange(location: 0, length: searchString.count)
+            let matches = regex.matches(in: searchString, options: [], range: searchRange)
+            XCTAssertEqual(matches.count, 1)
+            XCTAssertEqual(matches[0].numberOfRanges, 3)
+            XCTAssertEqual(matches[0].range(withName: "incorrect").location, NSNotFound)
+            XCTAssertEqual(matches[0].range(withName: "name1"), NSRange(location: 0, length: 3))
+            XCTAssertEqual(matches[0].range(withName: "name2"), NSRange(location: 7, length: 4))
         } catch {
             XCTFail("Unable to build regular expression for pattern \(patternString)")
         }

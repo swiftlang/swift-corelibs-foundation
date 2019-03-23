@@ -50,13 +50,14 @@ typedef CF_OPTIONS(CFOptionFlags, _CFRegularExpressionMatchingFlags) {
 
 typedef const struct CF_BRIDGED_TYPE(_NSCFRegex) ___CFRegularExpression * _CFRegularExpressionRef;
 
-typedef void (*_CFRegularExpressionMatch)(void *_Nullable context, CFRange * _Nullable ranges, CFIndex count, _CFRegularExpressionMatchingOptions options, Boolean *stop);
+typedef void (*_CFRegularExpressionMatch)(void *_Nullable context, CFRange * _Nullable ranges, CFIndex count, _CFRegularExpressionMatchingFlags flags, Boolean *stop);
 
 CFStringRef _CFRegularExpressionCreateEscapedPattern(CFStringRef pattern);
 _CFRegularExpressionRef _Nullable _CFRegularExpressionCreate(CFAllocatorRef allocator, CFStringRef pattern, _CFRegularExpressionOptions options, CFErrorRef *errorPtr);
 void _CFRegularExpressionDestroy(_CFRegularExpressionRef regex);
 
 CFIndex _CFRegularExpressionGetNumberOfCaptureGroups(_CFRegularExpressionRef regex);
+CFIndex _CFRegularExpressionGetCaptureGroupNumberWithName(_CFRegularExpressionRef regex, CFStringRef groupName);
 void _CFRegularExpressionEnumerateMatchesInString(_CFRegularExpressionRef regexObj, CFStringRef string, _CFRegularExpressionMatchingOptions options, CFRange range, void *_Nullable context, _CFRegularExpressionMatch match);
 
 CFStringRef _CFRegularExpressionGetPattern(_CFRegularExpressionRef regex);

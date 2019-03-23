@@ -8,6 +8,7 @@
 	Responsibility: Foundation Team
 */
 
+#include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFByteOrder.h>
 #include "CFInternal.h"
 #include "CFUniChar.h" 
@@ -41,7 +42,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #define USE_MACHO_SEGMENT 1
-#elif DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD)
+#elif DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD || DEPLOYMENT_TARGET_WINDOWS)
 #define USE_RAW_SYMBOL 1
 #endif
 
@@ -88,7 +89,7 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
     for (idx = 0; idx < cnt; idx++) {
        void *mh = (void *)_dyld_get_image_header(idx);
        if (mh != &_mh_dylib_header) continue;
-#if __LP64__
+#if TARGET_RT_64_BIT
        const struct section_64 *sect = getsectbynamefromheader_64((struct mach_header_64 *)mh, segname, sectname);
 #else
        const struct section *sect = getsectbynamefromheader((struct mach_header *)mh, segname, sectname);
@@ -300,46 +301,38 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-    
+
+#if __CF_BIG_ENDIAN__
+#define CF_UNICODE_DATA_SYM __CFUnicodeDataB
+#else
+#define CF_UNICODE_DATA_SYM __CFUnicodeDataL
+#endif
+
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
 static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int64_t *fileSize) {
-#elif DEPLOYMENT_TARGET_WINDOWS
-static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, int64_t *fileSize) {
-#else
-#error Unknown or unspecified DEPLOYMENT_TARGET
-#endif
 #if USE_MACHO_SEGMENT
-	*bytes = __CFGetSectDataPtr("__UNICODE", bitmapName, NULL);
+    *bytes = __CFGetSectDataPtr("__UNICODE", bitmapName, NULL);
 
     if (NULL != fileSize) *fileSize = 0;
 
     return *bytes ? true : false;
 #elif USE_RAW_SYMBOL
     extern void *__CFCharacterSetBitmapData;
-#if __CF_BIG_ENDIAN__
-    extern void *__CFUnicodeDataB;
-#else
-    extern void *__CFUnicodeDataL;
-#endif
+    extern void *CF_UNICODE_DATA_SYM;
     extern void *__CFUniCharPropertyDatabase;
-    
+
     if (strcmp(bitmapName, CF_UNICHAR_BITMAP_FILE) == 0) {
         *bytes = &__CFCharacterSetBitmapData;
     } else if (strcmp(bitmapName, MAPPING_TABLE_FILE) == 0) {
-#if __CF_BIG_ENDIAN__
-        *bytes = &__CFUnicodeDataB;
-#else
-        *bytes = &__CFUnicodeDataL;
-#endif
+        *bytes = &CF_UNICODE_DATA_SYM;
     } else if (strcmp(bitmapName, PROP_DB_FILE) == 0) {
         *bytes = &__CFUniCharPropertyDatabase;
     }
-    
+
     if (NULL != fileSize) *fileSize = 0;
-    
+
     return *bytes ? true : false;
 #else
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
     char cpath[MAXPATHLEN];
     __CFUniCharCharacterSetPath(cpath);
     strlcat(cpath, bitmapName, MAXPATHLEN);
@@ -348,16 +341,36 @@ static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, i
     bool result = __CFUniCharLoadBytesFromFile(possiblyFrameworkRootedCPath, bytes, fileSize);
     if (needToFree) free((void *)possiblyFrameworkRootedCPath);
     return result;
+#endif
+}
 #elif DEPLOYMENT_TARGET_WINDOWS
+static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, int64_t *fileSize) {
+#if USE_RAW_SYMBOL
+    extern void *__CFCharacterSetBitmapData;
+    extern void *CF_UNICODE_DATA_SYM;
+    extern void *__CFUniCharPropertyDatabase;
+
+    if (wcscmp(bitmapName, CF_UNICHAR_BITMAP_FILE) == 0) {
+        *bytes = &__CFCharacterSetBitmapData;
+    } else if (wcscmp(bitmapName, MAPPING_TABLE_FILE) == 0) {
+        *bytes = &CF_UNICODE_DATA_SYM;
+    } else if (wcscmp(bitmapName, PROP_DB_FILE) == 0) {
+        *bytes = &__CFUniCharPropertyDatabase;
+    }
+
+    if (NULL != fileSize) *fileSize = 0;
+
+    return *bytes ? true : false;
+#else
     wchar_t wpath[MAXPATHLEN];
     __CFUniCharCharacterSetPath(wpath);
     wcsncat(wpath, bitmapName, MAXPATHLEN);
     return __CFUniCharLoadBytesFromFile(wpath, bytes, fileSize);
+#endif
+}
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#endif
-}
 
 // Bitmap functions
 /*

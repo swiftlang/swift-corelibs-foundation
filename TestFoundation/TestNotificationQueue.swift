@@ -103,15 +103,15 @@ FIXME SR-4280 timeouts in TestNSNotificationQueue tests
                 return
             }
 
-            // post 2 notifications for the RunLoopMode.defaultRunLoopMode mode
+            // post 2 notifications for the RunLoop.Mode.default mode
             queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [runLoopMode])
             queue.enqueue(notification, postingStyle: .now)
-            // here we post notification for the RunLoopMode.commonModes. It shouldn't have any affect, because the timer is scheduled in RunLoopMode.defaultRunLoopMode.
+            // here we post notification for the RunLoop.Mode.common. It shouldn't have any affect, because the timer is scheduled in RunLoop.Mode.default.
             // The notification queue will only post the notification to its notification center if the run loop is in one of the modes provided in the array.
-            queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [.commonModes])
+            queue.enqueue(notification, postingStyle: .now, coalesceMask: [], forModes: [.common])
         }
-        runLoop.add(dummyTimer, forMode: .defaultRunLoopMode)
-        let _ = runLoop.run(mode: .defaultRunLoopMode, before: endDate)
+        runLoop.add(dummyTimer, forMode: .default)
+        let _ = runLoop.run(mode: .default, before: endDate)
         XCTAssertEqual(numberOfCalls, 2)
         NotificationCenter.default.removeObserver(obs)
     }
@@ -219,7 +219,7 @@ FIXME SR-4280 timeouts in TestNSNotificationQueue tests
         let dummyTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { _ in
             e.fulfill()
         }
-        RunLoop.current.add(dummyTimer, forMode: .defaultRunLoopMode)
+        RunLoop.current.add(dummyTimer, forMode: .default)
         waitForExpectations(timeout: 0.1)
     }
 

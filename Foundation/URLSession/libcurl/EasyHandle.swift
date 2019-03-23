@@ -203,7 +203,7 @@ extension _EasyHandle {
     /// set preferred receive buffer size
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_BUFFERSIZE.html
     func set(preferredReceiveBufferSize size: Int) {
-        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionBUFFERSIZE, min(size, Int(CFURLSessionMaxWriteSize))).asError()
+        try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionBUFFERSIZE, numericCast(min(size, Int(CFURLSessionMaxWriteSize)))).asError()
     }
     /// Set custom HTTP headers
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
@@ -264,7 +264,7 @@ extension _EasyHandle {
     }
 
     func set(timeout value: Int) {
-       try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, value).asError()
+       try! CFURLSession_easy_setopt_long(rawHandle, CFURLSessionOptionTIMEOUT, numericCast(value)).asError()
     }
 
     func getTimeoutIntervalSpent() -> Double {
@@ -374,9 +374,13 @@ internal extension _EasyHandle {
     /// errno number from last connect failure
     /// - SeeAlso: https://curl.haxx.se/libcurl/c/CURLINFO_OS_ERRNO.html
     var connectFailureErrno: Int {
+    #if os(Windows) && (arch(arm64) || arch(x86_64))
+        var errno = Int32()
+    #else
         var errno = Int()
+    #endif
         try! CFURLSession_easy_getinfo_long(rawHandle, CFURLSessionInfoOS_ERRNO, &errno).asError()
-        return errno
+        return numericCast(errno)
     }
 }
 

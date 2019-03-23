@@ -12,18 +12,18 @@ import CoreFoundation
 
 // Re-export Darwin and Glibc by importing Foundation
 // This mimics the behavior of the swift sdk overlay on Darwin
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 @_exported import Darwin
 #elseif os(Linux) || os(Android) || CYGWIN
 @_exported import Glibc
+#elseif os(Windows)
+@_exported import MSVCRT
 #endif
 
 @_exported import Dispatch
 
-#if os(Android) // shim required for bzero
-@_transparent func bzero(_ ptr: UnsafeMutableRawPointer, _ size: size_t) {
-    memset(ptr, 0, size)
-}
+#if os(Windows)
+import WinSDK
 #endif
 
 #if !_runtime(_ObjC)
@@ -88,11 +88,11 @@ extension ObjCBool : CustomStringConvertible {
 
 @usableFromInline
 internal class __NSCFType : NSObject {
-    private var _cfinfo : Int32
+    private var _cfinfo : _CFInfo
     
     override init() {
         // This is not actually called; _CFRuntimeCreateInstance will initialize _cfinfo
-        _cfinfo = 0
+        _cfinfo = _CFInfo(typeID: 0)
     }
     
     override var hash: Int {
@@ -137,7 +137,7 @@ internal func _CFSwiftIsEqual(_ cf1: AnyObject, cf2: AnyObject) -> Bool {
 // Ivars in _NSCF* types must be zeroed via an unsafe accessor to avoid deinit of potentially unsafe memory to accces as an object/struct etc since it is stored via a foreign object graph
 internal func _CFZeroUnsafeIvars<T>(_ arg: inout T) {
     withUnsafeMutablePointer(to: &arg) { (ptr: UnsafeMutablePointer<T>) -> Void in
-        bzero(UnsafeMutableRawPointer(ptr), MemoryLayout<T>.size)
+        memset(UnsafeMutableRawPointer(ptr), 0, MemoryLayout<T>.size)
     }
 }
 

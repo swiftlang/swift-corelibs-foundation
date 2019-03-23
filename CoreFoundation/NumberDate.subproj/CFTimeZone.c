@@ -32,6 +32,9 @@
 #include <sys/fcntl.h>
 #endif
 #endif
+#if TARGET_OS_WIN32
+#include <tchar.h>
+#endif
 #if TARGET_OS_MAC
 #include <tzfile.h>
 #define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
@@ -45,7 +48,9 @@
 #ifndef TZDEFAULT
 #define TZDEFAULT	"/etc/localtime"
 #endif /* !defined TZDEFAULT */
+#endif
 
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32
 struct tzhead {
     char	tzh_magic[4];		/* TZ_MAGIC */
     char	tzh_reserved[16];	/* reserved for future use */
@@ -117,7 +122,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     TCHAR lpName[MAX_PATH+1];
     DWORD dwIndex, retCode;
 
-    if (RegOpenKey(HKEY_LOCAL_MACHINE,_T(TZZONEINFO),&hkResult) !=
+    if (RegOpenKey(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"), &hkResult) !=
         ERROR_SUCCESS )
         return NULL;
 
@@ -131,7 +136,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
 #if defined(UNICODE)
 	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const UInt8 *)lpName, (_tcslen(lpName) * sizeof(UniChar)), kCFStringEncodingUnicode, false);
 #else
-	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, lpName, _tcslen(lpName), CFStringGetSystemEncoding(), false);
+	    CFStringRef string = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const unsigned char *)lpName, _tcslen(lpName), CFStringGetSystemEncoding(), false);
 #endif
 	    CFArrayAppendValue(result, string);
 	    CFRelease(string);
@@ -141,7 +146,7 @@ static CFMutableArrayRef __CFCopyWindowsTimeZoneList() {
     RegCloseKey(hkResult);
     return result;
 }
-#elif TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
     if (!__tzDir) __InitTZStrings();
@@ -674,14 +679,10 @@ CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFString
     return retval;
 }
 
-extern CFStringRef _CFGetWindowsAppleSystemLibraryDirectory(void);
 static void __InitTZStrings(void) {
     static CFLock_t __CFTZDirLock = CFLockInit;
     __CFLock(&__CFTZDirLock);
-    if (!__tzZoneInfo) {
-        CFStringRef winDir = _CFGetWindowsAppleSystemLibraryDirectory();
-        __tzZoneInfo = CFStringCreateWithFormat(NULL, NULL, CFSTR("%@\\etc\\zoneinfo"), winDir);
-    }   
+    // TODO(compnerd) figure out how to initialize __tzZoneInfo
     if (!__tzDir && __tzZoneInfo) {
         int length = CFStringGetLength(__tzZoneInfo) + sizeof("\\zone.tab") + 1;
         __tzDir = malloc(length); // If we don't use ascii, we'll need to malloc more space
@@ -898,7 +899,11 @@ CFArrayRef CFTimeZoneCopyKnownNames(void) {
 /* TimeZone information locate in the registry for Win32
  * (Aleksey Dukhnyakov)
  */
+#if TARGET_OS_WIN32
+        list = __CFCopyWindowsTimeZoneList();
+#else
         list = __CFCopyRecursiveDirectoryList();
+#endif
 	// Remove undesirable ancient cruft
 	CFDictionaryRef dict = __CFTimeZoneCopyCompatibilityDictionary();
 	CFIndex idx;

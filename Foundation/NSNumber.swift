@@ -919,7 +919,7 @@ open class NSNumber : NSValue {
     }
     
     open var stringValue: String {
-        return description(withLocale: nil)
+        return self.description
     }
     
     /// Create an instance initialized to `value`.
@@ -962,29 +962,47 @@ open class NSNumber : NSValue {
         }
     }
 
-    private static let _numberFormatterForNilLocale: CFNumberFormatter = {
-        let formatter: CFNumberFormatter
-        formatter = CFNumberFormatterCreate(nil, CFLocaleCopyCurrent(), kCFNumberFormatterNoStyle)
-        CFNumberFormatterSetProperty(formatter, kCFNumberFormatterMaxFractionDigits, 15._bridgeToObjectiveC())
-        return formatter
-    }()
-
     open func description(withLocale locale: Locale?) -> String {
-        // CFNumberFormatterCreateStringWithNumber() does not like numbers of type
-        // SInt128Type, as it loses the type when looking it up and treats it as
-        // an SInt64Type, so special case them.
-        if _CFNumberGetType2(_cfObject) == kCFNumberSInt128Type {
-            return String(format: "%@", unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
-        }
+        guard let locale = locale else { return self.description }
+        switch _CFNumberGetType2(_cfObject) {
+        case kCFNumberSInt8Type, kCFNumberCharType:
+            return String(format: "%d", locale: locale, self.int8Value)
 
-        let aLocale = locale
-        let formatter: CFNumberFormatter
-        if (aLocale == nil) {
-            formatter = NSNumber._numberFormatterForNilLocale
-        } else {
-            formatter = CFNumberFormatterCreate(nil, aLocale?._cfObject, kCFNumberFormatterDecimalStyle)
+        case kCFNumberSInt16Type, kCFNumberShortType:
+            return String(format: "%hi", locale: locale, self.int16Value)
+
+        case kCFNumberSInt32Type:
+            return String(format: "%d", locale: locale, self.int32Value)
+
+        case kCFNumberIntType, kCFNumberLongType, kCFNumberNSIntegerType, kCFNumberCFIndexType:
+            return String(format: "%ld", locale: locale, self.intValue)
+
+        case kCFNumberSInt64Type, kCFNumberLongLongType:
+            return String(format: "%lld", locale: locale, self.int64Value)
+
+        case kCFNumberSInt128Type:
+            let value = self.int128Value
+            if value.high == 0 {
+                return value.low.description    // BUG: "%llu" doesnt work correctly and treats number as signed
+            } else {
+                // BUG: Note the locale is actually ignored here as this is converted using CFNumber.c:emit128()
+                return String(format: "%@", locale: locale, unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
+            }
+
+        case kCFNumberFloatType, kCFNumberFloat32Type:
+            return String(format: "%0.7g", locale: locale, self.floatValue)
+
+        case kCFNumberFloat64Type, kCFNumberDoubleType:
+            return String(format: "%0.16g", locale: locale, self.doubleValue)
+
+        case kCFNumberCGFloatType:
+            if Int.max == Int32.max {
+                return String(format: "%0.7g", locale: locale, self.floatValue)
+            } else {
+                return String(format: "%0.16g", locale: locale, self.doubleValue)
+            }
+        default: fatalError("Unknown NSNumber Type")
         }
-        return CFNumberFormatterCreateStringWithNumber(nil, formatter, self._cfObject)._swiftObject
     }
     
     override open var _cfTypeID: CFTypeID {
@@ -992,9 +1010,38 @@ open class NSNumber : NSValue {
     }
     
     open override var description: String {
-        return description(withLocale: nil)
+        switch _CFNumberGetType2(_cfObject) {
+        case kCFNumberSInt8Type, kCFNumberCharType, kCFNumberSInt16Type, kCFNumberShortType,
+             kCFNumberSInt32Type, kCFNumberIntType, kCFNumberLongType, kCFNumberNSIntegerType, kCFNumberCFIndexType:
+            return self.intValue.description
+
+        case kCFNumberSInt64Type, kCFNumberLongLongType:
+            return self.int64Value.description
+
+        case kCFNumberSInt128Type:
+            let value = self.int128Value
+            if value.high == 0 {
+                return value.low.description
+            } else {
+                return String(format: "%@", locale: nil, unsafeBitCast(_cfObject, to: UnsafePointer<CFNumber>.self))
+            }
+
+        case kCFNumberFloatType, kCFNumberFloat32Type:
+            return self.floatValue.description
+
+        case kCFNumberFloat64Type, kCFNumberDoubleType:
+            return self.doubleValue.description
+
+        case kCFNumberCGFloatType:
+            if Int.max == Int32.max {
+                return self.floatValue.description
+            } else {
+                return self.doubleValue.description
+            }
+        default: fatalError("Unknown NSNumber Type")
+        }
     }
-    
+
     internal func _cfNumberType() -> CFNumberType {
         switch objCType.pointee {
         case 0x42: return kCFNumberCharType

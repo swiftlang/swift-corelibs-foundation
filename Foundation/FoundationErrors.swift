@@ -7,6 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(Windows)
+import WinSDK
+#endif
+
 /// File-system operation attempted on non-existent file.
 public var NSFileNoSuchFileError: Int                        { return CocoaError.Code.fileNoSuchFile.rawValue }
 
@@ -164,12 +168,6 @@ public var NSCoderReadCorruptError: Int                      { return CocoaError
 
 public var NSCoderValueNotFoundError: Int                    { return CocoaError.Code.coderValueNotFound.rawValue }
 
-#if os(macOS) || os(iOS)
-    import Darwin
-#elseif os(Linux) || CYGWIN
-    import Glibc
-#endif
-
 internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : String? = nil, url : URL? = nil, extraUserInfo : [String : Any]? = nil) -> NSError {
     var cocoaError : CocoaError.Code
     if reading {
@@ -185,7 +183,11 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
             case ENOENT: cocoaError = .fileNoSuchFile
             case EPERM, EACCES: cocoaError = .fileWriteNoPermission
             case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
+#if os(Windows)
+            case ENOSPC: cocoaError = .fileWriteOutOfSpace
+#else
             case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
+#endif
             case EROFS: cocoaError = .fileWriteVolumeReadOnly
             case EEXIST: cocoaError = .fileWriteFileExists
             default: cocoaError = .fileWriteUnknown
@@ -199,5 +201,21 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
         userInfo[NSURLErrorKey] = url
     }
     
+    userInfo[NSUnderlyingErrorKey] = NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno))
+    
     return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: userInfo)
 }
+
+#if os(Windows)
+// The codes in this domain are codes returned by GetLastError in the Windows SDK (in WinError.h):
+// https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes
+internal let _NSWindowsErrorDomain = "org.swift.Foundation.WindowsError"
+
+internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> NSError {
+    // <#TODO#> os(Windows): Map Win32 errors to Cocoa errors as _NSErrorWithErrno() does.
+    let code: CocoaError.Code = reading ? .fileReadUnknown : .fileWriteUnknown
+    return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: [
+        NSUnderlyingErrorKey: NSError(domain: _NSWindowsErrorDomain, code: Int(windowsError))
+    ])
+}
+#endif

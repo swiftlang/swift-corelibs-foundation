@@ -11,14 +11,15 @@
 import CoreFoundation
 
 #if os(macOS) || os(iOS)
-import Darwin
-#elseif os(Linux) || CYGWIN
-import Glibc
-#endif
-
-#if os(macOS) || os(iOS)
 internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
+#endif
+
+// NOTE: this represents PLATFORM_PATH_STYLE
+#if os(Windows)
+internal let kCFURLPlatformPathStyle = kCFURLWindowsPathStyle
+#else
+internal let kCFURLPlatformPathStyle = kCFURLPOSIXPathStyle
 #endif
 
 private func _standardizedPath(_ path: String) -> String {
@@ -304,9 +305,9 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         let thePath = _standardizedPath(path)
         if thePath.length > 0 {
             
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir, baseURL?._cfObject)
+            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPlatformPathStyle, isDir, baseURL?._cfObject)
         } else if let baseURL = baseURL {
-            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPOSIXPathStyle, baseURL.hasDirectoryPath, nil)
+            _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, baseURL.path._cfObject, kCFURLPlatformPathStyle, baseURL.hasDirectoryPath, nil)
         }
     }
     
@@ -353,7 +354,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             }
         }
         super.init()
-        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPOSIXPathStyle, isDir.boolValue, nil)
+        _CFURLInitWithFileSystemPathRelativeToBase(_cfObject, thePath._cfObject, kCFURLPlatformPathStyle, isDir.boolValue, nil)
     }
     
     public convenience init(fileURLWithFileSystemRepresentation path: UnsafePointer<Int8>, isDirectory isDir: Bool, relativeTo baseURL: URL?) {
@@ -499,7 +500,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     open var password: String? {
         let absoluteURL = CFURLCopyAbsoluteURL(_cfObject)
-#if os(Linux) || os(Android) || CYGWIN
+#if os(Linux) || os(Android) || os(Windows)
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, kCFURLComponentPassword, nil)
 #else
         let passwordRange = CFURLGetByteRangeForComponent(absoluteURL, .password, nil)
@@ -523,7 +524,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     open var path: String? {
         let absURL = CFURLCopyAbsoluteURL(_cfObject)
-        return CFURLCopyFileSystemPath(absURL, kCFURLPOSIXPathStyle)?._swiftObject
+        return CFURLCopyFileSystemPath(absURL, kCFURLPlatformPathStyle)?._swiftObject
     }
     
     open var fragment: String? {
@@ -540,7 +541,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     // The same as path if baseURL is nil
     open var relativePath: String? {
-        return CFURLCopyFileSystemPath(_cfObject, kCFURLPOSIXPathStyle)?._swiftObject
+        return CFURLCopyFileSystemPath(_cfObject, kCFURLPlatformPathStyle)?._swiftObject
     }
     
     /* Determines if a given URL string's path represents a directory (i.e. the path component in the URL string ends with a '/' character). This does not check the resource the URL refers to.
@@ -562,9 +563,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     // Memory leak. See https://github.com/apple/swift-corelibs-foundation/blob/master/Docs/Issues.md
     open var fileSystemRepresentation: UnsafePointer<Int8> {
-        
+
+#if os(Windows)
+        let bufSize = Int(MAX_PATH + 1)
+#else
         let bufSize = Int(PATH_MAX + 1)
-        
+#endif
+
         let _fsrBuffer = UnsafeMutablePointer<Int8>.allocate(capacity: bufSize)
         _fsrBuffer.initialize(repeating: 0, count: bufSize)
 

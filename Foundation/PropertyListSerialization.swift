@@ -21,8 +21,8 @@ extension PropertyListSerialization {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
 
-        static let mutableContainers = MutabilityOptions(rawValue: 1)
-        static let mutableContainersAndLeaves = MutabilityOptions(rawValue: 2)
+        public static let mutableContainers = MutabilityOptions(rawValue: 1)
+        public static let mutableContainersAndLeaves = MutabilityOptions(rawValue: 2)
     }
 
     public enum PropertyListFormat : UInt {

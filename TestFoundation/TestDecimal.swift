@@ -31,9 +31,11 @@ class TestDecimal: XCTestCase {
             ("test_SimpleMultiplication", test_SimpleMultiplication),
             ("test_SmallerNumbers", test_SmallerNumbers),
             ("test_ZeroPower", test_ZeroPower),
+            ("test_doubleValue", test_doubleValue),
+            ("test_NSDecimalNumberValues", test_NSDecimalNumberValues),
+            ("test_bridging", test_bridging),
             ("test_LeastMagnitude", test_LeastMagnitude),
             ("test_GreatestMagnitude", test_GreatestMagnitude),
-            ("test_doubleValue", test_doubleValue)
         ]
     }
 
@@ -518,9 +520,30 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(Decimal(10), ten)
         XCTAssertEqual(1, one._length)
         XCTAssertEqual(1, ten._length)
+
+        // Check equality with numbers with large exponent difference
+        var small = Decimal.leastNonzeroMagnitude
+        var large = Decimal.greatestFiniteMagnitude
+        XCTAssertTrue(Int(large.exponent) - Int(small.exponent) > Int(Int8.max))
+        XCTAssertTrue(Int(small.exponent) - Int(large.exponent) < Int(Int8.min))
+        XCTAssertNotEqual(small, large)
+
+        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(large.exponent, 127)
+        XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&small, &large, .plain))
+        XCTAssertEqual(small.exponent, 127)
+        XCTAssertEqual(large.exponent, 127)
+
+        small = Decimal.leastNonzeroMagnitude
+        large = Decimal.greatestFiniteMagnitude
+        XCTAssertEqual(small.exponent, -127)
+        XCTAssertEqual(large.exponent, 127)
+        XCTAssertEqual(.lossOfPrecision, NSDecimalNormalize(&large, &small, .plain))
+        XCTAssertEqual(small.exponent, 127)
+        XCTAssertEqual(large.exponent, 127)
     }
 
-    func test_NSDecimal() {
+    func test_NSDecimal() throws {
         var nan = Decimal.nan
         XCTAssertTrue(NSDecimalIsNotANumber(&nan))
         var zero = Decimal()
@@ -541,6 +564,31 @@ class TestDecimal: XCTestCase {
         let nsd1 = NSDecimalNumber(decimal: Decimal(2657.6))
         let nsd2 = NSDecimalNumber(floatLiteral: 2657.6)
         XCTAssertEqual(nsd1, nsd2)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).description, Int8.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).description, Int8.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.min)).description, UInt8.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).description, UInt8.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).description, Int16.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).description, Int16.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.min)).description, UInt16.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).description, UInt16.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).description, Int32.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).description, Int32.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.min)).description, UInt32.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).description, UInt32.max.description)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).description, Int64.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).description, Int64.max.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.min)).description, UInt64.min.description)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt64.max)).description, UInt64.max.description)
+
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "12.34").unwrapped()).description, "12.34")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0001").unwrapped()).description, "0.0001")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "-1.0002").unwrapped()).description, "-1.0002")
+        XCTAssertEqual(try NSDecimalNumber(decimal: Decimal(string: "0.0").unwrapped()).description, "0")
     }
 
     func test_PositivePowers() {
@@ -815,5 +863,212 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: z)), "1.50")
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: a)), "0.00")
         XCTAssertEqual(nf.string(from: NSDecimalNumber(decimal: b)), "0.00")
+    }
+
+    func test_NSDecimalNumberValues() {
+        let uint64MaxDecimal = Decimal(string: UInt64.max.description)!
+
+        // int8Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).int8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).int8Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-129)).int8Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(128)).int8Value, -128)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).int8Value, Int8.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).int8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).int8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).int8Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).int8Value, Int8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).int8Value, -1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).int8Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).int8Value, -1)
+
+        // uint8Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).uint8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).uint8Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-129)).uint8Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(128)).uint8Value, 128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(256)).uint8Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).uint8Value, 128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).uint8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).uint8Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).uint8Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).uint8Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).uint8Value, UInt8.max)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint8Value, UInt8.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).uint8Value, UInt8.max)
+
+        // int16Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).int16Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).int16Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).int16Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).int16Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).int16Value, -32768)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).int16Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).int16Value, Int16.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).int16Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).int16Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).int16Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).int16Value, Int16.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).int16Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).int16Value, -1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).int16Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).int16Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).int16Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).int16Value, -1)
+
+        // uint16Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).uint16Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).uint16Value, UInt16.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).uint16Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).uint16Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).uint16Value, 32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(65536)).uint16Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).uint16Value, 65408)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).uint16Value, 32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).uint16Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).uint16Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).uint16Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).uint16Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).uint16Value, UInt16.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).uint16Value, UInt16.max)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).uint16Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).uint16Value, UInt16.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint16Value, UInt16.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).uint16Value, UInt16.max)
+
+        // int32Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).int32Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).int32Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).int32Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).int32Value, -32769)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).int32Value, 32768)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).int32Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).int32Value, -32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).int32Value, Int32.min)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).int32Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).int32Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).int32Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).int32Value, Int32.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).int32Value, -1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).int32Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).int32Value, 65535)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).int32Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).int32Value, -1)
+
+        // uint32Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).uint32Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).uint32Value, UInt32.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).uint32Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).uint32Value, 4294934527)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).uint32Value, 32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(65536)).uint32Value, 65536)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).uint32Value, 4294967168)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).uint32Value, 4294934528)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).uint32Value, 2147483648)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).uint32Value, 0)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).uint32Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).uint32Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).uint32Value, UInt32(Int32.max))
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).uint32Value, UInt32.max)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).uint32Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).uint32Value, 65535)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint32Value, UInt32.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).uint32Value, UInt32.max)
+
+        // int64Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).int64Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).int64Value, -1)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).int64Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).int64Value, -32769)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).int64Value, 32768)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).int64Value, -128)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).int64Value, -32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).int64Value, -2147483648)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).int64Value, Int64.min)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).int64Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).int64Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).int64Value, 2147483647)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).int64Value, Int64.max)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).int64Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).int64Value, 65535)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).int64Value, 4294967295)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).int64Value, -1)
+
+        // uint64Value
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(0)).uint64Value, 0)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-1)).uint64Value, UInt64.max)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(1)).uint64Value, 1)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(-32769)).uint64Value, 18446744073709518847)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(32768)).uint64Value, 32768)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(65536)).uint64Value, 65536)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.min)).uint64Value, 18446744073709551488)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.min)).uint64Value, 18446744073709518848)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.min)).uint64Value, 18446744071562067968)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.min)).uint64Value, 9223372036854775808)
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int8.max)).uint64Value, 127)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int16.max)).uint64Value, 32767)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int32.max)).uint64Value, UInt64(Int32.max))
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(Int64.max)).uint64Value, UInt64(Int64.max))
+
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt8.max)).uint64Value, 255)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt16.max)).uint64Value, 65535)
+        XCTAssertEqual(NSDecimalNumber(decimal: Decimal(UInt32.max)).uint64Value, 4294967295)
+        XCTAssertEqual(NSDecimalNumber(decimal: uint64MaxDecimal).uint64Value, UInt64.max)
+    }
+
+    func test_bridging() {
+        let d1 = Decimal(1)
+        let nsd1 = d1 as NSDecimalNumber
+        XCTAssertEqual(nsd1 as Decimal, d1)
+
+        let d2 = nsd1 as Decimal
+        XCTAssertEqual(d1, d2)
+
+        let ns = d1 as NSNumber
+        XCTAssertTrue(type(of: ns) == NSDecimalNumber.self)
+
+        // NSNumber does NOT bridge to Decimal
+        XCTAssertNil(NSNumber(value: 1) as? Decimal)
     }
 }

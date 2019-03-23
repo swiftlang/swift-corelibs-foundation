@@ -12,9 +12,8 @@ import CoreFoundation
 class TestTimeZone: XCTestCase {
 
     static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
-        return [
-            // Disabled see https://bugs.swift.org/browse/SR-300
-            // ("test_abbreviation", test_abbreviation),
+        var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
+            ("test_abbreviation", test_abbreviation),
 
             // Disabled because `CFTimeZoneSetAbbreviationDictionary()` attempts
             // to release non-CF objects while removing values from
@@ -26,13 +25,18 @@ class TestTimeZone: XCTestCase {
             ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
             ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
             ("test_localizedName", test_localizedName),
-            // Also disabled due to https://bugs.swift.org/browse/SR-300
-            // ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
-
             ("test_customMirror", test_tz_customMirror),
             ("test_knownTimeZones", test_knownTimeZones),
             ("test_systemTimeZoneName", test_systemTimeZoneName),
         ]
+
+#if !os(Windows)
+      tests.append(contentsOf: [
+            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
+      ])
+#endif
+
+        return tests
     }
 
     func test_abbreviation() {
@@ -168,6 +172,7 @@ class TestTimeZone: XCTestCase {
         XCTAssertEqual(actualIdentifier, expectedIdentifier, "expected identifier \"\(expectedIdentifier)\" is not equal to \"\(actualIdentifier as Optional)\"")
     }
 
+#if !os(Windows)
     func test_systemTimeZoneUsesSystemTime() {
         tzset()
         var t = time(nil)
@@ -177,6 +182,7 @@ class TestTimeZone: XCTestCase {
         let expectedName = String(cString: lt.tm_zone, encoding: .ascii) ?? "Invalid Zone"
         XCTAssertEqual(zoneName, expectedName, "expected name \"\(expectedName)\" is not equal to \"\(zoneName)\"")
     }
+#endif
 
     func test_tz_customMirror() {
         let tz = TimeZone.current

@@ -707,7 +707,7 @@ CFDataRef CFPropertyListCreateXMLData(CFAllocatorRef allocator, CFPropertyListRe
     return _CFPropertyListCreateXMLData(allocator, propertyList, true);
 }
 
-CF_EXPORT CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList) {
+CFDataRef _CFPropertyListCreateXMLDataWithExtras(CFAllocatorRef allocator, CFPropertyListRef propertyList) {
     return _CFPropertyListCreateXMLData(allocator, propertyList, false);
 }
 

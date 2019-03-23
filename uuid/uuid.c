@@ -35,7 +35,14 @@
 #include <stdint.h>
 #include <string.h>
 #include <fcntl.h>
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
+#elif defined(_WIN32)
+#include <io.h>
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <bcrypt.h>
+#endif
 #include <stdio.h>
 
 #if TARGET_OS_MAC
@@ -61,13 +68,33 @@ static inline void nanotime(struct timespec *tv) {
 	clock_gettime(CLOCK_MONOTONIC, tv);
 }
 
+#elif TARGET_OS_WINDOWS
+#include <time.h>
+
+static inline void nanotime(struct timespec *tv) {
+  FILETIME ftTime;
+
+  GetSystemTimePreciseAsFileTime(&ftTime);
+
+  uint64_t Value = (((uint64_t)ftTime.dwHighDateTime << 32) | ftTime.dwLowDateTime);
+
+  tv->tv_sec = Value / 1000000000;
+  tv->tv_nsec = Value - (tv->tv_sec * 1000000000);
+}
 #endif
 
-static inline void read_random(void *buffer, u_int numBytes) {
+#if TARGET_OS_WINDOWS
+static inline void read_random(void *buffer, unsigned numBytes) {
+    BCryptGenRandom(NULL, buffer, numBytes,
+                    BCRYPT_RNG_USE_ENTROPY_IN_BUFFER | BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+}
+#else
+static inline void read_random(void *buffer, unsigned numBytes) {
     int fd = open("/dev/urandom", O_RDONLY);
     read(fd, buffer, numBytes);
     close(fd);
 }
+#endif
 
 
 UUID_DEFINE(UUID_NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

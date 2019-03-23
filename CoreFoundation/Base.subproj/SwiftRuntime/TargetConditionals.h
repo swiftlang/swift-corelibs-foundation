@@ -224,7 +224,7 @@
 #error unknown endian
 #endif
 
-#if __LP64__
+#if __LP64__ || __LLP64__ || __POINTER_WIDTH__-0 == 64
 #define TARGET_RT_64_BIT        1
 #else
 #define TARGET_RT_64_BIT        0
