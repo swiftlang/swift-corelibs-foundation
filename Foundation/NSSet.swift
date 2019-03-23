@@ -136,10 +136,9 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             indent += "    "
         }
         var result = indent + "{(\n"
-        let cnt = count
-        for idx in 0..<cnt {
+        for idx in 0..<self.count {
             result += indent + "    " + descriptions[idx]
-            if idx + 1 < cnt {
+            if idx + 1 < self.count {
                 result += ",\n"
             } else {
                 result += "\n"
