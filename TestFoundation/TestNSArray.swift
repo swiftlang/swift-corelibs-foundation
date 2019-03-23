@@ -802,7 +802,6 @@ class TestNSArray : XCTestCase {
         let inputArray = ["this", "is", "a", "test", "of", "custom", "mirror"]
         let array = NSArray(array: inputArray)
         let arrayMirror = array.customMirror
-        dump(arrayMirror.children)
         
         XCTAssertEqual(array[0] as! String, arrayMirror.descendant(0) as! String)
         XCTAssertEqual(array[1] as! String, arrayMirror.descendant(1) as! String)
