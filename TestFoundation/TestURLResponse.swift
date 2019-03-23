@@ -13,15 +13,20 @@ class TestURLResponse : XCTestCase {
             ("test_URL", test_URL),
             ("test_MIMEType_1", test_MIMEType_1),
             ("test_MIMEType_2", test_MIMEType_2),
-            ("test_ExpectedContentLength", test_ExpectedContentLength),
-            ("test_TextEncodingName", test_TextEncodingName),
-            ("test_suggestedFilename", test_suggestedFilename),
+            ("test_MIMEType_notAvailable", test_MIMEType_notAvailable),
+            ("test_ExpectedContentLength_positive", test_ExpectedContentLength_positive),
+            ("test_ExpectedContentLength_negative", test_ExpectedContentLength_negative),
+            ("test_TextEncodingName_positive", test_TextEncodingName_positive),
+            ("test_TextEncodingName_negative", test_TextEncodingName_negative),
+            ("test_suggestedFilename_1", test_suggestedFilename_1),
             ("test_suggestedFilename_2", test_suggestedFilename_2),
             ("test_suggestedFilename_3", test_suggestedFilename_3),
             ("test_copywithzone", test_copyWithZone),
             ("test_NSCoding", test_NSCoding),
         ]
     }
+    
+    let testURL = URL(string: "test")!
     
     func test_URL() {
         let url = URL(string: "a/test/path")!
@@ -31,36 +36,46 @@ class TestURLResponse : XCTestCase {
     
     func test_MIMEType_1() {
         let mimetype = "text/plain"
-        let res = URLResponse(url: URL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: testURL, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the passed in mimetype")
     }
     
     func test_MIMEType_2() {
         let mimetype = "APPlication/wordperFECT"
-        let res = URLResponse(url: URL(string: "test")!, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        let res = URLResponse(url: testURL, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.mimeType, mimetype, "should be the other mimetype")
     }
-
-    func test_ExpectedContentLength() {
-        let zeroContentLength = 0
-        let positiveContentLength = 100
-        let url = URL(string: "test")!
-        let res1 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: zeroContentLength, textEncodingName: nil)
-        XCTAssertEqual(res1.expectedContentLength, Int64(zeroContentLength), "should be Int65 of the zero length")
-        let res2 = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: positiveContentLength, textEncodingName: nil)
-        XCTAssertEqual(res2.expectedContentLength, Int64(positiveContentLength), "should be Int64 of the positive content length")
+    
+    func test_MIMEType_notAvailable() {
+        let mimetype: String? = nil
+        let res = URLResponse(url: testURL, mimeType: mimetype, expectedContentLength: 0, textEncodingName: nil)
+        XCTAssertEqual(res.mimeType, mimetype, "should be the other mimetype")
     }
     
-    func test_TextEncodingName() {
+    func test_ExpectedContentLength_positive() {
+        let contentLength = 100
+        let res1 = URLResponse(url: testURL, mimeType: "text/plain", expectedContentLength: contentLength, textEncodingName: nil)
+        XCTAssertEqual(res1.expectedContentLength, Int64(contentLength), "should be positive Int64 content length")
+    }
+    
+    func test_ExpectedContentLength_negative() {
+        let contentLength = -1
+        let res2 = URLResponse(url: testURL, mimeType: nil, expectedContentLength: contentLength, textEncodingName: nil)
+        XCTAssertEqual(res2.expectedContentLength, Int64(contentLength), "should be invalid (-1) Int64 content length")
+    }
+    
+    func test_TextEncodingName_positive() {
         let encoding = "utf8"
-        let url = URL(string: "test")!
-        let res1 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
+        let res1 = URLResponse(url: testURL, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
         XCTAssertEqual(res1.textEncodingName, encoding, "should be the utf8 encoding")
-        let res2 = URLResponse(url: url, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+    }
+    
+    func test_TextEncodingName_negative() {
+        let res2 = URLResponse(url: testURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertNil(res2.textEncodingName)
     }
     
-    func test_suggestedFilename() {
+    func test_suggestedFilename_1() {
         let url = URL(string: "a/test/name.extension")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "name.extension")
@@ -77,6 +92,7 @@ class TestURLResponse : XCTestCase {
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
         XCTAssertEqual(res.suggestedFilename, "Unknown")
     }
+    
     func test_copyWithZone() {
         let url = URL(string: "a/test/path")!
         let res = URLResponse(url: url, mimeType: "txt", expectedContentLength: 0, textEncodingName: nil)
