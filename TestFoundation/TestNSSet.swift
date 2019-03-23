@@ -25,7 +25,8 @@ class TestNSSet : XCTestCase {
             ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
             ("test_CountedSetCopying", test_CountedSetCopying),
             ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
-            ("test_Subsets", test_Subsets)
+            ("test_Subsets", test_Subsets),
+            ("test_description", test_description)
         ]
     }
     
@@ -236,5 +237,25 @@ class TestNSSet : XCTestCase {
         XCTAssert(set.isSubset(of: otherOtherSet))
         XCTAssert(otherSet.isSubset(of: otherOtherSet))
         XCTAssertFalse(newSet.isSubset(of: otherSet as! Set<AnyHashable>))
+    }
+    
+    func test_description() {
+        let array = NSArray(array: ["array_element1", "array_element2"])
+        let dictionary = NSDictionary(dictionary: ["key1": "value1", "key2": "value2"])
+        let innerSet = NSSet(array: [4444, 5555])
+        let set: NSSet = NSSet(array: [array, dictionary, innerSet, 1111, 2222, 3333])
+        
+        let description = set.description
+
+        XCTAssertTrue(String(description.prefix(2)) == "{(")
+        XCTAssertTrue(String(description.suffix(2)) == ")}")
+        XCTAssertTrue(description.contains("        (\n        array_element1,\n        array_element2\n    )"))
+        XCTAssertTrue(description.contains("        key1 = value1"))
+        XCTAssertTrue(description.contains("        key2 = value2"))
+        XCTAssertTrue(description.contains("        4444"))
+        XCTAssertTrue(description.contains("        5555"))
+        XCTAssertTrue(description.contains("    1111"))
+        XCTAssertTrue(description.contains("    2222"))
+        XCTAssertTrue(description.contains("    3333"))
     }
 }
