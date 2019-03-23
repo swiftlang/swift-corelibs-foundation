@@ -245,10 +245,10 @@ class TestNSSet : XCTestCase {
         let innerSet = NSSet(array: [4444, 5555])
         let set: NSSet = NSSet(array: [array, dictionary, innerSet, 1111, 2222, 3333])
         
-        let description = set.description
-
-        XCTAssertTrue(String(description.prefix(2)) == "{(")
-        XCTAssertTrue(String(description.suffix(2)) == ")}")
+        let description = NSString(string: set.description)
+        
+        XCTAssertTrue(String(description.substring(to: 2)) == "{(")
+        XCTAssertTrue(String(description.substring(from: description.length - 2)) == ")}")
         XCTAssertTrue(description.contains("        (\n        array_element1,\n        array_element2\n    )"))
         XCTAssertTrue(description.contains("        key1 = value1"))
         XCTAssertTrue(description.contains("        key2 = value2"))
