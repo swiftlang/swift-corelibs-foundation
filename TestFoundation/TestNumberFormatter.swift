@@ -30,7 +30,6 @@ class TestNumberFormatter: XCTestCase {
             ("test_scientificMinimumIntegerDigits", test_scientificMinimumIntegerDigits),
             ("test_spellOutMinimumIntegerDigits", test_spellOutMinimumIntegerDigits),
             ("test_ordinalMinimumIntegerDigits", test_ordinalMinimumIntegerDigits),
-            ("test_currencyPluralMinimumIntegerDigits", test_currencyPluralMinimumIntegerDigits),
             ("test_currencyISOCodeMinimumIntegerDigits", test_currencyISOCodeMinimumIntegerDigits),
             ("test_currencyAccountingMinimumIntegerDigits", test_currencyAccountingMinimumIntegerDigits),
             ("test_maximumIntegerDigits", test_maximumIntegerDigits),
@@ -344,29 +343,6 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(formatter2.string(from: 0.01), "0th")
         XCTAssertEqual(formatter2.string(from: 4.234), "4th")
         XCTAssertEqual(formatter2.string(from: 42), "42nd")
-    }
-
-    func test_currencyPluralMinimumIntegerDigits() {
-        // If .minimumIntegerDigits is set to 0 before .numberStyle change, preserve the value
-        let formatter = NumberFormatter()
-        XCTAssertEqual(formatter.minimumIntegerDigits, 0)
-        formatter.minimumIntegerDigits = 0
-        formatter.numberStyle = .currencyPlural
-        XCTAssertEqual(formatter.minimumIntegerDigits, 0)
-        formatter.locale = Locale(identifier: "en_US")
-        XCTAssertEqual(formatter.string(from: 0), "0.00 US dollars")
-        XCTAssertEqual(formatter.string(from: 1.23), "1.23 US dollars")
-        XCTAssertEqual(formatter.string(from: 123.4), "123.40 US dollars")
-
-        // If .minimumIntegerDigits is not set before .numberStyle change, update the value
-        let formatter2 = NumberFormatter()
-        XCTAssertEqual(formatter2.minimumIntegerDigits, 0)
-        formatter2.numberStyle = .currencyPlural
-        XCTAssertEqual(formatter2.minimumIntegerDigits, 0)
-        formatter2.locale = Locale(identifier: "en_US")
-        XCTAssertEqual(formatter2.string(from: 0.01), "0.01 US dollars")
-        XCTAssertEqual(formatter2.string(from: 1.234), "1.23 US dollars")
-        XCTAssertEqual(formatter2.string(from: 123456.7), "123,456.70 US dollars")
     }
 
     func test_currencyISOCodeMinimumIntegerDigits() {
