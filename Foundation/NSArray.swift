@@ -953,7 +953,7 @@ extension NSArray : ExpressibleByArrayLiteral {
 
 extension NSArray : CustomReflectable {
     public var customMirror: Mirror {
-        return Mirror(reflecting: Array(self))
+        return Mirror(reflecting: _storage)
     }
 }
 
