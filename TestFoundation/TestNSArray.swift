@@ -799,7 +799,7 @@ class TestNSArray : XCTestCase {
     }
     
     func test_customMirror() {
-        let inputArray = ["this", "is", "a", "test", "of", "copy", "with", "strings"]
+        let inputArray = ["this", "is", "a", "test", "of", "custom", "mirror"]
         let array = NSArray(array: inputArray)
         let arrayMirror = array.customMirror
         dump(arrayMirror.children)
@@ -811,7 +811,6 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[4] as! String, arrayMirror.descendant(4) as! String)
         XCTAssertEqual(array[5] as! String, arrayMirror.descendant(5) as! String)
         XCTAssertEqual(array[6] as! String, arrayMirror.descendant(6) as! String)
-        XCTAssertEqual(array[7] as! String, arrayMirror.descendant(7) as! String)
     }
 
     func test_arrayUsedAsCFArrayInvokesArrayMethods() {
