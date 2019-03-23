@@ -282,7 +282,11 @@ class TestProcess : XCTestCase {
     }
 
     func test_current_working_directory() {
+        #if os(macOS)
+        let tmpDir = "/private/tmp"
+        #else
         let tmpDir = "/tmp".standardizingPath
+        #endif
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
