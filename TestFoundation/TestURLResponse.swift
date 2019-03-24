@@ -15,6 +15,7 @@ class TestURLResponse : XCTestCase {
             ("test_MIMEType_2", test_MIMEType_2),
             ("test_MIMEType_notAvailable", test_MIMEType_notAvailable),
             ("test_ExpectedContentLength_positive", test_ExpectedContentLength_positive),
+            ("test_ExpectedContentLength_zero", test_ExpectedContentLength_zero),
             ("test_ExpectedContentLength_negative", test_ExpectedContentLength_negative),
             ("test_TextEncodingName_positive", test_TextEncodingName_positive),
             ("test_TextEncodingName_negative", test_TextEncodingName_negative),
@@ -54,14 +55,20 @@ class TestURLResponse : XCTestCase {
     
     func test_ExpectedContentLength_positive() {
         let contentLength = 100
-        let res1 = URLResponse(url: testURL, mimeType: "text/plain", expectedContentLength: contentLength, textEncodingName: nil)
-        XCTAssertEqual(res1.expectedContentLength, Int64(contentLength), "should be positive Int64 content length")
+        let res = URLResponse(url: testURL, mimeType: "text/plain", expectedContentLength: contentLength, textEncodingName: nil)
+        XCTAssertEqual(res.expectedContentLength, Int64(contentLength), "should be positive Int64 content length")
+    }
+    
+    func test_ExpectedContentLength_zero() {
+        let contentLength = 0
+        let res = URLResponse(url: testURL, mimeType: nil, expectedContentLength: contentLength, textEncodingName: nil)
+        XCTAssertEqual(res.expectedContentLength, Int64(contentLength), "should be zero Int64 content length")
     }
     
     func test_ExpectedContentLength_negative() {
         let contentLength = -1
-        let res2 = URLResponse(url: testURL, mimeType: nil, expectedContentLength: contentLength, textEncodingName: nil)
-        XCTAssertEqual(res2.expectedContentLength, Int64(contentLength), "should be invalid (-1) Int64 content length")
+        let res = URLResponse(url: testURL, mimeType: nil, expectedContentLength: contentLength, textEncodingName: nil)
+        XCTAssertEqual(res.expectedContentLength, Int64(contentLength), "should be invalid (-1) Int64 content length")
     }
     
     func test_TextEncodingName_positive() {
