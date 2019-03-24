@@ -247,8 +247,8 @@ class TestNSSet : XCTestCase {
         
         let description = NSString(string: set.description)
         
-        XCTAssertTrue(String(description.substring(to: 2)) == "{(")
-        XCTAssertTrue(String(description.substring(from: description.length - 2)) == ")}")
+        XCTAssertTrue(description.substring(to: 2).isEqual(to: "{("))
+        XCTAssertTrue(description.substring(from: description.length - 2).isEqual(to: ")}"))
         XCTAssertTrue(description.contains("        (\n        array_element1,\n        array_element2\n    )"))
         XCTAssertTrue(description.contains("        key1 = value1"))
         XCTAssertTrue(description.contains("        key2 = value2"))
