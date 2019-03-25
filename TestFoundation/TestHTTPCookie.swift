@@ -19,6 +19,7 @@ class TestHTTPCookie: XCTestCase {
             ("test_cookiesWithResponseHeaderNoDomain", test_cookiesWithResponseHeaderNoDomain),
             ("test_cookiesWithResponseHeaderNoPathNoDomain", test_cookiesWithResponseHeaderNoPathNoDomain),
             ("test_cookieExpiresDateFormats", test_cookieExpiresDateFormats),
+            ("test_httpCookieWithSubstring", test_httpCookieWithSubstring),
         ]
     }
 
@@ -189,6 +190,15 @@ class TestHTTPCookie: XCTestCase {
             XCTAssertEqual(cookie.expiresDate, testDate)
             XCTAssertEqual(cookie.domain, "swift.org")
             XCTAssertEqual(cookie.path, "/")
+        }
+    }
+
+    func test_httpCookieWithSubstring() {
+        let cookie = HTTPCookie(properties: [.domain: ".", .path: "/", .name: "davesy".dropLast(), .value: "Jonesy".dropLast()])
+        if let cookie = cookie {
+            XCTAssertEqual(cookie.name, "daves")
+        } else {
+            XCTFail("Unable to create cookie with substring")
         }
     }
 }

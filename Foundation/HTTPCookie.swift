@@ -255,10 +255,16 @@ open class HTTPCookie : NSObject {
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     public init?(properties: [HTTPCookiePropertyKey : Any]) {
+        func stringValue(_ strVal: Any?) -> String? {
+            if let subStr = strVal as? Substring {
+                return String(subStr)
+            }
+            return strVal as? String
+        }
         guard
-            let path = properties[.path] as? String,
-            let name = properties[.name] as? String,
-            let value = properties[.value] as? String
+            let path = stringValue(properties[.path]),
+            let name = stringValue(properties[.name]),
+            let value = stringValue(properties[.value])
         else {
             return nil
         }
@@ -659,4 +665,3 @@ fileprivate extension String {
         return self.replacingOccurrences(of: "&comma", with: ",")
     }
 }
-
