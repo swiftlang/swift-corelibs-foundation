@@ -584,7 +584,12 @@ install(FILES
           CoreFoundation/Base.subproj/module.map
         DESTINATION
           lib/swift/CoreFoundation)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(plutil_executable plutil.exe)
+else()
+  set(plutil_executable plutil)
+endif()
 install(PROGRAMS
-          ${CMAKE_CURRENT_BINARY_DIR}/plutil
+          ${CMAKE_CURRENT_BINARY_DIR}/${plutil_executable}
         DESTINATION
           ${CMAKE_INSTALL_FULL_BINDIR})
