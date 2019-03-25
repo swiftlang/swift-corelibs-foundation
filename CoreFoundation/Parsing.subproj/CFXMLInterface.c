@@ -367,8 +367,26 @@ _CFXMLNodePtr _CFXMLNewComment(const unsigned char* value) {
     return xmlNewComment(value);
 }
 
-_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr node, const unsigned char* name, const unsigned char* value) {
-    return xmlNewProp(node, name, value);
+_CFXMLNodePtr _CFXMLNewProperty(_CFXMLNodePtr node, const unsigned char* name, const unsigned char* uri, const unsigned char* value) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    xmlChar *prefix = NULL;
+    xmlChar *localName = xmlSplitQName2(name, &prefix);
+
+    _CFXMLNodePtr result;
+    if (uri == NULL && localName == NULL) {
+        result = xmlNewProp(node, name, value);
+    } else {
+        xmlNsPtr ns = xmlNewNs(nodePtr, uri, localName ? prefix : NULL);
+        result = xmlNewNsProp(nodePtr, ns, localName ? localName : name, value);
+    }
+    
+    if (localName) {
+        xmlFree(localName);
+    }
+    if (prefix) {
+        xmlFree(prefix);
+    }
+    return result;
 }
 
 CFStringRef _CFXMLNodeCopyURI(_CFXMLNodePtr node) {
@@ -376,7 +394,11 @@ CFStringRef _CFXMLNodeCopyURI(_CFXMLNodePtr node) {
     switch (nodePtr->type) {
         case XML_ATTRIBUTE_NODE:
         case XML_ELEMENT_NODE:
-            return CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
+            if (nodePtr->ns && nodePtr->ns->href) {
+                return CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
+            } else {
+                return NULL;
+            }
 
         case XML_DOCUMENT_NODE:
         {
@@ -914,8 +936,56 @@ CFStringRef _Nullable _CFXMLCopyPathForNode(_CFXMLNodePtr node) {
     return result;
 }
 
-_CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const char* propertyName) {
-    return xmlHasProp(node, (const xmlChar*)propertyName);
+static inline xmlNsPtr _searchNamespace(xmlNodePtr nodePtr, const xmlChar* prefix) {
+    while (nodePtr != NULL) {
+        xmlNsPtr ns = nodePtr->ns;
+        while (ns != NULL) {
+            if (xmlStrcmp(prefix, ns->prefix) == 0) {
+                return ns;
+            }
+            ns = ns->next;
+        }
+        nodePtr = nodePtr->parent;
+    }
+    return NULL;
+}
+
+void _CFXMLCompletePropURI(_CFXMLNodePtr propertyNode, _CFXMLNodePtr node) {
+    xmlNodePtr propNodePtr = (xmlNodePtr)propertyNode;
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    if (propNodePtr->type != XML_ATTRIBUTE_NODE || nodePtr->type != XML_ELEMENT_NODE) {
+        return;
+    }
+    if (propNodePtr->ns != NULL
+            && propNodePtr->ns->href == NULL
+            && propNodePtr->ns->prefix != NULL) {
+        xmlNsPtr ns = _searchNamespace(nodePtr, propNodePtr->ns->prefix);
+        if (ns != NULL && ns->href != NULL) {
+            propNodePtr->ns->href = xmlStrdup(ns->href);
+        }
+    }
+}
+
+_CFXMLNodePtr _CFXMLNodeHasProp(_CFXMLNodePtr node, const unsigned char* propertyName, const unsigned char* uri) {
+    xmlNodePtr nodePtr = (xmlNodePtr)node;
+    xmlChar* prefix = NULL;
+    xmlChar* localName = xmlSplitQName2(propertyName, &prefix);
+    
+    if (!uri) {
+        xmlNsPtr ns = _searchNamespace(nodePtr, prefix);
+        uri = ns ? ns->href : NULL;
+    }
+    _CFXMLNodePtr result;
+    result = xmlHasNsProp(node, localName ? localName : propertyName, uri);
+    
+    if (localName) {
+        xmlFree(localName);
+    }
+    if (prefix) {
+        xmlFree(prefix);
+    }
+
+    return result;
 }
 
 _CFXMLDocPtr _CFXMLDocPtrFromDataWithOptions(CFDataRef data, unsigned int options) {
