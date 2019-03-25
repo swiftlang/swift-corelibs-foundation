@@ -135,11 +135,12 @@ extension _BodyDataSource : _BodySource {
 /// have to be thread safe.
 internal final class _BodyFileSource {
     fileprivate let fileURL: URL
-    fileprivate let channel: DispatchIO 
-    fileprivate let workQueue: DispatchQueue 
+    fileprivate let channel: DispatchIO
+    fileprivate let workQueue: DispatchQueue
     fileprivate let dataAvailableHandler: () -> Void
     fileprivate var hasActiveReadHandler = false
     fileprivate var availableChunk: _Chunk = .empty
+
     /// Create a new data source backed by a file.
     ///
     /// - Parameter fileURL: the file to read from
@@ -156,13 +157,13 @@ internal final class _BodyFileSource {
         self.fileURL = fileURL
         self.workQueue = workQueue
         self.dataAvailableHandler = dataAvailableHandler
-        var fileSystemRepresentation: UnsafePointer<Int8>! = nil
-        fileURL.withUnsafeFileSystemRepresentation {
-            fileSystemRepresentation = $0
-        }
-        guard let channel = DispatchIO(type: .stream, path: fileSystemRepresentation,
-                                       oflag: O_RDONLY, mode: 0, queue: workQueue,
-                                       cleanupHandler: {_ in }) else {
+
+        guard let channel = fileURL.withUnsafeFileSystemRepresentation({
+            // DisptachIO (dispatch_io_create_with_path) makes a copy of the path
+            DispatchIO(type: .stream, path: $0!,
+                       oflag: O_RDONLY, mode: 0, queue: workQueue,
+                       cleanupHandler: {_ in })
+        }) else {
             fatalError("Cant create DispatchIO channel")
         }
         self.channel = channel
