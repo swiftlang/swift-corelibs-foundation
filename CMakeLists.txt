@@ -585,6 +585,6 @@ install(FILES
         DESTINATION
           lib/swift/CoreFoundation)
 install(PROGRAMS
-          ${CMAKE_CURRENT_BINARY_DIR}/plutil
+          ${CMAKE_CURRENT_BINARY_DIR}/plutil${CMAKE_EXECUTABLE_SUFFIX}
         DESTINATION
           ${CMAKE_INSTALL_FULL_BINDIR})
