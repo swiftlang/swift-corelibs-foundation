@@ -408,7 +408,7 @@ void CFDateIntervalFormatterSetTimeStyle(CFDateIntervalFormatterRef formatter, C
 
 _CFDateIntervalFormatterBoundaryStyle _CFDateIntervalFormatterGetBoundaryStyle(CFDateIntervalFormatterRef formatter) {
     LOCK();
-    CFDateIntervalFormatterStyle result = formatter->_boundaryStyle;
+    _CFDateIntervalFormatterBoundaryStyle result = formatter->_boundaryStyle;
     UNLOCK();
     return result;
 }
