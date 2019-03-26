@@ -952,7 +952,9 @@ extension NSArray : ExpressibleByArrayLiteral {
 }
 
 extension NSArray : CustomReflectable {
-    public var customMirror: Mirror { NSUnimplemented() }
+    public var customMirror: Mirror {
+        return Mirror(reflecting: _storage)
+    }
 }
 
 extension NSArray : _StructTypeBridgeable {

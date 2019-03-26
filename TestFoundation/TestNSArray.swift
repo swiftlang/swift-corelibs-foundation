@@ -45,6 +45,7 @@ class TestNSArray : XCTestCase {
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
             ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
+            ("test_customMirror", test_customMirror),
         ]
     }
     
@@ -795,6 +796,20 @@ class TestNSArray : XCTestCase {
 
         let match5 = paths.pathsMatchingExtensions(["..txt"])
         XCTAssertEqual(match5, [])
+    }
+    
+    func test_customMirror() {
+        let inputArray = ["this", "is", "a", "test", "of", "custom", "mirror"]
+        let array = NSArray(array: inputArray)
+        let arrayMirror = array.customMirror
+        
+        XCTAssertEqual(array[0] as! String, arrayMirror.descendant(0) as! String)
+        XCTAssertEqual(array[1] as! String, arrayMirror.descendant(1) as! String)
+        XCTAssertEqual(array[2] as! String, arrayMirror.descendant(2) as! String)
+        XCTAssertEqual(array[3] as! String, arrayMirror.descendant(3) as! String)
+        XCTAssertEqual(array[4] as! String, arrayMirror.descendant(4) as! String)
+        XCTAssertEqual(array[5] as! String, arrayMirror.descendant(5) as! String)
+        XCTAssertEqual(array[6] as! String, arrayMirror.descendant(6) as! String)
     }
 
     func test_arrayUsedAsCFArrayInvokesArrayMethods() {
