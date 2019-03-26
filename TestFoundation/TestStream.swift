@@ -7,10 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if (os(Linux) || os(Android))
-    @testable import Foundation
-#else
-    @testable import SwiftFoundation
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation)
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
 #endif
 
 
@@ -33,13 +35,12 @@ private extension Data {
 
 class TestStream : XCTestCase {
     static var allTests: [(String, (TestStream) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestStream) -> () throws -> Void)] = [
             ("test_InputStreamWithData", test_InputStreamWithData),
             ("test_InputStreamWithUrl", test_InputStreamWithUrl),
             ("test_InputStreamWithFile", test_InputStreamWithFile),
             ("test_InputStreamHasBytesAvailable", test_InputStreamHasBytesAvailable),
             ("test_InputStreamInvalidPath", test_InputStreamInvalidPath),
-            ("test_InputStreamSeekToPosition", test_InputStreamSeekToPosition),
             ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
             ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
             ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
@@ -47,6 +48,11 @@ class TestStream : XCTestCase {
             ("test_outputStreamHasSpaceAvailable", test_outputStreamHasSpaceAvailable),
             ("test_ouputStreamWithInvalidPath", test_ouputStreamWithInvalidPath),
         ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(("test_InputStreamSeekToPosition", test_InputStreamSeekToPosition))
+#endif
+        return tests
     }
     
     func test_InputStreamWithData(){
@@ -140,7 +146,8 @@ class TestStream : XCTestCase {
         fileStream.open()
         XCTAssertEqual(.error, fileStream.streamStatus)
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT        // Stream.seek(to:) is an internal API method
     func test_InputStreamSeekToPosition() {
         let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel."
         XCTAssert(str.count > 1024) // str.count must be bigger than buffersize inside InputStream.seek func.
@@ -184,6 +191,7 @@ class TestStream : XCTestCase {
             XCTFail()
         }
     }
+#endif
     
     func test_outputStreamCreationToFile() {
         guard let filePath = createTestFile("TestFileOut.txt", _contents: Data(capacity: 256)) else {

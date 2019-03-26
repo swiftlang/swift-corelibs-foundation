@@ -11,8 +11,11 @@
 		B907F36F20BB188800013CBE /* NSString-ISO-8859-1-data.txt in Resources */ = {isa = PBXBuildFile; fileRef = B907F36E20BB188800013CBE /* NSString-ISO-8859-1-data.txt */; };
 		B917D32420B0DB9700728EE0 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B917D32320B0DB9700728EE0 /* Foundation.framework */; };
 		B917D32620B0DE2000728EE0 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B917D32520B0DE2000728EE0 /* main.swift */; };
+		B940492B223B13D000FB4384 /* TestProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B940492A223B13D000FB4384 /* TestProgressFraction.swift */; };
 		B94897772135E7AD00FB930E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94897762135E7AC00FB930E /* Utilities.swift */; };
 		B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */; };
+		B97E7854222AF973007596B0 /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */; };
+		B97E7856222AF995007596B0 /* TestPropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */; };
 		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
 		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
@@ -80,7 +83,6 @@
 		B9C89F781F6BF89C00087AF4 /* TestNSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F291F6BF89900087AF4 /* TestNSData.swift */; };
 		B9C89F791F6BF89C00087AF4 /* TestNSRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2A1F6BF89900087AF4 /* TestNSRange.swift */; };
 		B9C89F7A1F6BF89C00087AF4 /* TestNSGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2B1F6BF89900087AF4 /* TestNSGeometry.swift */; };
-		B9C89F7B1F6BF89C00087AF4 /* TestNSProgressFraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2C1F6BF89900087AF4 /* TestNSProgressFraction.swift */; };
 		B9C89F7C1F6BF89C00087AF4 /* TestURLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2D1F6BF89A00087AF4 /* TestURLCredential.swift */; };
 		B9C89F7D1F6BF89C00087AF4 /* TestRunLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2E1F6BF89A00087AF4 /* TestRunLoop.swift */; };
 		B9C89F7E1F6BF89C00087AF4 /* TestThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89F2F1F6BF89B00087AF4 /* TestThread.swift */; };
@@ -155,8 +157,11 @@
 		B917D31C20B0DB8B00728EE0 /* xdgTestHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = xdgTestHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B917D32320B0DB9700728EE0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B917D32520B0DE2000728EE0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = TestFoundation/xdgTestHelper/main.swift; sourceTree = "<group>"; };
+		B940492A223B13D000FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestProgressFraction.swift; path = TestFoundation/TestProgressFraction.swift; sourceTree = "<group>"; };
 		B94897762135E7AC00FB930E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Utilities.swift; path = TestFoundation/Utilities.swift; sourceTree = "<group>"; };
 		B95788851F6FB9470003EB01 /* TestNSNumberBridging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestNSNumberBridging.swift; path = TestFoundation/TestNSNumberBridging.swift; sourceTree = "<group>"; };
+		B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestDateIntervalFormatter.swift; path = TestFoundation/TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
+		B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestPropertyListEncoder.swift; path = TestFoundation/TestPropertyListEncoder.swift; sourceTree = "<group>"; };
 		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
 		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
@@ -294,6 +299,9 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B940492A223B13D000FB4384 /* TestProgressFraction.swift */,
+				B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */,
+				B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */,
 				B9C89FAC1F6DCAE700087AF4 /* Info.plist */,
 				B9C89FAD1F6DCAE800087AF4 /* NSKeyedUnarchiver-ArrayTest.plist */,
 				B9C89FB31F6DCAE900087AF4 /* NSKeyedUnarchiver-ComplexTest.plist */,
@@ -558,6 +566,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B940492B223B13D000FB4384 /* TestProgressFraction.swift in Sources */,
+				B97E7856222AF995007596B0 /* TestPropertyListEncoder.swift in Sources */,
+				B97E7854222AF973007596B0 /* TestDateIntervalFormatter.swift in Sources */,
 				B94897772135E7AD00FB930E /* Utilities.swift in Sources */,
 				B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */,
 				B95788861F6FB9470003EB01 /* TestNSNumberBridging.swift in Sources */,
@@ -632,7 +643,6 @@
 				B9C89F781F6BF89C00087AF4 /* TestNSData.swift in Sources */,
 				B9C89F791F6BF89C00087AF4 /* TestNSRange.swift in Sources */,
 				B9C89F7A1F6BF89C00087AF4 /* TestNSGeometry.swift in Sources */,
-				B9C89F7B1F6BF89C00087AF4 /* TestNSProgressFraction.swift in Sources */,
 				B9C89F7C1F6BF89C00087AF4 /* TestURLCredential.swift in Sources */,
 				B9C89F7D1F6BF89C00087AF4 /* TestRunLoop.swift in Sources */,
 				B9C89F7E1F6BF89C00087AF4 /* TestThread.swift in Sources */,
@@ -661,10 +671,10 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -675,10 +685,10 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CODE_SIGN_STYLE = Automatic;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -730,7 +740,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -781,7 +791,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -795,10 +805,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = DarwinCompatibilityTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.DarwinCompatibilityTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -809,10 +820,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = DarwinCompatibilityTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				"OTHER_SWIFT_FLAGS[arch=*]" = "-DDEPLOYMENT_RUNTIME_OBJC -DDARWIN_COMPATIBILITY_TESTS";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.DarwinCompatibilityTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

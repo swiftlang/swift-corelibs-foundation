@@ -7,6 +7,8 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !DARWIN_COMPATIBILITY_TESTS // Disable until Foundation has the new FileHandle API
+
 import Dispatch
 
 class TestFileHandle : XCTestCase {
@@ -484,3 +486,5 @@ class TestFileHandle : XCTestCase {
         ]
     }
 }
+
+#endif

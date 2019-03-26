@@ -7,6 +7,7 @@
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !DARWIN_COMPATIBILITY_TESTS     // Disable until Foundation has the new FileHandle API
 class TestPipe: XCTestCase {
     
     static var allTests: [(String, (TestPipe) -> () throws -> Void)] {
@@ -57,3 +58,4 @@ class TestPipe: XCTestCase {
         XCTAssertEqual(text, convertedData)
     }
 }
+#endif

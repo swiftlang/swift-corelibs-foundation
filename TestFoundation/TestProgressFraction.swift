@@ -1,16 +1,19 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !DARWIN_COMPATIBILITY_TESTS
+
 class TestProgressFraction : XCTestCase {
-    static var allTests: [(String, (TestProgressFraction) -> () throws -> Void)] {
-        return [
+
+#if !NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT    // _ProgressFraction is an internal type
+    static let allTests: [(String, (TestProgressFraction) -> () throws -> Void)] = []
+#else
+    static let allTests: [(String, (TestProgressFraction) -> () throws -> Void)] = [
             ("test_equal", test_equal ),
             ("test_subtract", test_subtract),
             ("test_multiply", test_multiply),
@@ -21,7 +24,6 @@ class TestProgressFraction : XCTestCase {
             ("test_fractionFromDouble", test_fractionFromDouble),
             ("test_unnecessaryOverflow", test_unnecessaryOverflow),
         ]
-    }
 
     func test_equal() {
         let f1 = _ProgressFraction(completed: 5, total: 10)
@@ -151,6 +153,7 @@ class TestProgressFraction : XCTestCase {
         let r = f1 + f2
         XCTAssertFalse(r.overflowed)
     }
-}
 #endif
+}
+
 
