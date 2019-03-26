@@ -107,9 +107,45 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return true
     }
     
-    open func description(withLocale locale: Locale?) -> String { 
-      // NSUnimplemented() 
-      return description
+    override open var description: String {
+        return description(withLocale: nil)
+    }
+    
+    open func description(withLocale locale: Locale?) -> String {
+        return description(withLocale: locale, indent: 0)
+    }
+    
+    private func description(withLocale locale: Locale?, indent level: Int) -> String {
+        var descriptions = [String]()
+        
+        for obj in self._storage {
+            if let string = obj as? String {
+                descriptions.append(string)
+            } else if let array = obj as? [Any] {
+                descriptions.append(NSArray(array: array).description(withLocale: locale, indent: level + 1))
+            } else if let dict = obj as? [AnyHashable : Any] {
+                descriptions.append(dict._bridgeToObjectiveC().description(withLocale: locale, indent: level + 1))
+            } else if let set = obj as? Set<AnyHashable> {
+                descriptions.append(set._bridgeToObjectiveC().description(withLocale: locale, indent: level + 1))
+            } else {
+                descriptions.append("\(obj)")
+            }
+        }
+        var indent = ""
+        for _ in 0..<level {
+            indent += "    "
+        }
+        var result = indent + "{(\n"
+        for idx in 0..<self.count {
+            result += indent + "    " + descriptions[idx]
+            if idx + 1 < self.count {
+                result += ",\n"
+            } else {
+                result += "\n"
+            }
+        }
+        result += indent + ")}"
+        return result
     }
     
     override open var _cfTypeID: CFTypeID {
