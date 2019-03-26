@@ -342,6 +342,23 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
 #endif
     }
+    
+    internal func _readBytes(into buffer: UnsafeMutablePointer<UInt8>, length: Int) throws -> Int {
+#if os(Windows)
+        var BytesRead: DWORD = 0
+        let BytesToRead: DWORD = DWORD(length)
+        if ReadFile(_handle, buffer, BytesToRead, &BytesRead, nil) == FALSE {
+            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        }
+        return Int(BytesRead)
+#else
+        let amtRead = _read(_fd, buffer, length)
+        if amtRead < 0 {
+            throw _NSErrorWithErrno(errno, reading: true)
+        }
+        return amtRead
+#endif
+    }
 
     internal func _writeBytes(buf: UnsafeRawPointer, length: Int) throws {
 #if os(Windows)
@@ -425,6 +442,19 @@ open class FileHandle : NSObject, NSSecureCoding {
         }
     }
 #endif
+
+    internal convenience init?(fileSystemRepresentation: UnsafePointer<Int8>, flags: Int32, createMode: Int) {
+#if os(Windows)
+        var fd: Int = -1
+        if let path = String(cString: fileSystemRepresentation).cString(using: .utf16) {
+            fd = _CFOpenFileWithMode(path, flags, mode_t(createMode))
+        }
+#else
+        let fd = _CFOpenFileWithMode(fileSystemRepresentation, flags, mode_t(createMode))
+#endif
+        guard fd > 0 else { return nil }
+        self.init(fileDescriptor: fd, closeOnDealloc: true)
+    }
 
     deinit {
         // .close() tries to wait after operations in flight on the handle queue, if one exists, and then close. It does so by sending .sync { … } work to it.
