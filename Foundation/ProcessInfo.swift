@@ -104,12 +104,26 @@ open class ProcessInfo: NSObject {
         }
         versionString = productVersion._swiftObject
 #elseif os(Windows)
-        var siVersionInfo: OSVERSIONINFOW = OSVERSIONINFOW()
-        siVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<OSVERSIONINFOEXW>.size)
-        if GetVersionExW(&siVersionInfo) == FALSE {
-          return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        guard let ntdll = ("ntdll.dll".withCString(encodedAs: UTF16.self) {
+          LoadLibraryExW($0, nil, DWORD(LOAD_LIBRARY_SEARCH_SYSTEM32)) 
+        }) else {
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
         }
-        return OperatingSystemVersion(majorVersion: Int(siVersionInfo.dwMajorVersion), minorVersion: Int(siVersionInfo.dwMinorVersion), patchVersion: Int(siVersionInfo.dwBuildNumber))
+        defer { FreeLibrary(ntdll) }
+        typealias RTLGetVersionTy = @convention(c) (UnsafeMutablePointer<RTL_OSVERSIONINFOW>) -> NTSTATUS
+        guard let pfnRTLGetVersion = unsafeBitCast(GetProcAddress(ntdll, "RtlGetVersion"), to: Optional<RTLGetVersionTy>.self) else {
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        var osVersionInfo = RTL_OSVERSIONINFOW()
+        osVersionInfo.dwOSVersionInfoSize = DWORD(MemoryLayout<RTL_OSVERSIONINFOW>.size)
+        guard pfnRTLGetVersion(&osVersionInfo) == 0 else {
+            return OperatingSystemVersion(majorVersion: fallbackMajor, minorVersion: fallbackMinor, patchVersion: fallbackPatch)
+        }
+        return OperatingSystemVersion(
+            majorVersion: Int(osVersionInfo.dwMajorVersion),
+            minorVersion: Int(osVersionInfo.dwMinorVersion),
+            patchVersion: Int(osVersionInfo.dwBuildNumber)
+        )
 #else
         var utsNameBuffer = utsname()
         guard uname(&utsNameBuffer) == 0 else {
