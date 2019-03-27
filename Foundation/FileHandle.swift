@@ -445,7 +445,7 @@ open class FileHandle : NSObject, NSSecureCoding {
 
     internal convenience init?(fileSystemRepresentation: UnsafePointer<Int8>, flags: Int32, createMode: Int) {
 #if os(Windows)
-        var fd: Int = -1
+        var fd: Int32 = -1
         if let path = String(cString: fileSystemRepresentation).cString(using: .utf16) {
             fd = _CFOpenFileWithMode(path, flags, mode_t(createMode))
         }
