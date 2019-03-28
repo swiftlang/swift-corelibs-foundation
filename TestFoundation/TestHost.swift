@@ -41,6 +41,13 @@ class TestHost: XCTestCase {
 
         let host2 = Host(address: "8.8.8.9")
         XCTAssertFalse(host0.isEqual(to: host2))
+
+        let swift0 = Host(name: "swift.org")
+        let swift1 = Host(name: "swift.org")
+        XCTAssertTrue(swift0.isEqual(to: swift1))
+
+        let google = Host(name: "google.com")
+        XCTAssertFalse(swift0.isEqual(to: google))
     }
 }
 
