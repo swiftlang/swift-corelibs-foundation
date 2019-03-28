@@ -59,11 +59,11 @@ class TestURLResponse : XCTestCase {
     }
     
     func test_TextEncodingName() {
-        var encoding = "utf8"
+        let encoding = "utf8"
         var res = URLResponse(url: testURL, mimeType: nil, expectedContentLength: 0, textEncodingName: encoding)
         XCTAssertEqual(res.textEncodingName, encoding, "should be the utf8 encoding")
         
-        let res = URLResponse(url: testURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
+        res = URLResponse(url: testURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil)
         XCTAssertNil(res.textEncodingName)
     }
     
