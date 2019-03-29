@@ -54,7 +54,9 @@ class TestNumberFormatter: XCTestCase {
             ("test_maximumSignificantDigits", test_maximumSignificantDigits),
             ("test_stringFor", test_stringFor),
             ("test_numberFrom", test_numberFrom),
-            //("test_en_US_initialValues", test_en_US_initialValues)
+            ("test_en_US_initialValues", test_en_US_initialValues),
+            ("test_pt_BR_initialValues", test_pt_BR_initialValues),
+            ("test_changingLocale", test_changingLocale),
         ]
     }
     
@@ -652,7 +654,7 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter.locale = Locale(identifier: "en_US")
 
         // TODO: Check if this is true for all versions...
-        XCTAssertEqual(numberFormatter.format, "#;0;#")
+        XCTAssertEqual(numberFormatter.format, "#")
 
         XCTAssertEqual(numberFormatter.plusSign, "+")
         XCTAssertEqual(numberFormatter.minusSign, "-")
@@ -671,5 +673,61 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.exponentSymbol, "E")
         XCTAssertEqual(numberFormatter.groupingSeparator, ",")
         XCTAssertEqual(numberFormatter.paddingCharacter, " ")
+        XCTAssertEqual(numberFormatter.currencyCode, "USD")
+        XCTAssertEqual(numberFormatter.currencySymbol, "$")
+        XCTAssertEqual(numberFormatter.currencyDecimalSeparator, ".")
+        XCTAssertEqual(numberFormatter.currencyGroupingSeparator, ",")
+        XCTAssertEqual(numberFormatter.internationalCurrencySymbol, "USD")
+        XCTAssertNil(numberFormatter.zeroSymbol)
+    }
+
+    func test_pt_BR_initialValues() {
+        let numberFormatter = NumberFormatter();
+        numberFormatter.locale = Locale(identifier: "pt_BR")
+
+        XCTAssertEqual(numberFormatter.format, "#")
+        XCTAssertEqual(numberFormatter.plusSign, "+")
+        XCTAssertEqual(numberFormatter.minusSign, "-")
+        XCTAssertEqual(numberFormatter.decimalSeparator, ",")
+        XCTAssertEqual(numberFormatter.groupingSeparator, ".")
+        XCTAssertEqual(numberFormatter.nilSymbol, "")
+        XCTAssertEqual(numberFormatter.notANumberSymbol, "NaN")
+        XCTAssertEqual(numberFormatter.positiveInfinitySymbol, "+∞")
+        XCTAssertEqual(numberFormatter.negativeInfinitySymbol, "-∞")
+        XCTAssertEqual(numberFormatter.positivePrefix, "")
+        XCTAssertEqual(numberFormatter.negativePrefix, "-")
+        XCTAssertEqual(numberFormatter.positiveSuffix, "")
+        XCTAssertEqual(numberFormatter.negativeSuffix, "")
+        XCTAssertEqual(numberFormatter.percentSymbol, "%")
+        XCTAssertEqual(numberFormatter.perMillSymbol, "‰")
+        XCTAssertEqual(numberFormatter.exponentSymbol, "E")
+        XCTAssertEqual(numberFormatter.groupingSeparator, ".")
+        XCTAssertEqual(numberFormatter.paddingCharacter, " ")
+        XCTAssertEqual(numberFormatter.currencyCode, "BRL")
+        XCTAssertEqual(numberFormatter.currencySymbol, "R$")
+        XCTAssertEqual(numberFormatter.currencyDecimalSeparator, ",")
+        XCTAssertEqual(numberFormatter.currencyGroupingSeparator, ".")
+        XCTAssertEqual(numberFormatter.internationalCurrencySymbol, "BRL")
+        XCTAssertNil(numberFormatter.zeroSymbol)
+    }
+
+    func test_changingLocale() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.locale = Locale(identifier: "fr_FR")
+
+        XCTAssertEqual(numberFormatter.currencyCode, "EUR")
+        XCTAssertEqual(numberFormatter.currencySymbol, "€")
+        numberFormatter.currencySymbol = "E"
+        XCTAssertEqual(numberFormatter.currencySymbol, "E")
+
+        numberFormatter.locale = Locale(identifier: "fr_FR")
+        XCTAssertEqual(numberFormatter.currencySymbol, "E")
+
+        numberFormatter.locale = Locale(identifier: "en_GB")
+
+        XCTAssertEqual(numberFormatter.currencyCode, "GBP")
+        XCTAssertEqual(numberFormatter.currencySymbol, "E")
+        numberFormatter.currencySymbol = nil
+        XCTAssertEqual(numberFormatter.currencySymbol, "£")
     }
 }

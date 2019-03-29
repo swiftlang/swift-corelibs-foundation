@@ -1,26 +1,14 @@
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2016 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2016, 2019 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
-// See http://swift.org/LICENSE.txt for license information
-// See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
-internal let kCFNumberFormatterNoStyle = CFNumberFormatterStyle.noStyle
-internal let kCFNumberFormatterDecimalStyle = CFNumberFormatterStyle.decimalStyle
-internal let kCFNumberFormatterCurrencyStyle = CFNumberFormatterStyle.currencyStyle
-internal let kCFNumberFormatterPercentStyle = CFNumberFormatterStyle.percentStyle
-internal let kCFNumberFormatterScientificStyle = CFNumberFormatterStyle.scientificStyle
-internal let kCFNumberFormatterSpellOutStyle = CFNumberFormatterStyle.spellOutStyle
-internal let kCFNumberFormatterOrdinalStyle = CFNumberFormatterStyle.ordinalStyle
-internal let kCFNumberFormatterCurrencyISOCodeStyle = CFNumberFormatterStyle.currencyISOCodeStyle
-internal let kCFNumberFormatterCurrencyPluralStyle = CFNumberFormatterStyle.currencyPluralStyle
-internal let kCFNumberFormatterCurrencyAccountingStyle = CFNumberFormatterStyle.currencyAccountingStyle
-#endif
 
 extension NumberFormatter {
     public enum Style : UInt {
@@ -55,7 +43,7 @@ extension NumberFormatter {
 }
 
 open class NumberFormatter : Formatter {
-    
+
     typealias CFType = CFNumberFormatter
     private var _currentCfFormatter: CFType?
     private var _cfFormatter: CFType {
@@ -67,7 +55,7 @@ open class NumberFormatter : Formatter {
             #else
                 let numberStyle = CFNumberFormatterStyle(self.numberStyle.rawValue)
             #endif
-            
+
             let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
             _setFormatterAttributes(obj)
             if let format = _format {
@@ -77,28 +65,28 @@ open class NumberFormatter : Formatter {
             return obj
         }
     }
-    
+
     // this is for NSUnitFormatter
-    
+
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
-    
+
     // Report the used range of the string and an NSError, in addition to the usual stuff from Formatter
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
     open func objectValue(_ string: String, range: inout NSRange) throws -> Any? { NSUnimplemented() }
-    
+
     open override func string(for obj: Any) -> String? {
         //we need to allow Swift's numeric types here - Int, Double et al.
         guard let number = __SwiftValue.store(obj) as? NSNumber else { return nil }
         return string(from: number)
     }
-    
+
     // Even though NumberFormatter responds to the usual Formatter methods,
     //   here are some convenience methods which are a little more obvious.
     open func string(from number: NSNumber) -> String? {
         return CFNumberFormatterCreateStringWithNumber(kCFAllocatorSystemDefault, _cfFormatter, number._cfObject)._swiftObject
     }
-    
+
     open func number(from string: String) -> NSNumber? {
         var range = CFRange(location: 0, length: string.length)
         let number = withUnsafeMutablePointer(to: &range) { (rangePointer: UnsafeMutablePointer<CFRange>) -> NSNumber? in
@@ -114,18 +102,18 @@ open class NumberFormatter : Formatter {
         }
         return number
     }
-    
+
     open class func localizedString(from num: NSNumber, number nstyle: Style) -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = nstyle
         return numberFormatter.string(for: num)!
     }
-    
-    internal func _reset() {
+
+    private func _reset() {
         _currentCfFormatter = nil
     }
-    
-    internal func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
+
+    private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: _currencyCode?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterDecimalSeparator, value: _decimalSeparator?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyDecimalSeparator, value: _currencyDecimalSeparator?._cfObject)
@@ -168,20 +156,25 @@ open class NumberFormatter : Formatter {
             _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxSignificantDigits, value: _maximumSignificantDigits._bridgeToObjectiveC()._cfObject)
         }
     }
-    
-    internal func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
+
+    private func _setFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString, value: AnyObject?) {
         if let value = value {
             CFNumberFormatterSetProperty(formatter, attributeName, value)
         }
     }
-    
+
+    private func _getFormatterAttribute(_ formatter: CFNumberFormatter, attributeName: CFString) -> String? {
+        return CFNumberFormatterCopyProperty(formatter, attributeName) as? String
+    }
+
+
     // Attributes of a NumberFormatter
-    internal var _numberStyle: Style = .none
+    private var _numberStyle: Style = .none
     open var numberStyle: Style {
         get {
             return _numberStyle
         }
-        
+
         set {
             switch newValue {
             case .none, .ordinal, .spellOut:
@@ -215,7 +208,7 @@ open class NumberFormatter : Formatter {
                 if _groupingSize == 0 {
                     _groupingSize = 3
                 }
-                
+
             case .percent:
                 _usesSignificantDigits = false
                 _usesGroupingSeparator = true
@@ -239,8 +232,8 @@ open class NumberFormatter : Formatter {
             _numberStyle = newValue
         }
     }
-    
-    internal var _locale: Locale = Locale.current
+
+    private var _locale: Locale = Locale.current
     /*@NSCopying*/ open var locale: Locale! {
         get {
             return _locale
@@ -250,8 +243,8 @@ open class NumberFormatter : Formatter {
             _locale = newValue
         }
     }
-    
-    internal var _generatesDecimalNumbers: Bool = false
+
+    private var _generatesDecimalNumbers: Bool = false
     open var generatesDecimalNumbers: Bool {
         get {
             return _generatesDecimalNumbers
@@ -261,8 +254,8 @@ open class NumberFormatter : Formatter {
             _generatesDecimalNumbers = newValue
         }
     }
-    
-    internal var _negativeFormat: String!
+
+    private var _negativeFormat: String!
     open var negativeFormat: String! {
         get {
             return _negativeFormat
@@ -272,8 +265,8 @@ open class NumberFormatter : Formatter {
             _negativeFormat = newValue
         }
     }
-    
-    internal var _textAttributesForNegativeValues: [String : Any]?
+
+    private var _textAttributesForNegativeValues: [String : Any]?
     open var textAttributesForNegativeValues: [String : Any]? {
         get {
             return _textAttributesForNegativeValues
@@ -283,8 +276,8 @@ open class NumberFormatter : Formatter {
             _textAttributesForNegativeValues = newValue
         }
     }
-    
-    internal var _positiveFormat: String!
+
+    private var _positiveFormat: String!
     open var positiveFormat: String! {
         get {
             return _positiveFormat
@@ -294,8 +287,8 @@ open class NumberFormatter : Formatter {
             _positiveFormat = newValue
         }
     }
-    
-    internal var _textAttributesForPositiveValues: [String : Any]?
+
+    private var _textAttributesForPositiveValues: [String : Any]?
     open var textAttributesForPositiveValues: [String : Any]? {
         get {
             return _textAttributesForPositiveValues
@@ -305,8 +298,8 @@ open class NumberFormatter : Formatter {
             _textAttributesForPositiveValues = newValue
         }
     }
-    
-    internal var _allowsFloats: Bool = true
+
+    private var _allowsFloats: Bool = true
     open var allowsFloats: Bool {
         get {
             return _allowsFloats
@@ -317,18 +310,18 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    internal var _decimalSeparator: String!
+    private var _decimalSeparator: String!
     open var decimalSeparator: String! {
         get {
-            return _decimalSeparator
+            return _decimalSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterDecimalSeparator)
         }
         set {
             _reset()
             _decimalSeparator = newValue
         }
     }
-    
-    internal var _alwaysShowsDecimalSeparator: Bool = false
+
+    private var _alwaysShowsDecimalSeparator: Bool = false
     open var alwaysShowsDecimalSeparator: Bool {
         get {
             return _alwaysShowsDecimalSeparator
@@ -338,19 +331,19 @@ open class NumberFormatter : Formatter {
             _alwaysShowsDecimalSeparator = newValue
         }
     }
-    
-    internal var _currencyDecimalSeparator: String!
+
+    private var _currencyDecimalSeparator: String!
     open var currencyDecimalSeparator: String! {
         get {
-            return _currencyDecimalSeparator
+            return _currencyDecimalSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyDecimalSeparator)
         }
         set {
             _reset()
             _currencyDecimalSeparator = newValue
         }
     }
-    
-    internal var _usesGroupingSeparator: Bool = false
+
+    private var _usesGroupingSeparator: Bool = false
     open var usesGroupingSeparator: Bool {
         get {
             return _usesGroupingSeparator
@@ -360,32 +353,30 @@ open class NumberFormatter : Formatter {
             _usesGroupingSeparator = newValue
         }
     }
-    
-    internal var _groupingSeparator: String!
+
+    private var _groupingSeparator: String!
     open var groupingSeparator: String! {
         get {
-            return _groupingSeparator
+            return _groupingSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterGroupingSeparator)
         }
         set {
             _reset()
             _groupingSeparator = newValue
         }
     }
-    
-    //
-    
-    internal var _zeroSymbol: String?
+
+    private var _zeroSymbol: String?
     open var zeroSymbol: String? {
         get {
-            return _zeroSymbol
+            return _zeroSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterZeroSymbol)
         }
         set {
             _reset()
             _zeroSymbol = newValue
         }
     }
-    
-    internal var _textAttributesForZero: [String : Any]?
+
+    private var _textAttributesForZero: [String : Any]?
     open var textAttributesForZero: [String : Any]? {
         get {
             return _textAttributesForZero
@@ -395,8 +386,8 @@ open class NumberFormatter : Formatter {
             _textAttributesForZero = newValue
         }
     }
-    
-    internal var _nilSymbol: String = ""
+
+    private var _nilSymbol: String = ""
     open var nilSymbol: String {
         get {
             return _nilSymbol
@@ -406,8 +397,8 @@ open class NumberFormatter : Formatter {
             _nilSymbol = newValue
         }
     }
-    
-    internal var _textAttributesForNil: [String : Any]?
+
+    private var _textAttributesForNil: [String : Any]?
     open var textAttributesForNil: [String : Any]? {
         get {
             return _textAttributesForNil
@@ -417,19 +408,19 @@ open class NumberFormatter : Formatter {
             _textAttributesForNil = newValue
         }
     }
-    
-    internal var _notANumberSymbol: String!
+
+    private var _notANumberSymbol: String!
     open var notANumberSymbol: String! {
         get {
-            return _notANumberSymbol
+            return _notANumberSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNaNSymbol)
         }
         set {
             _reset()
             _notANumberSymbol = newValue
         }
     }
-    
-    internal var _textAttributesForNotANumber: [String : Any]?
+
+    private var _textAttributesForNotANumber: [String : Any]?
     open var textAttributesForNotANumber: [String : Any]? {
         get {
             return _textAttributesForNotANumber
@@ -439,8 +430,8 @@ open class NumberFormatter : Formatter {
             _textAttributesForNotANumber = newValue
         }
     }
-    
-    internal var _positiveInfinitySymbol: String = "+∞"
+
+    private var _positiveInfinitySymbol: String = "+∞"
     open var positiveInfinitySymbol: String {
         get {
             return _positiveInfinitySymbol
@@ -450,8 +441,8 @@ open class NumberFormatter : Formatter {
             _positiveInfinitySymbol = newValue
         }
     }
-    
-    internal var _textAttributesForPositiveInfinity: [String : Any]?
+
+    private var _textAttributesForPositiveInfinity: [String : Any]?
     open var textAttributesForPositiveInfinity: [String : Any]? {
         get {
             return _textAttributesForPositiveInfinity
@@ -461,8 +452,8 @@ open class NumberFormatter : Formatter {
             _textAttributesForPositiveInfinity = newValue
         }
     }
-    
-    internal var _negativeInfinitySymbol: String = "-∞"
+
+    private var _negativeInfinitySymbol: String = "-∞"
     open var negativeInfinitySymbol: String {
         get {
             return _negativeInfinitySymbol
@@ -472,8 +463,8 @@ open class NumberFormatter : Formatter {
             _negativeInfinitySymbol = newValue
         }
     }
-    
-    internal var _textAttributesForNegativeInfinity: [String : Any]?
+
+    private var _textAttributesForNegativeInfinity: [String : Any]?
     open var textAttributesForNegativeInfinity: [String : Any]? {
         get {
             return _textAttributesForNegativeInfinity
@@ -483,144 +474,140 @@ open class NumberFormatter : Formatter {
             _textAttributesForNegativeInfinity = newValue
         }
     }
-    
-    //
-    
-    internal var _positivePrefix: String!
+
+    private var _positivePrefix: String!
     open var positivePrefix: String! {
         get {
-            return _positivePrefix
+            return _positivePrefix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPositivePrefix)
         }
         set {
             _reset()
             _positivePrefix = newValue
         }
     }
-    
-    internal var _positiveSuffix: String!
+
+    private var _positiveSuffix: String!
     open var positiveSuffix: String! {
         get {
-            return _positiveSuffix
+            return _positiveSuffix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPositiveSuffix)
         }
         set {
             _reset()
             _positiveSuffix = newValue
         }
     }
-    
-    internal var _negativePrefix: String!
+
+    private var _negativePrefix: String!
     open var negativePrefix: String! {
         get {
-            return _negativePrefix
+            return _negativePrefix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNegativePrefix)
         }
         set {
             _reset()
             _negativePrefix = newValue
         }
     }
-    
-    internal var _negativeSuffix: String!
+
+    private var _negativeSuffix: String!
     open var negativeSuffix: String! {
         get {
-            return _negativeSuffix
+            return _negativeSuffix ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterNegativeSuffix)
         }
         set {
             _reset()
             _negativeSuffix = newValue
         }
     }
-    
-    internal var _currencyCode: String!
+
+    private var _currencyCode: String!
     open var currencyCode: String! {
         get {
-            return _currencyCode
+            return _currencyCode ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyCode)
         }
         set {
             _reset()
             _currencyCode = newValue
         }
     }
-    
-    internal var _currencySymbol: String!
+
+    private var _currencySymbol: String!
     open var currencySymbol: String! {
         get {
-            return _currencySymbol
+            return _currencySymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencySymbol)
         }
         set {
             _reset()
             _currencySymbol = newValue
         }
     }
-    
-    internal var _internationalCurrencySymbol: String!
+
+    private var _internationalCurrencySymbol: String!
     open var internationalCurrencySymbol: String! {
         get {
-            return _internationalCurrencySymbol
+            return _internationalCurrencySymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterInternationalCurrencySymbol)
         }
         set {
             _reset()
             _internationalCurrencySymbol = newValue
         }
     }
-    
-    internal var _percentSymbol: String!
+
+    private var _percentSymbol: String!
     open var percentSymbol: String! {
         get {
-            return _percentSymbol
+            return _percentSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPercentSymbol) ?? "%"
         }
         set {
             _reset()
             _percentSymbol = newValue
         }
     }
-    
-    internal var _perMillSymbol: String!
+
+    private var _perMillSymbol: String!
     open var perMillSymbol: String! {
         get {
-            return _perMillSymbol
+            return _perMillSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPerMillSymbol)
         }
         set {
             _reset()
             _perMillSymbol = newValue
         }
     }
-    
-    internal var _minusSign: String!
+
+    private var _minusSign: String!
     open var minusSign: String! {
         get {
-            return _minusSign
+            return _minusSign ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterMinusSign)
         }
         set {
             _reset()
             _minusSign = newValue
         }
     }
-    
-    internal var _plusSign: String!
+
+    private var _plusSign: String!
     open var plusSign: String! {
         get {
-            return _plusSign
+            return _plusSign ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPlusSign)
         }
         set {
             _reset()
             _plusSign = newValue
         }
     }
-    
-    internal var _exponentSymbol: String!
+
+    private var _exponentSymbol: String!
     open var exponentSymbol: String! {
         get {
-            return _exponentSymbol
+            return _exponentSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterExponentSymbol)
         }
         set {
             _reset()
             _exponentSymbol = newValue
         }
     }
-    
-    //
-    
-    internal var _groupingSize: Int = 0
+
+    private var _groupingSize: Int = 0
     open var groupingSize: Int {
         get {
             return _groupingSize
@@ -630,8 +617,8 @@ open class NumberFormatter : Formatter {
             _groupingSize = newValue
         }
     }
-    
-    internal var _secondaryGroupingSize: Int = 0
+
+    private var _secondaryGroupingSize: Int = 0
     open var secondaryGroupingSize: Int {
         get {
             return _secondaryGroupingSize
@@ -641,8 +628,8 @@ open class NumberFormatter : Formatter {
             _secondaryGroupingSize = newValue
         }
     }
-    
-    internal var _multiplier: NSNumber?
+
+    private var _multiplier: NSNumber?
     /*@NSCopying*/ open var multiplier: NSNumber? {
         get {
             return _multiplier
@@ -652,8 +639,8 @@ open class NumberFormatter : Formatter {
             _multiplier = newValue
         }
     }
-    
-    internal var _formatWidth: Int = 0
+
+    private var _formatWidth: Int = 0
     open var formatWidth: Int {
         get {
             return _formatWidth
@@ -663,21 +650,19 @@ open class NumberFormatter : Formatter {
             _formatWidth = newValue
         }
     }
-    
-    internal var _paddingCharacter: String!
+
+    private var _paddingCharacter: String!
     open var paddingCharacter: String! {
         get {
-            return _paddingCharacter
+            return _paddingCharacter ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPaddingCharacter)
         }
         set {
             _reset()
             _paddingCharacter = newValue
         }
     }
-    
-    //
-    
-    internal var _paddingPosition: PadPosition = .beforePrefix
+
+    private var _paddingPosition: PadPosition = .beforePrefix
     open var paddingPosition: PadPosition {
         get {
             return _paddingPosition
@@ -687,8 +672,8 @@ open class NumberFormatter : Formatter {
             _paddingPosition = newValue
         }
     }
-    
-    internal var _roundingMode: RoundingMode = .halfEven
+
+    private var _roundingMode: RoundingMode = .halfEven
     open var roundingMode: RoundingMode {
         get {
             return _roundingMode
@@ -698,8 +683,8 @@ open class NumberFormatter : Formatter {
             _roundingMode = newValue
         }
     }
-    
-    internal var _roundingIncrement: NSNumber! = 0
+
+    private var _roundingIncrement: NSNumber! = 0
     /*@NSCopying*/ open var roundingIncrement: NSNumber! {
         get {
             return _roundingIncrement
@@ -713,7 +698,7 @@ open class NumberFormatter : Formatter {
     // Use an optional for _minimumIntegerDigits to track if the value is
     // set BEFORE the .numberStyle is changed. This allows preserving a setting
     // of 0.
-    internal var _minimumIntegerDigits: Int?
+    private var _minimumIntegerDigits: Int?
     open var minimumIntegerDigits: Int {
         get {
             return _minimumIntegerDigits ?? 0
@@ -723,8 +708,8 @@ open class NumberFormatter : Formatter {
             _minimumIntegerDigits = newValue
         }
     }
-    
-    internal var _maximumIntegerDigits: Int = 42
+
+    private var _maximumIntegerDigits: Int = 42
     open var maximumIntegerDigits: Int {
         get {
             return _maximumIntegerDigits
@@ -734,8 +719,8 @@ open class NumberFormatter : Formatter {
             _maximumIntegerDigits = newValue
         }
     }
-    
-    internal var _minimumFractionDigits: Int = 0
+
+    private var _minimumFractionDigits: Int = 0
     open var minimumFractionDigits: Int {
         get {
             return _minimumFractionDigits
@@ -745,8 +730,8 @@ open class NumberFormatter : Formatter {
             _minimumFractionDigits = newValue
         }
     }
-    
-    internal var _maximumFractionDigits: Int = 0
+
+    private var _maximumFractionDigits: Int = 0
     open var maximumFractionDigits: Int {
         get {
             return _maximumFractionDigits
@@ -756,8 +741,8 @@ open class NumberFormatter : Formatter {
             _maximumFractionDigits = newValue
         }
     }
-    
-    internal var _minimum: NSNumber?
+
+    private var _minimum: NSNumber?
     /*@NSCopying*/ open var minimum: NSNumber? {
         get {
             return _minimum
@@ -767,8 +752,8 @@ open class NumberFormatter : Formatter {
             _minimum = newValue
         }
     }
-    
-    internal var _maximum: NSNumber?
+
+    private var _maximum: NSNumber?
     /*@NSCopying*/ open var maximum: NSNumber? {
         get {
             return _maximum
@@ -778,19 +763,19 @@ open class NumberFormatter : Formatter {
             _maximum = newValue
         }
     }
-    
-    internal var _currencyGroupingSeparator: String!
+
+    private var _currencyGroupingSeparator: String!
     open var currencyGroupingSeparator: String! {
         get {
-            return _currencyGroupingSeparator
+            return _currencyGroupingSeparator ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterCurrencyGroupingSeparator)
         }
         set {
             _reset()
             _currencyGroupingSeparator = newValue
         }
     }
-    
-    internal var _lenient: Bool = false
+
+    private var _lenient: Bool = false
     open var isLenient: Bool {
         get {
             return _lenient
@@ -800,8 +785,8 @@ open class NumberFormatter : Formatter {
             _lenient = newValue
         }
     }
-    
-    internal var _usesSignificantDigits: Bool = false
+
+    private var _usesSignificantDigits: Bool = false
     open var usesSignificantDigits: Bool {
         get {
             return _usesSignificantDigits
@@ -811,8 +796,8 @@ open class NumberFormatter : Formatter {
             _usesSignificantDigits = newValue
         }
     }
-    
-    internal var _minimumSignificantDigits: Int = 1
+
+    private var _minimumSignificantDigits: Int = 1
     open var minimumSignificantDigits: Int {
         get {
             return _minimumSignificantDigits
@@ -823,8 +808,8 @@ open class NumberFormatter : Formatter {
             _minimumSignificantDigits = newValue
         }
     }
-    
-    internal var _maximumSignificantDigits: Int = 6
+
+    private var _maximumSignificantDigits: Int = 6
     open var maximumSignificantDigits: Int {
         get {
             return _maximumSignificantDigits
@@ -835,8 +820,8 @@ open class NumberFormatter : Formatter {
             _maximumSignificantDigits = newValue
         }
     }
-    
-    internal var _partialStringValidationEnabled: Bool = false
+
+    private var _partialStringValidationEnabled: Bool = false
     open var isPartialStringValidationEnabled: Bool {
         get {
             return _partialStringValidationEnabled
@@ -846,10 +831,8 @@ open class NumberFormatter : Formatter {
             _partialStringValidationEnabled = newValue
         }
     }
-    
-    //
-    
-    internal var _hasThousandSeparators: Bool = false
+
+    private var _hasThousandSeparators: Bool = false
     open var hasThousandSeparators: Bool {
         get {
             return _hasThousandSeparators
@@ -859,8 +842,8 @@ open class NumberFormatter : Formatter {
             _hasThousandSeparators = newValue
         }
     }
-    
-    internal var _thousandSeparator: String!
+
+    private var _thousandSeparator: String!
     open var thousandSeparator: String! {
         get {
             return _thousandSeparator
@@ -870,10 +853,8 @@ open class NumberFormatter : Formatter {
             _thousandSeparator = newValue
         }
     }
-    
-    //
-    
-    internal var _localizesFormat: Bool = true
+
+    private var _localizesFormat: Bool = true
     open var localizesFormat: Bool {
         get {
             return _localizesFormat
@@ -883,12 +864,13 @@ open class NumberFormatter : Formatter {
             _localizesFormat = newValue
         }
     }
-    
-    //
-    
-    internal var _format: String?
+
+    private var _format: String?
     open var format: String {
         get {
+            if _format == nil {
+                _format = CFNumberFormatterGetFormat(_cfFormatter)._swiftObject
+            }
             return _format ?? "#"
         }
         set {
@@ -896,10 +878,8 @@ open class NumberFormatter : Formatter {
             _format = newValue
         }
     }
-    
-    //
-    
-    internal var _attributedStringForZero: NSAttributedString = NSAttributedString(string: "0")
+
+    private var _attributedStringForZero: NSAttributedString = NSAttributedString(string: "0")
     /*@NSCopying*/ open var attributedStringForZero: NSAttributedString {
         get {
             return _attributedStringForZero
@@ -909,8 +889,8 @@ open class NumberFormatter : Formatter {
             _attributedStringForZero = newValue
         }
     }
-    
-    internal var _attributedStringForNil: NSAttributedString = NSAttributedString(string: "")
+
+    private var _attributedStringForNil: NSAttributedString = NSAttributedString(string: "")
     /*@NSCopying*/ open var attributedStringForNil: NSAttributedString {
         get {
             return _attributedStringForNil
@@ -920,8 +900,8 @@ open class NumberFormatter : Formatter {
             _attributedStringForNil = newValue
         }
     }
-    
-    internal var _attributedStringForNotANumber: NSAttributedString = NSAttributedString(string: "NaN")
+
+    private var _attributedStringForNotANumber: NSAttributedString = NSAttributedString(string: "NaN")
     /*@NSCopying*/ open var attributedStringForNotANumber: NSAttributedString {
         get {
             return _attributedStringForNotANumber
@@ -931,8 +911,8 @@ open class NumberFormatter : Formatter {
             _attributedStringForNotANumber = newValue
         }
     }
-    
-    internal var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default
+
+    private var _roundingBehavior: NSDecimalNumberHandler = NSDecimalNumberHandler.default
     /*@NSCopying*/ open var roundingBehavior: NSDecimalNumberHandler {
         get {
             return _roundingBehavior
