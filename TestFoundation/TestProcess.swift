@@ -609,19 +609,39 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     let stderrPipe = Pipe()
     process.standardOutput = stdoutPipe
     process.standardError = stderrPipe
+
+    var stdoutData = Data()
+    stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
+        stdoutData.append(fh.availableData)
+    }
+
+    var stderrData = Data()
+    stderrPipe.fileHandleForReading.readabilityHandler = { fh in
+        stderrData.append(fh.availableData)
+    }
+
     try process.run()
     process.waitUntilExit()
+    stdoutPipe.fileHandleForReading.readabilityHandler = nil
+    stderrPipe.fileHandleForReading.readabilityHandler = nil
+
+    // Drain any data remaining in the pipes
+    if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+        stdoutData.append(d)
+    }
+
+    if let d = try stderrPipe.fileHandleForReading.readToEnd() {
+        stderrData.append(d)
+    }
 
     guard process.terminationStatus == 0 else {
         throw Error.TerminationStatus(process.terminationStatus)
     }
 
-    let stdoutData = stdoutPipe.fileHandleForReading.availableData
     guard let stdout = String(data: stdoutData, encoding: .utf8) else {
         throw Error.UnicodeDecodingError(stdoutData)
     }
 
-    let stderrData = stderrPipe.fileHandleForReading.availableData
     guard let stderr = String(data: stderrData, encoding: .utf8) else {
         throw Error.UnicodeDecodingError(stderrData)
     }
