@@ -210,7 +210,30 @@ class _HTTPServer {
     }
    
     public func request() throws -> _HTTPRequest {
-       return try _HTTPRequest(request: socket.readData())
+        var request = try _HTTPRequest(request: socket.readData())
+       
+        if Int(request.getHeader(for: "Content-Length") ?? "0") ?? 0 > 0
+            || (request.getHeader(for: "Transfer-Encoding") ?? "").lowercased() == "chunked" {
+            
+            // According to RFC7230 https://tools.ietf.org/html/rfc7230#section-3
+            // We receive messageBody after the headers, so we need read from socket minimun 2 times
+            //
+            // HTTP-message structure
+            //
+            // start-line
+            // *( header-field CRLF )
+            // CRLF
+            // [ message-body ]
+            // We receives '{numofbytes}\r\n{data}\r\n'
+            // TODO read data until the end
+            
+            let substr = try socket.readData().split(separator: "\r\n")
+            if substr.count >= 2 {
+                request.messageBody = String(substr[1])
+            }
+        }
+        
+        return request
     }
 
     public func respond(with response: _HTTPResponse, startDelay: TimeInterval? = nil, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
@@ -324,6 +347,7 @@ struct _HTTPRequest {
     let method: Method
     let uri: String 
     let body: String
+    var messageBody: String?
     let headers: [String]
 
     public init(request: String) {
@@ -533,6 +557,7 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: \(value)", body: text)
             return httpResponse
         }
+
         if uri == "/redirect-with-default-port" {
             let text = request.getCommaSeparatedHeaders()
             let host = request.headers[1].components(separatedBy: " ")[1]
@@ -540,6 +565,10 @@ public class TestURLSessionServer {
             let httpResponse = _HTTPResponse(response: .REDIRECT, headers: "Location: http://\(ip)/redirected-with-default-port", body: text)
             return httpResponse
         }
+        if uri == "/echo" {
+            return _HTTPResponse(response: .OK, body: request.messageBody ?? request.body)
+        }
+        
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 

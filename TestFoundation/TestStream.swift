@@ -7,6 +7,31 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if (os(Linux) || os(Android))
+        @testable import Foundation
+    #else
+        @testable import SwiftFoundation
+    #endif
+#endif
+
+private extension Data {
+    init(reading input: InputStream) {
+        self.init()
+        input.open()
+        
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        while input.hasBytesAvailable {
+            let read = input.read(buffer, maxLength: bufferSize)
+            self.append(buffer, count: read)
+        }
+        buffer.deallocate()
+        
+        input.close()
+    }
+}
+
 class TestStream : XCTestCase {
     static var allTests: [(String, (TestStream) -> () throws -> Void)] {
         return [
@@ -15,6 +40,7 @@ class TestStream : XCTestCase {
             ("test_InputStreamWithFile", test_InputStreamWithFile),
             ("test_InputStreamHasBytesAvailable", test_InputStreamHasBytesAvailable),
             ("test_InputStreamInvalidPath", test_InputStreamInvalidPath),
+            ("test_InputStreamSeekToPosition", test_InputStreamSeekToPosition),
             ("test_outputStreamCreationToFile", test_outputStreamCreationToFile),
             ("test_outputStreamCreationToBuffer", test_outputStreamCreationToBuffer),
             ("test_outputStreamCreationWithUrl", test_outputStreamCreationWithUrl),
@@ -114,6 +140,54 @@ class TestStream : XCTestCase {
         XCTAssertEqual(.notOpen, fileStream.streamStatus)
         fileStream.open()
         XCTAssertEqual(.error, fileStream.streamStatus)
+    }
+    
+    func test_InputStreamSeekToPosition() {
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        let str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel."
+        XCTAssert(str.count > 1024) // str.count must be bigger than buffersize inside InputStream.seek func.
+        
+        func testSubdata(_ pos: UInt64) throws -> Data? {
+            guard let data = str.data(using: .utf8) else {
+                XCTFail()
+                return nil
+            }
+            
+            let stream = InputStream(data: data)
+            stream.open()
+            
+            try stream.seek(to: pos)
+            let streamData = Data(reading: stream)
+            
+            let subdata = data[Int(pos)..<data.count]
+            XCTAssertEqual(streamData, subdata)
+            
+            return subdata
+        }
+        
+        var sum = 0
+        for i in 0...str.count {
+            do {
+                sum += try testSubdata(UInt64(i))!.count
+            } catch _ {
+                XCTFail()
+            }
+        }
+        
+        XCTAssertEqual(((1 + str.count) * str.count)/2, sum) // Test on sum of arithmetic sequence :)
+        XCTAssertEqual(try testSubdata(UInt64(str.count))!.count, 0) // It shouldbe end
+        
+        do {
+            try testSubdata(UInt64(str.count + 1)) // out of boundaries
+            XCTFail()
+        } catch let error as InputStream.Error {
+            XCTAssertEqual(error, .cantSeekInputStream)
+        } catch {
+            XCTFail()
+        }
+#else
+        print("NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT is not defined, skip it")
+#endif
     }
     
     func test_outputStreamCreationToFile() {

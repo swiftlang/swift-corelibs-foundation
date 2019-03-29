@@ -114,7 +114,10 @@ open class Stream: NSObject {
 // InputStream is an abstract class representing the base functionality of a read stream.
 // Subclassers are required to implement these methods.
 open class InputStream: Stream {
-
+    enum Error: Swift.Error {
+        case cantSeekInputStream
+    }
+    
     internal let _stream: CFReadStream!
 
     // reads up to length bytes into the supplied buffer, which must be at least of size len. Returns the actual number of bytes read.
@@ -156,7 +159,7 @@ open class InputStream: Stream {
         return Stream.Status(rawValue: UInt(CFReadStreamGetStatus(_stream)))!
     }
     
-    open override var streamError: Error? {
+    open override var streamError: Swift.Error? {
         return CFReadStreamCopyError(_stream)
     }
 }
@@ -222,6 +225,43 @@ open class OutputStream : Stream {
     
     open override var streamError: Error? {
         return CFWriteStreamCopyError(_stream)
+    }
+}
+
+extension InputStream {
+    func seek(to position: UInt64) throws {
+        guard position > 0 else {
+            return
+        }
+        
+        guard position < Int.max else { throw Error.cantSeekInputStream }
+        
+        let bufferSize = 1024
+        var remainingBytes = Int(position)
+        
+        let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: bufferSize, alignment: MemoryLayout<UInt8>.alignment)
+        
+        guard let pointer = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            buffer.deallocate()
+            throw Error.cantSeekInputStream
+        }
+        
+        if self.streamStatus == .notOpen {
+            self.open()
+        }
+        
+        while remainingBytes > 0 && self.hasBytesAvailable {
+            let read = self.read(pointer, maxLength: min(bufferSize, remainingBytes))
+            if read == -1 {
+                throw Error.cantSeekInputStream
+            }
+            remainingBytes -= read
+        }
+        
+        buffer.deallocate()
+        if remainingBytes != 0 {
+            throw Error.cantSeekInputStream
+        }
     }
 }
 

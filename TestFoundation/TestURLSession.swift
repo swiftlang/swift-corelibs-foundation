@@ -15,6 +15,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
+            ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream),
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
@@ -118,6 +119,56 @@ class TestURLSession : LoopbackServerTest {
             XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
             expectedResult = String(data: data, encoding: .utf8) ?? ""
             XCTAssertEqual("Rome", expectedResult, "Did not receive expected value")
+        }
+        task.resume()
+        waitForExpectations(timeout: 12)
+    }
+    
+    func test_dataTaskWithHttpInputStream() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/echo"
+        
+        let dataString = """
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras congue laoreet facilisis. Sed porta tristique orci. Fusce ut nisl dignissim, tempor tortor id, molestie neque. Nam non tincidunt mi. Integer ac diam quis leo aliquam congue et non magna. In porta mauris suscipit erat pulvinar, sed fringilla quam ornare. Nulla vulputate et ligula vitae sollicitudin. Nulla vel vehicula risus. Quisque eu urna ullamcorper, tincidunt ante vitae, aliquet sem. Suspendisse nec turpis placerat, porttitor ex vel, tristique orci. Maecenas pretium, augue non elementum imperdiet, diam ex vestibulum tortor, non ultrices ante enim iaculis ex.
+
+            Suspendisse ante eros, scelerisque ut molestie vitae, lacinia nec metus. Sed in feugiat sem. Nullam sed congue nulla, id vehicula mauris. Aliquam ultrices ultricies pellentesque. Etiam blandit ultrices quam in egestas. Donec a vulputate est, ut ultricies dui. In non maximus velit.
+
+            Vivamus vehicula faucibus odio vel maximus. Vivamus elementum, quam at accumsan rhoncus, ex ligula maximus sem, sed pretium urna enim ut urna. Donec semper porta augue at faucibus. Quisque vel congue purus. Morbi vitae elit pellentesque, finibus lectus quis, laoreet nulla. Praesent in fermentum felis. Aenean vestibulum dictum lorem quis egestas. Sed dictum elementum est laoreet volutpat.
+        """
+        
+        let url = URL(string: urlString)!
+        let urlSession = URLSession(configuration: URLSessionConfiguration.default)
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        
+        guard let data = dataString.data(using: .utf8) else {
+            XCTFail()
+            return
+        }
+        
+        let inputStream = InputStream(data: data)
+        inputStream.open()
+        
+        urlRequest.httpBodyStream = inputStream
+        
+        urlRequest.setValue("en-us", forHTTPHeaderField: "Accept-Language")
+        urlRequest.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("chunked", forHTTPHeaderField: "Transfer-Encoding")
+        
+        let expect = expectation(description: "POST \(urlString): with HTTP Body as InputStream")
+        let task = urlSession.dataTask(with: urlRequest) { respData, response, error in
+            XCTAssertNotNil(respData)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
+            
+            defer { expect.fulfill() }
+            guard let httpResponse = response as? HTTPURLResponse else {
+                XCTFail("response (\(response.debugDescription)) invalid")
+                return
+            }
+            
+            XCTAssertEqual(data, respData!, "Response Data and Data is not equal")
+            XCTAssertEqual(200, httpResponse.statusCode, "HTTP response code is not 200")
         }
         task.resume()
         waitForExpectations(timeout: 12)
