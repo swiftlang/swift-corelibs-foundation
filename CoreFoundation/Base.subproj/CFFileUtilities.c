@@ -1024,66 +1024,48 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     if (!CFStringGetFileSystemRepresentation(directoryPath, directoryPathBuf, CFMaxPathSize)) return;
     
 #if DEPLOYMENT_TARGET_WINDOWS
-    CFIndex cpathLen = strlen(directoryPathBuf);
     // Make sure there is room for the additional space we need in the win32 api
-    if (cpathLen + 2 < CFMaxPathSize) {
-        WIN32_FIND_DATAW file;
-        HANDLE handle;
-        
-        directoryPathBuf[cpathLen++] = '\\';
-        directoryPathBuf[cpathLen++] = '*';
-        directoryPathBuf[cpathLen] = '\0';
-        
-        // Convert UTF8 buffer to windows appropriate UTF-16LE
-        // Get the real length of the string in UTF16 characters
-        CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, directoryPathBuf, kCFStringEncodingUTF8);
-        cpathLen = CFStringGetLength(cfStr);
-        // Allocate a wide buffer to hold the converted string, including space for a NULL terminator
-        wchar_t *wideBuf = (wchar_t *)malloc((cpathLen + 1) * sizeof(wchar_t));
-        // Copy the string into the buffer and terminate
-        CFStringGetCharacters(cfStr, CFRangeMake(0, cpathLen), (UniChar *)wideBuf);
-        wideBuf[cpathLen] = 0;
-        CFRelease(cfStr);
+    if (strlen(directoryPathBuf) > CFMaxPathSize - 2) return;
 
-        WCHAR directory[MAX_PATH + 1];
-        if (!CFStringGetCString(directoryPath, directory, MAX_PATH, kCFStringEncodingUTF16))
-          return;
+    strlcat(directoryPathBuf, "\\*", CFMaxPathSize);
 
-        handle = FindFirstFileW(wideBuf, (LPWIN32_FIND_DATAW)&file);
-        if (handle != INVALID_HANDLE_VALUE) {
-            WCHAR path[MAX_PATH + 1];
+    UniChar wideBuf[CFMaxPathSize];
 
-            do {
-                CFIndex nameLen = wcslen(file.cFileName);
-                if (file.cFileName[0] == '.' && (nameLen == 1 || (nameLen == 2  && file.cFileName[1] == '.'))) {
-                    continue;
-                }
+    // Convert UTF8 buffer to windows appropriate UTF-16LE
+    // Get the real length of the string in UTF16 characters
+    CFStringRef cfStr = CFStringCreateWithCString(kCFAllocatorSystemDefault, directoryPathBuf, kCFStringEncodingUTF8);
 
-                if (!PathCombineW(path, directory, file.cFileName)) {
-                    continue;
-                }
+    // Copy the string into the buffer and terminate
+    CFStringGetCharacters(cfStr, CFRangeMake(0, CFStringGetLength(cfStr)), wideBuf);
+    wideBuf[CFStringGetLength(cfStr)] = L'\0';
 
-                CFStringRef filePath = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)path, wcslen(path) * sizeof(WCHAR), kCFStringEncodingUTF16, NO);
-                if (!filePath) {
-                    continue;
-                }
+    CFRelease(cfStr);
 
-                CFStringRef fileName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (const uint8_t *)file.cFileName, nameLen * sizeof(wchar_t), kCFStringEncodingUTF16, NO);
-                if (!fileName) {
-                    CFRelease(filePath);
-                    continue;
-                }
+    WIN32_FIND_DATAW file;
+    HANDLE handle = FindFirstFileW(wideBuf, &file);
+    if (handle != INVALID_HANDLE_VALUE) {
+        do {
+            CFIndex nameLen = wcslen(file.cFileName);
+            if (file.cFileName[0] == '.' && (nameLen == 1 || (nameLen == 2  && file.cFileName[1] == '.'))) {
+                continue;
+            }
 
-                Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
-                Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
-                CFRelease(fileName);
-                CFRelease(filePath);
-                if (!result) break;
-            } while (FindNextFileW(handle, &file));
+            CFStringRef fileName = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, file.cFileName, nameLen);
+            if (!fileName) {
+                continue;
+            }
 
-            FindClose(handle);
-        }
-        free(wideBuf);
+            assert(!stuffToPrefix && "prefix not yet implemented");
+            CFStringRef filePath = CFRetain(fileName);
+
+            Boolean isDirectory = file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY;
+            Boolean result = fileHandler(fileName, filePath, isDirectory ? DT_DIR : DT_REG);
+            CFRelease(fileName);
+            CFRelease(filePath);
+            if (!result) break;
+        } while (FindNextFileW(handle, &file));
+
+        FindClose(handle);
     }
 #else
     DIR *dirp;
