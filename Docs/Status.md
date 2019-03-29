@@ -56,7 +56,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
     | `NSURLRequest`               | Complete        | Incomplete    |                                                                                                                    |
     | `NSMutableURLRequest`        | Complete        | Incomplete    |                                                                                                                    |
-    | `URLResponse`                | Complete        | Incomplete    |                                                                                                                    |
+    | `URLResponse`                | Complete        | Substantial    |                                                                                                                    |
     | `NSHTTPURLResponse`          | Complete        | Substantial   |                                                                                                                    |
     | `NSURL`                      | Mostly Complete | Substantial   | Resource values remain unimplemented                                                                               |
     | `NSURLQueryItem`             | Complete        | N/A           |                                                                                                                    |
