@@ -945,8 +945,8 @@ open class NSNumber : NSValue {
             // Apply special handling for NaN as <, >, == always return false
             // when comparing with NaN
             if lhs.isNaN && rhs.isNaN { return .orderedSame }
-            if lhs.isNaN { return .orderedAscending }
-            if rhs.isNaN { return .orderedDescending }
+            if lhs.isNaN { return rhs < 0 ? .orderedDescending : .orderedAscending }
+            if rhs.isNaN { return lhs < 0 ? .orderedAscending : .orderedDescending }
 
             if lhs < rhs { return .orderedAscending }
             if lhs > rhs { return .orderedDescending }

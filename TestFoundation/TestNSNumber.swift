@@ -853,6 +853,19 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Float(1)).doubleValue, Double(1))
         XCTAssertEqual(NSNumber(value: Float(-37.5)).doubleValue, Double(-37.5))
         XCTAssertEqual(NSNumber(value: Float(42.5)).doubleValue, Double(42.5))
+
+        let nanFloat = NSNumber(value: Float.nan)
+        XCTAssertTrue(nanFloat.doubleValue.isNaN)
+        XCTAssertEqual(nanFloat.intValue, Int(bitPattern: 1 << 63))
+        XCTAssertEqual(nanFloat.uintValue, UInt(bitPattern: 1 << 63))
+        XCTAssertEqual(nanFloat.int8Value, 0)
+        XCTAssertEqual(nanFloat.uint8Value, 0)
+        XCTAssertEqual(nanFloat.int16Value, 0)
+        XCTAssertEqual(nanFloat.uint16Value, 0)
+        XCTAssertEqual(nanFloat.int32Value, 0)
+        XCTAssertEqual(nanFloat.uint32Value, 0)
+        XCTAssertEqual(nanFloat.int64Value, Int64(bitPattern: 1 << 63))
+        XCTAssertEqual(nanFloat.uint64Value, UInt64(bitPattern: 1 << 63))
     }
     
     func test_numberWithDouble() {
@@ -885,6 +898,20 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(NSNumber(value: Double(0)).doubleValue, Double(0))
         XCTAssertEqual(NSNumber(value: Double(-37.5)).doubleValue, Double(-37.5))
         XCTAssertEqual(NSNumber(value: Double(42.1)).doubleValue, Double(42.1))
+
+        let nanDouble = NSNumber(value: Double.nan)
+        XCTAssertTrue(nanDouble.floatValue.isNaN)
+        XCTAssertEqual(nanDouble.intValue, Int(bitPattern: 1 << 63))
+        XCTAssertEqual(nanDouble.uintValue, UInt(bitPattern: 1 << 63))
+        XCTAssertEqual(nanDouble.int8Value, 0)
+        XCTAssertEqual(nanDouble.uint8Value, 0)
+        XCTAssertEqual(nanDouble.int16Value, 0)
+        XCTAssertEqual(nanDouble.uint16Value, 0)
+        XCTAssertEqual(nanDouble.int32Value, 0)
+        XCTAssertEqual(nanDouble.uint32Value, 0)
+        XCTAssertEqual(nanDouble.int64Value, Int64(bitPattern: 1 << 63))
+        XCTAssertEqual(nanDouble.uint64Value, UInt64(bitPattern: 1 << 63))
+
     }
 
     func test_compareNumberWithBool() {
@@ -1351,23 +1378,55 @@ class TestNSNumber : XCTestCase {
         let num = NSNumber(value: Int8.min)
         XCTAssertFalse(num == NSNumber(value: num.uint64Value))
 
-        let num1 = NSNumber(value: Float.nan)
-        XCTAssertEqual(num1.compare(num1), .orderedSame)
+        let zero = NSNumber(value: 0)
+        let one = NSNumber(value: 1)
+        let minusOne = NSNumber(value: -1)
+        let intMin = NSNumber(value: Int.min)
+        let intMax = NSNumber(value: Int.max)
 
-        let num2 = NSNumber(value: num1.uint8Value) // 0
-        XCTAssertFalse(num1 == num2)
-        XCTAssertFalse(num2 == num1)
-        XCTAssertEqual(num1.compare(num2), .orderedAscending)
-        XCTAssertEqual(num2.compare(num1), .orderedDescending)
+        let nanFloat = NSNumber(value: Float.nan)
+        XCTAssertEqual(nanFloat.compare(nanFloat), .orderedSame)
 
-        let num3 = NSNumber(value: Double.nan)
-        XCTAssertEqual(num3.compare(num3), .orderedSame)
+        XCTAssertFalse(nanFloat == zero)
+        XCTAssertFalse(zero == nanFloat)
+        XCTAssertEqual(nanFloat.compare(zero), .orderedAscending)
+        XCTAssertEqual(zero.compare(nanFloat), .orderedDescending)
 
-        let num4 = NSNumber(value: num3.intValue) // 0
-        XCTAssertFalse(num3 == num2)
-        XCTAssertFalse(num4 == num3)
-        XCTAssertEqual(num3.compare(num4), .orderedAscending)
-        XCTAssertEqual(num4.compare(num3), .orderedDescending)
+        XCTAssertEqual(nanFloat.compare(one), .orderedAscending)
+        XCTAssertEqual(one.compare(nanFloat), .orderedDescending)
+
+        XCTAssertEqual(nanFloat.compare(intMax), .orderedAscending)
+        XCTAssertEqual(intMax.compare(nanFloat), .orderedDescending)
+
+        XCTAssertEqual(nanFloat.compare(minusOne), .orderedDescending)
+        XCTAssertEqual(minusOne.compare(nanFloat), .orderedAscending)
+
+        XCTAssertEqual(nanFloat.compare(intMin), .orderedDescending)
+        XCTAssertEqual(intMin.compare(nanFloat), .orderedAscending)
+
+
+        let nanDouble = NSNumber(value: Double.nan)
+        XCTAssertEqual(nanDouble.compare(nanDouble), .orderedSame)
+
+        XCTAssertFalse(nanDouble == zero)
+        XCTAssertFalse(zero == nanDouble)
+        XCTAssertEqual(nanDouble.compare(zero), .orderedAscending)
+        XCTAssertEqual(zero.compare(nanDouble), .orderedDescending)
+
+        XCTAssertEqual(nanDouble.compare(one), .orderedAscending)
+        XCTAssertEqual(one.compare(nanDouble), .orderedDescending)
+
+        XCTAssertEqual(nanDouble.compare(intMax), .orderedAscending)
+        XCTAssertEqual(intMax.compare(nanDouble), .orderedDescending)
+
+        XCTAssertEqual(nanDouble.compare(minusOne), .orderedDescending)
+        XCTAssertEqual(minusOne.compare(nanDouble), .orderedAscending)
+
+        XCTAssertEqual(nanDouble.compare(intMin), .orderedDescending)
+        XCTAssertEqual(intMin.compare(nanDouble), .orderedAscending)
+
+        XCTAssertEqual(nanDouble, nanFloat)
+        XCTAssertEqual(nanFloat, nanDouble)
 
         XCTAssertEqual(NSNumber(value: Double.leastNonzeroMagnitude).compare(NSNumber(value: 0)), .orderedDescending)
         XCTAssertEqual(NSNumber(value: Double.greatestFiniteMagnitude).compare(NSNumber(value: 0)), .orderedDescending)
