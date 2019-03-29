@@ -566,6 +566,10 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
 #warning "Enabling statx"
 #endif
 
+#if DEPLOYMENT_TARGET_WINDOWS
+CF_EXPORT void __CFSocketInitializeWinSock(void);
+#endif
+
 _CF_EXPORT_SCOPE_END
 
 #endif /* __COREFOUNDATION_FORSWIFTFOUNDATIONONLY__ */

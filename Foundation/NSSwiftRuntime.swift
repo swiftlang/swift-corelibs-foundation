@@ -150,7 +150,10 @@ internal func __CFSwiftGetBaseClass() -> UnsafeRawPointer {
 @usableFromInline
 @_cdecl("__CFInitializeSwift")
 internal func __CFInitializeSwift() {
-    
+#if os(Windows)
+    __CFInitializeWinSock()
+#endif
+
     _CFRuntimeBridgeTypeToClass(CFStringGetTypeID(), unsafeBitCast(_NSCFString.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFArrayGetTypeID(), unsafeBitCast(_NSCFArray.self, to: UnsafeRawPointer.self))
     _CFRuntimeBridgeTypeToClass(CFDictionaryGetTypeID(), unsafeBitCast(_NSCFDictionary.self, to: UnsafeRawPointer.self))
