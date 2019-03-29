@@ -75,7 +75,8 @@ open class Host: NSObject {
     }
     
     open func isEqual(to aHost: Host) -> Bool {
-        return false
+        if self === aHost { return true }
+        return addresses.firstIndex { aHost.addresses.contains($0) } != nil
     }
     
     internal func _resolveCurrent() {

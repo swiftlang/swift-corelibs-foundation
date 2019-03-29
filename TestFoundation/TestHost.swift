@@ -12,6 +12,7 @@ class TestHost: XCTestCase {
     static var allTests: [(String, (TestHost) -> () throws -> Void)] {
         return [
             ("test_addressesDoNotGrow", test_addressesDoNotGrow),
+            ("test_isEqual", test_isEqual)
         ]
     }
     
@@ -31,6 +32,22 @@ class TestHost: XCTestCase {
         let swiftAddressesFirst = swift.addresses
         let swiftAddressesSecond = swift.addresses
         XCTAssertEqual(swiftAddressesSecond.count, swiftAddressesFirst.count)
+    }
+
+    func test_isEqual() {
+        let host0 = Host(address: "8.8.8.8")
+        let host1 = Host(address: "8.8.8.8")
+        XCTAssertTrue(host0.isEqual(to: host1))
+
+        let host2 = Host(address: "8.8.8.9")
+        XCTAssertFalse(host0.isEqual(to: host2))
+
+        let swift0 = Host(name: "swift.org")
+        let swift1 = Host(name: "swift.org")
+        XCTAssertTrue(swift0.isEqual(to: swift1))
+
+        let google = Host(name: "google.com")
+        XCTAssertFalse(swift0.isEqual(to: google))
     }
 }
 
