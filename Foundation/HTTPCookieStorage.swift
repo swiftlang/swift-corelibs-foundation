@@ -36,8 +36,7 @@ extension HTTPCookie {
 */
 open class HTTPCookieStorage: NSObject {
 
-    /* both sharedStorage and sharedCookieStorages are synchronized on sharedSyncQ */
-    private static var sharedStorage: HTTPCookieStorage?
+    private static let sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
     private static var sharedCookieStorages: [String: HTTPCookieStorage] = [:] //for group storage containers
     private static let sharedSyncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.sharedSyncQ")
 
@@ -121,14 +120,7 @@ open class HTTPCookieStorage: NSObject {
         which will not be shared with other applications.
     */
     open class var shared: HTTPCookieStorage {
-        get {
-            return sharedSyncQ.sync {
-                if sharedStorage == nil {
-                    sharedStorage = HTTPCookieStorage(cookieStorageName: "shared")
-                }
-                return sharedStorage!
-            }
-        }
+        return sharedStorage
     }
     
     /*!
