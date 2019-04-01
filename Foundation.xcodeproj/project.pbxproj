@@ -353,6 +353,8 @@
 		7D0DE86E211883F500540061 /* TestDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DE86C211883F500540061 /* TestDateComponents.swift */; };
 		7D0DE86F211883F500540061 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DE86D211883F500540061 /* Utilities.swift */; };
 		90E645DF1E4C89A400D0D47C /* TestNSCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E645DE1E4C89A400D0D47C /* TestNSCache.swift */; };
+		91B668A32252B3C5001487A1 /* FileManager+POSIX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B668A22252B3C5001487A1 /* FileManager+POSIX.swift */; };
+		91B668A52252B3E7001487A1 /* FileManager+Win32.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B668A42252B3E7001487A1 /* FileManager+Win32.swift */; };
 		9F0DD3521ECD73D000F68030 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F0041781ECD5962004138BD /* main.swift */; };
 		9F0DD3571ECD783500F68030 /* SwiftFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5D885D1BBC938800234F36 /* SwiftFoundation.framework */; };
 		A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A058C2011E529CF100B07AA1 /* TestMassFormatter.swift */; };
@@ -881,6 +883,8 @@
 		84BA558D1C16F90900F48C54 /* TestTimeZone.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestTimeZone.swift; sourceTree = "<group>"; };
 		88D28DE61C13AE9000494606 /* TestNSGeometry.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSGeometry.swift; sourceTree = "<group>"; };
 		90E645DE1E4C89A400D0D47C /* TestNSCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSCache.swift; sourceTree = "<group>"; };
+		91B668A22252B3C5001487A1 /* FileManager+POSIX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+POSIX.swift"; sourceTree = "<group>"; };
+		91B668A42252B3E7001487A1 /* FileManager+Win32.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileManager+Win32.swift"; sourceTree = "<group>"; };
 		9F0041781ECD5962004138BD /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		9F0DD33F1ECD734200F68030 /* xdgTestHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xdgTestHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F0DD34F1ECD737B00F68030 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1916,6 +1920,8 @@
 			children = (
 				EADE0B5D1BD15DFF00C49C64 /* FileHandle.swift */,
 				EADE0B5E1BD15DFF00C49C64 /* FileManager.swift */,
+				91B668A42252B3E7001487A1 /* FileManager+Win32.swift */,
+				91B668A22252B3C5001487A1 /* FileManager+POSIX.swift */,
 				1513A8422044893F00539722 /* FileManager_XDG.swift */,
 				EADE0B7A1BD15DFF00C49C64 /* Process.swift */,
 				5BDC3F2F1BCC5DCB00ED97BB /* Bundle.swift */,
@@ -2384,6 +2390,7 @@
 				153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */,
 				D3E8D6D11C367AB600295652 /* NSSpecialValue.swift in Sources */,
 				EAB57B721BD1C7A5004AC5C5 /* PortMessage.swift in Sources */,
+				91B668A32252B3C5001487A1 /* FileManager+POSIX.swift in Sources */,
 				5BD31D201D5CE8C400563814 /* Bridging.swift in Sources */,
 				3EDCE50C1EF04D8100C2EC04 /* Codable.swift in Sources */,
 				EADE0BBB1BD15E0000C49C64 /* URLAuthenticationChallenge.swift in Sources */,
@@ -2464,6 +2471,7 @@
 				5BF7AEB21BCD51F9008F214A /* NSNumber.swift in Sources */,
 				61D2F9AF1FECFB3E0033306A /* NativeProtocol.swift in Sources */,
 				1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */,
+				91B668A52252B3E7001487A1 /* FileManager+Win32.swift in Sources */,
 				B9974B991EDF4A22007F15B8 /* HTTPURLProtocol.swift in Sources */,
 				5BCD03821D3EE35C00E3FF9B /* TimeZone.swift in Sources */,
 				EADE0BBC1BD15E0000C49C64 /* URLCache.swift in Sources */,
