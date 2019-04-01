@@ -13,7 +13,8 @@ class TestXMLDocument : LoopbackServerTest {
         return [
             ("test_basicCreation", test_basicCreation),
             ("test_nextPreviousNode", test_nextPreviousNode),
-            ("test_xpath", test_xpath),
+            // Disabled because of https://bugs.swift.org/browse/SR-10098
+            // ("test_xpath", test_xpath),
             ("test_elementCreation", test_elementCreation),
             ("test_elementChildren", test_elementChildren),
             ("test_stringValue", test_stringValue),
