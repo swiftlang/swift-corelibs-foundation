@@ -507,7 +507,9 @@ open class FileHandle : NSObject, NSSecureCoding {
         
         for region in data.regions {
             try region.withUnsafeBytes { (bytes) in
-                try _writeBytes(buf: UnsafeRawPointer(bytes.baseAddress!), length: bytes.count)
+                if let baseAddress = bytes.baseAddress, bytes.count > 0 {
+                    try _writeBytes(buf: UnsafeRawPointer(baseAddress), length: bytes.count)
+                }
             }
         }
     }
