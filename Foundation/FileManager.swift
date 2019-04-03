@@ -871,14 +871,6 @@ open class FileManager : NSObject {
     open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
         var result: [FileAttributeKey:Any] = [:]
 
-#if os(Windows)
-        let faAttributes: WIN32_FILE_ATTRIBUTE_DATA = try windowsFileAttributes(atPath: path)
-
-        result[.size] = NSNumber(value: (faAttributes.nFileSizeHigh << 32) | faAttributes.nFileSizeLow)
-        result[.modificationDate] = Date(timeIntervalSinceReferenceDate: TimeInterval(faAttributes.ftLastWriteTime))
-        // FIXME(compnerd) what about .posixPermissions, .referenceCount, .systemNumber, .systemFileNumber, .ownerAccountName, .groupOwnerAccountName, .type, .immuatable, .appendOnly, .ownerAccountID, .groupOwnerAccountID
-#else
-   
 #if os(Linux)
         let (s, creationDate) = try _statxFile(atPath: path)
         result[.creationDate] = creationDate
@@ -892,29 +884,36 @@ open class FileManager : NSObject {
         let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
 #elseif os(Android)
         let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
+#elseif os(Windows)
+        let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970)
 #else
         let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
 #endif
         result[.modificationDate] = Date(timeIntervalSinceReferenceDate: ti)
-        
-        result[.posixPermissions] = NSNumber(value: UInt64(s.st_mode & ~S_IFMT))
+
+        result[.posixPermissions] = NSNumber(value: _filePermissionsMask(mode: UInt32(s.st_mode)))
         result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
         result[.systemNumber] = NSNumber(value: UInt64(s.st_dev))
         result[.systemFileNumber] = NSNumber(value: UInt64(s.st_ino))
-        
+
+#if os(Windows)
+        result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
+        let type = FileAttributeType(attributes: try windowsFileAttributes(atPath: path))
+#else
         if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
             let name = String(cString: pwd.pointee.pw_name)
             result[.ownerAccountName] = name
         }
-        
+
         if let grd = getgrgid(s.st_gid), grd.pointee.gr_name != nil {
             let name = String(cString: grd.pointee.gr_name)
             result[.groupOwnerAccountName] = name
         }
 
         let type = FileAttributeType(statMode: s.st_mode)
+#endif
         result[.type] = type
-        
+
         if type == .typeBlockSpecial || type == .typeCharacterSpecial {
             result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         }
@@ -929,11 +928,10 @@ open class FileManager : NSObject {
 #endif
         result[.ownerAccountID] = NSNumber(value: UInt64(s.st_uid))
         result[.groupOwnerAccountID] = NSNumber(value: UInt64(s.st_gid))
-#endif
 
         return result
     }
-    
+
     /* attributesOfFileSystemForPath:error: returns an NSDictionary of key/value pairs containing the attributes of the filesystem containing the provided path. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
      
         This method replaces fileSystemAttributesAtPath:.
@@ -1858,13 +1856,19 @@ open class FileManager : NSObject {
         return statInfo
     }
 
+    internal func _filePermissionsMask(mode : UInt32) -> Int {
+#if os(Windows)
+        return Int(mode & ~UInt32(ucrt.S_IFMT))
+#elseif canImport(Darwin)
+        return Int(mode & ~UInt32(S_IFMT))
+#else
+        return Int(mode & ~S_IFMT)
+#endif
+    }
+
     internal func _permissionsOfItem(atPath path: String) throws -> Int {
         let fileInfo = try _lstatFile(atPath: path)
-#if os(Windows)
-        return Int(fileInfo.st_mode & ~UInt16(ucrt.S_IFMT))
-#else
-        return Int(fileInfo.st_mode & ~S_IFMT)
-#endif
+        return _filePermissionsMask(mode: UInt32(fileInfo.st_mode))
     }
 
 
