@@ -47,6 +47,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_basicAuthRequest", test_basicAuthRequest),
             ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
             ("test_postWithEmptyBody", test_postWithEmptyBody),
+            ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
         ]
     }
     
@@ -757,6 +758,20 @@ class TestURLSession : LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 30)
+    }
+
+    func test_basicAuthWithUnauthorizedHeader() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/unauthorized"
+        let url = URL(string: urlString)!
+        let expect = expectation(description: "GET \(urlString): with a completion handler")
+        var expectedResult = "unknown"
+        let session = URLSession(configuration: URLSessionConfiguration.default)
+        let task = session.dataTask(with: url) { _, _, error in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(error)
+        }
+        task.resume()
+        waitForExpectations(timeout: 12, handler: nil)
     }
 }
 
