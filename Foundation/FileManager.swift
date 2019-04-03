@@ -862,6 +862,16 @@ open class FileManager : NSObject {
         return faAttributes
       }
     }
+    
+    private func windowsStatFile(atPath path: String) throws -> _stat64 {
+        var st = _stat64()
+        return try path.withCString(encodedAs: UTF16.self) {
+            if _wstat64($0, &st) == -1 {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            }
+            return st
+        }
+    }
 #endif
 
     /* attributesOfItemAtPath:error: returns an NSDictionary of key/value pairs containing the attributes of the item (file, directory, symlink, etc.) at the path in question. If this method returns 'nil', an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
@@ -876,6 +886,12 @@ open class FileManager : NSObject {
 
         result[.size] = NSNumber(value: (faAttributes.nFileSizeHigh << 32) | faAttributes.nFileSizeLow)
         result[.modificationDate] = Date(timeIntervalSinceReferenceDate: TimeInterval(faAttributes.ftLastWriteTime))
+        
+        let type = FileAttributeType(attributes:faAttributes)
+        result[.type] = type
+        
+        let s = try windowsStatFile(atPath: path)
+        result[.posixPermissions] = NSNumber(value: UInt64(s.st_mode & 0o7777))
         // FIXME(compnerd) what about .posixPermissions, .referenceCount, .systemNumber, .systemFileNumber, .ownerAccountName, .groupOwnerAccountName, .type, .immuatable, .appendOnly, .ownerAccountID, .groupOwnerAccountID
 #else
    
