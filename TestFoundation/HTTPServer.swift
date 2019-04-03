@@ -335,7 +335,13 @@ class _HTTPServer {
         try self.socket.writeRawData(responseData)
     }
 
-
+    func respondWithUnauthorizedHeader() throws{
+        let responseData = ("HTTP/1.1 401 UNAUTHORIZED \r\n" +
+                "Content-Length: 0\r\n" +
+                "Connection: keep-Alive\r\n" +
+                "\r\n").data(using: .utf8)!
+        try self.socket.writeRawData(responseData)
+    }
 }
 
 struct _HTTPRequest {
@@ -453,6 +459,8 @@ public class TestURLSessionServer {
         } else if req.uri.hasPrefix("/auth") {
             httpServer.willReadAgain = true
             try httpServer.respondWithAuthResponse(uri: req.uri, firstRead: true)
+        } else if req.uri.hasPrefix("/unauthorized") {
+            try httpServer.respondWithUnauthorizedHeader()
         } else {
             try httpServer.respond(with: process(request: req), startDelay: self.startDelay, sendDelay: self.sendDelay, bodyChunks: self.bodyChunks)
         }
