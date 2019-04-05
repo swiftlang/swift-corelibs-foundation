@@ -190,7 +190,7 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return result
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFSetGetTypeID()
     }
 

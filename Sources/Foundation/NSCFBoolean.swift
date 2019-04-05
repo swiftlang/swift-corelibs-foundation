@@ -71,7 +71,7 @@ internal class __NSCFBoolean : NSNumber {
         return CFBooleanGetValue(unsafeBitCast(self, to: CFBoolean.self))
     }
     
-    override var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFBooleanGetTypeID()
     }
     

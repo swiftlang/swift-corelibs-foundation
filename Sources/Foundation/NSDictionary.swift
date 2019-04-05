@@ -573,7 +573,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         return matching
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFDictionaryGetTypeID()
     }
 }

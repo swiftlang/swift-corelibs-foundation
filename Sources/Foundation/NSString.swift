@@ -359,7 +359,7 @@ open class NSString : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSC
         return false
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFStringGetTypeID()
     }
   

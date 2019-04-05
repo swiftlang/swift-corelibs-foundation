@@ -24,7 +24,7 @@ internal class _NSKeyedArchiverUID : NSObject {
         return unsafeBitCast(self, to: CFType.self)
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return _CFKeyedArchiverUIDGetTypeID()
     }
 

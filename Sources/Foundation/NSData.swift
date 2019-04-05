@@ -88,7 +88,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         return type(of: self) === NSData.self || type(of: self) === NSMutableData.self
     }
 
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFDataGetTypeID()
     }
 

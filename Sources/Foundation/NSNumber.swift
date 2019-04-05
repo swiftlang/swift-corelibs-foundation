@@ -1005,7 +1005,7 @@ open class NSNumber : NSValue {
         }
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFNumberGetTypeID()
     }
     

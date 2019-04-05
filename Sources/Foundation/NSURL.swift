@@ -689,7 +689,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return URL(string: absoluteString)
     }
     
-    override open var _cfTypeID: CFTypeID {
+    override internal var _cfTypeID: CFTypeID {
         return CFURLGetTypeID()
     }
 

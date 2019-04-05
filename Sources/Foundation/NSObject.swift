@@ -239,7 +239,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         return description
     }
     
-    open var _cfTypeID: CFTypeID {
+    internal var _cfTypeID: CFTypeID {
         return 0
     }
     
