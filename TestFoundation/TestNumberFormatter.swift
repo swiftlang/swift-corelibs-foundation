@@ -57,14 +57,25 @@ class TestNumberFormatter: XCTestCase {
             ("test_en_US_initialValues", test_en_US_initialValues),
             ("test_pt_BR_initialValues", test_pt_BR_initialValues),
             ("test_changingLocale", test_changingLocale),
+            ("test_settingFormat", test_settingFormat),
+            ("test_usingFormat", test_usingFormat),
         ]
     }
     
     func test_currencyCode() {
         let numberFormatter = NumberFormatter()
+        numberFormatter.locale = Locale(identifier: "en_GB")
         numberFormatter.numberStyle = .currency
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;£0.00;¤#,##0.00")
+        XCTAssertEqual(numberFormatter.string(from: 1.1), "£1.10")
+        XCTAssertEqual(numberFormatter.string(from: 0), "£0.00")
+        XCTAssertEqual(numberFormatter.string(from: -1.1), "-£1.10")
+
         numberFormatter.currencyCode = "T"
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;T0.00;¤#,##0.00")
         numberFormatter.currencyDecimalSeparator = "_"
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;T0_00;¤#,##0.00")
+
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "T42_00")
     }
@@ -72,9 +83,11 @@ class TestNumberFormatter: XCTestCase {
     func test_decimalSeparator() {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.format, "#,##0.###;0;#,##0.###")
 
         let separator = "-"
         numberFormatter.decimalSeparator = separator
+        XCTAssertEqual(numberFormatter.format, "#,##0.###;0;#,##0.###")
         XCTAssertEqual(numberFormatter.decimalSeparator, separator)
 
         let formattedString = numberFormatter.string(from: 42.42)
@@ -86,6 +99,7 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter.numberStyle = .currency
         numberFormatter.currencyDecimalSeparator = "-"
         numberFormatter.currencyCode = "T"
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;T0-00;¤#,##0.00")
         let formattedString = numberFormatter.string(from: 42.42)
         XCTAssertEqual(formattedString, "T42-42")
     }
@@ -94,6 +108,7 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.decimalSeparator = "-"
         numberFormatter.alwaysShowsDecimalSeparator = true
+        XCTAssertEqual(numberFormatter.format, "#.;0-;#.")
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "42-")
     }
@@ -103,18 +118,23 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(decFormatter1.groupingSize, 0)
         decFormatter1.numberStyle = .decimal
         XCTAssertEqual(decFormatter1.groupingSize, 3)
+        XCTAssertEqual(decFormatter1.format, "#,##0.###;0;#,##0.###")
 
         let decFormatter2 = NumberFormatter()
         XCTAssertEqual(decFormatter2.groupingSize, 0)
         decFormatter2.groupingSize = 1
         decFormatter2.numberStyle = .decimal
         XCTAssertEqual(decFormatter2.groupingSize, 1)
+        XCTAssertEqual(decFormatter2.format, "#,0.###;0;#,0.###")
 
         let numberFormatter = NumberFormatter()
         numberFormatter.usesGroupingSeparator = true
         numberFormatter.groupingSeparator = "_"
         XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
         numberFormatter.groupingSize = 3
+        XCTAssertEqual(numberFormatter.format, "#,###;0;#,###")
+
         let formattedString = numberFormatter.string(from: 42_000)
         XCTAssertEqual(formattedString, "42_000")
     }
@@ -123,6 +143,8 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .percent
         numberFormatter.percentSymbol = "💯"
+        XCTAssertEqual(numberFormatter.format, "#,##0%;0💯;#,##0%")
+
         let formattedString = numberFormatter.string(from: 0.42)
         XCTAssertEqual(formattedString, "42💯")
     }
@@ -130,6 +152,8 @@ class TestNumberFormatter: XCTestCase {
     func test_zeroSymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.zeroSymbol = "⚽️"
+        XCTAssertEqual(numberFormatter.format, "#;⚽️;#")
+
         let formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "⚽️")
     }
@@ -138,6 +162,7 @@ class TestNumberFormatter: XCTestCase {
     func test_notANumberSymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.notANumberSymbol = "👽"
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
         let number: Double = -42
         let numberObject = NSNumber(value: sqrt(number))
         let formattedString = numberFormatter.string(from: numberObject)
@@ -147,6 +172,7 @@ class TestNumberFormatter: XCTestCase {
     func test_positiveInfinitySymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.positiveInfinitySymbol = "🚀"
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
 
         let numberObject = NSNumber(value: Double(42.0) / Double(0))
         let formattedString = numberFormatter.string(from: numberObject)
@@ -156,6 +182,7 @@ class TestNumberFormatter: XCTestCase {
     func test_minusSignSymbol() {
         let numberFormatter = NumberFormatter()
         numberFormatter.minusSign = "👎"
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
         let formattedString = numberFormatter.string(from: -42)
         XCTAssertEqual(formattedString, "👎42")
     }
@@ -165,8 +192,12 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         let format = "#E+0"
         numberFormatter.format = format
-        XCTAssertEqual(numberFormatter.format, format)
-
+        XCTAssertEqual(numberFormatter.positiveFormat, "#E+0")
+        XCTAssertEqual(numberFormatter.zeroSymbol, "0E+0")
+        XCTAssertEqual(numberFormatter.negativeFormat, "-#E+0")
+        XCTAssertEqual(numberFormatter.format, "#E+0;0E+0;-#E+0")
+        XCTAssertEqual(numberFormatter.string(from: 0), "0E+0")
+        XCTAssertEqual(numberFormatter.plusSign, "+")
         let sign = "👍"
         numberFormatter.plusSign = sign
         XCTAssertEqual(numberFormatter.plusSign, sign)
@@ -191,6 +222,7 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter.numberStyle = .currency
         numberFormatter.currencySymbol = "🍯"
         numberFormatter.currencyDecimalSeparator = "_"
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;🍯0_00;¤#,##0.00")
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "🍯42_00")
     }
@@ -199,6 +231,7 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .scientific
         numberFormatter.exponentSymbol = "⬆️"
+        XCTAssertEqual(numberFormatter.format, "#E0;0⬆️0;#E0")
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
     }
@@ -209,17 +242,20 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter1.minimumIntegerDigits = 3
         numberFormatter1.numberStyle = .decimal
         XCTAssertEqual(numberFormatter1.minimumIntegerDigits, 3)
+        XCTAssertEqual(numberFormatter1.format, "#,000.###;000;#,000.###")
 
         let numberFormatter = NumberFormatter()
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
         numberFormatter.numberStyle = .decimal
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
         numberFormatter.minimumIntegerDigits = 3
+        XCTAssertEqual(numberFormatter.format, "#,000.###;000;#,000.###")
         var formattedString = numberFormatter.string(from: 0)
         XCTAssertEqual(formattedString, "000")
 
         numberFormatter.numberStyle = .decimal
         XCTAssertEqual(numberFormatter.minimumIntegerDigits, 3)
+        XCTAssertEqual(numberFormatter.format, "#,000.###;000;#,000.###")
         formattedString = numberFormatter.string(from: 0.1)
         XCTAssertEqual(formattedString, "000.1")
     }
@@ -227,19 +263,24 @@ class TestNumberFormatter: XCTestCase {
     func test_currencyMinimumIntegerDigits() {
         // If .minimumIntegerDigits is set to 0 before .numberStyle change, preserve the value
         let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_GB")
         XCTAssertEqual(formatter.minimumIntegerDigits, 0)
         formatter.minimumIntegerDigits = 0
         formatter.numberStyle = .currency
+        XCTAssertEqual(formatter.format, "¤#,###.00;£.00;¤#,###.00")
         XCTAssertEqual(formatter.minimumIntegerDigits, 0)
         formatter.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(formatter.format, "¤#,###.00;$.00;¤#,###.00")
         XCTAssertEqual(formatter.string(from: 0), "$.00")
         XCTAssertEqual(formatter.string(from: 1.23), "$1.23")
         XCTAssertEqual(formatter.string(from: 123.4), "$123.40")
 
         // If .minimumIntegerDigits is not set before .numberStyle change, update the value
         let formatter2 = NumberFormatter()
+        formatter2.locale = Locale(identifier: "en_GB")
         XCTAssertEqual(formatter2.minimumIntegerDigits, 0)
         formatter2.numberStyle = .currency
+        XCTAssertEqual(formatter2.format, "¤#,##0.00;£0.00;¤#,##0.00")
         XCTAssertEqual(formatter2.minimumIntegerDigits, 1)
         formatter2.locale = Locale(identifier: "en_US")
         XCTAssertEqual(formatter2.string(from: 0.001), "$0.00")
@@ -654,7 +695,7 @@ class TestNumberFormatter: XCTestCase {
         numberFormatter.locale = Locale(identifier: "en_US")
 
         // TODO: Check if this is true for all versions...
-        XCTAssertEqual(numberFormatter.format, "#")
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
 
         XCTAssertEqual(numberFormatter.plusSign, "+")
         XCTAssertEqual(numberFormatter.minusSign, "-")
@@ -685,7 +726,7 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter();
         numberFormatter.locale = Locale(identifier: "pt_BR")
 
-        XCTAssertEqual(numberFormatter.format, "#")
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
         XCTAssertEqual(numberFormatter.plusSign, "+")
         XCTAssertEqual(numberFormatter.minusSign, "-")
         XCTAssertEqual(numberFormatter.decimalSeparator, ",")
@@ -729,5 +770,145 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(numberFormatter.currencySymbol, "E")
         numberFormatter.currencySymbol = nil
         XCTAssertEqual(numberFormatter.currencySymbol, "£")
+    }
+
+    func test_settingFormat() {
+        let formatter = NumberFormatter()
+
+        XCTAssertEqual(formatter.format, "#;0;#")
+        XCTAssertEqual(formatter.positiveFormat, "#")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "#")
+
+        formatter.positiveFormat = "#"
+        XCTAssertEqual(formatter.format, "#;0;#")
+        XCTAssertEqual(formatter.positiveFormat, "#")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "#")
+
+        formatter.positiveFormat = "##.##"
+        XCTAssertEqual(formatter.format, "##.##;0;#0.##")
+        XCTAssertEqual(formatter.positiveFormat, "##.##")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "#0.##")
+
+        formatter.positiveFormat = "##;##"
+        XCTAssertEqual(formatter.format, "##;##;0;#")
+        XCTAssertEqual(formatter.positiveFormat, "##;##")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "#")
+
+        formatter.positiveFormat = "+#.#########"
+        XCTAssertEqual(formatter.format, "+#.#########;+0;+#0.#########")
+        XCTAssertEqual(formatter.positiveFormat, "+#.#########")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "+#0.#########")
+
+        formatter.negativeFormat = "-#.#########"
+        XCTAssertEqual(formatter.format, "+#.#########;+0;-#.#########")
+        XCTAssertEqual(formatter.positiveFormat, "+#.#########")
+        XCTAssertEqual(formatter.zeroSymbol, nil)
+        XCTAssertEqual(formatter.negativeFormat, "-#.#########")
+
+        formatter.format = "+++#;000;---#.##"
+        XCTAssertEqual(formatter.format, "+++#;000;---#.##")
+        XCTAssertEqual(formatter.positiveFormat, "+++#")
+        XCTAssertEqual(formatter.zeroSymbol, "000")
+        XCTAssertEqual(formatter.negativeFormat, "---#.##")
+
+        formatter.positiveFormat = nil
+        XCTAssertEqual(formatter.positiveFormat, "#")
+        XCTAssertEqual(formatter.format, "#;000;---#.##")
+
+        formatter.zeroSymbol = "00"
+        formatter.positiveFormat = "+++#.#"
+        XCTAssertEqual(formatter.format, "+++#.#;00;---#.##")
+        XCTAssertEqual(formatter.positiveFormat, "+++#.#")
+        XCTAssertEqual(formatter.zeroSymbol, "00")
+        XCTAssertEqual(formatter.negativeFormat, "---#.##")
+
+        formatter.negativeFormat = "---#.#"
+        XCTAssertEqual(formatter.format, "+++#.#;00;---#.#")
+        XCTAssertEqual(formatter.positiveFormat, "+++#.#")
+        XCTAssertEqual(formatter.zeroSymbol, "00")
+        XCTAssertEqual(formatter.negativeFormat, "---#.#")
+
+        // Test setting only first 2 parts
+        formatter.format = "+##.##;0.00"
+        XCTAssertEqual(formatter.format, "+##.##;00;0.00")
+        XCTAssertEqual(formatter.positiveFormat, "+##.##")
+        XCTAssertEqual(formatter.zeroSymbol, "00")
+        XCTAssertEqual(formatter.negativeFormat, "0.00")
+
+        formatter.format = "+##.##;+0;0.00"
+        XCTAssertEqual(formatter.format, "+##.##;+0;0.00")
+        XCTAssertEqual(formatter.positiveFormat, "+##.##")
+        XCTAssertEqual(formatter.zeroSymbol, "+0")
+        XCTAssertEqual(formatter.negativeFormat, "0.00")
+
+        formatter.format = "#;0;#"
+        formatter.positiveFormat = "1"
+        XCTAssertEqual(formatter.format, "1;0;#")
+        XCTAssertEqual(formatter.positiveFormat, "1")
+        XCTAssertEqual(formatter.zeroSymbol, "0")
+        XCTAssertEqual(formatter.negativeFormat, "#")
+
+        formatter.format = "1"
+        XCTAssertEqual(formatter.format, "1;0;-1")
+        XCTAssertEqual(formatter.positiveFormat, "1")
+        XCTAssertEqual(formatter.zeroSymbol, "0")
+        XCTAssertEqual(formatter.negativeFormat, "-1")
+
+        formatter.format = "1;2;3"
+        XCTAssertEqual(formatter.format, "1;2;3")
+        XCTAssertEqual(formatter.positiveFormat, "1")
+        XCTAssertEqual(formatter.zeroSymbol, "2")
+        XCTAssertEqual(formatter.negativeFormat, "3")
+
+        formatter.format = ""
+        XCTAssertEqual(formatter.format, ";0;-")
+        XCTAssertEqual(formatter.positiveFormat, "")
+        XCTAssertEqual(formatter.zeroSymbol, "0")
+        XCTAssertEqual(formatter.negativeFormat, "-")
+    }
+
+    func test_usingFormat() {
+        var formatter = NumberFormatter()
+
+        formatter.format = "+++#.#;00;-+-#.#"
+        XCTAssertEqual(formatter.string(from: 1), "+++1")
+        XCTAssertEqual(formatter.string(from: Int.max as NSNumber), "+++9223372036854775807")
+        XCTAssertEqual(formatter.string(from: 0), "00")
+        XCTAssertEqual(formatter.string(from: -1), "-+-1")
+        XCTAssertEqual(formatter.string(from: Int.min as NSNumber), "-+-9223372036854775808")
+
+
+        formatter.format = "+#.##;0.00;-#.##"
+        XCTAssertEqual(formatter.string(from: 0.5), "+0.5")
+        XCTAssertEqual(formatter.string(from: 0), "0.00")
+        XCTAssertEqual(formatter.string(from: -0.2), "-0.2")
+
+        formatter.positiveFormat = "#.##"
+        formatter.negativeFormat = "-#.##"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: Double.pi)), "3.14")
+        XCTAssertEqual(formatter.string(from: NSNumber(value: -Double.pi)), "-3.14")
+
+        formatter = NumberFormatter()
+        formatter.negativeFormat = "--#.##"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: -Double.pi)), "--3")
+        formatter.positiveFormat = "#.###"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: Double.pi)), "3.142")
+
+        formatter.positiveFormat = "#.####"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: Double.pi)), "3.1416")
+
+        formatter.positiveFormat = "#.#####"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: Double.pi)), "3.14159")
+
+        formatter = NumberFormatter()
+        formatter.negativeFormat = "#.#########"
+        formatter.positiveFormat = "#.#########"
+        XCTAssertEqual(formatter.string(from: NSNumber(value: 0.5)), "0.5")
+        XCTAssertEqual(formatter.string(from: NSNumber(value: -0.5)), "-0.5")
     }
 }
