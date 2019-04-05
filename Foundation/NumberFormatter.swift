@@ -58,7 +58,12 @@ open class NumberFormatter : Formatter {
 
             let obj = CFNumberFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, numberStyle)!
             _setFormatterAttributes(obj)
-            if let format = _format {
+            if _positiveFormat != nil  || _negativeFormat != nil {
+                var format = _positiveFormat ?? "#"
+                if let negative = _negativeFormat {
+                    format.append(";")
+                    format.append(negative)
+                }
                 CFNumberFormatterSetFormat(obj, format._cfObject)
             }
             _currentCfFormatter = obj
@@ -255,17 +260,6 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _negativeFormat: String!
-    open var negativeFormat: String! {
-        get {
-            return _negativeFormat
-        }
-        set {
-            _reset()
-            _negativeFormat = newValue
-        }
-    }
-
     private var _textAttributesForNegativeValues: [String : Any]?
     open var textAttributesForNegativeValues: [String : Any]? {
         get {
@@ -274,17 +268,6 @@ open class NumberFormatter : Formatter {
         set {
             _reset()
             _textAttributesForNegativeValues = newValue
-        }
-    }
-
-    private var _positiveFormat: String!
-    open var positiveFormat: String! {
-        get {
-            return _positiveFormat
-        }
-        set {
-            _reset()
-            _positiveFormat = newValue
         }
     }
 
@@ -368,7 +351,7 @@ open class NumberFormatter : Formatter {
     private var _zeroSymbol: String?
     open var zeroSymbol: String? {
         get {
-            return _zeroSymbol ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterZeroSymbol)
+            return _zeroSymbol
         }
         set {
             _reset()
@@ -865,17 +848,80 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _format: String?
+    private func getFormatterComponents() -> (String, String) {
+        let format = CFNumberFormatterGetFormat(_cfFormatter)._swiftObject
+        let components = format.components(separatedBy: ";")
+        let positive = _positiveFormat ?? components.first ?? "#"
+        let negative = _negativeFormat ?? components.last ?? "#"
+        return (positive, negative)
+    }
+
+    private func getZeroFormat() -> String {
+        return string(from: 0) ?? "0"
+    }
+
     open var format: String {
         get {
-            if _format == nil {
-                _format = CFNumberFormatterGetFormat(_cfFormatter)._swiftObject
+            let (p, n) = getFormatterComponents()
+            let z = _zeroSymbol ?? getZeroFormat()
+            return "\(p);\(z);\(n)"
+        }
+        set {
+            // Special case empty string
+            if newValue == "" {
+                _positiveFormat = ""
+                _negativeFormat = "-"
+                _zeroSymbol = "0"
+                _reset()
+            } else {
+                let components = newValue.components(separatedBy: ";")
+                let count = components.count
+                guard count <= 3 else { return }
+                _reset()
+
+                _positiveFormat = components.first ?? ""
+                if count == 1 {
+                    _negativeFormat = "-\(_positiveFormat ?? "")"
+                }
+                else if count == 2 {
+                    _negativeFormat = components[1]
+                    _zeroSymbol = getZeroFormat()
+                }
+                else if count == 3 {
+                    _zeroSymbol = components[1]
+                    _negativeFormat = components[2]
+                }
+
+                if _negativeFormat == nil {
+                    _negativeFormat = getFormatterComponents().1
+                }
+
+                if _zeroSymbol == nil {
+                    _zeroSymbol = getZeroFormat()
+                }
             }
-            return _format ?? "#"
+        }
+    }
+
+    private var _positiveFormat: String!
+    open var positiveFormat: String! {
+        get {
+            return getFormatterComponents().0
         }
         set {
             _reset()
-            _format = newValue
+            _positiveFormat = newValue
+        }
+    }
+
+    private var _negativeFormat: String!
+    open var negativeFormat: String! {
+        get {
+            return getFormatterComponents().1
+        }
+        set {
+            _reset()
+            _negativeFormat = newValue
         }
     }
 
