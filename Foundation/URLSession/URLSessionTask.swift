@@ -574,11 +574,11 @@ extension _ProtocolClient : URLProtocolClient {
                                                                      sender: `protocol` as! _HTTPURLProtocol)
                 task.previousFailureCount += 1
                 urlProtocol(`protocol`, didReceive: authenticationChallenge)
-                return
             } else {
                 let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorUserAuthenticationRequired, userInfo: nil))
                 urlProtocol(`protocol`, didFailWithError: urlError)
             }
+            return
         }
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
