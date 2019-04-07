@@ -42,6 +42,7 @@ class TestFileManager : XCTestCase {
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
             ("test_mountedVolumeURLs", test_mountedVolumeURLs),
             ("test_copyItemsPermissions", test_copyItemsPermissions),
+            ("test_emptyFilename", test_emptyFilename),
         ]
         
 #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
@@ -1309,4 +1310,126 @@ VIDEOS=StopgapVideos
     }
 #endif // !DEPLOYMENT_RUNTIME_OBJC
 
+    func test_emptyFilename() {
+
+        // Some of these tests will throw an NSException on Darwin which would be normally be
+        // modelled by a fatalError() or other hard failure, however since most of these functions
+        // are thorwable, an NSError is thrown instead which is more useful.
+        let fm = FileManager.default
+
+        XCTAssertNil(fm.homeDirectory(forUser: ""))
+        XCTAssertNil(NSHomeDirectoryForUser(""))
+
+        XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertNil(fm.enumerator(atPath: ""))
+        XCTAssertNil(fm.subpaths(atPath: ""))
+        XCTAssertThrowsError(try fm.subpathsOfDirectory(atPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertThrowsError(try fm.createDirectory(atPath: "", withIntermediateDirectories: true)) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertFalse(fm.createFile(atPath: "", contents: Data()))
+        XCTAssertThrowsError(try fm.removeItem(atPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: "/tmp/t"))  {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: ""))  {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.copyItem(atPath: "/tmp/t", toPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
+        }
+
+        XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "/tmp/t")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.moveItem(atPath: "/tmp/t", toPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "/tmp/t")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.linkItem(atPath: "/tmp/t", toPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadNoSuchFile)
+        }
+
+        XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "/tmp/t")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertThrowsError(try fm.destinationOfSymbolicLink(atPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertFalse(fm.fileExists(atPath: ""))
+        XCTAssertFalse(fm.fileExists(atPath: "", isDirectory: nil))
+        XCTAssertFalse(fm.isReadableFile(atPath: ""))
+        XCTAssertFalse(fm.isWritableFile(atPath: ""))
+        XCTAssertFalse(fm.isExecutableFile(atPath: ""))
+        XCTAssertTrue(fm.isDeletableFile(atPath: ""))
+
+        XCTAssertThrowsError(try fm.attributesOfItem(atPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.attributesOfFileSystem(forPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+        XCTAssertThrowsError(try fm.setAttributes([:], ofItemAtPath: "")) {
+            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            XCTAssertEqual(code, .fileReadInvalidFileName)
+        }
+
+        XCTAssertNil(fm.contents(atPath: ""))
+        XCTAssertFalse(fm.contentsEqual(atPath: "", andPath: ""))
+        XCTAssertFalse(fm.contentsEqual(atPath: "/tmp/t", andPath: ""))
+        XCTAssertFalse(fm.contentsEqual(atPath: "", andPath: "/tmp/t"))
+
+        //_ = fm.fileSystemRepresentation(withPath: "")  // NSException
+        XCTAssertEqual(fm.string(withFileSystemRepresentation: UnsafePointer(bitPattern: 1)!, length: 0), "")
+
+        XCTAssertFalse(fm.changeCurrentDirectoryPath(""))
+        XCTAssertNotEqual(fm.currentDirectoryPath, "")
+
+        // Not Implemented - XCTAssertNil(fm.componentsToDisplay(forPath: ""))
+        // Not Implemented - XCTAssertEqual(fm.displayName(atPath: ""), "")
+    }
 }

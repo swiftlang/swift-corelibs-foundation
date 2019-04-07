@@ -219,7 +219,7 @@ extension NSString {
     
     public var deletingLastPathComponent : String {
         let fixedSelf = _stringByFixingSlashes()
-        if fixedSelf == "/" {
+        if fixedSelf == "/" || fixedSelf == "" {
             return fixedSelf
         }
         

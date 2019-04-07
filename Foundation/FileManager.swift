@@ -656,25 +656,25 @@ open class FileManager : NSObject {
         This method replaces changeFileAttributes:atPath:.
      */
     open func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
-        for attribute in attributes.keys {
-            if attribute == .posixPermissions {
-                guard let number = attributes[attribute] as? NSNumber else {
-                    fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
-                }
-                #if os(macOS) || os(iOS)
-                    let modeT = number.uint16Value
-                #elseif os(Linux) || os(Android) || os(Windows)
-                    let modeT = number.uint32Value
-                #endif
-                try _fileSystemRepresentation(withPath: path, {
-                    guard chmod($0, mode_t(modeT)) == 0 else {
+        try _fileSystemRepresentation(withPath: path, { fsRep in
+            for attribute in attributes.keys {
+                if attribute == .posixPermissions {
+                    guard let number = attributes[attribute] as? NSNumber else {
+                        fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
+                    }
+                    #if os(macOS) || os(iOS)
+                        let modeT = number.uint16Value
+                    #elseif os(Linux) || os(Android) || os(Windows)
+                        let modeT = number.uint32Value
+                    #endif
+                    guard chmod(fsRep, mode_t(modeT)) == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
-                })
-            } else {
-                fatalError("Attribute type not implemented: \(attribute)")
+                } else {
+                    fatalError("Attribute type not implemented: \(attribute)")
+                }
             }
-        }
+        })
     }
     
     /* createDirectoryAtPath:withIntermediateDirectories:attributes:error: creates a directory at the specified path. If you pass 'NO' for createIntermediates, the directory must not exist at the time this call is made. Passing 'YES' for 'createIntermediates' will create any necessary intermediate directories. This method returns YES if all directories specified in 'path' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
@@ -765,30 +765,29 @@ open class FileManager : NSObject {
           } while FindNextFileW(hDirectory, &ffd) != FALSE
         }
 #else
-        let fsRep = fileSystemRepresentation(withPath: path)
-        defer { fsRep.deallocate() }
-
-        guard let dir = opendir(fsRep) else {
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue,
-                          userInfo: [NSFilePathErrorKey: path, "NSUserStringVariant": NSArray(object: "Folder")])
-        }
-        defer { closedir(dir) }
-
-        var entry = dirent()
-        var result: UnsafeMutablePointer<dirent>? = nil
-
-        while readdir_r(dir, &entry, &result) == 0 {
-            guard result != nil else {
-                return
+        try _fileSystemRepresentation(withPath: path) { fsRep in
+            guard let dir = opendir(fsRep) else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue,
+                              userInfo: [NSFilePathErrorKey: path, "NSUserStringVariant": NSArray(object: "Folder")])
             }
-            let length = Int(_direntNameLength(&entry))
-            let entryName = withUnsafePointer(to: &entry.d_name) { (ptr) -> String in
-                let namePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
-                return string(withFileSystemRepresentation: namePtr, length: length)
-            }
-            if entryName != "." && entryName != ".." {
-                let entryType = Int32(entry.d_type)
-                try closure(entryName, entryType)
+            defer { closedir(dir) }
+
+            var entry = dirent()
+            var result: UnsafeMutablePointer<dirent>? = nil
+
+            while readdir_r(dir, &entry, &result) == 0 {
+                guard result != nil else {
+                    return
+                }
+                let length = Int(_direntNameLength(&entry))
+                let entryName = withUnsafePointer(to: &entry.d_name) { (ptr) -> String in
+                    let namePtr = UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self)
+                    return string(withFileSystemRepresentation: namePtr, length: length)
+                }
+                if entryName != "." && entryName != ".." {
+                    let entryType = Int32(entry.d_type)
+                    try closure(entryName, entryType)
+                }
             }
         }
 #endif
@@ -943,7 +942,7 @@ open class FileManager : NSObject {
     }
  #else
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-      var result: [FileAttributeKey:Any] = [:]
+        var result: [FileAttributeKey:Any] = [:]
 
 #if os(Windows)
       try path.withCString(encodedAs: UTF16.self) {
@@ -967,33 +966,35 @@ open class FileManager : NSObject {
         // FIXME(compnerd): what about .systemNodes, .systemFreeNodes?
       }
 #else
-        // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
-        #if os(macOS) || os(iOS)
+        try _fileSystemRepresentation(withPath: path) { fsRep in
+            // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
+    #if os(macOS) || os(iOS)
             var s = statfs()
-            guard statfs(path, &s) == 0 else {
+            guard statfs(fsRep, &s) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
-        #else
+    #else
             var s = statvfs()
-            guard statvfs(path, &s) == 0 else {
+            guard statvfs(fsRep, &s) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
             }
-        #endif
+    #endif
 
-        #if os(macOS) || os(iOS)
+    #if os(macOS) || os(iOS)
             let blockSize = UInt64(s.f_bsize)
             result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
-        #else
+    #else
             let blockSize = UInt64(s.f_frsize)
             result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid))
-        #endif
-        result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
-        result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
-        result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
-        result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
+    #endif
+            result[.systemSize] = NSNumber(value: blockSize * UInt64(s.f_blocks))
+            result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
+            result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
+            result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
+        }
 #endif
-
         return result
+
     }
 #endif
     
@@ -1048,7 +1049,7 @@ open class FileManager : NSObject {
 #else
         let bufSize = Int(PATH_MAX + 1)
         var buf = [Int8](repeating: 0, count: bufSize)
-        let len = _fileSystemRepresentation(withPath: path) {
+        let len = try _fileSystemRepresentation(withPath: path) {
             readlink($0, &buf, bufSize)
         }
         if len < 0 {
@@ -1108,12 +1109,10 @@ open class FileManager : NSObject {
           }
         }
 #else
-        let srcRep = fileSystemRepresentation(withPath: srcPath)
-        let dstRep = fileSystemRepresentation(withPath: dstPath)
-        defer {
-            srcRep.deallocate()
-            dstRep.deallocate()
-        }
+        let srcRep = try __fileSystemRepresentation(withPath: srcPath)
+        defer { srcRep.deallocate() }
+        let dstRep = try __fileSystemRepresentation(withPath: dstPath)
+        defer { dstRep.deallocate() }
 
         var fileInfo = stat()
         guard stat(srcRep, &fileInfo) >= 0 else {
@@ -1228,9 +1227,7 @@ open class FileManager : NSObject {
           try body(srcPath, dstPath, fileType)
         }
     #else
-        guard let stat = try? _lstatFile(atPath: srcPath) else {
-                return
-        }
+        let stat = try _lstatFile(atPath: srcPath)
 
         let fileType = FileAttributeType(statMode: stat.st_mode)
         if fileType == .typeDirectory {
@@ -1579,7 +1576,12 @@ open class FileManager : NSObject {
 #if os(Windows)
         return path.withCString(encodedAs: UTF16.self) { SetCurrentDirectoryW($0) != FALSE }
 #else
-        return _fileSystemRepresentation(withPath: path, { chdir($0) == 0 })
+        do {
+            return try _fileSystemRepresentation(withPath: path, { chdir($0) == 0 })
+        }
+        catch {
+            return false
+        }
 #endif
     }
     
@@ -1601,29 +1603,30 @@ open class FileManager : NSObject {
         }
         return true
 #else
-        return _fileSystemRepresentation(withPath: path, { fsRep in
-            guard var s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
-                return false
-            }
-
-            if (s.st_mode & S_IFMT) == S_IFLNK {
-                // don't chase the link for this magic case -- we might be /Net/foo
-                // which is a symlink to /private/Net/foo which is not yet mounted...
-                if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
-                    return true
+        do {
+            return try _fileSystemRepresentation(withPath: path, { fsRep in
+                var s = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+                if (s.st_mode & S_IFMT) == S_IFLNK {
+                    // don't chase the link for this magic case -- we might be /Net/foo
+                    // which is a symlink to /private/Net/foo which is not yet mounted...
+                    if isDirectory == nil && (s.st_mode & S_ISVTX) == S_ISVTX {
+                        return true
+                    }
+                    // chase the link; too bad if it is a slink to /Net/foo
+                    guard stat(fsRep, &s) >= 0 else {
+                        return false
+                    }
                 }
-                // chase the link; too bad if it is a slink to /Net/foo
-                guard stat(fsRep, &s) >= 0 else {
-                    return false
+
+                if let isDirectory = isDirectory {
+                    isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
                 }
-            }
 
-            if let isDirectory = isDirectory {
-                isDirectory.pointee = ObjCBool((s.st_mode & S_IFMT) == S_IFDIR)
-            }
-
-            return true
-        })
+                return true
+            })
+        } catch {
+            return false
+        }
 #endif
     }
     
@@ -1632,9 +1635,13 @@ open class FileManager : NSObject {
         do { let _ = try windowsFileAttributes(atPath: path) } catch { return false }
         return true
 #else
-        return _fileSystemRepresentation(withPath: path, {
-            access($0, R_OK) == 0
-        })
+        do {
+            return try _fileSystemRepresentation(withPath: path, {
+                access($0, R_OK) == 0
+            })
+        } catch {
+            return false
+        }
 #endif
     }
     
@@ -1643,9 +1650,13 @@ open class FileManager : NSObject {
         guard let faAttributes: WIN32_FILE_ATTRIBUTE_DATA = try? windowsFileAttributes(atPath: path) else { return false }
         return faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) != DWORD(FILE_ATTRIBUTE_READONLY)
 #else
-        return _fileSystemRepresentation(withPath: path, {
-            access($0, W_OK) == 0
-        })
+        do {
+            return try _fileSystemRepresentation(withPath: path, {
+                access($0, W_OK) == 0
+            })
+        } catch {
+            return false
+        }
 #endif
     }
     
@@ -1654,9 +1665,13 @@ open class FileManager : NSObject {
         // FIXME(compnerd) is there some test that we can perform here?
         return true
 #else
-        return _fileSystemRepresentation(withPath: path, {
-            access($0, X_OK) == 0
-        })
+        do {
+            return try _fileSystemRepresentation(withPath: path, {
+                access($0, X_OK) == 0
+            })
+        } catch {
+            return false
+        }
 #endif
     }
 
@@ -1667,6 +1682,8 @@ open class FileManager : NSObject {
       - returns: `true` if the file is deletable, `false` otherwise.
      */
     open func isDeletableFile(atPath path: String) -> Bool {
+        guard path != "" else { return true }   // This matches Darwin even though its probably the wrong response
+
         // Get the parent directory of supplied path
         let parent = path._nsObject.deletingLastPathComponent
 
@@ -1684,30 +1701,30 @@ open class FileManager : NSObject {
 
         return true
 #else
-        return _fileSystemRepresentation(withPath: parent, andPath: path, { parentFsRep, fsRep  in
-            // Check the parent directory is writeable, else return false.
-            guard access(parentFsRep, W_OK) == 0 else {
-                return false
-            }
-
-            // Stat the parent directory, if that fails, return false.
-            guard let parentS = try? _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep) else {
-                return false
-            }
-
-            // Check if the parent is 'sticky' if it exists.
-            if (parentS.st_mode & S_ISVTX) == S_ISVTX {
-                guard let s = try? _lstatFile(atPath: path, withFileSystemRepresentation: fsRep) else {
+        do {
+            return try _fileSystemRepresentation(withPath: parent, andPath: path, { parentFsRep, fsRep  in
+                // Check the parent directory is writeable, else return false.
+                guard access(parentFsRep, W_OK) == 0 else {
                     return false
                 }
 
-                // If the current user owns the file, return true.
-                return s.st_uid == getuid()
-            }
+                // Stat the parent directory, if that fails, return false.
+                let parentS = try _lstatFile(atPath: path, withFileSystemRepresentation: parentFsRep)
 
-            // Return true as the best guess.
-            return true
-        })
+                // Check if the parent is 'sticky' if it exists.
+                if (parentS.st_mode & S_ISVTX) == S_ISVTX {
+                    let s = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+
+                    // If the current user owns the file, return true.
+                    return s.st_uid == getuid()
+                }
+
+                // Return true as the best guess.
+                return true
+            })
+        } catch {
+            return false
+        }
 #endif
     }
 
@@ -1793,7 +1810,7 @@ open class FileManager : NSObject {
     private func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
-            _fsRep = fileSystemRepresentation(withPath: path)
+            _fsRep = try __fileSystemRepresentation(withPath: path)
         } else {
             _fsRep = fsRep!
         }
@@ -1885,30 +1902,30 @@ open class FileManager : NSObject {
     // structure and optional creation date.
 
     private func _statxFile(atPath path: String) throws -> (stat, Date?) {
-        let fsRep = fileSystemRepresentation(withPath: path)
-        defer { fsRep.deallocate() }
+        return try _fileSystemRepresentation(withPath: path) { fsRep in
 
-        if supportsStatx {
-            var statInfo = stat()
-            var btime = timespec()
-            guard _stat_with_btime(fsRep, &statInfo, &btime) == 0 else {
-                throw _NSErrorWithErrno(errno, reading: true, path: path)
-            }
+            if supportsStatx {
+                var statInfo = stat()
+                var btime = timespec()
+                guard _stat_with_btime(fsRep, &statInfo, &btime) == 0 else {
+                    throw _NSErrorWithErrno(errno, reading: true, path: path)
+                }
 
-            let sec = btime.tv_sec
-            let nsec = btime.tv_nsec
-            let creationDate: Date?
-            if sec == 0 && nsec == 0 {
-                creationDate = nil
+                let sec = btime.tv_sec
+                let nsec = btime.tv_nsec
+                let creationDate: Date?
+                if sec == 0 && nsec == 0 {
+                    creationDate = nil
+                } else {
+                    let ti = (TimeInterval(sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(nsec))
+                    creationDate = Date(timeIntervalSinceReferenceDate: ti)
+                }
+                return (statInfo, creationDate)
             } else {
-                let ti = (TimeInterval(sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(nsec))
-                creationDate = Date(timeIntervalSinceReferenceDate: ti)
+                // fallback if statx() is unavailable or fails
+                let statInfo = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+                return (statInfo, nil)
             }
-            return (statInfo, creationDate)
-        } else {
-            // fallback if statx() is unavailable or fails
-            let statInfo = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
-            return (statInfo, nil)
         }
     }
 #endif
@@ -1917,65 +1934,66 @@ open class FileManager : NSObject {
      */
     @available(Windows, deprecated, message: "Not Yet Implemented")
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
+        //guard path1 != "" && path2 != "" else { return false }
 #if os(Windows)
         NSUnimplemented()
 #else
-        let fsRep1 = fileSystemRepresentation(withPath: path1)
-        defer { fsRep1.deallocate() }
+        do {
+            let fsRep1 = try __fileSystemRepresentation(withPath: path1)
+            defer { fsRep1.deallocate() }
 
-        guard let file1 = try? _lstatFile(atPath: path1, withFileSystemRepresentation: fsRep1) else {
-            return false
-        }
-        let file1Type = file1.st_mode & S_IFMT
+            let file1 = try _lstatFile(atPath: path1, withFileSystemRepresentation: fsRep1)
+            let file1Type = file1.st_mode & S_IFMT
 
-        // Dont use access() for symlinks as only the contents should be checked even
-        // if the symlink doesnt point to an actual file, but access() will always try
-        // to resolve the link and fail if the destination is not found
-        if path1 == path2 && file1Type != S_IFLNK {
-            return access(fsRep1, R_OK) == 0
-        }
+            // Dont use access() for symlinks as only the contents should be checked even
+            // if the symlink doesnt point to an actual file, but access() will always try
+            // to resolve the link and fail if the destination is not found
+            if path1 == path2 && file1Type != S_IFLNK {
+                return access(fsRep1, R_OK) == 0
+            }
 
-        let fsRep2 = fileSystemRepresentation(withPath: path2)
-        defer { fsRep2.deallocate() }
-        guard let file2 = try? _lstatFile(atPath: path2, withFileSystemRepresentation: fsRep2) else {
-            return false
-        }
-        let file2Type = file2.st_mode & S_IFMT
+            let fsRep2 = try __fileSystemRepresentation(withPath: path2)
+            defer { fsRep2.deallocate() }
+            let file2 = try _lstatFile(atPath: path2, withFileSystemRepresentation: fsRep2)
+            let file2Type = file2.st_mode & S_IFMT
 
-        // Are paths the same type: file, directory, symbolic link etc.
-        guard file1Type == file2Type else {
-            return false
-        }
-
-        if file1Type == S_IFCHR || file1Type == S_IFBLK {
-            // For character devices, just check the major/minor pair is the same.
-            return _dev_major(file1.st_rdev) == _dev_major(file2.st_rdev)
-                && _dev_minor(file1.st_rdev) == _dev_minor(file2.st_rdev)
-        }
-
-        // If both paths point to the same device/inode or they are both zero length
-        // then they are considered equal so just check readability.
-        if (file1.st_dev == file2.st_dev && file1.st_ino == file2.st_ino)
-            || (file1.st_size == 0 && file2.st_size == 0) {
-            return access(fsRep1, R_OK) == 0 && access(fsRep2, R_OK) == 0
-        }
-
-        if file1Type == S_IFREG {
-            // Regular files and symlinks should at least have the same filesize if contents are equal.
-            guard file1.st_size == file2.st_size else {
+            // Are paths the same type: file, directory, symbolic link etc.
+            guard file1Type == file2Type else {
                 return false
             }
-            return _compareFiles(withFileSystemRepresentation: path1, andFileSystemRepresentation: path2, size: Int64(file1.st_size), bufSize: Int(file1.st_blksize))
-        }
-        else if file1Type == S_IFLNK {
-            return _compareSymlinks(withFileSystemRepresentation: fsRep1, andFileSystemRepresentation: fsRep2, size: Int64(file1.st_size))
-        }
-        else if file1Type == S_IFDIR {
-            return _compareDirectories(atPath: path1, andPath: path2)
-        }
 
-        // Dont know how to compare other file types.
-        return false
+            if file1Type == S_IFCHR || file1Type == S_IFBLK {
+                // For character devices, just check the major/minor pair is the same.
+                return _dev_major(file1.st_rdev) == _dev_major(file2.st_rdev)
+                    && _dev_minor(file1.st_rdev) == _dev_minor(file2.st_rdev)
+            }
+
+            // If both paths point to the same device/inode or they are both zero length
+            // then they are considered equal so just check readability.
+            if (file1.st_dev == file2.st_dev && file1.st_ino == file2.st_ino)
+                || (file1.st_size == 0 && file2.st_size == 0) {
+                return access(fsRep1, R_OK) == 0 && access(fsRep2, R_OK) == 0
+            }
+
+            if file1Type == S_IFREG {
+                // Regular files and symlinks should at least have the same filesize if contents are equal.
+                guard file1.st_size == file2.st_size else {
+                    return false
+                }
+                return _compareFiles(withFileSystemRepresentation: path1, andFileSystemRepresentation: path2, size: Int64(file1.st_size), bufSize: Int(file1.st_blksize))
+            }
+            else if file1Type == S_IFLNK {
+                return _compareSymlinks(withFileSystemRepresentation: fsRep1, andFileSystemRepresentation: fsRep2, size: Int64(file1.st_size))
+            }
+            else if file1Type == S_IFDIR {
+                return _compareDirectories(atPath: path1, andPath: path2)
+            }
+
+            // Dont know how to compare other file types.
+            return false
+        } catch {
+            return false
+        }
 #endif
     }
     
@@ -2035,34 +2053,35 @@ open class FileManager : NSObject {
      */
     open func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
         precondition(path != "", "Empty path argument")
-        let len = CFStringGetMaximumSizeOfFileSystemRepresentation(path._cfObject)
-        if len == kCFNotFound {
-            fatalError("string could not be converted")
-        }
-        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        buf.initialize(repeating: 0, count: len)
-        if !path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
-            buf.deinitialize(count: len)
-            buf.deallocate()
-            fatalError("string could not be converted")
-        }
-        return UnsafePointer(buf)
+        return try! __fileSystemRepresentation(withPath: path)
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) rethrows -> ResultType {
-        let fsRep = fileSystemRepresentation(withPath: path)
+    private func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<Int8> {
+        let len = CFStringGetMaximumSizeOfFileSystemRepresentation(path._cfObject)
+        if len != kCFNotFound {
+            let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+            buf.initialize(repeating: 0, count: len)
+            if path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
+                return UnsafePointer(buf)
+            }
+            buf.deinitialize(count: len)
+            buf.deallocate()
+        }
+        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInvalidFileName.rawValue, userInfo: [NSFilePathErrorKey: path])
+    }
+
+    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+        let fsRep = try __fileSystemRepresentation(withPath: path)
         defer { fsRep.deallocate() }
         return try body(fsRep)
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<Int8>, UnsafePointer<Int8>) throws -> ResultType) rethrows -> ResultType {
+    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<Int8>, UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+        let fsRep1 = try __fileSystemRepresentation(withPath: path1)
+        defer { fsRep1.deallocate() }
+        let fsRep2 = try __fileSystemRepresentation(withPath: path2)
+        defer { fsRep2.deallocate() }
 
-        let fsRep1 = fileSystemRepresentation(withPath: path1)
-        let fsRep2 = fileSystemRepresentation(withPath: path2)
-        defer {
-            fsRep1.deallocate()
-            fsRep2.deallocate()
-        }
         return try body(fsRep1, fsRep2)
     }
 
@@ -2405,6 +2424,7 @@ extension FileManager {
         }
         
         init?(path: String) {
+            guard path != "" else { return nil }
             let url = URL(fileURLWithPath: path)
             self.baseURL = url
             guard let ie = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: [], errorHandler: nil) else {
@@ -2533,17 +2553,21 @@ extension FileManager {
             _options = options
             _errorHandler = errorHandler
 
-            if FileManager.default.fileExists(atPath: _url.path) {
-                let fsRep = FileManager.default.fileSystemRepresentation(withPath: _url.path)
-                let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
-                ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
-                ps.advanced(by: 1).initialize(to: nil)
-                _stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
-                ps.deinitialize(count: 2)
-                ps.deallocate()
-                fsRep.deallocate()
-            } else {
-                _rootError = _NSErrorWithErrno(ENOENT, reading: true, url: url)
+            let fm = FileManager.default
+            do {
+                guard fm.fileExists(atPath: _url.path) else { throw _NSErrorWithErrno(ENOENT, reading: true, url: url) }
+                _stream = try FileManager.default._fileSystemRepresentation(withPath: _url.path) { fsRep in
+                    let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
+                    defer { ps.deallocate() }
+                    ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
+                    ps.advanced(by: 1).initialize(to: nil)
+                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                }
+                if _stream == nil {
+                    throw _NSErrorWithErrno(errno, reading: true, url: url)
+                }
+            } catch {
+                _rootError = error
             }
         }
 
