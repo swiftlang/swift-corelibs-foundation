@@ -56,7 +56,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `URLProtocolClient`          | Unimplemented   | None          |                                                                                                                    |
     | `NSURLRequest`               | Complete        | Incomplete    |                                                                                                                    |
     | `NSMutableURLRequest`        | Complete        | Incomplete    |                                                                                                                    |
-    | `URLResponse`                | Complete        | Substantial    |                                                                                                                    |
+    | `URLResponse`                | Complete        | Substantial   |                                                                                                                    |
     | `NSHTTPURLResponse`          | Complete        | Substantial   |                                                                                                                    |
     | `NSURL`                      | Mostly Complete | Substantial   | Resource values remain unimplemented                                                                               |
     | `NSURLQueryItem`             | Complete        | N/A           |                                                                                                                    |
@@ -76,13 +76,13 @@ There is no _Complete_ status for test coverage because there are always additio
     | `HTTPMessage`                | N/A             | N/A           | For internal use only                                                                                              |
     | `libcurlHelpers`             | N/A             | N/A           | For internal use only                                                                                              |
     | `MultiHandle`                | N/A             | N/A           | For internal use only                                                                                              |
-    | `URLSession`                 | Mostly Complete | Incomplete    | `shared`, invalidation, resetting, flushing, getting tasks, and others remain unimplemented                        |
+    | `URLSession`                 | Mostly Complete | Incomplete    | invalidation, resetting, flushing, getting tasks, and others remain unimplemented                                  |
     | `URLSessionConfiguration`    | Mostly Complete | Incomplete    | `ephemeral` and `background(withIdentifier:)` remain unimplemented                                                 |
     | `URLSessionDelegate`         | Complete        | N/A           |                                                                                                                    |
     | `URLSessionTask`             | Mostly Complete | Incomplete    | `cancel()`, `createTransferState(url:)` with streams, and others remain unimplemented                              |
     | `URLSessionDataTask`         | Complete        | Incomplete    |                                                                                                                    |
     | `URLSessionUploadTask`       | Complete        | None          |                                                                                                                    |
-    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    |                                                                                                                  |
+    | `URLSessionDownloadTask`     | Incomplete      | Incomplete    |                                                                                                                    |
     | `URLSessionStreamTask`       | Unimplemented   | None          |                                                                                                                    |
     | `TaskRegistry`               | N/A             | N/A           | For internal use only                                                                                              |
     | `TransferState`              | N/A             | N/A           | For internal use only                                                                                              |
@@ -94,10 +94,10 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name                     | Status          | Test Coverage | Notes                                                                                     |
     |---------------------------------|-----------------|---------------|-------------------------------------------------------------------------------------------|
-    | `DateComponentFormatter`        | Unimplemented   | None          |                                                                                           |
-    | `DateIntervalFormatter`         | Unimplemented   | None          |                                                                                           |
-    | `EnergyFormatter`               | Unimplemented   | None          |                                                                                           |
-    | `ISO8601DateFormatter`          | Unimplemented   | None          |                                                                                           |
+    | `DateComponentsFormatter`       | Unimplemented   | None          |                                                                                           |
+    | `DateIntervalFormatter`         | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                      |
+    | `EnergyFormatter`               | Complete        | Substantial   |                                                                                           |
+    | `ISO8601DateFormatter`          | Mostly Complete | Substantial   | `NSCoding` remains to be implemented                                                      |
     | `LengthFormatter`               | Complete        | Substantial   |                                                                                           |
     | `MassFormatter`                 | Complete        | Substantial   | Needs localization                                                                        |
     | `NumberFormatter`               | Mostly Complete | Substantial   | `objectValue(_:range:)` remains unimplemented                                             |
@@ -159,18 +159,18 @@ There is no _Complete_ status for test coverage because there are always additio
     | `NSIndexSet`          | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
     | `NSMutableIndexSet`   | Mostly Complete | Incomplete    | `NSCoding` remains to be implemented                                                                                                                                |
     | `IndexSet`            | Complete        | Incomplete    |                                                                                                                                                                     |
-    | `NSIndexPath`         | Mostly Complete | None          | `NSCoding`, `NSCopying`, `getIndexes(_:)` remain unimplemented                                                                                                      |
+    | `NSIndexPath`         | Mostly Complete | None          | `NSCoding` remains to be implemented                                                                                                                                |
     | `IndexPath`           | Complete        | Incomplete    |                                                                                                                                                                     |
-    | `NSArray`             | Mostly Complete | Substantial   | Reading/writing to files/URLs, concurrent `enumerateObjects(at:options:using:)`, and `sortedArray(from:options:usingComparator:)` with options remain unimplemented |
+    | `NSArray`             | Mostly Complete | Substantial   | concurrent `enumerateObjects(at:options:using:)`, and `sortedArray(from:options:usingComparator:)` with options remain unimplemented                                |
     | `NSMutableArray`      | Mostly Complete | Substantial   | `exchangeObject(at:withObjectAt:)` and `replaceObjects(in:withObjectsFromArray:)` remain unimplemented for types other than `NSMutableArray`                        |
-    | `NSDictionary`        | Mostly Complete | Incomplete    | `NSCoding` with non-keyed-coding archivers, `descriptionInStringsFileFormat`, `sharedKeySet(forKeys:)`, and reading/writing to files/URLs remain unimplemented      |
-    | `NSMutableDictionary` | Mostly Complete | Incomplete    | `descriptionInStringsFileFormat`, `sharedKeySet(forKeys:)`, and reading/writing to files/URLs remain unimplemented                                                  |
+    | `NSDictionary`        | Mostly Complete | Incomplete    | `NSCoding` with non-keyed-coding archivers and `sharedKeySet(forKeys:)`                                                                                             |
+    | `NSMutableDictionary` | Mostly Complete | Incomplete    | `NSCoding` with non-keyed-coding archivers and`sharedKeySet(forKeys:)`                                                                                              |
     | `NSCFDictionary`      | N/A             | N/A           | For internal use only                                                                                                                                               |
-    | `NSSet`               | Mostly Complete | Incomplete    | `customMirror` remain unimplemented                                                                                                  |
+    | `NSSet`               | Mostly Complete | Incomplete    | `NSCoding` and `customMirror` remain unimplemented                                                                                                                  |
     | `NSMutableSet`        | Mostly Complete | Incomplete    | `init?(coder:)` remains unimplemented                                                                                                                               |
     | `NSCountedSet`        | Mostly Complete | Incomplete    | `init?(coder:)` remains unimplemented                                                                                                                               |
     | `NSCFSet`             | N/A             | N/A           | For internal use only                                                                                                                                               |
-    | `NSCache`             | Complete        | Incomplete    |                                                                                                                                                                     |
+    | `NSCache`             | Complete        | Incomplete    | `NSCoding` and `customMirror` remain unimplemented                                                                                                                  |
     | `NSSortDescriptor`    | Unimplemented   | None          |                                                                                                                                                                     |
 
 * **RunLoop**: Timers, streams and run loops.
@@ -200,7 +200,7 @@ There is no _Complete_ status for test coverage because there are always additio
     |-----------------------------|-----------------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
     | `NSRegularExpression`       | Complete        | Substantial   |                                                                                                                                                                  |
     | `Scanner`                   | Mostly Complete | Incomplete    | `localizedScannerWithString(_:)` remains unimplemented                                                                                                           |
-    | `NSTextCheckingResult`      | Mostly Complete | Incomplete    | `NSCoding`, `NSCopying`, `resultType`, and `range(at:)` remain unimplemented                                                                                     |
+    | `NSTextCheckingResult`      | Mostly Complete | Incomplete    | `NSCoding`, `resultType`, and `range(at:)` remain unimplemented                                                                                                  |
     | `NSAttributedString`        | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
     | `NSMutableAttributedString` | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
     | `NSCharacterSet`            | Mostly Complete | Incomplete    | `NSCoding` remains unimplemented                                                                                                                                 |
@@ -219,7 +219,7 @@ There is no _Complete_ status for test coverage because there are always additio
     |-----------------------------------|-----------------|---------------|-------------------------------------------------------------------------------|
     | `NSRange`                         | Complete        | Incomplete    |                                                                               |
     | `Decimal`                         | Complete        | Substantial   |                                                                               |
-    | `NSDecimalNumber`                 | Mostly Complete | Substantial   |                                                                               |
+    | `NSDecimalNumber`                 | Complete        | Substantial   |                                                                               |
     | `NSDecimalNumberHandler`          | Complete        | None          |                                                                               |
     | `CGPoint`                         | Complete        | Substantial   |                                                                               |
     | `CGSize`                          | Complete        | Substantial   |                                                                               |
@@ -273,10 +273,10 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name      | Status          | Test Coverage | Notes                                                                                                                     |
     |------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
-    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding`, and background operations remain unimplemented                                                                |
+    | `FileHandle`     | Mostly Complete | Incomplete    | `NSCoding` remain unimplemented                                                                                           |
     | `Pipe`           | Complete        | Incomplete    |                                                                                                                           |
-    | `FileManager`    | Incomplete      | Incomplete    | URL searches, relationship lookups, item copying, cross-device moving, recursive linking, and others remain unimplemented |
-    | `Process`        | Mostly Complete | Substantial   | `interrupt()`, `terminate()`, `suspend()`, and `resume()` remain unimplemented                                            |
+    | `FileManager`    | Incomplete      | Incomplete    | relationship lookups, `displayName(atPath:)`, `componentsToDisplay(forPath:)`,  and replacing items remain unimplemented  |
+    | `Process`        | Complete        | Substantial   |                                                                                                                           |
     | `Bundle`         | Mostly Complete | Incomplete    | `allBundles`, `init(for:)`, `unload()`, `classNamed()`, and `principalClass` remain unimplemented                         |
     | `ProcessInfo`    | Complete        | Substantial   |                                                                                                                           |
     | `Thread`         | Complete        | Incomplete    |                                                                                                                           |
@@ -292,7 +292,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
     | Entity Name        | Status          | Test Coverage | Notes                                                                                                                           |
     |--------------------|-----------------|---------------|---------------------------------------------------------------------------------------------------------------------------------|
-    | `NSCalendar`       | Complete        | None          | `autoupdatingCurrent`, and `enumerateDates` remain unimplemented                                                                |
+    | `NSCalendar`       | Complete        | None          | `autoupdatingCurrent` remains unimplemented                                                                                     |
     | `NSDateComponents` | Complete        | None          |                                                                                                                                 |
     | `Calendar`         | Complete        | Incomplete    |                                                                                                                                 |
     | `DateComponents`   | Complete        | Incomplete    |                                                                                                                                 |
