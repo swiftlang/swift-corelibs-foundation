@@ -66,6 +66,7 @@ class TestXMLParser : XCTestCase {
             ("test_withDataEncodings", test_withDataEncodings),
             ("test_withDataOptions", test_withDataOptions),
             ("test_sr9758_abortParsing", test_sr9758_abortParsing),
+            ("test_sr10157_swappedElementNames", test_sr10157_swappedElementNames),
         ]
     }
 
@@ -154,4 +155,49 @@ class TestXMLParser : XCTestCase {
         XCTAssertNotNil(parser.parserError)
     }
 
+    func test_sr10157_swappedElementNames() {
+        class ElementNameChecker: NSObject, XMLParserDelegate {
+            let name: String
+            init(_ name: String) { self.name = name }
+            func parser(_ parser: XMLParser,
+                        didStartElement elementName: String,
+                        namespaceURI: String?,
+                        qualifiedName qName: String?,
+                        attributes attributeDict: [String: String] = [:])
+            {
+                if parser.shouldProcessNamespaces {
+                    XCTAssertEqual(self.name, qName)
+                } else {
+                    XCTAssertEqual(self.name, elementName)
+                }
+            }
+            func parser(_ parser: XMLParser,
+                        didEndElement elementName: String,
+                        namespaceURI: String?,
+                        qualifiedName qName: String?)
+            {
+                if parser.shouldProcessNamespaces {
+                    XCTAssertEqual(self.name, qName)
+                } else {
+                    XCTAssertEqual(self.name, elementName)
+                }
+            }
+            func check() {
+                let elementString = "<\(self.name) />"
+                var parser = XMLParser(data: elementString.data(using: .utf8)!)
+                parser.delegate = self
+                XCTAssertTrue(parser.parse())
+                
+                // Confirm that the parts of QName is also not swapped.
+                parser = XMLParser(data: elementString.data(using: .utf8)!)
+                parser.delegate = self
+                parser.shouldProcessNamespaces = true
+                XCTAssertTrue(parser.parse())
+            }
+        }
+        
+        ElementNameChecker("noPrefix").check()
+        ElementNameChecker("myPrefix:myLocalName").check()
+    }
+    
 }
