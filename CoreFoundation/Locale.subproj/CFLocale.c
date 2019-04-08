@@ -32,7 +32,9 @@
 #include <unicode/putil.h>          // ICU low-level utilities
 #include <unicode/umsg.h>           // ICU message formatting
 #include <unicode/ucol.h>
+#if __has_include(<unicode/unumsys.h>)
 #include <unicode/unumsys.h>        // ICU numbering systems
+#endif
 #include <unicode/uvernum.h>
 #if U_ICU_VERSION_MAJOR_NUM > 53 && __has_include(<unicode/uameasureformat.h>)
 #include <unicode/uameasureformat.h>
