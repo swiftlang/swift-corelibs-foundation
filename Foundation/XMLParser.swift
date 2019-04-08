@@ -296,13 +296,14 @@ internal func _NSXMLParserStartElementNs(_ ctx: _CFXMLInterface, localname: Unsa
     var qualifiedName: String? = nil
     if parser.shouldProcessNamespaces {
         namespaceURI = UTF8STRING(URI) ?? ""
-        qualifiedName = elementName
         if let prefix = UTF8STRING(prefix) {
-            qualifiedName = elementName + ":" + prefix
+            qualifiedName = prefix + ":" + elementName
+        } else {
+            qualifiedName = elementName
         }
     }
     else if let prefix = UTF8STRING(prefix) {
-        elementName = elementName + ":" + prefix
+        elementName = prefix + ":" + elementName
     }
 
     parser.delegate?.parser(parser, didStartElement: elementName, namespaceURI: namespaceURI, qualifiedName: qualifiedName, attributes: attrDict)
@@ -316,13 +317,14 @@ internal func _NSXMLParserEndElementNs(_ ctx: _CFXMLInterface , localname: Unsaf
     var qualifiedName: String? = nil
     if parser.shouldProcessNamespaces {
         namespaceURI = UTF8STRING(URI) ?? ""
-        qualifiedName = elementName
         if let prefix = UTF8STRING(prefix) {
-            qualifiedName = elementName + ":" + prefix
+            qualifiedName = prefix + ":" + elementName
+        } else {
+            qualifiedName = elementName
         }
     }
     else if let prefix = UTF8STRING(prefix) {
-        elementName = elementName + ":" + prefix
+        elementName = prefix + ":" + elementName
     }
 
     parser.delegate?.parser(parser, didEndElement: elementName, namespaceURI: namespaceURI, qualifiedName: qualifiedName)
