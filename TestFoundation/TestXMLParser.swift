@@ -160,22 +160,38 @@ class TestXMLParser : XCTestCase {
             let name: String
             init(_ name: String) { self.name = name }
             func parser(_ parser: XMLParser,
-                               didStartElement elementName: String,
-                               namespaceURI: String?,
-                               qualifiedName qName: String?,
-                               attributes attributeDict: [String: String] = [:]) {
-                XCTAssertEqual(self.name, elementName)
+                        didStartElement elementName: String,
+                        namespaceURI: String?,
+                        qualifiedName qName: String?,
+                        attributes attributeDict: [String: String] = [:])
+            {
+                if parser.shouldProcessNamespaces {
+                    XCTAssertEqual(self.name, qName)
+                } else {
+                    XCTAssertEqual(self.name, elementName)
+                }
             }
             func parser(_ parser: XMLParser,
                         didEndElement elementName: String,
                         namespaceURI: String?,
-                        qualifiedName qName: String?) {
-                XCTAssertEqual(self.name, elementName)
+                        qualifiedName qName: String?)
+            {
+                if parser.shouldProcessNamespaces {
+                    XCTAssertEqual(self.name, qName)
+                } else {
+                    XCTAssertEqual(self.name, elementName)
+                }
             }
             func check() {
                 let elementString = "<\(self.name) />"
-                let parser = XMLParser(data: elementString.data(using: .utf8)!)
+                var parser = XMLParser(data: elementString.data(using: .utf8)!)
                 parser.delegate = self
+                XCTAssertTrue(parser.parse())
+                
+                // Confirm that the parts of QName is also not swapped.
+                parser = XMLParser(data: elementString.data(using: .utf8)!)
+                parser.delegate = self
+                parser.shouldProcessNamespaces = true
                 XCTAssertTrue(parser.parse())
             }
         }
