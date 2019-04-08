@@ -166,6 +166,12 @@ class TestXMLParser : XCTestCase {
                                attributes attributeDict: [String: String] = [:]) {
                 XCTAssertEqual(self.name, elementName)
             }
+            func parser(_ parser: XMLParser,
+                        didEndElement elementName: String,
+                        namespaceURI: String?,
+                        qualifiedName qName: String?) {
+                XCTAssertEqual(self.name, elementName)
+            }
             func check() {
                 let elementString = "<\(self.name) />"
                 let parser = XMLParser(data: elementString.data(using: .utf8)!)
