@@ -215,6 +215,7 @@ class TestNSDateComponents: XCTestCase {
             ("test_hash", test_hash),
             ("test_copyNSDateComponents", test_copyNSDateComponents),
             ("test_dateDifferenceComponents", test_dateDifferenceComponents),
+            ("test_nanoseconds", test_nanoseconds),
         ]
     }
 
@@ -428,5 +429,37 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertEqual(diff9.isLeapMonth, false)
         XCTAssertNil(diff9.calendar)
         XCTAssertNil(diff9.timeZone)
+    }
+
+    func test_nanoseconds() throws {
+        // 1971-06-21 00:00:00
+        let date1 = Date(timeIntervalSince1970: 46310400)
+
+        // 1971-06-21 00:00:00.00123
+        let date2 = Date(timeIntervalSince1970: 46310400.00123)
+
+        // 1971-06-24 00:16:40:00123
+        let date3 = Date(timeIntervalSince1970: 46570600.45678)
+
+        var calendar = Calendar.current
+        calendar.timeZone = try TimeZone(abbreviation: "UTC").unwrapped()
+
+        let diff1 = calendar.dateComponents([.nanosecond], from: date1, to: date2)
+        XCTAssertEqual(diff1.nanosecond, 1230003)
+
+        let diff2 = calendar.dateComponents([.nanosecond], from: date1, to: date2)
+        XCTAssertEqual(diff2.nanosecond, 1230003)
+
+        let diff3 = calendar.dateComponents([.day, .minute, .second, .nanosecond], from: date2, to: date3)
+        XCTAssertEqual(diff3.day, 3)
+        XCTAssertEqual(diff3.minute, 16)
+        XCTAssertEqual(diff3.second, 40)
+        XCTAssertEqual(diff3.nanosecond, 455549949)
+
+        let diff4 = calendar.dateComponents([.day, .minute, .second, .nanosecond], from: date3, to: date2)
+        XCTAssertEqual(diff4.day, -3)
+        XCTAssertEqual(diff4.minute, -16)
+        XCTAssertEqual(diff4.second, -40)
+        XCTAssertEqual(diff4.nanosecond, -455549950)
     }
 }
