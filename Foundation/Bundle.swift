@@ -292,8 +292,18 @@ open class Bundle: NSObject {
         }
     }
     
-    open func classNamed(_ className: String) -> AnyClass? { NSUnimplemented() }
-    open var principalClass: AnyClass? { NSUnimplemented() }
+    open func classNamed(_ className: String) -> AnyClass? {
+        // FIXME: This will return a class that may not be associated with the receiver. https://bugs.swift.org/browse/SR-10347.
+        guard isLoaded || load() else { return nil }
+        return NSClassFromString(className)
+    }
+    
+    open var principalClass: AnyClass? {
+        // NB: Cross-platform Swift doesn't have a notion of 'the first class in the ObjC segment' that ObjC platforms have. For swift-corelibs-foundation, if a bundle doesn't have a principal class named, the principal class is nil.
+        guard let name = infoDictionary?["NSPrincipalClass"] as? String else { return nil }
+        return classNamed(name)
+    }
+    
     open var preferredLocalizations: [String] {
         return Bundle.preferredLocalizations(from: localizations)
     }
