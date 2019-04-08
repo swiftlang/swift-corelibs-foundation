@@ -43,7 +43,10 @@ class TestPipe: XCTestCase {
         // First write some data into the pipe
         let stringAsData = try text.data(using: .utf8).unwrapped()
         try aPipe.fileHandleForWriting.write(contentsOf: stringAsData)
-        
+
+        // SR-10240 - Check empty Data() can be written without crashing
+        aPipe.fileHandleForWriting.write(Data())
+
         // Then read it out again
         let data = try aPipe.fileHandleForReading.read(upToCount: stringAsData.count).unwrapped()
         
