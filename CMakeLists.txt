@@ -27,34 +27,14 @@ include(ExternalProject)
 string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
 get_swift_host_arch(swift_arch)
 
-ExternalProject_Add(CoreFoundation
-                    SOURCE_DIR
-                      ${CMAKE_CURRENT_SOURCE_DIR}/CoreFoundation
-                    CMAKE_COMMAND
-                      ${CMAKE_COMMAND}
-                    CMAKE_ARGS
-                      -DBUILD_SHARED_LIBS=NO
-                      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                      -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-                      -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-                      -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-                      -DCMAKE_INSTALL_LIBDIR=usr/lib
-                      -DCMAKE_SYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-                      -DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}
-                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                      -DCF_DEPLOYMENT_SWIFT=YES
-                      -DCF_ENABLE_LIBDISPATCH=${FOUNDATION_ENABLE_LIBDISPATCH}
-                      -DCF_PATH_TO_LIBDISPATCH_SOURCE=${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE}
-                      -DCF_PATH_TO_LIBDISPATCH_BUILD=${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}
-                      -DICU_LIBRARY=${ICU_LIBRARY}
-                      -DICU_INCLUDE_DIR=${ICU_INCLUDE_DIR}
-                      -DCURL_LIBRARY=${CURL_LIBRARY}
-                      -DCURL_INCLUDE_DIR=${CURL_INCLUDE_DIR}
-                      -DLIBXML2_LIBRARY=${LIBXML2_LIBRARY}
-                      -DLIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}
-                    INSTALL_COMMAND
-                      ${CMAKE_COMMAND} -E env --unset=DESTDIR ${CMAKE_COMMAND} --build . --target install)
-ExternalProject_Get_Property(CoreFoundation install_dir)
+set(CF_PATH_TO_LIBDISPATCH_SOURCE ${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE} CACHE PATH "Path to libdispatch source" FORCE)
+set(CF_PATH_TO_LIBDISPATCH_BUILD ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD} CACHE PATH "Path to libdispatch build" FORCE)
+set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
+
+set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+set(BUILD_SHARED_LIBS NO)
+add_subdirectory(CoreFoundation)
+set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
 add_library(uuid
             STATIC
@@ -67,13 +47,14 @@ set_target_properties(uuid
 # the dependency on TargetConditionals.h
 target_compile_options(uuid
                        PUBLIC
-                         -I${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers)
+                         -I${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   target_compile_definitions(uuid
                              PRIVATE
                                _CRT_NONSTDC_NO_WARNINGS
                                _CRT_SECURE_NO_DEPRECATE
                                _CRT_SECURE_NO_WARNINGS)
+  target_link_libraries(uuid PRIVATE Bcrypt)
 endif()
 add_dependencies(uuid CoreFoundation)
 
@@ -107,31 +88,23 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
-  # FIXME(compnerd) these are not all CoreFoundation dependencies, some of them
-  # are Foundation's and others are libcurl's.  We should split them up
-  # accordingly.
-  set(CoreFoundation_INTERFACE_LIBRARIES
-      -lAdvAPI32
-      -lCrypt32
-      -lDbgHelp
-      -lShell32
-      -lOle32
-      -lRpcRT4
-      -lSecur32
-      -lShLwApi
-      -lUser32
-      -lWldap32
-      -lWS2_32
-      -liphlpapi
-      -lmincore
-      -lnormaliz
-      -lpathcch
-      -lucrt
-      -lshell32)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4217)
   set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)
 endif()
+
+# NOTE(compnerd) this is a horrible hack to work around the fact that we do not
+# have a proper library target for Foundation which can link against the
+# CoreFoundation target.  When we gain proper CMake support for Swift, we should
+# be able to remove this and just use
+# `target_link_libraries(Foundation PRIVATE CoreFoundation)`.
+set(CoreFoundation_LIBRARIES $<TARGET_FILE:CoreFoundation>)
+get_target_property(CoreFoundation_LINK_LIBRARIES CoreFoundation LINK_LIBRARIES)
+foreach(library ${CoreFoundation_LINK_LIBRARIES})
+  if(NOT library STREQUAL Threads::Threads)
+    list(APPEND CoreFoundation_LIBRARIES -l${library})
+  endif()
+endforeach()
 
 add_swift_library(Foundation
                   MODULE_NAME
@@ -308,21 +281,25 @@ add_swift_library(Foundation
                   CFLAGS
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
-                    -F${install_dir}/System/Library/Frameworks
+                    -F${CMAKE_CURRENT_BINARY_DIR}
                     -D_DLL
                   LINK_FLAGS
-                    -L${install_dir}/usr/lib
-                    -lCoreFoundation
+                    ${CoreFoundation_LIBRARIES}
                     ${CURL_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
-                    -L${CMAKE_CURRENT_BINARY_DIR}
-                    -luuid
+                    $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
-                    ${CoreFoundation_INTERFACE_LIBRARIES}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
+                    $<$<PLATFORM_ID:Windows>:-lDbgHelp>
+                    $<$<PLATFORM_ID:Windows>:-lOle32>
+                    $<$<PLATFORM_ID:Windows>:-lShLwApi>
+                    $<$<PLATFORM_ID:Windows>:-lShell32>
+                    $<$<PLATFORM_ID:Windows>:-lWS2_32>
+                    $<$<PLATFORM_ID:Windows>:-liphlpapi>
+                    $<$<PLATFORM_ID:Windows>:-lpathcch>
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
@@ -352,7 +329,7 @@ add_swift_executable(plutil
                      CFLAGS
                        ${deployment_target}
                        ${deployment_enable_libdispatch}
-                       -F${install_dir}/System/Library/Frameworks
+                       -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
                        ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
@@ -378,7 +355,7 @@ if(ENABLE_TESTING)
                        CFLAGS
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
-                         -F${install_dir}/System/Library/Frameworks
+                         -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -490,7 +467,7 @@ if(ENABLE_TESTING)
                        CFLAGS
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
-                         -F${install_dir}/System/Library/Frameworks
+                         -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -576,7 +553,7 @@ else()
 endif()
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
-          ${install_dir}/System/Library/Frameworks/CoreFoundation.framework/Headers/
+          ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
         DESTINATION
           lib/swift/CoreFoundation
         FILES_MATCHING PATTERN "*.h")
