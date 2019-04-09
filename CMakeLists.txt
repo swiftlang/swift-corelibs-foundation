@@ -89,7 +89,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
-  set(WORKAROUND_SR9138 -Xlinker;-ignore:4217)
+  set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
   set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)
 endif()
 
