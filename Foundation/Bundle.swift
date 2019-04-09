@@ -23,7 +23,7 @@ open class Bundle: NSObject {
     }
     
     private class var allBundlesRegardlessOfType: [Bundle] {
-        // FIXME: This doesn't return bundles that weren't loaded using CFBundle or class Bundle. SR-XXXX.
+        // FIXME: This doesn't return bundles that weren't loaded using CFBundle or class Bundle. https://bugs.swift.org/browse/SR-10433
         guard let bundles = CFBundleGetAllBundles()?._swiftObject as? [CFBundle] else { return [] }
         return bundles.map(Bundle.init(cfBundle:))
     }
