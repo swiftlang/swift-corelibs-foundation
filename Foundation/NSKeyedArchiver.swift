@@ -105,6 +105,16 @@ open class NSKeyedArchiver : NSCoder {
         }
     }
     
+    open class func archivedData(withRootObject object: Any, requiringSecureCoding: Bool) throws -> Data {
+        let archiver = NSKeyedArchiver(requiringSecureCoding: requiringSecureCoding)
+        archiver.encode(object, forKey: NSKeyedArchiveRootObjectKey)
+        if let error = archiver.error {
+            throw error
+        } else {
+            return archiver.encodedData
+        }
+    }
+    
     /// Returns an `NSData` object containing the encoded form of the object graph
     /// whose root object is given.
     ///
@@ -112,6 +122,7 @@ open class NSKeyedArchiver : NSCoder {
     /// - Returns:              An `NSData` object containing the encoded form of the object graph
     ///                         whose root object is rootObject. The format of the archive is
     ///                         `NSPropertyListBinaryFormat_v1_0`.
+    @available(swift, deprecated: 9999, renamed: "archivedData(withRootObject:requiringSecureCoding:)")
     open class func archivedData(withRootObject rootObject: Any) -> Data {
         let data = NSMutableData()
         let keyedArchiver = NSKeyedArchiver(forWritingWith: data)
@@ -130,6 +141,7 @@ open class NSKeyedArchiver : NSCoder {
     ///   - rootObject: The root of the object graph to archive.
     ///   - path:       The path of the file in which to write the archive.
     /// - Returns:      `true` if the operation was successful, otherwise `false`.
+    @available(swift, deprecated: 9999, renamed: "archivedData(withRootObject:requiringSecureCoding:)")
     open class func archiveRootObject(_ rootObject: Any, toFile path: String) -> Bool {
         var fd : Int32 = -1
         var auxFilePath : String
@@ -166,8 +178,14 @@ open class NSKeyedArchiver : NSCoder {
         return finishedEncoding
     }
     
+    public convenience init(requiringSecureCoding: Bool) {
+        self.init(output: NSMutableData())
+        self.requiresSecureCoding = requiringSecureCoding
+    }
+    
+    @available(swift, deprecated: 9999, renamed: "init(requiringSecureCoding:)")
     public override convenience init() {
-        self.init(forWritingWith: NSMutableData())
+        self.init(output: NSMutableData())
     }
     
     private init(output: AnyObject) {
@@ -181,6 +199,7 @@ open class NSKeyedArchiver : NSCoder {
     /// is filled. The format of the archive is `NSPropertyListBinaryFormat_v1_0`.
     ///
     /// - Parameter data: The mutable-data object into which the archive is written.
+    @available(swift, deprecated: 9999, renamed: "init(requiringSecureCoding:)")
     public convenience init(forWritingWith data: NSMutableData) {
         self.init(output: data)
     }
