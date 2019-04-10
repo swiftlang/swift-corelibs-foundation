@@ -12,6 +12,14 @@ import CoreFoundation
 open class Bundle: NSObject {
     private var _bundle : CFBundle!
 
+    internal static var _supportsFHSStyle: Bool {
+    #if DEPLOYMENT_RUNTIME_OBJC
+      return false
+    #else
+      return _CFBundleSupportsFHSBundles()
+    #endif
+    }
+
     private static var _mainBundle : Bundle = {
         return Bundle(cfBundle: CFBundleGetMainBundle())
     }()

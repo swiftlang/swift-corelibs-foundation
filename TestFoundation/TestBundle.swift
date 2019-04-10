@@ -43,18 +43,16 @@ class BundlePlayground {
         
         static var allApplicable: [Layout] {
             let layouts: [Layout] = [ .flat, .fhsInstalled, .fhsFreestanding ]
-            
-            #if DEPLOYMENT_RUNTIME_OBJC
-            let supportsFHS = false
-            #else
-            let supportsFHS = _CFBundleSupportsFHSBundles()
-            #endif
-            
-            if supportsFHS {
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            if Bundle._supportsFHSStyle {
                 return layouts
             } else {
                 return layouts.filter { !$0.isFHS }
             }
+#else
+            return layouts.filter { !$0.isFHS }
+#endif
         }
         var isFHS: Bool {
             return self == .fhsInstalled || self == .fhsFreestanding
