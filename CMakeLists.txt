@@ -540,17 +540,34 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
         DESTINATION
           lib/swift/${swift_os}/${swift_arch})
+
 if(BUILD_SHARED_LIBS)
+  set(library_kind SHARED)
+  set(swift_dir swift)
+else()
+  set(library_kind STATIC)
+  set(swift_dir swift_static)
+endif()
+
+set(Foundation_OUTPUT_FILE
+    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}Foundation${CMAKE_${library_kind}_LIBRARY_SUFFIX})
+
+if(CMAKE_SYSTEM_NAME STREQUAL Windows AND BUILD_SHARED_LIBS)
   install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}Foundation${CMAKE_SHARED_LIBRARY_SUFFIX}
+            ${Foundation_OUTPUT_FILE}
           DESTINATION
-            lib/swift/${swift_os})
+            bin)
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}Foundation${CMAKE_IMPORT_LIBRARY_SUFFIX}
+          DESTINATION
+            lib/${swift_dir}/${swift_os})
 else()
   install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}Foundation${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${Foundation_OUTPUT_FILE}
           DESTINATION
-            lib/swift_static/${swift_os})
+            lib/${swift_dir}/${swift_os})
 endif()
+
 # TODO(compnerd) install as a Framework as that is how swift actually is built
 install(DIRECTORY
           ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers/
