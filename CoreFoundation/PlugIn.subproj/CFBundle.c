@@ -951,7 +951,11 @@ CF_PRIVATE CFURLRef _CFBundleCopyAppStoreReceiptURLInDirectory(CFURLRef bundleUR
 CFURLRef _CFBundleCopyAppStoreReceiptURL(CFBundleRef bundle) {
     return _CFBundleCopyAppStoreReceiptURLInDirectory(bundle->_url, bundle->_version);
 }
-        
+
+CF_CROSS_PLATFORM_EXPORT CFStringRef _CFBundleCopyExecutablePath(CFBundleRef bundle) {
+    return _CFBundleCopyExecutableName(bundle, NULL, NULL);
+}
+
 CF_PRIVATE CFStringRef _CFBundleCopyExecutableName(CFBundleRef bundle, CFURLRef url, CFDictionaryRef infoDict) {
     CFStringRef executableName = NULL;
     

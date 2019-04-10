@@ -22,10 +22,41 @@ open class Bundle: NSObject {
         }
     }
     
-    open class var allBundles: [Bundle] {
-        NSUnimplemented()
+    private class var allBundlesRegardlessOfType: [Bundle] {
+        // FIXME: This doesn't return bundles that weren't loaded using CFBundle or class Bundle. https://bugs.swift.org/browse/SR-10433
+        guard let bundles = CFBundleGetAllBundles()?._swiftObject as? [CFBundle] else { return [] }
+        return bundles.map(Bundle.init(cfBundle:))
     }
 
+    private var isFramework: Bool {
+        #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+        return bundleURL.pathExtension == "framework"
+        #else
+        
+            #if os(Windows)
+            if let name = _CFBundleCopyExecutablePath(_bundle)?._nsObject {
+                return name.pathExtension.lowercased == "dll"
+            }
+            #else
+        
+            // We're assuming this is an OS like Linux or BSD that uses FHS-style library names (lib….so or lib….so.2.3.4)
+            if let name = _CFBundleCopyExecutablePath(_bundle)?._nsObject {
+                return name.hasPrefix("lib") && (name.pathExtension == "so" || name.range(of: ".so.").location != NSNotFound)
+            }
+        
+            #endif
+        
+        return false
+        #endif
+    }
+    
+    open class var allBundles: [Bundle] {
+        return allBundlesRegardlessOfType.filter { !$0.isFramework }
+    }
+    
+    open class var allFrameworks: [Bundle] {
+        return allBundlesRegardlessOfType.filter { $0.isFramework }
+    }
     
     internal init(cfBundle: CFBundle) {
         super.init()
