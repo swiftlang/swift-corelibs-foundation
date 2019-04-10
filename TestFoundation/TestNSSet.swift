@@ -35,6 +35,19 @@ class TestNSSet : XCTestCase {
         let set2 = NSSet(array: ["foo", "bar"])
         XCTAssertEqual(set.count, 0)
         XCTAssertEqual(set2.count, 2)
+
+        let set3 = NSMutableSet(capacity: 3)
+        set3.add(1)
+        set3.add("foo")
+        let set4 = NSSet(set: set3)
+        XCTAssertEqual(set3, set4)
+        set3.remove(1)
+        XCTAssertNotEqual(set3, set4)
+
+        let set5 = NSMutableSet(set: set3)
+        XCTAssertEqual(set5, set3)
+        set5.add(2)
+        XCTAssertNotEqual(set5, set3)
     }
 
     func testInitWithSet() {

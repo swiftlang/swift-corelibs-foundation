@@ -49,7 +49,43 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
             _storage.insert(__SwiftValue.store(obj))
         }
     }
-    
+
+    public convenience init(array: [Any]) {
+        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
+        for (idx, element) in array.enumerated() {
+            buffer.advanced(by: idx).initialize(to: __SwiftValue.store(element))
+        }
+        self.init(objects: buffer, count: array.count)
+        buffer.deinitialize(count: array.count)
+        buffer.deallocate()
+    }
+
+    public convenience init(set: Set<AnyHashable>) {
+        self.init(set: set, copyItems: false)
+    }
+
+    public convenience init(set anSet: NSSet) {
+        self.init(array: anSet.allObjects)
+    }
+
+    public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
+        if flag {
+            self.init(array: set.map {
+                if let item = $0 as? NSObject {
+                    return item.copy()
+                } else {
+                    return $0
+                }
+            })
+        } else {
+            self.init(array: Array(set))
+        }
+    }
+
+    public convenience init(object: Any) {
+        self.init(array: [object])
+    }
+
     public required convenience init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -167,44 +203,6 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         return self.count
     }
 
-    public convenience init(array: [Any]) {
-        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
-        for (idx, element) in array.enumerated() {
-            buffer.advanced(by: idx).initialize(to: __SwiftValue.store(element))
-        }
-        self.init(objects: buffer, count: array.count)
-        buffer.deinitialize(count: array.count)
-        buffer.deallocate()
-    }
-
-    public convenience init(set: Set<AnyHashable>) {
-        self.init(set: set, copyItems: false)
-    }
-
-    public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
-        if flag {
-            self.init(array: set.map {
-                if let item = $0 as? NSObject {
-                    return item.copy()
-                } else {
-                    return $0
-                }
-            })
-        } else {
-            self.init(array: Array(set))
-        }
-    }
-}
-
-extension NSSet {
-    
-    public convenience init(object: Any) {
-        self.init(array: [object])
-    }
-}
-
-extension NSSet {
-    
     open var allObjects: [Any] {
         if type(of: self) === NSSet.self || type(of: self) === NSMutableSet.self {
             return _storage.map { __SwiftValue.fetch(nonOptional: $0) }
@@ -346,8 +344,10 @@ extension NSSet : Sequence {
     }
 }
 
-extension NSSet : CustomReflectable {
-    public var customMirror: Mirror { NSUnimplemented() }
+extension NSSet: CustomReflectable {
+    public var customMirror: Mirror {
+        return Mirror(reflecting: self._storage)
+    }
 }
 
 open class NSMutableSet : NSSet {
