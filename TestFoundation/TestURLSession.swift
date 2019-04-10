@@ -48,6 +48,9 @@ class TestURLSession : LoopbackServerTest {
             ("test_redirectionWithSetCookies", test_redirectionWithSetCookies),
             ("test_postWithEmptyBody", test_postWithEmptyBody),
             ("test_basicAuthWithUnauthorizedHeader", test_basicAuthWithUnauthorizedHeader),
+            ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
+            ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
+            ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
         ]
     }
     
@@ -773,6 +776,62 @@ class TestURLSession : LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 12, handler: nil)
     }
+
+    func test_checkErrorTypeAfterInvalidateAndCancel() {
+        let urlString = "https://developer.apple.com"
+        let expect = expectation(description: "Check error code of tasks after invalidateAndCancel")
+        let delegate = SessionDelegate()
+        let url = URL(string: urlString)!
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: url) { (_, _, error) in
+            XCTAssertNotNil(error as? URLError)
+            if let urlError = error as? URLError {
+                XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
+            }
+            
+            expect.fulfill()
+        }
+        task.resume()
+        session.invalidateAndCancel()
+        waitForExpectations(timeout: 5)
+    }
+    
+    func test_taskCountAfterInvalidateAndCancel() {
+        let expect = expectation(description: "Check task count after invalidateAndCancel")
+        
+        let session = URLSession(configuration: .default)
+        let task1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
+        let task2 = session.dataTask(with: URL(string: "https://developer.apple.com")!)
+        let task3 = session.dataTask(with: URL(string: "https://developer.apple.com/swift")!)
+        
+        task1.resume()
+        task2.resume()
+        session.invalidateAndCancel()
+        sleep(1)
+        
+        session.getAllTasks { tasksBeforeResume in
+            XCTAssertEqual(tasksBeforeResume.count, 0)
+            
+            // Resume a task after invalidating a session shouldn't change the task's status
+            task3.resume()
+            
+            session.getAllTasks { tasksAfterResume in
+                XCTAssertEqual(tasksAfterResume.count, 0)
+                expect.fulfill()
+            }
+        }
+        
+        waitForExpectations(timeout: 5)
+    }
+
+    func test_sessionDelegateAfterInvalidateAndCancel() {
+        let delegate = SessionDelegate()
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        session.invalidateAndCancel()
+        sleep(2)
+        XCTAssertNil(session.delegate)
+    }
+
 }
 
 class SharedDelegate: NSObject {
@@ -792,12 +851,16 @@ extension SharedDelegate: URLSessionDownloadDelegate {
 
 
 class SessionDelegate: NSObject, URLSessionDelegate {
-    let invalidateExpectation: XCTestExpectation
-    init(invalidateExpectation: XCTestExpectation){
+    let invalidateExpectation: XCTestExpectation?
+    override init() {
+        invalidateExpectation = nil
+        super.init()
+    }
+    init(invalidateExpectation: XCTestExpectation) {
         self.invalidateExpectation = invalidateExpectation
     }
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
-        invalidateExpectation.fulfill()
+        invalidateExpectation?.fulfill()
     }
 }
 
