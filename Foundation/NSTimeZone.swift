@@ -216,11 +216,7 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 
     open class var timeZoneDataVersion: String {
-        #if os(Windows)
-            return "" // We do not source timezone data from ICU. The empty string is what Darwin would return if ICU isn't able to give a time zone data version.
-        #else
-            return __CFTimeZoneCopyDataVersionString()._swiftObject
-        #endif
+        return __CFTimeZoneCopyDataVersionString()._swiftObject
     }
 
     open var secondsFromGMT: Int {
