@@ -585,7 +585,7 @@ class TestNSString: LoopbackServerTest {
     
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
-        let mCopy = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, 0, unsafeBitCast(nsstring, to: CFString.self))
+        let mCopy = CFStringCreateMutableCopy(nil, 0, unsafeBitCast(nsstring, to: CFString.self))
         let str = unsafeBitCast(mCopy, to: NSString.self)
         XCTAssertEqual(nsstring, str)
     }
@@ -1194,30 +1194,30 @@ class TestNSString: LoopbackServerTest {
         
         do {
             let string = unsafeBitCast(NSString(string: "this is an external string that should be representable by data"), to: CFString.self)
-            let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
+            let UTF8Data = CFStringCreateExternalRepresentation(nil, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 63, "NSString should successfully produce an external UTF8 representation with a length of 63 but got \(UTF8Length) bytes")
             
-            let UTF16Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF16Encoding, 0)
+            let UTF16Data = CFStringCreateExternalRepresentation(nil, string, UTF16Encoding, 0)
             let UTF16Length = CFDataGetLength(UTF16Data)
             XCTAssertEqual(UTF16Length, 128, "NSString should successfully produce an external UTF16 representation with a length of 128 but got \(UTF16Length) bytes")
             
-            let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
+            let ISOLatin1Data = CFStringCreateExternalRepresentation(nil, string, ISOLatin1Encoding, 0)
             let ISOLatin1Length = CFDataGetLength(ISOLatin1Data)
             XCTAssertEqual(ISOLatin1Length, 63, "NSString should successfully produce an external ISOLatin1 representation with a length of 63 but got \(ISOLatin1Length) bytes")
         }
         
         do {
             let string = unsafeBitCast(NSString(string: "🐢 encoding all the way down. 🐢🐢🐢"), to: CFString.self)
-            let UTF8Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF8Encoding, 0)
+            let UTF8Data = CFStringCreateExternalRepresentation(nil, string, UTF8Encoding, 0)
             let UTF8Length = CFDataGetLength(UTF8Data)
             XCTAssertEqual(UTF8Length, 44, "NSString should successfully produce an external UTF8 representation with a length of 44 but got \(UTF8Length) bytes")
             
-            let UTF16Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, UTF16Encoding, 0)
+            let UTF16Data = CFStringCreateExternalRepresentation(nil, string, UTF16Encoding, 0)
             let UTF16Length = CFDataGetLength(UTF16Data)
             XCTAssertEqual(UTF16Length, 74, "NSString should successfully produce an external UTF16 representation with a length of 74 but got \(UTF16Length) bytes")
             
-            let ISOLatin1Data = CFStringCreateExternalRepresentation(kCFAllocatorDefault, string, ISOLatin1Encoding, 0)
+            let ISOLatin1Data = CFStringCreateExternalRepresentation(nil, string, ISOLatin1Encoding, 0)
             XCTAssertNil(ISOLatin1Data)
         }
     }
