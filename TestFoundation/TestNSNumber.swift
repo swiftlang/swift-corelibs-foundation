@@ -865,7 +865,11 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(nanFloat.int32Value, 0)
         XCTAssertEqual(nanFloat.uint32Value, 0)
         XCTAssertEqual(nanFloat.int64Value, Int64(bitPattern: 1 << 63))
+#if arch(powerpc64le)
+        XCTAssertEqual(nanFloat.uint64Value, UInt64(bitPattern: 1 << 63 | 1 << 31))
+#else
         XCTAssertEqual(nanFloat.uint64Value, UInt64(bitPattern: 1 << 63))
+#endif
     }
     
     func test_numberWithDouble() {
@@ -910,8 +914,11 @@ class TestNSNumber : XCTestCase {
         XCTAssertEqual(nanDouble.int32Value, 0)
         XCTAssertEqual(nanDouble.uint32Value, 0)
         XCTAssertEqual(nanDouble.int64Value, Int64(bitPattern: 1 << 63))
+#if arch(powerpc64le)
+        XCTAssertEqual(nanDouble.uint64Value, UInt64(bitPattern: 1 << 63 | 1 << 31))
+#else
         XCTAssertEqual(nanDouble.uint64Value, UInt64(bitPattern: 1 << 63))
-
+#endif
     }
 
     func test_compareNumberWithBool() {
