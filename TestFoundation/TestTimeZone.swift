@@ -10,33 +10,19 @@
 import CoreFoundation
 
 class TestTimeZone: XCTestCase {
-
-    static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
-        var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
-            ("test_abbreviation", test_abbreviation),
-
-            // Disabled because `CFTimeZoneSetAbbreviationDictionary()` attempts
-            // to release non-CF objects while removing values from
-            // `__CFTimeZoneCache`
-            // ("test_abbreviationDictionary", test_abbreviationDictionary),
-
-            ("test_changingDefaultTimeZone", test_changingDefaultTimeZone),
-            ("test_computedPropertiesMatchMethodReturnValues", test_computedPropertiesMatchMethodReturnValues),
-            ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
-            ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
-            ("test_localizedName", test_localizedName),
-            ("test_customMirror", test_tz_customMirror),
-            ("test_knownTimeZones", test_knownTimeZones),
-            ("test_systemTimeZoneName", test_systemTimeZoneName),
-        ]
-
-#if !os(Windows)
-      tests.append(contentsOf: [
-            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
-      ])
-#endif
-
-        return tests
+    
+    var initialDefaultTimeZone: TimeZone?
+    
+    override func setUp() {
+        initialDefaultTimeZone = NSTimeZone.default
+        super.setUp()
+    }
+    
+    override func tearDown() {
+        super.tearDown()
+        if let tz = initialDefaultTimeZone {
+            NSTimeZone.default = tz
+        }
     }
 
     func test_abbreviation() {
@@ -219,5 +205,57 @@ class TestTimeZone: XCTestCase {
 
         XCTAssertEqual(CFStringGetLength(timeZoneName), TimeZone.current.identifier.count)
         XCTAssertEqual(CFStringGetLength(timeZoneName), createdTimeZone.identifier.count)
+    }
+    
+    func test_autoupdatingTimeZone() {
+        let system = NSTimeZone.system
+        let date = Date()
+        
+        for zone in [NSTimeZone.local, TimeZone.autoupdatingCurrent] {
+            XCTAssertEqual(zone.identifier, system.identifier)
+            XCTAssertEqual(zone.secondsFromGMT(for: date), system.secondsFromGMT(for: date))
+            XCTAssertEqual(zone.abbreviation(for: date), system.abbreviation(for: date))
+            XCTAssertEqual(zone.isDaylightSavingTime(for: date), system.isDaylightSavingTime(for: date))
+            XCTAssertEqual(zone.daylightSavingTimeOffset(for: date), system.daylightSavingTimeOffset(for: date))
+            XCTAssertEqual(zone.nextDaylightSavingTimeTransition(after: date), system.nextDaylightSavingTimeTransition(after: date))
+            
+            for style in [NSTimeZone.NameStyle.standard,
+                          NSTimeZone.NameStyle.shortStandard,
+                          NSTimeZone.NameStyle.daylightSaving,
+                          NSTimeZone.NameStyle.shortDaylightSaving,
+                          NSTimeZone.NameStyle.generic,
+                          NSTimeZone.NameStyle.shortGeneric,] {
+                XCTAssertEqual(zone.localizedName(for: style, locale: NSLocale.system), system.localizedName(for: style, locale: NSLocale.system), "For style: \(style)")
+            }
+        }
+    }
+    
+    static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
+        var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
+            ("test_abbreviation", test_abbreviation),
+            
+            // Disabled because `CFTimeZoneSetAbbreviationDictionary()` attempts
+            // to release non-CF objects while removing values from
+            // `__CFTimeZoneCache`
+            // ("test_abbreviationDictionary", test_abbreviationDictionary),
+            
+            ("test_changingDefaultTimeZone", test_changingDefaultTimeZone),
+            ("test_computedPropertiesMatchMethodReturnValues", test_computedPropertiesMatchMethodReturnValues),
+            ("test_initializingTimeZoneWithOffset", test_initializingTimeZoneWithOffset),
+            ("test_initializingTimeZoneWithAbbreviation", test_initializingTimeZoneWithAbbreviation),
+            ("test_localizedName", test_localizedName),
+            ("test_customMirror", test_tz_customMirror),
+            ("test_knownTimeZones", test_knownTimeZones),
+            ("test_systemTimeZoneName", test_systemTimeZoneName),
+            ("test_autoupdatingTimeZone", test_autoupdatingTimeZone),
+        ]
+        
+        #if !os(Windows)
+        tests.append(contentsOf: [
+            ("test_systemTimeZoneUsesSystemTime", test_systemTimeZoneUsesSystemTime),
+            ])
+        #endif
+        
+        return tests
     }
 }
