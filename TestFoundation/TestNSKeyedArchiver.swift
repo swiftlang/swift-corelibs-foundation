@@ -125,6 +125,15 @@ class TestNSKeyedArchiver : XCTestCase {
         
         let unarchiver1 = NSKeyedUnarchiver(forReadingWith: archivedData)
         XCTAssertTrue(decode(unarchiver1))
+        
+        // Archiving using the secure initializer
+        let archiver2 = NSKeyedArchiver(requiringSecureCoding: true)
+        
+        XCTAssertTrue(encode(archiver2))
+        let archivedData2 = archiver2.encodedData
+        
+        let unarchiver2 = NSKeyedUnarchiver(forReadingWith: archivedData2)
+        XCTAssertTrue(decode(unarchiver2))
     }
 
     private func test_archive(_ object: Any, classes: [AnyClass], allowsSecureCoding: Bool = true, outputFormat: PropertyListSerialization.PropertyListFormat) {

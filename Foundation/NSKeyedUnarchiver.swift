@@ -57,11 +57,11 @@ open class NSKeyedUnarchiver : NSCoder {
         return _error
     }
     
-    static func unarchivedObject<DecodedObjectType>(ofClass cls: DecodedObjectType.Type, from data: Data) throws -> DecodedObjectType? where DecodedObjectType : NSObject, DecodedObjectType : NSCoding {
+    static public func unarchivedObject<DecodedObjectType>(ofClass cls: DecodedObjectType.Type, from data: Data) throws -> DecodedObjectType? where DecodedObjectType : NSObject, DecodedObjectType : NSCoding {
         return try unarchivedObject(ofClasses: [cls], from: data) as? DecodedObjectType
     }
     
-    static func unarchivedObject(ofClasses classes: [AnyClass], from data: Data) throws -> Any? {
+    static public func unarchivedObject(ofClasses classes: [AnyClass], from data: Data) throws -> Any? {
         let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
         unarchiver.requiresSecureCoding = true
         unarchiver.decodingFailurePolicy = .setErrorAndReturn
@@ -866,12 +866,8 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     open override var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
-        get {
-            return .setErrorAndReturn
-        }
-        set {
-            NSUnimplemented();
-        }
+        get { return .setErrorAndReturn }
+        set {}
     }
 
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
