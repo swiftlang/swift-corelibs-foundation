@@ -4,8 +4,11 @@
 .DS_Store
 
 # Xcode user artifacts
-xcuserdata
+xcuserdata/
 project.xcworkspace
+
+# AppCode artifacts
+.idea/
 
 # python generated files
 *.pyc
