@@ -143,8 +143,8 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
     public func contains(_ date: Date) -> Bool {
         let timeIntervalForGivenDate = abs(date.timeIntervalSinceReferenceDate)
         let timeIntervalForSelfStart = abs(start.timeIntervalSinceReferenceDate)
-        let timeIntervalforSelfEnd = abs(end.timeIntervalSinceReferenceDate)
-        if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalforSelfEnd) {
+        let timeIntervalForSelfEnd = abs(end.timeIntervalSinceReferenceDate)
+        if (timeIntervalForGivenDate >= timeIntervalForSelfStart) && (timeIntervalForGivenDate <= timeIntervalForSelfEnd) {
             return true
         }
         return false

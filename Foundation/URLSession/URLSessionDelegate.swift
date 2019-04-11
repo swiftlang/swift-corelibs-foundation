@@ -246,7 +246,7 @@ extension URLSessionDownloadDelegate {
 
 public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
     
-    /* Indiciates that the read side of a connection has been closed.  Any
+    /* Indicates that the read side of a connection has been closed.  Any
      * outstanding reads complete, but future reads will immediately fail.
      * This may be sent even when no reads are in progress. However, when
      * this delegate message is received, there may still be bytes
@@ -254,7 +254,7 @@ public protocol URLSessionStreamDelegate : URLSessionTaskDelegate {
      * are able to read until EOF. */
      func urlSession(_ session: URLSession, readClosedFor streamTask: URLSessionStreamTask)
     
-    /* Indiciates that the write side of a connection has been closed.
+    /* Indicates that the write side of a connection has been closed.
      * Any outstanding writes complete, but future writes will immediately
      * fail.
      */

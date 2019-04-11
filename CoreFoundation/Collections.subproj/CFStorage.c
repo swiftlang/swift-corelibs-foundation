@@ -132,7 +132,7 @@ CF_INLINE void __CFStorageAllocLeafNodeMemory(CFAllocatorRef allocator, CFStorag
     /* We must be careful here, because another thread may be trying to allocate this memory at the same time (8203146).  This may happen if two threads both attempt to read from a lazily-allocated node. */
     if ((compact ? (cap != node->info.leaf.capacityInBytes) : (cap > node->info.leaf.capacityInBytes))) {
 	__CFLock(&(storage->cacheReaderMemoryAllocationLock));
-	/* Check again now that we've acquired the lock.  We know that we can do this because two simulaneous readers will always pass the same capacity.  This is the fix for 8203146.  This probably needs a memory barrier. */
+	/* Check again now that we've acquired the lock.  We know that we can do this because two simultaneous readers will always pass the same capacity.  This is the fix for 8203146.  This probably needs a memory barrier. */
 	if ((compact ? (cap != node->info.leaf.capacityInBytes) : (cap > node->info.leaf.capacityInBytes))) {
 	    *((void **)&node->info.leaf.memory) = __CFSafelyReallocateWithAllocator(allocator, node->info.leaf.memory, cap, 0, NULL);	// This will free...
 	    if (__CFOASafe) __CFSetLastAllocationEventName(node->info.leaf.memory, "CFStorage (node bytes)");
@@ -1257,7 +1257,7 @@ void CFStorageDeleteValues(CFStorageRef storage, CFRange range) {
 	/* No need to replace any children, nothing to do for this case */
     }
     else {
-	/* Got a legitimately new root back.  If it is unfrozen, we can just acquire its guts.  If it is frozen, we have more work to do.  Note that we do not have to worry about releasing any existing children of the root, beacuse __CFStorageDeleteUnfrozen already did that.  Also note that if we got a legitimately new root back, we must be a branch node, because if we were a leaf node, we would have been unfrozen and gotten ourself back. */
+	/* Got a legitimately new root back.  If it is unfrozen, we can just acquire its guts.  If it is frozen, we have more work to do.  Note that we do not have to worry about releasing any existing children of the root, because __CFStorageDeleteUnfrozen already did that.  Also note that if we got a legitimately new root back, we must be a branch node, because if we were a leaf node, we would have been unfrozen and gotten ourself back. */
 	storage->rootNode.numBytes = newRoot->numBytes;
 	storage->rootNode.isLeaf = newRoot->isLeaf;
 	bzero(&storage->rootNode.info, sizeof storage->rootNode.info); //be a little paranoid here

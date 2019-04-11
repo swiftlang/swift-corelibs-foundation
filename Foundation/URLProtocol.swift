@@ -23,7 +23,7 @@ import Dispatch
     data.
     
     <p>The URLProtocolClient describes the integration points a
-    protocol implemention can use to hook into the URL loading system.
+    protocol implementation can use to hook into the URL loading system.
     URLProtocolClient describes the methods a protocol implementation
     needs to drive the URL loading system from a URLProtocol subclass.
     
@@ -259,7 +259,7 @@ open class URLProtocol : NSObject {
     /*!
         @method requestIsCacheEquivalent:toRequest:
         @abstract Compares two requests for equivalence with regard to caching.
-        @discussion Requests are considered euqivalent for cache purposes
+        @discussion Requests are considered equivalent for cache purposes
         if and only if they would be handled by the same protocol AND that
         protocol declares them equivalent after performing 
         implementation-specific checks.

@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-// Most imports now centraized in TestImports.swift
+// Most imports now centralized in TestImports.swift
 
 #if canImport(Darwin)
     import Darwin

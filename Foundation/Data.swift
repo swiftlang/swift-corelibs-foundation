@@ -149,7 +149,7 @@ internal final class __DataStorage {
     @inlinable // This is inlinable as trivially computable.
     var isExternallyOwned: Bool {
         // all __DataStorages will have some sort of capacity, because empty cases hit the .empty enum _Representation
-        // anything with 0 capacity means that we have not allocated this pointer and concequently mutation is not ours to make.
+        // anything with 0 capacity means that we have not allocated this pointer and consequently mutation is not ours to make.
         return _capacity == 0
     }
     
@@ -381,7 +381,7 @@ internal final class __DataStorage {
         setLength(length)
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(capacity capacity_: Int = 0) {
         var capacity = capacity_
         precondition(capacity < __DataStorage.maxSize)
@@ -395,7 +395,7 @@ internal final class __DataStorage {
         _offset = 0
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(bytes: UnsafeRawPointer?, length: Int) {
         precondition(length < __DataStorage.maxSize)
         _offset = 0
@@ -423,7 +423,7 @@ internal final class __DataStorage {
         }
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(bytes: UnsafeMutableRawPointer?, length: Int, copy: Bool, deallocator: ((UnsafeMutableRawPointer, Int) -> Void)?, offset: Int) {
         precondition(length < __DataStorage.maxSize)
         _offset = offset
@@ -467,7 +467,7 @@ internal final class __DataStorage {
         }
     }
 
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(immutableReference: NSData, offset: Int) {
         _offset = offset
         _bytes = UnsafeMutableRawPointer(mutating: immutableReference.bytes)
@@ -479,7 +479,7 @@ internal final class __DataStorage {
         }
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(mutableReference: NSMutableData, offset: Int) {
         _offset = offset
         _bytes = mutableReference.mutableBytes
@@ -491,7 +491,7 @@ internal final class __DataStorage {
         }
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(customReference: NSData, offset: Int) {
         _offset = offset
         _bytes = UnsafeMutableRawPointer(mutating: customReference.bytes)
@@ -503,7 +503,7 @@ internal final class __DataStorage {
         }
     }
     
-    @usableFromInline // This is not @inlinable as a non-convience initializer.
+    @usableFromInline // This is not @inlinable as a non-convenience initializer.
     init(customMutableReference: NSMutableData, offset: Int) {
         _offset = offset
         _bytes = customMutableReference.mutableBytes

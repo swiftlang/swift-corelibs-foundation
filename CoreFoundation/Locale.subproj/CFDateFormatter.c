@@ -623,7 +623,7 @@ static void __ResetUDateFormat(CFDateFormatterRef df, Boolean goingToHaveCustomF
     }
     
     // <rdar://problem/15420462> "Yesterday" and "Today" now appear in lower case
-    // ICU uses middle of sentence context for relative days by default. We need to have relative dates to be captalized by default for backward compatibility
+    // ICU uses middle of sentence context for relative days by default. We need to have relative dates to be capitalized by default for backward compatibility
     if (wantRelative) {
         __cficu_udat_setContext(icudf, UDISPCTX_CAPITALIZATION_FOR_UI_LIST_OR_MENU, &status);
     }
@@ -1576,7 +1576,7 @@ static Boolean __CFDateFormatterHandleAmbiguousYear(CFDateFormatterRef formatter
         CFNumberGetValue(formatter->_property._AmbiguousYearStrategy, kCFNumberSInt64Type, &ambigStrat);
     }
     if (calendar_id == kCFCalendarIdentifierChinese) {
-        // we default to era 1 if era is missing, however, we cannot just test if the era is 1 becuase we may get era 2 or larger if the year in the string is greater than 60
+        // we default to era 1 if era is missing, however, we cannot just test if the era is 1 because we may get era 2 or larger if the year in the string is greater than 60
         // now I just assume that the year will not be greater than 600 in the string
         if (__cficu_ucal_get(cal, UCAL_ERA, status) < 10) {
             switch (ambigStrat) {

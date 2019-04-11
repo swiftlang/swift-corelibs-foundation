@@ -261,7 +261,7 @@ open class Bundle: NSObject {
     }
     
     open class func paths(forResourcesOfType ext: String?, inDirectory bundlePath: String) -> [String] {
-        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        // Force-unwrap path, because if the URL can't be turned into a path then something is wrong anyway
         return urls(forResourcesWithExtension: ext, subdirectory: bundlePath, in: NSURL(fileURLWithPath: bundlePath))?.map { $0.path! } ?? []
     }
     
@@ -281,12 +281,12 @@ open class Bundle: NSObject {
     }
     
     open func paths(forResourcesOfType ext: String?, inDirectory subpath: String?) -> [String] {
-        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        // Force-unwrap path, because if the URL can't be turned into a path then something is wrong anyway
         return self.urls(forResourcesWithExtension: ext, subdirectory: subpath)?.map { $0.path! } ?? []
     }
     
     open func paths(forResourcesOfType ext: String?, inDirectory subpath: String?, forLocalization localizationName: String?) -> [String] {
-        // Force-unwrap path, beacuse if the URL can't be turned into a path then something is wrong anyway
+        // Force-unwrap path, because if the URL can't be turned into a path then something is wrong anyway
         return self.urls(forResourcesWithExtension: ext, subdirectory: subpath, localization: localizationName)?.map { $0.path! } ?? []
     }
     

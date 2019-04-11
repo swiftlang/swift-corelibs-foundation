@@ -41,7 +41,7 @@ public struct CGFloat {
         self.native = value.native
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -51,7 +51,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -61,7 +61,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -71,7 +71,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -81,7 +81,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -91,7 +91,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -101,7 +101,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -111,7 +111,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -121,7 +121,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.
@@ -131,7 +131,7 @@ public struct CGFloat {
         self.native = NativeType(value)
     }
     
-    /// Creates a new value, rounded to the closest possible representatation.
+    /// Creates a new value, rounded to the closest possible representation.
     ///
     /// If two representable values are equally close, the result is the value
     /// with more trailing zeros in its significand bit pattern.

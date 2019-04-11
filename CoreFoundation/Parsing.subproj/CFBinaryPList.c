@@ -727,7 +727,7 @@ CF_INLINE uint64_t _getSizedInt(const uint8_t *data, uint8_t valSize) {
         return CFSwapInt64BigToHost(val);
     }
 #endif
-    // Compatability with existing archives, including anything with a non-power-of-2 
+    // Compatibility with existing archives, including anything with a non-power-of-2 
     // size and 16-byte values, and architectures that don't support unaligned access
     uint64_t res = 0;
     for (CFIndex idx = 0; idx < valSize; idx++) {

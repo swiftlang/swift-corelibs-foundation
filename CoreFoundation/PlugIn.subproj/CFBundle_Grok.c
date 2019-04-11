@@ -242,7 +242,7 @@ static CFDictionaryRef _CFBundleCreateInfoDictFromFile(int fd, const void *bytes
     const char *loc;
     unsigned i, j;
     CFDictionaryRef result = NULL;
-    Boolean foundit = false;
+    Boolean foundIt = false;
     if (fd >= 0 && fstat(fd, &statBuf) == 0 && (maploc = mmap(0, statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) != (void *)-1) {
         loc = maploc;
         fileLength = statBuf.st_size;
@@ -258,11 +258,11 @@ static CFDictionaryRef _CFBundleCreateInfoDictFromFile(int fd, const void *bytes
             const char *endofcmds = startofcmds + sizeofcmds;
             struct segment_command_64 *sgp = (struct segment_command_64 *)startofcmds;
             if (endofcmds > loc + fileLength) endofcmds = loc + fileLength;
-            for (i = 0; !foundit && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
+            for (i = 0; !foundIt && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
                 if (LC_SEGMENT_64 == _CFBundleSwapInt32Conditional(sgp->cmd, swapped)) {
                     struct section_64 *sp = (struct section_64 *)((char *)sgp + sizeof(struct segment_command_64));
                     uint32_t nsects = _CFBundleSwapInt32Conditional(sgp->nsects, swapped);
-                    for (j = 0; !foundit && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
+                    for (j = 0; !foundIt && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
                         if (0 == strncmp(sp->sectname, PLIST_SECTION, sizeof(sp->sectname)) && 0 == strncmp(sp->segname, TEXT_SEGMENT, sizeof(sp->segname))) {
                             uint64_t sectlength64 = _CFBundleSwapInt64Conditional(sp->size, swapped);
                             uint32_t sectlength = (uint32_t)(sectlength64 & 0xffffffff);
@@ -270,7 +270,7 @@ static CFDictionaryRef _CFBundleCreateInfoDictFromFile(int fd, const void *bytes
                             const char *sectbytes = loc + offset + sectoffset;
                             // we don't support huge-sized plists
                             if (sectlength64 <= 0xffffffff && loc <= sectbytes && sectbytes + sectlength <= loc + fileLength) result = (CFDictionaryRef)_CFBundleCreateInfoDictFromData(sectbytes, sectlength);
-                            foundit = true;
+                            foundIt = true;
                         }
                         sp = (struct section_64 *)((char *)sp + sizeof(struct section_64));
                     }
@@ -284,17 +284,17 @@ static CFDictionaryRef _CFBundleCreateInfoDictFromFile(int fd, const void *bytes
             const char *endofcmds = startofcmds + sizeofcmds;
             struct segment_command *sgp = (struct segment_command *)startofcmds;
             if (endofcmds > loc + fileLength) endofcmds = loc + fileLength;
-            for (i = 0; !foundit && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
+            for (i = 0; !foundIt && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
                 if (LC_SEGMENT == _CFBundleSwapInt32Conditional(sgp->cmd, swapped)) {
                     struct section *sp = (struct section *)((char *)sgp + sizeof(struct segment_command));
                     uint32_t nsects = _CFBundleSwapInt32Conditional(sgp->nsects, swapped);
-                    for (j = 0; !foundit && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
+                    for (j = 0; !foundIt && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
                         if (0 == strncmp(sp->sectname, PLIST_SECTION, sizeof(sp->sectname)) && 0 == strncmp(sp->segname, TEXT_SEGMENT, sizeof(sp->segname))) {
                             uint32_t sectlength = _CFBundleSwapInt32Conditional(sp->size, swapped);
                             uint32_t sectoffset = _CFBundleSwapInt32Conditional(sp->offset, swapped);
                             const char *sectbytes = loc + offset + sectoffset;
                             if (loc <= sectbytes && sectbytes + sectlength <= loc + fileLength) result = (CFDictionaryRef)_CFBundleCreateInfoDictFromData(sectbytes, sectlength);
-                            foundit = true;
+                            foundIt = true;
                         }
                         sp = (struct section *)((char *)sp + sizeof(struct section));
                     }
@@ -313,7 +313,7 @@ static void _CFBundleGrokObjcImageInfoFromFile(int fd, const void *bytes, CFInde
     char sectbuffer[8];
     const char *loc = NULL;
     unsigned i, j;
-    Boolean foundit = false, localHasObjc = false;
+    Boolean foundIt = false, localHasObjc = false;
     
     if (fd >= 0 && lseek(fd, offset, SEEK_SET) == (off_t)offset) {
         buffer = malloc(IMAGE_INFO_BYTES_TO_READ);
@@ -329,17 +329,17 @@ static void _CFBundleGrokObjcImageInfoFromFile(int fd, const void *bytes, CFInde
             const char *endofcmds = startofcmds + sizeofcmds;
             struct segment_command_64 *sgp = (struct segment_command_64 *)startofcmds;
             if (endofcmds > loc + IMAGE_INFO_BYTES_TO_READ) endofcmds = loc + IMAGE_INFO_BYTES_TO_READ;
-            for (i = 0; !foundit && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
+            for (i = 0; !foundIt && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
                 if (LC_SEGMENT_64 == _CFBundleSwapInt32Conditional(sgp->cmd, swapped)) {
                     struct section_64 *sp = (struct section_64 *)((char *)sgp + sizeof(struct segment_command_64));
                     uint32_t nsects = _CFBundleSwapInt32Conditional(sgp->nsects, swapped);
-                    for (j = 0; !foundit && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
+                    for (j = 0; !foundIt && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
                         if (0 == strncmp(sp->segname, OBJC_SEGMENT_64, sizeof(sp->segname))) localHasObjc = true;
                         if (0 == strncmp(sp->sectname, IMAGE_INFO_SECTION_64, sizeof(sp->sectname)) && 0 == strncmp(sp->segname, OBJC_SEGMENT_64, sizeof(sp->segname))) {
                             uint64_t sectlength64 = _CFBundleSwapInt64Conditional(sp->size, swapped);
                             sectlength = (uint32_t)(sectlength64 & 0xffffffff);
                             sectoffset = _CFBundleSwapInt32Conditional(sp->offset, swapped);
-                            foundit = true;
+                            foundIt = true;
                         }
                         sp = (struct section_64 *)((char *)sp + sizeof(struct section_64));
                     }
@@ -353,16 +353,16 @@ static void _CFBundleGrokObjcImageInfoFromFile(int fd, const void *bytes, CFInde
             const char *endofcmds = startofcmds + sizeofcmds;
             struct segment_command *sgp = (struct segment_command *)startofcmds;
             if (endofcmds > loc + IMAGE_INFO_BYTES_TO_READ) endofcmds = loc + IMAGE_INFO_BYTES_TO_READ;
-            for (i = 0; !foundit && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
+            for (i = 0; !foundIt && i < ncmds && startofcmds <= (char *)sgp && (char *)sgp < endofcmds; i++) {
                 if (LC_SEGMENT == _CFBundleSwapInt32Conditional(sgp->cmd, swapped)) {
                     struct section *sp = (struct section *)((char *)sgp + sizeof(struct segment_command));
                     uint32_t nsects = _CFBundleSwapInt32Conditional(sgp->nsects, swapped);
-                    for (j = 0; !foundit && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
+                    for (j = 0; !foundIt && j < nsects && startofcmds <= (char *)sp && (char *)sp < endofcmds; j++) {
                         if (0 == strncmp(sp->segname, OBJC_SEGMENT, sizeof(sp->segname))) localHasObjc = true;
                         if (0 == strncmp(sp->sectname, IMAGE_INFO_SECTION, sizeof(sp->sectname)) && 0 == strncmp(sp->segname, OBJC_SEGMENT, sizeof(sp->segname))) {
                             sectlength = _CFBundleSwapInt32Conditional(sp->size, swapped);
                             sectoffset = _CFBundleSwapInt32Conditional(sp->offset, swapped);
-                            foundit = true;
+                            foundIt = true;
                         }
                         sp = (struct section *)((char *)sp + sizeof(struct section));
                     }
@@ -670,16 +670,16 @@ static const char *_CFBundleGrokFileTypeForOLEFile(int fd, const void *bytes, CF
         moreBytes = (char *)bytes + offset;
     }
     if (moreBytes) {
-        Boolean foundit = false;
+        Boolean foundIt = false;
         unsigned i;
-        for (i = 0; !foundit && i < 4; i++) {
+        for (i = 0; !foundIt && i < 4; i++) {
             char namelength = moreBytes[128 * i + 64] / 2;
-            foundit = true;
+            foundIt = true;
             if (sizeof(XLS_NAME) == namelength && _CFBundleCheckOLEName(XLS_NAME, moreBytes + 128 * i, namelength - 1)) ext = "xls";
             else if (sizeof(XLS_NAME2) == namelength && _CFBundleCheckOLEName(XLS_NAME2, moreBytes + 128 * i, namelength - 1)) ext = "xls";
             else if (sizeof(DOC_NAME) == namelength && _CFBundleCheckOLEName(DOC_NAME, moreBytes + 128 * i, namelength - 1)) ext = "doc";
             else if (sizeof(PPT_NAME) == namelength && _CFBundleCheckOLEName(PPT_NAME, moreBytes + 128 * i, namelength - 1)) ext = "ppt";
-            else foundit = false;
+            else foundIt = false;
         }
     }
     if (buffer) free(buffer);

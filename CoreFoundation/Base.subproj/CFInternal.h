@@ -938,7 +938,7 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 
 #if 0
 #pragma mark -
-#pragma mark Windows Compatability
+#pragma mark Windows Compatibility
 #endif
 
 // Need to use the _O_BINARY flag on Windows to get the correct behavior

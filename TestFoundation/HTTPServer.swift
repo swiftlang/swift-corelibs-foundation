@@ -216,7 +216,7 @@ class _HTTPServer {
             || (request.getHeader(for: "Transfer-Encoding") ?? "").lowercased() == "chunked" {
             
             // According to RFC7230 https://tools.ietf.org/html/rfc7230#section-3
-            // We receive messageBody after the headers, so we need read from socket minimun 2 times
+            // We receive messageBody after the headers, so we need read from socket minimum 2 times
             //
             // HTTP-message structure
             //

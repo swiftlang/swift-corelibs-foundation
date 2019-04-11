@@ -180,7 +180,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
     override func completionAction(forCompletedRequest request: URLRequest, response: URLResponse) -> _CompletionAction {
         // Redirect:
         guard let httpURLResponse = response as? HTTPURLResponse else {
-            fatalError("Reponse was not HTTPURLResponse")
+            fatalError("Response was not HTTPURLResponse")
         }
         if let request = redirectRequest(for: httpURLResponse, fromRequest: request) {
             return .redirectWithRequest(request)

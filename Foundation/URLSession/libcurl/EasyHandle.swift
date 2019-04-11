@@ -106,7 +106,7 @@ internal protocol _EasyHandleDelegate: class {
     /// - returns: the number of bytes written to the `data` buffer, or `nil` to stop the current transfer immediately.
     func fill(writeBuffer buffer: UnsafeMutableBufferPointer<Int8>) -> _EasyHandle._WriteBufferResult
     /// The transfer for this handle completed.
-    /// - parameter errorCode: An NSURLError code, or `nil` if no error occured.
+    /// - parameter errorCode: An NSURLError code, or `nil` if no error occurred.
     func transferCompleted(withError error: NSError?)
     /// Seek the input stream to the given position
     func seekInputStream(to position: UInt64) throws

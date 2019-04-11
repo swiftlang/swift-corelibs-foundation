@@ -49,7 +49,7 @@ kCFXMLParserSkipWhitespace -
 
 kCFXMLParserAddImpliedAttributes -
    where the DTD specifies implied attribute-value pairs for a particular element,
-   add those pairs to any occurances of the element in the element tree.
+   add those pairs to any occurrences of the element in the element tree.
    Currently not supported.
 */
 

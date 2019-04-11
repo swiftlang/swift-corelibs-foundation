@@ -1945,7 +1945,7 @@ open class FileManager : NSObject {
             let file1 = try _lstatFile(atPath: path1, withFileSystemRepresentation: fsRep1)
             let file1Type = file1.st_mode & S_IFMT
 
-            // Dont use access() for symlinks as only the contents should be checked even
+            // Don't use access() for symlinks as only the contents should be checked even
             // if the symlink doesnt point to an actual file, but access() will always try
             // to resolve the link and fail if the destination is not found
             if path1 == path2 && file1Type != S_IFLNK {
@@ -1989,7 +1989,7 @@ open class FileManager : NSObject {
                 return _compareDirectories(atPath: path1, andPath: path2)
             }
 
-            // Dont know how to compare other file types.
+            // Don't know how to compare other file types.
             return false
         } catch {
             return false

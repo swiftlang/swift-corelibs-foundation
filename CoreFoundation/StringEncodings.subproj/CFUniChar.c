@@ -191,7 +191,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
     mappingHandle = OpenFileMappingW(FILE_MAP_READ, TRUE, fileName);
     if (NULL == mappingHandle) {
         if ((bitmapFileHandle = CreateFileW(fileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE) {
-            // We tried to get the bitmap file for mapping, but it's not there.  Add to list of non-existant bitmap-files so
+            // We tried to get the bitmap file for mapping, but it's not there.  Add to list of non-existent bitmap-files so
             // we don't have to try this again in the future.
             __AddBitmapStateForName(fileName);
             return false;

@@ -168,7 +168,7 @@ static Boolean AddAuthorityToFileURL(void)
     return ( result );
 }
 
-//	In order to reduce the sizeof ( __CFURL ), move these items into a seperate structure which is
+//	In order to reduce the sizeof ( __CFURL ), move these items into a separate structure which is
 //	only allocated when necessary.  In my tests, it's almost never needed -- very rarely does a CFURL have
 //	either a sanitized string or a reserved pointer for URLHandle.
 struct _CFURLAdditionalData {
@@ -1480,7 +1480,7 @@ static Boolean __CFURLEqual(CFTypeRef  cf1, CFTypeRef  cf2) {
             }
             else {
                 // no base urls, so compare the URL strings
-                // Do not compare the original strings; compare the sanatized strings.
+                // Do not compare the original strings; compare the sanitized strings.
                 result = CFEqual(CFURLGetString(url1), CFURLGetString(url2));
             }
         }
@@ -3114,7 +3114,7 @@ CFStringRef CFURLCopyNetLocation(CFURLRef  anURL) {
             computeSanitizedString(anURL);
         }
         if (!(anURL->_flags & ORIGINAL_AND_URL_STRINGS_MATCH) && (_getAdditionalDataFlags(anURL) & (USER_DIFFERS | PASSWORD_DIFFERS | HOST_DIFFERS | PORT_DIFFERS))) {
-            // Only thing that can come before the net location is the scheme.  It's impossible for the scheme to contain percent escapes.  Therefore, we can use the location of netRg in _sanatizedString, just not the length. 
+            // Only thing that can come before the net location is the scheme.  It's impossible for the scheme to contain percent escapes.  Therefore, we can use the location of netRg in _sanitizedString, just not the length. 
             CFRange netLocEnd;
             CFStringRef sanitizedString = _getSanitizedString(anURL);
             netRg.length = CFStringGetLength(sanitizedString) - netRg.location;
@@ -4918,7 +4918,7 @@ CFURLRef CFURLCreateCopyAppendingPathExtension(CFAllocatorRef allocator, CFURLRe
     else {
         CFMutableStringRef newString;
         CFRange rg;
-        // NOTE: The implementation before we switched to _CFGetPathExtensionRangesFromPathComponent allowed any string to be appended as an extension. The _CFExtensionIsValidToAppend check only allows valid extensions to be appeneded.
+        // NOTE: The implementation before we switched to _CFGetPathExtensionRangesFromPathComponent allowed any string to be appended as an extension. The _CFExtensionIsValidToAppend check only allows valid extensions to be appended.
         if ( _CFExtensionIsValidToAppend(extension) ) {
             CFAssert1(url != NULL && extension != NULL, __kCFLogAssertion, "%s(): NULL argument not allowed", __PRETTY_FUNCTION__);
             url = _CFURLFromNSURL(url);

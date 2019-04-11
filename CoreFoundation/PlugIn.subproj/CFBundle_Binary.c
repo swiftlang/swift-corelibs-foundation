@@ -165,7 +165,7 @@ static CFStringRef _CFBundleDYLDCopyLoadedImagePathForPointer(void *p) {
 #else /* USE_DYLD_PRIV */
     if (!result) {
         uint32_t i, j, n = _dyld_image_count();
-        Boolean foundit = false;
+        Boolean foundIt = false;
         const char *name;
 #if TARGET_RT_64_BIT
 #define MACH_HEADER_TYPE struct mach_header_64
@@ -176,14 +176,14 @@ static CFStringRef _CFBundleDYLDCopyLoadedImagePathForPointer(void *p) {
 #define MACH_SEGMENT_CMD_TYPE struct segment_command
 #define MACH_SEGMENT_FLAVOR LC_SEGMENT
 #endif
-        for (i = 0; !foundit && i < n; i++) {
+        for (i = 0; !foundIt && i < n; i++) {
             const MACH_HEADER_TYPE *mh = (const MACH_HEADER_TYPE *)_dyld_get_image_header(i);
             uintptr_t addr = (uintptr_t)p - _dyld_get_image_vmaddr_slide(i);
             if (mh) {
                 struct load_command *lc = (struct load_command *)((char *)mh + sizeof(MACH_HEADER_TYPE));
-                for (j = 0; !foundit && j < mh->ncmds; j++, lc = (struct load_command *)((char *)lc + lc->cmdsize)) {
+                for (j = 0; !foundIt && j < mh->ncmds; j++, lc = (struct load_command *)((char *)lc + lc->cmdsize)) {
                     if (MACH_SEGMENT_FLAVOR == lc->cmd && ((MACH_SEGMENT_CMD_TYPE *)lc)->vmaddr <= addr && addr < ((MACH_SEGMENT_CMD_TYPE *)lc)->vmaddr + ((MACH_SEGMENT_CMD_TYPE *)lc)->vmsize) {
-                        foundit = true;
+                        foundIt = true;
                         name = _dyld_get_image_name(i);
                         if (name) result = CFStringCreateWithFileSystemRepresentation(kCFAllocatorSystemDefault, name);
                     }

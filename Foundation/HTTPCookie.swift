@@ -319,7 +319,7 @@ open class HTTPCookie : NSObject {
         }
 
         var expDate: Date? = nil
-        // Maximum-Age is prefered over expires-Date but only version 1 cookies use Maximum-Age
+        // Maximum-Age is preferred over expires-Date but only version 1 cookies use Maximum-Age
         if let maximumAge = properties[.maximumAge] as? String,
             let secondsFromNow = Int(maximumAge) {
             if version == 1 {
@@ -410,7 +410,7 @@ open class HTTPCookie : NSObject {
     /// This method will ignore irrelevant header fields so
     /// you can pass a dictionary containing data other than cookie data.
     /// - Parameter headerFields: The response header fields to check for cookies.
-    /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpeted.
+    /// - Parameter URL: The URL that the cookies came from - relevant to how the cookies are interpreted.
     /// - Returns: An array of HTTPCookie objects
     open class func cookies(withResponseHeaderFields headerFields: [String : String], for URL: URL) -> [HTTPCookie] {
 
@@ -579,7 +579,7 @@ open class HTTPCookie : NSObject {
     ///
     /// Cookies may be marked secure by a server (or by a javascript).
     /// Cookies marked as such must only be sent via an encrypted connection to
-    /// trusted servers (i.e. via SSL or TLS), and should not be delievered to any
+    /// trusted servers (i.e. via SSL or TLS), and should not be delivered to any
     /// javascript applications to prevent cross-site scripting vulnerabilities. 
     open var isSecure: Bool {
         return _secure

@@ -328,7 +328,7 @@ class TestJSONEncoder : XCTestCase {
         } catch { }
 
 
-        // Check that a Bool false or true isnt converted to 0 or 1
+        // Check that a Bool false or true isn't converted to 0 or 1
         struct Foo: Decodable {
             var intValue: Int?
             var int8Value: Int8?

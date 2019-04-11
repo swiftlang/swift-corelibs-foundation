@@ -27,9 +27,9 @@
 // where the rights would be decremented.
 //
 // When NSPort's are involved, we track a few other bits for exactly the same
-// reasons. The reason these are tracked seperately is out of an abundance of 
+// reasons. The reason these are tracked separately is out of an abundance of 
 // caution - by all reads, the two mechanisms do not overlap, but tracking them
-// seperate is more debugable.
+// separate is more debugable.
 //
 typedef struct {
     mach_port_t port; // which port (contributes to identity)

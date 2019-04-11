@@ -544,7 +544,7 @@ class _SignalHelperRunner {
                 // Split the incoming data into lines.
                 while let index = strongSelf.bytesIn.firstIndex(of: newLine) {
                     if index >= strongSelf.bytesIn.startIndex {
-                        // dont include the newline when converting to string
+                        // don't include the newline when converting to string
                         let line = String(data: strongSelf.bytesIn[strongSelf.bytesIn.startIndex..<index], encoding: String.Encoding.utf8) ?? ""
                         strongSelf.bytesIn.removeSubrange(strongSelf.bytesIn.startIndex...index)
 

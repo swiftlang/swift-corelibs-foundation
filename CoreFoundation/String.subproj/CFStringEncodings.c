@@ -89,7 +89,7 @@ CF_PRIVATE void __CFStrConvertBytesToUnicode(const uint8_t *bytes, UniChar *buff
 #define MAX_LOCAL_CHARS		(sizeof(buffer->localBuffer) / sizeof(uint8_t))
 #define MAX_LOCAL_UNICHARS	(sizeof(buffer->localBuffer) / sizeof(UniChar))
 
-/* Convert a byte stream to ASCII (7-bit!) or Unicode, with a CFVarWidthCharBuffer struct on the stack. false return indicates an error occured during the conversion. The caller needs to free the returned buffer in either ascii or unicode (indicated by isASCII), if shouldFreeChars is true. 
+/* Convert a byte stream to ASCII (7-bit!) or Unicode, with a CFVarWidthCharBuffer struct on the stack. false return indicates an error occurred during the conversion. The caller needs to free the returned buffer in either ascii or unicode (indicated by isASCII), if shouldFreeChars is true. 
 9/18/98 __CFStringDecodeByteStream now avoids to allocate buffer if buffer->chars is not NULL
 Added useClientsMemoryPtr; if not-NULL, and the provided memory can be used as is, this is set to true
 __CFStringDecodeByteStream2() is kept around for any internal clients who might be using it; it should be deprecated

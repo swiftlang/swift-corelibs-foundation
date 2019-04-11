@@ -55,7 +55,7 @@ CF_EXPORT Boolean	CFMessagePortIsValid(CFMessagePortRef ms);
 CF_EXPORT CFMessagePortInvalidationCallBack CFMessagePortGetInvalidationCallBack(CFMessagePortRef ms);
 CF_EXPORT void CFMessagePortSetInvalidationCallBack(CFMessagePortRef ms, CFMessagePortInvalidationCallBack callout);
 
-/* NULL replyMode argument means no return value expected, dont wait for it */
+/* NULL replyMode argument means no return value expected, don't wait for it */
 CF_EXPORT SInt32	CFMessagePortSendRequest(CFMessagePortRef remote, SInt32 msgid, CFDataRef data, CFTimeInterval sendTimeout, CFTimeInterval rcvTimeout, CFStringRef replyMode, CFDataRef *returnData);
 
 CF_EXPORT CFRunLoopSourceRef	CFMessagePortCreateRunLoopSource(CFAllocatorRef allocator, CFMessagePortRef local, CFIndex order);

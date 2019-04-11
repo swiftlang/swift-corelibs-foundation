@@ -159,12 +159,12 @@ internal final class _BodyFileSource {
         self.dataAvailableHandler = dataAvailableHandler
 
         guard let channel = fileURL.withUnsafeFileSystemRepresentation({
-            // DisptachIO (dispatch_io_create_with_path) makes a copy of the path
+            // DispatchIO (dispatch_io_create_with_path) makes a copy of the path
             DispatchIO(type: .stream, path: $0!,
                        oflag: O_RDONLY, mode: 0, queue: workQueue,
                        cleanupHandler: {_ in })
         }) else {
-            fatalError("Cant create DispatchIO channel")
+            fatalError("Can't create DispatchIO channel")
         }
         self.channel = channel
         self.channel.setLimit(highWater: CFURLSessionMaxWriteSize)
@@ -173,7 +173,7 @@ internal final class _BodyFileSource {
     fileprivate enum _Chunk {
         /// Nothing has been read, yet
         case empty
-        /// An error has occured while reading
+        /// An error has occurred while reading
         case errorDetected(Int)
         /// Data has been read
         case data(DispatchData)

@@ -224,7 +224,7 @@ function(add_swift_executable executable)
   add_swift_target(${executable} ${ARGN})
 endfunction()
 
-# Returns the current achitecture name in a variable
+# Returns the current architecture name in a variable
 #
 # Usage:
 #   get_swift_host_arch(result_var_name)

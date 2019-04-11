@@ -1616,7 +1616,7 @@ static void _CFBundleEnsureAllBundlesUpToDate(void) {
     (void)CFBundleGetMainBundle();
 
 #if defined(BINARY_SUPPORT_DLL)
-// Dont know how to find static bundles for DLLs
+// Don't know how to find static bundles for DLLs
 #endif /* BINARY_SUPPORT_DLL */
 
 #if defined(BINARY_SUPPORT_DYLD)
