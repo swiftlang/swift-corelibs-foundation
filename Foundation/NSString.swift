@@ -109,6 +109,62 @@ extension NSString {
     }
 }
 
+extension NSString {
+  public struct StringTransform: Equatable, Hashable, RawRepresentable {
+    typealias RawType = String
+
+    public let rawValue: String
+
+    public var hashValue: Int {
+      return self.rawValue.hashValue
+    }
+
+    public static func ==(_ lhs: StringTransform, _ rhs: StringTransform) -> Bool {
+      return lhs.rawValue == rhs.rawValue
+    }
+
+    public init(_ rawValue: String) {
+      self.rawValue = rawValue
+    }
+
+    public init(rawValue: String) {
+      self.rawValue = rawValue
+    }
+  }
+}
+
+// Transliteration
+extension NSString.StringTransform {
+  public static let toLatin: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformToLatin! as! String)
+  public static let latinToArabic: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinArabic! as! String)
+  public static let latinToCyrillic: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinCyrillic! as! String)
+  public static let latinToGreen: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinGreek! as! String)
+  public static let latinToHangul: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinHangul! as! String)
+  public static let latinToHebrew: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinHebrew! as! String)
+  public static let latinToHiragana: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinHiragana! as! String)
+  public static let latinToKatakana: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinKatakana! as! String)
+  public static let latinToThai: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformLatinThai! as! String)
+  public static let hiraganaToKatakana: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformHiraganaKatakana! as! String)
+  public static let mandarinToLatin: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformMandarinLatin! as! String)
+}
+
+// Diacritic and Combining Mark Removal
+extension NSString.StringTransform {
+  public static let stripDiacritics: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformStripDiacritics! as! String)
+  public static let stripCombiningMarks: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformStripCombiningMarks! as! String)
+}
+
+// Halfwidth and Fullwidth Form Conversion
+extension NSString.StringTransform {
+  public static let fullwidthToHalfwidth: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformFullwidthHalfwidth! as! String)
+}
+
+// Character Representation
+extension NSString.StringTransform {
+  public static let toUnicodeName: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformToUnicodeName! as! String)
+  public static let toXMLHex: NSString.StringTransform = NSString.StringTransform(rawValue: kCFStringTransformToXMLHex! as! String)
+}
+
 internal func _createRegexForPattern(_ pattern: String, _ options: NSRegularExpression.Options) -> NSRegularExpression? {
     struct local {
         static let __NSRegularExpressionCache: NSCache<NSString, NSRegularExpression> = {
@@ -1113,10 +1169,10 @@ extension NSString {
         return str._swiftObject
     }
     
-    open func applyingTransform(_ transform: String, reverse: Bool) -> String? {
+    open func applyingTransform(_ transform: StringTransform, reverse: Bool) -> String? {
         let string = CFStringCreateMutable(kCFAllocatorSystemDefault, 0)!
         CFStringReplaceAll(string, _cfObject)
-        if (CFStringTransform(string, nil, transform._cfObject, reverse)) {
+        if (CFStringTransform(string, nil, transform.rawValue._cfObject, reverse)) {
             return string._swiftObject
         } else {
             return nil
