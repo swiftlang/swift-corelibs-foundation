@@ -692,7 +692,8 @@ public struct URL : ReferenceConvertible, Equatable {
         } else {
             // Now we need to do something more expensive
             if var c = URLComponents(url: self, resolvingAgainstBaseURL: true) {
-                c.path = c.path._stringByAppendingPathComponent(pathComponent)
+                let path = c.path._stringByAppendingPathComponent(pathComponent)
+                c.path = isDirectory ? path + "/" : path
                 
                 if let result = c.url {
                     return result
