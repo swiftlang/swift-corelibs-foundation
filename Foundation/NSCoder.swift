@@ -699,13 +699,11 @@ open class NSCoder : NSObject {
     }
     
     open func failWithError(_ error: Error) {
-        NSUnimplemented()
-        // NOTE: disabled for now due to bridging uncertainty
-        // if let debugDescription = error.userInfo["NSDebugDescription"] {
-        //    NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
-        // } else {
-        //    NSLog("*** NSKeyedUnarchiver.init: decoding error")
-        // }
+        if let debugDescription = (error as? NSError)?.userInfo["NSDebugDescription"] {
+            NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
+        } else {
+            NSLog("*** NSKeyedUnarchiver.init: decoding error")
+        }
     }
     
     open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
