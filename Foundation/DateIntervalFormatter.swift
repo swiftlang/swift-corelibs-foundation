@@ -88,7 +88,7 @@ open class DateIntervalFormatter: Formatter {
     let core: CFDateIntervalFormatter
     
     public override init() {
-        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterMediumStyle, kCFDateIntervalFormatterMediumStyle)
+        core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterShortStyle, kCFDateIntervalFormatterShortStyle)
         super.init()
     }
 
@@ -98,7 +98,78 @@ open class DateIntervalFormatter: Formatter {
     }
     
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        guard coder.allowsKeyedCoding else { fatalError("Requires a keyed coding-capable archiver.") }
+        
+        func cfObject<T: NSObject & _CFBridgeable>(of aClass: T.Type, from coder: NSCoder, forKey key: String) -> T.CFType? {
+            if coder.containsValue(forKey: key) {
+                let object = coder.decodeObject(forKey: key) as? T
+                return object?._cfObject
+            } else {
+                return nil
+            }
+        }
+        
+        let core = CFDateIntervalFormatterCreate(nil, nil, kCFDateIntervalFormatterMediumStyle, kCFDateIntervalFormatterMediumStyle)
+        _CFDateIntervalFormatterInitializeFromCoderValues(core,
+                                                          coder.decodeInt64(forKey: "NS.dateStyle"),
+                                                          coder.decodeInt64(forKey: "NS.timeStyle"),
+                                                          cfObject(of: NSString.self, from: coder, forKey: "NS.dateTemplate"),
+                                                          cfObject(of: NSString.self, from: coder, forKey: "NS.dateTemplateFromStyle"),
+                                                          coder.decodeBool(forKey: "NS.modified"),
+                                                          coder.decodeBool(forKey: "NS.useTemplate"),
+                                                          cfObject(of: NSLocale.self, from: coder, forKey: "NS.locale"),
+                                                          cfObject(of: NSCalendar.self, from: coder, forKey: "NS.calendar"),
+                                                          cfObject(of: NSTimeZone.self, from: coder, forKey: "NS.timeZone"))
+        self.core = core
+        
+        super.init(coder: coder)
+    }
+    
+    open override func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else { fatalError("Requires a keyed coding-capable archiver.") }
+        super.encode(with: aCoder)
+        
+        var dateStyle: Int64 = 0
+        var timeStyle: Int64 = 0
+        var dateTemplate: Unmanaged<CFString>?
+        var dateTemplateFromStyles: Unmanaged<CFString>?
+        var modified: Bool = false
+        var useTemplate: Bool = false
+        var locale: Unmanaged<CFLocale>?
+        var calendar: Unmanaged<CFCalendar>?
+        var timeZone: Unmanaged<CFTimeZone>?
+        
+        _CFDateIntervalFormatterCopyCoderValues(core,
+                                                &dateStyle,
+                                                &timeStyle,
+                                                &dateTemplate,
+                                                &dateTemplateFromStyles,
+                                                &modified,
+                                                &useTemplate,
+                                                &locale,
+                                                &calendar,
+                                                &timeZone);
+        
+        aCoder.encode(dateStyle, forKey: "NS.dateStyle")
+        aCoder.encode(timeStyle, forKey: "NS.timeStyle")
+        
+        let dateTemplateNS = dateTemplate?.takeRetainedValue()._nsObject
+        aCoder.encode(dateTemplateNS, forKey: "NS.dateTemplate")
+        
+        let dateTemplateFromStylesNS = dateTemplateFromStyles?.takeRetainedValue()._nsObject
+        aCoder.encode(dateTemplateFromStylesNS, forKey: "NS.dateTemplateFromStyles")
+        
+        aCoder.encode(modified, forKey: "NS.modified");
+        aCoder.encode(useTemplate, forKey: "NS.useTemplate")
+        
+        let localeNS = locale?.takeRetainedValue()._nsObject
+        aCoder.encode(localeNS, forKey: "NS.locale")
+        
+        let calendarNS = calendar?.takeRetainedValue()._nsObject
+        aCoder.encode(calendarNS, forKey: "NS.calendar")
+        
+        let timeZoneNS = timeZone?.takeRetainedValue()._nsObject
+        aCoder.encode(timeZoneNS, forKey: "NS.timeZone")
     }
     
     /*@NSCopying*/ open var locale: Locale! {

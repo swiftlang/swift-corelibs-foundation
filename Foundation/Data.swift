@@ -550,11 +550,33 @@ internal class __NSSwiftData : NSData {
     var _backing: __DataStorage!
     var _range: Range<Data.Index>!
 
+    override var classForCoder: AnyClass {
+        return NSData.self
+    }
+    
+    override init() {
+        fatalError()
+    }
+    
+    private init(_correctly: Void) {
+        super.init()
+    }
+    
     convenience init(backing: __DataStorage, range: Range<Data.Index>) {
-        self.init()
+        self.init(_correctly: ())
         _backing = backing
         _range = range
     }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("This should have been encoded as NSData.")
+    }
+    
+    override func encode(with aCoder: NSCoder) {
+        // This should encode this object just like NSData does, and .classForCoder should do the rest.
+        super.encode(with: aCoder)
+    }
+    
     override var length: Int {
         return _range.upperBound - _range.lowerBound
     }

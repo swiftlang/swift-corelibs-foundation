@@ -221,6 +221,69 @@ class TestDateIntervalFormatter: XCTestCase {
         XCTAssertNil(result[firstJanuary.upperBound...].range(of: "January")) // January appears only once.
     }
     
+    let fixtures = [Fixtures.dateIntervalFormatterDefault,
+                    Fixtures.dateIntervalFormatterValuesSetWithoutTemplate,
+                    Fixtures.dateIntervalFormatterValuesSetWithTemplate ]
+    
+    func assertEqualAndNonnil(_ lhs: DateIntervalFormatter?, _ rhs: DateIntervalFormatter?, _ message: @autoclosure () -> String = "") throws {
+        XCTAssertNotNil(lhs)
+        XCTAssertNotNil(rhs)
+        
+        let a = try lhs.unwrapped()
+        let b = try rhs.unwrapped()
+        
+        XCTAssertEqual(a.dateStyle, b.dateStyle, message())
+        XCTAssertEqual(a.timeStyle, b.timeStyle, message())
+        XCTAssertEqual(a.dateTemplate, b.dateTemplate, message())
+        XCTAssertEqual(a.locale, b.locale, message())
+
+        if a.calendar != b.calendar {
+            // We're fine if the calendars are equal except for having timezones with the same name.
+            XCTAssertEqual(a.calendar.timeZone.identifier, b.calendar.timeZone.identifier, message())
+            
+            let aWithBsTimezone = a.copy() as! DateIntervalFormatter
+            aWithBsTimezone.calendar.timeZone = b.calendar.timeZone
+            XCTAssertEqual(aWithBsTimezone.calendar, b.calendar, message())
+        } else {
+            // It's good!
+            XCTAssertEqual(a.calendar, b.calendar, message())
+        }
+        
+        if a.timeZone != b.timeZone {
+            XCTAssertEqual(a.timeZone.identifier, b.timeZone.identifier, message())
+        } else {
+            // It's good!
+            XCTAssertEqual(a.timeZone, b.timeZone, message())
+        }
+    }
+    
+    func testCodingRoundtrip() throws {
+        for fixture in fixtures {
+            let original = try fixture.make()
+            
+            let coder = NSKeyedArchiver(forWritingWith: NSMutableData())
+            coder.encode(original, forKey: NSKeyedArchiveRootObjectKey)
+            coder.finishEncoding()
+            
+            let data = coder.encodedData
+            
+            let decoder = NSKeyedUnarchiver(forReadingWith: data)
+            let object = decoder.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? DateIntervalFormatter
+            
+            XCTAssertNil(decoder.error)
+            try assertEqualAndNonnil(object, original, "Comparing in-memory fixture '\(fixture.identifier)'")
+        }
+    }
+    
+    func testDecodingFixtures() throws {
+        for fixture in fixtures {
+            try fixture.loadEach { (fixtureValue, variant) in
+                let original = try fixture.make()
+                try assertEqualAndNonnil(original, fixtureValue, "Comparing loaded fixture \(fixture.identifier) with variant \(variant)")
+            }
+        }
+    }
+    
     static var allTests: [(String, (TestDateIntervalFormatter) -> () throws -> Void)] {
         var tests: [(String, (TestDateIntervalFormatter) -> () throws -> Void)] = [
             ("testStringFromDateToDateAcrossThreeBillionSeconds", testStringFromDateToDateAcrossThreeBillionSeconds),
@@ -233,6 +296,8 @@ class TestDateIntervalFormatter: XCTestCase {
             ("testStringFromDateToDateAcrossSixtyDays", testStringFromDateToDateAcrossSixtyDays),
             ("testStringFromDateToDateAcrossFiveHours", testStringFromDateToDateAcrossFiveHours),
             ("testStringFromDateToDateAcrossEighteenHours", testStringFromDateToDateAcrossEighteenHours),
+            ("testCodingRoundtrip", testCodingRoundtrip),
+            ("testDecodingFixtures", testDecodingFixtures),
         ]
         
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && (os(macOS) || os(iOS) || os(tvOS) || os(watchOS))
