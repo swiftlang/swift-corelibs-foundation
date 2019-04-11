@@ -170,6 +170,14 @@ CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
 #endif
 }
 
+CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFreestandingBundles() {
+#if !DEPLOYMENT_RUNTIME_OBJC
+    return true;
+#else
+    return false;
+#endif
+}
+
 #pragma mark -
 
 CF_PRIVATE os_log_t _CFBundleResourceLogger(void) {
