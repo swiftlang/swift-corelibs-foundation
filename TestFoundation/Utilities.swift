@@ -175,3 +175,9 @@ func expectEqual<T: FloatingPoint>(_ expected: T?, _ actual: T, within: T, _ mes
     }
 }
 
+
+extension Fixture where ValueType: NSObject & NSCoding {
+    func loadEach(handler: (ValueType, FixtureVariant) throws -> Void) throws {
+        try self.loadEach(fixtureRepository: try testBundle().url(forResource: "Fixtures", withExtension: nil).unwrapped(), handler: handler)
+    }
+}

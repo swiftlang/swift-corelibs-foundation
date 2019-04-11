@@ -27,9 +27,28 @@ extension NSAttributedString {
     }
 }
 
+extension NSAttributedString.Key: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSString {
+        return rawValue as NSString
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ source: NSString, result: inout NSAttributedString.Key?) {
+        result = NSAttributedString.Key(source as String)
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSString, result: inout NSAttributedString.Key?) -> Bool {
+        result = NSAttributedString.Key(source as String)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> NSAttributedString.Key {
+        guard let source = source else { return NSAttributedString.Key("") }
+        return NSAttributedString.Key(source as String)
+    }
+}
+
 @available(*, unavailable, renamed: "NSAttributedString.Key")
 public typealias NSAttributedStringKey = NSAttributedString.Key
-
 
 open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     
@@ -38,11 +57,55 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
     fileprivate var _attributeArray: CFRunArrayRef
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        let mutableAttributedString = NSMutableAttributedString(string: "")
+        guard _NSReadMutableAttributedStringWithCoder(aDecoder, mutableAttributedString: mutableAttributedString) else {
+            return nil
+        }
+        
+        // use the resulting _string and _attributeArray to initialize a new instance, just like init
+        _string = mutableAttributedString._string
+        _attributeArray = mutableAttributedString._attributeArray
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else { fatalError("We do not support saving to a non-keyed coder.") }
+        
+        aCoder.encode(string, forKey: "NSString")
+        let length = self.length
+        
+        if length > 0 {
+            var range = NSMakeRange(NSNotFound, NSNotFound)
+            var loc = 0
+            var dict = attributes(at: loc, effectiveRange: &range) as NSDictionary
+            if range.length == length {
+                // Special single-attribute run case
+                // If NSAttributeInfo is not written, then NSAttributes is a dictionary
+                aCoder.encode(dict, forKey: "NSAttributes")
+            } else {
+                let attrsArray = NSMutableArray(capacity: 20)
+                let data = NSMutableData(capacity: 100) ?? NSMutableData()
+                let attrsTable = NSMutableDictionary()
+                while true {
+                    var arraySlot = 0
+                    if let cachedSlot = attrsTable.object(forKey: dict) as? Int {
+                        arraySlot = cachedSlot
+                    } else {
+                        arraySlot = attrsArray.count
+                        attrsTable.setObject(arraySlot, forKey: dict)
+                        attrsArray.add(dict)
+                    }
+                    
+                    _NSWriteIntToMutableAttributedStringCoding(range.length, data)
+                    _NSWriteIntToMutableAttributedStringCoding(arraySlot, data)
+                    
+                    loc += range.length
+                    guard loc < length else { break }
+                    dict = attributes(at: loc, effectiveRange: &range) as NSDictionary
+                }
+                aCoder.encode(attrsArray, forKey: "NSAttributes")
+                aCoder.encode(data, forKey: "NSAttributeInfo")
+            }
+        }
     }
     
     static public var supportsSecureCoding: Bool {
@@ -117,6 +180,11 @@ open class NSAttributedString: NSObject, NSCopying, NSMutableCopying, NSSecureCo
         return _attribute(attrName, atIndex: location, rangeInfo: rangeInfo)
     }
 
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSAttributedString else { return false }
+        return isEqual(to: other)
+    }
+    
     /// Returns a Boolean value that indicates whether the receiver is equal to another given attributed string.
     open func isEqual(to other: NSAttributedString) -> Bool {
         guard let runtimeClass = _CFRuntimeGetClassWithTypeID(CFAttributedStringGetTypeID()) else {
@@ -412,7 +480,13 @@ open class NSMutableAttributedString : NSAttributedString {
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        let mutableAttributedString = NSMutableAttributedString(string: "")
+        guard _NSReadMutableAttributedStringWithCoder(aDecoder, mutableAttributedString: mutableAttributedString) else {
+            return nil
+        }
+        
+        super.init(attributedString: mutableAttributedString)
+        _string = NSMutableString(string: mutableAttributedString.string)
     }
     
 }
@@ -430,4 +504,118 @@ private extension NSMutableAttributedString {
         }
         return attributesDictionary._cfObject
     }
+}
+
+// MARK: Coding
+
+fileprivate let _allowedCodingClasses: [AnyClass] = [
+    NSNumber.self,
+    NSArray.self,
+    NSDictionary.self,
+    NSURL.self,
+    NSString.self,
+]
+
+internal func _NSReadIntFromMutableAttributedStringCoding(_ data: NSData, _ startingOffset: Int) -> (value: Int, newOffset: Int)? {
+    var multiplier = 1
+    var offset = startingOffset
+    let length = data.length
+    
+    var value = 0
+    
+    while offset < length {
+        let i = Int(data.bytes.load(fromByteOffset: offset, as: UInt8.self))
+        
+        offset += 1
+        
+        let isLast = i < 128
+        
+        let intermediateValue = multiplier.multipliedReportingOverflow(by: isLast ? i : (i - 128))
+        guard !intermediateValue.overflow else { return nil }
+        
+        let newValue = value.addingReportingOverflow(intermediateValue.partialValue)
+        guard !newValue.overflow else { return nil }
+        
+        value = newValue.partialValue
+
+        if isLast {
+            return (value: value, newOffset: offset)
+        }
+        
+        multiplier *= 128
+    }
+    
+    return nil // Getting to the end of the stream indicates error, since we were still expecting more bytes
+}
+
+internal func _NSWriteIntToMutableAttributedStringCoding(_ i: Int, _ data: NSMutableData) {
+    if i > 127 {
+        let byte = UInt8(128 + i % 128);
+        data.append(Data([byte]))
+        _NSWriteIntToMutableAttributedStringCoding(i / 128, data)
+    } else {
+        data.append(Data([UInt8(i)]))
+    }
+}
+
+internal func _NSReadMutableAttributedStringWithCoder(_ decoder: NSCoder, mutableAttributedString: NSMutableAttributedString) -> Bool {
+    
+    // NSAttributedString.Key is not currently bridging correctly every time we'd like it to.
+    // Ensure we manually go through String in the meanwhile. SR-XXXX.
+    func toAttributesDictionary(_ ns: NSDictionary) -> [NSAttributedString.Key: Any]? {
+        if let bridged = __SwiftValue.fetch(ns) as? [String: Any] {
+            return Dictionary(bridged.map { (NSAttributedString.Key($0.key), $0.value) }, uniquingKeysWith: { $1 })
+        } else {
+            return nil
+        }
+    }
+    
+    guard decoder.allowsKeyedCoding else { /* Unkeyed unarchiving is not supported. */ return false }
+    
+    let string = decoder.decodeObject(of: NSString.self, forKey: "NSString") ?? ""
+    
+    mutableAttributedString.replaceCharacters(in: NSMakeRange(0, 0), with: string as String)
+    
+    guard string.length > 0 else { return true }
+    
+    var allowed = _allowedCodingClasses
+    for aClass in decoder.allowedClasses ?? [] {
+        if !allowed.contains(where: { $0 === aClass }) {
+            allowed.append(aClass)
+        }
+    }
+    
+    let attributes = decoder.decodeObject(of: allowed, forKey: "NSAttributes")
+    // If this is present, 'attributes' should be an array; otherwise, a dictionary:
+    let attrData = decoder.decodeObject(of: NSData.self, forKey: "NSAttributeInfo")
+    if attrData == nil, let attributesNS = attributes as? NSDictionary, let attributes = toAttributesDictionary(attributesNS) {
+        mutableAttributedString.setAttributes(attributes, range: NSMakeRange(0, string.length))
+        return true
+    } else if let attrData = attrData, let attributesNS = attributes as? [NSDictionary] {
+        let attributes = attributesNS.compactMap { toAttributesDictionary($0) }
+        guard attributes.count == attributesNS.count else { return false }
+        
+        var loc = 0
+        var offset = 0
+        let length = string.length
+        while loc < length {
+            var rangeLen = 0, arraySlot = 0
+            guard let intResult1 = _NSReadIntFromMutableAttributedStringCoding(attrData, offset) else { return false }
+            rangeLen = intResult1.value
+            offset = intResult1.newOffset
+            
+            guard let intResult2 = _NSReadIntFromMutableAttributedStringCoding(attrData, offset) else { return false }
+            arraySlot = intResult2.value
+            offset = intResult2.newOffset
+            
+            guard arraySlot < attributes.count else { return false }
+            mutableAttributedString.setAttributes(attributes[arraySlot], range: NSMakeRange(loc, rangeLen))
+            
+            loc += rangeLen
+        }
+        
+        return true
+    }
+    
+    return false
 }

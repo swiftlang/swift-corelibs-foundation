@@ -378,6 +378,7 @@ if(ENABLE_TESTING)
                          TestFoundation/HTTPServer.swift
                          Foundation/ProgressFraction.swift
                          TestFoundation/Utilities.swift
+                         TestFoundation/FixtureValues.swift
                          # Test Cases
                          TestFoundation/TestAffineTransform.swift
                          TestFoundation/TestBundle.swift
@@ -499,6 +500,7 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-UUIDTest.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSKeyedUnarchiver-OrderedSetTest.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
+                         ${CMAKE_SOURCE_DIR}/TestFoundation/Fixtures
                        SWIFT_FLAGS
                          ${deployment_enable_libdispatch}
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
