@@ -12,7 +12,7 @@ import CoreFoundation
 open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
-    
+
     open var count: Int {
         guard type(of: self) === NSArray.self || type(of: self) === NSMutableArray.self else {
             NSRequiresConcreteImplementation()
@@ -74,7 +74,38 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             self.init(array: objects)
         }
     }
-    
+
+    public convenience init(object anObject: Any) {
+        self.init(array: [anObject])
+    }
+
+    public convenience init(array: [Any]) {
+        self.init(array: array, copyItems: false)
+    }
+
+    public convenience init(array: NSArray) {
+        self.init(array: array as [AnyObject], copyItems: true)
+    }
+
+    public convenience init(array: [Any], copyItems: Bool) {
+
+        let optionalArray : [AnyObject] =
+            copyItems ?
+                array.map { return __SwiftValue.store($0).copy() as! NSObject } :
+                array.map { return __SwiftValue.store($0) }
+
+        // This would have been nice, but "initializer delegation cannot be nested in another expression"
+        //        optionalArray.withUnsafeBufferPointer { ptr in
+        //            self.init(objects: ptr.baseAddress, count: array.count)
+        //        }
+        let cnt = array.count
+        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: cnt)
+        buffer.initialize(from: optionalArray, count: cnt)
+        self.init(objects: buffer, count: cnt)
+        buffer.deinitialize(count: cnt)
+        buffer.deallocate()
+    }
+
     open func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -122,33 +153,6 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             return mutableArray
         }
         return NSMutableArray(array: self.allObjects)
-    }
-
-    public convenience init(object anObject: Any) {
-        self.init(array: [anObject])
-    }
-    
-    public convenience init(array: [Any]) {
-        self.init(array: array, copyItems: false)
-    }
-    
-    public convenience init(array: [Any], copyItems: Bool) {
-        
-        let optionalArray : [AnyObject] =
-            copyItems ?
-                array.map { return __SwiftValue.store($0).copy() as! NSObject } :
-                array.map { return __SwiftValue.store($0) }
-        
-        // This would have been nice, but "initializer delegation cannot be nested in another expression"
-//        optionalArray.withUnsafeBufferPointer { ptr in
-//            self.init(objects: ptr.baseAddress, count: array.count)
-//        }
-        let cnt = array.count
-        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: cnt)
-        buffer.initialize(from: optionalArray, count: cnt)
-        self.init(objects: buffer, count: cnt)
-        buffer.deinitialize(count: cnt)
-        buffer.deallocate()
     }
 
     open override func isEqual(_ value: Any?) -> Bool {

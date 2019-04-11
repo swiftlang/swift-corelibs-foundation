@@ -79,6 +79,16 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array3, array5)
         XCTAssertEqual(array4, array5)
 
+        let mutArray = NSMutableArray(array: [1, 2, 3, 4])
+        let array6 = NSArray(array: mutArray)
+        XCTAssertEqual(array6, mutArray)
+        mutArray[0] = 0
+        XCTAssertNotEqual(array6, mutArray)
+
+        let array7 = NSMutableArray(array: mutArray)
+        XCTAssertEqual(array7, mutArray)
+        array7.removeObject(at: 3)
+        XCTAssertNotEqual(array7.count, mutArray.count)
     }
 
     func test_constructorWithCopyItems() {
