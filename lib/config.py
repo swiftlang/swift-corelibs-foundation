@@ -46,7 +46,7 @@ class Configuration:
     extra_swift_flags = None
     extra_ld_flags = None
     build_mode = None
-    config_path = None # dont save this; else it would be recursive
+    config_path = None # don't save this; else it would be recursive
     variables = {}
     def __init__(self):
         pass

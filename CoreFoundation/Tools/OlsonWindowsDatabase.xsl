@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   This XSL transforms the Windows Timezone list from the Unicode CLDR to a plist
-  which is consumable by CoreFoundation.  You need to fetch the lastest mapping
+  which is consumable by CoreFoundation.  You need to fetch the latest mapping
   from the Unicode consortium from:
     https://unicode.org/repos/cldr/trunk/common/supplemental/windowsZones.xml
   The XSL can be applied to this data via the `xsltproc` command.

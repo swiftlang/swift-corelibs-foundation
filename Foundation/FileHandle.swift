@@ -326,7 +326,7 @@ open class FileHandle : NSObject, NSSecureCoding {
                 throw _NSErrorWithErrno(errno, reading: true)
             }
             total += amtRead
-            if amtRead == 0 || !untilEOF { // If there is nothing more to read or we shouldnt keep reading then exit
+            if amtRead == 0 || !untilEOF { // If there is nothing more to read or we shouldn't keep reading then exit
                 break
             }
         }
@@ -1002,7 +1002,7 @@ open class Pipe: NSObject {
             self.fileHandleForWriting = FileHandle(fileDescriptor: fds.successor().pointee, closeOnDealloc: true)
 
         case (-1, EMFILE), (-1, ENFILE):
-            // Unfortunately this initializer does not throw and isnt failable so this is only
+            // Unfortunately this initializer does not throw and isn't failable so this is only
             // way of handling this situation.
             self.fileHandleForReading = FileHandle(fileDescriptor: -1, closeOnDealloc: false)
             self.fileHandleForWriting = FileHandle(fileDescriptor: -1, closeOnDealloc: false)

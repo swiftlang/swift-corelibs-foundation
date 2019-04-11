@@ -705,7 +705,7 @@ CF_PRIVATE Boolean _CFURIParserParseURIReference(CFStringRef urlString, struct _
     // clear the parseInfo
     memset(parseInfo, 0, sizeof(*parseInfo));
 
-    // Make sure the URL string isn't too long. We're limiting it to 2GB for backwards compatibility with 32-bit excutables using NS/CFURL
+    // Make sure the URL string isn't too long. We're limiting it to 2GB for backwards compatibility with 32-bit executables using NS/CFURL
     if ( (urlStringLength > 0) && (urlStringLength <= INT_MAX) )
     {
         CFStringInitInlineBuffer(urlString, &buf, CFRangeMake(0, urlStringLength));

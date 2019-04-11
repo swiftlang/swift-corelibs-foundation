@@ -1163,7 +1163,7 @@ extension NSString {
     public convenience init(charactersNoCopy characters: UnsafeMutablePointer<unichar>, length: Int, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
         // ignore the no-copy-ness
         self.init(characters: characters, length: length)
-        if freeBuffer { // cant take a hint here...
+        if freeBuffer { // can't take a hint here...
             free(UnsafeMutableRawPointer(characters))
         }
     }
@@ -1233,7 +1233,7 @@ extension NSString {
     public convenience init?(bytesNoCopy bytes: UnsafeMutableRawPointer, length len: Int, encoding: UInt, freeWhenDone freeBuffer: Bool) /* "NoCopy" is a hint */ {
         // just copy for now since the internal storage will be a copy anyhow
         self.init(bytes: bytes, length: len, encoding: encoding)
-        if freeBuffer { // dont take the hint
+        if freeBuffer { // don't take the hint
             free(bytes)
         }
     }

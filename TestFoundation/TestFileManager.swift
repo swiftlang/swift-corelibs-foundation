@@ -447,12 +447,12 @@ class TestFileManager : XCTestCase {
             XCTFail("Failed to clean up files")
         }
 
-        // test non existant file
+        // test non existent file
         let noSuchFile = NSTemporaryDirectory() + "fileThatDoesntExist"
         try? fm.removeItem(atPath: noSuchFile)
         do {
             try fm.setAttributes([.posixPermissions: 0], ofItemAtPath: noSuchFile)
-            XCTFail("Setting permissions of non-existant file should throw")
+            XCTFail("Setting permissions of non-existent file should throw")
         } catch {
         }
     }
@@ -623,7 +623,7 @@ class TestFileManager : XCTestCase {
             didGetError = true
             return true
         }
-        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: "/nonexistant-path"), includingPropertiesForKeys: nil, options: [], errorHandler: handler) {
+        if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: "/nonexistent-path"), includingPropertiesForKeys: nil, options: [], errorHandler: handler) {
             XCTAssertNil(e.nextObject())
         } else {
             XCTFail()
@@ -1015,7 +1015,7 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo2").path))
         XCTAssertTrue(fm.contentsEqual(atPath: testDir1.appendingPathComponent("bar2").path, andPath: testDir2.appendingPathComponent("bar2").path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo1").path, andPath: testDir2.appendingPathComponent("foo2").path))
-        XCTAssertFalse(fm.contentsEqual(atPath: "/non_existant_file", andPath: "/non_existant_file"))
+        XCTAssertFalse(fm.contentsEqual(atPath: "/non_existent_file", andPath: "/non_existent_file"))
 
         let emptyFile = testDir1.appendingPathComponent("empty_file")
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "/dev/null"))

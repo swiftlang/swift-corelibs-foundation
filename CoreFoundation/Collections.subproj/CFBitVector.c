@@ -180,7 +180,7 @@ static CFStringRef __CFBitVectorCopyDescription(CFTypeRef cf) {
 }
 
 enum {
-    kCFBitVectorImmutable = 0x0,	/* unchangable and fixed capacity; default */
+    kCFBitVectorImmutable = 0x0,	/* unchangeable and fixed capacity; default */
     kCFBitVectorMutable = 0x1,		/* changeable and variable capacity */
 };
 

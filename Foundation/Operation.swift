@@ -428,7 +428,7 @@ open class OperationQueue: NSObject {
          If QueuePriority was not supported this could be much faster
          since it would not need to have the extra book-keeping for managing a priority
          queue. However this implementation attempts to be similar to the specification.
-         As a concequence this means that the dequeue may NOT nessicarly be the same as
+         As a consequence this means that the dequeue may NOT necessarily be the same as
          the enqueued operation in this callout. So once the dispatch_block is created
          the operation must NOT be touched; since it has nothing to do with the actual
          execution. The only differential is that the block enqueued to dispatch_async

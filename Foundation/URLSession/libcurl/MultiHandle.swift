@@ -203,7 +203,7 @@ fileprivate extension URLSession._MultiHandle {
     func completedTransfer(forEasyHandle handle: CFURLSessionEasyHandle, easyCode: CFURLSessionEasyCode) {
         // Look up the matching wrapper:
         guard let idx = easyHandles.firstIndex(where: { $0.rawHandle == handle }) else {
-            fatalError("Tansfer completed for easy handle, but it is not in the list of added handles.")
+            fatalError("Transfer completed for easy handle, but it is not in the list of added handles.")
         }
         let easyHandle = easyHandles[idx]
         // Find the NSURLError code

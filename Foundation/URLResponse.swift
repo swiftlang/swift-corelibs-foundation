@@ -358,7 +358,7 @@ extension ContentTypeComponents {
     }
 }
 
-/// A type with paramteres
+/// A type with parameters
 ///
 /// RFC 2616 specifies a few types that can have parameters, e.g. `Content-Type`.
 /// These are specified like so

@@ -82,7 +82,7 @@ extension _NSSimpleObjCType {
 }
 
 // mapping of ObjC types to sizes and alignments (note that .Int is 32-bit)
-// FIXME use a generic function, unfortuantely this seems to promote the size to 8
+// FIXME use a generic function, unfortunately this seems to promote the size to 8
 private let _NSObjCSizesAndAlignments : Dictionary<_NSSimpleObjCType, (Int, Int)> = [
     .ID         : ( MemoryLayout<AnyObject>.size,              MemoryLayout<AnyObject>.alignment          ),
     .Class      : ( MemoryLayout<AnyClass>.size,               MemoryLayout<AnyClass>.alignment           ),

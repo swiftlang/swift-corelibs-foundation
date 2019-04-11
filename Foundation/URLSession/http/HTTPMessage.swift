@@ -23,7 +23,7 @@ internal extension _HTTPURLProtocol._ResponseHeaderLines {
     /// Create an `NSHTTPRULResponse` from the lines.
     ///
     /// This will parse the header lines.
-    /// - Returns: `nil` if an error occured while parsing the header lines.
+    /// - Returns: `nil` if an error occurred while parsing the header lines.
     func createHTTPURLResponse(for URL: URL) -> HTTPURLResponse? {
         guard let message = createHTTPMessage() else { return nil }
         return HTTPURLResponse(message: message, URL: URL)
@@ -116,9 +116,9 @@ private extension _HTTPURLProtocol._HTTPMessage._StartLine {
             self = .statusLine(version: version, status: status, reason: r.2)
         } else if let version = _HTTPURLProtocol._HTTPMessage._Version(versionString: r.2),
             let URI = URL(string: r.1) {
-            // The request method must be a token (i.e. without seperators):
-            let seperatorIdx = r.0.unicodeScalars.firstIndex(where: { !$0.isValidMessageToken } )
-            guard seperatorIdx == nil else { return nil }
+            // The request method must be a token (i.e. without separators):
+            let separatorIdx = r.0.unicodeScalars.firstIndex(where: { !$0.isValidMessageToken } )
+            guard separatorIdx == nil else { return nil }
             self = .requestLine(method: r.0, uri: URI, version: version)
         } else {
             return nil

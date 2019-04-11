@@ -242,7 +242,7 @@ bool CFUniCharDecomposeWithErrorLocation(const UTF16Char *src, CFIndex length, C
             --length;
             ++usedLength;
         } else {
-            if (CFUniCharIsSurrogateLowCharacter(currentChar)) { // Stray surrogagte
+            if (CFUniCharIsSurrogateLowCharacter(currentChar)) { // Stray surrogate
                 if (dstFormat != kCFUniCharUTF16Format) {
                     if (charIndex) *charIndex = src - 1 - originalSrc;
                     break;

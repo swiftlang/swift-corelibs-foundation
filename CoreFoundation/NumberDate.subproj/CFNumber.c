@@ -708,8 +708,8 @@ static Boolean __CFNumberGetValueCompat(CFNumberRef number, CFNumberType type, v
 	    }
 	} else {
 	    if (0 == __CFNumberTypeTable[ntype].storageBit) {
-		// Leopard's implemenation of this always returned true. We should only return true when the conversion is lossless. However, there are some clients who use CFNumber with small unsigned values disguised as signed values. Since there is no CFNumber API yet for unsigned values, we need to accomodate those clients for now. <rdar://problem/6471866>
-		// This accomodation should be removed if CFNumber ever provides API for unsigned values. <rdar://problem/6473890>
+		// Leopard's implementation of this always returned true. We should only return true when the conversion is lossless. However, there are some clients who use CFNumber with small unsigned values disguised as signed values. Since there is no CFNumber API yet for unsigned values, we need to accommodate those clients for now. <rdar://problem/6471866>
+		// This accommodation should be removed if CFNumber ever provides API for unsigned values. <rdar://problem/6473890>
 		int64_t sv; memmove(&sv, data, sizeof(int64_t));
 		int8_t dv = (int8_t)(sv);
 		memmove(valuePtr, &dv, sizeof(int8_t));
@@ -728,8 +728,8 @@ static Boolean __CFNumberGetValueCompat(CFNumberRef number, CFNumberType type, v
 	    }
 	} else {
 	    if (0 == __CFNumberTypeTable[ntype].storageBit) {
-		// Leopard's implemenation of this always returned true. We should only return true when the conversion is lossless. However, there are some clients who use CFNumber with small unsigned values disguised as signed values. Since there is no CFNumber API yet for unsigned values, we need to accomodate those clients for now. <rdar://problem/6471866>
-		// This accomodation should be removed if CFNumber ever provides API for unsigned values. <rdar://problem/6473890>
+		// Leopard's implementation of this always returned true. We should only return true when the conversion is lossless. However, there are some clients who use CFNumber with small unsigned values disguised as signed values. Since there is no CFNumber API yet for unsigned values, we need to accommodate those clients for now. <rdar://problem/6471866>
+		// This accommodation should be removed if CFNumber ever provides API for unsigned values. <rdar://problem/6473890>
 		int64_t sv; memmove(&sv, data, sizeof(int64_t));
 		int16_t dv = (int16_t)(sv);
 		memmove(valuePtr, &dv, sizeof(int16_t));

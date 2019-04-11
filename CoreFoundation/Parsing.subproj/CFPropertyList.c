@@ -284,7 +284,7 @@ CF_INLINE void __CFPListRelease(CFTypeRef cf, CFAllocatorRef allocator) {
 }
 
 
-// The following set of _plist... functions append various things to a mutable data which is in UTF8 encoding. These are pretty general. Assumption is call characters and CFStrings can be converted to UTF8 and appeneded.
+// The following set of _plist... functions append various things to a mutable data which is in UTF8 encoding. These are pretty general. Assumption is call characters and CFStrings can be converted to UTF8 and appended.
 
 // Null-terminated, ASCII or UTF8 string
 //
@@ -1866,7 +1866,7 @@ CF_INLINE bool isWhitespace(const char *utf8bytes, const char *end) {
      205f -> <e2819f>
      3000 -> <e38080>
      */
-    // Except we consider some additional values from 0x0 to 0x21 and 0x7E to 0xA1 as whitespace, for compatability
+    // Except we consider some additional values from 0x0 to 0x21 and 0x7E to 0xA1 as whitespace, for compatibility
     unsigned char byte1 = *utf8bytes;
     if (byte1 < 0x21 || (byte1 > 0x7E && byte1 < 0xA1)) return true;
     if ((byte1 == 0xe2 || byte1 == 0xe3) && (end - utf8bytes >= 3)) {

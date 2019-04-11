@@ -542,7 +542,7 @@ CF_INLINE _CFEncodingConverter *__CFEncodingConverterFromDefinition(const CFStri
         case kCFStringEncodingConverterPlatformSpecific:
             break;
             
-        default: // Shouln't be here
+        default: // Shouldn't be here
             return NULL;
     }
 

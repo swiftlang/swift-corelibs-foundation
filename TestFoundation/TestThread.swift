@@ -56,7 +56,7 @@ class TestThread : XCTestCase {
         func compareThreadName(to name: String) {
             var buf = [Int8](repeating: 0, count: 128)
 #if os(macOS) || os(iOS)
-            // Dont use _CF functions on macOS as it will break testing with Darwin's native Foundation.
+            // Don't use _CF functions on macOS as it will break testing with Darwin's native Foundation.
             let r = pthread_getname_np(pthread_self(), &buf, buf.count)
 #else
             let r = _CFThreadGetName(&buf, Int32(buf.count))

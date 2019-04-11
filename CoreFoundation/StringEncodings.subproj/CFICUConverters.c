@@ -305,7 +305,7 @@ CF_PRIVATE CFIndex __CFStringEncodingICUToBytes(const char *icuName, uint32_t fl
 
     if (NULL != usedCharLen) {
 #if HAS_ICU_BUG_6024743
-/* ICU has a serious behavioral inconsistency issue that the source pointer returned from ucnv_fromUnicode() is after illegal input. We have to keep track of any changes in this area in order to prevent future binary compatiibility issues */
+/* ICU has a serious behavioral inconsistency issue that the source pointer returned from ucnv_fromUnicode() is after illegal input. We have to keep track of any changes in this area in order to prevent future binary compatibility issues */
 	if (kCFStringEncodingInvalidInputStream == status) {
 #define MAX_ERROR_BUFFER_LEN (32)
 	    UTF16Char errorBuffer[MAX_ERROR_BUFFER_LEN];
@@ -371,7 +371,7 @@ CF_PRIVATE CFIndex __CFStringEncodingICUToUnicode(const char *icuName, uint32_t 
 
     if (NULL != usedByteLen) {
 #if HAS_ICU_BUG_6024743
-	/* ICU has a serious behavioral inconsistency issue that the source pointer returned from ucnv_toUnicode() is after illegal input. We have to keep track of any changes in this area in order to prevent future binary compatiibility issues */
+	/* ICU has a serious behavioral inconsistency issue that the source pointer returned from ucnv_toUnicode() is after illegal input. We have to keep track of any changes in this area in order to prevent future binary compatibility issues */
 	if (kCFStringEncodingInvalidInputStream == status) {
 #define MAX_ERROR_BUFFER_LEN (32)
 	    char errorBuffer[MAX_ERROR_BUFFER_LEN];

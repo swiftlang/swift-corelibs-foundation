@@ -198,7 +198,7 @@ open class JSONSerialization : NSObject {
         let count = jsonData.count
         return jsonData.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> Int in
             let res: Int = stream.write(bytePtr, maxLength: count)
-            /// TODO: If the result here is negative the error should be obtained from the stream to propigate as a throw
+            /// TODO: If the result here is negative the error should be obtained from the stream to propagate as a throw
             return res
         }
     }
@@ -848,7 +848,7 @@ private struct JSONReader {
                 guard let ch = readDigits() else { return true }
                 ascii = ch
                 if [ JSONReader.DECIMAL_SEPARATOR, JSONReader.LOWER_EXPONENT, JSONReader.UPPER_EXPONENT ].contains(ascii) {
-                    guard nextASCII() else { return false } // There should be at least one char as readDigits didnt remove the '.eE'
+                    guard nextASCII() else { return false } // There should be at least one char as readDigits didn't remove the '.eE'
                 }
             } else if ascii == JSONReader.ZERO {
                 guard nextASCII() else { return true }

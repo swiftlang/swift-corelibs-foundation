@@ -178,7 +178,7 @@ open class URLSessionTask : NSObject, NSCopying {
      * The task will signal -URLSession:task:didCompleteWithError: with an
      * error value of { NSURLErrorDomain, NSURLErrorCancelled }.  In some
      * cases, the task may signal other work before it acknowledges the
-     * cancelation.  -cancel may be sent to a task that has been suspended.
+     * cancellation.  -cancel may be sent to a task that has been suspended.
      */
     open func cancel() {
         workQueue.sync {
@@ -208,7 +208,7 @@ open class URLSessionTask : NSObject, NSCopying {
     
     /*
      * The error, if any, delivered via -URLSession:task:didCompleteWithError:
-     * This property will be nil in the event that no error occured.
+     * This property will be nil in the event that no error occurred.
      */
     /*@NSCopying*/ open internal(set) var error: Error?
     
@@ -470,7 +470,7 @@ open class URLSessionDownloadTask : URLSessionTask {
  * -captureStreams to the task.  All outstanding read and writess are
  * completed before the streams are created.  Once the streams are
  * delivered to the session delegate, the task is considered complete
- * and will receive no more messsages.  These streams are
+ * and will receive no more messages.  These streams are
  * disassociated from the underlying session.
  */
 
@@ -513,7 +513,7 @@ open class URLSessionStreamTask : URLSessionTask {
     open func closeRead() { NSUnimplemented() }
     
     /*
-     * Begin encrypted handshake.  The hanshake begins after all pending
+     * Begin encrypted handshake.  The handshake begins after all pending
      * IO has completed.  TLS authentication callbacks are sent to the
      * session's -URLSession:task:didReceiveChallenge:completionHandler:
      */

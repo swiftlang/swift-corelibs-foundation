@@ -160,7 +160,7 @@ internal func _CFSwiftDictionaryContainsValue(_ dictionary: AnyObject, value: An
 // In the case of subclasses of either NSDictionary or NSMutableDictionary we cannot reconstruct boxes here since
 // they will fall out of scope and be consumed by automatic reference counting at the end of this function. But since
 // swift has a fragile layout we can reach into the super-class ivars (NSDictionary) and store boxed references to ensure lifespan
-// is similar to how it works on Darwin. Effectively this binds the acceess point of all values and keys for those objects
+// is similar to how it works on Darwin. Effectively this binds the access point of all values and keys for those objects
 // to have the same lifespan of the parent container object.
 
 internal func _CFSwiftDictionaryGetValuesAndKeys(_ dictionary: AnyObject, valuebuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?, keybuf: UnsafeMutablePointer<Unmanaged<AnyObject>?>?) {

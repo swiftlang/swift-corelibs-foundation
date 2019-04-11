@@ -585,7 +585,7 @@ static Boolean _CFBundleReadDirectory(CFStringRef pathOfDir, CFStringRef subdire
                     CFDictionarySetValue(queryTable, noProductOrPlatform, pathToFile);
                 } else {
                     if (!lprojName || CFStringHasPrefix(prevPath, lprojName)) {
-                        // we need to know the version of exisiting path to see if we can replace it by the current path
+                        // we need to know the version of existing path to see if we can replace it by the current path
                         CFRange searchRange;
                         if (lprojName) {
                             searchRange.location = CFStringGetLength(lprojName);

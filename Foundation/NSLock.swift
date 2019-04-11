@@ -492,7 +492,7 @@ private func timedLock(mutex: _MutexPointer, endTime: Date,
         if tryval == 0 { // The lock was obtained.
             return true
         }
-        // pthread_cond_timedwait didnt timeout so wait some more.
+        // pthread_cond_timedwait didn't timeout so wait some more.
         timeSpec = timeSpecFrom(date: endTime)
     }
     return false

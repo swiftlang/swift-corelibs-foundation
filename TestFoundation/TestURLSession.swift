@@ -1101,7 +1101,7 @@ extension HTTPRedirectionDataTask : URLSessionTaskDelegate {
         XCTAssertEqual(302, response.statusCode, "HTTP response code is not 302")
         if let url = response.url, url.path.hasSuffix("/redirect-with-default-port") {
             XCTAssertEqual(request.url?.absoluteString, "http://127.0.0.1/redirected-with-default-port")
-            // Dont follow the redirect as the test server is not running on port 80
+            // Don't follow the redirect as the test server is not running on port 80
             return
         }
         completionHandler(request)

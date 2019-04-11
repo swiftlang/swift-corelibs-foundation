@@ -31,7 +31,7 @@ typedef struct {
     CFMutableArrayRef _dirtyKeys; // The array of keys which must be synchronized
     CFAbsoluteTime _lastReadTime; // The last time we synchronized with the disk
     CFLock_t _lock; // Lock for accessing fields in the domain
-    Boolean _isWorldReadable; // HACK - this is because we have no good way to propogate the kCFPreferencesAnyUser information from the upper level CFPreferences routines  REW, 1/13/00
+    Boolean _isWorldReadable; // HACK - this is because we have no good way to propagate the kCFPreferencesAnyUser information from the upper level CFPreferences routines  REW, 1/13/00
     char _padding[3];
 } _CFXMLPreferencesDomain;
 
@@ -174,7 +174,7 @@ static void _loadXMLDomainIfStale(CFURLRef url, _CFXMLPreferencesDomain *domain)
     for (idx = 0; idx < 3; idx ++) {
         CFDataRef data;
         if (!CFURLCreateDataAndPropertiesFromResource(alloc, url, &data, NULL, NULL, NULL) || !data) {
-            // Either a file system error (so we can't read the file), or an empty (or perhaps non-existant) file
+            // Either a file system error (so we can't read the file), or an empty (or perhaps non-existent) file
             domain->_domainDict = CFDictionaryCreateMutable(alloc, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             break;
         } else {

@@ -222,7 +222,7 @@ open class ByteCountFormatter : Formatter {
                 counter = unitsToUse.count - 1
             }
             /*
-                The units are appended to the array in asceding order, so if the value for byteCount is smaller than the byteSize value of the next unit
+                The units are appended to the array in ascending order, so if the value for byteCount is smaller than the byteSize value of the next unit
                 in the Array we use the previous unit. e.g. if byteCount = 1000, and AllowedUnits = [.useKB, .useGB] check to see if byteCount is smaller
                 than a GB in bytes(pow(1000, 3)) and if so, we'll use the previous unit which is KB in this case. 
             */

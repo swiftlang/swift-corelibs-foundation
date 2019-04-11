@@ -698,7 +698,7 @@ static CFDictionaryRef _CFBundleCopyInfoDictionaryInDirectoryWithVersion(CFAlloc
             CFIndex platformInfoPlistLength = CFStringGetLength(_CFBundlePlatformInfoPlistName);
             
             // Look inside this directory for the platform-specific and global Info.plist
-            // For compatability reasons, we support case-insensitive versions of Info.plist. That means that we must do a search of all the file names in the directory so we can compare. Otherwise, perhaps a couple of stats would be more efficient than the readdir.
+            // For compatibility reasons, we support case-insensitive versions of Info.plist. That means that we must do a search of all the file names in the directory so we can compare. Otherwise, perhaps a couple of stats would be more efficient than the readdir.
             _CFIterateDirectory(directoryPath, false, NULL, ^Boolean(CFStringRef fileName, CFStringRef fileNameWithPrefix, uint8_t fileType) {
                 // Only do the platform check on platforms where the string is different than the normal one
                 if (_CFBundlePlatformInfoPlistName != _CFBundleInfoPlistName) {

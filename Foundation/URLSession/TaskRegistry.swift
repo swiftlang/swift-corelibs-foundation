@@ -87,8 +87,8 @@ extension URLSession._TaskRegistry {
         }
     }
 
-    func notify(on tasksCompetion: @escaping () -> Void) {
-        tasksFinishedCallback = tasksCompetion
+    func notify(on tasksCompletion: @escaping () -> Void) {
+        tasksFinishedCallback = tasksCompletion
     }
 
     var isEmpty: Bool {

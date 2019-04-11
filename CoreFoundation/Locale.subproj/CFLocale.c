@@ -53,7 +53,7 @@ uameasfmt_getUnitsForUsage( const char*     locale,
 #include <string.h>
 
 #if DEPLOYMENT_TARGET_EMBEDDED_MINI
-// Some compatability definitions
+// Some compatibility definitions
 #define ULOC_FULLNAME_CAPACITY 157
 #define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
 
