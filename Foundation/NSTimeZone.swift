@@ -178,9 +178,6 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         }
         return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
     }
-}
-
-extension NSTimeZone {
 
     open class var system: TimeZone {
         return CFTimeZoneCopySystem()._swiftObject
@@ -199,7 +196,9 @@ extension NSTimeZone {
         }
     }
 
-    open class var local: TimeZone { NSUnimplemented() }
+    open class var local: TimeZone {
+        return TimeZone(adoptingReference: __NSLocalTimeZone.shared, autoupdating: true)
+    }
 
     open class var knownTimeZoneNames: [String] {
         guard let knownNames = CFTimeZoneCopyKnownNames() else { return [] }
@@ -212,12 +211,13 @@ extension NSTimeZone {
             return dictionary._nsObject._bridgeToSwift() as! [String : String]
         }
         set {
-            // CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
-            NSUnimplemented()
+            CFTimeZoneSetAbbreviationDictionary(newValue._cfObject)
         }
     }
 
-    open class var timeZoneDataVersion: String { NSUnimplemented() }
+    open class var timeZoneDataVersion: String {
+        return __CFTimeZoneCopyDataVersionString()._swiftObject
+    }
 
     open var secondsFromGMT: Int {
         let currentDate = Date()
@@ -295,4 +295,54 @@ extension NSTimeZone {
 
 extension NSNotification.Name {
     public static let NSSystemTimeZoneDidChange = NSNotification.Name(rawValue: kCFTimeZoneSystemTimeZoneDidChangeNotification._swiftObject)
+}
+
+internal class __NSLocalTimeZone: NSTimeZone {
+    static var shared = __NSLocalTimeZone()
+    
+    private init() {
+        super.init(_name: "GMT+0000")
+    }
+    
+    public convenience required init?(coder aDecoder: NSCoder) {
+        // We do not encode details of the local time zone, merely the placeholder object.
+        self.init()
+    }
+    
+    override func encode(with aCoder: NSCoder) {
+        // We do not encode details of the local time zone, merely the placeholder object.
+    }
+    
+    private var system: NSTimeZone {
+        return NSTimeZone.system._nsObject
+    }
+    
+    override var name: String { return system.name }
+    override var data: Data { return system.data }
+    override func secondsFromGMT(for aDate: Date) -> Int {
+        return system.secondsFromGMT(for: aDate)
+    }
+    override func abbreviation(for aDate: Date) -> String? {
+        return system.abbreviation(for: aDate)
+    }
+    override func isDaylightSavingTime(for aDate: Date) -> Bool {
+        return system.isDaylightSavingTime(for: aDate)
+    }
+    override func daylightSavingTimeOffset(for aDate: Date) -> TimeInterval {
+        return system.daylightSavingTimeOffset(for: aDate)
+    
+    }
+    override func nextDaylightSavingTimeTransition(after aDate: Date) -> Date? {
+        return system.nextDaylightSavingTimeTransition(after: aDate)
+    }
+    override func localizedName(_ style: NSTimeZone.NameStyle, locale: Locale?) -> String? {
+        return system.localizedName(style, locale: locale)
+    }
+    override var description: String {
+        return "Local Time Zone (\(system.description))"
+    }
+    
+    override func copy(with zone: NSZone? = nil) -> Any {
+        return self
+    }
 }

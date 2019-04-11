@@ -1537,4 +1537,8 @@ static CFDictionaryRef __CFTimeZoneCopyCompatibilityDictionary(void) {
     return dict;
 }
 
-
+CF_CROSS_PLATFORM_EXPORT CFStringRef __CFTimeZoneCopyDataVersionString(void) {
+    UErrorCode err = U_ZERO_ERROR;
+    const char *cstr = ucal_getTZDataVersion(&err);
+    return (U_SUCCESS(err)) ? CFStringCreateWithCString(kCFAllocatorSystemDefault, cstr, kCFStringEncodingUTF8) : CFRetain(CFSTR(""));
+}

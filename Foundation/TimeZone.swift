@@ -49,8 +49,7 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
     ///
     /// The autoupdating time zone only compares equal to itself.
     public static var autoupdatingCurrent : TimeZone {
-        // swift-corelibs-foundation does not yet support autoupdating, but we can return the current time zone (which will not change).
-        return TimeZone(adoptingReference: __NSTimeZoneAutoupdating(), autoupdating: true)
+        return NSTimeZone.local
     }
     
     // MARK: -
@@ -118,7 +117,7 @@ public struct TimeZone : Hashable, Equatable, ReferenceConvertible {
         }
     }
     
-    private init(adoptingReference reference: NSTimeZone, autoupdating: Bool) {
+    internal init(adoptingReference reference: NSTimeZone, autoupdating: Bool) {
         // this path is only used for types we do not need to copy (we are adopting the ref)
         _wrapped = reference
         _autoupdating = autoupdating
