@@ -588,7 +588,7 @@ internal func _NSReadMutableAttributedStringWithCoder(_ decoder: NSCoder, mutabl
     let attributes = decoder.decodeObject(of: allowed, forKey: "NSAttributes")
     // If this is present, 'attributes' should be an array; otherwise, a dictionary:
     let attrData = decoder.decodeObject(of: NSData.self, forKey: "NSAttributeInfo")
-    if attrData == nil, let attributes = attributes as? [NSAttributedString.Key : Any] {
+    if attrData == nil, let attributesNS = attributes as? NSDictionary, let attributes = toAttributesDictionary(attributesNS) {
         mutableAttributedString.setAttributes(attributes, range: NSMakeRange(0, string.length))
         return true
     } else if let attrData = attrData, let attributesNS = attributes as? [NSDictionary] {
