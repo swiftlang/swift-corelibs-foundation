@@ -25,8 +25,8 @@ import Dispatch
 /// of processing a given request.
 open class URLSessionTask : NSObject, NSCopying {
     
-    public var countOfBytesClientExpectsToReceive: Int64 { NSUnimplemented() }
-    public var countOfBytesClientExpectsToSend: Int64 { NSUnimplemented() }
+    public var countOfBytesClientExpectsToReceive: Int64 = NSURLSessionTransferSizeUnknown
+    public var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown
     public var earliestBeginDate: Date? { NSUnimplemented() }
     
     /// How many times the task has been suspended, 0 indicating a running task.
