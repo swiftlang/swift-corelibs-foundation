@@ -626,6 +626,11 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     stderrPipe.fileHandleForReading.readabilityHandler = nil
 
     // Drain any data remaining in the pipes
+#if DARWIN_COMPATIBILITY_TESTS
+    // Use old API for now
+    stdoutData.append(stdoutPipe.fileHandleForReading.availableData)
+    stderrData.append(stderrPipe.fileHandleForReading.availableData)
+#else
     if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
         stdoutData.append(d)
     }
@@ -633,6 +638,7 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     if let d = try stderrPipe.fileHandleForReading.readToEnd() {
         stderrData.append(d)
     }
+#endif
 
     guard process.terminationStatus == 0 else {
         throw Error.TerminationStatus(process.terminationStatus)
