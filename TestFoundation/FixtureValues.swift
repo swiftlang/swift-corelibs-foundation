@@ -46,9 +46,37 @@ enum Fixtures {
         return NSAttributedString(attributedString: try Fixtures.mutableAttributedString.make())
     }
     
+    // ===== ByteCountFormatter =====
+    
+    static let byteCountFormatterDefault = TypedFixture<ByteCountFormatter>("ByteCountFormatter-Default") {
+        return ByteCountFormatter()
+    }
+    
+    static let byteCountFormatterAllFieldsSet = TypedFixture<ByteCountFormatter>("ByteCountFormatter-AllFieldsSet") {
+        let f = ByteCountFormatter()
+        
+        f.allowedUnits = [.useBytes, .useKB]
+        f.countStyle = .decimal
+        f.formattingContext = .beginningOfSentence
+        
+        f.zeroPadsFractionDigits = true
+        f.includesCount = true
+        
+        f.allowsNonnumericFormatting = false
+        f.includesUnit = false
+        f.includesCount = false
+        f.isAdaptive = false
+        
+        return f
+    }
+    
+    // ===== Fixture list =====
+    
     static let all: [AnyFixture] = [
         AnyFixture(Fixtures.mutableAttributedString),
         AnyFixture(Fixtures.attributedString),
+        AnyFixture(Fixtures.byteCountFormatterDefault),
+        AnyFixture(Fixtures.byteCountFormatterAllFieldsSet),
     ]
 }
 
@@ -68,6 +96,7 @@ protocol Fixture {
     associatedtype ValueType
     var identifier: String { get }
     func make() throws -> ValueType
+    var supportsSecureCoding: Bool { get }
 }
 
 struct TypedFixture<ValueType: NSObject & NSCoding>: Fixture {
@@ -82,15 +111,21 @@ struct TypedFixture<ValueType: NSObject & NSCoding>: Fixture {
     func make() throws -> ValueType {
         return try creationHandler()
     }
+    
+    var supportsSecureCoding: Bool {
+        return (ValueType.self as? NSSecureCoding.Type)?.supportsSecureCoding == true
+    }
 }
 
 struct AnyFixture: Fixture {
     var identifier: String
     private var creationHandler: () throws -> NSObject & NSCoding
+    let supportsSecureCoding: Bool
     
     init<T: Fixture>(_ fixture: T) {
         self.identifier = fixture.identifier
         self.creationHandler = { return try fixture.make() as! (NSObject & NSCoding) }
+        self.supportsSecureCoding = fixture.supportsSecureCoding
     }
     
     func make() throws -> NSObject & NSCoding {
@@ -106,8 +141,13 @@ extension Fixture where ValueType: NSObject & NSCoding {
     func load(fixtureRepository: URL, variant: FixtureVariant) throws -> ValueType? {
         let data = try Data(contentsOf: url(inFixtureRepository: fixtureRepository, variant: variant))
         let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
-        unarchiver.requiresSecureCoding = true
-        return try unarchiver.decodeTopLevelObject(of: ValueType.self, forKey: NSKeyedArchiveRootObjectKey)
+        unarchiver.requiresSecureCoding = self.supportsSecureCoding
+        
+        let value = unarchiver.decodeObject(of: ValueType.self, forKey: NSKeyedArchiveRootObjectKey)
+        if let error = unarchiver.error {
+            throw error
+        }
+        return value
     }
     
     func url(inFixtureRepository fixtureRepository: URL, variant: FixtureVariant) -> URL {

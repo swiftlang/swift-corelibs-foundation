@@ -65,9 +65,11 @@ try! FileManager.default.createDirectory(at: outputDirectory, withIntermediateDi
 
 for fixture in Fixtures.all {
     let outputFile = outputDirectory.appendingPathComponent(fixture.identifier, isDirectory: false).appendingPathExtension("archive")
-    
     print(" == Archiving fixture: \(fixture.identifier) to \(outputFile.path)")
     
-    let data = try! NSKeyedArchiver.archivedData(withRootObject: try! fixture.make(), requiringSecureCoding: true)
+    let value = try! fixture.make()
+
+    let data = try! NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: fixture.supportsSecureCoding)
+    
     try! data.write(to: outputFile)
 }

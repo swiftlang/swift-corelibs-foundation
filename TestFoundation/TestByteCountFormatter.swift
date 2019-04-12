@@ -9,32 +9,6 @@
 
 class TestByteCountFormatter : XCTestCase {
     
-    static var allTests: [(String, (TestByteCountFormatter) -> () throws -> Void)] {
-        return [
-            ("test_DefaultValues", test_DefaultValues),
-            ("test_zeroBytes", test_zeroBytes),
-            ("test_oneByte", test_oneByte),
-            ("test_allowedUnitsKBGB", test_allowedUnitsKBGB),
-            ("test_allowedUnitsMBGB", test_allowedUnitsMBGB),
-            ("test_adaptiveFalseAllowedUnitsKBMBGB", test_adaptiveFalseAllowedUnitsKBMBGB),
-            ("test_allowedUnitsKBMBGB", test_allowedUnitsKBMBGB),
-            ("test_allowedUnitsBytesGB", test_allowedUnitsBytesGB),
-            ("test_allowedUnitsGB", test_allowedUnitsGB),
-            ("test_adaptiveFalseAllowedUnitsGB", test_adaptiveFalseAllowedUnitsGB),
-            ("test_numberOnly", test_numberOnly),
-            ("test_unitOnly", test_unitOnly),
-            ("test_isAdaptiveFalse", test_isAdaptiveFalse),
-            ("test_isAdaptiveTrue", test_isAdaptiveTrue),
-            ("test_zeroPadsFractionDigitsTrue", test_zeroPadsFractionDigitsTrue),
-            ("test_isAdaptiveFalseZeroPadsFractionDigitsTrue", test_isAdaptiveFalseZeroPadsFractionDigitsTrue),
-            ("test_countStyleDecimal", test_countStyleDecimal),
-            ("test_countStyleBinary", test_countStyleBinary),
-            ("test_largeByteValues", test_largeByteValues),
-            ("test_negativeByteValues", test_negativeByteValues)
-            
-        ]
-    }
-    
     func test_DefaultValues() {
         let formatter = ByteCountFormatter()
         XCTAssertEqual(formatter.allowedUnits, [])
@@ -464,4 +438,48 @@ class TestByteCountFormatter : XCTestCase {
         formatter.allowedUnits = .useYBOrHigher
         XCTAssertEqual(formatter.string(fromByteCount: Int64.min), "-0 YB")
     }
+    
+    func test_unarchivingFixtures() throws {
+        for fixture in [Fixtures.byteCountFormatterDefault, Fixtures.byteCountFormatterAllFieldsSet] {
+            let expectation = try fixture.make()
+            try fixture.loadEach { (formatter, variant) in
+                XCTAssertEqual(formatter.allowedUnits,               expectation.allowedUnits)
+                XCTAssertEqual(formatter.countStyle,                 expectation.countStyle)
+                XCTAssertEqual(formatter.formattingContext,          expectation.formattingContext)
+                XCTAssertEqual(formatter.zeroPadsFractionDigits,     expectation.zeroPadsFractionDigits)
+                XCTAssertEqual(formatter.includesActualByteCount,    expectation.includesActualByteCount)
+                XCTAssertEqual(formatter.allowsNonnumericFormatting, expectation.allowsNonnumericFormatting)
+                XCTAssertEqual(formatter.includesUnit,               expectation.includesUnit)
+                XCTAssertEqual(formatter.includesCount,              expectation.includesCount)
+                XCTAssertEqual(formatter.isAdaptive,                 expectation.isAdaptive)
+            }
+        }
+    }
+
+    static var allTests: [(String, (TestByteCountFormatter) -> () throws -> Void)] {
+        return [
+            ("test_DefaultValues", test_DefaultValues),
+            ("test_zeroBytes", test_zeroBytes),
+            ("test_oneByte", test_oneByte),
+            ("test_allowedUnitsKBGB", test_allowedUnitsKBGB),
+            ("test_allowedUnitsMBGB", test_allowedUnitsMBGB),
+            ("test_adaptiveFalseAllowedUnitsKBMBGB", test_adaptiveFalseAllowedUnitsKBMBGB),
+            ("test_allowedUnitsKBMBGB", test_allowedUnitsKBMBGB),
+            ("test_allowedUnitsBytesGB", test_allowedUnitsBytesGB),
+            ("test_allowedUnitsGB", test_allowedUnitsGB),
+            ("test_adaptiveFalseAllowedUnitsGB", test_adaptiveFalseAllowedUnitsGB),
+            ("test_numberOnly", test_numberOnly),
+            ("test_unitOnly", test_unitOnly),
+            ("test_isAdaptiveFalse", test_isAdaptiveFalse),
+            ("test_isAdaptiveTrue", test_isAdaptiveTrue),
+            ("test_zeroPadsFractionDigitsTrue", test_zeroPadsFractionDigitsTrue),
+            ("test_isAdaptiveFalseZeroPadsFractionDigitsTrue", test_isAdaptiveFalseZeroPadsFractionDigitsTrue),
+            ("test_countStyleDecimal", test_countStyleDecimal),
+            ("test_countStyleBinary", test_countStyleBinary),
+            ("test_largeByteValues", test_largeByteValues),
+            ("test_negativeByteValues", test_negativeByteValues),
+            ("test_unarchivingFixtures", test_unarchivingFixtures),
+        ]
+    }
+    
 }

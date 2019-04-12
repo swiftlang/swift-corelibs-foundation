@@ -228,6 +228,118 @@ internal struct _CFInfo {
     }
 }
 
+// MARK: Classes to strings
+
+// These must remain in sync with Foundation.apinotes as shipped on Apple OSes.
+// NSStringFromClass(_:) will return the ObjC name when passed one of these classes, and NSClassFromString(_:) will return the class when passed the ObjC name.
+// This is important for NSCoding archives created on Apple OSes to decode with swift-corelibs-foundation and for general source and data format compatibility.
+
+internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: String)] = [
+    (CachedURLResponse.self, "NSCachedURLResponse"),
+    (HTTPCookie.self, "NSHTTPCookie"),
+    (HTTPCookieStorage.self, "NSHTTPCookieStorage"),
+    (HTTPURLResponse.self, "NSHTTPURLResponse"),
+    (ProcessInfo.self, "NSProcessInfo"),
+    (URLResponse.self, "NSURLResponse"),
+    (URLSession.self, "NSURLSession"),
+    (URLSessionConfiguration.self, "NSURLSessionConfiguration"),
+    (URLSessionDataTask.self, "NSURLSessionDataTask"),
+    (URLSessionDownloadTask.self, "NSURLSessionDownloadTask"),
+    (URLSessionStreamTask.self, "NSURLSessionStreamTask"),
+    (URLSessionTask.self, "NSURLSessionTask"),
+    (URLSessionUploadTask.self, "NSURLSessionUploadTask"),
+    (MessagePort.self, "NSMessagePort"),
+    (Port.self, "NSPort"),
+    (PortMessage.self, "NSPortMessage"),
+    (SocketPort.self, "NSSocketPort"),
+    (Process.self, "NSTask"),
+    (XMLDTD.self, "NSXMLDTD"),
+    (XMLDTDNode.self, "NSXMLDTDNode"),
+    (XMLDocument.self, "NSXMLDocument"),
+    (XMLElement.self, "NSXMLElement"),
+    (XMLNode.self, "NSXMLNode"),
+    (XMLParser.self, "NSXMLParser"),
+    (Bundle.self, "NSBundle"),
+    (ByteCountFormatter.self, "NSByteCountFormatter"),
+    (Host.self, "NSHost"),
+    (DateComponentsFormatter.self, "NSDateComponentsFormatter"),
+    (DateFormatter.self, "NSDateFormatter"),
+    (DateIntervalFormatter.self, "NSDateIntervalFormatter"),
+    (EnergyFormatter.self, "NSEnergyFormatter"),
+    (FileHandle.self, "NSFileHandle"),
+    (FileManager.self, "NSFileManager"),
+    (Formatter.self, "NSFormatter"),
+    (InputStream.self, "NSInputStream"),
+    (ISO8601DateFormatter.self, "NSISO8601DateFormatter"),
+    (JSONSerialization.self, "NSJSONSerialization"),
+    (LengthFormatter.self, "NSLengthFormatter"),
+    (MassFormatter.self, "NSMassFormatter"),
+    (MeasurementFormatter.self, "NSMeasurementFormatter"),
+    (NotificationQueue.self, "NSNotificationQueue"),
+    (NumberFormatter.self, "NSNumberFormatter"),
+    (Operation.self, "NSOperation"),
+    (OperationQueue.self, "NSOperationQueue"),
+    (OutputStream.self, "NSOutputStream"),
+    (PersonNameComponentsFormatter.self, "NSPersonNameComponentsFormatter"),
+    (Pipe.self, "NSPipe"),
+    (Progress.self, "NSProgress"),
+    (PropertyListSerialization.self, "NSPropertyListSerialization"),
+    (RunLoop.self, "NSRunLoop"),
+    (Scanner.self, "NSScanner"),
+    (Stream.self, "NSStream"),
+    (Thread.self, "NSThread"),
+    (Timer.self, "NSTimer"),
+    (URLAuthenticationChallenge.self, "NSURLAuthenticationChallenge"),
+    (URLCache.self, "NSURLCache"),
+    (URLCredential.self, "NSURLCredential"),
+    (URLCredentialStorage.self, "NSURLCredentialStorage"),
+    (URLProtectionSpace.self, "NSURLProtectionSpace"),
+    (URLProtocol.self, "NSURLProtocol"),
+    (UserDefaults.self, "NSUserDefaults"),
+    (FileManager.DirectoryEnumerator.self, "NSDirectoryEnumerator"),
+    (Dimension.self, "NSDimension"),
+    (Unit.self, "NSUnit"),
+    (UnitAcceleration.self, "NSUnitAcceleration"),
+    (UnitAngle.self, "NSUnitAngle"),
+    (UnitArea.self, "NSUnitArea"),
+    (UnitConcentrationMass.self, "UnitConcentrationMass"),
+    (UnitConverter.self, "NSUnitConverter"),
+    (UnitConverterLinear.self, "NSUnitConverterLinear"),
+    (UnitDispersion.self, "NSUnitDispersion"),
+    (UnitDuration.self, "NSUnitDuration"),
+    (UnitElectricCharge.self, "NSUnitElectricCharge"),
+    (UnitElectricCurrent.self, "NSUnitElectricCurrent"),
+    (UnitElectricPotentialDifference.self, "NSUnitElectricPotentialDifference"),
+    (UnitElectricResistance.self, "NSUnitElectricResistance"),
+    (UnitEnergy.self, "NSUnitEnergy"),
+    (UnitFrequency.self, "NSUnitFrequency"),
+    (UnitFuelEfficiency.self, "NSUnitFuelEfficiency"),
+    (UnitIlluminance.self, "NSUnitIlluminance"),
+    (UnitLength.self, "NSUnitLength"),
+    (UnitMass.self, "NSUnitMass"),
+    (UnitPower.self, "NSUnitPower"),
+    (UnitPressure.self, "NSUnitPressure"),
+    (UnitSpeed.self, "NSUnitSpeed"),
+    (UnitVolume.self, "NSUnitVolume"),
+    (UnitTemperature.self, "NSUnitTemperature"),
+]
+
+fileprivate var mapFromObjCNameToClass: [String: AnyClass] = {
+    var map: [String: AnyClass] = [:]
+    for entry in _NSClassesRenamedByObjCAPINotes {
+        map[entry.objCName] = entry.class
+    }
+    return map
+}()
+
+fileprivate var mapFromSwiftClassNameToObjCName: [String: String] = {
+    var map: [String: String] = [:]
+    for entry in _NSClassesRenamedByObjCAPINotes {
+        map[String(reflecting: entry.class)] = entry.objCName
+    }
+    return map
+}()
+
 #if os(macOS) || os(iOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
@@ -243,7 +355,12 @@ private let _SwiftFoundationModuleName = "Foundation"
     neither stable nor human-readable.
  */
 public func NSStringFromClass(_ aClass: AnyClass) -> String {
-    let aClassName = String(reflecting: aClass)._bridgeToObjectiveC()
+    let classNameString = String(reflecting: aClass)
+    if let renamed = mapFromSwiftClassNameToObjCName[classNameString] {
+        return renamed
+    }
+    
+    let aClassName = classNameString._bridgeToObjectiveC()
     let components = aClassName.components(separatedBy: ".")
     
     guard components.count == 2 else {
@@ -266,6 +383,10 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     neither stable nor human-readable.
  */
 public func NSClassFromString(_ aClassName: String) -> AnyClass? {
+    if let renamedClass = mapFromObjCNameToClass[aClassName] {
+        return renamedClass
+    }
+    
     let aClassNameWithPrefix : String
     let components = aClassName._bridgeToObjectiveC().components(separatedBy: ".")
     

@@ -7,20 +7,36 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
+
 class SwiftClass {
     class InnerClass {}
 }
 
-struct SwfitStruct {}
+
+
+struct SwiftStruct {}
 
 enum SwiftEnum {}
 
 class TestObjCRuntime: XCTestCase {
     static var allTests: [(String, (TestObjCRuntime) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestObjCRuntime) -> () throws -> Void)] = [
             ("testStringFromClass", testStringFromClass),
             ("testClassFromString", testClassFromString),
         ]
+        
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(("testClassesRenamedByAPINotes", testClassesRenamedByAPINotes))
+        #endif
+        
+        return tests
     }
 
     func testStringFromClass() {
@@ -44,4 +60,13 @@ class TestObjCRuntime: XCTestCase {
         XCTAssertNil(NSClassFromString("SwiftStruct"));
         XCTAssertNil(NSClassFromString("SwiftEnum"));
     }
+    
+    #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    func testClassesRenamedByAPINotes() throws {
+        for entry in _NSClassesRenamedByObjCAPINotes {
+            XCTAssert(NSClassFromString(NSStringFromClass(entry.class)) === entry.class)
+            XCTAssert(NSStringFromClass(try NSClassFromString(entry.objCName).unwrapped()) == entry.objCName)
+        }
+    }
+    #endif
 }
