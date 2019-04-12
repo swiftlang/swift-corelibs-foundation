@@ -109,5 +109,6 @@ XCTMain([
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
     testCase(TestDimension.allTests),
+    testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
 ])
