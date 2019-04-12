@@ -35,6 +35,10 @@ open class URLSessionTask : NSObject, NSCopying {
     internal let body: _Body
     fileprivate var _protocol: URLProtocol? = nil
     private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
+    private var hasTriggeredResume: Bool = false
+    internal var isSuspendedAfterResume: Bool {
+        return self.syncQ.sync { return self.hasTriggeredResume } && self.state == .suspended
+    }
     
     /// All operations must run on this queue.
     internal let workQueue: DispatchQueue 
@@ -258,6 +262,7 @@ open class URLSessionTask : NSObject, NSCopying {
             guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
             self.updateTaskState()
             if self.suspendCount == 0 {
+                self.hasTriggeredResume = true
                 self.workQueue.async {
                     if let _protocol = self._protocol {
                         _protocol.startLoading()
