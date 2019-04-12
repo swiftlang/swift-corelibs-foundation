@@ -423,8 +423,9 @@ public struct Locale : CustomStringConvertible, CustomDebugStringConvertible, Ha
     
     public func hash(into hasher: inout Hasher) {
         if _autoupdating {
-            hasher.combine(1 as Int8)
+            hasher.combine(false)
         } else {
+            hasher.combine(true)
             hasher.combine(_wrapped)
         }
     }
