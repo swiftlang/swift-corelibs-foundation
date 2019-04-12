@@ -74,6 +74,7 @@ class TestCharacterSet : XCTestCase {
             ("test_formUnion", test_formUnion),
             ("test_union", test_union),
             ("test_SR5971", test_SR5971),
+            ("test_hashing", test_hashing),
         ]
     }
     
@@ -367,5 +368,19 @@ class TestCharacterSet : XCTestCase {
         let charset2 = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&+")
         XCTAssertTrue(charset2.contains("+"))
     }
-    
+
+    func test_hashing() {
+        let a = CharacterSet(charactersIn: "ABC")
+        let b = CharacterSet(charactersIn: "CBA")
+        let c = CharacterSet(charactersIn: "bad")
+        let d = CharacterSet(charactersIn: "abd")
+        let e = CharacterSet.capitalizedLetters
+        let f = CharacterSet.lowercaseLetters
+        checkHashableGroups(
+            [[a, b], [c, d], [e], [f]],
+            // FIXME: CharacterSet delegates equality and hashing to
+            // CFCharacterSet, which uses unseeded hashing, so it's not
+            // complete.
+            allowIncompleteHashing: true)
+    }
 }
