@@ -11,7 +11,7 @@
 import CoreFoundation
 import Dispatch
 
-open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
+open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByDictionaryLiteral {
     private let _cfinfo = _CFInfo(typeID: CFDictionaryGetTypeID())
     internal var _storage: [NSObject: AnyObject]
     
@@ -38,7 +38,6 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
         } else {
             return object(forKey: key)
         }
-        
     }
     
     open func keyEnumerator() -> NSEnumerator {
@@ -78,7 +77,50 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             _storage[key as! NSObject] = value
         }
     }
-    
+
+    public convenience init(object: Any, forKey key: NSCopying) {
+        self.init(objects: [object], forKeys: [key as! NSObject])
+    }
+
+    public convenience init(objects: [Any], forKeys keys: [NSObject]) {
+        let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: keys.count)
+        keyBuffer.initialize(from: keys, count: keys.count)
+
+        let valueBuffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: objects.count)
+        valueBuffer.initialize(from: objects.map { __SwiftValue.store($0) }, count: objects.count)
+
+        self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
+
+        keyBuffer.deinitialize(count: keys.count)
+        valueBuffer.deinitialize(count: objects.count)
+        keyBuffer.deallocate()
+        valueBuffer.deallocate()
+    }
+
+    public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {
+        self.init(dictionary: otherDictionary, copyItems: false)
+    }
+
+    public convenience init(dictionary otherDictionary: [AnyHashable: Any], copyItems flag: Bool) {
+        if flag {
+            self.init(objects: Array(otherDictionary.values.map { __SwiftValue($0).copy() as! NSObject }), forKeys: otherDictionary.keys.map { __SwiftValue.store($0).copy() as! NSObject})
+        } else {
+            self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { __SwiftValue.store($0) })
+        }
+    }
+
+    required public convenience init(dictionaryLiteral elements: (Any, Any)...) {
+        var keys = [NSObject]()
+        var values = [Any]()
+
+        for (key, value) in elements {
+            keys.append(__SwiftValue.store(key))
+            values.append(value)
+        }
+
+        self.init(objects: values, forKeys: keys)
+    }
+
     public required convenience init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
@@ -142,29 +184,6 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             return mutableDictionary
         }
         return NSMutableDictionary(objects: self.allValues, forKeys: self.allKeys.map { __SwiftValue.store($0) } )
-    }
-
-    public convenience init(object: Any, forKey key: NSCopying) {
-        self.init(objects: [object], forKeys: [key as! NSObject])
-    }
-    
-    public convenience init(objects: [Any], forKeys keys: [NSObject]) {
-        let keyBuffer = UnsafeMutablePointer<NSObject>.allocate(capacity: keys.count)
-        keyBuffer.initialize(from: keys, count: keys.count)
-
-        let valueBuffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: objects.count)
-        valueBuffer.initialize(from: objects.map { __SwiftValue.store($0) }, count: objects.count)
-
-        self.init(objects: valueBuffer, forKeys:keyBuffer, count: keys.count)
-        
-        keyBuffer.deinitialize(count: keys.count)
-        valueBuffer.deinitialize(count: objects.count)
-        keyBuffer.deallocate()
-        valueBuffer.deallocate()
-    }
-    
-    public convenience init(dictionary otherDictionary: [AnyHashable : Any]) {
-        self.init(objects: Array(otherDictionary.values), forKeys: otherDictionary.keys.map { __SwiftValue.store($0) })
     }
 
     open override func isEqual(_ value: Any?) -> Bool {
@@ -543,18 +562,6 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
     override open var _cfTypeID: CFTypeID {
         return CFDictionaryGetTypeID()
     }
-    
-    required public convenience init(dictionaryLiteral elements: (Any, Any)...) {
-        var keys = [NSObject]()
-        var values = [Any]()
-
-        for (key, value) in elements {
-            keys.append(__SwiftValue.store(key))
-            values.append(value)
-        }
-        
-        self.init(objects: values, forKeys: keys)
-    }
 }
 
 extension NSDictionary : _CFBridgeable, _SwiftBridgeable {
@@ -608,11 +615,7 @@ open class NSMutableDictionary : NSDictionary {
     public required init(objects: UnsafePointer<AnyObject>!, forKeys keys: UnsafePointer<NSObject>!, count cnt: Int) {
         super.init(objects: objects, forKeys: keys, count: cnt)
     }
-    
-}
 
-extension NSMutableDictionary {
-    
     open func addEntries(from otherDictionary: [AnyHashable : Any]) {
         for (key, obj) in otherDictionary {
             setObject(obj, forKey: key)
@@ -690,14 +693,13 @@ extension NSMutableDictionary {
     public convenience init(sharedKeySet keyset: Any) { NSUnimplemented() }
 }
 
-extension NSDictionary : ExpressibleByDictionaryLiteral { }
-
-extension NSDictionary : CustomReflectable {
-    public var customMirror: Mirror { NSUnimplemented() }
+extension NSDictionary: CustomReflectable {
+    public var customMirror: Mirror {
+        return Mirror(reflecting: self._storage as [NSObject: AnyObject])
+    }
 }
 
-
-extension NSDictionary : _StructTypeBridgeable {
+extension NSDictionary: _StructTypeBridgeable {
     public typealias _StructType = Dictionary<AnyHashable,Any>
     
     public func _bridgeToSwift() -> _StructType {
