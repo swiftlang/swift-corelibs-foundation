@@ -363,9 +363,10 @@ class TestDecimal: XCTestCase {
         XCTAssertFalse(Decimal.nan.isTotallyOrdered(belowOrEqualTo: Decimal(2.3)))
         XCTAssertTrue(Decimal(2) < Decimal(3))
         XCTAssertTrue(Decimal(3) > Decimal(2))
-#if !arch(arm)
-        XCTAssertEqual(3275573729074, Decimal(1234).hashValue)
-#endif
+
+        // FIXME: This test is of questionable value. We should test hash properties.
+        XCTAssertEqual((1234 as Double).hashValue, Decimal(1234).hashValue)
+
         XCTAssertEqual(Decimal(-9), Decimal(1) - Decimal(10))
         XCTAssertEqual(Decimal(3), Decimal(2).nextUp)
         XCTAssertEqual(Decimal(2), Decimal(3).nextDown)
