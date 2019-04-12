@@ -606,7 +606,7 @@ class TestNSString: LoopbackServerTest {
         buf.reserveCapacity(reservedLength)
         var usedLen : CFIndex = 0
         let _ = buf.withUnsafeMutableBufferPointer { p in
-            CFStringGetBytes(cfString, CFRangeMake(0, CFStringGetLength(cfString)), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
+            CFStringGetBytes(cfString, CFRangeMake(0, unsafeBitCast(cfString, to: NSString.self).length), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
         }
 
         // Make a new string out of it
@@ -1299,11 +1299,11 @@ class TestNSString: LoopbackServerTest {
     }
 
     func test_substringFromCFString() {
-        let cfString = kCFStringTransformStripCombiningMarks!
-        let range = NSRange(location: 0, length: CFStringGetLength(cfString))
-        let substring = unsafeBitCast(cfString, to: NSString.self).substring(with: range)
+        let string = NSString.StringTransform.stripCombiningMarks.rawValue as NSString
+        let range = NSRange(location: 0, length: string.length)
+        let substring = string.substring(with: range)
 
-        XCTAssertEqual(CFStringGetLength(cfString), substring.utf16.count)
+        XCTAssertEqual(string.length, substring.utf16.count)
     }
 
     func test_createCopy() {
