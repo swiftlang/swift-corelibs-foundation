@@ -27,8 +27,7 @@ class TestAffineTransform : XCTestCase {
             ("test_AppendTransform", test_AppendTransform),
             ("test_PrependTransform", test_PrependTransform),
             ("test_TransformComposition", test_TransformComposition),
-            ("test_hashing_identity", test_hashing_identity),
-            ("test_hashing_values", test_hashing_values),
+            ("test_hashing", test_hashing),
             ("test_rotation_compose", test_rotation_compose),
             ("test_translation_and_rotation", test_translation_and_rotation),
             ("test_Equal", test_Equal),
@@ -317,26 +316,37 @@ class TestAffineTransform : XCTestCase {
         checkPointTransformation(rotateAboutCenter, point: center, expectedPoint: center)
     }
 
-    func test_hashing_identity() {
-        let ref = NSAffineTransform()
-        let val = AffineTransform.identity
-        XCTAssertEqual(ref.hashValue, val.hashValue)
-    }
+    func test_hashing() {
+        let a = AffineTransform(m11: 1.0, m12: 2.5, m21: 66.2, m22: 40.2, tX: -5.5, tY: 3.7)
+        let b = AffineTransform(m11: -55.66, m12: 22.7, m21: 1.5, m22: 0.0, tX: -22, tY: -33)
+        let c = AffineTransform(m11: 4.5, m12: 1.1, m21: 0.025, m22: 0.077, tX: -0.55, tY: 33.2)
+        let d = AffineTransform(m11: 7.0, m12: -2.3, m21: 6.7, m22: 0.25, tX: 0.556, tY: 0.99)
+        let e = AffineTransform(m11: 0.498, m12: -0.284, m21: -0.742, m22: 0.3248, tX: 12, tY: 44)
 
-    func test_hashing_values() {
-        // the transforms are made up and the values don't matter
-        let values = [
-            AffineTransform(m11: CGFloat(1.0), m12: CGFloat(2.5), m21: CGFloat(66.2), m22: CGFloat(40.2), tX: CGFloat(-5.5), tY: CGFloat(3.7)),
-            AffineTransform(m11: CGFloat(-55.66), m12: CGFloat(22.7), m21: CGFloat(1.5), m22: CGFloat(0.0), tX: CGFloat(-22.0), tY: CGFloat(-33.0)),
-            AffineTransform(m11: CGFloat(4.5), m12: CGFloat(1.1), m21: CGFloat(0.025), m22: CGFloat(0.077), tX: CGFloat(-0.55), tY: CGFloat(33.2)),
-            AffineTransform(m11: CGFloat(7.0), m12: CGFloat(-2.3), m21: CGFloat(6.7), m22: CGFloat(0.25), tX: CGFloat(0.556), tY: CGFloat(0.99)),
-            AffineTransform(m11: CGFloat(0.498), m12: CGFloat(-0.284), m21: CGFloat(-0.742), m22: CGFloat(0.3248), tX: CGFloat(12.0), tY: CGFloat(44.0))
-        ]
-        for val in values {
-            let ref = NSAffineTransform()
-            ref.transformStruct = NSAffineTransformStruct(m11: val.m11, m12: val.m12, m21: val.m21, m22: val.m22, tX: val.tX, tY: val.tY)
-            XCTAssertEqual(ref.hashValue, val.hashValue)
+        // Samples testing that every component is properly hashed
+        let x1 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
+        let x2 = AffineTransform(m11: 1.5, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
+        let x3 = AffineTransform(m11: 1.0, m12: 2.5, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.0)
+        let x4 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.5, m22: 4.0, tX: 5.0, tY: 6.0)
+        let x5 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.5, tX: 5.0, tY: 6.0)
+        let x6 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.5, tY: 6.0)
+        let x7 = AffineTransform(m11: 1.0, m12: 2.0, m21: 3.0, m22: 4.0, tX: 5.0, tY: 6.5)
+
+        @inline(never)
+        func bridged(_ t: AffineTransform) -> NSAffineTransform {
+            return t as NSAffineTransform
         }
+
+        let values: [[AffineTransform]] = [
+            [AffineTransform.identity, NSAffineTransform() as AffineTransform],
+            [a, bridged(a) as AffineTransform],
+            [b, bridged(b) as AffineTransform],
+            [c, bridged(c) as AffineTransform],
+            [d, bridged(d) as AffineTransform],
+            [e, bridged(e) as AffineTransform],
+            [x1], [x2], [x3], [x4], [x5], [x6], [x7]
+        ]
+        checkHashableGroups(values)
     }
 
     func test_rotation_compose() {
