@@ -476,6 +476,9 @@ if(ENABLE_TESTING)
                          ${Foundation_INTERFACE_LIBRARIES}
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
+                         ${WORKAROUND_SR9138}
+                         ${WORKAROUND_SR9995}
+                         $<$<PLATFORM_ID:Windows>:-lWS2_32>
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist
