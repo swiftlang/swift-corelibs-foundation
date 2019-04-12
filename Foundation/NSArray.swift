@@ -9,7 +9,7 @@
 
 import CoreFoundation
 
-open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding {
+open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCoding, ExpressibleByArrayLiteral {
     private let _cfinfo = _CFInfo(typeID: CFArrayGetTypeID())
     internal var _storage = [AnyObject]()
 
@@ -945,14 +945,6 @@ extension NSArray : Sequence {
     final public func makeIterator() -> Iterator {
         return Iterator(self)
     }
-}
-
-extension NSArray : ExpressibleByArrayLiteral {
-    
-    /// Create an instance initialized with `elements`.
-//    required public convenience init(arrayLiteral elements: Any...) {
-//        
-//    }
 }
 
 extension NSArray : CustomReflectable {
