@@ -270,11 +270,22 @@ class TestIndexPath: XCTestCase {
     }
     
     func testHashing() {
-        let ip1: IndexPath = [5, 1]
-        let ip2: IndexPath = [1, 1, 1]
-        
-        XCTAssertNotEqual(ip1.hashValue, ip2.hashValue)
-
+        let samples: [IndexPath] = [
+            [],
+            [1],
+            [2],
+            [Int.max],
+            [1, 1],
+            [2, 1],
+            [1, 2],
+            [1, 1, 1],
+            [2, 1, 1],
+            [1, 2, 1],
+            [1, 1, 2],
+            [Int.max, Int.max, Int.max],
+        ]
+        checkHashable(samples, equalityOracle: { $0 == $1 })
+ 
         // this should not cause an overflow crash
         let hash: Int? = IndexPath(indexes: [Int.max >> 8, 2, Int.max >> 36]).hashValue
         XCTAssertNotNil(hash)
