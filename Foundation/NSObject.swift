@@ -12,6 +12,13 @@
 // This brings it into line with Darwin usage for compatibility.
 @_exported import Dispatch
 
+#if canImport(ObjectiveC)
+import ObjectiveC
+#else
+@_silgen_name("_swift_class_getSuperclass")
+internal func _swift_class_getSuperclass(_ t: AnyClass) -> AnyClass?
+#endif
+
 import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
@@ -360,6 +367,52 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
     ///   - rhs: Another value to compare.
     public static func ==(lhs: NSObject, rhs: NSObject) -> Bool {
         return lhs.isEqual(rhs)
+    }
+    
+    // Please note:
+    // the following methods are not overridable in swift-corelibs-foundation.
+    
+    private class var nsObjectSuperclass: NSObject.Type? {
+        // Pretend that {Swift,}Foundation.NSObject is the top of the class hierarchy.
+        // On Darwin, avoids dipping into the class hierarchy that exists above this class,
+        // which is ultimately rooted in the ObjC NSObject class.
+        guard !(self == NSObject.self) else { return nil }
+        
+        let actualSuperclass: NSObject.Type
+        
+        #if canImport(ObjectiveC)
+        actualSuperclass = class_getSuperclass(self) as! NSObject.Type
+        #else
+        actualSuperclass = _swift_class_getSuperclass(self) as! NSObject.Type
+        #endif
+        
+        return actualSuperclass
+    }
+    
+    public class var superclass: AnyClass? {
+        return nsObjectSuperclass
+    }
+    
+    /// Returns a Boolean value that indicates whether the receiving
+    /// class is a subclass of, or identical to, a given class.
+    public class func isSubclass(of aClass: AnyClass) -> Bool {
+        var checkedClass: NSObject.Type? = self
+        while let thisClass = checkedClass {
+            if thisClass === aClass {
+                return true
+            }
+            checkedClass = thisClass.nsObjectSuperclass
+        }
+        
+        return false
+    }
+    
+    public func isMember(of aClass: AnyClass) -> Bool {
+        return type(of: self) === aClass
+    }
+    
+    public func isKind(of aClass: AnyClass) -> Bool {
+        return type(of: self).isSubclass(of: aClass)
     }
 }
 

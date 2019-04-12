@@ -10,28 +10,74 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 open class NSMeasurement : NSObject, NSCopying, NSSecureCoding {
     open private(set) var unit: Unit
     open private(set) var doubleValue: Double
     
-    @available(*, unavailable)
-    public convenience override init() { fatalError("Measurements must be constructed with a value and unit") }
-    
     public init(doubleValue: Double, unit: Unit) {
-        self.doubleValue = doubleValue
         self.unit = unit
+        self.doubleValue = doubleValue
     }
     
-    open func canBeConverted(to unit: Unit) -> Bool { NSUnimplemented() }
+    open func canBeConverted(to unit: Unit) -> Bool {
+        return self.unit is Dimension && unit is Dimension && type(of: unit).isSubclass(of: type(of: self.unit))
+    }
     
-    open func converting(to unit: Unit) -> Measurement<Unit> { NSUnimplemented() }
+    open func converting(to otherUnit: Unit) -> Measurement<Unit> {
+        precondition(canBeConverted(to: otherUnit))
+        
+        if unit.isEqual(otherUnit) {
+            return Measurement(value: doubleValue, unit: otherUnit)
+        } else {
+            let dimensionUnit = unit as! Dimension
+            
+            let valueInTermsOfBase = dimensionUnit.converter.baseUnitValue(fromValue: doubleValue)
+            if otherUnit.isEqual(type(of: dimensionUnit).baseUnit()) {
+                return Measurement(value: valueInTermsOfBase, unit: otherUnit)
+            } else {
+                let otherDimensionUnit = otherUnit as! Dimension
+                
+                let otherValueFromTermsOfBase = otherDimensionUnit.converter.value(fromBaseUnitValue: valueInTermsOfBase)
+                return Measurement(value: otherValueFromTermsOfBase, unit: otherUnit)
+            }
+        }
+    }
     
-    open func adding(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func adding(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
+        precondition(unit is Dimension)
+        precondition(rhs.unit is Dimension)
+        
+        let dimensionUnit = unit as! Dimension
+        let rhsDimensionUnit = rhs.unit as! Dimension
+        
+        if unit.isEqual(rhs.unit) {
+            return Measurement(value: doubleValue + rhs.value, unit: unit)
+        } else {
+            let lhsValueInTermsOfBase = dimensionUnit.converter.baseUnitValue(fromValue: doubleValue)
+            let rhsValueInTermsOfBase = rhsDimensionUnit.converter.baseUnitValue(fromValue: rhs.value)
+            return Measurement(value: lhsValueInTermsOfBase + rhsValueInTermsOfBase, unit: type(of: dimensionUnit).baseUnit())
+        }
+    }
     
-    open func subtracting(_ measurement: Measurement<Unit>) -> Measurement<Unit> { NSUnimplemented() }
+    open func subtracting(_ rhs: Measurement<Unit>) -> Measurement<Unit> {
+        precondition(unit is Dimension)
+        precondition(rhs.unit is Dimension)
+        
+        let dimensionUnit = unit as! Dimension
+        let rhsDimensionUnit = rhs.unit as! Dimension
+        
+        if unit.isEqual(rhs.unit) {
+            return Measurement(value: doubleValue - rhs.value, unit: unit)
+        } else {
+            let lhsValueInTermsOfBase = dimensionUnit.converter.baseUnitValue(fromValue: doubleValue)
+            let rhsValueInTermsOfBase = rhsDimensionUnit.converter.baseUnitValue(fromValue: rhs.value)
+            return Measurement(value: lhsValueInTermsOfBase - rhsValueInTermsOfBase, unit: type(of: dimensionUnit).baseUnit())
+        }
+    }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
+    open func copy(with zone: NSZone? = nil) -> Any {
+        return self
+    }
     
     open class var supportsSecureCoding: Bool { return true }
     
