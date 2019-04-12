@@ -66,8 +66,22 @@ class TestFileHandle : XCTestCase {
         allTemporaryFileURLs.append(url)
         return fh!
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func createFileHandleForSeekErrors() -> FileHandle {
+#if os(Windows)
+        var hReadPipe: HANDLE? = INVALID_HANDLE_VALUE
+        var hWritePipe: HANDLE? = INVALID_HANDLE_VALUE
+        if CreatePipe(&hReadPipe, &hWritePipe, nil, 0) == FALSE {
+          assert(false)
+        }
+
+        if CloseHandle(hWritePipe) == FALSE {
+          assert(false)
+        }
+
+        return FileHandle(handle: hReadPipe!, closeOnDealloc: true)
+#else
         var fds: [Int32] = [-1, -1]
         fds.withUnsafeMutableBufferPointer { (pointer) -> Void in
             pipe(pointer.baseAddress)
@@ -78,8 +92,10 @@ class TestFileHandle : XCTestCase {
         let fh = FileHandle(fileDescriptor: fds[0], closeOnDealloc: true)
         allHandles.append(fh)
         return fh
+#endif
     }
-    
+#endif
+
     let seekError = NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: [ NSUnderlyingErrorKey: NSError(domain: NSPOSIXErrorDomain, code: Int(ESPIPE), userInfo: [:])])
     
     func createFileHandleForReadErrors() -> FileHandle {
@@ -108,13 +124,15 @@ class TestFileHandle : XCTestCase {
         allHandles = []
         allTemporaryFileURLs = []
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func testHandleCreationAndCleanup() {
         _ = createFileHandle()
         _ = createFileHandleForSeekErrors()
         _ = createFileHandleForReadErrors()
     }
-    
+#endif
+
     func testReadUpToCount() {
         let handle = createFileHandle()
         
@@ -178,7 +196,8 @@ class TestFileHandle : XCTestCase {
             _ = try createFileHandleForReadErrors().readToEnd()
         }, "Must throw when encountering a read error")
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func testOffset() {
         // One byte at a time:
         let handle = createFileHandle()
@@ -198,7 +217,8 @@ class TestFileHandle : XCTestCase {
             _ = try createFileHandleForSeekErrors().offset()
         }, "Must throw when encountering a seek error")
     }
-    
+#endif
+
     func createPipe() -> Pipe {
         let pipe = Pipe()
         allHandles.append(pipe.fileHandleForWriting)
@@ -463,11 +483,9 @@ class TestFileHandle : XCTestCase {
     }
     
     static var allTests : [(String, (TestFileHandle) -> () throws -> ())] {
-        return [
-            ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
+        var tests: [(String, (TestFileHandle) -> () throws -> ())] = [
             ("testReadUpToCount", testReadUpToCount),
             ("testReadToEnd", testReadToEnd),
-            ("testOffset", testOffset),
             ("testWritingWithData", testWritingWithData),
             ("testWritingWithBuffer", testWritingWithBuffer),
             ("testWritingWithMultiregionData", testWritingWithMultiregionData),
@@ -484,6 +502,15 @@ class TestFileHandle : XCTestCase {
             ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
             ("test_readWriteHandlers", test_readWriteHandlers),
         ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
+            ("testOffset", testOffset),
+        ])
+#endif
+
+        return tests
     }
 }
 
