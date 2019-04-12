@@ -807,7 +807,7 @@ class TestURLSession : LoopbackServerTest {
         task1.resume()
         task2.resume()
         session.invalidateAndCancel()
-        sleep(1)
+        Thread.sleep(forTimeInterval: 1)
         
         session.getAllTasks { tasksBeforeResume in
             XCTAssertEqual(tasksBeforeResume.count, 0)
@@ -828,7 +828,7 @@ class TestURLSession : LoopbackServerTest {
         let delegate = SessionDelegate()
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
         session.invalidateAndCancel()
-        sleep(2)
+        Thread.sleep(forTimeInterval: 2)
         XCTAssertNil(session.delegate)
     }
 
