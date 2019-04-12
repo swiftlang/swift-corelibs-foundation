@@ -455,6 +455,10 @@ extension __BridgedNSError where Self: RawRepresentable, Self.RawValue: FixedWid
     }
     
     public var hashValue: Int { return _code }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
+    }
 }
 
 /// Describes a raw representable type that is bridged to a particular
@@ -533,7 +537,11 @@ public extension _BridgedStoredNSError {
 /// Implementation of Hashable for all _BridgedStoredNSErrors.
 public extension _BridgedStoredNSError {
     var hashValue: Int {
-        return _nsError.hashValue
+        return _nsError.hash
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(_nsError)
     }
 }
 
