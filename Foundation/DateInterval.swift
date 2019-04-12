@@ -150,14 +150,9 @@ public struct DateInterval : ReferenceConvertible, Comparable, Hashable {
         return false
     }
     
-    public var hashValue: Int {
-        var buf: (UInt, UInt) = (UInt(start.timeIntervalSinceReferenceDate), UInt(end.timeIntervalSinceReferenceDate))
-        return withUnsafeMutablePointer(to: &buf) { bufferPtr in
-            let count = MemoryLayout<UInt>.size * 2
-            return bufferPtr.withMemoryRebound(to: UInt8.self, capacity: count) { bufferBytes in
-                return Int(bitPattern: CFHashBytes(bufferBytes, CFIndex(count)))
-            }
-        }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(start)
+        hasher.combine(duration)
     }
     
     public static func ==(lhs: DateInterval, rhs: DateInterval) -> Bool {
