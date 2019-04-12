@@ -43,7 +43,10 @@ class TestPipe: XCTestCase {
         let stringAsData = text.data(using: .utf8)
         XCTAssertNotNil(stringAsData)
         aPipe.fileHandleForWriting.write(stringAsData!)
-        
+
+        // SR-10240 - Check empty Data() can be written without crashing
+        aPipe.fileHandleForWriting.write(Data())
+
         // Then read it out again
         let data = aPipe.fileHandleForReading.readData(ofLength: text.count)
         
