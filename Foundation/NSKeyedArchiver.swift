@@ -99,9 +99,8 @@ open class NSKeyedArchiver : NSCoder {
     /// The available formats are `xml` and `binary`.
     open var outputFormat = PropertyListSerialization.PropertyListFormat.binary {
         willSet {
-            if outputFormat != .xml &&
-                outputFormat != .binary {
-                NSUnimplemented()
+            guard (newValue == .xml || newValue == .binary) else {
+                fatalError("Unsupported format: \(newValue)")
             }
         }
     }
