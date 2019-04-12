@@ -136,9 +136,9 @@ public struct Date : ReferenceConvertible, Comparable, Equatable {
      The distant past is in terms of centuries.
      */
     public static let distantPast = Date(timeIntervalSinceReferenceDate: -63114076800.0)
-    
-    public var hashValue: Int {
-        return Int(bitPattern: __CFHashDouble(_time))
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_time)
     }
     
     /// Compare two `Date` values.
