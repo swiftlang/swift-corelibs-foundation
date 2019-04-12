@@ -255,6 +255,22 @@ open class Thread : NSObject {
         }
     }
 
+    internal var _name: String? {
+      var buf: [Int8] = Array<Int8>(repeating: 0, count: 128)
+      #if DEPLOYMENT_RUNTIME_OBJC
+        // Do not use _CF functions on the ObjC runtime as that breaks on the
+        // Darwin runtime.
+        if pthread_getname_np(pthread_self(), &buf, buf.count) == 0 {
+          return ""
+        }
+      #else
+        if _CFThreadGetName(&buf, Int32(buf.count)) == 0 {
+          return ""
+        }
+      #endif
+        return String(cString: buf)
+    }
+
 #if os(Windows)
     open var stackSize: Int {
       get {

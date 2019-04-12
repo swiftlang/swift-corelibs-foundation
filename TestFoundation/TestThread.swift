@@ -17,14 +17,22 @@ class TestThread : XCTestCase {
 #if os(Android)
         return []
 #endif
-        return [
+
+        var tests: [(String, (TestThread) -> () throws -> Void)] = [
             ("test_currentThread", test_currentThread ),
             ("test_threadStart", test_threadStart),
-            ("test_threadName", test_threadName),
             ("test_mainThread", test_mainThread),
             ("test_callStackSymbols", test_callStackSymbols),
             ("test_callStackReurnAddresses", test_callStackReturnAddresses),
         ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_threadName", test_threadName),
+        ])
+#endif
+
+        return tests
     }
 
     func test_currentThread() {
@@ -50,31 +58,15 @@ class TestThread : XCTestCase {
         XCTAssertTrue(ok, "NSCondition wait timed out")
     }
     
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_threadName() {
-
-        // Compare the name set in pthreads()
-        func compareThreadName(to name: String) {
-            var buf = [Int8](repeating: 0, count: 128)
-#if os(macOS) || os(iOS)
-            // Don't use _CF functions on macOS as it will break testing with Darwin's native Foundation.
-            let r = pthread_getname_np(pthread_self(), &buf, buf.count)
-#else
-            let r = _CFThreadGetName(&buf, Int32(buf.count))
-#endif
-            if r == 0 {
-                XCTAssertEqual(String(cString: buf), name)
-            } else {
-                XCTFail("Cant get thread name")
-            }
-        }
-
         // No name is set initially
         XCTAssertNil(Thread.current.name)
 
 #if os(Linux) // Linux sets the initial thread name to the process name.
-        compareThreadName(to: "TestFoundation")
+        XCAssertEqual(Thread.current._name, "TestFoundation")
 #else
-        compareThreadName(to: "")
+        XCAssertEqual(Thread.current._name, "")
 #endif
         Thread.current.name = "mainThread"
         XCTAssertEqual(Thread.mainThread.name, "mainThread")
@@ -88,16 +80,16 @@ class TestThread : XCTestCase {
 
             Thread.current.name = "Thread2-2"
             XCTAssertEqual(Thread.current.name, "Thread2-2")
-            compareThreadName(to: "Thread2-2")
+            XCAssertEqual(Thread.current._name, Thread.current.name)
 
             Thread.current.name = "12345678901234567890"
             XCTAssertEqual(Thread.current.name, "12345678901234567890")
 #if os(macOS) || os(iOS)
-            compareThreadName(to: "12345678901234567890")
+            XCAssertEqual(Thread.current._name, Thread.current.name)
 #elseif os(Linux)
             // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
             // and the previous name will still be there.
-            compareThreadName(to: "Thread2-2")
+            XCAssertEqual(Thread.current._name, "Thread2-2")
 #endif
             condition.lock()
             condition.signal()
@@ -116,6 +108,7 @@ class TestThread : XCTestCase {
         thread3.name = "Thread3"
         XCTAssertEqual(thread3.name, "Thread3")
     }
+#endif
 
     func test_mainThread() {
         XCTAssertTrue(Thread.isMainThread)
