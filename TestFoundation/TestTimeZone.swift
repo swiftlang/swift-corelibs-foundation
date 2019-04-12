@@ -198,13 +198,12 @@ class TestTimeZone: XCTestCase {
         // Ensure that the system time zone creates names the same way as creating them with an identifier.
         // If it isn't the same, bugs in DateFormat can result, but in this specific case, the bad length
         // is only visible to CoreFoundation APIs, and the Swift versions hide it, making it hard to detect.
-        let timeZone = CFTimeZoneCopySystem()
-        let timeZoneName = CFTimeZoneGetName(timeZone)
+        let timeZoneName = NSTimeZone.system.identifier as NSString
 
         let createdTimeZone = TimeZone(identifier: TimeZone.current.identifier)!
 
-        XCTAssertEqual(CFStringGetLength(timeZoneName), TimeZone.current.identifier.count)
-        XCTAssertEqual(CFStringGetLength(timeZoneName), createdTimeZone.identifier.count)
+        XCTAssertEqual(timeZoneName.length, TimeZone.current.identifier.count)
+        XCTAssertEqual(timeZoneName.length, createdTimeZone.identifier.count)
     }
     
     func test_autoupdatingTimeZone() {
