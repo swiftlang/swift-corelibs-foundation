@@ -611,8 +611,9 @@ class TestNSString: LoopbackServerTest {
         }
 
         // Make a new string out of it
-        let newCFString = CFStringCreateWithBytes(nil, buf, usedLen, CFStringEncoding(kCFStringEncodingUTF16), false)
-        let newString = unsafeBitCast(newCFString, to: NSString.self)
+        let newString = buf.withUnsafeMutableBufferPointer {
+            NSString(bytes: $0.baseAddress!, length: $0.count, encoding: String.Encoding.utf16.rawValue)!
+        }
         
         XCTAssertTrue(newString.isEqual(to: testString))
     }
