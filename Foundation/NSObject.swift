@@ -12,13 +12,6 @@
 // This brings it into line with Darwin usage for compatibility.
 @_exported import Dispatch
 
-#if canImport(ObjectiveC)
-import ObjectiveC
-#else
-@_silgen_name("_swift_class_getSuperclass")
-internal func _swift_class_getSuperclass(_ t: AnyClass) -> AnyClass?
-#endif
-
 import CoreFoundation
 
 /// The `NSObjectProtocol` groups methods that are fundamental to all Foundation objects.
@@ -377,16 +370,7 @@ open class NSObject : NSObjectProtocol, Equatable, Hashable {
         // On Darwin, avoids dipping into the class hierarchy that exists above this class,
         // which is ultimately rooted in the ObjC NSObject class.
         guard !(self == NSObject.self) else { return nil }
-        
-        let actualSuperclass: NSObject.Type
-        
-        #if canImport(ObjectiveC)
-        actualSuperclass = class_getSuperclass(self) as! NSObject.Type
-        #else
-        actualSuperclass = _swift_class_getSuperclass(self) as! NSObject.Type
-        #endif
-        
-        return actualSuperclass
+        return _getSuperclass(self) as! NSObject.Type
     }
     
     public class var superclass: AnyClass? {
