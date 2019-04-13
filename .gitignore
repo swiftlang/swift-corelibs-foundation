@@ -10,6 +10,9 @@ project.xcworkspace
 # AppCode artifacts
 .idea/
 
+# VSCode artifacts
+.vscode/
+
 # python generated files
 *.pyc
 
