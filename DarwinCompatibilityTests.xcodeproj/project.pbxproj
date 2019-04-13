@@ -18,6 +18,7 @@
 		B97E7856222AF995007596B0 /* TestPropertyListEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */; };
 		B987C65E2093C8AF0026B50D /* TestImports.swift in Sources */ = {isa = PBXBuildFile; fileRef = B987C65D2093C8AF0026B50D /* TestImports.swift */; };
 		B98E33E02136AC120044EBE9 /* TestFileWithZeros.txt in Resources */ = {isa = PBXBuildFile; fileRef = B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */; };
+		B9C1C63422607372002BBEA0 /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C1C63322607372002BBEA0 /* FixtureValues.swift */; };
 		B9C89F361F6BF89C00087AF4 /* TestScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE61F6BF88F00087AF4 /* TestScanner.swift */; };
 		B9C89F371F6BF89C00087AF4 /* TestNSValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE71F6BF88F00087AF4 /* TestNSValue.swift */; };
 		B9C89F381F6BF89C00087AF4 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C89EE81F6BF88F00087AF4 /* TestUtils.swift */; };
@@ -164,6 +165,7 @@
 		B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestPropertyListEncoder.swift; path = TestFoundation/TestPropertyListEncoder.swift; sourceTree = "<group>"; };
 		B987C65D2093C8AF0026B50D /* TestImports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestImports.swift; path = TestFoundation/TestImports.swift; sourceTree = "<group>"; };
 		B98E33DF2136AC120044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TestFileWithZeros.txt; path = TestFoundation/Resources/TestFileWithZeros.txt; sourceTree = "<group>"; };
+		B9C1C63322607372002BBEA0 /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FixtureValues.swift; path = TestFoundation/FixtureValues.swift; sourceTree = "<group>"; };
 		B9C89ED11F6BF67C00087AF4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		B9C89ED71F6BF77E00087AF4 /* DarwinCompatibilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DarwinCompatibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9C89EDB1F6BF77E00087AF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 		B9C89EB81F6BF47D00087AF4 = {
 			isa = PBXGroup;
 			children = (
+				B9C1C63322607372002BBEA0 /* FixtureValues.swift */,
 				B940492A223B13D000FB4384 /* TestProgressFraction.swift */,
 				B97E7855222AF995007596B0 /* TestPropertyListEncoder.swift */,
 				B97E7853222AF973007596B0 /* TestDateIntervalFormatter.swift */,
@@ -566,6 +569,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9C1C63422607372002BBEA0 /* FixtureValues.swift in Sources */,
 				B940492B223B13D000FB4384 /* TestProgressFraction.swift in Sources */,
 				B97E7856222AF995007596B0 /* TestPropertyListEncoder.swift in Sources */,
 				B97E7854222AF973007596B0 /* TestDateIntervalFormatter.swift in Sources */,
