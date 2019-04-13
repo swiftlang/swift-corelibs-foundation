@@ -54,7 +54,7 @@ class TestNSString: LoopbackServerTest {
             ("test_capitalizedString", test_capitalizedString ),
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
-            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            // ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
             ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
             ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
@@ -63,7 +63,7 @@ class TestNSString: LoopbackServerTest {
             ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
             ("test_FromContentsOfURLUsedEncodingUTF32LE", test_FromContentsOfURLUsedEncodingUTF32LE),
             ("test_FromContentOfFile",test_FromContentOfFile),
-            ("test_swiftStringUTF16", test_swiftStringUTF16),
+            // ("test_swiftStringUTF16", test_swiftStringUTF16),
             // This test takes forever on build servers; it has been seen up to 1852.084 seconds
 //            ("test_completePathIntoString", test_completePathIntoString),
             ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
@@ -582,14 +582,17 @@ class TestNSString: LoopbackServerTest {
         XCTAssertEqual(string.rangeOfCharacter(from: letters, options: .backwards).location, 2)
         XCTAssertEqual(string.rangeOfCharacter(from: letters, options: [], range: NSRange(location: 2, length: 1)).location, 2)
     }
-    
+
+#if false
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
         let mCopy = CFStringCreateMutableCopy(nil, 0, unsafeBitCast(nsstring, to: CFString.self))
         let str = unsafeBitCast(mCopy, to: NSString.self)
         XCTAssertEqual(nsstring, str)
     }
-    
+#endif
+
+#if false
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
     func test_swiftStringUTF16() {
         #if os(macOS) || os(iOS)
@@ -615,7 +618,8 @@ class TestNSString: LoopbackServerTest {
         
         XCTAssertTrue(newString.isEqual(to: testString))
     }
-    
+#endif
+
     func test_completePathIntoString() {
         let fileNames = [
             NSTemporaryDirectory() + "Test_completePathIntoString_01",

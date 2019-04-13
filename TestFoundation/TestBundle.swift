@@ -252,7 +252,7 @@ class TestBundle : XCTestCase {
             ("test_bundlePreflight", test_bundlePreflight),
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
-            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
+            // ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
         ]
     }
     
@@ -439,6 +439,7 @@ class TestBundle : XCTestCase {
         }
     }
 
+#if false
     func test_mainBundleExecutableURL() {
 #if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
         let maybeURL = Bundle.main.executableURL
@@ -448,4 +449,5 @@ class TestBundle : XCTestCase {
         XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
 #endif
     }
+#endif
 }

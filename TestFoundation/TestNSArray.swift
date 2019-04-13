@@ -44,7 +44,7 @@ class TestNSArray : XCTestCase {
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
-            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
+            // ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
             ("test_customMirror", test_customMirror),
         ]
     }
@@ -822,6 +822,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[6] as! String, arrayMirror.descendant(6) as! String)
     }
 
+#if false
     func test_arrayUsedAsCFArrayInvokesArrayMethods() {
         let number = 789 as NSNumber
         let array = NSMutableArray(array: [123, 456])
@@ -829,6 +830,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
         XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
     }
+#endif
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
