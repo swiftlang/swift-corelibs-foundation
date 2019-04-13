@@ -7,10 +7,17 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !(os(macOS) || os(iOS))
+#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
     import CoreFoundation
 #endif
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+    #if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+        @testable import SwiftFoundation
+    #else
+        @testable import Foundation
+    #endif
+#endif
 
 class TestThread : XCTestCase {
     static var allTests: [(String, (TestThread) -> () throws -> Void)] {
@@ -64,9 +71,9 @@ class TestThread : XCTestCase {
         XCTAssertNil(Thread.current.name)
 
 #if os(Linux) // Linux sets the initial thread name to the process name.
-        XCAssertEqual(Thread.current._name, "TestFoundation")
+        XCTAssertEqual(Thread.current._name, "TestFoundation")
 #else
-        XCAssertEqual(Thread.current._name, "")
+        XCTAssertEqual(Thread.current._name, "")
 #endif
         Thread.current.name = "mainThread"
         XCTAssertEqual(Thread.mainThread.name, "mainThread")
@@ -76,20 +83,19 @@ class TestThread : XCTestCase {
 
         let thread2 = Thread() {
             XCTAssertEqual(Thread.current.name, "Thread2-1")
-            compareThreadName(to: "Thread2-1")
 
             Thread.current.name = "Thread2-2"
             XCTAssertEqual(Thread.current.name, "Thread2-2")
-            XCAssertEqual(Thread.current._name, Thread.current.name)
+            XCTAssertEqual(Thread.current._name, Thread.current.name)
 
             Thread.current.name = "12345678901234567890"
             XCTAssertEqual(Thread.current.name, "12345678901234567890")
 #if os(macOS) || os(iOS)
-            XCAssertEqual(Thread.current._name, Thread.current.name)
+            XCTAssertEqual(Thread.current._name, Thread.current.name)
 #elseif os(Linux)
             // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
             // and the previous name will still be there.
-            XCAssertEqual(Thread.current._name, "Thread2-2")
+            XCTAssertEqual(Thread.current._name, "Thread2-2")
 #endif
             condition.lock()
             condition.signal()
