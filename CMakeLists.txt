@@ -141,6 +141,8 @@ add_swift_library(Foundation
                     Foundation/ExtraStringAPIs.swift
                     Foundation/FileHandle.swift
                     Foundation/FileManager.swift
+                    Foundation/FileManager+POSIX.swift
+                    Foundation/FileManager+Win32.swift
                     Foundation/FileManager_XDG.swift
                     Foundation/Formatter.swift
                     Foundation/FoundationErrors.swift
