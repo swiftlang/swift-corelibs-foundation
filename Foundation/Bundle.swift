@@ -11,13 +11,21 @@ import CoreFoundation
 
 open class Bundle: NSObject {
     private var _bundle : CFBundle!
-
-    internal static var _supportsFHSStyle: Bool {
-    #if DEPLOYMENT_RUNTIME_OBJC
-      return false
-    #else
-      return _CFBundleSupportsFHSBundles()
-    #endif
+    
+    public static var _supportsFHSBundles: Bool {
+        #if DEPLOYMENT_RUNTIME_OBJC
+        return false
+        #else
+        return _CFBundleSupportsFHSBundles()
+        #endif
+    }
+    
+    public static var _supportsFreestandingBundles: Bool {
+        #if DEPLOYMENT_RUNTIME_OBJC
+        return false
+        #else
+        return _CFBundleSupportsFreestandingBundles()
+        #endif
     }
 
     private static var _mainBundle : Bundle = {
@@ -104,6 +112,14 @@ open class Bundle: NSObject {
         }
         
         _bundle = result
+    }
+    
+    public convenience init?(_executableURL: URL) {
+        guard let bundleURL = _CFBundleCopyBundleURLForExecutableURL(_executableURL._cfObject)?.takeRetainedValue() else {
+            return nil
+        }
+        
+        self.init(url: bundleURL._swiftObject)
     }
     
     override open var description: String {

@@ -44,26 +44,110 @@ internal func xdgTestHelperURL() -> URL {
 
 
 class BundlePlayground {
+    enum ExecutableType: CaseIterable {
+        case library
+        case executable
+        
+        var pathExtension: String {
+            switch self {
+            case .library:
+                #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+                return "dylib"
+                #elseif os(Windows)
+                return "dll"
+                #else
+                return "so"
+                #endif
+            case .executable:
+                #if os(Windows)
+                return "exe"
+                #else
+                return ""
+                #endif
+            }
+        }
+        
+        var flatPathExtension: String {
+            #if os(Windows)
+            return self.pathExtension
+            #else
+            return ""
+            #endif
+        }
+        
+        var fhsPrefix: String {
+            switch self {
+            case .executable:
+                return "bin"
+            case .library:
+                return "lib"
+            }
+        }
+        
+        var nonFlatFilePrefix: String {
+            switch self {
+            case .executable:
+                return ""
+            case .library:
+                return "lib"
+            }
+        }
+    }
+    
     enum Layout {
-        case flat
-        case fhsInstalled
-        case fhsFreestanding
+        case flat(ExecutableType)
+        case fhs(ExecutableType)
+        case freestanding(ExecutableType)
         
         static var allApplicable: [Layout] {
-            let layouts: [Layout] = [ .flat, .fhsInstalled, .fhsFreestanding ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-            if Bundle._supportsFHSStyle {
-                return layouts
-            } else {
-                return layouts.filter { !$0.isFHS }
-            }
-#else
-            return layouts.filter { !$0.isFHS }
-#endif
+            let layouts: [Layout] = [
+                .flat(.library),
+                .flat(.executable),
+                .fhs(.library),
+                .fhs(.executable),
+                .freestanding(.library),
+                .freestanding(.executable),
+            ]
+            
+            return layouts.filter { $0.isSupported }
         }
+            
+        var isFreestanding: Bool {
+            switch self {
+            case .freestanding(_):
+                return true
+            default:
+                return false
+            }
+        }
+        
         var isFHS: Bool {
-            return self == .fhsInstalled || self == .fhsFreestanding
+            switch self {
+            case .fhs(_):
+                return true
+            default:
+                return false
+            }
+        }
+        
+        var isFlat: Bool {
+            switch self {
+            case .flat(_):
+                return true
+            default:
+                return false
+            }
+        }
+        
+        var isSupported: Bool {
+            switch self {
+            case .flat(_):
+                return true
+            case .freestanding(_):
+                return Bundle._supportsFreestandingBundles
+            case .fhs(_):
+                return Bundle._supportsFHSBundles
+            }
         }
     }
     
@@ -76,6 +160,7 @@ class BundlePlayground {
     let layout: Layout
     
     private(set) var bundlePath: String!
+    private(set) var mainExecutableURL: URL!
     private var playgroundPath: String?
     
     init?(bundleName: String,
@@ -104,8 +189,8 @@ class BundlePlayground {
         
         let temporaryDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("TestFoundation_Playground_" + UUID().uuidString)
         
-        switch (layout) {
-        case .flat:
+        switch layout {
+        case .flat(let executableType):
             do {
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
@@ -114,10 +199,18 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: bundleURL.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
-                guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(bundleName).path, contents: nil) else {
+                self.mainExecutableURL = bundleURL
+                    .appendingPathComponent(bundleName)
+                    .appendingPathExtension(executableType.flatPathExtension)
+                
+                guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else {
                     return false
                 }
-                guard FileManager.default.createFile(atPath: bundleURL.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else {
+                
+                let auxiliaryExecutableURL = bundleURL
+                    .appendingPathComponent(auxiliaryExecutableName)
+                    .appendingPathExtension(executableType.flatPathExtension)
+                guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else {
                     return false
                 }
                 
@@ -143,7 +236,7 @@ class BundlePlayground {
                 return false
             }
             
-        case .fhsInstalled:
+        case .fhs(let executableType):
             do {
                 
                 // Create a FHS /usr/local-style hierarchy:
@@ -152,17 +245,18 @@ class BundlePlayground {
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("lib").path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
-                #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-                let pathExtension = "dylib"
-                #else
-                let pathExtension = "so"
-                #endif
-                
-                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent("lib").appendingPathComponent("lib\(bundleName).\(pathExtension)").path, contents: nil) else { return false }
+                self.mainExecutableURL = temporaryDirectory
+                    .appendingPathComponent(executableType.fhsPrefix)
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
+                    .appendingPathExtension(executableType.pathExtension)
+                guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else { return false }
                 
                 let executablesDirectory = temporaryDirectory.appendingPathComponent("libexec").appendingPathComponent("\(bundleName).executables")
                 try FileManager.default.createDirectory(atPath: executablesDirectory.path, withIntermediateDirectories: true, attributes: nil)
-                guard FileManager.default.createFile(atPath: executablesDirectory.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else { return false }
+                let auxiliaryExecutableURL = executablesDirectory
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
+                    .appendingPathExtension(executableType.pathExtension)
+                guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else { return false }
                 
                 // Make a .resources directory in …/share:
                 let resourcesDirectory = temporaryDirectory.appendingPathComponent("share").appendingPathComponent("\(bundleName).resources")
@@ -186,21 +280,27 @@ class BundlePlayground {
                 return false
             }
             
-        case .fhsFreestanding:
+        case .freestanding(let executableType):
             do {
                 let bundleName = URL(string:self.bundleName)!.deletingPathExtension().path
                 
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main executable:
-                guard FileManager.default.createFile(atPath: temporaryDirectory.appendingPathComponent(bundleName).path, contents: nil) else { return false }
+                self.mainExecutableURL = temporaryDirectory
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + bundleName)
+                    .appendingPathExtension(executableType.pathExtension)
+                guard FileManager.default.createFile(atPath: mainExecutableURL.path, contents: nil) else { return false }
                 
                 // Make a .resources directory:
                 let resourcesDirectory = temporaryDirectory.appendingPathComponent("\(bundleName).resources")
                 try FileManager.default.createDirectory(atPath: resourcesDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make an auxiliary executable:
-                guard FileManager.default.createFile(atPath: resourcesDirectory.appendingPathComponent(auxiliaryExecutableName).path, contents: nil) else { return false }
+                let auxiliaryExecutableURL = resourcesDirectory
+                    .appendingPathComponent(executableType.nonFlatFilePrefix + auxiliaryExecutableName)
+                    .appendingPathExtension(executableType.pathExtension)
+                guard FileManager.default.createFile(atPath: auxiliaryExecutableURL.path, contents: nil) else { return false }
                 
                 // Put some resources in the bundle
                 for resourceName in resourceFilenames {
@@ -252,6 +352,7 @@ class TestBundle : XCTestCase {
             ("test_bundlePreflight", test_bundlePreflight),
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
+            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
             ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
         ]
     }
@@ -436,6 +537,26 @@ class TestBundle : XCTestCase {
             let bundle = Bundle(path: playground.bundlePath)!
             XCTAssertNotNil(bundle.url(forAuxiliaryExecutable: _auxiliaryExecutable))
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
+        }
+    }
+    
+    func test_bundleReverseBundleLookup() {
+        _withEachPlaygroundLayout { (playground) in
+            #if !os(Windows)
+            if playground.layout.isFreestanding {
+                // TODO: Freestanding bundles reverse lookup pending to be implemented on non-Windows platforms.
+                return
+            }
+            #endif
+            
+            if playground.layout.isFHS {
+                // TODO: FHS bundles reverse lookup pending to be implemented on all platforms.
+                return
+            }
+            
+            let bundle = Bundle(_executableURL: playground.mainExecutableURL)
+            XCTAssertNotNil(bundle)
+            XCTAssertEqual(bundle?.bundlePath, playground.bundlePath)
         }
     }
 
