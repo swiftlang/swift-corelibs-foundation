@@ -74,6 +74,8 @@ extern bool _dispatch_runloop_root_queue_perform_4CF(dispatch_queue_t queue);
 typedef mach_port_t dispatch_runloop_handle_t;
 #elif defined(__linux__) || defined(__FreeBSD__)
 typedef int dispatch_runloop_handle_t;
+#elif TARGET_OS_WIN32
+typedef HANDLE dispatch_runloop_handle_t;
 #endif
 
 #endif
@@ -100,13 +102,12 @@ extern mach_port_t _dispatch_get_main_queue_port_4CF(void);
 
 #elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
 #include <process.h>
-DISPATCH_EXPORT HANDLE _dispatch_get_main_queue_handle_4CF(void);
+DISPATCH_EXPORT dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
 DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void * _Null_unspecified);
 
 #define MACH_PORT_NULL 0
 #define mach_port_name_t HANDLE
 #define mach_port_t HANDLE
-#define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 
 #elif DEPLOYMENT_TARGET_LINUX
 
@@ -116,10 +117,9 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void * _Null_unspecified)
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
 
-dispatch_runloop_handle_t _dispatch_get_main_queue_handle_4CF(void);
+dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
 extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 
-#define _dispatch_get_main_queue_port_4CF _dispatch_get_main_queue_handle_4CF
 #endif
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
