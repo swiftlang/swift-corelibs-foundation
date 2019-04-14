@@ -157,7 +157,8 @@ class _TCPSocket {
         var dwNumberOfBytesRecieved: DWORD = 0;
         try buffer.withUnsafeMutableBufferPointer {
           var wsaBuffer: WSABUF = WSABUF(len: ULONG($0.count), buf: $0.baseAddress)
-          _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, nil, nil, nil))
+          var flags: DWORD = 0
+          _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, &flags, nil, nil))
         }
 #else
         _ = try attempt("read", valid: { $0 >= 0 }, read(connectionSocket, &buffer, buffer.count))
