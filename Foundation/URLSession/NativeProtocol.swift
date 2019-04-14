@@ -136,10 +136,6 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
                 downloadDelegate.urlSession(s, downloadTask: task, didWriteData: Int64(data.count), totalBytesWritten: task.countOfBytesReceived,
                                             totalBytesExpectedToWrite: task.countOfBytesExpectedToReceive)
             }
-            if task.countOfBytesExpectedToReceive == task.countOfBytesReceived {
-                fileHandle.closeFile()
-                self.properties[.temporaryFileURL] = self.tempFileURL
-            }
         }
     }
 
@@ -245,11 +241,13 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
             }
             self.client?.urlProtocol(self, didLoad: data)
             self.internalState = .taskCompleted
-        }
-
-        if case .toFile(let url, let fileHandle?) = bodyDataDrain {
+        } else if case .toFile(let url, let fileHandle?) = bodyDataDrain {
             self.properties[.temporaryFileURL] = url
             fileHandle.closeFile()
+        } else if task is URLSessionDownloadTask {
+            let fileHandle = try! FileHandle(forWritingTo: self.tempFileURL)
+            fileHandle.closeFile()
+            self.properties[.temporaryFileURL] = self.tempFileURL
         }
         self.client?.urlProtocolDidFinishLoading(self)
         self.internalState = .taskCompleted

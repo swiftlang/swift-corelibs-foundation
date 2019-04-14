@@ -16,10 +16,12 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
             // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
+            ("test_gzippedDataTask", test_gzippedDataTask),
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
             ("test_downloadTaskWithURLAndHandler", test_downloadTaskWithURLAndHandler),
+            ("test_gzippedDownloadTask", test_gzippedDownloadTask),
             ("test_finishTaskAndInvalidate", test_finishTasksAndInvalidate),
             ("test_taskError", test_taskError),
             ("test_taskCopy", test_taskCopy),
@@ -177,7 +179,18 @@ class TestURLSession : LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-    
+
+    func test_gzippedDataTask() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
+        let url = URL(string: urlString)!
+        let d = DataTask(with: expectation(description: "GET \(urlString): gzipped response"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if !d.error {
+            XCTAssertEqual(d.capital, "Hello World!")
+        }
+    }
+
     func test_downloadTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = URL(string: urlString)!
@@ -233,7 +246,18 @@ class TestURLSession : LoopbackServerTest {
         task.resume()
         waitForExpectations(timeout: 12)
     }
-    
+
+    func test_gzippedDownloadTask() {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
+        let url = URL(string: urlString)!
+        let d = DownloadTask(with: expectation(description: "GET \(urlString): gzipped response"))
+        d.run(with: url)
+        waitForExpectations(timeout: 12)
+        if d.totalBytesWritten != "Hello World!".utf8.count {
+            XCTFail("Expected the gzipped-response to be the length of Hello World!")
+        }
+    }
+
     func test_finishTasksAndInvalidate() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal"
         let invalidateExpectation = expectation(description: "Session invalidation")
