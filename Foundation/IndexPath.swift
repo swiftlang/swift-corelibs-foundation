@@ -37,7 +37,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
     public typealias Index = Array<Int>.Index
     public typealias Indices = DefaultIndices<IndexPath>
     
-    fileprivate enum Storage : ExpressibleByArrayLiteral {
+    fileprivate enum Storage : ExpressibleByArrayLiteral, Equatable, Hashable {
         typealias Element = Int
         case empty
         case single(Int)
@@ -676,6 +676,11 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
         return .orderedSame
     }
     
+    #if swift(>=4.2)
+    public func hash(into hasher: inout Hasher) {
+        _indexes.hash(into: &hasher)
+    }
+    #else
     public var hashValue: Int {
         func hashIndexes(first: Int, last: Int, count: Int) -> Int {
             let totalBits = MemoryLayout<Int>.size * 8
@@ -694,6 +699,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
                 return hashIndexes(first: _indexes[0], last: _indexes[cnt - 1], count: cnt)
         }
     }
+    #endif
     
     // MARK: - Bridging Helpers
     

@@ -35,10 +35,17 @@ public struct Measurement<UnitType : Unit> : ReferenceConvertible, Comparable, E
         self.value = value
         self.unit = unit
     }
-
+    
+    #if swift(>=4.2)
+    public func hash(into hasher: inout Hasher) {
+        unit.hash(into: &hasher)
+        value.hash(into: &hasher)
+    }
+    #else
     public var hashValue: Int {
         return Int(bitPattern: __CFHashDouble(value))
     }
+    #endif
 }
 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)

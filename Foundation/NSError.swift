@@ -532,9 +532,16 @@ public extension _BridgedStoredNSError {
 
 /// Implementation of Hashable for all _BridgedStoredNSErrors.
 public extension _BridgedStoredNSError {
+    
+    #if swift(>=4.2)
+    func hash(into hasher: inout Hasher) {
+        _nsError.hash(into: &hasher)
+    }
+    #else
     var hashValue: Int {
         return _nsError.hashValue
     }
+    #endif
 }
 
 /// Describes the code of an error.
