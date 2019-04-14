@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
 
 open class Scanner: NSObject, NSCopying {
     internal var _scanString: String
@@ -286,199 +285,145 @@ internal struct _NSStringBuffer {
     }
 }
 
-private func isADigit(_ ch: unichar) -> Bool {
-    struct Local {
-        static let set = CharacterSet.decimalDigits
-    }
-    return Local.set.contains(UnicodeScalar(ch)!)
+
+private func decimalValue(_ ch: unichar) -> Int? {
+    guard let s = UnicodeScalar(ch), s.isASCII else { return nil }
+    return Character(s).wholeNumberValue
 }
 
-
-private func numericValue(_ ch: unichar) -> Int {
-    if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
-        return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
-    } else {
-        return __CFCharDigitValue(UniChar(ch))
-    }
+private func decimalOrHexValue(_ ch: unichar) -> Int? {
+    guard let s = UnicodeScalar(ch), s.isASCII else { return nil }
+    return Character(s).hexDigitValue
 }
 
-private func numericOrHexValue(_ ch: unichar) -> Int {
-    if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
-        return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
-    } else if (ch >= unichar(unicodeScalarLiteral: "A") && ch <= unichar(unicodeScalarLiteral: "F")) {
-        return Int(ch) + 10 - Int(unichar(unicodeScalarLiteral: "A"))
-    } else if (ch >= unichar(unicodeScalarLiteral: "a") && ch <= unichar(unicodeScalarLiteral: "f")) {
-        return Int(ch) + 10 - Int(unichar(unicodeScalarLiteral: "a"))
-    } else {
-        return -1
-    }
-}
-
-private func decimalSep(_ locale: Locale?) -> String {
-    if let loc = locale {
-        if let sep = loc._bridgeToObjectiveC().object(forKey: .decimalSeparator) as? NSString {
-            return sep._swiftObject
-        }
-        return "."
-    } else {
-        return decimalSep(Locale.current)
-    }
-}
 
 extension String {
-    internal func scan<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+
+    private func checkForNegative(inBuffer buf: inout _NSStringBuffer, skipping skipSet: CharacterSet? = nil) -> Bool {
         buf.skip(skipSet)
-        var neg = false
-        var localResult: T = 0
         if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
-           neg = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
+            let neg = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
             buf.advance()
             buf.skip(skipSet)
+            return neg
         }
-        if (!isADigit(buf.currentCharacter)) {
-            return false
-        }
-        repeat {
-            let numeral = numericValue(buf.currentCharacter)
-            if numeral == -1 {
-                break
+        return false
+    }
+
+    // If a string starts: 0[xX]<Valid Hex Digits> return with the buffer pointing to the hex digits otherwise point to the start of buffer.
+    private func skipHexStart(inBuffer buf: inout _NSStringBuffer) {
+        let locRewindTo = buf.location
+        if buf.currentCharacter == unichar(unicodeScalarLiteral: "0") {
+            buf.advance()
+            if buf.currentCharacter == unichar(unicodeScalarLiteral: "x") || buf.currentCharacter == unichar(unicodeScalarLiteral: "X") {
+                buf.advance()
+                if decimalOrHexValue(buf.currentCharacter) != nil {
+                    return
+                }
             }
+            buf.location = locRewindTo
+        }
+    }
+
+    internal func scan<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        var localResult: T = 0
+        var retval = false
+        var neg = checkForNegative(inBuffer: &buf, skipping: skipSet)
+
+        while let numeral = decimalValue(buf.currentCharacter) {
+            retval = true
             if (localResult >= T.max / 10) && ((localResult > T.max / 10) || T(numeral - (neg ? 1 : 0)) >= T.max - localResult * 10) {
                 // apply the clamps and advance past the ending of the buffer where there are still digits
                 localResult = neg ? T.min : T.max
                 neg = false
                 repeat {
                     buf.advance()
-                } while (isADigit(buf.currentCharacter))
+                } while decimalValue(buf.currentCharacter) != nil
                 break
             } else {
                 // normal case for scanning
                 localResult = localResult * 10 + T(numeral)
             }
             buf.advance()
-        } while (isADigit(buf.currentCharacter))
+        }
         to(neg ? -1 * localResult : localResult)
         locationToScanFrom = buf.location
-        return true
+        return retval
     }
-    
+
     internal func scanHex<T: FixedWidthInteger>(_ skipSet: CharacterSet?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
         var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
-        buf.skip(skipSet)
         var localResult: T = 0
-        var curDigit: Int
-        if buf.currentCharacter == unichar(unicodeScalarLiteral: "0") {
-            buf.advance()
-            let locRewindTo = buf.location
-            curDigit = numericOrHexValue(buf.currentCharacter)
-            if curDigit == -1 {
-                if buf.currentCharacter == unichar(unicodeScalarLiteral: "x") || buf.currentCharacter == unichar(unicodeScalarLiteral: "X") {
-                    buf.advance()
-                    curDigit = numericOrHexValue(buf.currentCharacter)
-                }
-            }
-            if curDigit == -1 {
-                locationToScanFrom = locRewindTo
-                to(T(0))
-                return true
-            }
-        } else {
-            curDigit = numericOrHexValue(buf.currentCharacter)
-            if curDigit == -1 {
-                return false
-            }
-        }
-        
-        repeat {
+        var retval = false
+        buf.skip(skipSet)
+        skipHexStart(inBuffer: &buf)
+
+        while let numeral = decimalOrHexValue(buf.currentCharacter)  {
+            retval = true
             if localResult > T.max >> T(4) {
                 localResult = T.max
             } else {
-                localResult = (localResult << T(4)) + T(curDigit)
+                localResult = (localResult << T(4)) + T(numeral)
             }
             buf.advance()
-            curDigit = numericOrHexValue(buf.currentCharacter)
-        } while (curDigit != -1)
-        
+        }
+
         to(localResult)
         locationToScanFrom = buf.location
-        return true
+        return retval
     }
     
-    internal func scan<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        let ds_chars = decimalSep(locale).utf16
-        let ds = ds_chars[ds_chars.startIndex]
-        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
-        buf.skip(skipSet)
-        var neg = false
+    private func _scan<T: BinaryFloatingPoint>(buffer buf: inout _NSStringBuffer, locale: Locale?, neg: Bool, to: (T) -> Void, base: UInt,
+                                               numericValue: ((_: unichar) -> Int?)) -> Bool {
+        let ds = (locale ?? Locale.current).decimalSeparator?.first ?? Character(".")
         var localResult: T = T(0)
-        
-        if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
-            neg = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
-            buf.advance()
-            buf.skip(skipSet)
-        }
-        if (buf.currentCharacter != ds && !isADigit(buf.currentCharacter)) {
-            return false
-        }
-        
-        repeat {
-            let numeral = numericValue(buf.currentCharacter)
-            if numeral == -1 {
-                break
-            }
+        var neg = neg
+
+        while let numeral = numericValue(buf.currentCharacter) {
             // if (localResult >= T.greatestFiniteMagnitude / T(10)) && ((localResult > T.greatestFiniteMagnitude / T(10)) || T(numericValue(buf.currentCharacter) - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10))  is evidently too complex; so break it down to more "edible chunks"
-            let limit1 = localResult >= T.greatestFiniteMagnitude / T(10)
-            let limit2 = localResult > T.greatestFiniteMagnitude / T(10)
-            let limit3 = T(numeral - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(10)
+            let limit1 = localResult >= T.greatestFiniteMagnitude / T(base)
+            let limit2 = localResult > T.greatestFiniteMagnitude / T(base)
+            let limit3 = T(numeral - (neg ? 1 : 0)) >= T.greatestFiniteMagnitude - localResult * T(base)
             if (limit1) && (limit2 || limit3) {
                 // apply the clamps and advance past the ending of the buffer where there are still digits
                 localResult = neg ? -T.infinity : T.infinity
                 neg = false
                 repeat {
                     buf.advance()
-                } while (isADigit(buf.currentCharacter))
+                } while numericValue(buf.currentCharacter) != nil
                 break
             } else {
-                localResult = localResult * T(10) + T(numeral)
+                localResult = localResult * T(base) + T(numeral)
             }
             buf.advance()
-        } while (isADigit(buf.currentCharacter))
+        }
         
-        if buf.currentCharacter == ds {
-            var factor = T(0.1)
+        if let us = UnicodeScalar(buf.currentCharacter), Character(us) == ds {
+            var factor = 1 / T(base)
             buf.advance()
-            repeat {
-                let numeral = numericValue(buf.currentCharacter)
-                if numeral == -1 {
-                    break
-                }
+            while let numeral = numericValue(buf.currentCharacter) {
                 localResult = localResult + T(numeral) * factor
-                factor = factor * T(0.1)
+                factor = factor / T(base)
                 buf.advance()
-            } while (isADigit(buf.currentCharacter))
+            }
         }
 
+        // If this is used to parse a number in Hexadecimal, this will never be true as the 'e' or 'E' will be caught by the previous loop.
         if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
             var exponent = Double(0)
-            var negExponent = false
+
             buf.advance()
-            if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
-                negExponent = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
+            let negExponent = checkForNegative(inBuffer: &buf)
+
+            while let numeral = numericValue(buf.currentCharacter) {
                 buf.advance()
-            }
-            repeat {
-                let numeral = numericValue(buf.currentCharacter)
-                buf.advance()
-                if numeral == -1 {
-                    break
-                }
-                exponent *= 10
+                exponent *= Double(base)
                 exponent += Double(numeral)
-            } while (isADigit(buf.currentCharacter))
+            }
 
             if exponent > 0 {
-                let multiplier = pow(10, exponent)
+                let multiplier = pow(Double(base), exponent)
                 if negExponent {
                     localResult /= T(multiplier)
                 } else {
@@ -488,12 +433,24 @@ extension String {
         }
         
         to(neg ? T(-1) * localResult : localResult)
-        locationToScanFrom = buf.location
         return true
     }
-    
+
+    internal func scan<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        let neg = checkForNegative(inBuffer: &buf, skipping: skipSet)
+        let result = _scan(buffer: &buf, locale: locale, neg: neg, to: to, base: 10, numericValue: decimalValue)
+        locationToScanFrom = buf.location
+        return result
+    }
+
     internal func scanHex<T: BinaryFloatingPoint>(_ skipSet: CharacterSet?, locale: Locale?, locationToScanFrom: inout Int, to: (T) -> Void) -> Bool {
-        NSUnimplemented()
+        var buf = _NSStringBuffer(string: self, start: locationToScanFrom, end: length)
+        let neg = checkForNegative(inBuffer: &buf, skipping: skipSet)
+        skipHexStart(inBuffer: &buf)
+        let result = _scan(buffer: &buf, locale: locale, neg: neg, to: to, base: 16, numericValue: decimalOrHexValue)
+        locationToScanFrom = buf.location
+        return result
     }
 }
 

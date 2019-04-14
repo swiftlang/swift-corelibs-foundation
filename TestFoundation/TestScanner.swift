@@ -111,6 +111,23 @@ class TestScanner : XCTestCase {
             expectTrue($0.isAtEnd, "The X was not consumed")
         }
     }
+
+    func testHexFloatingPoint() {
+        withScanner(for: "0xAA 3.14 0.1x 1g 3xx .F00x 1e00 -0xabcdef.02") {
+            expectEqual($0.scanDouble(representation: .hexadecimal), 0xAA, "Integer as Double")
+            expectEqual($0.scanDouble(representation: .hexadecimal), 3.078125, "Double")
+            expectEqual($0.scanDouble(representation: .hexadecimal), 0.0625, "Double")
+            expectEqual($0.scanString("x"), "x", "Consume non-hex-digit")
+            expectEqual($0.scanDouble(representation: .hexadecimal), Double(1), "Double")
+            expectEqual($0.scanString("g"), "g", "Consume non-hex-digit")
+            expectEqual($0.scanDouble(representation: .hexadecimal), Double(3), "Double")
+            expectEqual($0.scanString("xx"), "xx", "Consume non-hex-digits")
+            expectEqual($0.scanDouble(representation: .hexadecimal), 0.9375, "Double")
+            expectEqual($0.scanString("x"), "x", "Consume non-hex-digit")
+            expectEqual($0.scanDouble(representation: .hexadecimal), 0x1E00, "E is not for exponent")
+            expectEqual($0.scanDouble(representation: .hexadecimal), -11259375.0078125, "negative decimal")
+        }
+    }
     
     func testUInt64() {
         // UInt64 long sequence:
@@ -472,6 +489,7 @@ class TestScanner : XCTestCase {
         return [
             ("testScanFloatingPoint", testScanFloatingPoint),
             ("testHexRepresentation", testHexRepresentation),
+            ("testHexFloatingPoint", testHexFloatingPoint),
             ("testUInt64", testUInt64),
             ("testInt64", testInt64),
             ("testInt32", testInt32),
