@@ -537,8 +537,8 @@ extension NSString {
         return path + "/"
     }
     
-    public var fileSystemRepresentation : UnsafePointer<Int8> {
-        NSUnimplemented()
+    public var fileSystemRepresentation: UnsafePointer<Int8> {
+        return FileManager.default.fileSystemRepresentation(withPath: self._swiftObject)
     }
     
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {

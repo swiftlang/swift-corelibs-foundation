@@ -95,7 +95,8 @@ class TestNSString: LoopbackServerTest {
             ("test_substringFromCFString", test_substringFromCFString),
             ("test_createCopy", test_createCopy),
             ("test_commonPrefix", test_commonPrefix),
-            ("test_lineRangeFor", test_lineRangeFor)
+            ("test_lineRangeFor", test_lineRangeFor),
+            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
         ]
     }
 
@@ -1416,5 +1417,17 @@ extension TestNSString {
         XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\n\r"), "Hello\r\rworld.")
         XCTAssertEqual(str4.replacingOccurrences(of: "\r\n", with: "\r\n"), "Hello\r\rworld.")
         XCTAssertEqual(str4.replacingOccurrences(of: "\n\r", with: " "), "Hello\r\rworld.")
+    }
+
+    func test_fileSystemRepresentation() {
+        let name = "☃" as NSString
+        let result = name.fileSystemRepresentation
+        XCTAssertEqual(UInt8(bitPattern: result[0]), 0xE2)
+        XCTAssertEqual(UInt8(bitPattern: result[1]), 0x98)
+        XCTAssertEqual(UInt8(bitPattern: result[2]), 0x83)
+
+    #if !DARWIN_COMPATIBILITY_TESTS // auto-released by Darwin's Foundation
+        result.deallocate()
+    #endif
     }
 }
