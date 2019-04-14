@@ -467,7 +467,20 @@ class TestScanner : XCTestCase {
             expectEqual($0.scanCharacters(from: finalSet), "👩🏻‍💻", "The up-to character set can be scanned immediately afterwards")
         }
     }
-    
+
+    func testLocalizedScanner() throws {
+        let ds = Locale.current.decimalSeparator ?? "."
+        let string = "123\(ds)456"
+        let scanner = try (Scanner.localizedScanner(with: string) as? Scanner).unwrapped()
+        XCTAssertNotNil(scanner.locale)
+        var value: Decimal = 0
+        XCTAssertTrue(scanner.scanDecimal(&value))
+        XCTAssertEqual(value.description, "123.456")
+
+        // Check a normal scanner has no locale set
+        XCTAssertNil(Scanner(string: "foo").locale)
+    }
+
     static var allTests: [(String, (TestScanner) -> () throws -> Void)] {
         return [
             ("testScanFloatingPoint", testScanFloatingPoint),
@@ -480,6 +493,7 @@ class TestScanner : XCTestCase {
             ("testScanUpToString", testScanUpToString),
             ("testScanCharactersFromSet", testScanCharactersFromSet),
             ("testScanUpToCharactersFromSet", testScanUpToCharactersFromSet),
+            ("testLocalizedScanner", testLocalizedScanner),
         ]
     }
 }
