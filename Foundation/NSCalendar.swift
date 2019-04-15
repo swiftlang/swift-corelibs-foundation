@@ -65,9 +65,9 @@ extension NSCalendar {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-        
-        public var hashValue: Int {
-            return rawValue.hashValue
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(rawValue)
         }
         
         public static let gregorian = NSCalendar.Identifier("gregorian")

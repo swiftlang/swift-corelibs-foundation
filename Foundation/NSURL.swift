@@ -76,8 +76,8 @@ public struct URLResourceKey : RawRepresentable, Equatable, Hashable {
         self.rawValue = rawValue
     }
 
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
 
     public static func ==(lhs: URLResourceKey, rhs: URLResourceKey) -> Bool {
@@ -198,8 +198,8 @@ public struct URLFileResourceType : RawRepresentable, Equatable, Hashable {
         self.rawValue = rawValue
     }
 
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
 
     public static func ==(lhs: URLFileResourceType, rhs: URLFileResourceType) -> Bool {

@@ -399,7 +399,7 @@ open class Progress : NSObject {
         public let rawValue: String
         public init(_ rawValue: String) { self.rawValue = rawValue }
         public init(rawValue: String) { self.rawValue = rawValue }
-        public var hashValue: Int { return self.rawValue.hashValue }
+        public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
         public static func ==(_ lhs: FileOperationKind, _ rhs: FileOperationKind) -> Bool { return lhs.rawValue == rhs.rawValue }
         
         /// Use for indicating the progress represents a download.
@@ -478,7 +478,7 @@ public struct ProgressKind : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
-    public var hashValue: Int { return self.rawValue.hashValue }
+    public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
     public static func ==(_ lhs: ProgressKind, _ rhs: ProgressKind) -> Bool { return lhs.rawValue == rhs.rawValue }
     
     /// Indicates that the progress being performed is related to files.
@@ -491,7 +491,7 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
-    public var hashValue: Int { return self.rawValue.hashValue }
+    public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
     public static func ==(_ lhs: ProgressUserInfoKey, _ rhs: ProgressUserInfoKey) -> Bool { return lhs.rawValue == rhs.rawValue }
     
     /// How much time is probably left in the operation, as an NSNumber containing a number of seconds.
