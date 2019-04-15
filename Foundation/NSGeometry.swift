@@ -74,9 +74,10 @@ extension CGPoint: NSSpecialValueCoding {
             return false
         }
     }
-    
-    var hash: Int {
-        return self.x.hashValue &+ self.y.hashValue
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(x)
+        hasher.combine(y)
     }
     
      var description: String {
@@ -166,9 +167,10 @@ extension CGSize: NSSpecialValueCoding {
             return false
         }
     }
-    
-    var hash: Int {
-        return self.width.hashValue &+ self.height.hashValue
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(width)
+        hasher.combine(height)
     }
     
     var description: String {
@@ -488,11 +490,12 @@ extension CGRect: NSSpecialValueCoding {
             return false
         }
     }
-    
-    var hash: Int {
-        return self.origin.hash &+ self.size.hash
+
+    func hash(into hasher: inout Hasher) {
+        origin.hash(into: &hasher)
+        size.hash(into: &hasher)
     }
-    
+
     var description: String {
         return NSStringFromRect(self)
     }
@@ -588,9 +591,12 @@ extension NSEdgeInsets: NSSpecialValueCoding {
             return false
         }
     }
-    
-    var hash: Int {
-        return self.top.hashValue &+ self.left.hashValue &+ self.bottom.hashValue &+ self.right.hashValue
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(top)
+        hasher.combine(left)
+        hasher.combine(bottom)
+        hasher.combine(right)
     }
     
     var description: String {
