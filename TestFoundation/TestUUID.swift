@@ -16,6 +16,7 @@ class TestUUID : XCTestCase {
             ("test_UUIDuuidString", test_UUIDuuidString),
             ("test_UUIDdescription", test_UUIDdescription),
             ("test_UUIDNSCoding", test_UUIDNSCoding),
+            ("test_hash", test_hash),
         ]
     }
     
@@ -51,5 +52,30 @@ class TestUUID : XCTestCase {
         let uuidA = UUID()
         let uuidB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: uuidA)) as! UUID
         XCTAssertEqual(uuidA, uuidB, "Archived then unarchived uuid must be equal.")
+    }
+
+    func test_hash() {
+        let values: [UUID] = [
+            // This list takes a UUID and tweaks every byte while
+            // leaving the version/variant intact.
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a63baa1c-b4f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53caa1c-b4f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53bab1c-b4f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1d-b4f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b5f5-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f6-48db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-49db-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48dc-9467-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9567-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9468-9786b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9886b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9787b76b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9786b86b256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9786b76c256c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9786b76b266c")!,
+            UUID(uuidString: "a53baa1c-b4f5-48db-9467-9786b76b256d")!,
+        ]
+        checkHashable(values, equalityOracle: { $0 == $1 })
     }
 }
