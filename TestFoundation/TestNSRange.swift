@@ -21,9 +21,10 @@ class TestNSRange : XCTestCase {
             ("test_NSStringFromRange", test_NSStringFromRange),
             ("test_init_region_in_ascii_string", test_init_region_in_ascii_string),
             ("test_init_region_in_unicode_string", test_init_region_in_unicode_string),
+            ("test_hashing", test_hashing),
         ]
     }
-    
+
     func test_NSRangeFromString() {
         let emptyRangeStrings = [
             "",
@@ -176,5 +177,19 @@ class TestNSRange : XCTestCase {
         _assertNSRangeInit(unicodeSubstring.startIndex..., in: unicodeString, is: "{20, 34}")
         _assertNSRangeInit(...unicodeSubstring.firstIndex(of: "╯")!, in: unicodeSubstring, is: "{0, 12}")
         _assertNSRangeInit(..<unicodeSubstring.firstIndex(of: "╯")!, in: unicodeString, is: "{0, 31}")
+    }
+
+    func test_hashing() {
+        let large = Int.max >> 2
+        let samples: [NSRange] = [
+            NSRange(location: 1, length: 1),
+            NSRange(location: 1, length: 2),
+            NSRange(location: 2, length: 1),
+            NSRange(location: 2, length: 2),
+            NSRange(location: large, length: large),
+            NSRange(location: 0, length: large),
+            NSRange(location: large, length: 0),
+        ]
+        checkHashable(samples, equalityOracle: { $0 == $1 })
     }
 }
