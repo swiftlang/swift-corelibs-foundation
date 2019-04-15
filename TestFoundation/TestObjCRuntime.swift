@@ -43,10 +43,10 @@ class TestObjCRuntime: XCTestCase {
         let name = testBundleName()
         XCTAssertEqual(NSStringFromClass(NSObject.self), "NSObject")
         XCTAssertEqual(NSStringFromClass(SwiftClass.self), "\(name).SwiftClass")
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-        XCTAssertEqual(NSStringFromClass(XCTestCase.self), "XCTest.XCTestCase");
-#else
+#if canImport(SwiftXCTest) && !DEPLOYMENT_RUNTIME_OBJC
         XCTAssertEqual(NSStringFromClass(XCTestCase.self), "SwiftXCTest.XCTestCase");
+#else
+        XCTAssertEqual(NSStringFromClass(XCTestCase.self), "XCTest.XCTestCase");
 #endif
     }
 
