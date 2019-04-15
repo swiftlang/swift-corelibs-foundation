@@ -152,7 +152,11 @@ open class Scanner: NSObject, NSCopying {
         return stringLoc == stringLen
     }
     
-    open class func localizedScannerWithString(_ string: String) -> AnyObject { NSUnimplemented() }
+    open class func localizedScanner(with string: String) -> Any {
+        let scanner = Scanner(string: string)
+        scanner.locale = Locale.current
+        return scanner
+    }
 }
 
 internal struct _NSStringBuffer {
