@@ -487,7 +487,7 @@ extension FileManager {
     
     private func _nonDirectoryFileExists(atPath path: String) -> Bool {
         var isDirectory: ObjCBool = false
-        if !fileExists(atPath: path, isDirectory: &isDirectory) { return false }
+        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
         return !isDirectory.boolValue
     }
 
