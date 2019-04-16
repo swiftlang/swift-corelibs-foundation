@@ -53,6 +53,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_checkErrorTypeAfterInvalidateAndCancel", test_checkErrorTypeAfterInvalidateAndCancel),
             ("test_taskCountAfterInvalidateAndCancel", test_taskCountAfterInvalidateAndCancel),
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
+            ("test_getAllTasks", test_getAllTasks),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
         ]
     }
@@ -856,8 +857,52 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertNil(session.delegate)
     }
 
+    func test_getAllTasks() {
+        let expect = expectation(description: "Tasks URLSession.getAllTasks")
+
+        let session = URLSession(configuration: .default)
+        let dataTask1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
+        let dataTask2 = session.dataTask(with: URL(string: "https://developer.apple.com")!)
+        let dataTask3 = session.dataTask(with: URL(string: "https://developer.apple.com/swift")!)
+
+        session.getAllTasks { (tasksBeforeResume) in
+            XCTAssertEqual(tasksBeforeResume.count, 0)
+
+            dataTask1.cancel()
+
+            dataTask2.resume()
+            dataTask2.suspend()
+            // dataTask3 is suspended even before it was resumed, so the next call to `getAllTasks` should not include this tasks
+            dataTask3.suspend()
+            session.getAllTasks { (tasksAfterCancel) in
+                // tasksAfterCancel should only contain dataTask2
+                XCTAssertEqual(tasksAfterCancel.count, 1)
+
+                // A task will in be in suspended state when it was created.
+                // Given that, dataTask3 was suspended once again earlier above, so it should receive `resume()` twice in order to be executed
+                // Calling `getAllTasks` next time should not include dataTask3
+                dataTask3.resume()
+
+                session.getAllTasks { (tasksAfterFirstResume) in
+                    // tasksAfterFirstResume should only contain dataTask2
+                    XCTAssertEqual(tasksAfterFirstResume.count, 1)
+
+                    // Now dataTask3 received `resume()` twice, this time `getAllTasks` should include
+                    dataTask3.resume()
+                    session.getAllTasks { (tasksAfterSecondResume) in
+                        // tasksAfterSecondResume should contain dataTask2 and dataTask2 this time
+                        XCTAssertEqual(tasksAfterSecondResume.count, 2)
+                        expect.fulfill()
+                    }
+                }
+            }
+        }
+
+        waitForExpectations(timeout: 20)
+    }
+
     func test_getTasksWithCompletion() {
-        let expect = expectation(description: "Check task count after invalidateAndCancel")
+        let expect = expectation(description: "Test URLSession.getTasksWithCompletion")
 
         let session = URLSession(configuration: .default)
         let dataTask1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
