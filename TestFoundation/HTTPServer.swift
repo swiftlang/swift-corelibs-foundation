@@ -165,14 +165,6 @@ class _TCPSocket {
 #endif
         return String(cString: &buffer)
     }
-    
-    func split(_ str: String, _ count: Int) -> [String] {
-        return stride(from: 0, to: str.count, by: count).map { i -> String in
-            let startIndex = str.index(str.startIndex, offsetBy: i)
-            let endIndex   = str.index(startIndex, offsetBy: count, limitedBy: str.endIndex) ?? str.endIndex
-            return String(str[startIndex..<endIndex])
-        }
-    }
 
     func writeRawData(_ data: Data) throws {
 #if os(Windows)
@@ -202,19 +194,23 @@ class _TCPSocket {
 #endif
     }
 
-    func writeData(header: String, body: String, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
+    func writeData(header: String, bodyData: Data, sendDelay: TimeInterval? = nil, bodyChunks: Int? = nil) throws {
         _ = try _send(Array(header.utf8))
 
         if let sendDelay = sendDelay, let bodyChunks = bodyChunks {
-            let count = max(1, Int(Double(body.utf8.count) / Double(bodyChunks)))
-            let texts = split(body, count)
-            
-            for item in texts {
+            let count = max(1, Int(Double(bodyData.count) / Double(bodyChunks)))
+            for startIndex in stride(from: 0, to: bodyData.count, by: count) {
                 Thread.sleep(forTimeInterval: sendDelay)
-                _ = try _send(Array(item.utf8))
+                let endIndex = min(startIndex + count, bodyData.count)
+                try bodyData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) -> Void in
+                    let chunk = UnsafeRawBufferPointer(rebasing: ptr[startIndex..<endIndex])
+                    _ = try _send(Array(chunk.bindMemory(to: UInt8.self)))
+                }
             }
         } else {
-            _ = try _send(Array(body.utf8))
+            try bodyData.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) -> Void in
+                _ = try _send(Array(ptr.bindMemory(to: UInt8.self)))
+            }
         }
     }
 
@@ -302,7 +298,7 @@ class _HTTPServer {
             Thread.sleep(forTimeInterval: delay)
         }
         do {
-            try self.socket.writeData(header: response.header, body: response.body, sendDelay: sendDelay, bodyChunks: bodyChunks)
+            try self.socket.writeData(header: response.header, bodyData: response.bodyData, sendDelay: sendDelay, bodyChunks: bodyChunks)
         } catch {
         }
     }
@@ -455,14 +451,18 @@ struct _HTTPResponse {
     }
     private let responseCode: Response
     private let headers: String
-    public let body: String
+    public let bodyData: Data
 
-    public init(response: Response, headers: String = _HTTPUtils.EMPTY, body: String) {
+    public init(response: Response, headers: String = _HTTPUtils.EMPTY, bodyData: Data) {
         self.responseCode = response
         self.headers = headers
-        self.body = body
+        self.bodyData = bodyData
     }
-   
+
+    public init(response: Response, headers: String = _HTTPUtils.EMPTY, body: String) {
+        self.init(response: response, headers: headers, bodyData: body.data(using: .utf8)!)
+    }
+
     public var header: String {
         let statusLine = _HTTPUtils.VERSION + _HTTPUtils.SPACE + "\(responseCode.rawValue)" + _HTTPUtils.SPACE + "\(responseCode)"
         return statusLine + (headers != _HTTPUtils.EMPTY ? _HTTPUtils.CRLF + headers : _HTTPUtils.EMPTY) + _HTTPUtils.CRLF2
@@ -639,6 +639,19 @@ public class TestURLSessionServer {
             return httpResponse
 
         }
+
+        if uri == "/gzipped-response" {
+            // This is "Hello World!" gzipped.
+            let helloWorld = Data([0x1f, 0x8b, 0x08, 0x00, 0x6d, 0xca, 0xb2, 0x5c,
+                                   0x00, 0x03, 0xf3, 0x48, 0xcd, 0xc9, 0xc9, 0x57,
+                                   0x08, 0xcf, 0x2f, 0xca, 0x49, 0x51, 0x04, 0x00,
+                                   0xa3, 0x1c, 0x29, 0x1c, 0x0c, 0x00, 0x00, 0x00])
+            return _HTTPResponse(response: .OK,
+                                 headers: ["Content-Length: \(helloWorld.count)",
+                                           "Content-Encoding: gzip"].joined(separator: _HTTPUtils.CRLF),
+                                 bodyData: helloWorld)
+        }
+
         return _HTTPResponse(response: .OK, body: capitals[String(uri.dropFirst())]!)
     }
 
@@ -738,7 +751,7 @@ class LoopbackServerTest : XCTestCase {
 
         let timeout = DispatchTime(uptimeNanoseconds: DispatchTime.now().uptimeNanoseconds + 2_000_000_000)
 
-        while serverPort == -2 {
+        while serverPort == -1 {
             guard serverReady.wait(timeout: timeout) == .success else {
                 fatalError("Timedout waiting for server to be ready")
             }

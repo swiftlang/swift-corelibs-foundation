@@ -32,13 +32,20 @@ internal class _HTTPURLProtocol: _NativeProtocol {
         guard let task = task else {
             fatalError("Received header data but no task available.")
         }
-        task.countOfBytesExpectedToReceive = contentLength > 0 ? contentLength : NSURLSessionTransferSizeUnknown
         do {
             let newTS = try ts.byAppending(headerLine: data)
             internalState = .transferInProgress(newTS)
             let didCompleteHeader = !ts.isHeaderComplete && newTS.isHeaderComplete
             if didCompleteHeader {
                 // The header is now complete, but wasn't before.
+                let response = newTS.response as! HTTPURLResponse
+                if let contentEncoding = response.allHeaderFields["Content-Encoding"] as? String,
+                        contentEncoding != "identity" {
+                    // compressed responses do not report expected size
+                    task.countOfBytesExpectedToReceive = NSURLSessionTransferSizeUnknown
+                } else {
+                    task.countOfBytesExpectedToReceive = contentLength > 0 ? contentLength : NSURLSessionTransferSizeUnknown
+                }
                 didReceiveResponse()
             }
             return .proceed
