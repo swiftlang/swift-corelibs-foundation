@@ -30,9 +30,9 @@ open class NSKeyedUnarchiver : NSCoder {
         }
         
         static let none = UnarchiverFlags(rawValue: 0)
-        static let finishedDecoding = UnarchiverFlags(rawValue : 1)
-        static let requiresSecureCoding = UnarchiverFlags(rawValue: 2)
-        static let startedDecoding = UnarchiverFlags(rawValue: 3)
+        static let finishedDecoding = UnarchiverFlags(rawValue : 1 << 0)
+        static let requiresSecureCoding = UnarchiverFlags(rawValue: 1 << 1)
+        static let startedDecoding = UnarchiverFlags(rawValue: 1 << 2)
     }
     
     class DecodingContext {
@@ -79,7 +79,7 @@ open class NSKeyedUnarchiver : NSCoder {
         unarchiver.requiresSecureCoding = true
         unarchiver.decodingFailurePolicy = .setErrorAndReturn
         
-        return try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
+        return try unarchiver.decodeObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
     }
     
     @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")
