@@ -75,10 +75,12 @@ open class NumberFormatter : Formatter {
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
 
-    // Report the used range of the string and an NSError, in addition to the usual stuff from Formatter
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
-    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func objectValue(_ string: String, range: inout NSRange) throws -> Any? { NSUnimplemented() }
+    @available(*, unavailable, renamed: "number(from:)")
+    func getObjectValue(_ obj: UnsafeMutablePointer<AnyObject?>?,
+                        for string: String,
+                        range rangep: UnsafeMutablePointer<NSRange>?) throws {
+        NSUnsupported()
+    }
 
     open override func string(for obj: Any) -> String? {
         //we need to allow Swift's numeric types here - Int, Double et al.

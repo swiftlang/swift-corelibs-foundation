@@ -173,10 +173,6 @@ open class EnergyFormatter: Formatter {
         //Return the appropriate representation of the unit based on the selected unit style
         return unitString(fromValue: numberInUnit, unit: unitFromJoules)
     }
-
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
-    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open override func objectValue(_ string: String) throws -> Any? { return nil }
     
     /// Regions that use calories
     private static let caloriesRegions: Set<String> = ["en_US", "en_US_POSIX", "haw_US", "es_US", "chr_US", "en_GB", "kw_GB", "cy_GB", "gv_GB"]
