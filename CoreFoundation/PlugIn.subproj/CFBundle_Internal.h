@@ -31,9 +31,9 @@ CF_EXTERN_C_BEGIN
 #endif
 
 // FHS bundles are supported on the Swift and C runtimes, except on Windows.
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID
 #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
 #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
 #elif TARGET_OS_MAC
@@ -43,7 +43,7 @@ CF_EXTERN_C_BEGIN
 #error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
 #endif // DEPLOYMENT_TARGET_…
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
 
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
