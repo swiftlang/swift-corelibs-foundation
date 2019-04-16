@@ -75,7 +75,9 @@ internal protocol _SwiftNativeFoundationType : class {
     
     func mutableCopy(with zone : NSZone) -> Any
     
+    func hash(into hasher: inout Hasher)
     var hashValue: Int { get }
+
     var description: String { get }
     var debugDescription: String { get }
     
@@ -115,6 +117,10 @@ extension _SwiftNativeFoundationType {
         return _mapUnmanaged { ($0 as NSObject).mutableCopy() }
     }
     
+    func hash(into hasher: inout Hasher) {
+        _mapUnmanaged { hasher.combine($0) }
+    }
+
     var hashValue: Int {
         return _mapUnmanaged { return $0.hashValue }
     }

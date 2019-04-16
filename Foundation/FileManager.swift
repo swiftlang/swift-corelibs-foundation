@@ -828,11 +828,11 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    
-    public var hashValue: Int {
-        return self.rawValue.hashValue
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
-    
+
     public static func ==(_ lhs: FileAttributeKey, _ rhs: FileAttributeKey) -> Bool {
         return lhs.rawValue == rhs.rawValue
     }
@@ -873,8 +873,8 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
         self.rawValue = rawValue
     }
 
-    public var hashValue: Int {
-        return self.rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
 
     public static func ==(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {

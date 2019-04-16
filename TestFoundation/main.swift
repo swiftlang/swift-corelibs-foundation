@@ -34,6 +34,7 @@ XCTMain([
     testCase(TestNSData.allTests),
     testCase(TestDate.allTests),
     testCase(TestDateComponents.allTests),
+    testCase(TestDateInterval.allTests),
     testCase(TestNSDateComponents.allTests),
     testCase(TestDateFormatter.allTests),
     testCase(TestDateIntervalFormatter.allTests),
@@ -109,5 +110,6 @@ XCTMain([
     testCase(TestCodable.allTests),
     testCase(TestUnit.allTests),
     testCase(TestDimension.allTests),
+    testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
 ])

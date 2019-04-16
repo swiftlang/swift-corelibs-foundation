@@ -68,8 +68,8 @@ extension String {
 }
 
 extension String.Encoding : Hashable {
-    public var hashValue : Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
 
     public static func ==(lhs: String.Encoding, rhs: String.Encoding) -> Bool {

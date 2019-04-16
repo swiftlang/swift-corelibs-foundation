@@ -24,6 +24,7 @@ class TestCalendar: XCTestCase {
             ("test_customMirror", test_customMirror),
             ("test_ampmSymbols", test_ampmSymbols),
             ("test_currentCalendarRRstability", test_currentCalendarRRstability),
+            ("test_hashing", test_hashing),
         ]
     }
     
@@ -206,6 +207,25 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(calendar.timeZone, calendarMirror.descendant("timeZone") as? TimeZone)
         XCTAssertEqual(calendar.firstWeekday, calendarMirror.descendant("firstWeekday") as? Int)
         XCTAssertEqual(calendar.minimumDaysInFirstWeek, calendarMirror.descendant("minimumDaysInFirstWeek") as? Int)
+    }
+
+    func test_hashing() {
+        let calendars: [Calendar] = [
+            Calendar.autoupdatingCurrent,
+            Calendar(identifier: .buddhist),
+            Calendar(identifier: .gregorian),
+            Calendar(identifier: .islamic),
+            Calendar(identifier: .iso8601),
+        ]
+        checkHashable(calendars, equalityOracle: { $0 == $1 })
+
+        // autoupdating calendar isn't equal to the current, even though it's
+        // likely to be the same.
+        let calendars2: [Calendar] = [
+            Calendar.autoupdatingCurrent,
+            Calendar.current,
+        ]
+        checkHashable(calendars2, equalityOracle: { $0 == $1 })
     }
 }
 

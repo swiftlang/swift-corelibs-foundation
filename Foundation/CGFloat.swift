@@ -477,6 +477,16 @@ extension CGFloat : Hashable {
     public var hashValue: Int {
         return native.hashValue
     }
+
+    @_transparent
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(native)
+    }
+
+    @_transparent
+    public func _rawHashValue(seed: Int) -> Int {
+        return native._rawHashValue(seed: seed)
+    }
 }
 
 extension UInt8 {

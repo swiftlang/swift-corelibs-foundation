@@ -39,6 +39,10 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(name)
+        // FIXME: We should feed the object to the hasher, but using
+        // the object identity would make the hash encoding unstable.
+
+        // FIXME: Darwin also hashes the keys in the userInfo dictionary.
     }
     
     public var description: String {
@@ -56,11 +60,13 @@ public struct Notification : ReferenceConvertible, Equatable, Hashable {
     public typealias Name = NSNotification.Name
     
     public static func ==(lhs: Notification, rhs: Notification) -> Bool {
+        // FIXME: Darwin also compares the userInfo dictionary.
         if lhs.name.rawValue != rhs.name.rawValue {
             return false
         }
         if let lhsObj = lhs.object {
             if let rhsObj = rhs.object {
+                // FIXME: This violates reflexivity if object isn't Hashable.
                 if __SwiftValue.store(lhsObj) !== __SwiftValue.store(rhsObj) {
                     return false
                 }

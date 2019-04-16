@@ -13,9 +13,9 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-        
-        public var hashValue: Int {
-            return self.rawValue.hashValue
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(rawValue)
         }
         
         public static func ==(lhs: Name, rhs: Name) -> Bool {

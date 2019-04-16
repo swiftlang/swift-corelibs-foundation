@@ -21,8 +21,12 @@ extension NSAttributedString {
             self.rawValue = rawValue
         }
 
-        public var hashValue: Int {
-            return rawValue.hashValue
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(rawValue)
+        }
+
+        public static func ==(left: NSAttributedString.Key, right: NSAttributedString.Key) -> Bool {
+            return left.rawValue == right.rawValue
         }
     }
 }

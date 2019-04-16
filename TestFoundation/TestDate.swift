@@ -7,6 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+func dateWithString(_ str: String) -> Date {
+    let formatter = DateFormatter()
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.locale = Locale(identifier: "en_US")
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
+    return formatter.date(from: str)! as Date
+}
+
 class TestDate : XCTestCase {
     
     static var allTests: [(String, (TestDate) -> () throws -> Void)] {
@@ -25,6 +33,7 @@ class TestDate : XCTestCase {
             ("test_IsEqualToDate", test_IsEqualToDate),
             ("test_timeIntervalSinceReferenceDate", test_timeIntervalSinceReferenceDate),
             ("test_recreateDateComponentsFromDate", test_recreateDateComponentsFromDate),
+            ("test_Hashing", test_Hashing),
         ]
     }
     
@@ -151,5 +160,18 @@ class TestDate : XCTestCase {
         XCTAssertEqual(recreatedComponents.weekOfMonth, 2)
         XCTAssertEqual(recreatedComponents.weekOfYear, 45)
         XCTAssertEqual(recreatedComponents.yearForWeekOfYear, 2017)
+    }
+
+    func test_Hashing() {
+        let values: [Date] = [
+            dateWithString("2010-05-17 14:49:47 -0700"),
+            dateWithString("2011-05-17 14:49:47 -0700"),
+            dateWithString("2010-06-17 14:49:47 -0700"),
+            dateWithString("2010-05-18 14:49:47 -0700"),
+            dateWithString("2010-05-17 15:49:47 -0700"),
+            dateWithString("2010-05-17 14:50:47 -0700"),
+            dateWithString("2010-05-17 14:49:48 -0700"),
+        ]
+        checkHashable(values, equalityOracle: { $0 == $1 })
     }
 }

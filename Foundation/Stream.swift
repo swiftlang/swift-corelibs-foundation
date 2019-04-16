@@ -28,11 +28,11 @@ extension Stream {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-        
-        public var hashValue: Int {
-            return rawValue.hashValue
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(rawValue)
         }
-        
+
         public static func ==(lhs: Stream.PropertyKey, rhs: Stream.PropertyKey) -> Bool {
             return lhs.rawValue == rhs.rawValue
         }
@@ -303,8 +303,8 @@ public struct StreamSocketSecurityLevel : RawRepresentable, Equatable, Hashable 
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
     public static func ==(lhs: StreamSocketSecurityLevel, rhs: StreamSocketSecurityLevel) -> Bool {
         return lhs.rawValue == rhs.rawValue
@@ -325,8 +325,8 @@ public struct StreamSOCKSProxyConfiguration : RawRepresentable, Equatable, Hasha
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
     public static func ==(lhs: StreamSOCKSProxyConfiguration, rhs: StreamSOCKSProxyConfiguration) -> Bool {
         return lhs.rawValue == rhs.rawValue
@@ -347,8 +347,8 @@ public struct StreamSOCKSProxyVersion : RawRepresentable, Equatable, Hashable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
     public static func ==(lhs: StreamSOCKSProxyVersion, rhs: StreamSOCKSProxyVersion) -> Bool {
         return lhs.rawValue == rhs.rawValue
@@ -366,8 +366,8 @@ public struct StreamNetworkServiceTypeValue : RawRepresentable, Equatable, Hasha
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    public var hashValue: Int {
-        return rawValue.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
     public static func ==(lhs: StreamNetworkServiceTypeValue, rhs: StreamNetworkServiceTypeValue) -> Bool {
         return lhs.rawValue == rhs.rawValue

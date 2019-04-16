@@ -18,9 +18,9 @@ public struct NSExceptionName : RawRepresentable, Equatable, Hashable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    
-    public var hashValue: Int {
-        return self.rawValue.hashValue
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(rawValue)
     }
     
     public static func ==(_ lhs: NSExceptionName, _ rhs: NSExceptionName) -> Bool {

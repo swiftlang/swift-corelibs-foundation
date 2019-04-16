@@ -390,6 +390,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestCodable.swift
                          TestFoundation/TestDateComponents.swift
                          TestFoundation/TestDateFormatter.swift
+                         TestFoundation/TestDateInterval.swift
                          TestFoundation/TestDateIntervalFormatter.swift
                          TestFoundation/TestDate.swift
                          TestFoundation/TestDecimal.swift
@@ -407,6 +408,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestJSONSerialization.swift
                          TestFoundation/TestLengthFormatter.swift
                          TestFoundation/TestMassFormatter.swift
+                         TestFoundation/TestMeasurement.swift
                          TestFoundation/TestNotificationCenter.swift
                          TestFoundation/TestNotificationQueue.swift
                          TestFoundation/TestNotification.swift
