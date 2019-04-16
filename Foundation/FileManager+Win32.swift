@@ -484,12 +484,6 @@ extension FileManager {
         }
         return true
     }
-    
-    private func _nonDirectoryFileExists(atPath path: String) -> Bool {
-        var isDirectory: ObjCBool = false
-        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
-        return !isDirectory.boolValue
-    }
 
     internal func _isReadableFile(atPath path: String) -> Bool {
         do { let _ = try windowsFileAttributes(atPath: path) } catch { return false }
@@ -502,7 +496,9 @@ extension FileManager {
     }
 
     internal func _isExecutableFile(atPath path: String) -> Bool {
-        return _nonDirectoryFileExists(atPath: path) && _isReadableFile(atPath: path)
+        var isDirectory: ObjCBool = false
+        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
+        return !isDirectory.boolValue && _isReadableFile(atPath: path)
     }
 
     internal func _isDeletableFile(atPath path: String) -> Bool {
