@@ -57,10 +57,24 @@ open class NSKeyedUnarchiver : NSCoder {
         return _error
     }
     
+    static public func unarchivedObject<DecodedObjectType>(ofClass cls: DecodedObjectType.Type, from data: Data) throws -> DecodedObjectType? where DecodedObjectType : NSObject, DecodedObjectType : NSCoding {
+        return try unarchivedObject(ofClasses: [cls], from: data) as? DecodedObjectType
+    }
+    
+    static public func unarchivedObject(ofClasses classes: [AnyClass], from data: Data) throws -> Any? {
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+        unarchiver.requiresSecureCoding = true
+        unarchiver.decodingFailurePolicy = .setErrorAndReturn
+        
+        return try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
+    }
+    
+    @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")
     open class func unarchiveObject(with data: Data) -> Any? {
         return try? unarchiveTopLevelObjectWithData(data)
     }
     
+    @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")
     open class func unarchiveObject(withFile path: String) -> Any? {
         let url = URL(fileURLWithPath: path)
         let readStream = CFReadStreamCreateWithFile(kCFAllocatorSystemDefault, url._cfObject)!
@@ -82,6 +96,13 @@ open class NSKeyedUnarchiver : NSCoder {
         return root
     }
     
+    public init(forReadingFrom data: Data) throws {
+        self._stream = .data(data)
+        super.init()
+        try _readPropertyList()
+    }
+    
+    @available(swift, deprecated: 9999, renamed: "init(forReadingFrom:)")
     public convenience init(forReadingWith data: Data) {
         self.init(stream: Stream.data(data))
     }
@@ -845,12 +866,8 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     open override var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
-        get {
-            return .setErrorAndReturn
-        }
-        set {
-            NSUnimplemented();
-        }
+        get { return .setErrorAndReturn }
+        set {}
     }
 
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {

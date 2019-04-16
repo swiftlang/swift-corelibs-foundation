@@ -33,6 +33,7 @@ public let NSLocalizedRecoverySuggestionErrorKey: String = "NSLocalizedRecoveryS
 public let NSLocalizedRecoveryOptionsErrorKey: String = "NSLocalizedRecoveryOptions"
 public let NSRecoveryAttempterErrorKey: String = "NSRecoveryAttempter"
 public let NSHelpAnchorErrorKey: String = "NSHelpAnchor"
+public let NSDebugDescriptionErrorKey = "NSDebugDescription"
 
 // Other standard keys in userInfo, for various error codes
 public let NSStringEncodingErrorKey: String = "NSStringEncodingErrorKey"
