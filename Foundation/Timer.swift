@@ -16,9 +16,7 @@ internal func __NSFireTimer(_ timer: CFRunLoopTimer?, info: UnsafeMutableRawPoin
 }
 
 open class Timer : NSObject {
-    typealias CFType = CFRunLoopTimer
-    
-    internal var _cfObject: CFType {
+    internal var _cfObject: CFRunLoopTimer {
         get {
             return _timer!
         }
