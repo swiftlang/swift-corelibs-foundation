@@ -25,6 +25,12 @@ open class Operation : NSObject {
     internal var _depGroup = DispatchGroup()
     internal var _groups = [DispatchGroup]()
 #endif
+    // prioritizedPrevious && prioritizedNext used to traverse in the order in which the operations need to be dequeued
+    fileprivate weak var prioritizedPrevious: Operation?
+    fileprivate var prioritizedNext: Operation?
+    // orderdedPrevious && orderdedNext used to traverse in the order in which the operations added to the queue
+    fileprivate weak var orderdedPrevious: Operation?
+    fileprivate var orderdedNext: Operation?
     
     public override init() {
         super.init()
@@ -244,16 +250,120 @@ extension OperationQueue {
     public static let defaultMaxConcurrentOperationCount: Int = Int.max
 }
 
-internal struct _OperationList {
-    var veryLow = [Operation]()
-    var low = [Operation]()
-    var normal = [Operation]()
-    var high = [Operation]()
-    var veryHigh = [Operation]()
-    var all = [Operation]()
+fileprivate class _IndexedOperationLinkedList {
+    private(set) var root: Operation? = nil
+    private(set) var tail: Operation? = nil
+    
+    func append(_ operation: Operation, inOrderList: Bool = false) {
+        if root == nil {
+            root = operation
+            tail = operation
+        } else {
+            if inOrderList {
+                appendOperationInOrderList(operation)
+            } else {
+                appendOperationInPriorityList(operation)
+            }
+        }
+    }
+    
+    private func appendOperationInPriorityList(_ operation: Operation) {
+        operation.prioritizedPrevious = tail
+        tail?.prioritizedNext = operation
+        tail = operation
+    }
+    
+    private func appendOperationInOrderList(_ operation: Operation) {
+        operation.orderdedPrevious = tail
+        tail?.orderdedNext = operation
+        tail = operation
+    }
+    
+    func remove(_ operation: Operation, fromOrderList: Bool) {
+        if fromOrderList {
+            removeOperationFromOrderList(operation)
+        } else {
+            removeOperationFromPriorityList(operation)
+        }
+    }
+    
+    private func removeOperationFromPriorityList(_ operation: Operation) {
+        guard let unwrappedRoot = root, let unwrappedTail = tail else {
+            return
+        }
+        
+        if operation === unwrappedRoot {
+            let next = operation.prioritizedNext
+            next?.prioritizedPrevious = nil
+            root = next
+            if root == nil {
+                tail = nil
+            }
+        } else if operation === unwrappedTail {
+            tail = operation.prioritizedPrevious
+            tail?.prioritizedNext = nil
+        } else {
+            // Middle Node
+            let previous = operation.prioritizedPrevious
+            let next = operation.prioritizedNext
+            previous?.prioritizedNext = next
+            next?.prioritizedPrevious = previous
+            
+            operation.prioritizedNext = nil
+            operation.prioritizedPrevious = nil
+        }
+    }
+    
+    private func removeOperationFromOrderList(_ operation: Operation) {
+        guard let unwrappedRoot = root, let unwrappedTail = tail else {
+            return
+        }
+        
+        if operation === unwrappedRoot {
+            let next = operation.orderdedNext
+            next?.orderdedPrevious = nil
+            root = next
+            if root == nil {
+                tail = nil
+            }
+        } else if operation === unwrappedTail {
+            tail = operation.orderdedPrevious
+            tail?.orderdedNext = nil
+        } else {
+            // Middle Node
+            let previous = operation.orderdedPrevious
+            let next = operation.orderdedNext
+            previous?.orderdedNext = next
+            next?.orderdedPrevious = previous
+            
+            operation.orderdedNext = nil
+            operation.orderdedPrevious = nil
+        }
+    }
+    
+    func removeFirstInPriority() -> Operation? {
+        guard let operation = root else {
+            return nil
+        }
+        
+        remove(operation, fromOrderList: false)
+        return operation
+    }
+}
+
+fileprivate struct _OperationList {
+    var veryLow = _IndexedOperationLinkedList()
+    var low = _IndexedOperationLinkedList()
+    var normal = _IndexedOperationLinkedList()
+    var high = _IndexedOperationLinkedList()
+    var veryHigh = _IndexedOperationLinkedList()
+    var all =  _IndexedOperationLinkedList()
+    
+    var count: Int = 0
     
     mutating func insert(_ operation: Operation) {
-        all.append(operation)
+        all.append(operation, inOrderList: true)
+        
         switch operation.queuePriority {
         case .veryLow:
             veryLow.append(operation)
@@ -266,61 +376,53 @@ internal struct _OperationList {
         case .veryHigh:
             veryHigh.append(operation)
         }
+        
+        count += 1
     }
     
     mutating func remove(_ operation: Operation) {
-        if let idx = all.firstIndex(of: operation) {
-            all.remove(at: idx)
-        }
+        all.remove(operation, fromOrderList: true)
+        
         switch operation.queuePriority {
         case .veryLow:
-            if let idx = veryLow.firstIndex(of: operation) {
-                veryLow.remove(at: idx)
-            }
+            veryLow.remove(operation, fromOrderList: false)
         case .low:
-            if let idx = low.firstIndex(of: operation) {
-                low.remove(at: idx)
-            }
+            low.remove(operation, fromOrderList: false)
         case .normal:
-            if let idx = normal.firstIndex(of: operation) {
-                normal.remove(at: idx)
-            }
+            normal.remove(operation, fromOrderList: false)
         case .high:
-            if let idx = high.firstIndex(of: operation) {
-                high.remove(at: idx)
-            }
+            high.remove(operation, fromOrderList: false)
         case .veryHigh:
-            if let idx = veryHigh.firstIndex(of: operation) {
-                veryHigh.remove(at: idx)
-            }
+            veryHigh.remove(operation, fromOrderList: false)
         }
+        
+        count -= 1
     }
     
-    mutating func dequeue() -> Operation? {
-        if !veryHigh.isEmpty {
-            return veryHigh.remove(at: 0)
+    func dequeue() -> Operation? {
+        if let operation = veryHigh.removeFirstInPriority() {
+            return operation
+        } else if let operation = high.removeFirstInPriority() {
+            return operation
+        } else if let operation = normal.removeFirstInPriority() {
+            return operation
+        } else if let operation = low.removeFirstInPriority() {
+            return operation
+        } else if let operation = veryLow.removeFirstInPriority() {
+            return operation
+        } else {
+            return nil
         }
-        if !high.isEmpty {
-            return high.remove(at: 0)
-        }
-        if !normal.isEmpty {
-            return normal.remove(at: 0)
-        }
-        if !low.isEmpty {
-            return low.remove(at: 0)
-        }
-        if !veryLow.isEmpty {
-            return veryLow.remove(at: 0)
-        }
-        return nil
-    }
-    
-    var count: Int {
-        return all.count
     }
     
     func map<T>(_ transform: (Operation) throws -> T) rethrows -> [T] {
-        return try all.map(transform)
+        var result: [T] = []
+        var current = all.root
+        while let node = current {
+            result.append(try transform(node))
+            current = current?.orderdedNext
+        }
+        return result
     }
 }
 
@@ -339,7 +441,7 @@ open class OperationQueue: NSObject {
     var unscheduledWorkItems: [DispatchWorkItem] = []
 #endif
     
-    var _operations = _OperationList()
+    fileprivate var _operations = _OperationList()
 #if DEPLOYMENT_ENABLE_LIBDISPATCH
     internal var _concurrencyGate: DispatchSemaphore? {
         get {
