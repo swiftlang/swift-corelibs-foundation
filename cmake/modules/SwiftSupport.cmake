@@ -1,5 +1,6 @@
 
 include(CMakeParseArguments)
+include(ProcessorCount)
 
 # Creates an output file map give a target and its list of sources at
 # output_path
@@ -43,6 +44,10 @@ function(add_swift_target target)
   set(link_flags)
 
   list(APPEND compile_flags -incremental)
+  ProcessorCount(CPU_COUNT)
+  if(NOT CPU_COUNT EQUAL 0)
+    list(APPEND compile_flags -j;${CPU_COUNT})
+  endif()
   if(AST_TARGET)
     list(APPEND compile_flags -target;${AST_TARGET})
     list(APPEND link_flags -target;${AST_TARGET})
