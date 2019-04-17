@@ -643,9 +643,9 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     open func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
         let validUnitFlags: NSCalendar.Unit = [
-            .era, .year, .month, .day, .hour, .minute, .second, .weekOfYear, .weekOfMonth, .yearForWeekOfYear, .weekday, .weekdayOrdinal ]
+            .era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekOfYear, .weekOfMonth, .yearForWeekOfYear, .weekday, .weekdayOrdinal ]
 
-        let invalidUnitFlags: NSCalendar.Unit = [ .quarter, .nanosecond, .timeZone, .calendar]
+        let invalidUnitFlags: NSCalendar.Unit = [ .quarter, .timeZone, .calendar]
 
         // Mask off the unsupported fields
         let newUnitFlags = Unit(rawValue: unitFlags.rawValue & validUnitFlags.rawValue)
@@ -665,10 +665,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
             let emptyUnitFlags = Unit(rawValue: unitFlags.rawValue & invalidUnitFlags.rawValue)
             var components = _components(newUnitFlags, vector: ints, addIsLeapMonth: false)
 
-            // nanosecond and quarter always get set to zero if requested in the output
-            if emptyUnitFlags.contains(.nanosecond) {
-                components.nanosecond = 0
-            }
+            // quarter always gets set to zero if requested in the output
             if emptyUnitFlags.contains(.quarter) {
                 components.quarter = 0
             }
