@@ -42,7 +42,7 @@ open class HTTPCookieStorage: NSObject {
     private static let sharedSyncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.sharedSyncQ")
 
     /* only modified in init */
-    private var cookieFilePath: String!
+    private var cookieFilePath: String?
 
     /* synchronized on syncQ, please don't use _allCookies directly outside of init/deinit */
     private var _allCookies: [String: HTTPCookie]
@@ -62,22 +62,27 @@ open class HTTPCookieStorage: NSObject {
     }
     private let syncQ = DispatchQueue(label: "org.swift.HTTPCookieStorage.syncQ")
 
-    private init(cookieStorageName: String) {
+    private let isEphemeral: Bool
+
+    private init(cookieStorageName: String, isEphemeral: Bool = false) {
         _allCookies = [:]
         cookieAcceptPolicy = .always
+        self.isEphemeral = isEphemeral
         super.init()
-        let bundlePath = Bundle.main.bundlePath
-        var bundleName = bundlePath.components(separatedBy: "/").last!
-        if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
-            bundleName = String(bundleName[..<range.lowerBound])
+        if !isEphemeral {
+            let bundlePath = Bundle.main.bundlePath
+            var bundleName = bundlePath.components(separatedBy: "/").last!
+            if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
+                bundleName = String(bundleName[..<range.lowerBound])
+            }
+            let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName
+            cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
+            loadPersistedCookies()
         }
-        let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName
-        cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
-        loadPersistedCookies()
     }
 
     private func loadPersistedCookies() {
-        guard let cookiesData = try? Data(contentsOf: URL(fileURLWithPath: cookieFilePath)) else { return }
+        guard let cookieFilePath = self.cookieFilePath, let cookiesData = try? Data(contentsOf: URL(fileURLWithPath: cookieFilePath)) else { return }
         guard let cookies = try? PropertyListSerialization.propertyList(from: cookiesData, format: nil) else { return }
         var cookies0 = cookies as? [String: [String: Any]] ?? [:]
         self.syncQ.sync {
@@ -109,6 +114,12 @@ open class HTTPCookieStorage: NSObject {
         return FileManager.default.currentDirectoryPath + "/" + bundleName + fileName
     }
 
+    // `URLSessionConfiguration.ephemeral` needs an ephemeral cookie storage.
+    // Ephemeral cookie storage is an in-memory store and does not load from, and store to, a persistent store.
+    internal class func ephemeralStorage() -> HTTPCookieStorage {
+        return HTTPCookieStorage(cookieStorageName: "Ephemeral", isEphemeral: true)
+    }
+
     open var cookies: [HTTPCookie]? {
         return Array(self.syncQ.sync { self.allCookies.values })
     }
@@ -130,7 +141,7 @@ open class HTTPCookieStorage: NSObject {
             }
         }
     }
-    
+
     /*!
         @method sharedCookieStorageForGroupContainerIdentifier:
         @abstract Get the cookie storage for the container associated with the specified application group identifier
@@ -183,7 +194,7 @@ open class HTTPCookieStorage: NSObject {
     }
     
     open override var description: String {
-        return "<NSHTTPCookieStorage cookies count:\(cookies?.count ?? 0)>"
+        return "\(self.isEphemeral ? "Ephemeral" : "")<NSHTTPCookieStorage cookies count:\(cookies?.count ?? 0)>"
     }
 
     private func createCookie(_ properties: [String: Any]) -> HTTPCookie? {
@@ -200,6 +211,11 @@ open class HTTPCookieStorage: NSObject {
     }
 
     private func updatePersistentStore() {
+        // No persistence if this is an ephemeral storage
+        if self.isEphemeral { return }
+
+        guard let cookieFilePath = self.cookieFilePath else { return }
+
         if #available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *) {
             dispatchPrecondition(condition: DispatchPredicate.onQueue(self.syncQ))
         }

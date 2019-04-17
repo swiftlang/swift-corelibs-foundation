@@ -43,6 +43,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_concurrentRequests", test_concurrentRequests),
             ("test_disableCookiesStorage", test_disableCookiesStorage),
             ("test_cookiesStorage", test_cookiesStorage),
+            ("test_cookieStorageForEphmeralConfiguration", test_cookieStorageForEphmeralConfiguration),
             ("test_setCookies", test_setCookies),
             ("test_dontSetCookies", test_dontSetCookies),
             ("test_initURLSessionConfiguration", test_initURLSessionConfiguration),
@@ -705,6 +706,29 @@ class TestURLSession : LoopbackServerTest {
         }
         task.resume()
         waitForExpectations(timeout: 30)
+    }
+
+    func test_cookieStorageForEphmeralConfiguration() {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 5
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/requestCookies"
+        let session = URLSession(configuration: config, delegate: nil, delegateQueue: nil)
+        var expect = expectation(description: "POST \(urlString)")
+        var req = URLRequest(url: URL(string: urlString)!)
+        req.httpMethod = "POST"
+        var task = session.dataTask(with: req) { (data, _, error) -> Void in
+            defer { expect.fulfill() }
+            XCTAssertNotNil(data)
+            XCTAssertNil(error as? URLError, "error = \(error as! URLError)")
+        }
+        task.resume()
+        waitForExpectations(timeout: 30)
+        let cookies = config.httpCookieStorage?.cookies
+        XCTAssertEqual(cookies?.count, 1)
+
+        let config2 = URLSessionConfiguration.ephemeral
+        let cookies2 = config2.httpCookieStorage?.cookies
+        XCTAssertEqual(cookies2?.count, 0)
     }
 
     func test_dontSetCookies() {
