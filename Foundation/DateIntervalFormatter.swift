@@ -181,10 +181,6 @@ open class DateIntervalFormatter: Formatter {
         return nil
     }
     
-    open override func objectValue(_ string: String) throws -> Any? {
-        return nil
-    }
-    
     open override func copy(with zone: NSZone? = nil) -> Any {
         return DateIntervalFormatter(cfFormatter: CFDateIntervalFormatterCreateCopy(nil, core))
     }

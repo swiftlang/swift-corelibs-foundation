@@ -121,11 +121,6 @@ open class MassFormatter : Formatter {
         return unitString(fromValue: numberInUnit, unit: unitFromKilograms)
     }
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
-    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open override func objectValue(_ string: String) throws -> Any? { return nil }
-    
-    
     // MARK: - Private
     
     /// This method selects the appropriate unit based on the formatter’s locale,

@@ -73,10 +73,16 @@ open class Formatter : NSObject, NSCopying, NSCoding {
         return string(for: obj)
     }
     
-    /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
-    /// - Note: Since this API is under consideration it may be either removed or revised in the near future
+    @available(*, unavailable, message: "Use each formatter's class and instance methods instead.")
     open func objectValue(_ string: String) throws -> Any? {
-        NSRequiresConcreteImplementation()
+        NSUnsupported()
+    }
+    
+    @available(*, unavailable, message: "Use each formatter's class and instance methods instead.")
+    func getObjectValue(_ obj: UnsafeMutablePointer<AnyObject?>?,
+                        for string: String,
+                        errorDescription error: UnsafeMutablePointer<NSString?>?) -> Bool {
+        NSUnsupported()
     }
 }
 

@@ -43,8 +43,13 @@ open class DateFormatter : Formatter {
 
     open var formattingContext: Context = .unknown // default is NSFormattingContextUnknown
 
-    open func objectValue(_ string: String, range rangep: UnsafeMutablePointer<NSRange>) throws -> AnyObject? { NSUnimplemented() }
-
+    @available(*, unavailable, renamed: "date(from:)")
+    func getObjectValue(_ obj: UnsafeMutablePointer<AnyObject?>?,
+                        for string: String,
+                        range rangep: UnsafeMutablePointer<NSRange>?) throws {
+        NSUnsupported()
+    }
+    
     open override func string(for obj: Any) -> String? {
         guard let date = obj as? Date else { return nil }
         return string(from: date)
