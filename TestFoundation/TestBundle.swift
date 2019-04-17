@@ -242,7 +242,7 @@ class BundlePlayground {
                 // Create a FHS /usr/local-style hierarchy:
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.path, withIntermediateDirectories: false, attributes: nil)
                 try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("share").path, withIntermediateDirectories: false, attributes: nil)
-                try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent("lib").path, withIntermediateDirectories: false, attributes: nil)
+                try FileManager.default.createDirectory(atPath: temporaryDirectory.appendingPathComponent(executableType.fhsPrefix).path, withIntermediateDirectories: false, attributes: nil)
                 
                 // Make a main and an auxiliary executable:
                 self.mainExecutableURL = temporaryDirectory
@@ -462,6 +462,9 @@ class TestBundle : XCTestCase {
                 try execute(playground)
                 playground.destroy()
             }
+            else {
+                XCTFail("Error creating playground bundle for layout '\(layout)'.")
+            }
         }
     }
     
@@ -541,14 +544,7 @@ class TestBundle : XCTestCase {
     }
     
     func test_bundleReverseBundleLookup() {
-        _withEachPlaygroundLayout { (playground) in
-            #if !os(Windows)
-            if playground.layout.isFreestanding {
-                // TODO: Freestanding bundles reverse lookup pending to be implemented on non-Windows platforms.
-                return
-            }
-            #endif
-            
+        _withEachPlaygroundLayout { (playground) in            
             if playground.layout.isFHS {
                 // TODO: FHS bundles reverse lookup pending to be implemented on all platforms.
                 return

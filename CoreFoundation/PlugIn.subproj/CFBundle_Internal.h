@@ -30,20 +30,32 @@ CF_EXTERN_C_BEGIN
 #define PLATFORM_PATH_STYLE kCFURLPOSIXPathStyle
 #endif
 
-// FHS bundles are supported on the Swift and C runtimes, except on Windows.
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
+// Freestanding bundles are not supported with the Objective-C Runtime.
+// !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES */
+
+// FHS bundles are not supported with the Objective-C Runtime nor on Windows or Android.
+// !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
+
+#if !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES || FHS_BUNDLES */
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID
-#define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-#define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
-#elif TARGET_OS_MAC
-#define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
-#define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".dylib")
+#define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
+#define _CFBundleSharedLibraryFilenameSuffix CFSTR(".so")
+#elif TARGET_OS_DARWIN
+#define _CFBundleSharedLibraryFilenamePrefix CFSTR("lib")
+#define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dylib")
+#elif TARGET_OS_WINDOWS
+#define _CFBundleSharedLibraryFilenamePrefix CFSTR("")
+#define _CFBundleSharedLibraryFilenameSuffix CFSTR(".dll")
+#define _CFBundleExecutableFilenamePrefix CFSTR("")
+#define _CFBundleExecutableFilenameSuffix CFSTR(".exe")
+#define _CFBundleFilenameDebugPrefix CFSTR("")
+#define _CFBundleFilenameDebugSuffix CFSTR("_debug")
 #else // a non-covered DEPLOYMENT_TARGET…
-#error Disable FHS bundles or specify shared library prefixes and suffixes for this platform.
-#endif // DEPLOYMENT_TARGET_…
+#error Disable Freestanding and FHS bundles or specify shared library / executable prefixes and suffixes for this platform.
+#endif
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
+#endif /* FREESTANDING_BUNDLES || FHS_BUNDLES */
 
 #define CFBundleExecutableNotFoundError             4
 #define CFBundleExecutableNotLoadableError          3584
@@ -80,9 +92,9 @@ struct __CFBundle {
     
     CFURLRef _url;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
     Boolean _isFHSInstalledBundle;
-#endif
+#endif /* FHS_BUNDLES */
     
     CFDictionaryRef _infoDict;
     CFDictionaryRef _localInfoDict;

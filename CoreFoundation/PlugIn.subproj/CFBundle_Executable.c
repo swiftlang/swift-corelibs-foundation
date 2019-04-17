@@ -16,7 +16,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
 
     #if DEPLOYMENT_TARGET_LINUX
         #if TARGET_RT_64_BIT
@@ -49,7 +49,7 @@
         _kCFBundleFHSDirectory_lib
 #endif // DEPLOYMENT_TARGET_LINUX
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif /* FHS_BUNDLES */
 
 // This is here because on iPhoneOS with the dyld shared cache, we remove binaries from their
 // original locations on disk, so checking whether a binary's path exists is no longer sufficient.
@@ -80,7 +80,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
         if (!_binaryLoadable(executableURL)) {
             CFRelease(executableURL);
             
-            CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleFHSSharedLibraryFilenamePrefix, exeName, _CFBundleFHSSharedLibraryFilenameSuffix);
+            CFStringRef sharedLibraryName = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("%@%@%@"), _CFBundleSharedLibraryFilenamePrefix, exeName, _CFBundleSharedLibraryFilenameSuffix);
             
             executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, sharedLibraryName, kCFURLPOSIXPathStyle, false, urlPath);
             if (!_binaryLoadable(executableURL)) {
@@ -200,7 +200,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             Boolean doExecSearch = true;
 #endif
             
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
             if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
                 // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
                 
@@ -224,13 +224,13 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                 
                 CFRelease(prefixPath);
             }
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif /* FHS_BUNDLES */
             
             // Now, look for the executable inside the bundle.
             if (!foundIt && doExecSearch && 0 != version) {
                 CFURLRef exeDirURL = NULL;
                 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
                 if (bundle && bundle->_isFHSInstalledBundle) {
                     CFURLRef withoutExtension = CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, url);
                     CFStringRef lastPathComponent = CFURLCopyLastPathComponent(withoutExtension);
@@ -245,7 +245,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     CFRelease(libexec);
                     CFRelease(exeDirName);
                 } else
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif /* FHS_BUNDLES */
                 if (1 == version) {
                     exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase1, url);
                 } else if (2 == version) {
@@ -304,38 +304,129 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
     return executableURL;
 }
 
-static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
-    //!!! need to handle frameworks, NT; need to integrate with NSBundle - drd
-    UniChar buff[CFMaxPathSize];
-    CFIndex buffLen;
-    CFURLRef url = NULL;
-    CFStringRef outstr;
+static CFStringRef _CFBundleCopyNameByRemovingPrefixSuffixIfMatches(CFStringRef name, CFStringRef prefix, CFStringRef suffix) {
+    CFStringRef strippedName = NULL;
+    CFIndex nameLength = CFStringGetLength(name);
+    CFIndex prefixLength = CFStringGetLength(prefix);
+    CFIndex suffixLength = CFStringGetLength(suffix);
+    CFRange prefixRange = CFRangeMake(0, 0);
+    CFRange suffixRange = CFRangeMake(nameLength, 0);
+
+    // Check if the executable has shared library prefix/suffix.
+    if (prefixLength) {
+        prefixRange = CFStringFind(name, prefix, kCFCompareAnchored);
+    }
+    if (suffixLength) {
+        suffixRange = CFStringFind(name, suffix, kCFCompareAnchored | kCFCompareBackwards);
+    }
     
-    buffLen = CFStringGetLength(str);
-    if (buffLen > CFMaxPathSize) buffLen = CFMaxPathSize;
-    CFStringGetCharacters(str, CFRangeMake(0, buffLen), buff);
-    
-#if DEPLOYMENT_TARGET_WINDOWS
-    // Is this a .dll or .exe?
-    if (buffLen >= 5 && (_wcsnicmp((wchar_t *)&(buff[buffLen-4]), L".dll", 4) == 0 || _wcsnicmp((wchar_t *)&(buff[buffLen-4]), L".exe", 4) == 0)) {
-        CFIndex extensionLength = CFStringGetLength(_CFBundleSiblingResourceDirectoryExtension);
-        buffLen -= 4;
-        // If this is an _debug, we should strip that before looking for the bundle
-        if (buffLen >= 7 && (_wcsnicmp((wchar_t *)&buff[buffLen-6], L"_debug", 6) == 0)) buffLen -= 6;
+    // Only return the stripped string if both the prefix and suffix are found.
+    if (prefixRange.location != kCFNotFound &&
+        suffixRange.location != kCFNotFound &&
+        prefixRange.location == 0 &&
+        suffixRange.location + suffixRange.length == nameLength) {
         
-        if (buffLen + 1 + extensionLength < CFMaxPathSize) {
-            buff[buffLen] = '.';
-            buffLen ++;
-            CFStringGetCharacters(_CFBundleSiblingResourceDirectoryExtension, CFRangeMake(0, extensionLength), buff + buffLen);
-            buffLen += extensionLength;
-            outstr = CFStringCreateWithCharactersNoCopy(kCFAllocatorSystemDefault, buff, buffLen, kCFAllocatorNull);
-            url = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, outstr, PLATFORM_PATH_STYLE, true);
-            CFRelease(outstr);
+        CFRange strippedNameRange = CFRangeMake(
+            prefixRange.length, nameLength - prefixRange.length - suffixRange.length);
+        
+        strippedName = CFStringCreateWithSubstring(kCFAllocatorSystemDefault, name, strippedNameRange);
+    }
+    
+    return strippedName;
+}
+
+
+static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
+    // Needs to handle:
+    // - Classic NEXTStep-style bundles (`.framework`, `.app`, `.appex`)
+    // - Freestanding bundles (`Bundle.resource` as sibling of the library/executable)
+    // - FHS bundles (`$(PREFIX)/share/Bundle.resource`)
+    //
+    // Note:
+    // For freestanding and FHS bundles, this function has to support removing library/executable prefix/suffix
+    // on each platform. For example, it has to extract the bundle name as `Bundle` for executables
+    // like `Bundle.exe` in Windows or `libBundle.so` on Linux.
+    
+    CFURLRef url = NULL;
+    
+#if !(DEPLOYMENT_RUNTIME_OBJC || TARGET_OS_WINDOWS || TARGET_OS_ANDROID) /* FHS_BUNDLES */
+    // TODO: FHS Bundles reverse lookup pending to be implemented.
+#endif /* FHS_BUNDLES */
+    
+#if !DEPLOYMENT_RUNTIME_OBJC /* FREESTANDING_BUNDLES */
+    if (!url) {
+        CFStringRef bundleName = NULL;
+        
+        CFURLRef executableURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, str, PLATFORM_PATH_STYLE, false);
+        CFStringRef executableName = CFURLCopyLastPathComponent(executableURL);
+        
+        // Check if the executable has shared library prefix/suffix (libCF.dylib, libCF.so, CF.dll).
+        if (!bundleName) {
+            bundleName = _CFBundleCopyNameByRemovingPrefixSuffixIfMatches(
+                 executableName, _CFBundleSharedLibraryFilenamePrefix, _CFBundleSharedLibraryFilenameSuffix);
+        }
+        
+#if TARGET_OS_WINDOWS
+        // Check if the executable has executable-style prefix/suffix (CF.exe).
+        if (!bundleName) {
+            bundleName = _CFBundleCopyNameByRemovingPrefixSuffixIfMatches(
+                executableName, _CFBundleExecutableFilenamePrefix, _CFBundleExecutableFilenameSuffix);
+        }
+#endif /* TARGET_OS_WINDOWS */
+        
+        // Otherwise, use the executable name as bundle name (CF).
+        if (!bundleName) {
+            bundleName = CFStringCreateCopy(kCFAllocatorSystemDefault, executableName);
+        }
+        
+#if TARGET_OS_WINDOWS
+        // Windows: If this is a debug executable, strip the debug suffix to find the bundle name.
+        if (bundleName) {
+            CFStringRef strippedName = _CFBundleCopyNameByRemovingPrefixSuffixIfMatches(
+                bundleName, _CFBundleFilenameDebugPrefix, _CFBundleFilenameDebugSuffix);
+            
+            if (strippedName) {
+                CFRelease(bundleName);
+                bundleName = CFStringCreateCopy(kCFAllocatorSystemDefault, strippedName);
+                CFRelease(strippedName);
+            }
+        }
+#endif /* TARGET_OS_WINDOWS */
+        
+        // Find the sibling `.resources` directory (CF.resources).
+        CFURLRef parentDirectory = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorSystemDefault, executableURL);
+        
+        CFRelease(executableName);
+        CFRelease(executableURL);
+        
+        CFStringRef siblingResourceDirectoryName = CFStringCreateWithFormat(
+            kCFAllocatorSystemDefault, NULL, CFSTR("%@.%@"), bundleName, _CFBundleSiblingResourceDirectoryExtension);
+        CFRelease(bundleName);
+        
+        CFURLRef siblingResourceDirectoryURL = CFURLCreateCopyAppendingPathComponent(
+            kCFAllocatorSystemDefault, parentDirectory, siblingResourceDirectoryName, true);
+        
+        CFRelease(parentDirectory);
+        CFRelease(siblingResourceDirectoryName);
+        
+        // Check that the bundle directory exists.
+        if (_CFURLExists(siblingResourceDirectoryURL)) {
+            url = siblingResourceDirectoryURL;
+        } else {
+            CFRelease(siblingResourceDirectoryURL);
         }
     }
-#endif
+#endif /* FREESTANDING_BUNDLES */
     
     if (!url) {
+        UniChar buff[CFMaxPathSize];
+        CFIndex buffLen;
+        CFStringRef outstr;
+        
+        buffLen = CFStringGetLength(str);
+        if (buffLen > CFMaxPathSize) buffLen = CFMaxPathSize;
+        CFStringGetCharacters(str, CFRangeMake(0, buffLen), buff);
+        
         buffLen = _CFLengthAfterDeletingLastPathComponent(buff, buffLen);  // Remove exe name
         
         if (buffLen > 0) {
