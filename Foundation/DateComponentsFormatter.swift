@@ -7,8 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-extension DateComponentsFormatter {
+/* DateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see DateIntervalFormatter. DateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
+ */
+@available(*, unavailable, message: "Not supported in swift-corelibs-foundation")
+open class DateComponentsFormatter : Formatter {
     public enum UnitsStyle : Int {
         case positional // "1:10; may fall back to abbreviated units in some cases, e.g. 3d"
         case abbreviated // "1h 10m"
@@ -17,7 +19,7 @@ extension DateComponentsFormatter {
         case spellOut // "One hour, ten minutes"
         case brief // "1hr 10min"
     }
-
+    
     public struct ZeroFormattingBehavior : OptionSet {
         public let rawValue : UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
@@ -32,26 +34,20 @@ extension DateComponentsFormatter {
         
         public static let pad = ZeroFormattingBehavior(rawValue: 1 << 16) // Off: "1:0:10", On: "01:00:10"
     }
-}
-
-/* DateComponentsFormatter provides locale-correct and flexible string formatting of quantities of time, such as "1 day" or "1h 10m", as specified by NSDateComponents. For formatting intervals of time (such as "2PM to 5PM"), see DateIntervalFormatter. DateComponentsFormatter is thread-safe, in that calling methods on it from multiple threads will not cause crashes or incorrect results, but it makes no attempt to prevent confusion when one thread sets something and another thread isn't expecting it to change.
- */
-
-open class DateComponentsFormatter : Formatter {
     
     public override init() {
-        NSUnimplemented()
+        NSUnsupported()
     }
 
     public required init?(coder: NSCoder) {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     /* 'obj' must be an instance of NSDateComponents.
      */
-    open override func string(for obj: Any?) -> String? { NSUnimplemented() }
+    open override func string(for obj: Any?) -> String? { NSUnsupported() }
     
-    open func string(from components: DateComponents) -> String? { NSUnimplemented() }
+    open func string(from components: DateComponents) -> String? { NSUnsupported() }
     
     /* Normally, DateComponentsFormatter will calculate as though counting from the current date and time (e.g. in February, 1 month formatted as a number of days will be 28). -stringFromDate:toDate: calculates from the passed-in startDate instead.
      
@@ -59,13 +55,13 @@ open class DateComponentsFormatter : Formatter {
      
        Note that this is still formatting the quantity of time between the dates, not the pair of dates itself. For strings like "Feb 22nd - Feb 28th", use DateIntervalFormatter.
      */
-    open func string(from startDate: Date, to endDate: Date) -> String? { NSUnimplemented() }
+    open func string(from startDate: Date, to endDate: Date) -> String? { NSUnsupported() }
     
     /* Convenience method for formatting a number of seconds. See 'allowedUnits' for how the default set of allowed units differs from -stringFromDateComponents:.
      */
-    open func string(from ti: TimeInterval) -> String? { NSUnimplemented() }
+    open func string(from ti: TimeInterval) -> String? { NSUnsupported() }
     
-    open class func localizedString(from components: DateComponents, unitsStyle: UnitsStyle) -> String? { NSUnimplemented() }
+    open class func localizedString(from components: DateComponents, unitsStyle: UnitsStyle) -> String? { NSUnsupported() }
     
     /* Choose how to indicate units. For example, 1h 10m vs 1:10. Default is DateComponentsFormatter.UnitsStyle.positional.
      */
