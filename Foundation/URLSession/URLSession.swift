@@ -345,14 +345,38 @@ open class URLSession : NSObject {
     open func reset(completionHandler: @escaping () -> Void) { NSUnimplemented() } /* empty all cookies, cache and credential stores, removes disk files, issues -flushWithCompletionHandler:. Invokes completionHandler() on the delegate queue if not nil. */
     
     open func flush(completionHandler: @escaping () -> Void)  { NSUnimplemented() }/* flush storage to disk and clear transient network caches.  Invokes completionHandler() on the delegate queue if not nil. */
-    
-    open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  { NSUnimplemented() }/* invokes completionHandler with outstanding data, upload and download tasks. */
+
+    /* invokes completionHandler with outstanding data, upload and download tasks. */
+    open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  {
+        workQueue.async {
+            self.delegateQueue.addOperation {
+                var dataTasks = [URLSessionDataTask]()
+                var uploadTasks = [URLSessionUploadTask]()
+                var downloadTasks = [URLSessionDownloadTask]()
+
+                for task in self.taskRegistry.allTasks {
+                    guard task.state == .running || task.isSuspendedAfterResume else { continue }
+
+                    if let uploadTask = task as? URLSessionUploadTask {
+                        uploadTasks.append(uploadTask)
+                    } else if let dataTask = task as? URLSessionDataTask {
+                        dataTasks.append(dataTask)
+                    } else if let downloadTask = task as? URLSessionDownloadTask {
+                        downloadTasks.append(downloadTask)
+                    } else {
+                        // Above three are the only required tasks to be returned from this API, so we can ignore any other types of tasks.
+                    }
+                }
+                completionHandler(dataTasks, uploadTasks, downloadTasks)
+            }
+        }
+    }
     
     /* invokes completionHandler with all outstanding tasks. */
     open func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void)  {
         workQueue.async {
             self.delegateQueue.addOperation {
-                completionHandler(self.taskRegistry.allTasks.filter { $0.state == .running || $0.state == .suspended })
+                completionHandler(self.taskRegistry.allTasks.filter { $0.state == .running || $0.isSuspendedAfterResume })
             }
         }
     }
