@@ -966,8 +966,10 @@ extension POSIXError {
     /// Bad address.
     public static var EFAULT: POSIXError.Code { return .EFAULT }
 
+    #if !os(Windows)
     /// Block device required.
     public static var ENOTBLK: POSIXError.Code { return .ENOTBLK }
+    #endif
 
     /// Device / Resource busy.
     public static var EBUSY: POSIXError.Code { return .EBUSY }
@@ -999,8 +1001,10 @@ extension POSIXError {
     /// Inappropriate ioctl for device.
     public static var ENOTTY: POSIXError.Code { return .ENOTTY }
 
+    #if !os(Windows)
     /// Text file busy.
     public static var ETXTBSY: POSIXError.Code { return .ETXTBSY }
+    #endif
 
     /// File too large.
     public static var EFBIG: POSIXError.Code { return .EFBIG }
@@ -1033,6 +1037,7 @@ extension POSIXError {
     /// Resource temporarily unavailable.
     public static var EAGAIN: POSIXError.Code { return .EAGAIN }
 
+    #if !os(Windows)
     /// Operation would block.
     public static var EWOULDBLOCK: POSIXError.Code { return .EWOULDBLOCK }
 
@@ -1041,9 +1046,11 @@ extension POSIXError {
 
     /// Operation already in progress.
     public static var EALREADY: POSIXError.Code { return .EALREADY }
+    #endif
 
     /// IPC/Network software -- argument errors.
 
+    #if !os(Windows)
     /// Socket operation on non-socket.
     public static var ENOTSOCK: POSIXError.Code { return .ENOTSOCK }
 
@@ -1064,12 +1071,14 @@ extension POSIXError {
 
     /// Socket type not supported.
     public static var ESOCKTNOSUPPORT: POSIXError.Code { return .ESOCKTNOSUPPORT }
+    #endif
 
     #if canImport(Darwin)
     /// Operation not supported.
     public static var ENOTSUP: POSIXError.Code { return .ENOTSUP }
     #endif
 
+    #if !os(Windows)
     /// Protocol family not supported.
     public static var EPFNOSUPPORT: POSIXError.Code { return .EPFNOSUPPORT }
 
@@ -1081,9 +1090,11 @@ extension POSIXError {
 
     /// Can't assign requested address.
     public static var EADDRNOTAVAIL: POSIXError.Code { return .EADDRNOTAVAIL }
+    #endif
 
     /// IPC/Network software -- operational errors
 
+    #if !os(Windows)
     /// Network is down.
     public static var ENETDOWN: POSIXError.Code { return .ENETDOWN }
 
@@ -1122,15 +1133,18 @@ extension POSIXError {
 
     /// Too many levels of symbolic links.
     public static var ELOOP: POSIXError.Code { return .ELOOP }
+    #endif
 
     /// File name too long.
     public static var ENAMETOOLONG: POSIXError.Code { return .ENAMETOOLONG }
 
+    #if !os(Windows)
     /// Host is down.
     public static var EHOSTDOWN: POSIXError.Code { return .EHOSTDOWN }
 
     /// No route to host.
     public static var EHOSTUNREACH: POSIXError.Code { return .EHOSTUNREACH }
+    #endif
 
     /// Directory not empty.
     public static var ENOTEMPTY: POSIXError.Code { return .ENOTEMPTY }
@@ -1142,19 +1156,23 @@ extension POSIXError {
     public static var EPROCLIM: POSIXError.Code { return .EPROCLIM }
     #endif
     
+    #if !os(Windows)
     /// Too many users.
     public static var EUSERS: POSIXError.Code { return .EUSERS }
 
     /// Disk quota exceeded.
     public static var EDQUOT: POSIXError.Code { return .EDQUOT }
+    #endif
 
     /// Network File System
 
+    #if !os(Windows)
     /// Stale NFS file handle.
     public static var ESTALE: POSIXError.Code { return .ESTALE }
 
     /// Too many levels of remote in path.
     public static var EREMOTE: POSIXError.Code { return .EREMOTE }
+    #endif
 
     #if canImport(Darwin)
     /// RPC struct is bad.
@@ -1199,9 +1217,11 @@ extension POSIXError {
     /// Device error, e.g. paper out.
     public static var EDEVERR: POSIXError.Code { return .EDEVERR }
     #endif
-    
+
+    #if !os(Windows)
     /// Value too large to be stored in data type.
     public static var EOVERFLOW: POSIXError.Code { return .EOVERFLOW }
+    #endif
 
     /// Program loading errors.
 
@@ -1220,7 +1240,8 @@ extension POSIXError {
     /// Malformed Macho file.
     public static var EBADMACHO: POSIXError.Code { return .EBADMACHO }
     #endif
-    
+
+    #if !os(Windows)
     /// Operation canceled.
     public static var ECANCELED: POSIXError.Code { return .ECANCELED }
 
@@ -1229,6 +1250,7 @@ extension POSIXError {
 
     /// No message of desired type.
     public static var ENOMSG: POSIXError.Code { return .ENOMSG }
+    #endif
 
     /// Illegal byte sequence.
     public static var EILSEQ: POSIXError.Code { return .EILSEQ }
@@ -1238,6 +1260,7 @@ extension POSIXError {
     public static var ENOATTR: POSIXError.Code { return .ENOATTR }
     #endif
 
+    #if !os(Windows)
     /// Bad message.
     public static var EBADMSG: POSIXError.Code { return .EBADMSG }
 
@@ -1261,17 +1284,20 @@ extension POSIXError {
 
     /// STREAM ioctl timeout.
     public static var ETIME: POSIXError.Code { return .ETIME }
+    #endif
 
     #if canImport(Darwin)
     /// No such policy registered.
     public static var ENOPOLICY: POSIXError.Code { return .ENOPOLICY }
     #endif
 
+    #if !os(Windows)
     /// State not recoverable.
     public static var ENOTRECOVERABLE: POSIXError.Code { return .ENOTRECOVERABLE }
 
     /// Previous owner died.
     public static var EOWNERDEAD: POSIXError.Code { return .EOWNERDEAD }
+    #endif
 
     #if canImport(Darwin)
     /// Interface output queue is full.
