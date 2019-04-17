@@ -497,8 +497,9 @@ extension FileManager {
     }
 
     internal func _isExecutableFile(atPath path: String) -> Bool {
-        // FIXME(compnerd) is there some test that we can perform here?
-        return true
+        var isDirectory: ObjCBool = false
+        guard fileExists(atPath: path, isDirectory: &isDirectory) else { return false }
+        return !isDirectory.boolValue && _isReadableFile(atPath: path)
     }
 
     internal func _isDeletableFile(atPath path: String) -> Bool {
