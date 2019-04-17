@@ -856,20 +856,6 @@ class TestNSNumber : XCTestCase {
 
         let nanFloat = NSNumber(value: Float.nan)
         XCTAssertTrue(nanFloat.doubleValue.isNaN)
-        XCTAssertEqual(nanFloat.intValue, Int(bitPattern: 1 << 63))
-        XCTAssertEqual(nanFloat.uintValue, UInt(bitPattern: 1 << 63))
-        XCTAssertEqual(nanFloat.int8Value, 0)
-        XCTAssertEqual(nanFloat.uint8Value, 0)
-        XCTAssertEqual(nanFloat.int16Value, 0)
-        XCTAssertEqual(nanFloat.uint16Value, 0)
-        XCTAssertEqual(nanFloat.int32Value, 0)
-        XCTAssertEqual(nanFloat.uint32Value, 0)
-        XCTAssertEqual(nanFloat.int64Value, Int64(bitPattern: 1 << 63))
-#if arch(powerpc64le)
-        XCTAssertEqual(nanFloat.uint64Value, UInt64(bitPattern: 1 << 63 | 1 << 31))
-#else
-        XCTAssertEqual(nanFloat.uint64Value, UInt64(bitPattern: 1 << 63))
-#endif
     }
     
     func test_numberWithDouble() {
@@ -905,20 +891,6 @@ class TestNSNumber : XCTestCase {
 
         let nanDouble = NSNumber(value: Double.nan)
         XCTAssertTrue(nanDouble.floatValue.isNaN)
-        XCTAssertEqual(nanDouble.intValue, Int(bitPattern: 1 << 63))
-        XCTAssertEqual(nanDouble.uintValue, UInt(bitPattern: 1 << 63))
-        XCTAssertEqual(nanDouble.int8Value, 0)
-        XCTAssertEqual(nanDouble.uint8Value, 0)
-        XCTAssertEqual(nanDouble.int16Value, 0)
-        XCTAssertEqual(nanDouble.uint16Value, 0)
-        XCTAssertEqual(nanDouble.int32Value, 0)
-        XCTAssertEqual(nanDouble.uint32Value, 0)
-        XCTAssertEqual(nanDouble.int64Value, Int64(bitPattern: 1 << 63))
-#if arch(powerpc64le)
-        XCTAssertEqual(nanDouble.uint64Value, UInt64(bitPattern: 1 << 63 | 1 << 31))
-#else
-        XCTAssertEqual(nanDouble.uint64Value, UInt64(bitPattern: 1 << 63))
-#endif
     }
 
     func test_compareNumberWithBool() {
