@@ -247,6 +247,7 @@ class TestNSOrderedSet : XCTestCase {
         set.add("2")
         XCTAssertEqual(set[0] as? String, "1")
         XCTAssertEqual(set[1] as? String, "2")
+        XCTAssertEqual(set.count, 2)
     }
 
     func test_AddObjects() {
