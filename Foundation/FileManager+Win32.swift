@@ -279,6 +279,10 @@ extension FileManager {
     }
 
     internal func _destinationOfSymbolicLink(atPath path: String) throws -> String {
+        return try _canonicalizedPath(toFileAtPath: path)
+    }
+    
+    internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         var hFile: HANDLE = INVALID_HANDLE_VALUE
         path.withCString(encodedAs: UTF16.self) { link in
             hFile = CreateFileW(link, GENERIC_READ, DWORD(FILE_SHARE_WRITE), nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS), nil)
