@@ -593,25 +593,14 @@ class TestNSString: LoopbackServerTest {
     
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
     func test_swiftStringUTF16() {
-        #if os(macOS) || os(iOS)
-        let kCFStringEncodingUTF16 = CFStringBuiltInEncodings.UTF16.rawValue
-        #endif
-
         let testString = "hello world"
         let string = NSString(string: testString)
-        let cfString = unsafeBitCast(string, to: CFString.self)
 
         // Get the bytes as UTF16
-        let reservedLength = 50
-        var buf : [UInt8] = []
-        buf.reserveCapacity(reservedLength)
-        var usedLen : CFIndex = 0
-        let _ = buf.withUnsafeMutableBufferPointer { p in
-            CFStringGetBytes(cfString, CFRangeMake(0, unsafeBitCast(cfString, to: NSString.self).length), CFStringEncoding(kCFStringEncodingUTF16), 0, false, p.baseAddress, reservedLength, &usedLen)
-        }
+        let data: Data = string.data(using: String.Encoding.utf16.rawValue, allowLossyConversion: false)!
 
         // Make a new string out of it
-        let newString = buf.withUnsafeMutableBufferPointer {
+        let newString = data.withUnsafeBytes {
             NSString(bytes: $0.baseAddress!, length: $0.count, encoding: String.Encoding.utf16.rawValue)!
         }
         
