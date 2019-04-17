@@ -10,6 +10,18 @@
 import CoreFoundation
 
 open class NSKeyedUnarchiver : NSCoder {
+    enum InternalError: Error {
+        /*
+         This error is thrown in exactly one case:
+         - the decoding policy is .setErrorAndReturn; and
+         - failWithError(_:) was called; and
+         - a new decoding request was initiated.
+         All new decoding requests initiated after the first two points occur should fail without error and return nil.
+         This error is never reported to the client of this class; the original error reported by failWithError(_:) should remain in place.
+         */
+        case decodingHasAlreadyFailed
+    }
+    
     struct UnarchiverFlags : OptionSet {
         let rawValue : UInt
         
@@ -17,9 +29,10 @@ open class NSKeyedUnarchiver : NSCoder {
             self.rawValue = rawValue
         }
         
-        static let None = UnarchiverFlags(rawValue: 0)
-        static let FinishedDecoding = UnarchiverFlags(rawValue : 1)
-        static let RequiresSecureCoding = UnarchiverFlags(rawValue: 2)
+        static let none = UnarchiverFlags(rawValue: 0)
+        static let finishedDecoding = UnarchiverFlags(rawValue : 1 << 0)
+        static let requiresSecureCoding = UnarchiverFlags(rawValue: 1 << 1)
+        static let startedDecoding = UnarchiverFlags(rawValue: 1 << 2)
     }
     
     class DecodingContext {
@@ -66,7 +79,7 @@ open class NSKeyedUnarchiver : NSCoder {
         unarchiver.requiresSecureCoding = true
         unarchiver.decodingFailurePolicy = .setErrorAndReturn
         
-        return try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
+        return try unarchiver.decodeObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
     }
     
     @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")
@@ -87,11 +100,8 @@ open class NSKeyedUnarchiver : NSCoder {
         defer { CFReadStreamClose(readStream) }
         
         let keyedUnarchiver = NSKeyedUnarchiver(stream: Stream.stream(readStream))
-        do {
-            try root = keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
-            keyedUnarchiver.finishDecoding()
-        } catch {
-        }
+        root = keyedUnarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey)
+        keyedUnarchiver.finishDecoding()
         
         return root
     }
@@ -114,8 +124,7 @@ open class NSKeyedUnarchiver : NSCoder {
         do {
             try _readPropertyList()
         } catch {
-            failWithError(error)
-            self._error = error
+            _handleError(error)
         }
     }
   
@@ -220,7 +229,9 @@ open class NSKeyedUnarchiver : NSCoder {
     }
     
     private func _validateStillDecoding() -> Bool {
-        if self._flags.contains(.FinishedDecoding) {
+        self._flags.insert(.startedDecoding)
+        
+        if self._flags.contains(.finishedDecoding) {
             fatalError("Decoder already finished")
         }
         
@@ -255,7 +266,7 @@ open class NSKeyedUnarchiver : NSCoder {
             return false
         }
         
-        if _flags.contains(.RequiresSecureCoding) {
+        if _flags.contains(.requiresSecureCoding) {
             if let unwrappedAllowedClasses = allowedClasses {
                 if unwrappedAllowedClasses.contains(where: {NSKeyedUnarchiver._classIsKindOfClass(assertedClass!, $0)}) {
                     return true
@@ -441,8 +452,13 @@ open class NSKeyedUnarchiver : NSCoder {
      */
     private func _decodeObject(_ objectRef: Any) throws -> Any? {
         var object : Any? = nil
-
+        
         let _ = _validateStillDecoding()
+        
+        if self._error != nil || self._hasFailed {
+            // any call to failWithError(_:) should have poisoned this coder.
+            throw InternalError.decodingHasAlreadyFailed
+        }
 
         if !(objectRef is _NSKeyedArchiverUID) {
             throw _decodingError(.coderReadCorrupt,
@@ -506,6 +522,26 @@ open class NSKeyedUnarchiver : NSCoder {
         return _replacementObject(object)
     }
 
+    override open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
+        get { return super.decodingFailurePolicy }
+        set {
+            guard !_flags.contains(.startedDecoding) else {
+                fatalError("You cannot change the decoding policy after starting decoding.")
+            }
+            
+            super.decodingFailurePolicy = newValue
+        }
+    }
+    
+    private func _handleError(_ error: Error) {
+        if case InternalError.decodingHasAlreadyFailed = error {
+            return // See the comment on this enum for why we don't pass it on.
+        }
+        
+        failWithError(error)
+        self._error = error
+    }
+    
     /**
             Internal function to decode an object. Returns the decoded object or throws an error.
      */
@@ -555,8 +591,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 array.append(object)
             }
         } catch {
-            failWithError(error)
-            self._error = error
+            _handleError(error)
         }
         
         return array
@@ -566,7 +601,7 @@ open class NSKeyedUnarchiver : NSCoder {
      Called when the caller has finished decoding.
      */
     open func finishDecoding() {
-        if _flags.contains(.FinishedDecoding) {
+        if _flags.contains(.finishedDecoding) {
             return
         }
 
@@ -580,7 +615,7 @@ open class NSKeyedUnarchiver : NSCoder {
             unwrappedDelegate.unarchiverDidFinish(self)
         }
 
-        let _ = self._flags.insert(.FinishedDecoding)
+        let _ = self._flags.insert(.finishedDecoding)
     }
 
     open class func setClass(_ cls: AnyClass?, forClassName codedName: String) {
@@ -619,8 +654,7 @@ open class NSKeyedUnarchiver : NSCoder {
         do {
             return try _decodeObject(forKey: key)
         } catch {
-            failWithError(error)
-            self._error = error
+            _handleError(error)
         }
         return nil
     }
@@ -634,8 +668,7 @@ open class NSKeyedUnarchiver : NSCoder {
                 
                 return try _decodeObject(forKey: key)
             } catch {
-                failWithError(error)
-                self._error = error
+                _handleError(error)
             }
         }        
         return nil
@@ -649,29 +682,22 @@ open class NSKeyedUnarchiver : NSCoder {
         return _decodeObject(of: classes, forKey: key)
     }
     
-    open override func decodeTopLevelObject(forKey key: String) throws -> Any? {
-        return try decodeTopLevelObject(of: [NSArray.self], forKey: key)
-    }
+    // ----- Top level object decoding -----
     
-    open override func decodeTopLevelObject<DecodedObjectType : NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType : NSObject {
-        return try self.decodeTopLevelObject(of: [cls], forKey: key) as! DecodedObjectType?
-    }
-    
-    open override func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
+    private func _requiringTopLevelObject(perform block: () throws -> Any?) throws -> Any? {
         guard self._containers?.count == 1 else {
             throw _decodingError(.coderReadCorrupt,
-                                 withDescription: "Can only call decodeTopLevelObjectOfClasses when decoding top level objects.")
+                                 withDescription: "Can only call decodeTopLevelObject(forKey:) when decoding top level objects.")
         }
         
-        return decodeObject(of: classes, forKey: key)
+        return try block()
     }
     
     open override func decodeObject() -> Any? {
         do {
             return try _decodeObject(forKey: nil)
         } catch {
-            failWithError(error)
-            self._error = error
+            _handleError(error)
         }
         
         return nil
@@ -736,12 +762,23 @@ open class NSKeyedUnarchiver : NSCoder {
         return result.intValue
     }
     
-    /// - experimental: replaces decodeBytes(forKey:)
+    @available(swift, deprecated: 9999, message: "Use UnsafeRawBufferPointer instead.")
     open override func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         let ns : Data? = _decodeValue(forKey: key)
         if let value = ns {
             return try value.withUnsafeBytes {
                 try body(UnsafeBufferPointer(start: $0, count: value.count))
+            }
+        } else {
+            return try body(nil)
+        }
+    }
+    
+    open override func withDecodedUnsafeBytes<ResultType>(forKey key: String, body: (UnsafeRawBufferPointer?) throws -> ResultType) rethrows -> ResultType {
+        let ns : Data? = _decodeValue(forKey: key)
+        if let value = ns {
+            return try value.withUnsafeBytes {
+                try body($0)
             }
         } else {
             return try body(nil)
@@ -850,30 +887,31 @@ open class NSKeyedUnarchiver : NSCoder {
     // Enables secure coding support on this keyed unarchiver. When enabled, anarchiving a disallowed class throws an exception. Once enabled, attempting to set requiresSecureCoding to NO will throw an exception. This is to prevent classes from selectively turning secure coding off. This is designed to be set once at the top level and remain on. Note that the getter is on the superclass, NSCoder. See NSCoder for more information about secure coding.
     open override var requiresSecureCoding: Bool {
         get {
-            return _flags.contains(.RequiresSecureCoding)
+            return _flags.contains(.requiresSecureCoding)
         }
         set {
-            if _flags.contains(.RequiresSecureCoding) {
+            if _flags.contains(.requiresSecureCoding) {
                 if !newValue {
                     fatalError("Cannot unset requiresSecureCoding")
                 }
             } else {
                 if newValue {
-                    let _ = _flags.insert(.RequiresSecureCoding)
+                    let _ = _flags.insert(.requiresSecureCoding)
                 }
             }
         }
     }
     
-    open override var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
-        get { return .setErrorAndReturn }
-        set {}
-    }
-
     open class func unarchiveTopLevelObjectWithData(_ data: Data) throws -> Any? {
         let keyedUnarchiver = NSKeyedUnarchiver(forReadingWith: data)
-        let root = try keyedUnarchiver.decodeTopLevelObject(forKey: NSKeyedArchiveRootObjectKey)
+        keyedUnarchiver.decodingFailurePolicy = .setErrorAndReturn
+        let root = keyedUnarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey)
         keyedUnarchiver.finishDecoding()
+        
+        if let error = keyedUnarchiver.error {
+            throw error
+        }
+        
         return root
     }
 }

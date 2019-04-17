@@ -147,16 +147,18 @@ class TestNSKeyedArchiver : XCTestCase {
             decode: { unarchiver -> Bool in
                 unarchiver.requiresSecureCoding = allowsSecureCoding
                 
-                do {
-                    guard let rootObj = try unarchiver.decodeTopLevelObject(of: classes, forKey: NSKeyedArchiveRootObjectKey) else {
-                        XCTFail("Unable to decode data")
-                        return false
-                    }
-                
-                    XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
-                } catch {
-                    XCTFail("Error thrown: \(error)")
+                guard let rootObj = unarchiver.decodeObject(of: classes, forKey: NSKeyedArchiveRootObjectKey) else {
+                    XCTFail("Unable to decode data")
+                    return false
                 }
+                
+                if unarchiver.error != nil {
+                    XCTAssertNotNil(unarchiver.error)
+                    return false
+                }
+                
+                XCTAssertEqual(object as? AnyHashable, rootObj as? AnyHashable, "unarchived object \(rootObj) does not match \(object)")
+                
                 return true
         })
     }

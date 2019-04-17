@@ -14,6 +14,7 @@ extension NSCoder {
     /// supports exceptions here, and there may be other approaches supported
     /// in the future, so its included for completeness.
     public enum DecodingFailurePolicy : Int {
+        case raiseException
         case setErrorAndReturn
     }
 }
@@ -185,7 +186,7 @@ open class NSCoder : NSObject {
     }
 
     open func decodeObject<DecodedObjectType: NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType: NSObject {
-        NSUnimplemented()
+        return decodeObject(of: [cls], forKey: key) as? DecodedObjectType
     }
    
     /// Decodes an object for the key, restricted to the specified `classes`.
@@ -199,19 +200,42 @@ open class NSCoder : NSObject {
     ///   - key:        The code key.
     /// - Returns:      The decoded object.
     open func decodeObject(of classes: [AnyClass]?, forKey key: String) -> Any? {
-        NSUnimplemented()
+        guard allowsKeyedCoding else {
+            fatalError("This method is only implemented for coders which allowKeyedCoding.")
+        }
+        
+        if requiresSecureCoding {
+            NSRequiresConcreteImplementation()
+        } else {
+            return decodeObject(forKey: key)
+        }
     }
     
+    // ----- Top-level decoding -----
+    
+    /*
+         On Darwin, if a coder's .decodingFailurePolicy is .raiseException, ObjC exceptions are used to interrupt execution of your init(coder:) initializer when a failure occurs during decoding.
+     
+         The …TopLevel… methods below are documented to:
+         - interrupt your init(coder:) execution and immediately unwind the stack if a decoding error occurs with your .decodingFailurePolicy set to .raiseException, and
+         - still return with a thrown error, and continue program execution.
+     
+         This isn't possible in swift-corelibs-foundation, where ObjC exceptions are unavailable; either program execution is immediately interrupted, or an error is thrown, but not both. To port your code to swift-corelibs-foundations, use the replacements noted below.
+    */
+    
+    @available(*, unavailable, message: "The behavior of this method isn't supported in swift-corelibs-foundation. You can use decodeObject() instead on all platforms. If you would like an error to be thrown, use .decodingFailurePolicy = .setErrorAndReturn, and check the .error property.", renamed: "decodeObject()")
     open func decodeTopLevelObject() throws -> Any? {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
+    @available(*, unavailable, message: "The behavior of this method isn't supported in swift-corelibs-foundation. You can use decodeObject(forKey:) instead on all platforms. If you would like an error to be thrown, use .decodingFailurePolicy = .setErrorAndReturn, and check the .error property.", renamed: "decodeObject(forKey:)")
     open func decodeTopLevelObject(forKey key: String) throws -> Any? {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
+    @available(*, unavailable, message: "The behavior of this method isn't supported in swift-corelibs-foundation. You can use decodeObject(of:forKey:) instead on all platforms. If you would like an error to be thrown, use .decodingFailurePolicy = .setErrorAndReturn, and check the .error property.", renamed: "decodeObject(of:forKey:)")
     open func decodeTopLevelObject<DecodedObjectType: NSCoding>(of cls: DecodedObjectType.Type, forKey key: String) throws -> DecodedObjectType? where DecodedObjectType: NSObject {
-        NSUnimplemented()
+        NSUnsupported()
     }
     
     /// Decodes an top-level object for the key, restricted to the specified
@@ -225,9 +249,12 @@ open class NSCoder : NSObject {
     ///   - classes: An array of the expected classes.
     ///   - key: The code key.
     /// - Returns: The decoded object.
+    @available(*, unavailable, message: "The behavior of this method isn't supported in swift-corelibs-foundation. You can use decodeObject(of:forKey:) instead on all platforms. If you would like an error to be thrown, use .decodingFailurePolicy = .setErrorAndReturn, and check the .error property.", renamed: "decodeObject(of:forKey:)")
     open func decodeTopLevelObject(of classes: [AnyClass], forKey key: String) throws -> Any? {
-        NSUnimplemented()
+        NSUnsupported()
     }
+    
+    // -----
     
     /// Encodes `object`.
     ///
@@ -400,7 +427,7 @@ open class NSCoder : NSObject {
     ///
     /// - Parameter aPropertyList: The property list to encode.
     open func encodePropertyList(_ aPropertyList: Any) {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     /// Decodes a property list that was previously encoded with
@@ -408,7 +435,7 @@ open class NSCoder : NSObject {
     ///
     /// - Returns: The decoded property list.
     open func decodePropertyList() -> Any? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     /// The system version in effect for the archive.
@@ -640,11 +667,17 @@ open class NSCoder : NSObject {
     }
     */
 
-    /// - Experiment: This method does not exist in the Darwin Foundation.
+    /// - Experiment: This method does not exist in Darwin Foundation. Replaces decodeBytes(forKey:).
+    @available(swift, deprecated: 9999, renamed: "withDecodedUnsafeBytes(forKey:body:)")
     open func withDecodedUnsafeBufferPointer<ResultType>(forKey key: String, body: (UnsafeBufferPointer<UInt8>?) throws -> ResultType) rethrows -> ResultType {
         NSRequiresConcreteImplementation()
     }
-
+    
+    /// - Experiment: This method does not exist in Darwin Foundation. Replaces decodeBytes(forKey:).
+    open func withDecodedUnsafeBytes<ResultType>(forKey key: String, body: (UnsafeRawBufferPointer?) throws -> ResultType) rethrows -> ResultType {
+        NSRequiresConcreteImplementation()
+    }
+    
     /// Encodes a given integer number and associates it with a given key.
     ///
     /// Subclasses must override this method if they perform keyed coding.
@@ -683,7 +716,7 @@ open class NSCoder : NSObject {
     /// - Parameter key:    The coder key.
     /// - Returns:          A decoded object containing a property list.
     open func decodePropertyList(forKey key: String) -> Any? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
 
     /// The array of coded classes allowed for secure coding.
@@ -695,7 +728,7 @@ open class NSCoder : NSObject {
     /// - Experiment: This is a draft API currently under consideration for
     ///               official import into Foundation.
     open var allowedClasses: [AnyClass]? {
-        NSUnimplemented()
+        NSRequiresConcreteImplementation()
     }
     
     open func failWithError(_ error: Error) {
@@ -704,11 +737,17 @@ open class NSCoder : NSObject {
         } else {
             NSLog("*** NSKeyedUnarchiver.init: decoding error")
         }
+        
+        guard decodingFailurePolicy != .raiseException else {
+            fatalError("There was a decoding error and the decoding failure policy is .raiseException. Aborting.")
+        }
+        
+        _hasFailed = true
     }
     
-    open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy {
-        return .setErrorAndReturn
-    }
+    internal private(set) var _hasFailed = false
+    
+    open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy = .raiseException
     
     open var error: Error? {
         NSRequiresConcreteImplementation()
