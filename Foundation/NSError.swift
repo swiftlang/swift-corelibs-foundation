@@ -10,6 +10,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(MSVCRT)
+import MSVCRT
+#endif
 
 import CoreFoundation
 
@@ -899,6 +906,7 @@ extension URLError {
 
 /// Describes an error in the POSIX error domain.
 public struct POSIXError : _BridgedStoredNSError {
+    
     public let _nsError: NSError
 
     public init(_nsError error: NSError) {
@@ -907,117 +915,12 @@ public struct POSIXError : _BridgedStoredNSError {
     }
 
     public static var _nsErrorDomain: String { return NSPOSIXErrorDomain }
+    
+    public typealias Code = POSIXErrorCode
+}
 
-    public enum Code : Int, _ErrorCodeProtocol {
-        public typealias _ErrorType = POSIXError
-
-        case EPERM
-        case ENOENT
-        case ESRCH
-        case EINTR
-        case EIO
-        case ENXIO
-        case E2BIG
-        case ENOEXEC
-        case EBADF
-        case ECHILD
-        case EDEADLK
-        case ENOMEM
-        case EACCES
-        case EFAULT
-        case ENOTBLK
-        case EBUSY
-        case EEXIST
-        case EXDEV
-        case ENODEV
-        case ENOTDIR
-        case EISDIR
-        case EINVAL
-        case ENFILE
-        case EMFILE
-        case ENOTTY
-        case ETXTBSY
-        case EFBIG
-        case ENOSPC
-        case ESPIPE
-        case EROFS
-        case EMLINK
-        case EPIPE
-        case EDOM
-        case ERANGE
-        case EAGAIN
-        case EWOULDBLOCK
-        case EINPROGRESS
-        case EALREADY
-        case ENOTSOCK
-        case EDESTADDRREQ
-        case EMSGSIZE
-        case EPROTOTYPE
-        case ENOPROTOOPT
-        case EPROTONOSUPPORT
-        case ESOCKTNOSUPPORT
-        case ENOTSUP
-        case EPFNOSUPPORT
-        case EAFNOSUPPORT
-        case EADDRINUSE
-        case EADDRNOTAVAIL
-        case ENETDOWN
-        case ENETUNREACH
-        case ENETRESET
-        case ECONNABORTED
-        case ECONNRESET
-        case ENOBUFS
-        case EISCONN
-        case ENOTCONN
-        case ESHUTDOWN
-        case ETOOMANYREFS
-        case ETIMEDOUT
-        case ECONNREFUSED
-        case ELOOP
-        case ENAMETOOLONG
-        case EHOSTDOWN
-        case EHOSTUNREACH
-        case ENOTEMPTY
-        case EPROCLIM
-        case EUSERS
-        case EDQUOT
-        case ESTALE
-        case EREMOTE
-        case EBADRPC
-        case ERPCMISMATCH
-        case EPROGUNAVAIL
-        case EPROGMISMATCH
-        case EPROCUNAVAIL
-        case ENOLCK
-        case ENOSYS
-        case EFTYPE
-        case EAUTH
-        case ENEEDAUTH
-        case EPWROFF
-        case EDEVERR
-        case EOVERFLOW
-        case EBADEXEC
-        case EBADARCH
-        case ESHLIBVERS
-        case EBADMACHO
-        case ECANCELED
-        case EIDRM
-        case ENOMSG
-        case EILSEQ
-        case ENOATTR
-        case EBADMSG
-        case EMULTIHOP
-        case ENODATA
-        case ENOLINK
-        case ENOSR
-        case ENOSTR
-        case EPROTO
-        case ETIME
-        case ENOPOLICY
-        case ENOTRECOVERABLE
-        case EOWNERDEAD
-        case EQFULL
-    }
+extension POSIXErrorCode: _ErrorCodeProtocol {
+    public typealias _ErrorType = POSIXError
 }
 
 extension POSIXError {
@@ -1162,8 +1065,10 @@ extension POSIXError {
     /// Socket type not supported.
     public static var ESOCKTNOSUPPORT: POSIXError.Code { return .ESOCKTNOSUPPORT }
 
+    #if canImport(Darwin)
     /// Operation not supported.
     public static var ENOTSUP: POSIXError.Code { return .ENOTSUP }
+    #endif
 
     /// Protocol family not supported.
     public static var EPFNOSUPPORT: POSIXError.Code { return .EPFNOSUPPORT }
@@ -1232,9 +1137,11 @@ extension POSIXError {
 
     /// Quotas
 
+    #if canImport(Darwin)
     /// Too many processes.
     public static var EPROCLIM: POSIXError.Code { return .EPROCLIM }
-
+    #endif
+    
     /// Too many users.
     public static var EUSERS: POSIXError.Code { return .EUSERS }
 
@@ -1249,6 +1156,7 @@ extension POSIXError {
     /// Too many levels of remote in path.
     public static var EREMOTE: POSIXError.Code { return .EREMOTE }
 
+    #if canImport(Darwin)
     /// RPC struct is bad.
     public static var EBADRPC: POSIXError.Code { return .EBADRPC }
 
@@ -1263,13 +1171,15 @@ extension POSIXError {
 
     /// Bad procedure for program.
     public static var EPROCUNAVAIL: POSIXError.Code { return .EPROCUNAVAIL }
-
+    #endif
+    
     /// No locks available.
     public static var ENOLCK: POSIXError.Code { return .ENOLCK }
 
     /// Function not implemented.
     public static var ENOSYS: POSIXError.Code { return .ENOSYS }
-
+    
+    #if canImport(Darwin)
     /// Inappropriate file type or format.
     public static var EFTYPE: POSIXError.Code { return .EFTYPE }
 
@@ -1278,32 +1188,39 @@ extension POSIXError {
 
     /// Need authenticator.
     public static var ENEEDAUTH: POSIXError.Code { return .ENEEDAUTH }
-
+    #endif
+    
     /// Intelligent device errors.
 
+    #if canImport(Darwin)
     /// Device power is off.
     public static var EPWROFF: POSIXError.Code { return .EPWROFF }
 
     /// Device error, e.g. paper out.
     public static var EDEVERR: POSIXError.Code { return .EDEVERR }
-
+    #endif
+    
     /// Value too large to be stored in data type.
     public static var EOVERFLOW: POSIXError.Code { return .EOVERFLOW }
 
     /// Program loading errors.
 
+    #if canImport(Darwin)
     /// Bad executable.
     public static var EBADEXEC: POSIXError.Code { return .EBADEXEC }
-
+    #endif
+    
+    #if canImport(Darwin)
     /// Bad CPU type in executable.
     public static var EBADARCH: POSIXError.Code { return .EBADARCH }
-
+    
     /// Shared library version mismatch.
     public static var ESHLIBVERS: POSIXError.Code { return .ESHLIBVERS }
 
     /// Malformed Macho file.
     public static var EBADMACHO: POSIXError.Code { return .EBADMACHO }
-
+    #endif
+    
     /// Operation canceled.
     public static var ECANCELED: POSIXError.Code { return .ECANCELED }
 
@@ -1316,8 +1233,10 @@ extension POSIXError {
     /// Illegal byte sequence.
     public static var EILSEQ: POSIXError.Code { return .EILSEQ }
 
+    #if canImport(Darwin)
     /// Attribute not found.
     public static var ENOATTR: POSIXError.Code { return .ENOATTR }
+    #endif
 
     /// Bad message.
     public static var EBADMSG: POSIXError.Code { return .EBADMSG }
@@ -1343,8 +1262,10 @@ extension POSIXError {
     /// STREAM ioctl timeout.
     public static var ETIME: POSIXError.Code { return .ETIME }
 
+    #if canImport(Darwin)
     /// No such policy registered.
     public static var ENOPOLICY: POSIXError.Code { return .ENOPOLICY }
+    #endif
 
     /// State not recoverable.
     public static var ENOTRECOVERABLE: POSIXError.Code { return .ENOTRECOVERABLE }
@@ -1352,8 +1273,10 @@ extension POSIXError {
     /// Previous owner died.
     public static var EOWNERDEAD: POSIXError.Code { return .EOWNERDEAD }
 
+    #if canImport(Darwin)
     /// Interface output queue is full.
     public static var EQFULL: POSIXError.Code { return .EQFULL }
+    #endif
 }
 
 enum UnknownNSError: Error {
