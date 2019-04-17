@@ -17,14 +17,6 @@ public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable {
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
-    
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(rawValue)
-    }
-    
-    public static func ==(_ lhs: HTTPCookiePropertyKey, _ rhs: HTTPCookiePropertyKey) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
 }
 
 extension HTTPCookiePropertyKey {

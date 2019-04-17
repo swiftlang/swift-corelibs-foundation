@@ -177,10 +177,6 @@ extension NSLocale {
             self.rawValue = rawValue
         }
 
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(rawValue)
-        }
-        
         public static let identifier = NSLocale.Key(rawValue: "kCFLocaleIdentifierKey")
         public static let languageCode = NSLocale.Key(rawValue: "kCFLocaleLanguageCodeKey")
         public static let countryCode = NSLocale.Key(rawValue: "kCFLocaleCountryCodeKey")
@@ -209,13 +205,6 @@ extension NSLocale {
         case rightToLeft
         case topToBottom
         case bottomToTop
-    }
-}
-
-
-extension NSLocale.Key {
-    public static func ==(_ lhs: NSLocale.Key, _ rhs: NSLocale.Key) -> Bool {
-        return lhs.rawValue == rhs.rawValue
     }
 }
 

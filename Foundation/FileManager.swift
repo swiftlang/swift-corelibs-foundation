@@ -829,14 +829,6 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
         self.rawValue = rawValue
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(rawValue)
-    }
-
-    public static func ==(_ lhs: FileAttributeKey, _ rhs: FileAttributeKey) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-    
     public static let type = FileAttributeKey(rawValue: "NSFileType")
     public static let size = FileAttributeKey(rawValue: "NSFileSize")
     public static let modificationDate = FileAttributeKey(rawValue: "NSFileModificationDate")
@@ -871,14 +863,6 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 
     public init(rawValue: String) {
         self.rawValue = rawValue
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(rawValue)
-    }
-
-    public static func ==(_ lhs: FileAttributeType, _ rhs: FileAttributeType) -> Bool {
-        return lhs.rawValue == rhs.rawValue
     }
 
 #if os(Windows)

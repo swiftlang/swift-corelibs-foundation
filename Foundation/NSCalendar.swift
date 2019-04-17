@@ -66,10 +66,6 @@ extension NSCalendar {
             self.rawValue = rawValue
         }
 
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(rawValue)
-        }
-        
         public static let gregorian = NSCalendar.Identifier("gregorian")
         public static let buddhist = NSCalendar.Identifier("buddhist")
         public static let chinese = NSCalendar.Identifier("chinese")
@@ -137,10 +133,6 @@ extension NSCalendar {
 }
 
 extension NSCalendar.Identifier {
-    public static func ==(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-
     public static func <(_ lhs: NSCalendar.Identifier, _ rhs: NSCalendar.Identifier) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
