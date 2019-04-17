@@ -586,9 +586,7 @@ class TestNSString: LoopbackServerTest {
     
     func test_CFStringCreateMutableCopy() {
         let nsstring: NSString = "абВГ"
-        let mCopy = CFStringCreateMutableCopy(nil, 0, unsafeBitCast(nsstring, to: CFString.self))
-        let str = unsafeBitCast(mCopy, to: NSString.self)
-        XCTAssertEqual(nsstring, str)
+        XCTAssertEqual(nsstring, nsstring.mutableCopy() as! NSString)
     }
     
     // This test verifies that CFStringGetBytes with a UTF16 encoding works on an NSString backed by a Swift string
