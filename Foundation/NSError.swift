@@ -127,13 +127,30 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var localizedDescription: String {
-        let desc = userInfo[NSLocalizedDescriptionKey] as? String
-        
-        return desc ?? "The operation could not be completed"
+        if let localizedDescription = userInfo[NSLocalizedDescriptionKey] as? String {
+            return localizedDescription
+        } else {
+            // placeholder values
+            return "The operation could not be completed." + " " + (self.localizedFailureReason ?? "(\(domain) error \(code).)")
+        }
     }
     
     open var localizedFailureReason: String? {
-        return userInfo[NSLocalizedFailureReasonErrorKey] as? String
+        
+        if let localizedFailureReason = userInfo[NSLocalizedFailureReasonErrorKey] as? String {
+            return localizedFailureReason
+        } else {
+            switch domain {
+            case NSPOSIXErrorDomain:
+                return String(cString: strerror(Int32(code)), encoding: .ascii)
+            case NSCocoaErrorDomain:
+                return nil
+            case NSURLErrorDomain:
+                return nil
+            default:
+                return nil
+            }
+        }
     }
     
     open var localizedRecoverySuggestion: String? {
