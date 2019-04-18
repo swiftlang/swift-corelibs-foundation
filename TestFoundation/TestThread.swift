@@ -58,6 +58,7 @@ class TestThread : XCTestCase {
             condition.broadcast()
             condition.unlock()
         }
+        XCTAssertEqual(thread.qualityOfService, .default)
         thread.start()
 
         let ok = condition.wait(until: Date(timeIntervalSinceNow: 2))
