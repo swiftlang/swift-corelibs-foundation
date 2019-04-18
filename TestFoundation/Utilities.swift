@@ -442,3 +442,24 @@ public func checkHashableGroups<Groups: Collection>(
         file: file,
         line: line)
 }
+
+private var shouldRunXFailTests: Bool {
+    return ProcessInfo.processInfo.environment["NS_FOUNDATION_ATTEMPT_XFAIL_TESTS"] == "YES"
+}
+
+func shouldAttemptXFailTests(_ reason: String) -> Bool {
+    if shouldRunXFailTests {
+        return true
+    } else {
+        try? FileHandle.standardError.write(contentsOf: Data("warning: Skipping test expected to fail with reason '\(reason)'\n".utf8))
+        return false
+    }
+}
+
+func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    if shouldAttemptXFailTests(reason) {
+        return test
+    } else {
+        return { _ in return { } }
+    }
+}
