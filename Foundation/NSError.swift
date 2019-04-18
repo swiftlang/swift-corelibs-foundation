@@ -181,7 +181,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     override open var description: String {
-        return localizedDescription
+        return "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
     }
     
     // -- NSObject Overrides --
