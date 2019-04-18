@@ -303,6 +303,7 @@ class TestFileHandle : XCTestCase {
     func test_truncateFile() {
         let url: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: false)
         _ = FileManager.default.createFile(atPath: url.path, contents: Data())
+        defer { _ = try? FileManager.default.removeItem(at: url) }
 
         let fh: FileHandle = FileHandle(forUpdatingAtPath: url.path)!
 
