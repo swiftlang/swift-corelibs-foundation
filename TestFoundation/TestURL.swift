@@ -77,6 +77,9 @@ class TestURL : XCTestCase {
         #elseif os(Linux)
         let baseURL = URL(fileURLWithPath: "/usr", isDirectory: true)
         let relativePath = "include"
+        #elseif os(Windows)
+        let baseURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
+        let relativePath = "Documents"
         #endif
         // we're telling fileURLWithPath:isDirectory:relativeTo: Documents is a directory
         let url1 = URL(fileURLWithFileSystemRepresentation: relativePath, isDirectory: true, relativeTo: baseURL)
@@ -224,10 +227,7 @@ class TestURL : XCTestCase {
     
     static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
     static var gBaseCurrentWorkingDirectoryPath : String {
-        let count = Int(1024) // MAXPATHLEN is platform specific; this is the lowest common denominator for darwin and most linuxes
-        var buf : [Int8] = Array(repeating: 0, count: count)
-        getcwd(&buf, count)
-        return String(cString: buf)
+        return FileManager.default.currentDirectoryPath
     }
     static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
     static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
@@ -240,21 +240,37 @@ class TestURL : XCTestCase {
     static let gDirectoryDoesNotExistPath = gBaseTemporaryDirectoryPath + gDirectoryDoesNotExistName
 
     static func setup_test_paths() -> Bool {
-        if creat(gFileExistsPath, S_IRWXU) < 0 && errno != EEXIST {
+        _ = FileManager.default.createFile(atPath: gFileExistsPath, contents: nil)
+
+        do {
+          try FileManager.default.removeItem(atPath: gFileDoesNotExistPath)
+        } catch let error as NSError {
+          // The error code is a CocoaError
+          if error.code != CocoaError.fileNoSuchFile.rawValue {
             return false
+          }
         }
-        if unlink(gFileDoesNotExistPath) != 0 && errno != ENOENT {
+
+        do {
+          try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
+        } catch let error as NSError {
+          // The error code is a CocoaError
+          if error.code != CocoaError.fileWriteFileExists.rawValue {
             return false
+          }
         }
-        if mkdir(gDirectoryExistsPath, S_IRWXU) != 0 && errno != EEXIST {
+
+        do {
+          try FileManager.default.removeItem(atPath: gDirectoryDoesNotExistPath)
+        } catch let error as NSError {
+          // The error code is a CocoaError
+          if error.code != CocoaError.fileNoSuchFile.rawValue {
             return false
+          }
         }
-        if rmdir(gDirectoryDoesNotExistPath) != 0 && errno != ENOENT {
-            return false
-        }
-        
+
         #if os(Android)
-        chdir("/data/local/tmp")
+        FileManager.default.changeCurrentDirectoryPath("/data/local/tmp")
         #endif
 
         let cwd = FileManager.default.currentDirectoryPath
@@ -263,8 +279,7 @@ class TestURL : XCTestCase {
         cwdURL.withUnsafeFileSystemRepresentation {
             gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
         }
-        
-        
+
         return true
     }
         
