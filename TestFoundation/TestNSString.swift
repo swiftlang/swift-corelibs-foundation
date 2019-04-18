@@ -365,6 +365,7 @@ class TestNSString: LoopbackServerTest {
         XCTAssertNil(string)
     }
 
+    /* FIXME: https://bugs.swift.org/browse/SR-10505
     func test_FromContentsOfURL() {
         guard let testFileURL = testBundle().url(forResource: "NSStringTestData", withExtension: "txt") else {
             XCTFail("URL for NSStringTestData.txt is nil")
@@ -404,6 +405,7 @@ class TestNSString: LoopbackServerTest {
         }
         XCTAssertEqual(zeroString, "Some\u{00}text\u{00}with\u{00}NUL\u{00}bytes\u{00}instead\u{00}of\u{00}spaces.\u{00}\n")
     }
+    */
 
     func test_FromContentOfFileUsedEncodingIgnored() {
         let testFilePath = testBundle().path(forResource: "NSStringTestData", ofType: "txt")
