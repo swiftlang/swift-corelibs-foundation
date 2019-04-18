@@ -55,7 +55,7 @@ class TestNSString: LoopbackServerTest {
             ("test_longLongValue", test_longLongValue ),
             ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
             ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
-            ("test_FromContentsOfURL",test_FromContentsOfURL),
+//            ("test_FromContentsOfURL",test_FromContentsOfURL),
             ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
             ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
             ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
