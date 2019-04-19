@@ -12,7 +12,7 @@ import CoreFoundation
 class TestNSArray : XCTestCase {
     
     static var allTests: [(String, (TestNSArray) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestNSArray) -> () throws -> Void)] = [
             ("test_BasicConstruction", test_BasicConstruction),
             ("test_constructors", test_constructors),
             ("test_constructorWithCopyItems", test_constructorWithCopyItems),
@@ -44,9 +44,16 @@ class TestNSArray : XCTestCase {
             ("test_insertObjectsAtIndexes", test_insertObjectsAtIndexes),
             ("test_replaceObjectsAtIndexesWithObjects", test_replaceObjectsAtIndexesWithObjects),
             ("test_pathsMatchingExtensions", test_pathsMatchingExtensions),
-            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
             ("test_customMirror", test_customMirror),
         ]
+
+#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS) || os(Linux)
+        tests.append(contentsOf: [
+            ("test_arrayUsedAsCFArrayInvokesArrayMethods", test_arrayUsedAsCFArrayInvokesArrayMethods),
+        ])
+#endif
+
+        return tests
     }
     
     func test_BasicConstruction() {
@@ -822,6 +829,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[6] as! String, arrayMirror.descendant(6) as! String)
     }
 
+#if os(iOS) || os(macOS) || os(tvOS) || os(watchOS) || os(Linux)
     func test_arrayUsedAsCFArrayInvokesArrayMethods() {
         let number = 789 as NSNumber
         let array = NSMutableArray(array: [123, 456])
@@ -829,6 +837,7 @@ class TestNSArray : XCTestCase {
         XCTAssertEqual(array[0] as! NSNumber, 123 as NSNumber)
         XCTAssertEqual(array[1] as! NSNumber, 789 as NSNumber)
     }
+#endif
 
     private func createTestFile(_ path: String, _contents: Data) -> String? {
         let tempDir = NSTemporaryDirectory() + "TestFoundation_Playground_" + NSUUID().uuidString + "/"
