@@ -199,6 +199,9 @@ open class Thread : NSObject {
     internal var _status = _NSThreadStatus.initialized
     internal var _cancelled = false
 
+    /// - Note: This property is available on all platforms, but on some it may have no effect.
+    open var qualityOfService: QualityOfService = .default
+
     open private(set) var threadDictionary: NSMutableDictionary = NSMutableDictionary()
 
     internal init(thread: _swift_CFThreadRef) {
