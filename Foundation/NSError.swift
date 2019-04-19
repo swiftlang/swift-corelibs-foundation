@@ -127,13 +127,30 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var localizedDescription: String {
-        let desc = userInfo[NSLocalizedDescriptionKey] as? String
-        
-        return desc ?? "The operation could not be completed"
+        if let localizedDescription = userInfo[NSLocalizedDescriptionKey] as? String {
+            return localizedDescription
+        } else {
+            // placeholder values
+            return "The operation could not be completed." + " " + (self.localizedFailureReason ?? "(\(domain) error \(code).)")
+        }
     }
     
     open var localizedFailureReason: String? {
-        return userInfo[NSLocalizedFailureReasonErrorKey] as? String
+        
+        if let localizedFailureReason = userInfo[NSLocalizedFailureReasonErrorKey] as? String {
+            return localizedFailureReason
+        } else {
+            switch domain {
+            case NSPOSIXErrorDomain:
+                return String(cString: strerror(Int32(code)), encoding: .ascii)
+            case NSCocoaErrorDomain:
+                return nil
+            case NSURLErrorDomain:
+                return nil
+            default:
+                return nil
+            }
+        }
     }
     
     open var localizedRecoverySuggestion: String? {
@@ -164,7 +181,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     override open var description: String {
-        return localizedDescription
+        return "Error Domain=\(domain) Code=\(code) \"\(localizedFailureReason ?? "(null)")\""
     }
     
     // -- NSObject Overrides --
@@ -481,7 +498,7 @@ public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _Objective
 
 /// Describes a bridged error that stores the underlying NSError, so
 /// it can be queried.
-public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable {
+public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable, CustomStringConvertible {
     /// The type of an error code.
     associatedtype Code: _ErrorCodeProtocol
 
@@ -497,6 +514,12 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableE
     /// The \c error must have the appropriate domain for this error
     /// type.
     init(_nsError error: NSError)
+}
+
+public extension _BridgedStoredNSError {
+    var description: String {
+        return _nsError.description
+    }
 }
 
 /// Various helper implementations for _BridgedStoredNSError
