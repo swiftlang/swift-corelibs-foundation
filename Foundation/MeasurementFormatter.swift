@@ -7,8 +7,8 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-
-extension MeasurementFormatter {
+@available(*, unavailable, message: "Not supported in swift-corelibs-foundation")
+open class MeasurementFormatter : Formatter, NSSecureCoding {
     public struct UnitOptions : OptionSet {
         public private(set) var rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
@@ -20,10 +20,6 @@ extension MeasurementFormatter {
         
         public static let temperatureWithoutUnit = UnitOptions(rawValue: 1 << 2)
     }
-}
-
-open class MeasurementFormatter : Formatter, NSSecureCoding {
-    
     
     /*
      This property can be set to ensure that the formatter behaves in a way the developer expects, even if it is not standard according to the preferences of the user's locale. If not specified, unitOptions defaults to localizing according to the preferences of the locale.
@@ -41,7 +37,7 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
      Note that MeasurementFormatter will handle converting measurement objects to the preferred units in a particular locale.  For instance, if provided a measurement object in kilometers and the set locale is en_US, the formatter will implicitly convert the measurement object to miles and return the formatted string as the equivalent measurement in miles.
      
      */
-    open var unitOptions: MeasurementFormatter.UnitOptions = []
+    open var unitOptions: UnitOptions = []
     
     
     /*
@@ -62,18 +58,20 @@ open class MeasurementFormatter : Formatter, NSSecureCoding {
     open var numberFormatter: NumberFormatter!
     
     
-    open func string(from measurement: Measurement<Unit>) -> String { NSUnimplemented() }
+    open func string(from measurement: Measurement<Unit>) -> String { NSUnsupported() }
     
     
     /*
      @param An NSUnit
      @return A formatted string representing the localized form of the unit without a value attached to it.  This method will return [unit symbol] if the provided unit cannot be localized.
      */
-    open func string(from unit: Unit) -> String { NSUnimplemented() }
+    open func string(from unit: Unit) -> String { NSUnsupported() }
     
     public override init() { NSUnimplemented() }
     
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
-    open override func encode(with aCoder: NSCoder) { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder) { NSUnsupported() }
+    open override func encode(with aCoder: NSCoder) { NSUnsupported() }
     public static var supportsSecureCoding: Bool { return true }
+    
+    public func string<UnitType>(from measurement: Measurement<UnitType>) -> String { NSUnsupported() }
 }

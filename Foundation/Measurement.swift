@@ -261,6 +261,8 @@ extension NSMeasurement : _HasCustomAnyHashableRepresentation {
 }
 
 // This workaround is required for the time being, because Swift doesn't support covariance for Measurement (26607639)
+/* MeasurementFormatter is unavailable:
+ 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 extension MeasurementFormatter {
     public func string<UnitType>(from measurement: Measurement<UnitType>) -> String {
@@ -271,6 +273,7 @@ extension MeasurementFormatter {
         }
     }
 }
+*/
 
 // @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 // extension Unit : Codable {
