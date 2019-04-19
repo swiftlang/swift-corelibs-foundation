@@ -498,7 +498,7 @@ public protocol _BridgedNSError : __BridgedNSError, RawRepresentable, _Objective
 
 /// Describes a bridged error that stores the underlying NSError, so
 /// it can be queried.
-public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable {
+public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableError, CustomNSError, Hashable, CustomStringConvertible {
     /// The type of an error code.
     associatedtype Code: _ErrorCodeProtocol
 
@@ -514,6 +514,12 @@ public protocol _BridgedStoredNSError : __BridgedNSError, _ObjectiveCBridgeableE
     /// The \c error must have the appropriate domain for this error
     /// type.
     init(_nsError error: NSError)
+}
+
+public extension _BridgedStoredNSError {
+    var description: String {
+        return _nsError.description
+    }
 }
 
 /// Various helper implementations for _BridgedStoredNSError
