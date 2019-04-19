@@ -15,7 +15,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_dataTaskWithURLRequest", test_dataTaskWithURLRequest),
             ("test_dataTaskWithURLCompletionHandler", test_dataTaskWithURLCompletionHandler),
             ("test_dataTaskWithURLRequestCompletionHandler", test_dataTaskWithURLRequestCompletionHandler),
-            ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream),
+            // ("test_dataTaskWithHttpInputStream", test_dataTaskWithHttpInputStream), - Flaky test
             ("test_downloadTaskWithURL", test_downloadTaskWithURL),
             ("test_downloadTaskWithURLRequest", test_downloadTaskWithURLRequest),
             ("test_downloadTaskWithRequestAndHandler", test_downloadTaskWithRequestAndHandler),
