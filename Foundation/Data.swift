@@ -61,6 +61,18 @@ internal func __NSDataIsCompact(_ data: NSData) -> Bool {
 
 #endif
 
+#if os(Windows)
+@usableFromInline @discardableResult
+internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
+  return _withStackOrHeapBuffer(size, block)
+}
+#else
+@inlinable @inline(__always) @discardableResult
+internal func __withStackOrHeapBuffer(_ size: Int, _ block: (UnsafeMutablePointer<_ConditionalAllocationBuffer>) -> Void) -> Bool {
+  return _withStackOrHeapBuffer(size, block)
+}
+#endif
+
 // Underlying storage representation for medium and large data.
 // Inlinability strategy: methods from here should not inline into InlineSlice or LargeSlice unless trivial.
 // NOTE: older overlays called this class _DataStorage. The two must
@@ -2048,7 +2060,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         }
         
     }
-    
+
     // slightly faster paths for common sequences
     @inlinable // This is @inlinable as an important generic funnel point, despite being a non-trivial initializer.
     public init<S: Sequence>(_ elements: S) where S.Element == UInt8 {
@@ -2072,7 +2084,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
 
             // Copy as much as we can in one shot from the sequence.
             let underestimatedCount = Swift.max(elements.underestimatedCount, 1)
-            _withStackOrHeapBuffer(underestimatedCount) { (buffer) in
+            __withStackOrHeapBuffer(underestimatedCount) { (buffer) in
                 // In order to copy from the sequence, we have to bind the buffer to UInt8.
                 // This is safe since we'll copy out of this buffer as raw memory later.
                 let capacity = buffer.pointee.capacity
@@ -2365,7 +2377,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         // The sequence is really not contiguous.
         // Copy as much as we can in one shot.
         let underestimatedCount = Swift.max(elements.underestimatedCount, 1)
-        _withStackOrHeapBuffer(underestimatedCount) { (buffer) in
+        __withStackOrHeapBuffer(underestimatedCount) { (buffer) in
             // In order to copy from the sequence, we have to bind the temporary buffer to `UInt8`.
             // This is safe since we're the only owners of the buffer and we copy out as raw memory below anyway.
             let capacity = buffer.pointee.capacity
@@ -2444,7 +2456,7 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @inlinable // This is @inlinable as generic and reasonably small.
     public mutating func replaceSubrange<ByteCollection : Collection>(_ subrange: Range<Index>, with newElements: ByteCollection) where ByteCollection.Iterator.Element == Data.Iterator.Element {
         let totalCount = Int(newElements.count)
-        _withStackOrHeapBuffer(totalCount) { conditionalBuffer in
+        __withStackOrHeapBuffer(totalCount) { conditionalBuffer in
             let buffer = UnsafeMutableBufferPointer(start: conditionalBuffer.pointee.memory.assumingMemoryBound(to: UInt8.self), count: totalCount)
             var (iterator, index) = newElements._copyContents(initializing: buffer)
             while let byte = iterator.next() {
