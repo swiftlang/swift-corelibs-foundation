@@ -473,6 +473,7 @@ if(ENABLE_TESTING)
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
+                         -D_DLL
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
