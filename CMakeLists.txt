@@ -106,6 +106,35 @@ foreach(library ${CoreFoundation_LINK_LIBRARIES})
   endif()
 endforeach()
 
+# Windows uses 4 different variants of the C library that are normally
+# controlled by options to the compiler:
+#
+# Option  | Flags                 | Runtime
+# --------+-----------------------+------------
+# /MTd    | -D_DEBUG -D_MT        | libcmtd.lib
+# /MT     | -D_MT                 | libcmt.lib
+# /MDd    | -D_DEBUG -D_DLL -D_MT | msvcrtd.lib
+# /MD     | -D_DLL -D_MT          | msvcrt.lib
+
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(MSVCRT_C_FLAGS)
+  set(MSVCRT_LINK_FLAGS)
+  if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    list(APPEND MSVCRT_C_FLAGS -D_DEBUG)
+  endif()
+  # We currently do not support building in /MT or /MTd
+  list(APPEND MSVCRT_C_FLAGS -D_MT)
+  list(APPEND MSVCRT_C_FLAGS -D_DLL)
+  # Ensure that we link against the correct CRT
+  if(CMAKE_BUILD_TYPE STREQUAL Debug)
+    list(APPEND MSVCRT_C_FLAGS -Xclang --dependent-lib=msvcrtd)
+    list(APPEND MSVCRT_LINK_FLAGS -Xlinker -defaultlib:msvcrtd.lib)
+  else()
+    list(APPEND MSVCRT_C_FLAGS -Xclang --dependent-lib=msvcrt)
+    list(APPEND MSVCRT_LINK_FLAGS -Xlinker -defaultlib:msvcrt.lib)
+  endif()
+endif()
+
 add_swift_library(Foundation
                   MODULE_NAME
                     Foundation
@@ -281,11 +310,12 @@ add_swift_library(Foundation
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
+                    ${MSVCRT_C_FLAGS}
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${CMAKE_CURRENT_BINARY_DIR}
-                    -D_DLL
                   LINK_FLAGS
+                    ${MSVCRT_LINK_FLAGS}
                     ${CoreFoundation_LIBRARIES}
                     ${CURL_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
@@ -329,10 +359,12 @@ add_swift_executable(plutil
                      SOURCES
                        Tools/plutil/main.swift
                      CFLAGS
+                       ${MSVCRT_C_FLAGS}
                        ${deployment_target}
                        ${deployment_enable_libdispatch}
                        -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
+                       ${MSVCRT_LINK_FLAGS}
                        ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
@@ -355,14 +387,17 @@ add_swift_executable(plutil
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
+                         ${MSVCRT_C_FLAGS}
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
+                         ${MSVCRT_LINK_FLAGS}
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
                          ${Foundation_INTERFACE_LIBRARIES}
+                         ${WORKAROUND_SR9995}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
@@ -470,10 +505,12 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
+                         ${MSVCRT_C_FLAGS}
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
+                         ${MSVCRT_LINK_FLAGS}
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
