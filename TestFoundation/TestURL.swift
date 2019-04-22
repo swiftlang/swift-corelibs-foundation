@@ -282,6 +282,11 @@ class TestURL : XCTestCase {
 
         return true
     }
+    
+    override func tearDown() {
+        try? FileManager.default.removeItem(atPath: TestURL.baseTemporaryDirectoryPath as String)
+        super.tearDown()
+    }
         
     func test_fileURLWithPath() {
         if !TestURL.setUpTestPaths() {
