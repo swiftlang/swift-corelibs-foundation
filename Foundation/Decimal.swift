@@ -631,15 +631,17 @@ extension Decimal {
     }
 }
 
-extension Decimal : CustomStringConvertible {
+extension Decimal: CustomStringConvertible {
     public init?(string: String, locale: Locale? = nil) {
         let scan = Scanner(string: string)
+        scan.locale = locale
         var theDecimal = Decimal()
         if !scan.scanDecimal(&theDecimal) {
             return nil
         }
         self = theDecimal
     }
+
     public var description: String {
         if self.isNaN {
             return "NaN"
@@ -2055,34 +2057,6 @@ fileprivate let pow10 = [
 /*^39 is on 9 shorts. */
 ]
 
-// Copied from Scanner.swift
-private func decimalSep(_ locale: Locale?) -> String {
-    if let loc = locale {
-        if let sep = loc._bridgeToObjectiveC().object(forKey: .decimalSeparator) as? NSString {
-            return sep._swiftObject
-        }
-        return "."
-    } else {
-        return decimalSep(Locale.current)
-    }
-}
-
-// Copied from Scanner.swift
-private func isADigit(_ ch: unichar) -> Bool {
-    struct Local {
-        static let set = CharacterSet.decimalDigits
-    }
-    return Local.set.contains(UnicodeScalar(ch)!)
-}
-
-// Copied from Scanner.swift
-private func numericValue(_ ch: unichar) -> Int {
-    if (ch >= unichar(unicodeScalarLiteral: "0") && ch <= unichar(unicodeScalarLiteral: "9")) {
-        return Int(ch) - Int(unichar(unicodeScalarLiteral: "0"))
-    } else {
-        return __CFCharDigitValue(UniChar(ch))
-    }
-}
 
 // Could be silently inexact for float and double.
 extension Scanner {
@@ -2094,78 +2068,66 @@ extension Scanner {
         } else {
             return false
         }
-
     }
     
     public func scanDecimal() -> Decimal? {
 
-        var result = Decimal()
-
+        var result = Decimal.zero
         let string = self._scanString
         let length = string.length
         var buf = _NSStringBuffer(string: string, start: self._scanLocation, end: length)
-
-        let ds_chars = decimalSep(locale as? Locale).utf16
-        let ds = ds_chars[ds_chars.startIndex]
+        var tooBig = false
+        let ds = (locale as? Locale ?? Locale.current).decimalSeparator?.first ?? Character(".")
         buf.skip(_skipSet)
         var neg = false
+        var ok = false
 
         if buf.currentCharacter == unichar(unicodeScalarLiteral: "-") || buf.currentCharacter == unichar(unicodeScalarLiteral: "+") {
+            ok = true
             neg = buf.currentCharacter == unichar(unicodeScalarLiteral: "-")
             buf.advance()
             buf.skip(_skipSet)
         }
-        guard isADigit(buf.currentCharacter) else {
-            return nil
-        }
-
-        var tooBig = false
 
         // build the mantissa
-        repeat {
-            let numeral = numericValue(buf.currentCharacter)
-            if numeral == -1 {
-                break
-            }
-
+        while let numeral = decimalValue(buf.currentCharacter) {
+            ok = true
             if tooBig || multiplyBy10(&result,andAdd:numeral) != .noError {
                 tooBig = true
                 if result._exponent == Int32(Int8.max) {
                     repeat {
                         buf.advance()
-                    } while isADigit(buf.currentCharacter)
+                    } while decimalValue(buf.currentCharacter) != nil
                     return Decimal.nan
                 }
                 result._exponent += 1
             }
             buf.advance()
-        } while isADigit(buf.currentCharacter)
+        }
 
         // get the decimal point
-        if buf.currentCharacter == ds {
+        if let us = UnicodeScalar(buf.currentCharacter), Character(us) == ds {
+            ok = true
             buf.advance()
             // continue to build the mantissa
-            repeat {
-                let numeral = numericValue(buf.currentCharacter)
-                if numeral == -1 {
-                    break
-                }
+            while let numeral = decimalValue(buf.currentCharacter) {
                 if tooBig || multiplyBy10(&result,andAdd:numeral) != .noError {
                     tooBig = true
                 } else {
                     if result._exponent == Int32(Int8.min) {
                         repeat {
                             buf.advance()
-                        } while isADigit(buf.currentCharacter)
+                        } while decimalValue(buf.currentCharacter) != nil
                         return Decimal.nan
                     }
                     result._exponent -= 1
                 }
                 buf.advance()
-            } while isADigit(buf.currentCharacter)
+            }
         }
 
         if buf.currentCharacter == unichar(unicodeScalarLiteral: "e") || buf.currentCharacter == unichar(unicodeScalarLiteral: "E") {
+            ok = true
             var exponentIsNegative = false
             var exponent: Int32 = 0
 
@@ -2177,18 +2139,14 @@ extension Scanner {
                 buf.advance()
             }
 
-            repeat {
-                let numeral = numericValue(buf.currentCharacter)
-                if numeral == -1 {
-                    break
-                }
+            while let numeral = decimalValue(buf.currentCharacter) {
                 exponent = 10 * exponent + Int32(numeral)
                 guard exponent <= 2*Int32(Int8.max) else {
                     return Decimal.nan
                 }
 
                 buf.advance()
-            } while isADigit(buf.currentCharacter)
+            }
 
             if exponentIsNegative {
                 exponent = -exponent
@@ -2199,6 +2157,9 @@ extension Scanner {
             }
             result._exponent = exponent
         }
+
+        // No valid characters have been seen upto this point so error out.
+        guard ok == true else { return nil }
 
         result.isNegative = neg
 
@@ -2211,6 +2172,12 @@ extension Scanner {
         result.compact()
         self._scanLocation = buf.location
         return result
+    }
+
+    // Copied from Scanner.swift
+    private func decimalValue(_ ch: unichar) -> Int? {
+        guard let s = UnicodeScalar(ch), s.isASCII else { return nil }
+        return Character(s).wholeNumberValue
     }
 }
 
