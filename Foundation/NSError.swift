@@ -144,7 +144,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
             case NSPOSIXErrorDomain:
                 return String(cString: strerror(Int32(code)), encoding: .ascii)
             case NSCocoaErrorDomain:
-                return nil
+                return CocoaError.errorMessages[CocoaError.Code(rawValue: code)]
             case NSURLErrorDomain:
                 return nil
             default:
@@ -610,7 +610,7 @@ public struct CocoaError : _BridgedStoredNSError {
     public static var _nsErrorDomain: String { return NSCocoaErrorDomain }
 
     /// The error code itself.
-    public struct Code : RawRepresentable, _ErrorCodeProtocol {
+    public struct Code : RawRepresentable, Hashable, _ErrorCodeProtocol {
         public typealias _ErrorType = CocoaError
 
         public let rawValue: Int
@@ -668,6 +668,43 @@ public struct CocoaError : _BridgedStoredNSError {
         public static var coderValueNotFound:                       CocoaError.Code { return CocoaError.Code(rawValue: 4865) }
         public static var coderInvalidValue:                        CocoaError.Code { return CocoaError.Code(rawValue: 4866) }
     }
+}
+
+internal extension CocoaError {
+    static let errorMessages = [
+        Code(rawValue: 4): "The file doesn’t exist.",
+        Code(rawValue: 255): "The file couldn’t be locked.",
+        Code(rawValue: 257): "You don’t have permission.",
+        Code(rawValue: 258): "The file name is invalid.",
+        Code(rawValue: 259): "The file isn’t in the correct format.",
+        Code(rawValue: 260): "The file doesn’t exist.",
+        Code(rawValue: 261): "The specified text encoding isn’t applicable.",
+        Code(rawValue: 262): "The specified URL type isn’t supported.",
+        Code(rawValue: 263): "The item is too large.",
+        Code(rawValue: 264): "The text encoding of the contents couldn’t be determined.",
+        Code(rawValue: 513): "You don’t have permission.",
+        Code(rawValue: 514): "The file name is invalid.",
+        Code(rawValue: 516): "A file with the same name already exists.",
+        Code(rawValue: 517): "The specified text encoding isn’t applicable.",
+        Code(rawValue: 518): "The specified URL type isn’t supported.",
+        Code(rawValue: 640): "There isn’t enough space.",
+        Code(rawValue: 642): "The volume is read only.",
+        Code(rawValue: 1024): "The value is invalid.",
+        Code(rawValue: 2048): "The value is invalid.",
+        Code(rawValue: 3072): "The operation was cancelled.",
+        Code(rawValue: 3328): "The requested operation is not supported.",
+        Code(rawValue: 3840): "The data is not in the correct format.",
+        Code(rawValue: 3841): "The data is in a format that this application doesn’t understand.",
+        Code(rawValue: 3842): "An error occurred in the source of the data.",
+        Code(rawValue: 3851): "An error occurred in the destination for the data.",
+        Code(rawValue: 3852): "An error occurred in the content of the data.",
+        Code(rawValue: 4353): "The file is not available on iCloud yet.",
+        Code(rawValue: 4354): "There isn’t enough space in your account.",
+        Code(rawValue: 4355): "The iCloud servers might be unreachable or your settings might be incorrect.",
+        Code(rawValue: 4864): "The data isn’t in the correct format.",
+        Code(rawValue: 4865): "The data is missing.",
+        Code(rawValue: 4866): "The data isn’t in the correct format."
+    ]
 }
 
 public extension CocoaError {
