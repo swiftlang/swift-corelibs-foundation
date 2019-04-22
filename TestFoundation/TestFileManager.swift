@@ -16,51 +16,6 @@
 #endif
 
 class TestFileManager : XCTestCase {
-    
-    static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
-        var tests: [(String, (TestFileManager) -> () throws -> Void)] = [
-            ("test_createDirectory", test_createDirectory ),
-            ("test_createFile", test_createFile ),
-            ("test_moveFile", test_moveFile),
-            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
-            ("test_fileExists", test_fileExists),
-            ("test_isReadableFile", test_isReadableFile),
-            ("test_isWritableFile", test_isWritableFile),
-            ("test_isExecutableFile", test_isExecutableFile),
-            ("test_isDeletableFile", test_isDeletableFile),
-            ("test_fileAttributes", test_fileAttributes),
-            ("test_fileSystemAttributes", test_fileSystemAttributes),
-            ("test_setFileAttributes", test_setFileAttributes),
-            ("test_directoryEnumerator", test_directoryEnumerator),
-            ("test_pathEnumerator",test_pathEnumerator),
-            ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
-            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
-            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
-            ("test_linkItemAtPathToPath", test_linkItemAtPathToPath),
-            ("test_homedirectoryForUser", test_homedirectoryForUser),
-            ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
-            ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
-            ("test_mountedVolumeURLs", test_mountedVolumeURLs),
-            ("test_copyItemsPermissions", test_copyItemsPermissions),
-            ("test_emptyFilename", test_emptyFilename),
-        ]
-        
-#if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
-            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
-            ("test_xdgURLSelection", test_xdgURLSelection),
-        ])
-#endif
-        
-#if !DEPLOYMENT_RUNTIME_OBJC
-        tests.append(contentsOf: [
-            ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
-        ])
-#endif
-        
-        return tests
-    }
 
     func test_createDirectory() {
         let fm = FileManager.default
@@ -1436,5 +1391,114 @@ VIDEOS=StopgapVideos
 
         // Not Implemented - XCTAssertNil(fm.componentsToDisplay(forPath: ""))
         // Not Implemented - XCTAssertEqual(fm.displayName(atPath: ""), "")
+    }
+    
+    func test_getRelationship() throws {
+        /* a/
+           a/b
+           a/bb
+           c -> symlink to a/b
+           d */
+        
+        let a        = writableTestDirectoryURL.appendingPathComponent("a")
+        let a_b      = a.appendingPathComponent("b")
+        let a_bb     = a.appendingPathComponent("bb")
+        let c        = writableTestDirectoryURL.appendingPathComponent("c")
+        let a_b_d    = a_b.appendingPathComponent("d")
+        
+        let fm = FileManager.default
+        try fm.createDirectory(at: a, withIntermediateDirectories: true)
+        try fm.createDirectory(at: a_b, withIntermediateDirectories: true)
+        try Data().write(to: a_bb)
+        try Data().write(to: c)
+        try fm.createSymbolicLink(at: a_b_d, withDestinationURL: a)
+        
+        var relationship: FileManager.URLRelationship = .other
+        
+        try fm.getRelationship(&relationship, ofDirectoryAt: writableTestDirectoryURL, toItemAt: a)
+        XCTAssertEqual(relationship, .contains)
+        
+        try fm.getRelationship(&relationship, ofDirectoryAt: a, toItemAt: a_b)
+        XCTAssertEqual(relationship, .contains)
+        
+        // The path of one is a prefix to the other, but lacks the directory separator.
+        try fm.getRelationship(&relationship, ofDirectoryAt: a_b, toItemAt: a_bb)
+        XCTAssertEqual(relationship, .other)
+        
+        try fm.getRelationship(&relationship, ofDirectoryAt: a_b, toItemAt: c)
+        XCTAssertEqual(relationship, .other)
+        
+        try fm.getRelationship(&relationship, ofDirectoryAt: a_b_d, toItemAt: a)
+        XCTAssertEqual(relationship, .same)
+    }
+    
+    // -----
+    
+    var writableTestDirectoryURL: URL!
+    
+    override func setUp() {
+        super.setUp()
+        
+        let pid = ProcessInfo.processInfo.processIdentifier
+        writableTestDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("org.swift.TestFoundation.TestFileManager.\(pid)")
+    }
+    
+    override func tearDown() {
+        if let directoryURL = writableTestDirectoryURL,
+           (try? FileManager.default.attributesOfItem(atPath: directoryURL.path)) != nil {
+            do {
+                try FileManager.default.removeItem(at: directoryURL)
+            } catch {
+                NSLog("Could not remove test directory at URL \(directoryURL): \(error)")
+            }
+        }
+        
+        super.tearDown()
+    }
+    
+    static var allTests: [(String, (TestFileManager) -> () throws -> Void)] {
+        var tests: [(String, (TestFileManager) -> () throws -> Void)] = [
+            ("test_createDirectory", test_createDirectory ),
+            ("test_createFile", test_createFile ),
+            ("test_moveFile", test_moveFile),
+            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
+            ("test_fileExists", test_fileExists),
+            ("test_isReadableFile", test_isReadableFile),
+            ("test_isWritableFile", test_isWritableFile),
+            ("test_isExecutableFile", test_isExecutableFile),
+            ("test_isDeletableFile", test_isDeletableFile),
+            ("test_fileAttributes", test_fileAttributes),
+            ("test_fileSystemAttributes", test_fileSystemAttributes),
+            ("test_setFileAttributes", test_setFileAttributes),
+            ("test_directoryEnumerator", test_directoryEnumerator),
+            ("test_pathEnumerator",test_pathEnumerator),
+            ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
+            ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
+            ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
+            ("test_linkItemAtPathToPath", test_linkItemAtPathToPath),
+            ("test_homedirectoryForUser", test_homedirectoryForUser),
+            ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
+            ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
+            ("test_mountedVolumeURLs", test_mountedVolumeURLs),
+            ("test_copyItemsPermissions", test_copyItemsPermissions),
+            ("test_emptyFilename", test_emptyFilename),
+            ("test_getRelationship", test_getRelationship),
+        ]
+        
+        #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
+            ("test_parseXDGConfiguration", test_parseXDGConfiguration),
+            ("test_xdgURLSelection", test_xdgURLSelection),
+            ])
+        #endif
+        
+        #if !DEPLOYMENT_RUNTIME_OBJC
+        tests.append(contentsOf: [
+            ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
+            ])
+        #endif
+        
+        return tests
     }
 }

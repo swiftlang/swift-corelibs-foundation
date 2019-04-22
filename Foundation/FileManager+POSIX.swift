@@ -463,6 +463,20 @@ extension FileManager {
 
         return self.string(withFileSystemRepresentation: buf, length: Int(len))
     }
+    
+    /* Returns a String with a canonicalized path for the element at the specified path. */
+    internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
+        let bufSize = Int(PATH_MAX + 1)
+        var buf = [Int8](repeating: 0, count: bufSize)
+        let done = try _fileSystemRepresentation(withPath: path) {
+            realpath($0, &buf) != nil
+        }
+        if !done {
+            throw _NSErrorWithErrno(errno, reading: true, path: path)
+        }
+        
+        return self.string(withFileSystemRepresentation: buf, length: strlen(buf))
+    }
 
     internal func _readFrom(fd: Int32, toBuffer buffer: UnsafeMutablePointer<UInt8>, length bytesToRead: Int, filename: String) throws -> Int {
         var bytesRead = 0

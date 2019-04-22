@@ -165,13 +165,68 @@ open class FileManager : NSObject {
     /* Sets 'outRelationship' to NSURLRelationshipContains if the directory at 'directoryURL' directly or indirectly contains the item at 'otherURL', meaning 'directoryURL' is found while enumerating parent URLs starting from 'otherURL'. Sets 'outRelationship' to NSURLRelationshipSame if 'directoryURL' and 'otherURL' locate the same item, meaning they have the same NSURLFileResourceIdentifierKey value. If 'directoryURL' is not a directory, or does not contain 'otherURL' and they do not locate the same file, then sets 'outRelationship' to NSURLRelationshipOther. If an error occurs, returns NO and sets 'error'.
      */
     open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, ofDirectoryAt directoryURL: URL, toItemAt otherURL: URL) throws {
-        NSUnimplemented()
+        let from = try _canonicalizedPath(toFileAtPath: directoryURL.path)
+        let to = try _canonicalizedPath(toFileAtPath: otherURL.path)
+        
+        if from == to {
+            outRelationship.pointee = .same
+        } else if to.hasPrefix(from) && to.count > from.count + 1 /* the contained file's canonicalized path must contain at least one path separator and one filename component */ {
+            let character = to[to.index(to.startIndex, offsetBy: from.length)]
+            if character == "/" || character == "\\" {
+                outRelationship.pointee = .contains
+            } else {
+                outRelationship.pointee = .other
+            }
+        } else {
+            outRelationship.pointee = .other
+        }
     }
     
     /* Similar to -[NSFileManager getRelationship:ofDirectoryAtURL:toItemAtURL:error:], except that the directory is instead defined by an NSSearchPathDirectory and NSSearchPathDomainMask. Pass 0 for domainMask to instruct the method to automatically choose the domain appropriate for 'url'. For example, to discover if a file is contained by a Trash directory, call [fileManager getRelationship:&result ofDirectory:NSTrashDirectory inDomain:0 toItemAtURL:url error:&error].
      */
     open func getRelationship(_ outRelationship: UnsafeMutablePointer<URLRelationship>, of directory: SearchPathDirectory, in domainMask: SearchPathDomainMask, toItemAt url: URL) throws {
-        NSUnimplemented()
+        let actualMask: SearchPathDomainMask
+        
+        if domainMask.isEmpty {
+            switch directory {
+            case .applicationDirectory: fallthrough
+            case .demoApplicationDirectory: fallthrough
+            case .developerApplicationDirectory: fallthrough
+            case .adminApplicationDirectory: fallthrough
+            case .developerDirectory: fallthrough
+            case .userDirectory: fallthrough
+            case .documentationDirectory:
+                actualMask = .localDomainMask
+                
+            case .libraryDirectory: fallthrough
+            case .autosavedInformationDirectory: fallthrough
+            case .documentDirectory: fallthrough
+            case .desktopDirectory: fallthrough
+            case .cachesDirectory: fallthrough
+            case .applicationSupportDirectory: fallthrough
+            case .downloadsDirectory: fallthrough
+            case .inputMethodsDirectory: fallthrough
+            case .moviesDirectory: fallthrough
+            case .musicDirectory: fallthrough
+            case .picturesDirectory: fallthrough
+            case .sharedPublicDirectory: fallthrough
+            case .preferencePanesDirectory: fallthrough
+            case .applicationScriptsDirectory: fallthrough
+            case .itemReplacementDirectory: fallthrough
+            case .trashDirectory:
+                actualMask = .userDomainMask
+
+            case .coreServiceDirectory: fallthrough
+            case .printerDescriptionDirectory: fallthrough
+            case .allApplicationsDirectory: fallthrough
+            case .allLibrariesDirectory:
+                actualMask = .systemDomainMask
+            }
+        } else {
+            actualMask = domainMask
+        }
+        
+        try getRelationship(outRelationship, ofDirectoryAt: try self.url(for: directory, in: actualMask, appropriateFor: url, create: false), toItemAt: url)
     }
     
     /* createDirectoryAtURL:withIntermediateDirectories:attributes:error: creates a directory at the specified URL. If you pass 'NO' for withIntermediateDirectories, the directory must not exist at the time this call is made. Passing 'YES' for withIntermediateDirectories will create any necessary intermediate directories. This method returns YES if all directories specified in 'url' were created and attributes were set. Directories are created with attributes specified by the dictionary passed to 'attributes'. If no dictionary is supplied, directories are created according to the umask of the process. This method returns NO if a failure occurs at any stage of the operation. If an error parameter was provided, a presentable NSError will be returned by reference.
