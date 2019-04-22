@@ -127,6 +127,7 @@ add_framework(CoreFoundation
               PUBLIC_HEADERS
                 # FIXME: PrivateHeaders referenced by public headers
                 Base.subproj/CFKnownLocations.h
+                Base.subproj/CFLocking.h
                 Base.subproj/CFLogUtilities.h
                 Base.subproj/CFPriv.h
                 Base.subproj/CFRuntime.h

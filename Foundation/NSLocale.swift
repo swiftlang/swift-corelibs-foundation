@@ -12,17 +12,15 @@ import CoreFoundation
 
 open class NSLocale: NSObject, NSCopying, NSSecureCoding, _CFBridgeable {
     typealias CFType = CFLocale
+
+    // struct __CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier: UnsafeMutableRawPointer? = nil
     private var _cache: UnsafeMutableRawPointer? = nil
     private var _prefs: UnsafeMutableRawPointer? = nil
-#if os(macOS) || os(iOS)
-    private var _lock = pthread_mutex_t()
-#elseif os(Linux) || os(Android) || CYGWIN
-    private var _lock = Int32(0)
-#endif
-    private var _nullLocale = false
-    
+    private var _lock: CFLock_t = __CFLockInit()
+    private var _nullLocale: Bool = false
+
     internal var _cfObject: CFType {
         return unsafeBitCast(self, to: CFType.self)
     }

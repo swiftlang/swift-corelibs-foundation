@@ -486,6 +486,7 @@
 		EADE0BCB1BD15E0000C49C64 /* XMLNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8D1BD15DFF00C49C64 /* XMLNode.swift */; };
 		EADE0BCD1BD15E0000C49C64 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADE0B8F1BD15DFF00C49C64 /* XMLParser.swift */; };
 		F03A43181D4877DD00A7791E /* CFAsmMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = F03A43161D48778200A7791E /* CFAsmMacros.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		F085A1302283C5B700F909F9 /* CFLocking.h in Headers */ = {isa = PBXBuildFile; fileRef = F085A12E2283C50A00F909F9 /* CFLocking.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		F9E0BB371CA70B8000F7FF3C /* TestURLCredential.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E0BB361CA70B8000F7FF3C /* TestURLCredential.swift */; };
 /* End PBXBuildFile section */
 
@@ -1051,6 +1052,7 @@
 		EADE0B8D1BD15DFF00C49C64 /* XMLNode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLNode.swift; sourceTree = "<group>"; };
 		EADE0B8F1BD15DFF00C49C64 /* XMLParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLParser.swift; sourceTree = "<group>"; };
 		F03A43161D48778200A7791E /* CFAsmMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAsmMacros.h; sourceTree = "<group>"; };
+		F085A12E2283C50A00F909F9 /* CFLocking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFLocking.h; sourceTree = "<group>"; };
 		F9E0BB361CA70B8000F7FF3C /* TestURLCredential.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURLCredential.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1176,6 +1178,7 @@
 		5B5D88711BBC951A00234F36 /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				F085A12E2283C50A00F909F9 /* CFLocking.h */,
 				1578DA12212B4C35003C9516 /* CFOverflow.h */,
 				F03A43161D48778200A7791E /* CFAsmMacros.h */,
 				5BDC3F721BCC60EF00ED97BB /* module.map */,
@@ -2110,6 +2113,7 @@
 				5B7C8AF91BEA81AC00C5B690 /* CFStringEncodingDatabase.h in Headers */,
 				EA66F6361BEED03E00136161 /* TargetConditionals.h in Headers */,
 				1569BFAE2187D529009518FA /* CFDateComponents.h in Headers */,
+				F085A1302283C5B700F909F9 /* CFLocking.h in Headers */,
 				5B7C8B001BEA82ED00C5B690 /* CFRuntime.h in Headers */,
 				5BF9B7F31FABBDB900EE1A7C /* CFPropertyList_Private.h in Headers */,
 				5B7C8ABE1BEA807A00C5B690 /* CFByteOrder.h in Headers */,
