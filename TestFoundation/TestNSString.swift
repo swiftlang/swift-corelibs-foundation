@@ -1002,25 +1002,30 @@ class TestNSString: LoopbackServerTest {
     }
     
     func test_expandingTildeInPath() {
+        // Android home directory is the root directory, so the result of ~ may
+        // actually have a trailing path separator, but only if it is the root
+        // directory itself.
+        let rootDirectory = "/"
+
         do {
             let path: NSString = "~"
             let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
-            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+            XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
         do {
             let path: NSString = "~/"
             let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for current user")
-            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+            XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
         do {
             let path = NSString(string: "~\(NSUserName())")
             let result = path.expandingTildeInPath
             XCTAssert(result == NSHomeDirectory(), "Could resolve home directory for specific user")
-            XCTAssertFalse(result.hasSuffix("/"), "Result have no trailing path separator")
+            XCTAssertFalse(result.hasSuffix("/") && result != rootDirectory, "Result should not have a trailing path separator")
         }
         
         do {
@@ -1052,7 +1057,7 @@ class TestNSString: LoopbackServerTest {
         do {
             let path: NSString =  "~/foo/bar/"
             let result = path.standardizingPath
-            let expected = NSHomeDirectory() + "/foo/bar"
+            let expected = NSHomeDirectory().appendingPathComponent("foo/bar")
             XCTAssertEqual(result, expected, "standardizingPath expanding initial tilde.")
         }
         
