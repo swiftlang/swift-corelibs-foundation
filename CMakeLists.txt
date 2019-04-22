@@ -59,7 +59,7 @@ endif()
 add_dependencies(uuid CoreFoundation)
 
 set(swift_optimization_flags)
-if(CMAKE_BUILD_TYPE MATCHES Release)
+if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
   set(swift_optimization_flags -O)
 endif()
 if(ENABLE_TESTING)
