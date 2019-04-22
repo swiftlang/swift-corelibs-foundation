@@ -225,25 +225,25 @@ class TestURL : XCTestCase {
         
     }
     
-    static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
-    static var gBaseCurrentWorkingDirectoryPath : String {
+    static let baseTemporaryDirectoryPath: NSString = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)") as NSString
+    static var baseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath
     }
-    static var gRelativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
-    static let gFileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
-    static let gFileDoesNotExistName = "TestCFURL_file_does_not_exist"
-    static let gDirectoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
-    static let gDirectoryDoesNotExistName = "TestCFURL_directory_does_not_exist"
-    static let gFileExistsPath = gBaseTemporaryDirectoryPath + gFileExistsName
-    static let gFileDoesNotExistPath = gBaseTemporaryDirectoryPath + gFileDoesNotExistName
-    static let gDirectoryExistsPath = gBaseTemporaryDirectoryPath + gDirectoryExistsName
-    static let gDirectoryDoesNotExistPath = gBaseTemporaryDirectoryPath + gDirectoryDoesNotExistName
+    static var relativeOffsetFromBaseCurrentWorkingDirectory: UInt = 0
+    static let fileExistsName = "TestCFURL_file_exists\(ProcessInfo.processInfo.globallyUniqueString)"
+    static let fileDoesNotExistName = "TestCFURL_file_does_not_exist"
+    static let directoryExistsName = "TestCFURL_directory_exists\(ProcessInfo.processInfo.globallyUniqueString)"
+    static let directoryDoesNotExistName = "TestCFURL_directory_does_not_exist"
+    static let fileExistsPath = baseTemporaryDirectoryPath.appendingPathComponent(fileExistsName)
+    static let fileDoesNotExistPath = baseTemporaryDirectoryPath.appendingPathComponent(fileDoesNotExistName)
+    static let directoryExistsPath = baseTemporaryDirectoryPath.appendingPathComponent(directoryExistsName)
+    static let directoryDoesNotExistPath = baseTemporaryDirectoryPath.appendingPathComponent(directoryDoesNotExistName)
 
-    static func setup_test_paths() -> Bool {
-        _ = FileManager.default.createFile(atPath: gFileExistsPath, contents: nil)
+    static func setUpTestPaths() -> Bool {
+        _ = FileManager.default.createFile(atPath: fileExistsPath, contents: nil)
 
         do {
-          try FileManager.default.removeItem(atPath: gFileDoesNotExistPath)
+          try FileManager.default.removeItem(atPath: fileDoesNotExistPath)
         } catch {
           // The error code is a CocoaError
           if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
@@ -252,7 +252,7 @@ class TestURL : XCTestCase {
         }
 
         do {
-          try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
+          try FileManager.default.createDirectory(atPath: directoryExistsPath, withIntermediateDirectories: false)
         } catch {
             // The error code is a CocoaError
             if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
@@ -261,7 +261,7 @@ class TestURL : XCTestCase {
         }
 
         do {
-          try FileManager.default.removeItem(atPath: gDirectoryDoesNotExistPath)
+          try FileManager.default.removeItem(atPath: directoryDoesNotExistPath)
         } catch {
             // The error code is a CocoaError
             if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
@@ -277,65 +277,65 @@ class TestURL : XCTestCase {
         let cwdURL = URL(fileURLWithPath: cwd, isDirectory: true)
         // 1 for path separator
         cwdURL.withUnsafeFileSystemRepresentation {
-            gRelativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
+            relativeOffsetFromBaseCurrentWorkingDirectory = UInt(strlen($0!) + 1)
         }
 
         return true
     }
         
     func test_fileURLWithPath() {
-        if !TestURL.setup_test_paths() {
+        if !TestURL.setUpTestPaths() {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
         
         // test with file that exists
-        var path = TestURL.gFileExistsPath
+        var path = TestURL.fileExistsPath
         var url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
         
         // test with file that doesn't exist
-        path = TestURL.gFileDoesNotExistPath
+        path = TestURL.fileDoesNotExistPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
             
         // test with directory that exists
-        path = TestURL.gDirectoryExistsPath
+        path = TestURL.directoryExistsPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
 
         // test with directory that doesn't exist
-        path = TestURL.gDirectoryDoesNotExistPath
+        path = TestURL.directoryDoesNotExistPath
         url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
 
         // test with name relative to current working directory
-        path = TestURL.gFileDoesNotExistName
+        path = TestURL.fileDoesNotExistName
         url = NSURL(fileURLWithPath: path)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         let fileSystemRep = url.fileSystemRepresentation
         let actualLength = strlen(fileSystemRep)
         // 1 for path separator
-        let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
+        let expectedLength = UInt(strlen(TestURL.fileDoesNotExistName)) + TestURL.relativeOffsetFromBaseCurrentWorkingDirectory
         XCTAssertEqual(UInt(actualLength), expectedLength, "fileSystemRepresentation was too short")
-        XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
-        let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
-        let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
-        XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
+        XCTAssertTrue(strncmp(TestURL.baseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.baseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
+        let lengthOfRelativePath = Int(strlen(TestURL.fileDoesNotExistName))
+        let relativePath = fileSystemRep.advanced(by: Int(TestURL.relativeOffsetFromBaseCurrentWorkingDirectory))
+        XCTAssertTrue(strncmp(TestURL.fileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
         
     func test_fileURLWithPath_isDirectory() {
-        if !TestURL.setup_test_paths() {
+        if !TestURL.setUpTestPaths() {
             let error = strerror(errno)!
             XCTFail("Failed to set up test paths: \(String(cString: error))")
         }
         
         // test with file that exists
-        var path = TestURL.gFileExistsPath
+        var path = TestURL.fileExistsPath
         var url = NSURL(fileURLWithPath: path, isDirectory: true)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: false)
@@ -343,7 +343,7 @@ class TestURL : XCTestCase {
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
         
         // test with file that doesn't exist
-        path = TestURL.gFileDoesNotExistPath
+        path = TestURL.fileDoesNotExistPath
         url = NSURL(fileURLWithPath: path, isDirectory: true)
         XCTAssertTrue(url.hasDirectoryPath, "expected URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: false)
@@ -351,7 +351,7 @@ class TestURL : XCTestCase {
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
         
         // test with directory that exists
-        path = TestURL.gDirectoryExistsPath
+        path = TestURL.directoryExistsPath
         url = NSURL(fileURLWithPath: path, isDirectory: false)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: true)
@@ -359,7 +359,7 @@ class TestURL : XCTestCase {
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
         
         // test with directory that doesn't exist
-        path = TestURL.gDirectoryDoesNotExistPath
+        path = TestURL.directoryDoesNotExistPath
         url = NSURL(fileURLWithPath: path, isDirectory: false)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: true)
@@ -367,7 +367,7 @@ class TestURL : XCTestCase {
         XCTAssertEqual(path, url.path, "path from file path URL is wrong")
         
         // test with name relative to current working directory
-        path = TestURL.gFileDoesNotExistName
+        path = TestURL.fileDoesNotExistName
         url = NSURL(fileURLWithPath: path, isDirectory: false)
         XCTAssertFalse(url.hasDirectoryPath, "did not expect URL with directory path: \(url)")
         url = NSURL(fileURLWithPath: path, isDirectory: true)
@@ -375,12 +375,12 @@ class TestURL : XCTestCase {
         let fileSystemRep = url.fileSystemRepresentation
         let actualLength = UInt(strlen(fileSystemRep))
         // 1 for path separator
-        let expectedLength = UInt(strlen(TestURL.gFileDoesNotExistName)) + TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory
+        let expectedLength = UInt(strlen(TestURL.fileDoesNotExistName)) + TestURL.relativeOffsetFromBaseCurrentWorkingDirectory
         XCTAssertEqual(actualLength, expectedLength, "fileSystemRepresentation was too short")
-        XCTAssertTrue(strncmp(TestURL.gBaseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.gBaseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
-        let lengthOfRelativePath = Int(strlen(TestURL.gFileDoesNotExistName))
-        let relativePath = fileSystemRep.advanced(by: Int(TestURL.gRelativeOffsetFromBaseCurrentWorkingDirectory))
-        XCTAssertTrue(strncmp(TestURL.gFileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
+        XCTAssertTrue(strncmp(TestURL.baseCurrentWorkingDirectoryPath, fileSystemRep, Int(strlen(TestURL.baseCurrentWorkingDirectoryPath))) == 0, "fileSystemRepresentation of base path is wrong")
+        let lengthOfRelativePath = Int(strlen(TestURL.fileDoesNotExistName))
+        let relativePath = fileSystemRep.advanced(by: Int(TestURL.relativeOffsetFromBaseCurrentWorkingDirectory))
+        XCTAssertTrue(strncmp(TestURL.fileDoesNotExistName, relativePath, lengthOfRelativePath) == 0, "fileSystemRepresentation of file path is wrong")
     }
     
     func test_URLByResolvingSymlinksInPath() {
