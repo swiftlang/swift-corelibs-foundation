@@ -196,3 +196,10 @@ open class ProcessInfo: NSObject {
         return NSFullUserName()
     }
 }
+
+// SPI for TestFoundation
+internal extension ProcessInfo {
+  var _processPath: String {
+    return String(cString: _CFProcessPath())
+  }
+}

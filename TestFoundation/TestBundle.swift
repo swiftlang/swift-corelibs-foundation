@@ -340,7 +340,7 @@ class BundlePlayground {
 class TestBundle : XCTestCase {
     
     static var allTests: [(String, (TestBundle) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestBundle) -> () throws -> Void)] = [
             ("test_paths", test_paths),
             ("test_resources", test_resources),
             ("test_infoPlist", test_infoPlist),
@@ -353,10 +353,17 @@ class TestBundle : XCTestCase {
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
             ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
-            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
         ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
+        ])
+#endif
+
+        return tests
     }
-    
+
     func test_paths() {
         let bundle = testBundle()
         
@@ -560,13 +567,15 @@ class TestBundle : XCTestCase {
         }
     }
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_mainBundleExecutableURL() {
 #if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
         let maybeURL = Bundle.main.executableURL
         XCTAssertNotNil(maybeURL)
         guard let url = maybeURL else { return }
         
-        XCTAssertEqual(url.path, String(cString: _CFProcessPath()))
+        XCTAssertEqual(url.path, ProcessInfo.processInfo._processPath)
 #endif
     }
+#endif
 }
