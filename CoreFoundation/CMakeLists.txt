@@ -205,7 +205,6 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLAccess.h
                 URL.subproj/CFURLComponents.h
               SOURCES
-                $<$<PLATFORM_ID:Windows>:CoreFoundation.rc>
                 # Base
                 Base.subproj/CFBase.c
                 Base.subproj/CFFileUtilities.c
@@ -317,6 +316,14 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  add_library(CoreFoundationResources OBJECT
+    CoreFoundation.rc)
+  if(BUILD_SHARED_LIBS)
+    target_link_libraries(CoreFoundation PRIVATE CoreFoundationResources)
+  else()
+    target_link_libraries(CoreFoundation INTERFACE CoreFoundationResources)
+  endif()
+
   # NOTE(compnerd) the WindowsOlsonMapping.plist and OlsonWindowsMapping.plist
   # are embedded Windows resources that we use to map the Windows timezone to
   # the Olson name.  Ensure that we rebuild on regeneration of the files.
