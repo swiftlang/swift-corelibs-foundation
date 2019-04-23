@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-import CoreFoundation
 
 class TestTimeZone: XCTestCase {
     
@@ -228,7 +227,39 @@ class TestTimeZone: XCTestCase {
             }
         }
     }
-    
+
+    func test_nextDaylightSavingTimeTransition() throws {
+        // Timezones without DST
+        let gmt = try TimeZone(secondsFromGMT: 0).unwrapped()
+        let msk = try TimeZone(identifier: "Europe/Moscow").unwrapped()
+
+        // Timezones with DST
+        let bst = try TimeZone(abbreviation: "BST").unwrapped()
+        let aest = try TimeZone(identifier: "Australia/Sydney").unwrapped()
+
+        XCTAssertNil(gmt.nextDaylightSavingTimeTransition)
+        XCTAssertNil(msk.nextDaylightSavingTimeTransition)
+        XCTAssertNotNil(bst.nextDaylightSavingTimeTransition)
+        XCTAssertNotNil(aest.nextDaylightSavingTimeTransition)
+
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let dt1 = try formatter.date(from: "2018-01-01").unwrapped()
+        XCTAssertNil(gmt.nextDaylightSavingTimeTransition(after: dt1))
+        XCTAssertNil(msk.nextDaylightSavingTimeTransition(after: dt1))
+        XCTAssertEqual(bst.nextDaylightSavingTimeTransition(after: dt1)?.description, "2018-03-25 01:00:00 +0000")
+        XCTAssertEqual(aest.nextDaylightSavingTimeTransition(after: dt1)?.description, "2018-03-31 16:00:00 +0000")
+
+        formatter.timeZone = aest
+        let dt2 = try formatter.date(from: "2018-06-06").unwrapped()
+        XCTAssertNil(gmt.nextDaylightSavingTimeTransition(after: dt2))
+        XCTAssertNil(msk.nextDaylightSavingTimeTransition(after: dt2))
+        XCTAssertEqual(bst.nextDaylightSavingTimeTransition(after: dt2)?.description, "2018-10-28 01:00:00 +0000")
+        XCTAssertEqual(aest.nextDaylightSavingTimeTransition(after: dt2)?.description, "2018-10-06 16:00:00 +0000")
+    }
+
     static var allTests: [(String, (TestTimeZone) -> () throws -> Void)] {
         var tests: [(String, (TestTimeZone) -> () throws -> Void)] = [
             ("test_abbreviation", test_abbreviation),
@@ -247,6 +278,7 @@ class TestTimeZone: XCTestCase {
             ("test_knownTimeZones", test_knownTimeZones),
             ("test_systemTimeZoneName", test_systemTimeZoneName),
             ("test_autoupdatingTimeZone", test_autoupdatingTimeZone),
+            ("test_nextDaylightSavingTimeTransition", test_nextDaylightSavingTimeTransition),
         ]
         
         #if !os(Windows)

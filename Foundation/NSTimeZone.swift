@@ -176,7 +176,9 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
         guard type(of: self) === NSTimeZone.self else {
             NSRequiresConcreteImplementation()
         }
-        return Date(timeIntervalSinceReferenceDate: CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate))
+        let ti = CFTimeZoneGetNextDaylightSavingTimeTransition(_cfObject, aDate.timeIntervalSinceReferenceDate)
+        guard ti > 0 else { return nil }
+        return Date(timeIntervalSinceReferenceDate: ti)
     }
 
     open class var system: TimeZone {
