@@ -38,7 +38,9 @@ extension NSError {
     }
 }
 
-open class FileHandle : NSObject, NSSecureCoding {
+/* On Darwin, FileHandle conforms to NSSecureCoding for use with NSXPCConnection and related facilities only. On swift-corelibs-foundation, it does not conform to that protocol since those facilities are unavailable. */
+ 
+open class FileHandle : NSObject {
 #if os(Windows)
     private var _handle: HANDLE
 
@@ -469,18 +471,6 @@ open class FileHandle : NSObject, NSSecureCoding {
         try? _immediatelyClose()
     }
 
-    public required init?(coder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    public static var supportsSecureCoding: Bool {
-        return true
-    }
-    
     // MARK: -
     // MARK: New API.
     
