@@ -1242,7 +1242,11 @@ internal class _NSCopyOnWriteCalendar: NSCalendar {
     private let lock = NSLock()
     private var needsLocking_isMutated: Bool
     private var needsLocking_backingCalendar: NSCalendar
-    
+    override var _cfObject: CFCalendar {
+        copyBackingCalendarIfNeededWithMutation { _ in }
+        return self.backingCalendar._cfObject
+    }
+
     var backingCalendar: NSCalendar {
         lock.lock()
         let it = needsLocking_backingCalendar

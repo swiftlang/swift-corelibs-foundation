@@ -16,8 +16,7 @@ class TestCalendar: XCTestCase {
             ("test_gettingDatesOnHebrewCalendar", test_gettingDatesOnHebrewCalendar ),
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
-            ("test_gettingDatesOnPersianCalendar",
-                test_gettingDatesOnPersianCalendar),
+            ("test_gettingDatesOnPersianCalendar", test_gettingDatesOnPersianCalendar),
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),
@@ -157,7 +156,9 @@ class TestCalendar: XCTestCase {
         let copy = calendar
         XCTAssertTrue(copy == calendar)
 
-        //verify firstWeekday and minimumDaysInFirstWeek of 'copy'. 
+        //verify firstWeekday and minimumDaysInFirstWeek of 'copy'.
+        calendar.firstWeekday = 3
+        calendar.minimumDaysInFirstWeek = 3
         XCTAssertEqual(copy.firstWeekday, 2)
         XCTAssertEqual(copy.minimumDaysInFirstWeek, 2)
     }
@@ -216,6 +217,7 @@ class TestNSDateComponents: XCTestCase {
             ("test_copyNSDateComponents", test_copyNSDateComponents),
             ("test_dateDifferenceComponents", test_dateDifferenceComponents),
             ("test_nanoseconds", test_nanoseconds),
+            ("test_currentCalendar", test_currentCalendar),
         ]
     }
 
@@ -461,5 +463,21 @@ class TestNSDateComponents: XCTestCase {
         XCTAssertEqual(diff4.minute, -16)
         XCTAssertEqual(diff4.second, -40)
         XCTAssertEqual(diff4.nanosecond, -455549950)
+    }
+
+    func test_currentCalendar() {
+        let month = Calendar.current.dateComponents([.month], from: Date(timeIntervalSince1970: 1554678000)).month // 2019-04-07 23:00:00.000 Sunday
+        XCTAssertEqual(month, 4)
+
+        let components = Calendar.current.dateComponents(in: TimeZone(secondsFromGMT: 0)!, from: Date(timeIntervalSince1970: 1554678000))
+        XCTAssertEqual(components.year, 2019)
+        XCTAssertEqual(components.month, 4)
+        XCTAssertEqual(components.hour, 23)
+
+        let d1 = Date.init(timeIntervalSince1970: 1529431200.0) // 2018-06-19 18:00:00 +0000
+        let d2 = Date.init(timeIntervalSince1970: 1529604000.0) // 2018-06-21 18:00:00 +0000
+        XCTAssertEqual(Calendar.current.compare(d1, to: d2, toGranularity: .month), .orderedSame)
+        XCTAssertEqual(Calendar.current.compare(d1, to: d2, toGranularity: .weekday), .orderedAscending)
+        XCTAssertEqual(Calendar.current.compare(d2, to: d1, toGranularity: .weekday), .orderedDescending)
     }
 }
