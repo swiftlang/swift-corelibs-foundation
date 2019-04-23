@@ -515,7 +515,8 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     
     open func date(from comps: DateComponents) -> Date? {
         var (vector, compDesc) = _convert(comps)
-        
+
+        let oldTz = self.timeZone
         self.timeZone = comps.timeZone ?? timeZone
         
         var at: CFAbsoluteTime = 0.0
@@ -524,7 +525,8 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
                 return _CFCalendarComposeAbsoluteTimeV(_cfObject, t, compDesc, vectorBuffer.baseAddress!, Int32(vectorBuffer.count))
             }
         }
-        
+
+        self.timeZone = oldTz
         if res {
             return Date(timeIntervalSinceReferenceDate: at)
         } else {
