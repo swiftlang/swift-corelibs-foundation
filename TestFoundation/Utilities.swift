@@ -456,6 +456,12 @@ func shouldAttemptXFailTests(_ reason: String) -> Bool {
     }
 }
 
+func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
+    if shouldAttemptXFailTests(reason) {
+        array.append(testCase(allTests))
+    }
+}
+
 func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
     if shouldAttemptXFailTests(reason) {
         return test
