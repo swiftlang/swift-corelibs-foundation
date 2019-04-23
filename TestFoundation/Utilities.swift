@@ -191,6 +191,47 @@ extension Fixture where ValueType: NSObject & NSCoding {
     func loadEach(handler: (ValueType, FixtureVariant) throws -> Void) throws {
         try self.loadEach(fixtureRepository: try testBundle().url(forResource: "Fixtures", withExtension: nil).unwrapped(), handler: handler)
     }
+    
+    func assertLoadedValuesMatch(_ matchHandler: (ValueType, ValueType) -> Bool = { $0 == $1 }) throws {
+        let reference = try make()
+        try loadEach(handler: { (value, variant) in
+            XCTAssertTrue(matchHandler(reference, value), "The fixture with identifier \(identifier) failed to match for on-disk variant \(variant)")
+        })
+    }
+    
+    func assertValueRoundtripsInCoder(settingUpArchiverWith archiverSetup: (NSKeyedArchiver) -> Void = { _ in}, unarchiverWith unarchiverSetup: (NSKeyedUnarchiver) -> Void = { _ in}, matchingWith: (ValueType, ValueType) -> Bool = { $0 == $1 }) throws {
+        let original = try make()
+        
+        let coder = NSKeyedArchiver(forWritingWith: NSMutableData())
+        coder.decodingFailurePolicy = .setErrorAndReturn
+        archiverSetup(coder)
+        
+        coder.encode(original, forKey: NSKeyedArchiveRootObjectKey)
+        coder.finishEncoding()
+        
+        let data = coder.encodedData
+        
+        let decoder = NSKeyedUnarchiver(forReadingWith: data)
+        decoder.decodingFailurePolicy = .setErrorAndReturn
+        unarchiverSetup(decoder)
+        
+        let object = decoder.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? ValueType
+        
+        XCTAssertNil(decoder.error)
+        if let object = object {
+            XCTAssertTrue(matchingWith(object, original), "The fixture with identifier '\(identifier)' failed to match after an in-memory roundtrip.")
+        } else {
+            XCTFail("The fixture with identifier '\(identifier)' failed to decode after an in-memory roundtrip.")
+        }
+    }
+    
+    func assertValueRoundtripsInCoder(secureCoding: Bool, matchingWith: (ValueType, ValueType) -> Bool = { $0 == $1 }) throws {
+        try assertValueRoundtripsInCoder(settingUpArchiverWith: { (archiver) in
+            archiver.requiresSecureCoding = secureCoding
+        }, unarchiverWith: { (unarchiver) in
+            unarchiver.requiresSecureCoding = secureCoding
+        }, matchingWith: matchingWith)
+    }
 }
 
 /// Test that the elements of `instances` satisfy the semantic

@@ -126,6 +126,28 @@ enum Fixtures {
         return dif
     }
     
+    // ===== ISO8601DateFormatter =====
+    
+    static let iso8601FormatterDefault = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-Default") {
+        
+        let idf = ISO8601DateFormatter()
+        idf.timeZone = Calendar.neutral.timeZone
+        
+        return idf
+        
+    }
+    
+    static let iso8601FormatterOptionsSet = TypedFixture<ISO8601DateFormatter>("ISO8601DateFormatter-OptionsSet") {
+        
+        let idf = ISO8601DateFormatter()
+        idf.timeZone = Calendar.neutral.timeZone
+        
+        idf.formatOptions = [ .withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone, .withDashSeparatorInDate ]
+        
+        return idf
+        
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -136,6 +158,8 @@ enum Fixtures {
         AnyFixture(Fixtures.dateIntervalFormatterDefault),
         AnyFixture(Fixtures.dateIntervalFormatterValuesSetWithTemplate),
         AnyFixture(Fixtures.dateIntervalFormatterValuesSetWithoutTemplate),
+        AnyFixture(Fixtures.iso8601FormatterDefault),
+        AnyFixture(Fixtures.iso8601FormatterOptionsSet),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
