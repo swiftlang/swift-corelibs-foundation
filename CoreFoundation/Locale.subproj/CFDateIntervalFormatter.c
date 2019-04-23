@@ -32,6 +32,14 @@ CF_INLINE void __CFReleaseIfNotNull(CFTypeRef object) {
     }
 }
 
+CF_INLINE CFTypeRef __CFRetainIfNotNull(CFTypeRef object) {
+    if (object) {
+        CFRetain(object);
+    }
+    
+    return object;
+}
+
 struct __CFDateIntervalFormatter {
     CFRuntimeBase _base;
     CFLocaleRef _locale;
@@ -184,7 +192,7 @@ CFDateIntervalFormatterRef CFDateIntervalFormatterCreate(CFAllocatorRef allocato
     __CFGenericValidateType(allocator, CFAllocatorGetTypeID());
     memory = (struct __CFDateIntervalFormatter *)_CFRuntimeCreateInstance(allocator, _kCFRuntimeIDCFDateIntervalFormatter, size, NULL);
     if (!memory) {
-        return NULL;
+        return (CFDateIntervalFormatterRef _Nonnull)NULL;
     }
     
     switch (dateStyle) {
@@ -210,6 +218,9 @@ CFDateIntervalFormatterRef CFDateIntervalFormatterCreate(CFAllocatorRef allocato
             break;
     }
     
+    memory->_dateStyle = dateStyle;
+    memory->_timeStyle = timeStyle;
+    
     memory->_locale = locale ? CFRetain(locale) : NULL;
     
     memory->_calendar = NULL;
@@ -223,6 +234,67 @@ CFDateIntervalFormatterRef CFDateIntervalFormatterCreate(CFAllocatorRef allocato
     memory->_useTemplate = false;
     
     return (CFDateIntervalFormatterRef)memory;
+}
+
+void _CFDateIntervalFormatterInitializeFromCoderValues(CFDateIntervalFormatterRef formatter,
+                                                       int64_t dateStyle,
+                                                       int64_t timeStyle,
+                                                       CFStringRef _Nullable dateTemplate,
+                                                       CFStringRef _Nullable dateTemplateFromStyles,
+                                                       bool modified,
+                                                       bool useTemplate,
+                                                       CFLocaleRef _Nullable locale,
+                                                       CFCalendarRef _Nullable calendar,
+                                                       CFTimeZoneRef _Nullable timeZone) {
+    LOCK();
+    formatter->_dateStyle = dateStyle;
+    formatter->_timeStyle = timeStyle;
+    
+#define __CFSetObjectField(field, value) \
+{ \
+    __auto_type _value = value; \
+    if (field != _value) { \
+        __CFReleaseIfNotNull(field); \
+        field = (__typeof(_value))__CFRetainIfNotNull(_value); \
+    } \
+}
+    
+    __CFSetObjectField(formatter->_dateTemplate, dateTemplate);
+    __CFSetObjectField(formatter->_dateTemplateFromStyles, dateTemplateFromStyles);
+    
+    formatter->_modified = modified;
+    formatter->_useTemplate = useTemplate;
+    
+    __CFSetObjectField(formatter->_locale, locale);
+    __CFSetObjectField(formatter->_calendar, calendar);
+    __CFSetObjectField(formatter->_timeZone, timeZone);
+    
+    UNLOCK();
+}
+
+void _CFDateIntervalFormatterCopyCoderValues(CFDateIntervalFormatterRef formatter,
+                                             int64_t *dateStyle,
+                                             int64_t *timeStyle,
+                                             CFStringRef _Nullable *dateTemplate,
+                                             CFStringRef _Nullable *dateTemplateFromStyles,
+                                             bool *modified,
+                                             bool *useTemplate,
+                                             CFLocaleRef _Nullable *locale,
+                                             CFCalendarRef _Nullable *calendar,
+                                             CFTimeZoneRef _Nullable *timeZone) {
+    LOCK();
+    
+    *dateStyle = formatter->_dateStyle;
+    *timeStyle = formatter->_timeStyle;
+    *dateTemplate = __CFRetainIfNotNull(formatter->_dateTemplate);
+    *dateTemplateFromStyles = __CFRetainIfNotNull(formatter->_dateTemplateFromStyles);
+    *modified = formatter->_modified;
+    *useTemplate = formatter->_useTemplate;
+    *locale = __CFRetainIfNotNull(formatter->_locale);
+    *calendar = (CFCalendarRef)__CFRetainIfNotNull(formatter->_calendar);
+    *timeZone = __CFRetainIfNotNull(formatter->_timeZone);
+    
+    UNLOCK();
 }
 
 CFDateIntervalFormatterRef CFDateIntervalFormatterCreateCopy(CFAllocatorRef _Nullable allocator, CFDateIntervalFormatterRef formatter) {
@@ -294,7 +366,7 @@ void CFDateIntervalFormatterSetLocale(CFDateIntervalFormatterRef formatter, CFLo
 
 CFCalendarRef CFDateIntervalFormatterCopyCalendar(CFDateIntervalFormatterRef formatter) {
     LOCK();
-    CFCalendarRef calendar = formatter->_calendar;
+    CFCalendarRef calendar = (CFCalendarRef)__CFRetainIfNotNull(formatter->_calendar);
     if (!calendar) {
         if (formatter->_locale) {
             calendar = (CFCalendarRef)CFLocaleGetValue(formatter->_locale, kCFLocaleCalendar);

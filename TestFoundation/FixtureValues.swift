@@ -16,6 +16,15 @@
 
 // -----
 
+extension Calendar {
+    static var neutral: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.locale = NSLocale.system
+        return calendar
+    }
+}
+
 enum Fixtures {
     static let mutableAttributedString = TypedFixture<NSMutableAttributedString>("NSMutableAttributedString") {
         let string = NSMutableAttributedString(string: "0123456789")
@@ -70,14 +79,75 @@ enum Fixtures {
         return f
     }
     
+    // ===== DateIntervalFormatter =====
+    
+    static let dateIntervalFormatterDefault = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-Default") {
+        let dif = DateIntervalFormatter()
+        
+        let calendar = Calendar.neutral
+        
+        dif.calendar = calendar
+        dif.timeZone = calendar.timeZone
+        dif.locale = calendar.locale
+        
+        return dif
+    }
+    
+    static let dateIntervalFormatterValuesSetWithoutTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithoutTemplate") {
+        
+        let dif = DateIntervalFormatter()
+        
+        var calendar = Calendar.neutral
+        calendar.locale = Locale(identifier: "ja-JP")
+        
+        dif.calendar = calendar
+        dif.timeZone = calendar.timeZone
+        dif.locale = calendar.locale
+        dif.dateStyle = .long
+        dif.timeStyle = .none
+        dif.timeZone = TimeZone(secondsFromGMT: 60 * 60)
+        
+        return dif
+    }
+    
+    static let dateIntervalFormatterValuesSetWithTemplate = TypedFixture<DateIntervalFormatter>("DateIntervalFormatter-ValuesSetWithTemplate") {
+        
+        let dif = DateIntervalFormatter()
+
+        var calendar = Calendar.neutral
+        calendar.locale = Locale(identifier: "ja-JP")
+
+        dif.calendar = calendar
+        dif.timeZone = calendar.timeZone
+        dif.locale = calendar.locale
+        dif.dateTemplate = "dd mm yyyy HH:MM"
+        dif.timeZone = TimeZone(secondsFromGMT: 60 * 60)
+        
+        return dif
+    }
+    
     // ===== Fixture list =====
     
-    static let all: [AnyFixture] = [
+    static let _listOfAllFixtures: [AnyFixture] = [
         AnyFixture(Fixtures.mutableAttributedString),
         AnyFixture(Fixtures.attributedString),
         AnyFixture(Fixtures.byteCountFormatterDefault),
         AnyFixture(Fixtures.byteCountFormatterAllFieldsSet),
+        AnyFixture(Fixtures.dateIntervalFormatterDefault),
+        AnyFixture(Fixtures.dateIntervalFormatterValuesSetWithTemplate),
+        AnyFixture(Fixtures.dateIntervalFormatterValuesSetWithoutTemplate),
     ]
+    
+    // This ensures that we do not have fixtures with duplicate identifiers:
+    
+    static var all: [AnyFixture] {
+        return Array(Fixtures.allFixturesByIdentifier.values)
+    }
+    
+    static var allFixturesByIdentifier: [String: AnyFixture] = {
+        let keysAndValues = Fixtures._listOfAllFixtures.map { ($0.identifier, $0) }
+        return Dictionary(keysAndValues, uniquingKeysWith: { _, _ in fatalError("No two keys should be the same in fixtures. Double-check keys in FixtureValues.swift to make sure they're all unique.") })
+    }()
 }
 
 // -----

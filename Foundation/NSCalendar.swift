@@ -174,16 +174,23 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
 
         self.init(identifier: NSCalendar.Identifier.init(rawValue: calendarIdentifier._swiftObject))
 
-        if let timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone") {
-            self.timeZone = timeZone._swiftObject
+        if aDecoder.containsValue(forKey: "NS.timezone") {
+            if let timeZone = aDecoder.decodeObject(of: NSTimeZone.self, forKey: "NS.timezone") {
+                self.timeZone = timeZone._swiftObject
+            }
         }
-        if let locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale") {
-            self.locale = locale._swiftObject
+        if aDecoder.containsValue(forKey: "NS.locale") {
+            if let locale = aDecoder.decodeObject(of: NSLocale.self, forKey: "NS.locale") {
+                self.locale = locale._swiftObject
+            }
         }
         self.firstWeekday = aDecoder.decodeInteger(forKey: "NS.firstwkdy")
         self.minimumDaysInFirstWeek = aDecoder.decodeInteger(forKey: "NS.mindays")
-        if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
-            self.gregorianStartDate = startDate._swiftObject
+        
+        if aDecoder.containsValue(forKey: "NS.gstartdate") {
+            if let startDate = aDecoder.decodeObject(of: NSDate.self, forKey: "NS.gstartdate") {
+                self.gregorianStartDate = startDate._swiftObject
+            }
         }
     }
     

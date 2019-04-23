@@ -66,6 +66,28 @@ CF_EXPORT CFStringRef CFDateIntervalFormatterCreateStringFromDateInterval(CFDate
 CF_EXPORT _CFDateIntervalFormatterBoundaryStyle _CFDateIntervalFormatterGetBoundaryStyle(CFDateIntervalFormatterRef formatter);
 CF_EXPORT void _CFDateIntervalFormatterSetBoundaryStyle(CFDateIntervalFormatterRef formatter, _CFDateIntervalFormatterBoundaryStyle boundaryStyle);
 
+CF_EXPORT void _CFDateIntervalFormatterInitializeFromCoderValues(CFDateIntervalFormatterRef formatter,
+                                                                 int64_t dateStyle,
+                                                                 int64_t timeStyle,
+                                                                 CFStringRef _Nullable dateTemplate,
+                                                                 CFStringRef _Nullable dateTemplateFromStyles,
+                                                                 bool modified,
+                                                                 bool useTemplate,
+                                                                 CFLocaleRef _Nullable locale,
+                                                                 CFCalendarRef _Nullable calendar,
+                                                                 CFTimeZoneRef _Nullable timeZone);
+
+CF_EXPORT void _CFDateIntervalFormatterCopyCoderValues(CFDateIntervalFormatterRef formatter,
+                                                       int64_t *dateStyle,
+                                                       int64_t *timeStyle,
+                                                       CFStringRef _Nullable *_Nonnull dateTemplate,
+                                                       CFStringRef _Nullable *_Nonnull dateTemplateFromStyles,
+                                                       bool *modified,
+                                                       bool *useTemplate,
+                                                       CFLocaleRef _Nullable *_Nonnull locale,
+                                                       CFCalendarRef _Nullable *_Nonnull calendar,
+                                                       CFTimeZoneRef _Nullable *_Nonnull timeZone);
+
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END

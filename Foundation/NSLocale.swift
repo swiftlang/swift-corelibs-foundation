@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-open class NSLocale: NSObject, NSCopying, NSSecureCoding {
+open class NSLocale: NSObject, NSCopying, NSSecureCoding, _CFBridgeable {
     typealias CFType = CFLocale
     private var _base = _CFInfo(typeID: CFLocaleGetTypeID())
     private var _identifier: UnsafeMutableRawPointer? = nil

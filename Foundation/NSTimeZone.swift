@@ -42,8 +42,14 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
 #endif
         }
 #endif
+        
         super.init()
-        if !_CFTimeZoneInit(_cfObject, tzName._cfObject, aData?._cfObject) {
+        
+        /* From https://developer.apple.com/documentation/foundation/nstimezone/1387250-init:
+         "Discussion
+         As of macOS 10.6, the underlying implementation of this method has been changed to ignore the specified data parameter."
+         */
+        if !_CFTimeZoneInit(_cfObject, tzName._cfObject, nil) {
             return nil
         }
     }
