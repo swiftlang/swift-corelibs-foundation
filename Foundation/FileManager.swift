@@ -361,7 +361,7 @@ open class FileManager : NSObject {
 
 #if os(Windows)
         result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        let type = FileAttributeType(attributes: try windowsFileAttributes(atPath: path))
+        let type = FileAttributeType(attributes: try windowsFileAttributes(atPath: path), atPath: path)
 #else
         if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
             let name = String(cString: pwd.pointee.pw_name)
@@ -937,18 +937,33 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
     }
 
 #if os(Windows)
-    internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA) {
+    internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA, atPath path: String) {
       if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
         self = .typeDirectory
       } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DEVICE) == DWORD(FILE_ATTRIBUTE_DEVICE) {
         self = .typeCharacterSpecial
       } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-        // FIXME(compnerd) this is a lie!  It may be a junction or a hard link
-        self = .typeSymbolicLink
-      } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_NORMAL) == DWORD(FILE_ATTRIBUTE_NORMAL) {
-        self = .typeRegular
+        // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
+        let fileHandle = path.withCString(encodedAs: UTF16.self) {
+          CreateFileW(/*lpFileName=*/$0,
+                      /*dwDesiredAccess=*/DWORD(0),
+                      /*dwShareMode=*/DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE),
+                      /*lpSecurityAttributes=*/nil,
+                      /*dwCreationDisposition=*/DWORD(OPEN_EXISTING),
+                      /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
+                      /*hTemplateFile=*/nil)
+        }
+        var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
+        guard 0 != GetFileInformationByHandleEx(fileHandle,
+                                                FileAttributeTagInfo,
+                                                &tagInfo,
+                                                DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
+          self = .typeUnknown
+          return
+        }
+        self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
       } else {
-        self = .typeUnknown
+        self = .typeRegular
       }
     }
 #else
