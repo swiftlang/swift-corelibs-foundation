@@ -21,7 +21,7 @@ _ = signal(SIGPIPE, SIG_IGN)
 #endif
 
 // For the Swift version of the Foundation tests, we must manually list all test cases here.
-XCTMain([
+var allTestCases = [
     testCase(TestAffineTransform.allTests),
     testCase(TestNSArray.allTests),
     testCase(TestBundle.allTests),
@@ -80,7 +80,7 @@ XCTMain([
     testCase(TestNSTextCheckingResult.allTests),
     testCase(TestTimer.allTests),
     testCase(TestTimeZone.allTests),
-    testCase(TestURL.allTests),
+    /* ⚠️ */ // testCase(TestURL.allTests),
     testCase(TestURLComponents.allTests),
     testCase(TestURLCredential.allTests),
     testCase(TestURLProtectionSpace.allTests),
@@ -112,4 +112,10 @@ XCTMain([
     testCase(TestDimension.allTests),
     testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
-])
+]
+
+appendTestCaseExpectedToFail("TestURL is not deleting its temporary directory correctly. https://bugs.swift.org/browse/SR-10538",
+                             TestURL.allTests,
+                             into: &allTestCases)
+
+XCTMain(allTestCases)

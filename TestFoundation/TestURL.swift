@@ -244,29 +244,29 @@ class TestURL : XCTestCase {
 
         do {
           try FileManager.default.removeItem(atPath: gFileDoesNotExistPath)
-        } catch let error as NSError {
+        } catch {
           // The error code is a CocoaError
-          if error.code != CocoaError.fileNoSuchFile.rawValue {
+          if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
             return false
           }
         }
 
         do {
           try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
-        } catch let error as NSError {
-          // The error code is a CocoaError
-          if error.code != CocoaError.fileWriteFileExists.rawValue {
-            return false
-          }
+        } catch {
+            // The error code is a CocoaError
+            if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+                return false
+            }
         }
 
         do {
           try FileManager.default.removeItem(atPath: gDirectoryDoesNotExistPath)
-        } catch let error as NSError {
-          // The error code is a CocoaError
-          if error.code != CocoaError.fileNoSuchFile.rawValue {
-            return false
-          }
+        } catch {
+            // The error code is a CocoaError
+            if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+                return false
+            }
         }
 
         #if os(Android)
