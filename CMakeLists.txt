@@ -302,6 +302,7 @@ add_swift_library(Foundation
                     $<$<PLATFORM_ID:Windows>:-lWS2_32>
                     $<$<PLATFORM_ID:Windows>:-liphlpapi>
                     $<$<PLATFORM_ID:Windows>:-lpathcch>
+                    $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     ${deployment_enable_libdispatch}
