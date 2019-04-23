@@ -673,13 +673,40 @@ class TestJSONEncoder : XCTestCase {
         XCTAssertEqual(jsonObject["this_is_a_double"] as? Double, 12)
         XCTAssertEqual(jsonObject["this_is_a_date"] as? String, "1970-01-01T00:00:00Z")
         XCTAssertEqual(jsonObject["this_is_an_array"] as? [Int], [1, 2, 3])
-        XCTAssertEqual(jsonObject["this_is_a_dictionary"] as? [String: Bool], ["true_value": true, "false_value": false ])
+        XCTAssertEqual(jsonObject["this_is_a_dictionary"] as? [String: Bool], ["trueValue": true, "falseValue": false ])
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .iso8601
         let decodedData = try decoder.decode(MyTestData.self, from: encodedData)
         XCTAssertEqual(data, decodedData)
+    }
+
+    func test_dictionary_snake_case_decoding() throws {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        let snakeCaseJSONData = """
+        {
+            "snake_case_key": {
+                "nested_dictionary": 1
+            }
+        }
+        """.data(using: .utf8)!
+        let decodedDictionary = try decoder.decode([String: [String: Int]].self, from: snakeCaseJSONData)
+        let expectedDictionary = ["snake_case_key": ["nested_dictionary": 1]]
+        XCTAssertEqual(decodedDictionary, expectedDictionary)
+    }
+
+    func test_dictionary_snake_case_encoding() throws {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let camelCaseDictionary = ["camelCaseKey": ["nested_dictionary": 1]]
+        let encodedData = try encoder.encode(camelCaseDictionary)
+        guard let jsonObject = try JSONSerialization.jsonObject(with: encodedData) as? [String: [String: Int]] else {
+            XCTFail("Cant decode json object")
+            return
+        }
+        XCTAssertEqual(jsonObject, camelCaseDictionary)
     }
 
     // MARK: - Helper Functions
@@ -1275,6 +1302,8 @@ extension TestJSONEncoder {
             ("test_codingOfURL", test_codingOfURL),
             ("test_numericLimits", test_numericLimits),
             ("test_snake_case_encoding", test_snake_case_encoding),
+            ("test_dictionary_snake_case_encoding", test_dictionary_snake_case_encoding),
+            ("test_dictionary_snake_case_decoding", test_dictionary_snake_case_decoding),
         ]
     }
 }
