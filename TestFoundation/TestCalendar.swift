@@ -25,6 +25,7 @@ class TestCalendar: XCTestCase {
             ("test_ampmSymbols", test_ampmSymbols),
             ("test_currentCalendarRRstability", test_currentCalendarRRstability),
             ("test_hashing", test_hashing),
+            ("test_dateFromDoesntMutate", test_dateFromDoesntMutate),
         ]
     }
     
@@ -226,6 +227,32 @@ class TestCalendar: XCTestCase {
             Calendar.current,
         ]
         checkHashable(calendars2, equalityOracle: { $0 == $1 })
+    }
+
+    func test_dateFromDoesntMutate() throws {
+        // Check that date(from:) does not change the timeZone of the calendar
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        df.timeZone = try TimeZone(identifier: "UTC").unwrapped()
+
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.timeZone = try TimeZone(secondsFromGMT: 0).unwrapped()
+
+        let calendarCopy = calendar
+        XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
+        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+
+        let dc = try calendarCopy.dateComponents(in: TimeZone(identifier: "America/New_York").unwrapped(), from: df.date(from: "2019-01-01").unwrapped())
+        XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
+        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+
+        let dt = try calendarCopy.date(from: dc).unwrapped()
+        XCTAssertEqual(dt.description, "2019-01-01 00:00:00 +0000")
+        XCTAssertEqual(calendarCopy.timeZone.identifier, "GMT")
+        XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
+        XCTAssertEqual(calendarCopy.timeZone, calendar.timeZone)
+        XCTAssertEqual(calendarCopy, calendar)
     }
 }
 
