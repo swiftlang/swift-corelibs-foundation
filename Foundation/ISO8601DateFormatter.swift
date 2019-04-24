@@ -81,10 +81,11 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     
     public required init?(coder aDecoder: NSCoder) {
         guard aDecoder.allowsKeyedCoding else {
-            fatalError("ISO8601DateFormatter cannot be decoded by non-keyed archivers")
+            fatalError("Decoding ISO8601DateFormatter requires a coder that allows keyed coding")
         }
         
-        let options = Options(rawValue: UInt(aDecoder.decodeInteger(forKey: "NS.formatOptions")))
+        self.formatOptions = Options(rawValue: UInt(aDecoder.decodeInteger(forKey: "NS.formatOptions")))
+        
         let timeZone: NSTimeZone?
         
         if aDecoder.containsValue(forKey: "NS.timeZone") {
@@ -98,7 +99,6 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
             timeZone = nil
         }
         
-        self.formatOptions = options
         if let zone = timeZone?._swiftObject {
             self.timeZone = zone
         }
@@ -108,7 +108,7 @@ open class ISO8601DateFormatter : Formatter, NSSecureCoding {
     
     open override func encode(with aCoder: NSCoder) {
         guard aCoder.allowsKeyedCoding else {
-            fatalError("Encoder does not allow key encoding")
+            fatalError("Encoding ISO8601DateFormatter requires a coder that allows keyed coding")
         }
         
         aCoder.encode(Int(formatOptions.rawValue), forKey: "NS.formatOptions")
