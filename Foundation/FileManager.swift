@@ -679,17 +679,75 @@ open class FileManager : NSObject {
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
         return _contentsEqual(atPath: path1, andPath: path2)
     }
+    
+    // For testing only: this facility pins the language used by displayName to the passed-in language.
+    private var _overriddenDisplayNameLanguages: [String]? = nil
+    internal func _overridingDisplayNameLanguages<T>(with languages: [String], within body: () throws -> T) rethrows -> T {
+        let old = _overriddenDisplayNameLanguages
+        defer { _overriddenDisplayNameLanguages = old }
+        
+        _overriddenDisplayNameLanguages = languages
+        return try body()
+    }
+    
+    private var _preferredLanguages: [String] {
+        return _overriddenDisplayNameLanguages ?? Locale.preferredLanguages
+    }
 
     /* displayNameAtPath: returns an NSString suitable for presentation to the user. For directories which have localization information, this will return the appropriate localized string. This string is not suitable for passing to anything that must interact with the filesystem.
      */
     open func displayName(atPath path: String) -> String {
-        NSUnimplemented()
+        
+        let url = URL(fileURLWithPath: path)
+        let name = url.lastPathComponent
+        let nameWithoutExtension = url.deletingPathExtension().lastPathComponent
+        
+        // https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemAdvancedPT/LocalizingtheNameofaDirectory/LocalizingtheNameofaDirectory.html
+        // This localizes a X.localized directory:
+        
+        if url.pathExtension == "localized" {
+            let dotLocalized = url.appendingPathComponent(".localized")
+            var isDirectory: ObjCBool = false
+            if fileExists(atPath: dotLocalized.path, isDirectory: &isDirectory),
+                isDirectory.boolValue {
+                for language in _preferredLanguages {
+                    let stringsFile = dotLocalized.appendingPathComponent(language).appendingPathExtension("strings")
+                    if let data = try? Data(contentsOf: stringsFile),
+                       let plist = (try? PropertyListSerialization.propertyList(from: data, format: nil)) as? NSDictionary {
+                            
+                        let localizedName = (plist[nameWithoutExtension] as? NSString)?._swiftObject
+                        return localizedName ?? nameWithoutExtension
+                            
+                    }
+                }
+                
+                // If we get here and we don't have a good name for this, still hide the extension:
+                return nameWithoutExtension
+            }
+        }
+        
+        // We do not have the bundle resources to map the names of system directories with .localized files on Darwin, and system directories do not exist on other platforms, so just skip that on swift-corelibs-foundation:
+        
+        // URL resource values are not yet implemented: https://bugs.swift.org/browse/SR-10365
+        // return (try? url.resourceValues(forKeys: [.hasHiddenExtensionKey]))?.hasHiddenExtension == true ? nameWithoutExtension : name
+        
+        return name
     }
     
     /* componentsToDisplayForPath: returns an NSArray of display names for the path provided. Localization will occur as in displayNameAtPath: above. This array cannot and should not be reassembled into an usable filesystem path for any kind of access.
      */
     open func componentsToDisplay(forPath path: String) -> [String]? {
-        NSUnimplemented()
+        var url = URL(fileURLWithPath: path)
+        var count = url.pathComponents.count
+        
+        var result: [String] = []
+        while count > 0 {
+            result.insert(displayName(atPath: url.path), at: 0)
+            url = url.deletingLastPathComponent()
+            count -= 1
+        }
+        
+        return result
     }
     
     /* enumeratorAtPath: returns an NSDirectoryEnumerator rooted at the provided path. If the enumerator cannot be created, this returns NULL. Because NSDirectoryEnumerator is a subclass of NSEnumerator, the returned object can be used in the for...in construct.

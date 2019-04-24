@@ -1432,6 +1432,85 @@ VIDEOS=StopgapVideos
         XCTAssertEqual(relationship, .same)
     }
     
+    func test_displayNames() throws {
+        /* a/
+           a/Test.localized (with a ./.localized/ subdirectory and strings file);
+           a/Test.localized/b
+        */
+        
+        let a = writableTestDirectoryURL.appendingPathComponent("a")
+        let a_Test = a.appendingPathComponent("Test.localized")
+        let a_Test_dotLocalized = a_Test.appendingPathComponent(".localized")
+        let a_Test_dotLocalized_enStrings = a_Test_dotLocalized.appendingPathComponent("en.strings")
+        let a_Test_dotLocalized_itStrings = a_Test_dotLocalized.appendingPathComponent("it.strings")
+        let a_Test_b = a_Test.appendingPathComponent("b")
+        
+        let fm = FileManager.default
+        try fm.createDirectory(at: a, withIntermediateDirectories: true)
+        try fm.createDirectory(at: a_Test, withIntermediateDirectories: true)
+        try fm.createDirectory(at: a_Test_dotLocalized, withIntermediateDirectories: true)
+        try Data("\"Test\" = \"Test\";".utf8).write(to: a_Test_dotLocalized_enStrings)
+        try Data("\"Test\" = \"Prova\";".utf8).write(to: a_Test_dotLocalized_itStrings)
+        try fm.createDirectory(at: a_Test_b, withIntermediateDirectories: true)
+
+        XCTAssertEqual(fm.displayName(atPath: a.path), "a")
+        
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        fm._overridingDisplayNameLanguages(with: ["en", "es", "it"]) {
+            XCTAssertEqual(fm.displayName(atPath: a_Test.path), "Test")
+        }
+        fm._overridingDisplayNameLanguages(with: ["it", "en", "es"]) {
+            XCTAssertEqual(fm.displayName(atPath: a_Test.path), "Prova")
+        }
+        fm._overridingDisplayNameLanguages(with: ["es", "it", "en"]) {
+            XCTAssertEqual(fm.displayName(atPath: a_Test.path), "Prova")
+        }
+        #endif
+        
+        do {
+            let components = try fm.componentsToDisplay(forPath: a.path).unwrapped()
+            XCTAssertGreaterThanOrEqual(components.count, 2)
+            XCTAssertEqual(components.last, "a")
+        }
+        
+        do {
+            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            let components = try fm._overridingDisplayNameLanguages(with: ["it"]) {
+                return try fm.componentsToDisplay(forPath: a_Test.path).unwrapped()
+            }
+            #else
+            let components = try fm.componentsToDisplay(forPath: a_Test.path).unwrapped()
+            #endif
+            
+            XCTAssertGreaterThanOrEqual(components.count, 3)
+            XCTAssertEqual(components[components.count - 2], "a")
+            
+            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            XCTAssertEqual(components.last, "Prova")
+            #endif
+        }
+        
+        do {
+            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            let components = try fm._overridingDisplayNameLanguages(with: ["en"]) {
+                return try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
+            }
+            #else
+            let components = try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
+            #endif
+            
+            XCTAssertGreaterThanOrEqual(components.count, 4)
+            XCTAssertEqual(components[components.count - 3], "a")
+            
+            #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+            XCTAssertEqual(components[components.count - 2], "Test")
+            #endif
+            
+            XCTAssertEqual(components.last, "b")
+        }
+        
+    }
+    
     // -----
     
     var writableTestDirectoryURL: URL!
@@ -1483,6 +1562,7 @@ VIDEOS=StopgapVideos
             ("test_copyItemsPermissions", test_copyItemsPermissions),
             ("test_emptyFilename", test_emptyFilename),
             ("test_getRelationship", test_getRelationship),
+            ("test_displayNames", test_displayNames),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
