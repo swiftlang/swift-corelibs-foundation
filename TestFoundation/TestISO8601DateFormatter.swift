@@ -102,7 +102,6 @@ class TestISO8601DateFormatter: XCTestCase {
         isoFormatter.formatOptions = [.withMonth, .withDay, .withWeekOfYear, .withDashSeparatorInDate]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40-06")
 
-#if !os(Android)
         /*
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
          */
@@ -144,7 +143,6 @@ class TestISO8601DateFormatter: XCTestCase {
 
         isoFormatter.formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone, .withDashSeparatorInDate]
         XCTAssertEqual(isoFormatter.string(from: someDateTime), "10-W40-06-07:00")
-#endif
     }
     
     
@@ -261,7 +259,6 @@ class TestISO8601DateFormatter: XCTestCase {
         formatOptions = [.withMonth, .withDay, .withWeekOfYear, .withDashSeparatorInDate]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: timeZone, formatOptions: formatOptions), "10-W40-06")
 
-#if !os(Android)
         /*
          The following tests cover various cases when changing the .formatOptions property with a different TimeZone set.
          */
@@ -306,7 +303,6 @@ class TestISO8601DateFormatter: XCTestCase {
 
         formatOptions = [.withDay, .withWeekOfYear, .withMonth, .withTimeZone, .withColonSeparatorInTimeZone, .withDashSeparatorInDate]
         XCTAssertEqual(ISO8601DateFormatter.string(from: someDateTime, timeZone: pstTimeZone, formatOptions: formatOptions), "10-W40-06-07:00")
-#endif
     }
 
     let fixtures = [
