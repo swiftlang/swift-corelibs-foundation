@@ -215,7 +215,7 @@ extension Fixture where ValueType: NSObject & NSCoding {
         decoder.decodingFailurePolicy = .setErrorAndReturn
         unarchiverSetup(decoder)
         
-        let object = decoder.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? ValueType
+        let object = decoder.decodeObject(of: ValueType.self, forKey: NSKeyedArchiveRootObjectKey)
         
         XCTAssertNil(decoder.error)
         if let object = object {
