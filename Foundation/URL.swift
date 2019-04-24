@@ -418,6 +418,13 @@ public struct URLResourceValues {
 
 }
 
+private class URLBox {
+    let url: NSURL
+    init(url: NSURL) {
+        self.url = url
+    }
+}
+
 /**
  A URL is a type that can potentially contain the location of a resource on a remote server, the path of a local file on disk, or even an arbitrary piece of encoded data.
  
@@ -427,7 +434,60 @@ public struct URLResourceValues {
 */
 public struct URL : ReferenceConvertible, Equatable {
     public typealias ReferenceType = NSURL
-    fileprivate var _url : NSURL
+    
+    private enum Storage {
+        case directImmutable(NSURL)
+        case boxedRequiresCopyOnWrite(URLBox)
+        
+        func copy() -> Storage {
+            switch self {
+            case .directImmutable(_): return self
+            case .boxedRequiresCopyOnWrite(let box): return .boxedRequiresCopyOnWrite(URLBox(url: box.url.copy() as! NSURL))
+            }
+        }
+        
+        var readableURL: NSURL {
+            switch self {
+            case .directImmutable(let url): return url
+            case .boxedRequiresCopyOnWrite(let box): return box.url
+            }
+        }
+        
+        mutating func fetchOrCreateMutableURL() -> NSURL {
+            switch self {
+            case .directImmutable(let url): return url
+            case .boxedRequiresCopyOnWrite(let storage):
+                var box = storage
+                if isKnownUniquelyReferenced(&box) {
+                    return box.url
+                } else {
+                    self = copy()
+                    return self.readableURL
+                }
+            }
+        }
+        
+        init(_ url: NSURL) {
+            if url.isFileURL {
+                self = .boxedRequiresCopyOnWrite(URLBox(url: url))
+            } else {
+                self = .directImmutable(url)
+            }
+        }
+    }
+    
+    private var _storage: Storage!
+    fileprivate var _url : NSURL {
+        get {
+            return _storage.readableURL
+        }
+        set {
+            _storage = Storage(newValue)
+        }
+    }
+    fileprivate var _writableURL: NSURL {
+        mutating get { return _storage.fetchOrCreateMutableURL() }
+    }
 
     /// Initialize with string.
     ///
@@ -853,7 +913,7 @@ public struct URL : ReferenceConvertible, Equatable {
     ///
     /// `URLResourceValues` keeps track of which of its properties have been set. Those values are the ones used by this function to determine which properties to write.
     public mutating func setResourceValues(_ values: URLResourceValues) throws {
-        try _url.setResourceValues(values._values)
+        try _writableURL.setResourceValues(values._values)
     }
     
     /// Return a collection of resource values identified by the given resource keys.
@@ -873,21 +933,21 @@ public struct URL : ReferenceConvertible, Equatable {
     ///
     /// To remove a temporary resource value from the URL object, use `func removeCachedResourceValue(forKey:)`. Care should be taken to ensure the key that identifies a temporary resource value is unique and does not conflict with system defined keys (using reverse domain name notation in your temporary resource value keys is recommended). This method is currently applicable only to URLs for file system resources.
     public mutating func setTemporaryResourceValue(_ value : Any, forKey key: URLResourceKey) {
-        _url.setTemporaryResourceValue(value, forKey: key)
+        _writableURL.setTemporaryResourceValue(value, forKey: key)
     }
     
     /// Removes all cached resource values and all temporary resource values from the URL object.
     ///
     /// This method is currently applicable only to URLs for file system resources.
     public mutating func removeAllCachedResourceValues() {
-        _url.removeAllCachedResourceValues()
+        _writableURL.removeAllCachedResourceValues()
     }
     
     /// Removes the cached resource value identified by a given resource value key from the URL object.
     ///
     /// Removing a cached resource value may remove other cached resource values because some resource values are cached as a set of values, and because some resource values depend on other resource values (temporary resource values have no dependencies). This method is currently applicable only to URLs for file system resources.
     public mutating func removeCachedResourceValue(forKey key: URLResourceKey) {
-        _url.removeCachedResourceValue(forKey: key)
+        _writableURL.removeCachedResourceValue(forKey: key)
     }
     
     /// Returns whether the URL's resource exists and is reachable.

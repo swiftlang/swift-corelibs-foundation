@@ -15,6 +15,12 @@ internal let kCFURLPOSIXPathStyle = CFURLPathStyle.cfurlposixPathStyle
 internal let kCFURLWindowsPathStyle = CFURLPathStyle.cfurlWindowsPathStyle
 #endif
 
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
+
 // NOTE: this represents PLATFORM_PATH_STYLE
 #if os(Windows)
 internal let kCFURLPlatformPathStyle = kCFURLWindowsPathStyle
@@ -221,12 +227,35 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     internal var _range8 = NSRange(location: 0, length: 0)
     internal var _range9 = NSRange(location: 0, length: 0)
     
-    
     internal var _cfObject : CFType {
         if type(of: self) === NSURL.self {
             return unsafeBitCast(self, to: CFType.self)
         } else {
             return CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)
+        }
+    }
+    
+    var _resourceStorage: URLResourceValuesStorage? {
+        guard isFileURL else { return nil }
+        
+        if let storage = _resourceStorageIfPresent {
+            return storage
+        } else {
+            let me = unsafeBitCast(self, to: CFURL.self)
+            let initial = URLResourceValuesStorage()
+            let result = _CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(me, initial)
+            return Unmanaged<URLResourceValuesStorage>.fromOpaque(result).takeRetainedValue()
+        }
+    }
+    
+    var _resourceStorageIfPresent: URLResourceValuesStorage? {
+        guard isFileURL else { return nil }
+        
+        let me = unsafeBitCast(self, to: CFURL.self)
+        if let storage = _CFURLCopyResourceInfo(me) {
+            return Unmanaged<URLResourceValuesStorage>.fromOpaque(storage).takeRetainedValue()
+        } else {
+            return nil
         }
     }
     
@@ -256,7 +285,16 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        return self
+        if isFileURL {
+            let newURL = CFURLCreateWithString(kCFAllocatorSystemDefault, relativeString._cfObject, self.baseURL?._cfObject)!
+            if let storage = _resourceStorageIfPresent {
+                let newStorage = URLResourceValuesStorage(copying: storage)
+                _CFURLSetResourceInfo(newURL, newStorage)
+            }
+            return newURL._nsObject
+        } else {
+            return self
+        }
     }
     
     public static var supportsSecureCoding: Bool { return true }
@@ -296,7 +334,6 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     }
     
     public convenience init(fileURLWithPath path: String, relativeTo baseURL: URL?) {
-
         let thePath = _standardizedPath(path)
         
         var isDir: ObjCBool = false
@@ -360,6 +397,7 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
     
     public init(dataRepresentation data: Data, relativeTo baseURL: URL?) {
         super.init()
+        
         // _CFURLInitWithURLString does not fail if checkForLegalCharacters == false
         data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
             if let str = CFStringCreateWithBytes(kCFAllocatorSystemDefault, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), false) {
@@ -371,10 +409,12 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             }
         }
         
+        
     }
     
     public init(absoluteURLWithDataRepresentation data: Data, relativeTo baseURL: URL?) {
         super.init()
+        
         data.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
             if _CFURLInitAbsoluteURLWithBytes(_cfObject, ptr, data.count, CFStringEncoding(kCFStringEncodingUTF8), baseURL?._cfObject) {
                 return
@@ -628,12 +668,142 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         return CFURLGetTypeID()
     }
 
-    open func removeAllCachedResourceValues() { NSUnimplemented() }
-    open func removeCachedResourceValue(forKey key: URLResourceKey) { NSUnimplemented() }
-    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] { NSUnimplemented() }
-    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws { NSUnimplemented() }
-    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws { NSUnimplemented() }
-    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) { NSUnimplemented() }
+    open func removeAllCachedResourceValues() {
+        _resourceStorage?.removeAllCachedResourceValues()
+    }
+    open func removeCachedResourceValue(forKey key: URLResourceKey) {
+        _resourceStorage?.removeCachedResourceValue(forKey: key)
+    }
+    open  func getResourceValue(_ value: inout AnyObject?, forKey key: URLResourceKey) throws {
+        guard let storage = _resourceStorage else { value = nil; return }
+        try storage.getResourceValue(&value, forKey: key, url: self)
+    }
+    open func resourceValues(forKeys keys: [URLResourceKey]) throws -> [URLResourceKey : Any] {
+        guard let storage = _resourceStorage else { return [:] }
+        return try storage.resourceValues(forKeys: keys, url: self)
+    }
+    open func setResourceValue(_ value: Any?, forKey key: URLResourceKey) throws {
+        guard let storage = _resourceStorage else { return }
+        try storage.setResourceValue(value, forKey: key, url: self)
+    }
+    open func setResourceValues(_ keyedValues: [URLResourceKey : Any]) throws {
+        guard let storage = _resourceStorage else { return }
+        try storage.setResourceValues(keyedValues, url: self)
+    }
+    open func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) {
+        guard let storage = _resourceStorage else { return }
+        storage.setTemporaryResourceValue(value, forKey: key)
+    }
+}
+
+internal class URLResourceValuesStorage: NSObject {
+    let valuesCacheLock = NSLock()
+    var valuesCache: [URLResourceKey: Any] = [:]
+    
+    func removeAllCachedResourceValues() {
+        valuesCacheLock.lock()
+        defer { valuesCacheLock.unlock() }
+        
+        valuesCache = [:]
+    }
+    
+    func removeCachedResourceValue(forKey key: URLResourceKey) {
+        valuesCacheLock.lock()
+        defer { valuesCacheLock.unlock() }
+        
+        valuesCache.removeValue(forKey: key)
+    }
+    
+    func setTemporaryResourceValue(_ value: Any?, forKey key: URLResourceKey) {
+        valuesCacheLock.lock()
+        defer { valuesCacheLock.unlock() }
+        
+        if let value = value {
+            valuesCache[key] = value
+        } else {
+            valuesCache.removeValue(forKey: key)
+        }
+    }
+    
+    func getResourceValue(_ value: inout AnyObject?,
+                          forKey key: URLResourceKey, url: NSURL) throws {
+        let cached = valuesCacheLock.synchronized {
+            return valuesCache[key]
+        }
+        
+        if let cached = cached {
+            value = __SwiftValue.store(cached)
+            return
+        }
+        
+        let fetchedValues = try read([key], for: url)
+        if let fetched = fetchedValues[key] {
+            valuesCacheLock.synchronized {
+                valuesCache[key] = fetched
+            }
+            value = __SwiftValue.store(fetched)
+        } else {
+            value = nil
+        }
+    }
+    
+    func resourceValues(forKeys keys: [URLResourceKey], url: NSURL) throws -> [URLResourceKey : Any] {
+        
+        var result: [URLResourceKey : Any] = [:]
+        
+        var keysToFetch: [URLResourceKey] = []
+        valuesCacheLock.synchronized {
+            for key in keys {
+                if let value = valuesCache[key] {
+                    result[key] = value
+                } else {
+                    keysToFetch.append(key)
+                }
+            }
+        }
+        
+        if keysToFetch.count > 0 {
+            let found = try read(keysToFetch, for: url).compactMapValues { $0 }
+            
+            valuesCacheLock.synchronized {
+                valuesCache.merge(found, uniquingKeysWith: { $1 })
+            }
+            
+            result.merge(found, uniquingKeysWith: { $1 })
+        }
+        
+        return result
+    }
+    
+    func setResourceValue(_ value: Any?, forKey key: URLResourceKey, url: NSURL) throws {
+        try write([key: value], to: url)
+        
+        valuesCacheLock.lock()
+        defer { valuesCacheLock.unlock() }
+        
+        valuesCache[key] = value
+    }
+    
+    func setResourceValues(_ keyedValues: [URLResourceKey : Any], url: NSURL) throws {
+        try write(keyedValues, to: url)
+        
+        valuesCacheLock.lock()
+        defer { valuesCacheLock.unlock() }
+        
+        valuesCache.merge(keyedValues, uniquingKeysWith: { $1 })
+    }
+    
+    internal override init() {
+        super.init()
+    }
+    
+    internal init(copying storage: URLResourceValuesStorage) {
+        storage.valuesCacheLock.lock()
+        defer { storage.valuesCacheLock.unlock() }
+        
+        valuesCache = storage.valuesCache
+        super.init()
+    }
 }
 
 extension NSCharacterSet {
@@ -1317,3 +1487,588 @@ extension NSURLQueryItem : _StructTypeBridgeable {
     }
 }
 
+// -----
+
+internal func _CFSwiftURLCopyResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ valuePointer: UnsafeMutablePointer<Unmanaged<CFTypeRef>?>?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
+    do {
+        let key = URLResourceKey(rawValue: key._swiftObject)
+        let values = try unsafeBitCast(url, to: NSURL.self).resourceValues(forKeys: [ key ])
+        let value = values[key]
+        
+        if let value = value {
+            let result = __SwiftValue.store(value)
+            valuePointer?.pointee = .passRetained(unsafeBitCast(result, to: CFTypeRef.self))
+        } else {
+            valuePointer?.pointee = nil
+        }
+        
+        return true
+    } catch {
+        if let errorPointer = errorPointer {
+            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let cfError = Unmanaged.passRetained(nsError._cfObject)
+            errorPointer.pointee = cfError
+        }
+        return false
+    }
+}
+
+internal func _CFSwiftURLCopyResourcePropertiesForKeys(_ url: CFTypeRef, _ keys: CFArray, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> Unmanaged<CFDictionary>? {
+    do {
+        var swiftKeys: [URLResourceKey] = []
+        for nsKey in keys._swiftObject {
+            if let stringKey = nsKey as? String {
+                swiftKeys.append(URLResourceKey(rawValue: stringKey))
+            }
+        }
+        
+        let result = try unsafeBitCast(url, to: NSURL.self).resourceValues(forKeys: swiftKeys)
+        
+        let finalDictionary = NSMutableDictionary()
+        for entry in result {
+            finalDictionary[entry.key.rawValue._nsObject] = entry.value
+        }
+        
+        return .passRetained(finalDictionary._cfObject)
+    } catch {
+        if let errorPointer = errorPointer {
+            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let cfError = Unmanaged.passRetained(nsError._cfObject)
+            errorPointer.pointee = cfError
+        }
+        return nil
+    }
+}
+
+internal func _CFSwiftURLSetResourcePropertyForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef?, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
+    do {
+        let key = URLResourceKey(rawValue: key._swiftObject)
+        try unsafeBitCast(url, to: NSURL.self).setResourceValue(__SwiftValue.fetch(value), forKey: key)
+        
+        return true
+    } catch {
+        if let errorPointer = errorPointer {
+            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let cfError = Unmanaged.passRetained(nsError._cfObject)
+            errorPointer.pointee = cfError
+        }
+        
+        return false
+    }
+}
+
+internal func _CFSwiftURLSetResourcePropertiesForKeys(_ url: CFTypeRef, _ properties: CFDictionary, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
+    do {
+        var swiftValues: [URLResourceKey: Any] = [:]
+        let swiftProperties = properties._swiftObject
+        for entry in swiftProperties {
+            if let stringKey = entry.key as? String {
+                swiftValues[URLResourceKey(rawValue: stringKey)] = entry.value
+            }
+        }
+        
+        try unsafeBitCast(url, to: NSURL.self).setResourceValues(swiftValues)
+        return true
+    } catch {
+        if let errorPointer = errorPointer {
+            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let cfError = Unmanaged.passRetained(nsError._cfObject)
+            errorPointer.pointee = cfError
+        }
+        return false
+    }
+}
+
+internal func _CFSwiftURLClearResourcePropertyCacheForKey(_ url: CFTypeRef, _ key: CFString) {
+    let swiftKey = URLResourceKey(rawValue: key._swiftObject)
+    unsafeBitCast(url, to: NSURL.self).removeCachedResourceValue(forKey: swiftKey)
+}
+
+internal func _CFSwiftURLClearResourcePropertyCache(_ url: CFTypeRef) {
+    unsafeBitCast(url, to: NSURL.self).removeAllCachedResourceValues()
+}
+
+internal func _CFSwiftSetTemporaryResourceValueForKey(_ url: CFTypeRef, _ key: CFString, _ value: CFTypeRef) {
+    unsafeBitCast(url, to: NSURL.self).setTemporaryResourceValue(__SwiftValue.fetch(value), forKey: URLResourceKey(rawValue: key._swiftObject))
+}
+
+internal func _CFSwiftURLResourceIsReachable(_ url: CFTypeRef, _ errorPointer: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> _DarwinCompatibleBoolean {
+    do {
+        let reachable = try unsafeBitCast(url, to: NSURL.self).checkResourceIsReachable()
+        return reachable ? true : false
+    } catch {
+        if let errorPointer = errorPointer {
+            let nsError = (error as? NSError) ?? NSError(domain: NSCocoaErrorDomain, code: CocoaError.featureUnsupported.rawValue)
+            let cfError = Unmanaged.passRetained(nsError._cfObject)
+            errorPointer.pointee = cfError
+        }
+        return false
+    }
+}
+
+// MARK: Fetching URL resource values
+
+internal class _URLFileResourceIdentifier: NSObject {
+    let path: String
+    let inode: Int
+    let volumeIdentifier: Int
+    
+    init(path: String, inode: Int, volumeIdentifier: Int) {
+        self.path = path
+        self.inode = inode
+        self.volumeIdentifier = volumeIdentifier
+    }
+    
+    override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? _URLFileResourceIdentifier else {
+            return false
+        }
+        
+        return path == other.path || (inode == other.inode && volumeIdentifier == other.volumeIdentifier)
+    }
+    
+    override var hash: Int {
+        return path._nsObject.hashValue ^ inode ^ volumeIdentifier
+    }
+}
+
+fileprivate extension URLResourceValuesStorage {
+    func read(_ keys: [URLResourceKey], for url: NSURL) throws -> [URLResourceKey: Any?] {
+        var result: [URLResourceKey: Any?] = [:]
+        
+        let fm = FileManager.default
+        let path = url.path ?? ""
+        
+        // Memoized access to attributes:
+        
+        var fileAttributesStorage: [FileAttributeKey: Any]? = nil
+        func attributes() throws -> [FileAttributeKey: Any] {
+            if let storage = fileAttributesStorage {
+                return storage
+            } else {
+                let storage = try fm._attributesOfItem(atPath: path, includingPrivateAttributes: true)
+                fileAttributesStorage = storage
+                return storage
+            }
+        }
+        func attribute(_ fileAttributeKey: FileAttributeKey) throws -> Any? {
+            let attributeValues = try attributes()
+            return attributeValues[fileAttributeKey]
+        }
+        
+        // Memoized access to lstat:
+        
+        var urlStatStorage: stat?
+        func urlStat() throws -> stat {
+            if let storage = urlStatStorage {
+                return storage
+            } else {
+                let storage = try fm._lstatFile(atPath: path)
+                urlStatStorage = storage
+                return storage
+            }
+        }
+        
+        // Memoized access to volume URLs:
+        
+        var volumeURLsStorage: [URL]?
+        var volumeURLs: [URL] {
+            if let storage = volumeURLsStorage {
+                return storage
+            } else {
+                let storage = fm.mountedVolumeURLs(includingResourceValuesForKeys: nil) ?? []
+                volumeURLsStorage = storage
+                return storage
+            }
+        }
+        
+        var volumeAttributesStorage: [FileAttributeKey: Any]?
+        var blockSizeStorage: UInt64?
+        func volumeAttributes() throws -> [FileAttributeKey: Any] {
+            if let storage = volumeAttributesStorage {
+                return storage
+            } else {
+                let (storage, block) = try fm._attributesOfFileSystemIncludingBlockSize(forPath: path)
+                volumeAttributesStorage = storage
+                blockSizeStorage = block
+                return storage
+            }
+        }
+        func blockSize() throws -> UInt64? {
+            _ = try volumeAttributes()
+            return blockSizeStorage
+        }
+        func volumeAttribute(_ fileAttributeKey: FileAttributeKey) throws -> Any? {
+            let attributeValues = try volumeAttributes()
+            return attributeValues[fileAttributeKey]
+        }
+        
+        var volumeURLStorage: (searched: Bool, url: URL?)?
+        func volumeURL() throws -> URL? {
+            if let url = volumeURLStorage {
+                return url.url
+            }
+            
+            var foundURL: URL?
+            
+            for volumeURL in volumeURLs {
+                var relationship: FileManager.URLRelationship = .other
+                try fm.getRelationship(&relationship, ofDirectoryAt: volumeURL, toItemAt: url._swiftObject)
+                if relationship == .same || relationship == .contains {
+                    foundURL = volumeURL
+                    break
+                }
+            }
+            
+            volumeURLStorage = (searched: true, url: foundURL)
+            return foundURL
+        }
+        
+        for key in keys {
+            switch key {
+            case .nameKey:
+                result[key] = url.lastPathComponent
+            case .localizedNameKey:
+                result[key] = fm.displayName(atPath: path)
+            case .isRegularFileKey:
+                result[key] = try attribute(.type) as? FileAttributeType == FileAttributeType.typeRegular
+            case .isDirectoryKey:
+                result[key] = try attribute(.type) as? FileAttributeType == FileAttributeType.typeDirectory
+            case .isSymbolicLinkKey:
+                result[key] = try attribute(.type) as? FileAttributeType == FileAttributeType.typeSymbolicLink
+            case .isVolumeKey:
+                result[key] = volumeURLs.contains(url._swiftObject)
+            case .isPackageKey:
+                result[key] = try attribute(.type) as? FileAttributeType == FileAttributeType.typeDirectory && url.pathExtension != nil && url.pathExtension != ""
+            case .isApplicationKey:
+                #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+                result[key] = try attribute(.type) as? FileAttributeType == FileAttributeType.typeDirectory && url.pathExtension == "app"
+                #else
+                result[key] = false
+                #endif
+            case .applicationIsScriptableKey:
+                // Not supported.
+                break
+            case .isSystemImmutableKey:
+                result[key] = try attribute(._systemImmutable) as? Bool == true
+            case .isUserImmutableKey:
+                result[key] = try attribute(._userImmutable) as? Bool == true
+            case .isHiddenKey:
+                result[key] = try attribute(._hidden) as? Bool == true
+            case .hasHiddenExtensionKey:
+                result[key] = false // Most OSes do not have a way to record this.
+            case .creationDateKey:
+                result[key] = try attribute(.creationDate)
+            case .contentAccessDateKey:
+                result[key] = try attribute(._accessDate)
+            case .contentModificationDateKey:
+                result[key] = try attribute(.modificationDate)
+            case .attributeModificationDateKey:
+                // We do not support this in a cross-platform manner.
+                break
+            case .linkCountKey:
+                result[key] = Int(try urlStat().st_nlink)
+            case .parentDirectoryURLKey:
+                result[key] = url.deletingLastPathComponent
+            case .volumeURLKey:
+                result[key] = try volumeURL()
+                
+            case .fileResourceIdentifierKey:
+                result[key] = _URLFileResourceIdentifier(path: path, inode: Int(try urlStat().st_ino), volumeIdentifier: Int(try urlStat().st_dev))
+                
+            case .volumeIdentifierKey:
+                result[key] = try volumeAttribute(.systemNumber)
+                
+            case .preferredIOBlockSizeKey:
+                result[key] = try blockSize()
+                
+            case .isReadableKey:
+                result[key] = fm.isReadableFile(atPath: path)
+            case .isWritableKey:
+                result[key] = fm.isWritableFile(atPath: path)
+            case .isExecutableKey:
+                result[key] = fm.isExecutableFile(atPath: path)
+            case .pathKey:
+                result[key] = url.path
+            case .canonicalPathKey:
+                result[key] = try fm._canonicalizedPath(toFileAtPath: path)
+            case .fileResourceTypeKey:
+                result[key] = try attribute(.type)
+            case .totalFileSizeKey: fallthrough // FIXME: This should add the size of any metadata.
+            case .fileSizeKey:
+                result[key] = try attribute(.size)
+            case .totalFileAllocatedSizeKey: fallthrough // FIXME: This should add the size of any metadata.
+            case .fileAllocatedSizeKey:
+                let stat = try urlStat()
+                result[key] = Int(stat.st_blocks) * Int(stat.st_blksize)
+            case .isAliasFileKey:
+                // swift-corelibs-foundation does not support aliases and bookmarks.
+                break
+            case .volumeLocalizedFormatDescriptionKey:
+                // FIXME: This should have different names for different kinds of volumes, and be localized.
+                result[key] = "Volume"
+            case .volumeTotalCapacityKey:
+                result[key] = try volumeAttribute(.systemSize)
+            case .volumeAvailableCapacityKey:
+                result[key] = try volumeAttribute(.systemFreeSize)
+            case .volumeResourceCountKey:
+                result[key] = try volumeAttribute(.systemFileNumber)
+
+            // FIXME: swift-corelibs-foundation does not currently support querying this kind of filesystem information. We return reasonable assumptions for now, with the understanding that by noting support we are encouraging the application to try performing corresponding I/O operations (and handle those errors, which they already must) instead. Where those keys would inform I/O decisions that are not single operations, we assume conservatively.
+            case .volumeSupportsPersistentIDsKey:
+                result[key] = false
+            case .volumeSupportsSymbolicLinksKey:
+                result[key] = true
+            case .volumeSupportsHardLinksKey:
+                result[key] = true
+            case .volumeSupportsJournalingKey:
+                result[key] = false
+            case .volumeIsJournalingKey:
+                result[key] = false
+            case .volumeSupportsSparseFilesKey:
+                result[key] = false
+            case .volumeSupportsZeroRunsKey:
+                result[key] = false
+            case .volumeSupportsRootDirectoryDatesKey:
+                result[key] = true
+            case .volumeSupportsVolumeSizesKey:
+                result[key] = true
+            case .volumeSupportsRenamingKey:
+                result[key] = true
+            case .volumeSupportsAdvisoryFileLockingKey:
+                result[key] = false
+            case .volumeSupportsExtendedSecurityKey:
+                result[key] = false
+            case .volumeIsBrowsableKey:
+                result[key] = true
+            case .volumeIsReadOnlyKey:
+                result[key] = false
+            case .volumeCreationDateKey:
+                result[key] = try volumeAttribute(.creationDate)
+            case .volumeURLForRemountingKey:
+                result[key] = nil
+            case .volumeMaximumFileSizeKey: fallthrough
+            case .volumeIsEjectableKey: fallthrough
+            case .volumeIsRemovableKey: fallthrough
+            case .volumeIsInternalKey: fallthrough
+            case .volumeIsAutomountedKey: fallthrough
+            case .volumeIsLocalKey: fallthrough
+            case .volumeSupportsCaseSensitiveNamesKey: fallthrough
+            case .volumeUUIDStringKey: fallthrough
+            case .volumeIsEncryptedKey: fallthrough
+            case .volumeSupportsCompressionKey: fallthrough
+            case .volumeSupportsFileCloningKey: fallthrough
+            case .volumeSupportsSwapRenamingKey: fallthrough
+            case .volumeSupportsExclusiveRenamingKey: fallthrough
+            case .volumeSupportsCasePreservedNamesKey:
+                // Whatever we assume here, we may make problems for the implementation that relies on them; we just don't answer for now.
+                break
+                
+            case .volumeNameKey:
+                if let url = try volumeURL() {
+                    result[key] = url.lastPathComponent
+                }
+            case .volumeLocalizedNameKey:
+                if let url = try volumeURL() {
+                    result[key] = fm.displayName(atPath: url.path)
+                }
+                
+            case .volumeIsRootFileSystemKey:
+                #if !os(Windows)
+                if let url = try volumeURL() {
+                    result[key] = url.path == "/"
+                }
+                #endif
+                
+            case .isUbiquitousItemKey: fallthrough
+            case .ubiquitousItemHasUnresolvedConflictsKey: fallthrough
+            case .ubiquitousItemIsDownloadingKey: fallthrough
+            case .ubiquitousItemIsUploadedKey: fallthrough
+            case .ubiquitousItemIsUploadingKey: fallthrough
+            case .ubiquitousItemDownloadingStatusKey: fallthrough
+            case .ubiquitousItemDownloadingErrorKey: fallthrough
+            case .ubiquitousItemUploadingErrorKey: fallthrough
+            case .ubiquitousItemDownloadRequestedKey: fallthrough
+            case .ubiquitousItemContainerDisplayNameKey: fallthrough
+            case .fileSecurityKey: fallthrough
+            case .isExcludedFromBackupKey: fallthrough
+            case .tagNamesKey: fallthrough
+            case .typeIdentifierKey: fallthrough
+            case .localizedTypeDescriptionKey: fallthrough
+            case .labelNumberKey: fallthrough
+            case .labelColorKey: fallthrough
+            case .localizedLabelKey: fallthrough
+            case .effectiveIconKey: fallthrough
+            case .isMountTriggerKey: fallthrough
+            case .generationIdentifierKey: fallthrough
+            case .documentIdentifierKey: fallthrough
+            case .addedToDirectoryDateKey: fallthrough
+            case .quarantinePropertiesKey: fallthrough
+            case .thumbnailDictionaryKey: fallthrough
+            case .thumbnailKey: fallthrough
+            case .customIconKey:
+                // Not supported outside of Apple OSes.
+                break
+                
+            default:
+                break
+            }
+        }
+        
+        return result
+    }
+    
+    func write(_ keysAndValues: [URLResourceKey: Any?], to url: NSURL) throws {
+        // Keys we could support but don't yet (FIXME):
+        // .labelNumberKey, // Darwin only:
+        // .fileSecurityKey,
+        // .isExcludedFromBackupKey,
+        // .tagNamesKey,
+        // .quarantinePropertiesKey,
+        // .addedToDirectoryDateKey, // Most OSes do not have a separate stat()-able added-to-directory date.
+        // .volumeNameKey, // The way to set this is very system-dependent.
+        
+        var finalError: Error?
+        var unsuccessfulKeys = Set(keysAndValues.keys)
+        
+        let fm = FileManager.default
+        let path = url.path ?? ""
+        
+        let swiftURL = url._swiftObject
+        
+        var attributesToSet: [FileAttributeKey: Any] = [:]
+        var keysThatSucceedBySettingAttributes: Set<URLResourceKey> = []
+        
+        for key in keysAndValues.keys {
+            let value = keysAndValues[key]
+            do {
+                var succeeded = true
+                
+                func prepareToSetFileAttribute(_ attributeKey: FileAttributeKey, value: Any?) throws {
+                    if let value = value {
+                        attributesToSet[attributeKey] = value
+                        keysThatSucceedBySettingAttributes.insert(key)
+                    } else {
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+                    }
+                    
+                    succeeded = false
+                }
+
+                switch key {
+                    
+                case .isUserImmutableKey:
+                    try prepareToSetFileAttribute(._userImmutable, value: value as? Bool)
+
+                case .isSystemImmutableKey:
+                    try prepareToSetFileAttribute(._systemImmutable, value: value as? Bool)
+
+                case .hasHiddenExtensionKey:
+                    try prepareToSetFileAttribute(.extensionHidden, value: value as? Bool)
+                    
+                case .creationDateKey:
+                    try prepareToSetFileAttribute(.creationDate, value: value as? Date)
+                    
+                case .contentAccessDateKey:
+                    try prepareToSetFileAttribute(._accessDate, value: value as? Date)
+                    
+                case .contentModificationDateKey:
+                    try prepareToSetFileAttribute(.modificationDate, value: value as? Date)
+                    
+                case .isHiddenKey:
+                    try prepareToSetFileAttribute(._hidden, value: value as? Bool)
+                    
+                default:
+                    /* https://developer.apple.com/documentation/foundation/nsurl/1408208-setresourcevalues:
+                     Attempts to set a read-only resource property or to set a resource property that is not supported by the resource are ignored and are not considered errors.
+                     
+                     Properties swift-corelibs-foundation doesn't support are treated as if they are supported by no resource. */
+                    break
+                }
+                
+                if succeeded {
+                    unsuccessfulKeys.remove(key)
+                }
+            } catch {
+                finalError = error
+                break
+            }
+            
+            // _setAttributes(…) needs to figure out the correct order to apply these attributes in, so set them all together at the end.
+            if !attributesToSet.isEmpty {
+                try fm._setAttributes(attributesToSet, ofItemAtPath: path, includingPrivateAttributes: true)
+                unsuccessfulKeys.formUnion(keysThatSucceedBySettingAttributes)
+            }
+            
+            // The name must be set last, since otherwise the URL may be invalid.
+            if keysAndValues.keys.contains(.nameKey) {
+                if let value = keysAndValues[.nameKey] as? String {
+                    let destination = swiftURL.deletingLastPathComponent().appendingPathComponent(value)
+                    try fm.moveItem(at: swiftURL, to: destination)
+                    unsuccessfulKeys.remove(.nameKey)
+                } else {
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteInvalidFileName.rawValue)
+                }
+            }
+        }
+        
+        if let finalError = finalError {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue, userInfo: [
+                URLResourceKey.keysOfUnsetValuesKey.rawValue: Array(unsuccessfulKeys),
+                NSUnderlyingErrorKey: finalError,
+            ])
+        }
+    }
+}
+
+// -----
+
+internal extension Date {
+    #if !os(Windows) && !os(Android)
+    init(timespec: timespec) {
+        self.init(timeIntervalSince1970: TimeInterval(timespec.tv_sec), nanoseconds: Double(timespec.tv_nsec))
+    }
+    #endif
+    
+    init(timeIntervalSince1970: TimeInterval, nanoseconds: Double = 0) {
+        self.init(timeIntervalSinceReferenceDate: (timeIntervalSince1970 - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * nanoseconds))
+    }
+}
+
+extension stat {
+    var lastModificationDate: Date {
+        #if canImport(Darwin)
+        return Date(timespec: st_mtimespec)
+        #elseif os(Android)
+        return Date(timeIntervalSince1970: st_mtime, nanoseconds: st_mtime_nsec)
+        #elseif os(Windows)
+        return Date(timeIntervalSince1970: st_mtime)
+        #else
+        return Date(timespec: st_mtim)
+        #endif
+    }
+    
+    var lastAccessDate: Date {
+        #if canImport(Darwin)
+        return Date(timespec: st_atimespec)
+        #elseif os(Android)
+        return Date(timeIntervalSince1970: st_atime, nanoseconds: st_atime_nsec)
+        #elseif os(Windows)
+        return Date(timeIntervalSince1970: st_atime)
+        #else
+        return Date(timespec: st_atim)
+        #endif
+    }
+    
+    var creationDate: Date {
+        #if canImport(Darwin)
+        return Date(timespec: st_birthtimespec)
+        #elseif os(Android)
+        return Date(timeIntervalSince1970: st_ctime, nanoseconds: st_ctime_nsec)
+        #elseif os(Windows)
+        return Date(timeIntervalSince1970: st_ctime)
+        #else
+        return Date(timespec: st_ctim)
+        #endif
+    }
+}

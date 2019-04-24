@@ -408,11 +408,16 @@ extension FileManager {
     }
 
     internal func _attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
+        return try _attributesOfFileSystemIncludingBlockSize(forPath: path).attributes
+    }
+    
+    internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
         var result: [FileAttributeKey:Any] = [:]
-
+        var finalBlockSize: UInt64?
+        
         try _fileSystemRepresentation(withPath: path) { fsRep in
             // statvfs(2) doesn't support 64bit inode on Darwin (apfs), fallback to statfs(2)
-    #if os(macOS) || os(iOS)
+    #if canImport(Darwin)
             var s = statfs()
             guard statfs(fsRep, &s) == 0 else {
                 throw _NSErrorWithErrno(errno, reading: true, path: path)
@@ -424,7 +429,7 @@ extension FileManager {
             }
     #endif
 
-    #if os(macOS) || os(iOS)
+    #if canImport(Darwin)
             let blockSize = UInt64(s.f_bsize)
             result[.systemNumber] = NSNumber(value: UInt64(s.f_fsid.val.0))
     #else
@@ -435,8 +440,10 @@ extension FileManager {
             result[.systemFreeSize] = NSNumber(value: blockSize * UInt64(s.f_bavail))
             result[.systemNodes] = NSNumber(value: UInt64(s.f_files))
             result[.systemFreeNodes] = NSNumber(value: UInt64(s.f_ffree))
+            
+            finalBlockSize = blockSize
         }
-        return result
+        return (attributes: result, blockSize: finalBlockSize)
     }
 
     internal func _createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
