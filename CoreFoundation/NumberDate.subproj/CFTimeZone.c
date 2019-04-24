@@ -1058,6 +1058,20 @@ Boolean _CFTimeZoneInitInternal(CFTimeZoneRef timezone, CFStringRef name, CFData
     return success;
 }
 
+CFDataRef _CFTimeZoneDataCreate(CFURLRef baseURL, CFStringRef tzName) {
+    void *bytes;
+    CFIndex length;
+    CFDataRef data = NULL;
+    CFURLRef tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
+    if (NULL != tempURL) {
+        if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
+            data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
+        }
+        CFRelease(tempURL);
+    }
+    return data;
+}
+
 Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data) {
     if (!name || !__nameStringOK(name)) {
         return false;
@@ -1093,9 +1107,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     }
 
     CFStringRef tzName = NULL;
-    CFURLRef baseURL, tempURL;
-    void *bytes;
-    CFIndex length;
+    CFURLRef baseURL;
     Boolean result = false;
 
 #if TARGET_OS_WIN32
@@ -1128,13 +1140,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
     tzName = CFDictionaryGetValue(abbrevs, name);
     if (NULL != tzName) {
-        tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-        if (NULL != tempURL) {
-            if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-                data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-            }
-            CFRelease(tempURL);
-        }
+        data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
     CFRelease(abbrevs);
 
@@ -1159,13 +1165,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     }
     if (NULL == data) {
         tzName = name;
-        tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-        if (NULL != tempURL) {
-            if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-                data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-            }
-            CFRelease(tempURL);
-        }
+        data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
     CFRelease(baseURL);
     if (NULL != data) {
@@ -1311,9 +1311,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	    }
 	}
     }
-    CFURLRef baseURL, tempURL;
-    void *bytes;
-    CFIndex length;
+    CFURLRef baseURL;
 
 #if TARGET_OS_WIN32
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
@@ -1344,13 +1342,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
 	tzName = CFDictionaryGetValue(abbrevs, name);
 	if (NULL != tzName) {
-	    tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-	    if (NULL != tempURL) {
-		if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-		    data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-		}
-		CFRelease(tempURL);
-	    }
+	    data = _CFTimeZoneDataCreate(baseURL, tzName);
 	}
 	CFRelease(abbrevs);
     }
@@ -1375,13 +1367,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     }
     if (NULL == data) {
        tzName = name;
-       tempURL = CFURLCreateCopyAppendingPathComponent(kCFAllocatorSystemDefault, baseURL, tzName, false);
-       if (NULL != tempURL) {
-           if (_CFReadBytesFromFile(kCFAllocatorSystemDefault, tempURL, &bytes, &length, 0, 0)) {
-               data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, bytes, length, kCFAllocatorSystemDefault);
-           }
-           CFRelease(tempURL);
-       }
+       data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
     CFRelease(baseURL);
     if (NULL != data) {
