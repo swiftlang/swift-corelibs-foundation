@@ -9,15 +9,6 @@
 
 class TestISO8601DateFormatter: XCTestCase {
     
-    static var allTests : [(String, (TestISO8601DateFormatter) -> () throws -> Void)] {
-        
-        return [
-            ("test_stringFromDate", test_stringFromDate),
-            ("test_dateFromString", test_dateFromString),
-            ("test_stringFromDateClass", test_stringFromDateClass),
-        ]
-    }
-    
     func test_stringFromDate() {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm:ss.SSSS zzz"
@@ -318,4 +309,36 @@ class TestISO8601DateFormatter: XCTestCase {
 #endif
     }
 
+    let fixtures = [
+        Fixtures.iso8601FormatterDefault,
+        Fixtures.iso8601FormatterOptionsSet
+    ]
+    
+    func areEqual(_ a: ISO8601DateFormatter, _ b: ISO8601DateFormatter) -> Bool {
+        return a.formatOptions == b.formatOptions &&
+            a.timeZone.identifier == b.timeZone.identifier
+    }
+    
+    func test_codingRoundtrip() throws {
+        for fixture in fixtures {
+            try fixture.assertValueRoundtripsInCoder(secureCoding: true, matchingWith: areEqual(_:_:))
+        }
+    }
+    
+    func test_loadingFixtures() throws {
+        for fixture in fixtures {
+            try fixture.assertLoadedValuesMatch(areEqual(_:_:))
+        }
+    }
+    
+    static var allTests : [(String, (TestISO8601DateFormatter) -> () throws -> Void)] {
+        
+        return [
+            ("test_stringFromDate", test_stringFromDate),
+            ("test_dateFromString", test_dateFromString),
+            ("test_stringFromDateClass", test_stringFromDateClass),
+            ("test_codingRoundtrip", test_codingRoundtrip),
+            ("test_loadingFixtures", test_loadingFixtures),
+        ]
+    }
 }
