@@ -225,7 +225,7 @@ class TestURL : XCTestCase {
         
     }
     
-    static let gBaseTemporaryDirectoryPath = NSTemporaryDirectory()
+    static let gBaseTemporaryDirectoryPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("org.swift.foundation.TestFoundation.TestURL.\(ProcessInfo.processInfo.processIdentifier)")
     static var gBaseCurrentWorkingDirectoryPath : String {
         return FileManager.default.currentDirectoryPath
     }
@@ -239,6 +239,19 @@ class TestURL : XCTestCase {
     static let gDirectoryExistsPath = gBaseTemporaryDirectoryPath + gDirectoryExistsName
     static let gDirectoryDoesNotExistPath = gBaseTemporaryDirectoryPath + gDirectoryDoesNotExistName
 
+    override class func tearDown() {
+        let path = TestURL.gBaseTemporaryDirectoryPath
+        if (try? FileManager.default.attributesOfItem(atPath: path)) != nil {
+            do {
+                try FileManager.default.removeItem(atPath: path)
+            } catch {
+                NSLog("Could not remove test directory at path \(path): \(error)")
+            }
+        }
+        
+        super.tearDown()
+    }
+    
     static func setup_test_paths() -> Bool {
         _ = FileManager.default.createFile(atPath: gFileExistsPath, contents: nil)
 
@@ -255,7 +268,7 @@ class TestURL : XCTestCase {
           try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
         } catch {
             // The error code is a CocoaError
-            if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+            if (error as? NSError)?.code != CocoaError.fileWriteFileExists.rawValue {
                 return false
             }
         }
