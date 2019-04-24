@@ -117,10 +117,13 @@ class TestNSCache : XCTestCase {
 
     class TestHashableCacheKey: Hashable {
         let string: String
-        var hashValue: Int { return string.hashValue }
 
         init(string: String) {
             self.string = string
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(string)
         }
 
         static func ==(lhs: TestHashableCacheKey,

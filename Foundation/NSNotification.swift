@@ -13,14 +13,6 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(rawValue)
-        }
-        
-        public static func ==(lhs: Name, rhs: Name) -> Bool {
-            return lhs.rawValue == rhs.rawValue
-        }
     }
 
     private(set) open var name: Name

@@ -20,14 +20,6 @@ extension NSAttributedString {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(rawValue)
-        }
-
-        public static func ==(left: NSAttributedString.Key, right: NSAttributedString.Key) -> Bool {
-            return left.rawValue == right.rawValue
-        }
     }
 }
 

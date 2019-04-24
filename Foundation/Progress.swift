@@ -399,9 +399,7 @@ open class Progress : NSObject {
         public let rawValue: String
         public init(_ rawValue: String) { self.rawValue = rawValue }
         public init(rawValue: String) { self.rawValue = rawValue }
-        public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
-        public static func ==(_ lhs: FileOperationKind, _ rhs: FileOperationKind) -> Bool { return lhs.rawValue == rhs.rawValue }
-        
+
         /// Use for indicating the progress represents a download.
         public static let downloading = FileOperationKind(rawValue: "NSProgressFileOperationKindDownloading")
 
@@ -478,9 +476,7 @@ public struct ProgressKind : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
-    public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
-    public static func ==(_ lhs: ProgressKind, _ rhs: ProgressKind) -> Bool { return lhs.rawValue == rhs.rawValue }
-    
+
     /// Indicates that the progress being performed is related to files.
     ///
     /// Progress of this kind is assumed to use bytes as the unit of work being done and the default implementation of `localizedDescription` takes advantage of that to return more specific text than it could otherwise.
@@ -491,9 +487,7 @@ public struct ProgressUserInfoKey : RawRepresentable, Equatable, Hashable {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }
     public init(rawValue: String) { self.rawValue = rawValue }
-    public func hash(into hasher: inout Hasher) { hasher.combine(rawValue) }
-    public static func ==(_ lhs: ProgressUserInfoKey, _ rhs: ProgressUserInfoKey) -> Bool { return lhs.rawValue == rhs.rawValue }
-    
+
     /// How much time is probably left in the operation, as an NSNumber containing a number of seconds.
     ///
     /// If this value is present, then `Progress` can present a more detailed `localizedAdditionalDescription`.

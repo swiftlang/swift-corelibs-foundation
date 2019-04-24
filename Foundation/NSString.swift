@@ -115,14 +115,6 @@ extension NSString {
 
     public let rawValue: String
 
-    public var hashValue: Int {
-      return self.rawValue.hashValue
-    }
-
-    public static func ==(_ lhs: StringTransform, _ rhs: StringTransform) -> Bool {
-      return lhs.rawValue == rhs.rawValue
-    }
-
     public init(_ rawValue: String) {
       self.rawValue = rawValue
     }
