@@ -329,7 +329,7 @@ extension FileManager {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: srcPath) } catch { return }
 
-        var fileType = FileAttributeType(attributes: faAttributes)
+        var fileType = FileAttributeType(attributes: faAttributes, atPath: srcPath)
         if fileType == .typeDirectory {
           try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
           guard let enumerator = enumerator(atPath: srcPath) else {
@@ -341,7 +341,7 @@ extension FileManager {
             let dst = joinPath(prefix: dstPath, suffix: item)
 
             do { faAttributes = try windowsFileAttributes(atPath: src) } catch { return }
-            fileType = FileAttributeType(attributes: faAttributes)
+            fileType = FileAttributeType(attributes: faAttributes, atPath: srcPath)
             if fileType == .typeDirectory {
               try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
             } else {
