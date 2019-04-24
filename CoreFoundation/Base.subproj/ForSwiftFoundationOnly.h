@@ -54,13 +54,17 @@
 #endif
 
 #if TARGET_OS_LINUX
-// required for statx() system call
+#include <features.h>
+
+#if __GLIBC_PREREQ(2, 28) == 0
+// required for statx() system call, glibc >=2.28 wraps the kernel function
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/stat.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
-#endif
+#endif //__GLIBC_PREREQ(2. 28)
+#endif // TARGET_OS_LINUX
 
 
 _CF_EXPORT_SCOPE_BEGIN
