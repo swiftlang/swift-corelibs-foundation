@@ -1496,7 +1496,7 @@ VIDEOS=StopgapVideos
                 return try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
             }
             #else
-            let components = try fm.componentsToDisplay(forPath: a_Test.path).unwrapped()
+            let components = try fm.componentsToDisplay(forPath: a_Test_b.path).unwrapped()
             #endif
             
             XCTAssertGreaterThanOrEqual(components.count, 4)
