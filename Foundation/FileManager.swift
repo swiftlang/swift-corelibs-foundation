@@ -937,6 +937,7 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
                       /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
                       /*hTemplateFile=*/nil)
         }
+        defer { CloseHandle(fileHandle) }
         var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
         guard 0 != GetFileInformationByHandleEx(fileHandle,
                                                 FileAttributeTagInfo,

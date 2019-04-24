@@ -287,6 +287,7 @@ extension FileManager {
         path.withCString(encodedAs: UTF16.self) { link in
             hFile = CreateFileW(link, GENERIC_READ, DWORD(FILE_SHARE_WRITE), nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS), nil)
         }
+        defer { CloseHandle(hFile) }
         if hFile == INVALID_HANDLE_VALUE {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
