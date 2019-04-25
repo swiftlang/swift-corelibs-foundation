@@ -474,11 +474,11 @@ open class Process: NSObject {
         try quoteWindowsCommandLine(command).withCString(encodedAs: UTF16.self) { wszCommandLine in
           try currentDirectoryURL.path.withCString(encodedAs: UTF16.self) { wszCurrentDirectory in
             try szEnvironment.withCString(encodedAs: UTF16.self) { wszEnvironment in
-              if CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
-                                nil, nil, TRUE,
-                                DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
-                                wszCurrentDirectory,
-                                &siStartupInfo, &piProcessInfo) == FALSE {
+              if !CreateProcessW(nil, UnsafeMutablePointer<WCHAR>(mutating: wszCommandLine),
+                                 nil, nil, true,
+                                 DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
+                                 wszCurrentDirectory,
+                                 &siStartupInfo, &piProcessInfo) {
                 throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
               }
             }
@@ -486,7 +486,7 @@ open class Process: NSObject {
         }
 
         self.processHandle = piProcessInfo.hProcess
-        if CloseHandle(piProcessInfo.hThread) == FALSE {
+        if !CloseHandle(piProcessInfo.hThread) {
           throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
         }
 

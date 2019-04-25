@@ -997,10 +997,7 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
         }
         defer { CloseHandle(fileHandle) }
         var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
-        guard 0 != GetFileInformationByHandleEx(fileHandle,
-                                                FileAttributeTagInfo,
-                                                &tagInfo,
-                                                DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
+        guard GetFileInformationByHandleEx(fileHandle, FileAttributeTagInfo, &tagInfo, DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
           self = .typeUnknown
           return
         }

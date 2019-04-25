@@ -105,14 +105,14 @@ open class Thread : NSObject {
 
     open class func sleep(until date: Date) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, TRUE, nil)
+        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         // FIXME(compnerd) how to check that hTimer is not NULL?
         defer { CloseHandle(hTimer) }
 
         // the timeout is in 100ns units
         var liTimeout: LARGE_INTEGER =
             LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceReferenceDate) * -10000000)
-        if SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, FALSE) == FALSE {
+        if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
         WaitForSingleObject(hTimer, WinSDK.INFINITE)
@@ -142,14 +142,14 @@ open class Thread : NSObject {
 
     open class func sleep(forTimeInterval interval: TimeInterval) {
 #if os(Windows)
-        var hTimer: HANDLE = CreateWaitableTimerW(nil, TRUE, nil)
+        var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
         // FIXME(compnerd) how to check that hTimer is not NULL?
         defer { CloseHandle(hTimer) }
 
         // the timeout is in 100ns units
         var liTimeout: LARGE_INTEGER =
             LARGE_INTEGER(QuadPart: LONGLONG(interval) * -10000000)
-        if SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, FALSE) == FALSE {
+        if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
         WaitForSingleObject(hTimer, WinSDK.INFINITE)
@@ -362,7 +362,7 @@ open class Thread : NSObject {
 #elseif os(Windows)
         let hProcess: HANDLE = GetCurrentProcess()
         SymSetOptions(DWORD(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS))
-        if SymInitializeW(hProcess, nil, TRUE) == FALSE {
+        if !SymInitializeW(hProcess, nil, true) {
           return []
         }
         return backtraceAddresses { (addresses, count) in
@@ -380,9 +380,7 @@ open class Thread : NSObject {
             var address = addresses
             for _ in 1...count {
               var dwDisplacement: DWORD64 = 0
-              if SymFromAddr(hProcess, unsafeBitCast(address.pointee,
-                                                     to: DWORD64.self),
-                             &dwDisplacement, $0) == FALSE {
+              if !SymFromAddr(hProcess, unsafeBitCast(address.pointee, to: DWORD64.self), &dwDisplacement, $0) {
                 symbols.append("\($0.pointee)")
               } else {
                 symbols.append(String(cString: &$0.pointee.Name))
