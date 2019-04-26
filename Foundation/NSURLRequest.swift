@@ -133,7 +133,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
     }
     
     public init(url: URL, cachePolicy: NSURLRequest.CachePolicy, timeoutInterval: TimeInterval) {
-        self.url = url
+        self.url = url.absoluteURL
         self.cachePolicy = cachePolicy
         self.timeoutInterval = timeoutInterval
     }
