@@ -21,6 +21,7 @@ class TestURLRequest : XCTestCase {
             ("test_hash", test_hash),
             ("test_methodNormalization", test_methodNormalization),
             ("test_description", test_description),
+            ("test_relativeURL", test_relativeURL),
         ]
     }
     
@@ -279,5 +280,39 @@ class TestURLRequest : XCTestCase {
 
         request.url = nil
         XCTAssertEqual(request.description, "url: nil")
+    }
+
+    func test_relativeURL() throws {
+        let baseUrl = URL(string: "http://httpbin.org")
+        let url = try URL(string: "/get", relativeTo: baseUrl).unwrapped()
+
+        XCTAssertEqual(url.description, "/get -- http://httpbin.org")
+        XCTAssertEqual(url.baseURL?.description, "http://httpbin.org")
+        XCTAssertEqual(url.relativeString, "/get")
+        XCTAssertEqual(url.absoluteString, "http://httpbin.org/get")
+
+        var req = URLRequest(url: url)
+        XCTAssertEqual(req.url?.description, "http://httpbin.org/get")
+        XCTAssertNil(req.url?.baseURL)
+        XCTAssertEqual(req.url?.absoluteURL.description, "http://httpbin.org/get")
+        XCTAssertEqual(req.url?.absoluteURL.relativeString, "http://httpbin.org/get")
+        XCTAssertEqual(req.url?.absoluteURL.absoluteString, "http://httpbin.org/get")
+
+        req.url = url
+        XCTAssertEqual(req.url?.description, "/get -- http://httpbin.org")
+        XCTAssertEqual(req.url?.baseURL?.description, "http://httpbin.org")
+        XCTAssertEqual(req.url?.baseURL?.relativeString, "http://httpbin.org")
+        XCTAssertEqual(req.url?.baseURL?.absoluteString, "http://httpbin.org")
+
+        XCTAssertEqual(req.url?.absoluteURL.description, "http://httpbin.org/get")
+        XCTAssertEqual(req.url?.absoluteURL.relativeString, "http://httpbin.org/get")
+        XCTAssertEqual(req.url?.absoluteURL.absoluteString, "http://httpbin.org/get")
+
+        let nsreq = NSURLRequest(url: url)
+        XCTAssertEqual(nsreq.url?.description, "http://httpbin.org/get")
+        XCTAssertNil(nsreq.url?.baseURL)
+        XCTAssertEqual(nsreq.url?.absoluteURL.description, "http://httpbin.org/get")
+        XCTAssertEqual(nsreq.url?.absoluteURL.relativeString, "http://httpbin.org/get")
+        XCTAssertEqual(nsreq.url?.absoluteURL.absoluteString, "http://httpbin.org/get")
     }
 }
