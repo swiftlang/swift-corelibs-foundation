@@ -83,8 +83,16 @@ extension _HTTPURLProtocol._TransferState {
     /// return value's `isHeaderComplete` will then by `true`.
     ///
     /// - Throws: When a parsing error occurs
-    func byAppending(headerLine data: Data) throws -> _NativeProtocol._TransferState {
-        guard let h = parsedResponseHeader.byAppending(headerLine: data) else {
+    func byAppendingHTTP(headerLine data: Data) throws -> _NativeProtocol._TransferState {
+        // If the line is empty, it marks the end of the header, and the result
+        // is a complete header. Otherwise it's a partial header.
+        // - Note: Appending a line to a complete header results in a partial
+        // header with just that line.
+
+        func isCompleteHeader(_ headerLine: String) -> Bool {
+            return headerLine.isEmpty
+        }
+        guard let h = parsedResponseHeader.byAppending(headerLine: data, onHeaderCompleted: isCompleteHeader) else {
             throw _Error.parseSingleLineError
         }
         if case .complete(let lines) = h {
@@ -93,9 +101,57 @@ extension _HTTPURLProtocol._TransferState {
             guard response != nil else {
                 throw _Error.parseCompleteHeaderError
             }
+            return _NativeProtocol._TransferState(url: url,
+                                                  parsedResponseHeader: _NativeProtocol._ParsedResponseHeader(), response: response, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
+        } else {
+            return _NativeProtocol._TransferState(url: url,
+                                                  parsedResponseHeader: h, response: nil, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
+        }
+    }
+}
+
+// specific to FTP
+extension _FTPURLProtocol._TransferState {
+    enum FTPHeaderCode: Int {
+        case transferCompleted = 226
+        case openDataConnection = 150
+        case fileStatus = 213
+        case syntaxError = 500// 500 series FTP Syntax errors
+        case errorOccurred = 400 // 400 Series FTP transfer errors
+    }
+
+    /// Appends a header line
+    ///
+    /// Will set the complete response once the header is complete, i.e. the
+    /// return value's `isHeaderComplete` will then by `true`.
+    ///
+    /// - Throws: When a parsing error occurs
+    func byAppendingFTP(headerLine data: Data, expectedContentLength: Int64) throws -> _NativeProtocol._TransferState {
+        guard let line = String(data: data, encoding: String.Encoding.utf8) else {
+            fatalError("Data on command port is nil")
+	}
+
+        //FTP Status code 226 marks the end of the transfer
+        if (line.starts(with: String(FTPHeaderCode.transferCompleted.rawValue))) {
+            return self
+        }
+        //FTP Status code 213 marks the end of the header and start of the
+        //transfer on data port
+        func isCompleteHeader(_ headerLine: String) -> Bool {
+            return headerLine.starts(with: String(FTPHeaderCode.openDataConnection.rawValue))
+        }
+        guard let h = parsedResponseHeader.byAppending(headerLine: data, onHeaderCompleted: isCompleteHeader) else {
+            throw _NativeProtocol._Error.parseSingleLineError
+        }
+
+        if case .complete(let lines) = h {
+            let response = lines.createURLResponse(for: url, contentLength: expectedContentLength)
+            guard response != nil else {
+                throw _NativeProtocol._Error.parseCompleteHeaderError
+            }
             return _NativeProtocol._TransferState(url: url, parsedResponseHeader: _NativeProtocol._ParsedResponseHeader(), response: response, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
         } else {
-            return _NativeProtocol._TransferState(url: url, parsedResponseHeader: h, response: nil, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
+            return _NativeProtocol._TransferState(url: url, parsedResponseHeader: _NativeProtocol._ParsedResponseHeader(), response: nil, requestBodySource: requestBodySource, bodyDataDrain: bodyDataDrain)
         }
     }
 }
@@ -137,6 +193,7 @@ extension _NativeProtocol._TransferState {
     /// This can be used to either set the initial body source, or to reset it
     /// e.g. when restarting a transfer.
     func bySetting(bodySource newSource: _BodySource) -> _NativeProtocol._TransferState {
-        return _NativeProtocol._TransferState(url: url, parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: newSource, bodyDataDrain: bodyDataDrain)
+        return _NativeProtocol._TransferState(url: url,
+                                              parsedResponseHeader: parsedResponseHeader, response: response, requestBodySource: newSource, bodyDataDrain: bodyDataDrain)
     }
 }

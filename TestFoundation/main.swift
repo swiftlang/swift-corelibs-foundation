@@ -113,6 +113,7 @@ var allTestCases = [
     testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
     testCase(TestNSSortDescriptor.allTests),
+    testCase(TestURLSessionFTP.allTests),
 ]
 
 XCTMain(allTestCases)
