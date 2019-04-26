@@ -6442,9 +6442,9 @@ reswtch:switch (ch) {
 		return true;
 	    }
 	case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': {
-	    int64_t number = 0;
+            long long number = 0;
 	    do {
-                if (__builtin_smulll_overflow(number, 10, &number) || __builtin_saddll_overflow(number, ch - '0', &number)) {
+                if (__builtin_smulll_overflow(number, 10, &number) || __builtin_saddll_overflow(number, ch - '0', &number) || number > INT64_MAX) {
                     if (errorPtr) *errorPtr = __CFCreateOverflowError();
                     return false;
                 }
