@@ -1292,7 +1292,7 @@ class TestNSString: LoopbackServerTest {
     }
 
     func test_substringFromCFString() {
-        let string = NSString.StringTransform.stripCombiningMarks.rawValue as NSString
+        let string = StringTransform.stripCombiningMarks.rawValue as NSString
         let range = NSRange(location: 0, length: string.length)
         let substring = string.substring(with: range)
 
