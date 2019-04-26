@@ -27,6 +27,7 @@ class TestDateFormatter: XCTestCase {
             ("test_setTimeZone", test_setTimeZone),
             ("test_expectedTimeZone", test_expectedTimeZone),
             ("test_dateFrom", test_dateFrom),
+            ("test_dateParseAndFormatWithJapaneseCalendar", test_dateParseAndFormatWithJapaneseCalendar),
         ]
     }
     
@@ -424,5 +425,22 @@ class TestDateFormatter: XCTestCase {
         XCTAssertNil(formatter.date(from: "2018-03-09"))
         let d2 = try formatter.date(from: "2018-03-09T10:25:16+01:00").unwrapped()
         XCTAssertEqual(d2.description, "2018-03-09 09:25:16 +0000")
+    }
+    
+    func test_dateParseAndFormatWithJapaneseCalendar() throws {
+        let formatter = DateFormatter()
+        
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.calendar = Calendar(identifier: .japanese)
+        formatter.dateFormat = "Gy年M月dd日 HH:mm"
+        formatter.timeZone = TimeZone(abbreviation: "JST")
+        
+        // parse test
+        let parsed = formatter.date(from: "平成31年4月30日 23:10")
+        XCTAssertEqual(parsed?.timeIntervalSince1970, 1556633400) // April 30, 2019, 11:10 PM (JST)
+        
+        // format test
+        let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
+        XCTAssertEqual(dateString, "平成31年4月30日 23:10")
     }
 }
