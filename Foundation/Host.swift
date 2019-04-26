@@ -45,7 +45,7 @@ open class Host: NSObject {
         return "localhost"
       }
       defer { hostname.deallocate() }
-      guard GetComputerNameExA(ComputerNameDnsHostname, hostname, &dwLength) != FALSE else {
+      guard GetComputerNameExA(ComputerNameDnsHostname, hostname, &dwLength) else {
         return "localhost"
       }
       return String(cString: hostname)

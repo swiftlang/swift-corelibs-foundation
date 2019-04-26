@@ -86,7 +86,7 @@ class _TCPSocket {
 #if os(Windows)
         listenSocket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, 0))
 
-        var value: Int8 = Int8(TRUE)
+        var value: Int8 = 1
         _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
 #else
 #if os(Linux) && !os(Android)

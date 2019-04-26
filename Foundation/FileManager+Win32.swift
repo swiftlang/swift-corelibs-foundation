@@ -41,7 +41,7 @@ extension FileManager {
             var wszPathNames: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwCChReturnLength + 1))
             defer { wszPathNames.deallocate() }
 
-            if GetVolumePathNamesForVolumeNameW(wszVolumeName.baseAddress, wszPathNames.baseAddress, DWORD(wszPathNames.count), &dwCChReturnLength) == FALSE {
+            if !GetVolumePathNamesForVolumeNameW(wszVolumeName.baseAddress, wszPathNames.baseAddress, DWORD(wszPathNames.count), &dwCChReturnLength) {
                 // TODO(compnerd) handle error
                 continue
             }
@@ -55,7 +55,7 @@ extension FileManager {
                 urls.append(URL(fileURLWithPath: path, isDirectory: true))
                 pPath += DWORD(path.length + 1)
             } while pPath < dwCChReturnLength
-        } while FindNextVolumeW(hVolumes, wszVolumeName.baseAddress, DWORD(wszVolumeName.count)) != FALSE
+        } while FindNextVolumeW(hVolumes, wszVolumeName.baseAddress, DWORD(wszVolumeName.count))
         return urls
     }
     internal func _urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
@@ -174,13 +174,13 @@ extension FileManager {
         var saAttributes: SECURITY_ATTRIBUTES =
           SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size),
                               lpSecurityDescriptor: nil,
-                              bInheritHandle: FALSE)
+                              bInheritHandle: false)
         let psaAttributes: UnsafeMutablePointer<SECURITY_ATTRIBUTES> =
           UnsafeMutablePointer<SECURITY_ATTRIBUTES>(&saAttributes)
 
 
         try path.withCString(encodedAs: UTF16.self) {
-            if CreateDirectoryW($0, psaAttributes) == FALSE {
+            if !CreateDirectoryW($0, psaAttributes) {
                 // FIXME(compnerd) pass along path
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
@@ -208,7 +208,7 @@ extension FileManager {
                 }
 
                 try closure(path, Int32(ffd.dwFileAttributes))
-            } while FindNextFileW(hDirectory, &ffd) != FALSE
+            } while FindNextFileW(hDirectory, &ffd)
         }
     }
 
@@ -229,7 +229,7 @@ extension FileManager {
     internal func windowsFileAttributes(atPath path: String) throws -> WIN32_FILE_ATTRIBUTE_DATA {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         return try path.withCString(encodedAs: UTF16.self) {
-            if GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) == FALSE {
+            if !GetFileAttributesExW($0, GetFileExInfoStandard, &faAttributes) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
             return faAttributes
@@ -244,14 +244,14 @@ extension FileManager {
             let szVolumePath: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwLength + 1))
             defer { szVolumePath.deallocate() }
 
-            guard GetVolumePathNameW($0, szVolumePath.baseAddress, dwLength) != FALSE else {
+            guard GetVolumePathNameW($0, szVolumePath.baseAddress, dwLength) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
 
             var liTotal: ULARGE_INTEGER = ULARGE_INTEGER()
             var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
 
-            guard GetDiskFreeSpaceExW(szVolumePath.baseAddress, nil, &liTotal, &liFree) != FALSE else {
+            guard GetDiskFreeSpaceExW(szVolumePath.baseAddress, nil, &liTotal, &liFree) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
 
@@ -271,7 +271,7 @@ extension FileManager {
 
         try path.withCString(encodedAs: UTF16.self) { name in
             try destPath.withCString(encodedAs: UTF16.self) { dest in
-                guard CreateSymbolicLinkW(name, dest, dwFlags) != FALSE else {
+                guard CreateSymbolicLinkW(name, dest, dwFlags) != 0 else {
                     throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                 }
             }
@@ -303,7 +303,7 @@ extension FileManager {
     internal func _copyRegularFile(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
         try srcPath.withCString(encodedAs: UTF16.self) { src in
             try dstPath.withCString(encodedAs: UTF16.self) { dst in
-                if CopyFileW(src, dst, FALSE) == FALSE {
+                if !CopyFileW(src, dst, false) {
                     throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                 }
             }
@@ -365,7 +365,7 @@ extension FileManager {
 
         try srcPath.withCString(encodedAs: UTF16.self) { src in
             try dstPath.withCString(encodedAs: UTF16.self) { dst in
-                if MoveFileExW(src, dst, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) == FALSE {
+                if !MoveFileExW(src, dst, DWORD(MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH)) {
                     throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                 }
             }
@@ -383,7 +383,7 @@ extension FileManager {
                 case .typeRegular:
                     try srcPath.withCString(encodedAs: UTF16.self) { src in
                         try dstPath.withCString(encodedAs: UTF16.self) { dst in
-                            if CreateHardLinkW(src, dst, nil) == FALSE {
+                            if !CreateHardLinkW(src, dst, nil) {
                                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                             }
                         }
@@ -408,7 +408,7 @@ extension FileManager {
         }
         let faAttributes = try! windowsFileAttributes(atPath: path)
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
-            if path.withCString(encodedAs: UTF16.self, DeleteFileW) == 0 {
+            if !path.withCString(encodedAs: UTF16.self, DeleteFileW) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
             return
@@ -421,7 +421,7 @@ extension FileManager {
                 guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
                     continue
                 }
-                guard path.withCString(encodedAs: UTF16.self, RemoveDirectoryW) == 0 else {
+                guard !path.withCString(encodedAs: UTF16.self, RemoveDirectoryW) else {
                     continue
                 }
                 guard GetLastError() == ERROR_DIR_NOT_EMPTY else {
@@ -451,11 +451,11 @@ extension FileManager {
                         guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
                             continue
                         }
-                        if itemPath.withCString(encodedAs: UTF16.self, DeleteFileW) == 0 {
+                        if !itemPath.withCString(encodedAs: UTF16.self, DeleteFileW) {
                             throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                         }
                     }
-                } while(FindNextFileW(h, &ffd) != 0)
+                } while FindNextFileW(h, &ffd)
             } catch {
                 if !shouldProceedAfterError(error, removingItemAtPath: itemPath, isURL: isURL) {
                     throw error
@@ -475,7 +475,7 @@ extension FileManager {
 
     @discardableResult
     internal func _changeCurrentDirectoryPath(_ path: String) -> Bool {
-        return path.withCString(encodedAs: UTF16.self) { SetCurrentDirectoryW($0) != FALSE }
+        return path.withCString(encodedAs: UTF16.self) { SetCurrentDirectoryW($0) }
     }
 
     internal func _fileExists(atPath path: String, isDirectory: UnsafeMutablePointer<ObjCBool>?) -> Bool {
@@ -597,7 +597,7 @@ extension FileManager {
     internal func _appendSymlinkDestination(_ dest: String, toPath: String) -> String {
         var isAbsolutePath: Bool = false
         dest.withCString(encodedAs: UTF16.self) {
-            isAbsolutePath = PathIsRelativeW($0) == FALSE
+            isAbsolutePath = !PathIsRelativeW($0)
         }
 
         if isAbsolutePath {
@@ -645,7 +645,7 @@ extension FileManager {
                             || (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == 0)) {
                         files.append(URL(fileURLWithPath: joinPath(prefix: dirFSR, suffix: file)))
                       }
-                } while(FindNextFileW(h, &ffd) != 0)
+                } while FindNextFileW(h, &ffd)
                 return files
             }
             while let url = _stack.popLast() {
@@ -699,18 +699,16 @@ extension FileManager.NSPathDirectoryEnumerator {
                 (fsr.flatMap { String(utf8String: $0) })?.withCString(encodedAs: UTF16.self) { f($0) }
             }
         }
-        let result = withURLCString(url: baseURL) { pszFrom -> BOOL? in
+        guard withURLCString(url: baseURL, { pszFrom -> Bool? in
             withURLCString(url: url) { pszTo in
                 let fromAttrs = GetFileAttributesW(pszFrom)
                 let toAttrs = GetFileAttributesW(pszTo)
                 guard fromAttrs != INVALID_FILE_ATTRIBUTES, toAttrs != INVALID_FILE_ATTRIBUTES else {
-                    return FALSE
+                    return false
                 }
                 return PathRelativePathToW(relativePath.baseAddress, pszFrom, fromAttrs, pszTo, toAttrs)
             }
-        }
-
-        guard result == TRUE, let (path, _) = String.decodeCString(relativePath.baseAddress, as: UTF16.self) else {
+        }) == true, let (path, _) = String.decodeCString(relativePath.baseAddress, as: UTF16.self) else {
             return nil
         }
         _currentItemPath = path
