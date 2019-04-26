@@ -82,17 +82,15 @@ open class XMLElement: XMLNode {
 
     /*!
         @method addAttribute:
-        @abstract Adds an attribute. Attributes with duplicate names are not added.
+        @abstract Adds an attribute. Attributes with duplicate names replace the old one.
     */
     open func addAttribute(_ attribute: XMLNode) {
         guard let name = _CFXMLNodeCopyName(attribute._xmlNode)?._swiftObject else {
             fatalError("Attributes must have a name!")
         }
 
-        name.cString(using: .utf8)!.withUnsafeBufferPointer() {
-            guard let ptr = $0.baseAddress, _CFXMLNodeHasProp(_xmlNode, ptr) == nil else { return }
-            addChild(attribute)
-        }
+        removeAttribute(forName: name)
+        addChild(attribute)
     }
 
     /*!

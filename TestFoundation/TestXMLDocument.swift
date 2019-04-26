@@ -233,6 +233,9 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(element.xmlString, "<root></root>", element.xmlString)
 
         element.addAttribute(attribute)
+        let attribute2 = XMLNode.attribute(withName: "color", stringValue: "#00ff00") as! XMLNode
+        element.addAttribute(attribute2)
+        XCTAssertEqual(element.attribute(forName: "color")?.stringValue, "#00ff00")
 
         let otherAttribute = XMLNode.attribute(withName: "foo", stringValue: "bar") as! XMLNode
         element.addAttribute(otherAttribute)
@@ -243,7 +246,7 @@ class TestXMLDocument : LoopbackServerTest {
         }
 
         XCTAssertEqual(attributes.count, 2)
-        XCTAssertEqual(attributes.first, attribute)
+        XCTAssertEqual(attributes.first, attribute2)
         XCTAssertEqual(attributes.last, otherAttribute)
 
         let barAttribute = XMLNode.attribute(withName: "bar", stringValue: "buz") as! XMLNode
