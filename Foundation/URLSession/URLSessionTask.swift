@@ -570,8 +570,8 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
-        guard let response = task.response as? HTTPURLResponse else { fatalError("No response") }
-        if response.statusCode == 401 {
+        guard let urlResponse = task.response else { fatalError("No response") }
+        if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
             if let protectionSpace = createProtectionSpace(response) {
                 //TODO: Fetch and set proposed credentials if they exist
                 let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: nil,
