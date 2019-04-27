@@ -38,6 +38,7 @@ class TestProcess : XCTestCase {
                    ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
                    ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
                    ("test_redirect_all_using_null", test_redirect_all_using_null),
+                   ("test_redirect_all_using_nil", test_redirect_all_using_nil),
         ]
 #endif
     }
@@ -559,6 +560,17 @@ class TestProcess : XCTestCase {
         task.standardInput = FileHandle.nullDevice
         task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
+
+    func test_redirect_all_using_nil() throws {
+        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardInput = nil
+        task.standardOutput = nil
+        task.standardError = nil
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
     }

@@ -240,23 +240,23 @@ open class Process: NSObject {
 
     // Standard I/O channels; could be either a FileHandle or a Pipe
 
-    open var standardInput: Any? {
+    open var standardInput: Any? = FileHandle._stdinFileHandle {
         willSet {
-            precondition(newValue is Pipe || newValue is FileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
                          "standardInput must be either Pipe or FileHandle")
         }
     }
 
-    open var standardOutput: Any? {
+    open var standardOutput: Any? = FileHandle._stdoutFileHandle {
         willSet {
-            precondition(newValue is Pipe || newValue is FileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
                          "standardOutput must be either Pipe or FileHandle")
         }
     }
     
-    open var standardError: Any? {
+    open var standardError: Any? = FileHandle._stderrFileHandle {
         willSet {
-            precondition(newValue is Pipe || newValue is FileHandle,
+            precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
                          "standardError must be either Pipe or FileHandle")
         }
     }
@@ -689,10 +689,18 @@ open class Process: NSObject {
         case let pipe as Pipe:
             adddup2[STDIN_FILENO] = pipe.fileHandleForReading.fileDescriptor
             addclose.insert(pipe.fileHandleForWriting.fileDescriptor)
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+
+        // nil or NullDevice map to /dev/null
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
             adddup2[STDIN_FILENO] = try devNullFd()
+
+        // No need to dup stdin to stdin
+        case let handle as FileHandle where handle === FileHandle._stdinFileHandle: break
+
         case let handle as FileHandle:
             adddup2[STDIN_FILENO] = handle.fileDescriptor
+
         default: break
         }
 
@@ -700,10 +708,18 @@ open class Process: NSObject {
         case let pipe as Pipe:
             adddup2[STDOUT_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+
+        // nil or NullDevice map to /dev/null
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
             adddup2[STDIN_FILENO] = try devNullFd()
+
+        // No need to dup stdout to stdout
+        case let handle as FileHandle where handle === FileHandle._stdoutFileHandle: break
+
         case let handle as FileHandle:
             adddup2[STDOUT_FILENO] = handle.fileDescriptor
+
         default: break
         }
 
@@ -711,10 +727,18 @@ open class Process: NSObject {
         case let pipe as Pipe:
             adddup2[STDERR_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
-        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+
+        // nil or NullDevice map to /dev/null
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
             adddup2[STDIN_FILENO] = try devNullFd()
+
+        // No need to dup stderr to stderr
+        case let handle as FileHandle where handle === FileHandle._stderrFileHandle: break
+
         case let handle as FileHandle:
             adddup2[STDERR_FILENO] = handle.fileDescriptor
+
         default: break
         }
 
