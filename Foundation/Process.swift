@@ -679,10 +679,18 @@ open class Process: NSObject {
         // otherwise.
         var addclose = Set<Int32>()
 
+        var _devNull: FileHandle?
+        func devNullFd() throws -> Int32 {
+            _devNull = try _devNull ?? FileHandle(forUpdating: URL(fileURLWithPath: "/dev/null", isDirectory: false))
+            return _devNull!.fileDescriptor
+        }
+
         switch standardInput {
         case let pipe as Pipe:
             adddup2[STDIN_FILENO] = pipe.fileHandleForReading.fileDescriptor
             addclose.insert(pipe.fileHandleForWriting.fileDescriptor)
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+            adddup2[STDIN_FILENO] = try devNullFd()
         case let handle as FileHandle:
             adddup2[STDIN_FILENO] = handle.fileDescriptor
         default: break
@@ -692,6 +700,8 @@ open class Process: NSObject {
         case let pipe as Pipe:
             adddup2[STDOUT_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+            adddup2[STDIN_FILENO] = try devNullFd()
         case let handle as FileHandle:
             adddup2[STDOUT_FILENO] = handle.fileDescriptor
         default: break
@@ -701,6 +711,8 @@ open class Process: NSObject {
         case let pipe as Pipe:
             adddup2[STDERR_FILENO] = pipe.fileHandleForWriting.fileDescriptor
             addclose.insert(pipe.fileHandleForReading.fileDescriptor)
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle:
+            adddup2[STDIN_FILENO] = try devNullFd()
         case let handle as FileHandle:
             adddup2[STDERR_FILENO] = handle.fileDescriptor
         default: break

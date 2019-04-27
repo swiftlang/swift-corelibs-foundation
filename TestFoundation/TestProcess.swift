@@ -33,6 +33,11 @@ class TestProcess : XCTestCase {
                    ("test_interrupt", test_interrupt),
                    ("test_terminate", test_terminate),
                    ("test_suspend_resume", test_suspend_resume),
+                   ("test_redirect_stdin_using_null", test_redirect_stdin_using_null),
+                   ("test_redirect_stdout_using_null", test_redirect_stdout_using_null),
+                   ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
+                   ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
+                   ("test_redirect_all_using_null", test_redirect_all_using_null),
         ]
 #endif
     }
@@ -286,7 +291,7 @@ class TestProcess : XCTestCase {
     }
 
     func test_current_working_directory() {
-        let tmpDir = "/tmp".standardizingPath
+        let tmpDir = "/tmp" //.standardizingPath
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
@@ -451,6 +456,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.terminationStatus, SIGTERM)
     }
 
+
     func test_suspend_resume() {
         let helper = _SignalHelperRunner()
         do {
@@ -505,6 +511,57 @@ class TestProcess : XCTestCase {
         XCTAssertTrue(helper.process.resume())
     }
 
+
+    func test_redirect_stdin_using_null() {
+        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardInput = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
+
+
+    func test_redirect_stdout_using_null() {
+        let url = URL(fileURLWithPath: "/usr/bin/env", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardOutput = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
+
+    func test_redirect_stdin_stdout_using_null() {
+        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardInput = FileHandle.nullDevice
+        task.standardOutput = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
+
+
+    func test_redirect_stderr_using_null() throws {
+        let url = URL(fileURLWithPath: "/usr/bin/env", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
+
+
+    func test_redirect_all_using_null() throws {
+        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        let task = Process()
+        task.executableURL = url
+        task.standardInput = FileHandle.nullDevice
+        task.standardOutput = FileHandle.nullDevice
+        task.standardError = FileHandle.nullDevice
+        XCTAssertNoThrow(try task.run())
+        task.waitUntilExit()
+    }
 #endif
 }
 
