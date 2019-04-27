@@ -10,6 +10,11 @@
 open class NSNotification: NSObject, NSCopying, NSCoding {
     public struct Name : RawRepresentable, Equatable, Hashable {
         public private(set) var rawValue: String
+
+        public init(_ rawValue: String) {
+            self.rawValue = rawValue
+        }
+
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
