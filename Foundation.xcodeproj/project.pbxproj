@@ -354,8 +354,8 @@
 		7900433C1CACD33E00ECCBF1 /* TestNSPredicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7900433A1CACD33E00ECCBF1 /* TestNSPredicate.swift */; };
 		7D0DE86E211883F500540061 /* TestDateComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DE86C211883F500540061 /* TestDateComponents.swift */; };
 		7D0DE86F211883F500540061 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DE86D211883F500540061 /* Utilities.swift */; };
-		7D8BD739225ED1480057CF37 /* TestMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D8BD738225ED1480057CF37 /* TestMeasurement.swift */; };
 		7D8BD737225EADB80057CF37 /* TestDateInterval.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D8BD736225EADB80057CF37 /* TestDateInterval.swift */; };
+		7D8BD739225ED1480057CF37 /* TestMeasurement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D8BD738225ED1480057CF37 /* TestMeasurement.swift */; };
 		90E645DF1E4C89A400D0D47C /* TestNSCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90E645DE1E4C89A400D0D47C /* TestNSCache.swift */; };
 		91B668A32252B3C5001487A1 /* FileManager+POSIX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B668A22252B3C5001487A1 /* FileManager+POSIX.swift */; };
 		91B668A52252B3E7001487A1 /* FileManager+Win32.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B668A42252B3E7001487A1 /* FileManager+Win32.swift */; };
@@ -883,8 +883,8 @@
 		7A7D6FBA1C16439400957E2E /* TestURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURLResponse.swift; sourceTree = "<group>"; };
 		7D0DE86C211883F500540061 /* TestDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateComponents.swift; sourceTree = "<group>"; };
 		7D0DE86D211883F500540061 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
-		7D8BD738225ED1480057CF37 /* TestMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMeasurement.swift; sourceTree = "<group>"; };
 		7D8BD736225EADB80057CF37 /* TestDateInterval.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDateInterval.swift; sourceTree = "<group>"; };
+		7D8BD738225ED1480057CF37 /* TestMeasurement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMeasurement.swift; sourceTree = "<group>"; };
 		83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSURLRequest.swift; sourceTree = "<group>"; };
 		844DC3321C17584F005611F9 /* TestScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestScanner.swift; sourceTree = "<group>"; };
 		848A30571C137B3500C83206 /* TestHTTPCookie.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TestHTTPCookie.swift; path = TestFoundation/TestHTTPCookie.swift; sourceTree = SOURCE_ROOT; };
@@ -2223,7 +2223,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1000;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = Apple;
 				TargetAttributes = {
 					5B5D885C1BBC938800234F36 = {
@@ -2257,10 +2257,9 @@
 			};
 			buildConfigurationList = 5B5D88571BBC938800234F36 /* Build configuration list for PBXProject "Foundation" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -2757,6 +2756,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
@@ -2818,6 +2818,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
