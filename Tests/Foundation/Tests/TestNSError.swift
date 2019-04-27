@@ -22,7 +22,8 @@ class TestNSError : XCTestCase {
             ("test_CustomNSError_errorCode", test_CustomNSError_errorCode),
             ("test_CustomNSError_errorCodeRawInt", test_CustomNSError_errorCodeRawInt),
             ("test_CustomNSError_errorCodeRawUInt", test_CustomNSError_errorCodeRawUInt),
-            ("test_errorConvenience", test_errorConvenience)
+            ("test_errorConvenience", test_errorConvenience),
+            ("test_NSError_userInfoValueProvider", test_NSError_userInfoValueProvider)
         ]
     }
     
@@ -105,6 +106,29 @@ class TestNSError : XCTestCase {
         } else {
             XCTFail()
         }
+    }
+
+    func test_NSError_userInfoValueProvider() {
+        NSError.setUserInfoValueProvider(forDomain: "domain") { (_, key) -> Any? in
+            switch key {
+            case NSLocalizedDescriptionKey:
+                return "Localized!"
+            case NSLocalizedFailureReasonErrorKey:
+                return "Reason"
+            default:
+                return nil
+            }
+        }
+
+        let nsError = NSError(domain: "domain", code: 0, userInfo: nil)
+        XCTAssertNotNil(NSError.userInfoValueProvider(forDomain: nsError.domain))
+        XCTAssertEqual(nsError.localizedDescription, "Localized!")
+        XCTAssertEqual(nsError.localizedFailureReason, "Reason")
+        XCTAssertNil(nsError.localizedRecoverySuggestion)
+
+        let nsError2 = NSError(domain: "domain2", code: 0, userInfo: nil)
+        XCTAssertNil(NSError.userInfoValueProvider(forDomain: nsError2.domain))
+        XCTAssertNil(nsError2.localizedFailureReason)
     }
 }
 

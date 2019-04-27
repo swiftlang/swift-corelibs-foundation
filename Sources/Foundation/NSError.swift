@@ -127,7 +127,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var localizedDescription: String {
-        if let localizedDescription = userInfo[NSLocalizedDescriptionKey] as? String {
+        if let localizedDescription = _userInfoValue(for: NSLocalizedDescriptionKey) as? String {
             return localizedDescription
         } else {
             // placeholder values
@@ -137,7 +137,7 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     
     open var localizedFailureReason: String? {
         
-        if let localizedFailureReason = userInfo[NSLocalizedFailureReasonErrorKey] as? String {
+        if let localizedFailureReason = _userInfoValue(for: NSLocalizedFailureReasonErrorKey) as? String {
             return localizedFailureReason
         } else {
             switch domain {
@@ -154,19 +154,19 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
     
     open var localizedRecoverySuggestion: String? {
-        return userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String
+        return _userInfoValue(for: NSLocalizedRecoverySuggestionErrorKey) as? String
     }
 
     open var localizedRecoveryOptions: [String]? {
-        return userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String]
+        return _userInfoValue(for: NSLocalizedRecoveryOptionsErrorKey) as? [String]
     }
     
     open var recoveryAttempter: Any? {
-        return userInfo[NSRecoveryAttempterErrorKey]
+        return _userInfoValue(for: NSRecoveryAttempterErrorKey)
     }
     
     open var helpAnchor: String? {
-        return userInfo[NSHelpAnchorErrorKey] as? String
+        return _userInfoValue(for: NSHelpAnchorErrorKey) as? String
     }
     
     internal typealias UserInfoProvider = (_ error: Error, _ key: String) -> Any?
@@ -178,6 +178,13 @@ open class NSError : NSObject, NSCopying, NSSecureCoding, NSCoding {
 
     open class func userInfoValueProvider(forDomain errorDomain: String) -> ((Error, String) -> Any?)? {
         return NSError.userInfoProviders[errorDomain]
+    }
+
+    private func _userInfoValue(for key: String) -> Any? {
+        if let value = _userInfo?[key] {
+            return value
+        }
+        return NSError.userInfoProviders[_domain]?(self, key)
     }
     
     override open var description: String {
