@@ -990,12 +990,12 @@ private func _scanDoublesFromString(_ aString: String, number: Int) -> [Double] 
     var result = [Double](repeating: 0.0, count: number)
     var index = 0
 
-    let _ = scanner.scanUpToCharactersFromSet(digitSet)
+    let _ = scanner.scanUpToCharacters(from: digitSet)
     while !scanner.isAtEnd && index < number {
         if let num = scanner.scanDouble() {
             result[index] = num
         }
-        let _ = scanner.scanUpToCharactersFromSet(digitSet)
+        let _ = scanner.scanUpToCharacters(from: digitSet)
         index += 1
     }
 
