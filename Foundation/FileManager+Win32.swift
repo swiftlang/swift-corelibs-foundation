@@ -401,7 +401,6 @@ extension FileManager {
         }
     }
 
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     internal func _removeItem(atPath path: String, isURL: Bool, alreadyConfirmed: Bool = false) throws {
         guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
             return
