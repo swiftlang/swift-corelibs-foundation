@@ -1099,13 +1099,13 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
                                 fts_set(_stream, _current, FTS_SKIP)
                             }
                             if showFile {
-                                 return URL(fileURLWithPath: filename)
+                                 return URL(fileURLWithPath: filename, isDirectory: true)
                             }
 
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
                             let (showFile, _) = match(filename: filename, to: _options, isDir: false)
                             if showFile {
-                                return URL(fileURLWithPath: filename)
+                                return URL(fileURLWithPath: filename, isDirectory: false)
                             }
                         case FTS_DNR, FTS_ERR, FTS_NS:
                             let keepGoing: Bool
