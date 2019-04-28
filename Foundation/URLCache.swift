@@ -132,7 +132,7 @@ open class URLCache : NSObject {
     private static var sharedCache: URLCache?
     
     private let syncQ = DispatchQueue(label: "org.swift.URLCache.syncQ")
-    private var persistence: CachePersistence?
+    private var persistence: _CachePersistence?
     
     /*! 
         @method sharedURLCache
@@ -202,7 +202,7 @@ open class URLCache : NSObject {
         self.diskCapacity = diskCapacity
 
         if let _path = path {
-            self.persistence = CachePersistence(path: _path)
+            self.persistence = _CachePersistence(path: _path)
         }
 
         super.init()
@@ -301,7 +301,7 @@ extension URLCache {
     public func removeCachedResponse(for dataTask: URLSessionDataTask) { NSUnimplemented() }
 }
 
-fileprivate struct CachePersistence {
+fileprivate struct _CachePersistence {
 
     let path: String
 
