@@ -10,9 +10,9 @@
 class TestDateInterval: XCTestCase {
     static var allTests: [(String, (TestDateInterval) -> () throws -> Void)] {
         return [
-            ("test_defaultConstructor", test_defaultConstructor),
-            ("test_startEndConstructor", test_startEndConstructor),
-            ("test_startDurationConstructor", test_startDurationConstructor),
+            ("test_defaultInitializer", test_defaultInitializer),
+            ("test_startEndInitializer", test_startEndInitializer),
+            ("test_startDurationInitializer", test_startDurationInitializer),
             ("test_compareDifferentStarts", test_compareDifferentStarts),
             ("test_compareDifferentDurations", test_compareDifferentDurations),
             ("test_compareSame", test_compareSame),
@@ -26,19 +26,19 @@ class TestDateInterval: XCTestCase {
         ]
     }
 
-    func test_defaultConstructor() {
+    func test_defaultInitializer() {
         let dateInterval = DateInterval()
         XCTAssertEqual(dateInterval.duration, 0)
     }
-    
-    func test_startEndConstructor() {
+
+    func test_startEndInitializer() {
         let date1 = dateWithString("2019-04-04 17:09:23 -0700")
         let date2 = dateWithString("2019-04-04 18:09:23 -0700")
         let dateInterval = DateInterval(start: date1, end: date2)
         XCTAssertEqual(dateInterval.duration, 60 * 60)
     }
 
-    func test_startDurationConstructor() {
+    func test_startDurationInitializer() {
         let date = dateWithString("2019-04-04 17:09:23 -0700")
         let dateInterval = DateInterval(start: date, duration: 60)
         XCTAssertEqual(dateInterval.duration, 60)
@@ -52,7 +52,7 @@ class TestDateInterval: XCTestCase {
         XCTAssertEqual(dateInterval1.compare(dateInterval2), .orderedAscending)
         XCTAssertEqual(dateInterval2.compare(dateInterval1), .orderedDescending)
     }
-    
+
     func test_compareDifferentDurations() {
         let date = dateWithString("2019-04-04 17:09:23 -0700")
         let dateInterval1 = DateInterval(start: date, duration: 60)
@@ -68,7 +68,7 @@ class TestDateInterval: XCTestCase {
         XCTAssertEqual(dateInterval1.compare(dateInterval2), .orderedSame)
         XCTAssertEqual(dateInterval2.compare(dateInterval1), .orderedSame)
     }
-    
+
     func test_comparisonOperators() {
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:00 -0700")
@@ -88,7 +88,7 @@ class TestDateInterval: XCTestCase {
         let dateInterval2 = DateInterval(start: date2, duration: 15)
         XCTAssertTrue(dateInterval1.intersects(dateInterval2))
     }
-    
+
     func test_intersection() {
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:15:00 -0700")
@@ -108,7 +108,7 @@ class TestDateInterval: XCTestCase {
         XCTAssertNotNil(intersection)
         XCTAssertEqual(intersection!.duration, 0)
     }
-    
+
     func test_intersectionNil() {
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:01 -0700")
@@ -116,7 +116,7 @@ class TestDateInterval: XCTestCase {
         let dateInterval2 = DateInterval(start: date2, duration: 60 * 30)
         XCTAssertNil(dateInterval1.intersection(with: dateInterval2))
     }
-    
+
     func test_contains() {
         let date1 = dateWithString("2019-04-04 17:00:00 -0700")
         let date2 = dateWithString("2019-04-04 17:30:00 -0700")
@@ -127,7 +127,7 @@ class TestDateInterval: XCTestCase {
         XCTAssertTrue(dateInterval.contains(date3))
         XCTAssertFalse(dateInterval.contains(date4))
     }
-    
+
     func test_hashing() {
         guard #available(iOS 10.10, OSX 10.12, tvOS 10.0, watchOS 3.0, *) else { return }
 
