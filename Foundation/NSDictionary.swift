@@ -669,7 +669,12 @@ extension NSDictionary : Sequence {
 
 // MARK - Shared Key Sets
 
+// We implement this as a shim for now. It is legal to call these methods and the behavior of the resulting NSDictionary will match Darwin's; however, the performance characteristics will be unmodified for the returned dictionary vs. a NSMutableDictionary created without a shared key set.
+// SR-XXXX.
+
 extension NSDictionary {
+    
+    static let sharedKeySetPlaceholder = NSObject()
     
     /*  Use this method to create a key set to pass to +dictionaryWithSharedKeySet:.
     The keys are copied from the array and must be copyable.
@@ -679,7 +684,9 @@ extension NSDictionary {
     As for any usage of hashing, is recommended that the keys have a well-distributed implementation of -hash, and the hash codes must satisfy the hash/isEqual: invariant.
     Keys with duplicate hash codes are allowed, but will cause lower performance and increase memory usage.
     */
-    open class func sharedKeySet(forKeys keys: [NSCopying]) -> Any { NSUnimplemented() }
+    open class func sharedKeySet(forKeys keys: [NSCopying]) -> Any {
+        return sharedKeySetPlaceholder
+    }
 }
 
 extension NSMutableDictionary {
@@ -690,7 +697,10 @@ extension NSMutableDictionary {
     If keyset is nil, an exception is thrown.
     If keyset is not an object returned by +sharedKeySetForKeys:, an exception is thrown.
     */
-    public convenience init(sharedKeySet keyset: Any) { NSUnimplemented() }
+    public convenience init(sharedKeySet keyset: Any) {
+        precondition(keyset as? NSObject == NSDictionary.sharedKeySetPlaceholder)
+        self.init()
+    }
 }
 
 extension NSDictionary: CustomReflectable {
