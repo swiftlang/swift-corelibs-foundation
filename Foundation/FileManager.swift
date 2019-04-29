@@ -364,7 +364,7 @@ open class FileManager : NSObject {
                     let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
                     var flags = stat.st_flags
                     flags |= flagsToSet
-                    flags |= flagsToUnset
+                    flags &= ~flagsToUnset
                 
                     guard chflags(fsRep, flags) == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
