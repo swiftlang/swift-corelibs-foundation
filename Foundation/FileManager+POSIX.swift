@@ -686,7 +686,7 @@ extension FileManager {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 ps.deinitialize(count: 2)
                 ps.deallocate()
 
@@ -1043,7 +1043,7 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 }
                 if _stream == nil {
                     throw _NSErrorWithErrno(errno, reading: true, url: url)
