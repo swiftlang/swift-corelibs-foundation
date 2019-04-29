@@ -567,7 +567,7 @@ static CFDictionaryRef CFTimeZoneCopyOlsonToWindowsDictionary(void) {
       DWORD dwSize;
 
       if (CFTimeZoneLoadPlistResource(MAKEINTRESOURCEA(IDR_OLSON_WINDOWS_MAPPING), (LPVOID *)&plist, &dwSize)) {
-          CFDataRef data = CFDataCreate(kCFAllocatorSystemDefault, plist, dwSize);
+          CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorSystemDefault, plist, dwSize, kCFAllocatorNull);
           dict = CFPropertyListCreateFromXMLData(kCFAllocatorSystemDefault, data, kCFPropertyListImmutable, NULL);
           CFRelease(data);
       }
