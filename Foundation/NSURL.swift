@@ -1997,7 +1997,7 @@ fileprivate extension URLResourceValuesStorage {
             // _setAttributes(…) needs to figure out the correct order to apply these attributes in, so set them all together at the end.
             if !attributesToSet.isEmpty {
                 try fm._setAttributes(attributesToSet, ofItemAtPath: path, includingPrivateAttributes: true)
-                unsuccessfulKeys.formUnion(keysThatSucceedBySettingAttributes)
+                unsuccessfulKeys.formSymmetricDifference(keysThatSucceedBySettingAttributes)
             }
             
             // The name must be set last, since otherwise the URL may be invalid.
