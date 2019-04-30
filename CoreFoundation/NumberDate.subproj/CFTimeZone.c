@@ -551,9 +551,9 @@ CFDictionaryRef CFTimeZoneCopyWinToOlsonDictionary(void) {
     if (NULL == __CFTimeZoneWinToOlsonDict) {
         __CFTimeZoneWinToOlsonDict = CFDictionaryCreate(kCFAllocatorSystemDefault, NULL, NULL, 0, NULL, NULL);
     }
+    dict = __CFTimeZoneWinToOlsonDict ? (CFDictionaryRef)CFRetain(__CFTimeZoneWinToOlsonDict) : NULL;
     __CFTimeZoneUnlockWinToOlson();
 
-    dict = __CFTimeZoneWinToOlsonDict ? (CFDictionaryRef)CFRetain(__CFTimeZoneWinToOlsonDict) : NULL;
     return dict;
 }
 
@@ -581,9 +581,9 @@ void CFTimeZoneSetWinToOlsonDictionary(CFDictionaryRef dict) {
     __CFGenericValidateType(dict, CFDictionaryGetTypeID());
     __CFTimeZoneLockWinToOlson();
     if (dict != __CFTimeZoneWinToOlsonDict) {
-        if (dict) CFRetain(dict);
-        if (__CFTimeZoneWinToOlsonDict) CFRelease(__CFTimeZoneWinToOlsonDict);
-        __CFTimeZoneWinToOlsonDict = dict;
+        CFDictionaryRef oldDict = __CFTimeZoneWinToOlsonDict;
+        __CFTimeZoneWinToOlsonDict = dict ? CFRetain(dict) : NULL;
+        CFRelease(oldDict);
     }
     __CFTimeZoneUnlockWinToOlson();
 }
