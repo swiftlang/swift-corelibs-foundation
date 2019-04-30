@@ -453,10 +453,13 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let permissions = (try? fm._permissionsOfItem(atPath: path)) ?? 0o600
 
         if writeOptionsMask.contains(.atomic) {
-            let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
+            var (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
             let fh = FileHandle(fileDescriptor: newFD, closeOnDealloc: true)
             do {
                 try doWrite(fh)
+                // Moving a file on Windows (via _NSCleanupTemporaryFile)
+                // requires that there be no open handles to the file
+                fh.closeFile()
                 try _NSCleanupTemporaryFile(auxFilePath, path)
                 try fm.setAttributes([.posixPermissions: NSNumber(value: permissions)], ofItemAtPath: path)
             } catch {

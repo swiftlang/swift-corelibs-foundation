@@ -659,11 +659,21 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
     guard "SCF".withCString(encodedAs: UTF16.self, {
       return GetTempFileNameW(buf, $0, 0, &buf) != 0
     }) else {
-      throw _NSErrorWithErrno(Int32(GetLastError()), reading: false,
-                              path: filePath)
+      throw _NSErrorWithWindowsError(GetLastError(), reading: false)
     }
     let pathResult = FileManager.default.string(withFileSystemRepresentation: String(decoding: buf, as: UTF16.self), length: wcslen(buf))
-    let fd = open(pathResult, _O_CREAT)
+    guard let h = CreateFileW(buf,
+                              GENERIC_READ | DWORD(GENERIC_WRITE),
+                              DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
+                              nil,
+                              DWORD(OPEN_EXISTING),
+                              DWORD(FILE_ATTRIBUTE_NORMAL),
+                              nil),
+          h != INVALID_HANDLE_VALUE else {
+      throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+    }
+    // Don't close h, fd is transferred ownership
+    let fd = _open_osfhandle(intptr_t(bitPattern: h), 0)
 #else
     let maxLength = Int(PATH_MAX) + 1
     var buf = [Int8](repeating: 0, count: maxLength)
@@ -678,10 +688,22 @@ internal func _NSCreateTemporaryFile(_ filePath: String) throws -> (Int32, Strin
 }
 
 internal func _NSCleanupTemporaryFile(_ auxFilePath: String, _ filePath: String) throws  {
+#if os(Windows)
+    try auxFilePath.withCString(encodedAs: UTF16.self) { fromPath in
+        try filePath.withCString(encodedAs: UTF16.self) { toPath in
+            let res = CopyFileW(fromPath, toPath, /*bFailIfExists=*/false)
+            try? FileManager.default.removeItem(atPath: auxFilePath)
+            if !res {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+        }
+    }
+#else
     try FileManager.default._fileSystemRepresentation(withPath: auxFilePath, andPath: filePath, {
         if rename($0, $1) != 0 {
             try? FileManager.default.removeItem(atPath: auxFilePath)
             throw _NSErrorWithErrno(errno, reading: false, path: filePath)
         }
     })
+#endif
 }
