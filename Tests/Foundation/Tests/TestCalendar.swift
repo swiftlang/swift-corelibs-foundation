@@ -111,6 +111,31 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(components.day, 18)
 
     }
+    
+    func test_gettingDatesOnJapaneseCalendar() throws {
+        var calendar = Calendar(identifier: .japanese)
+        calendar.timeZone = try XCTUnwrap( TimeZone(identifier: "UTC") )
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        
+        do {
+            let date = Date(timeIntervalSince1970: 1556633400) // April 30, 2019
+            let components = calendar.dateComponents([.era, .year, .month, .day], from: date)
+            XCTAssertEqual(calendar.eraSymbols[try XCTUnwrap(components.era)], "Heisei")
+            XCTAssertEqual(components.year, 31)
+            XCTAssertEqual(components.month, 4)
+            XCTAssertEqual(components.day, 30)
+        }
+        
+        // Test for new Japanese calendar era (starting from May 1, 2019)
+        do {
+            let date = Date(timeIntervalSince1970: 1556719800) // May 1, 2019
+            let components = calendar.dateComponents([.era, .year, .month, .day], from: date)
+            XCTAssertEqual(calendar.eraSymbols[try XCTUnwrap(components.era)], "Reiwa")
+            XCTAssertEqual(components.year, 1)
+            XCTAssertEqual(components.month, 5)
+            XCTAssertEqual(components.day, 1)
+        }
+    }
 
     func test_ampmSymbols() {
         let calendar = Calendar(identifier: .gregorian)
@@ -249,6 +274,7 @@ class TestCalendar: XCTestCase {
             ("test_gettingDatesOnChineseCalendar", test_gettingDatesOnChineseCalendar),
             ("test_gettingDatesOnISO8601Calendar", test_gettingDatesOnISO8601Calendar),
             ("test_gettingDatesOnPersianCalendar", test_gettingDatesOnPersianCalendar),
+            ("test_gettingDatesOnJapaneseCalendar", test_gettingDatesOnJapaneseCalendar),
             ("test_copy",test_copy),
             ("test_addingDates", test_addingDates),
             ("test_datesNotOnWeekend", test_datesNotOnWeekend),

@@ -430,16 +430,33 @@ class TestDateFormatter: XCTestCase {
         
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.calendar = Calendar(identifier: .japanese)
-        formatter.dateFormat = "Gy年M月dd日 HH:mm"
+        formatter.dateFormat = "Gy年M月d日 HH:mm"
         formatter.timeZone = TimeZone(abbreviation: "JST")
         
-        // parse test
-        let parsed = formatter.date(from: "平成31年4月30日 23:10")
-        XCTAssertEqual(parsed?.timeIntervalSince1970, 1556633400) // April 30, 2019, 11:10 PM (JST)
+        do {
+            // Parse test
+            let parsed = formatter.date(from: "平成31年4月30日 23:10")
+            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556633400) // April 30, 2019, 11:10 PM (JST)
+            
+            // Format test
+            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
+            XCTAssertEqual(dateString, "平成31年4月30日 23:10")
+        }
         
-        // format test
-        let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
-        XCTAssertEqual(dateString, "平成31年4月30日 23:10")
+        // Test for new Japanese era (starting from May 1, 2019)
+        do {
+            // Parse test
+            let parsed = formatter.date(from: "令和1年5月1日 23:10")
+            XCTAssertEqual(parsed?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
+            
+            // Test for 元年(Gannen) representaion of 1st year
+            let parsedAlt = formatter.date(from: "令和元年5月1日 23:10")
+            XCTAssertEqual(parsedAlt?.timeIntervalSince1970, 1556719800) // May 1st, 2019, 11:10 PM (JST)
+
+            // Format test
+            let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556719800)) // May 1st, 2019, 11:10 PM (JST)
+            XCTAssertEqual(dateString, "令和元年5月1日 23:10")
+        }
     }
 
     func test_orderOfPropertySetters() throws {
