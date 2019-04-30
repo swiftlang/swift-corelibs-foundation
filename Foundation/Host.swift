@@ -9,6 +9,23 @@
 
 import CoreFoundation
 
+#if os(Android)
+    // Android Glibc differs a little with respect to the Linux Glibc.
+
+    // IFF_LOOPBACK is part of the enumeration net_device_flags, which needs to
+    // convert to UInt32.
+    private extension UInt32 {
+        init(_ value: net_device_flags) {
+            self.init(value.rawValue)
+        }
+    }
+
+    // getnameinfo uses size_t for its 4th and 6th arguments.
+    private func getnameinfo(_ addr: UnsafePointer<sockaddr>?, _ addrlen: socklen_t, _ host: UnsafeMutablePointer<Int8>?, _ hostlen: socklen_t, _ serv: UnsafeMutablePointer<Int8>?, _ servlen: socklen_t, _ flags: Int32) -> Int32 {
+        return Glibc.getnameinfo(addr, addrlen, host, Int(hostlen), serv, Int(servlen), flags)
+    }
+#endif
+
 open class Host: NSObject {
     enum ResolveType {
         case name
@@ -21,10 +38,6 @@ open class Host: NSObject {
     internal var _names = [String]()
     internal var _addresses = [String]()
     
-#if os(Android)
-    static internal let NI_MAXHOST = 1025
-#endif
-    
     static internal let _current = Host(currentHostName(), .current)
     
     internal init(_ info: String?, _ type: ResolveType) {
@@ -34,21 +47,21 @@ open class Host: NSObject {
     
     static internal func currentHostName() -> String {
 #if os(Windows)
-      var dwLength: DWORD = 0
-      GetComputerNameExA(ComputerNameDnsHostname, nil, &dwLength)
-      guard dwLength > 0 else { return "localhost" }
+        var dwLength: DWORD = 0
+        GetComputerNameExA(ComputerNameDnsHostname, nil, &dwLength)
+        guard dwLength > 0 else { return "localhost" }
 
-      guard let hostname: UnsafeMutablePointer<Int8> =
-          UnsafeMutableBufferPointer<Int8>
-              .allocate(capacity: Int(dwLength + 1))
-              .baseAddress else {
-        return "localhost"
-      }
-      defer { hostname.deallocate() }
-      guard GetComputerNameExA(ComputerNameDnsHostname, hostname, &dwLength) else {
-        return "localhost"
-      }
-      return String(cString: hostname)
+        guard let hostname: UnsafeMutablePointer<Int8> =
+                UnsafeMutableBufferPointer<Int8>
+                    .allocate(capacity: Int(dwLength + 1))
+                    .baseAddress else {
+            return "localhost"
+        }
+        defer { hostname.deallocate() }
+        guard GetComputerNameExA(ComputerNameDnsHostname, hostname, &dwLength) else {
+            return "localhost"
+        }
+        return String(cString: hostname)
 #else
         let hname = UnsafeMutablePointer<Int8>.allocate(capacity: Int(NI_MAXHOST))
         defer {
@@ -80,9 +93,7 @@ open class Host: NSObject {
     }
     
     internal func _resolveCurrent() {
-#if os(Android)
-        return
-#elseif os(Windows)
+#if os(Windows)
         var ulSize: ULONG = 0
         var ulResult: ULONG =
             GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, nil, &ulSize)
@@ -150,9 +161,7 @@ open class Host: NSObject {
     
     internal func _resolve() {
         guard _resolved == false else { return }
-#if os(Android)
-        return
-#elseif os(Windows)
+#if os(Windows)
         if let info = _info {
           if _type == .current { return _resolveCurrent() }
 
