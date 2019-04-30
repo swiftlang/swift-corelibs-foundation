@@ -1125,7 +1125,6 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     if (tzName) {
         int32_t offset;
         __CFTimeZoneGetOffset(tzName, &offset);
-        CFRelease(tzName);
         // TODO(compnerd) handle DST
         __CFTimeZoneInitFixed(timeZone, offset, name, 0);
         return TRUE;
@@ -1328,7 +1327,6 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
     if (tzName) {
         int32_t offset;
         __CFTimeZoneGetOffset(tzName, &offset);
-        CFRelease(tzName);
         // TODO(compnerd) handle DST
         result = __CFTimeZoneCreateFixed(allocator, offset, name, 0);
     }
