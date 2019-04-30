@@ -405,7 +405,7 @@ extension FileManager {
         guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
             return
         }
-        let faAttributes = try! windowsFileAttributes(atPath: path)
+        let faAttributes = try windowsFileAttributes(atPath: path)
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
             if !path.withCString(encodedAs: UTF16.self, DeleteFileW) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
