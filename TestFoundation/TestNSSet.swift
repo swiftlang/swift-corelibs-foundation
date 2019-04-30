@@ -8,28 +8,6 @@
 //
 
 class TestNSSet : XCTestCase {
-    
-    static var allTests: [(String, (TestNSSet) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("testInitWithSet", testInitWithSet),
-            ("test_enumeration", test_enumeration),
-            ("test_sequenceType", test_sequenceType),
-            ("test_setOperations", test_setOperations),
-            ("test_equality", test_equality),
-            ("test_copying", test_copying),
-            ("test_mutableCopying", test_mutableCopying),
-            ("test_CountedSetBasicConstruction", test_CountedSetBasicConstruction),
-            ("test_CountedSetObjectCount", test_CountedSetObjectCount),
-            ("test_CountedSetAddObject", test_CountedSetAddObject),
-            ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
-            ("test_CountedSetCopying", test_CountedSetCopying),
-            ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
-            ("test_Subsets", test_Subsets),
-            ("test_description", test_description)
-        ]
-    }
-    
     func test_BasicConstruction() {
         let set = NSSet()
         let set2 = NSSet(array: ["foo", "bar"])
@@ -271,4 +249,56 @@ class TestNSSet : XCTestCase {
         XCTAssertTrue(description.contains("    2222"))
         XCTAssertTrue(description.contains("    3333"))
     }
+    
+    let setFixtures = [
+        Fixtures.setOfNumbers,
+        Fixtures.setEmpty,
+    ]
+    
+    let mutableSetFixtures = [
+        Fixtures.mutableSetOfNumbers,
+        Fixtures.mutableSetEmpty,
+    ]
+    
+    func test_codingRoundtrip() throws {
+        for fixture in setFixtures {
+            try fixture.assertValueRoundtripsInCoder()
+        }
+        for fixture in mutableSetFixtures {
+            try fixture.assertValueRoundtripsInCoder()
+        }
+    }
+    
+    func test_loadedValuesMatch() throws {
+        for fixture in setFixtures {
+            try fixture.assertLoadedValuesMatch()
+        }
+        for fixture in mutableSetFixtures {
+            try fixture.assertLoadedValuesMatch()
+        }
+    }
+    
+    static var allTests: [(String, (TestNSSet) -> () throws -> Void)] {
+        return [
+            ("test_BasicConstruction", test_BasicConstruction),
+            ("testInitWithSet", testInitWithSet),
+            ("test_enumeration", test_enumeration),
+            ("test_sequenceType", test_sequenceType),
+            ("test_setOperations", test_setOperations),
+            ("test_equality", test_equality),
+            ("test_copying", test_copying),
+            ("test_mutableCopying", test_mutableCopying),
+            ("test_CountedSetBasicConstruction", test_CountedSetBasicConstruction),
+            ("test_CountedSetObjectCount", test_CountedSetObjectCount),
+            ("test_CountedSetAddObject", test_CountedSetAddObject),
+            ("test_CountedSetRemoveObject", test_CountedSetRemoveObject),
+            ("test_CountedSetCopying", test_CountedSetCopying),
+            ("test_mutablesetWithDictionary", test_mutablesetWithDictionary),
+            ("test_Subsets", test_Subsets),
+            ("test_description", test_description),
+            ("test_codingRoundtrip", test_codingRoundtrip),
+            ("test_loadedValuesMatch", test_loadedValuesMatch),
+        ]
+    }
+    
 }

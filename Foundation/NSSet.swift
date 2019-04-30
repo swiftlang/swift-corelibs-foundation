@@ -86,22 +86,26 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         self.init(array: [object])
     }
 
-    public required convenience init?(coder aDecoder: NSCoder) {
+    internal class func _objects(from aDecoder: NSCoder) -> [NSObject] {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
-            self.init(array: objects as! [NSObject])
+            return objects as! [NSObject]
         } else {
-            var objects = [AnyObject]()
+            var objects: [NSObject] = []
             var count = 0
             while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
                 objects.append(object as! NSObject)
                 count += 1
             }
-            self.init(array: objects)
+            return objects
         }
+    }
+    
+    public required convenience init?(coder aDecoder: NSCoder) {
+        self.init(array: NSSet._objects(from: aDecoder))
     }
     
     open func encode(with aCoder: NSCoder) {
@@ -380,7 +384,7 @@ open class NSMutableSet : NSSet {
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        self.init(array: NSSet._objects(from: aDecoder))
     }
     
     open func addObjects(from array: [Any]) {

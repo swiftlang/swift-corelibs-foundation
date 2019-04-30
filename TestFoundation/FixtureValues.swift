@@ -200,6 +200,26 @@ enum Fixtures {
         return (try Fixtures.indexSetManyRanges.make()).mutableCopy() as! NSMutableIndexSet
     }
     
+    // ===== NSSet, NSMutableSet =====
+    
+    static let setOfNumbers = TypedFixture<NSSet>("NSSet-Numbers") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        return NSSet(array: numbers)
+    }
+    
+    static let setEmpty = TypedFixture<NSSet>("NSSet-Empty") {
+        return NSSet()
+    }
+    
+    static let mutableSetOfNumbers = TypedFixture<NSMutableSet>("NSMutableSet-Numbers") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        return NSMutableSet(array: numbers)
+    }
+    
+    static let mutableSetEmpty = TypedFixture<NSMutableSet>("NSMutableSet-Empty") {
+        return NSMutableSet()
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -221,6 +241,10 @@ enum Fixtures {
         AnyFixture(Fixtures.mutableIndexSetEmpty),
         AnyFixture(Fixtures.mutableIndexSetOneRange),
         AnyFixture(Fixtures.mutableIndexSetManyRanges),
+        AnyFixture(Fixtures.setOfNumbers),
+        AnyFixture(Fixtures.setEmpty),
+        AnyFixture(Fixtures.mutableSetOfNumbers),
+        AnyFixture(Fixtures.mutableSetEmpty),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
