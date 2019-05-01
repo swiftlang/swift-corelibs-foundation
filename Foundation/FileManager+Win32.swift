@@ -27,35 +27,33 @@ extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         var urls: [URL] = []
 
-        var wszVolumeName: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(MAX_PATH))
-        defer { wszVolumeName.deallocate() }
+        var wszVolumeName: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH))
 
-        var hVolumes: HANDLE = FindFirstVolumeW(wszVolumeName.baseAddress, DWORD(wszVolumeName.count))
+        var hVolumes: HANDLE = FindFirstVolumeW(&wszVolumeName, DWORD(wszVolumeName.count))
         guard hVolumes != INVALID_HANDLE_VALUE else { return nil }
         defer { FindVolumeClose(hVolumes) }
 
         repeat {
             var dwCChReturnLength: DWORD = 0
-            GetVolumePathNamesForVolumeNameW(wszVolumeName.baseAddress, nil, 0, &dwCChReturnLength)
+            GetVolumePathNamesForVolumeNameW(&wszVolumeName, nil, 0, &dwCChReturnLength)
 
-            var wszPathNames: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwCChReturnLength + 1))
-            defer { wszPathNames.deallocate() }
-
-            if !GetVolumePathNamesForVolumeNameW(wszVolumeName.baseAddress, wszPathNames.baseAddress, DWORD(wszPathNames.count), &dwCChReturnLength) {
+            var wszPathNames: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwCChReturnLength + 1))
+            if !GetVolumePathNamesForVolumeNameW(&wszVolumeName, &wszPathNames, DWORD(wszPathNames.count), &dwCChReturnLength) {
                 // TODO(compnerd) handle error
                 continue
             }
 
             var pPath: DWORD = 0
             repeat {
-                let path: String = String(decodingCString: wszPathNames.baseAddress! + Int(pPath), as: UTF16.self)
+                let path: String = String(decodingCString: &wszPathNames[Int(pPath)], as: UTF16.self)
                 if path.length == 0 {
                     break
                 }
                 urls.append(URL(fileURLWithPath: path, isDirectory: true))
                 pPath += DWORD(path.length + 1)
             } while pPath < dwCChReturnLength
-        } while FindNextVolumeW(hVolumes, wszVolumeName.baseAddress, DWORD(wszVolumeName.count))
+        } while FindNextVolumeW(hVolumes, &wszVolumeName, DWORD(wszVolumeName.count))
+
         return urls
     }
     internal func _urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
@@ -245,17 +243,16 @@ extension FileManager {
 
         try path.withCString(encodedAs: UTF16.self) {
             let dwLength: DWORD = GetFullPathNameW($0, 0, nil, nil)
-            let szVolumePath: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwLength + 1))
-            defer { szVolumePath.deallocate() }
+            var szVolumePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
-            guard GetVolumePathNameW($0, szVolumePath.baseAddress, dwLength) else {
+            guard GetVolumePathNameW($0, &szVolumePath, dwLength) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
 
             var liTotal: ULARGE_INTEGER = ULARGE_INTEGER()
             var liFree: ULARGE_INTEGER = ULARGE_INTEGER()
 
-            guard GetDiskFreeSpaceExW(szVolumePath.baseAddress, nil, &liTotal, &liFree) else {
+            guard GetDiskFreeSpaceExW(&szVolumePath, nil, &liTotal, &liFree) else {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
 
@@ -297,11 +294,10 @@ extension FileManager {
         }
 
         let dwLength: DWORD = GetFinalPathNameByHandleW(hFile, nil, 0, DWORD(FILE_NAME_NORMALIZED))
-        let szPath: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(dwLength + 1))
-        defer { szPath.deallocate() }
+        var szPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
-        GetFinalPathNameByHandleW(hFile, szPath.baseAddress, dwLength, DWORD(FILE_NAME_NORMALIZED))
-        return String(decodingCString: szPath.baseAddress!, as: UTF16.self)
+        GetFinalPathNameByHandleW(hFile, &szPath, dwLength, DWORD(FILE_NAME_NORMALIZED))
+        return String(decodingCString: &szPath, as: UTF16.self)
     }
 
     internal func _copyRegularFile(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy") throws {
@@ -469,11 +465,10 @@ extension FileManager {
 
     internal func _currentDirectoryPath() -> String {
         let dwLength: DWORD = GetCurrentDirectoryW(0, nil)
-        var szDirectory: UnsafeMutableBufferPointer<WCHAR> = UnsafeMutableBufferPointer.allocate(capacity: Int(dwLength + 1))
-        defer { szDirectory.deallocate() }
+        var szDirectory: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
-        GetCurrentDirectoryW(dwLength, szDirectory.baseAddress)
-        return String(decodingCString: szDirectory.baseAddress!, as: UTF16.self)
+        GetCurrentDirectoryW(dwLength, &szDirectory)
+        return String(decodingCString: &szDirectory, as: UTF16.self)
     }
 
     @discardableResult
