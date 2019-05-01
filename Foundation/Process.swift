@@ -387,27 +387,51 @@ open class Process: NSObject {
         var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
         siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
 
+        var _devNull: FileHandle?
+        func devNullFd() throws -> HANDLE {
+            _devNull = try _devNull ?? FileHandle(forUpdating: URL(fileURLWithPath: "NUL", isDirectory: false))
+            return _devNull!.handle
+        }
+
         switch standardInput {
         case let pipe as Pipe:
-          siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
+            siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
+
+        // nil or NullDevice maps to NUL
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
+            siStartupInfo.hStdInput = try devNullHnd()
+
         case let handle as FileHandle:
-          siStartupInfo.hStdInput = handle.handle
+            siStartupInfo.hStdInput = handle.handle
         default: break
         }
 
         switch standardOutput {
         case let pipe as Pipe:
-          siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
+            siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
+
+        // nil or NullDevice maps to NUL
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
+            siStartupInfo.hStdOutput = try devNullHnd()
+
         case let handle as FileHandle:
-          siStartupInfo.hStdOutput = handle.handle
+            siStartupInfo.hStdOutput = handle.handle
         default: break
         }
 
         switch standardError {
         case let pipe as Pipe:
-          siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
+            siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
+
+        // nil or NullDevice maps to NUL
+        case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
+        case .none:
+            siStartupInfo.hStdError = try devNullHnd()
+
         case let handle as FileHandle:
-          siStartupInfo.hStdError = handle.handle
+            siStartupInfo.hStdError = handle.handle
         default: break
         }
 
