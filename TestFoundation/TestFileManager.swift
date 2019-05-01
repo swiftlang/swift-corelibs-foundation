@@ -348,7 +348,6 @@ class TestFileManager : XCTestCase {
     }
     
     func test_fileSystemAttributes() {
-#if !os(Android)
         let fm = FileManager.default
         let path = NSTemporaryDirectory()
         
@@ -379,7 +378,6 @@ class TestFileManager : XCTestCase {
         } catch {
             XCTFail("\(error)")
         }
-#endif
     }
     
     func test_setFileAttributes() {
@@ -1084,7 +1082,7 @@ class TestFileManager : XCTestCase {
         try testCopy()
     }
     
-#if !DEPLOYMENT_RUNTIME_OBJC // XDG tests require swift-corelibs-foundation
+#if !DEPLOYMENT_RUNTIME_OBJC && !os(Android) // XDG tests require swift-corelibs-foundation
     
     #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT // These are white box tests for the internals of XDG parsing:
     func test_xdgStopgapsCoverAllConstants() {
@@ -1201,16 +1199,9 @@ VIDEOS=StopgapVideos
     #endif // NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     
     // This test below is a black box test, and does not require @testable import.
-    
-    enum TestError: Error {
-        case notImplementedOnThisPlatform
-    }
-    
+
+    #if !os(Android)
     func printPathByRunningHelper(withConfiguration config: String, method: String, identifier: String) throws -> String {
-        #if os(Android)
-            throw TestError.notImplementedOnThisPlatform
-        #endif
-        
         let uuid = UUID().uuidString
         let path = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("org.swift.Foundation.XDGTestHelper").appendingPathComponent(uuid)
         try FileManager.default.createDirectory(at: path, withIntermediateDirectories: true)
@@ -1268,6 +1259,7 @@ VIDEOS=StopgapVideos
         assertFetchingPath(withConfiguration: configuration, identifier: "pictures", yields: "\(prefix)/Pictures")
         assertFetchingPath(withConfiguration: configuration, identifier: "videos", yields: "\(prefix)/Videos")
     }
+    #endif // !os(Android)
 #endif // !DEPLOYMENT_RUNTIME_OBJC
 
     func test_emptyFilename() {
@@ -1565,7 +1557,7 @@ VIDEOS=StopgapVideos
             ("test_displayNames", test_displayNames),
         ]
         
-        #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)
         tests.append(contentsOf: [
             ("test_xdgStopgapsCoverAllConstants", test_xdgStopgapsCoverAllConstants),
             ("test_parseXDGConfiguration", test_parseXDGConfiguration),
@@ -1573,7 +1565,7 @@ VIDEOS=StopgapVideos
             ])
         #endif
         
-        #if !DEPLOYMENT_RUNTIME_OBJC
+        #if !DEPLOYMENT_RUNTIME_OBJC && !os(Android)
         tests.append(contentsOf: [
             ("test_fetchXDGPathsFromHelper", test_fetchXDGPathsFromHelper),
             ])

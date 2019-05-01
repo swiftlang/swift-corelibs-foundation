@@ -525,16 +525,9 @@ open class FileManager : NSObject {
      
         This method replaces fileSystemAttributesAtPath:.
      */
- #if os(Android)
-    @available(*, unavailable, message: "Unsuppported on this platform")
-    open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
-        NSUnsupported()
-    }
- #else
     open func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         return try _attributesOfFileSystem(forPath: path)
     }
-#endif
 
     /* createSymbolicLinkAtPath:withDestination:error: returns YES if the symbolic link that point at 'destPath' was able to be created at the location specified by 'path'. If this method returns NO, the link was unable to be created and an NSError will be returned by reference in the 'error' parameter. This method does not traverse a terminal symlink.
 

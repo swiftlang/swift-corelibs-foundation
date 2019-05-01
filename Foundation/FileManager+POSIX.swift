@@ -19,7 +19,7 @@ extension FileManager {
     internal func _mountedVolumeURLs(includingResourceValuesForKeys propertyKeys: [URLResourceKey]?, options: VolumeEnumerationOptions = []) -> [URL]? {
         var urls: [URL] = []
 
-#if os(Linux)
+#if os(Linux) || os(Android)
         guard let procMounts = try? String(contentsOfFile: "/proc/mounts", encoding: .utf8) else {
             return nil
         }
