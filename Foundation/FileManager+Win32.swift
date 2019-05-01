@@ -405,14 +405,20 @@ extension FileManager {
         guard alreadyConfirmed || shouldRemoveItemAtPath(path, isURL: isURL) else {
             return
         }
-        let faAttributes = try windowsFileAttributes(atPath: path)
+        let url = URL(fileURLWithPath: path)
+        var fsrBuf: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH))
+        _CFURLGetWideFileSystemRepresentation(url._cfObject, false, &fsrBuf, Int(MAX_PATH))
+        let length = wcsnlen_s(&fsrBuf, fsrBuf.count)
+        let fsrPath = String(utf16CodeUnits: &fsrBuf, count: length)
+
+        let faAttributes = try windowsFileAttributes(atPath: fsrPath)
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
-            if !path.withCString(encodedAs: UTF16.self, DeleteFileW) {
+            if !fsrPath.withCString(encodedAs: UTF16.self, DeleteFileW) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
             return
         }
-        var dirStack = [path]
+        var dirStack = [fsrPath]
         var itemPath = ""
         while let currentDir = dirStack.popLast() {
             do {
@@ -420,15 +426,15 @@ extension FileManager {
                 guard alreadyConfirmed || shouldRemoveItemAtPath(itemPath, isURL: isURL) else {
                     continue
                 }
-                guard !path.withCString(encodedAs: UTF16.self, RemoveDirectoryW) else {
+                guard !itemPath.withCString(encodedAs: UTF16.self, RemoveDirectoryW) else {
                     continue
                 }
                 guard GetLastError() == ERROR_DIR_NOT_EMPTY else {
                     throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                 }
-                dirStack.append(path)
+                dirStack.append(itemPath)
                 var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
-                let h: HANDLE = (path + "\\*").withCString(encodedAs: UTF16.self, {
+                let h: HANDLE = (itemPath + "\\*").withCString(encodedAs: UTF16.self, {
                     FindFirstFileW($0, &ffd)
                 })
                 guard h != INVALID_HANDLE_VALUE else {
