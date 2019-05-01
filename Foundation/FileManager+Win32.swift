@@ -264,8 +264,14 @@ extension FileManager {
     }
 
     internal func _createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
-        let faAttributes: WIN32_FILE_ATTRIBUTE_DATA = try windowsFileAttributes(atPath: path)
-        var dwFlags: DWORD = DWORD(SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)
+        var dwFlags = DWORD(SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)
+        // Note: windowsfileAttributes will throw if the destPath is not found.
+        // Since on Windows, you are required to know the type of the symlink
+        // target (file or directory) during creation, and assuming one or the
+        // other doesn't make a lot of sense, we allow it to throw, thus
+        // disallowing the creation of broken symlinks on Windows (unlike with
+        // POSIX).
+        let faAttributes = try windowsFileAttributes(atPath: destPath)
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
             dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
         }
@@ -286,12 +292,16 @@ extension FileManager {
     internal func _canonicalizedPath(toFileAtPath path: String) throws -> String {
         var hFile: HANDLE = INVALID_HANDLE_VALUE
         path.withCString(encodedAs: UTF16.self) { link in
-            hFile = CreateFileW(link, GENERIC_READ, DWORD(FILE_SHARE_WRITE), nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS), nil)
+          // BACKUP_SEMANTICS are (confusingly) required in order to receive a
+          // handle to a directory
+          hFile = CreateFileW(link, 0, DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE),
+                              nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS),
+                              nil)
         }
-        defer { CloseHandle(hFile) }
         if hFile == INVALID_HANDLE_VALUE {
             throw _NSErrorWithWindowsError(GetLastError(), reading: true)
         }
+        defer { CloseHandle(hFile) }
 
         let dwLength: DWORD = GetFinalPathNameByHandleW(hFile, nil, 0, DWORD(FILE_NAME_NORMALIZED))
         var szPath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
