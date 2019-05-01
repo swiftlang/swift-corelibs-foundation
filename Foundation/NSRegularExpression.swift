@@ -27,7 +27,7 @@ extension NSRegularExpression {
     }
 }
 
-open class NSRegularExpression: NSObject, NSCopying, NSCoding {
+open class NSRegularExpression: NSObject, NSCopying, NSSecureCoding {
     internal var _internal: _CFRegularExpression
     
     open override func copy() -> Any {
@@ -44,7 +44,7 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
         }
         
         aCoder.encode(self.pattern._nsObject, forKey: "NSPattern")
-        aCoder.encode(self.options.rawValue._bridgeToObjectiveC(), forKey: "NSOptions")
+        aCoder.encode(Int64(self.options.rawValue), forKey: "NSOptions")
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
@@ -52,17 +52,20 @@ open class NSRegularExpression: NSObject, NSCopying, NSCoding {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        guard let pattern = aDecoder.decodeObject(forKey: "NSPattern") as? NSString,
-            let options = aDecoder.decodeObject(forKey: "NSOptions") as? NSNumber else {
+        guard let pattern = aDecoder.decodeObject(of: NSString.self, forKey: "NSPattern") else {
                 return nil
         }
         
+        let options = aDecoder.decodeInt64(forKey: "NSOptions")
+        
         do {
-            try self.init(pattern: pattern._swiftObject, options: Options(rawValue: options.uintValue))
+            try self.init(pattern: pattern._swiftObject, options: Options(rawValue: UInt(options)))
         } catch {
             return nil
         }
     }
+    
+    open class var supportsSecureCoding: Bool { return true }
     
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NSRegularExpression else { return false }
@@ -161,7 +164,7 @@ internal func _NSRegularExpressionMatch(_ context: UnsafeMutableRawPointer?, ran
     let flags = NSRegularExpression.MatchingFlags(rawValue: flags)
 #endif
     let result = ranges?.withMemoryRebound(to: NSRange.self, capacity: count) { rangePtr in
-        NSTextCheckingResult.regularExpressionCheckingResultWithRanges(rangePtr, count: count, regularExpression: matcher.regex)
+        NSTextCheckingResult.regularExpressionCheckingResult(ranges: rangePtr, count: count, regularExpression: matcher.regex)
     }
     stop.withMemoryRebound(to: ObjCBool.self, capacity: 1, {
         matcher.block(result, flags, $0)

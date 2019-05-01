@@ -8,14 +8,6 @@
 //
 
 class TestNSTextCheckingResult: XCTestCase {
-    static var allTests: [(String, (TestNSTextCheckingResult) -> () throws -> Void)] {
-        return [
-           ("test_textCheckingResult", test_textCheckingResult),
-           ("test_multipleMatches", test_multipleMatches),
-           ("test_rangeWithName", test_rangeWithName),
-        ]
-    }
-    
     func test_textCheckingResult() {
        let patternString = "(a|b)x|123|(?<aname>c|d)y"
        do {
@@ -103,5 +95,50 @@ class TestNSTextCheckingResult: XCTestCase {
         } catch {
             XCTFail("Unable to build regular expression for pattern \(patternString)")
         }
+    }
+    
+    let fixtures = [
+        Fixtures.textCheckingResultSimpleRegex,
+        Fixtures.textCheckingResultExtendedRegex,
+        Fixtures.textCheckingResultComplexRegex,
+    ]
+    
+    private func areEqual(_ lhs: NSTextCheckingResult, _ rhs: NSTextCheckingResult) -> Bool {
+        guard lhs.resultType == rhs.resultType else { return false }
+        guard lhs.numberOfRanges == rhs.numberOfRanges else { return false }
+        
+        for i in 0 ..< lhs.numberOfRanges {
+            guard lhs.range(at: i) == rhs.range(at: i) else {
+                return false
+            }
+        }
+        
+        guard lhs.regularExpression == rhs.regularExpression else {
+            return false
+        }
+        
+        return true
+    }
+    
+    func test_codingRoundtrip() throws {
+        for fixture in fixtures {
+            try fixture.assertValueRoundtripsInCoder(secureCoding: true, matchingWith: areEqual(_:_:))
+        }
+    }
+    
+    func test_loadedVauesMatch() throws {
+        for fixture in fixtures {
+            try fixture.assertLoadedValuesMatch(areEqual(_:_:))
+        }
+    }
+    
+    static var allTests: [(String, (TestNSTextCheckingResult) -> () throws -> Void)] {
+        return [
+            ("test_textCheckingResult", test_textCheckingResult),
+            ("test_multipleMatches", test_multipleMatches),
+            ("test_rangeWithName", test_rangeWithName),
+            ("test_codingRoundtrip", test_codingRoundtrip),
+            ("test_loadedVauesMatch", test_loadedVauesMatch),
+        ]
     }
 }

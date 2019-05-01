@@ -142,6 +142,33 @@ enum Fixtures {
         return idf
     }
     
+    // ===== NSTextCheckingResult =====
+    
+    static let textCheckingResultSimpleRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-SimpleRegex") {
+        let string = "aaa"
+        let regexp = try NSRegularExpression(pattern: "aaa", options: [])
+        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        
+        return result
+    }
+    
+    
+    static let textCheckingResultExtendedRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ExtendedRegex") {
+        let string = "aaaaaa"
+        let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a)))))", options: [])
+        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        
+        return result
+    }
+    
+    static let textCheckingResultComplexRegex = TypedFixture<NSTextCheckingResult>("NSTextCheckingResult-ComplexRegex") {
+        let string = "aaaaaaaaa"
+        let regexp = try NSRegularExpression(pattern: "a(a(a(a(a(a(a(a(a))))))))", options: [])
+        let result = try regexp.matches(in: string, range: NSRange(string.startIndex ..< string.endIndex, in: string)).first.unwrapped()
+        
+        return result
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -154,6 +181,9 @@ enum Fixtures {
         AnyFixture(Fixtures.dateIntervalFormatterValuesSetWithoutTemplate),
         AnyFixture(Fixtures.iso8601FormatterDefault),
         AnyFixture(Fixtures.iso8601FormatterOptionsSet),
+        AnyFixture(Fixtures.textCheckingResultSimpleRegex),
+        AnyFixture(Fixtures.textCheckingResultExtendedRegex),
+        AnyFixture(Fixtures.textCheckingResultComplexRegex),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
@@ -201,7 +231,14 @@ struct TypedFixture<ValueType: NSObject & NSCoding>: Fixture {
     }
     
     var supportsSecureCoding: Bool {
-        return (ValueType.self as? NSSecureCoding.Type)?.supportsSecureCoding == true
+        let kind: Any.Type
+        if let made = try? make() {
+            kind = type(of: made)
+        } else {
+            kind = ValueType.self
+        }
+        
+        return (kind as? NSSecureCoding.Type)?.supportsSecureCoding == true
     }
 }
 
