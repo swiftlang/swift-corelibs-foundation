@@ -371,32 +371,10 @@ open class FileManager : NSObject {
                     }
                 #endif
             }
-            
-            // Set dates as the very last step, to avoid other operations overwriting these values:
+
             if newModificationDate != nil || newAccessDate != nil {
-                let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
-                
-                let accessDate = newAccessDate ?? stat.lastAccessDate
-                let modificationDate = newModificationDate ?? stat.lastModificationDate
-                
-                let (accessTimeSince1970Seconds, accessTimeSince1970FractionsOfSecond) = modf(accessDate.timeIntervalSince1970)
-                let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * accessTimeSince1970FractionsOfSecond))
-                
-                let (modificationTimeSince1970Seconds, modificationTimeSince1970FractionsOfSecond) = modf(modificationDate.timeIntervalSince1970)
-                let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * modificationTimeSince1970FractionsOfSecond))
-                
-                let array = [accessTimeval, modificationTimeval]
-                let errnoValue = array.withUnsafeBufferPointer { (bytes) -> Int32? in
-                    if utimes(fsRep, bytes.baseAddress) < 0 {
-                        return errno
-                    } else {
-                        return nil
-                    }
-                }
-                
-                if let error = errnoValue {
-                    throw _NSErrorWithErrno(error, reading: false, path: path)
-                }
+              // Set dates as the very last step, to avoid other operations overwriting these values:
+              try _updateTimes(atPath: path, withFileSystemRepresentation: fsRep, accessTime: newAccessDate, modificationTime: newModificationDate)
             }
         })
     }

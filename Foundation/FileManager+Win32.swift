@@ -605,6 +605,33 @@ extension FileManager {
         return temp._bridgeToObjectiveC().appendingPathComponent(dest)
     }
 
+    internal func _updateTimes(atPath path: String,
+                               withFileSystemRepresentation fsr: UnsafePointer<Int8>,
+                               creationTime: Date? = nil,
+                               accessTime: Date? = nil,
+                               modificationTime: Date? = nil) throws {
+      let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsr)
+
+      var atime: FILETIME =
+          FILETIME(from: time_t((accessTime ?? stat.lastAccessDate).timeIntervalSince1970))
+      var mtime: FILETIME =
+          FILETIME(from: time_t((modificationTime ?? stat.lastModificationDate).timeIntervalSince1970))
+
+      let hFile: HANDLE = String(utf8String: fsr)!.withCString(encodedAs: UTF16.self) {
+        CreateFileW($0, DWORD(GENERIC_WRITE), DWORD(FILE_SHARE_WRITE),
+                    nil, DWORD(OPEN_EXISTING), 0, nil)
+      }
+      if hFile == INVALID_HANDLE_VALUE {
+        throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+      }
+      defer { CloseHandle(hFile) }
+
+      if !SetFileTime(hFile, nil, &atime, &mtime) {
+        throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+      }
+
+    }
+
     internal class NSURLDirectoryEnumerator : DirectoryEnumerator {
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
