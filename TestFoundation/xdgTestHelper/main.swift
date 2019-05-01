@@ -161,6 +161,33 @@ struct NSURLForPrintTest {
 }
 #endif
 
+// Simple implementation of /bin/cat
+func cat(_ args: ArraySlice<String>.Iterator) {
+    var exitCode: Int32 = 0
+
+    func catFile(_ name: String) {
+        do {
+            guard let fh = name == "-" ? FileHandle.standardInput : FileHandle(forReadingAtPath: name) else {
+                FileHandle.standardError.write(Data("cat: \(name): No such file or directory\n".utf8))
+                exitCode = 1
+                return
+            }
+            while let data = try fh.readToEnd() {
+                try FileHandle.standardOutput.write(contentsOf: data)
+            }
+        }
+        catch { print(error) }
+    }
+
+    var args = args
+    let arg = args.next() ?? "-"
+    catFile(arg)
+    while let arg = args.next() {
+        catFile(arg)
+    }
+    exit(exitCode)
+}
+
 // -----
 
 var arguments = ProcessInfo.processInfo.arguments.dropFirst().makeIterator()
@@ -178,7 +205,27 @@ case "--getcwd":
 
 case "--echo-PWD":
     print(ProcessInfo.processInfo.environment["PWD"] ?? "")
-    
+
+case "--env":
+    print(ProcessInfo.processInfo.environment.filter { $0.key != "__CF_USER_TEXT_ENCODING" }.map { "\($0.key)=\($0.value)" }.joined(separator: "\n"))
+
+case "--cat":
+    cat(arguments)
+
+case "--exit":
+    let code = Int32(arguments.next() ?? "0") ?? 0
+    exit(code)
+
+case "--sleep":
+    let time = Double(arguments.next() ?? "0") ?? 0
+    Thread.sleep(forTimeInterval: time)
+
+case "--signal-self":
+    if let signalnum = arguments.next(), let signal = Int32(signalnum) {
+        kill(ProcessInfo.processInfo.processIdentifier, signal)
+    }
+    exit(1)
+
 #if !DEPLOYMENT_RUNTIME_OBJC
 case "--nspathfor":
     guard let methodString = arguments.next(),

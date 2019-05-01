@@ -7,57 +7,20 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-class TestProcess : XCTestCase {
-    static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
-#if os(Android)
-	return []
-#else
-        return [
-                   ("test_exit0" , test_exit0),
-                   ("test_exit1" , test_exit1),
-                   ("test_exit100" , test_exit100),
-                   ("test_sleep2", test_sleep2),
-                   ("test_sleep2_exit1", test_sleep2_exit1),
-                   ("test_terminationReason_uncaughtSignal", test_terminationReason_uncaughtSignal),
-                   ("test_pipe_stdin", test_pipe_stdin),
-                   ("test_pipe_stdout", test_pipe_stdout),
-                   ("test_pipe_stderr", test_pipe_stderr),
-                   ("test_current_working_directory", test_current_working_directory),
-                   ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
-                   ("test_file_stdout", test_file_stdout),
-                   ("test_passthrough_environment", test_passthrough_environment),
-                   ("test_no_environment", test_no_environment),
-                   ("test_custom_environment", test_custom_environment),
-                   ("test_run", test_run),
-                   ("test_preStartEndState", test_preStartEndState),
-                   ("test_interrupt", test_interrupt),
-                   ("test_terminate", test_terminate),
-                   ("test_suspend_resume", test_suspend_resume),
-                   ("test_redirect_stdin_using_null", test_redirect_stdin_using_null),
-                   ("test_redirect_stdout_using_null", test_redirect_stdout_using_null),
-                   ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
-                   ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
-                   ("test_redirect_all_using_null", test_redirect_all_using_null),
-                   ("test_redirect_all_using_nil", test_redirect_all_using_nil),
-        ]
-#endif
-    }
-    
 #if !os(Android)
+class TestProcess : XCTestCase {
+    
     func test_exit0() {
-        
         let process = Process()
-        
-        let executablePath = "/bin/bash"
+        let executableURL = xdgTestHelperURL()
         if #available(OSX 10.13, *) {
-            process.executableURL = URL(fileURLWithPath: executablePath)
+            process.executableURL = executableURL
         } else {
             // Fallback on earlier versions
-            process.launchPath = executablePath
+            process.launchPath = executableURL.path
         }
-        XCTAssertEqual(executablePath, process.launchPath)
-
-        process.arguments = ["-c", "exit 0"]
+        XCTAssertEqual(executableURL.path, process.launchPath)
+        process.arguments = ["--exit", "0"]
         process.launch()
         process.waitUntilExit()
         
@@ -66,11 +29,9 @@ class TestProcess : XCTestCase {
     }
     
     func test_exit1() {
-        
         let process = Process()
-        
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "exit 1"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--exit", "1"]
 
         process.launch()
         process.waitUntilExit()
@@ -79,11 +40,9 @@ class TestProcess : XCTestCase {
     }
     
     func test_exit100() {
-        
         let process = Process()
-        
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "exit 100"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--exit", "100"]
         
         process.launch()
         process.waitUntilExit()
@@ -92,56 +51,37 @@ class TestProcess : XCTestCase {
     }
     
     func test_sleep2() {
-        
         let process = Process()
-        
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "sleep 2"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--sleep", "2"]
         
         process.launch()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
-    
-    func test_sleep2_exit1() {
-        
-        let process = Process()
-        
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "sleep 2; exit 1"]
-        
-        process.launch()
-        process.waitUntilExit()
-        XCTAssertEqual(process.terminationStatus, 1)
-        XCTAssertEqual(process.terminationReason, .exit)
-    }
 
     func test_terminationReason_uncaughtSignal() {
         let process = Process()
-
-        process.launchPath = "/bin/bash"
-        process.arguments = ["-c", "kill -TERM $$"]
-
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--signal-self", SIGTERM.description]
         process.launch()
         process.waitUntilExit()
-        XCTAssertEqual(process.terminationStatus, 15)
+        XCTAssertEqual(process.terminationStatus, SIGTERM)
         XCTAssertEqual(process.terminationReason, .uncaughtSignal)
     }
 
     func test_pipe_stdin() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
-
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat"]
         let outputPipe = Pipe()
         process.standardOutput = outputPipe
 
         let inputPipe = Pipe()
         process.standardInput = inputPipe
-
         process.launch()
-
         inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
 
         // Close the input pipe to send EOF to cat.
@@ -161,11 +101,11 @@ class TestProcess : XCTestCase {
     func test_pipe_stdout() {
         let process = Process()
 
-        process.launchPath = "/usr/bin/which"
-        process.arguments = ["which"]
-
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--getcwd"]
         let pipe = Pipe()
         process.standardOutput = pipe
+        process.standardError = nil
 
         process.launch()
         process.waitUntilExit()
@@ -176,14 +116,14 @@ class TestProcess : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertTrue(string.hasSuffix("/which\n"))
+        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n"])), FileManager.default.currentDirectoryPath)
     }
 
     func test_pipe_stderr() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
-        process.arguments = ["invalid_file_name"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat", "invalid_file_name"]
 
         let errorPipe = Pipe()
         process.standardError = errorPipe
@@ -193,19 +133,20 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.terminationStatus, 1)
 
         let data = errorPipe.fileHandleForReading.availableData
-        guard let _ = String(data: data, encoding: .ascii) else {
+        guard let string = String(data: data, encoding: .ascii) else {
             XCTFail("Could not read stdout")
             return
         }
-        // testing the return value of an external process does not port well, and may change.
-        // XCTAssertEqual(string, "/bin/cat: invalid_file_name: No such file or directory\n")
+        // Ignore messages from malloc debug etc on macOs
+        let errMsg = string.trimmingCharacters(in: CharacterSet(["\n"])).components(separatedBy: "\n").last
+        XCTAssertEqual(errMsg, "cat: invalid_file_name: No such file or directory")
     }
 
     func test_pipe_stdout_and_stderr_same_pipe() {
         let process = Process()
 
-        process.launchPath = "/bin/cat"
-        process.arguments = ["invalid_file_name"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat", "invalid_file_name"]
 
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -224,18 +165,16 @@ class TestProcess : XCTestCase {
             return
         }
 
-        // Remove the leading '/bin/' since on macOS '/bin/cat' just outputs 'cat:'
-        let searchStr = "/bin/"
-        let errMsg = string.replacingOccurrences(of: searchStr, with: "", options: [.literal, .anchored],
-                                              range: searchStr.startIndex..<searchStr.endIndex)
-        XCTAssertEqual(errMsg, "cat: invalid_file_name: No such file or directory\n")
+        // Ignore messages from malloc debug etc on macOS
+        let errMsg = string.trimmingCharacters(in: CharacterSet(["\n"])).components(separatedBy: "\n").last
+        XCTAssertEqual(errMsg, "cat: invalid_file_name: No such file or directory")
     }
 
     func test_file_stdout() {
         let process = Process()
 
-        process.launchPath = "/usr/bin/which"
-        process.arguments = ["which"]
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--getcwd"]
 
         let url: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: false)
         _ = FileManager.default.createFile(atPath: url.path, contents: Data())
@@ -255,12 +194,12 @@ class TestProcess : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertTrue(string.hasSuffix("/which\n"))
+        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n"])), FileManager.default.currentDirectoryPath)
     }
     
     func test_passthrough_environment() {
         do {
-            let (output, _) = try runTask(["/usr/bin/env"], environment: nil)
+            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: nil)
             let env = try parseEnv(output)
             XCTAssertGreaterThan(env.count, 0)
         } catch {
@@ -272,7 +211,7 @@ class TestProcess : XCTestCase {
 
     func test_no_environment() {
         do {
-            let (output, _) = try runTask(["/usr/bin/env"], environment: [:])
+            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: [:])
             let env = try parseEnv(output)
             XCTAssertEqual(env.count, 0)
         } catch {
@@ -283,7 +222,7 @@ class TestProcess : XCTestCase {
     func test_custom_environment() {
         do {
             let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
-            let (output, _) = try runTask(["/usr/bin/env"], environment: input)
+            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: input)
             let env = try parseEnv(output)
             XCTAssertEqual(env, input)
         } catch {
@@ -345,22 +284,22 @@ class TestProcess : XCTestCase {
         let cwd = fm.currentDirectoryPath
 
         do {
-            let process = try Process.run(URL(fileURLWithPath: "/bin/sh", isDirectory: false), arguments: ["-c", "exit 123"], terminationHandler: nil)
+            let process = try Process.run(xdgTestHelperURL(), arguments: ["--exit", "123"], terminationHandler: nil)
             process.waitUntilExit()
             XCTAssertEqual(process.terminationReason, .exit)
             XCTAssertEqual(process.terminationStatus, 123)
         } catch {
-            XCTFail("Cant execute /bin/sh: \(error)")
+            XCTFail("Cant execute \(xdgTestHelperURL().path): \(error)")
         }
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
         do {
             let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/bin/sh", isDirectory: false)
-            process.arguments = ["-c", "exit 0"]
+            process.executableURL = xdgTestHelperURL()
+            process.arguments = ["--exit", "0"]
             process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
             try process.run()
-            XCTFail("Executed /bin/sh with invalid currentDirectoryURL")
+            XCTFail("Executed \(xdgTestHelperURL().path) with invalid currentDirectoryURL")
             process.terminate()
             process.waitUntilExit()
         } catch {
@@ -392,7 +331,8 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.processIdentifier, 0)
         XCTAssertEqual(process.qualityOfService, .default)
 
-        process.executableURL = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--cat"]
         _ = try? process.run()
         XCTAssertTrue(process.isRunning)
         XCTAssertTrue(process.processIdentifier > 0)
@@ -444,9 +384,8 @@ class TestProcess : XCTestCase {
     }
 
     func test_terminate() {
-        let cat = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
-        guard let process = try? Process.run(cat, arguments: []) else {
-            XCTFail("Cant run /bin/cat")
+        guard let process = try? Process.run(xdgTestHelperURL(), arguments: ["--cat"]) else {
+            XCTFail("Cant run 'cat'")
             return
         }
 
@@ -499,8 +438,8 @@ class TestProcess : XCTestCase {
         XCTAssertTrue(helper.process.resume())
         if waitForSemaphore() == false { return }
 
-        helper.process.suspend()
-        helper.process.resume()
+        _ = helper.process.suspend()
+        _ = helper.process.resume()
         if waitForSemaphore() == false { return }
         XCTAssertEqual(helper.sigContCount, 3)
 
@@ -514,9 +453,9 @@ class TestProcess : XCTestCase {
 
 
     func test_redirect_stdin_using_null() {
-        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
@@ -524,18 +463,18 @@ class TestProcess : XCTestCase {
 
 
     func test_redirect_stdout_using_null() {
-        let url = URL(fileURLWithPath: "/usr/bin/env", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--env"]
         task.standardOutput = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
     }
 
     func test_redirect_stdin_stdout_using_null() {
-        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         task.standardOutput = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
@@ -544,9 +483,9 @@ class TestProcess : XCTestCase {
 
 
     func test_redirect_stderr_using_null() throws {
-        let url = URL(fileURLWithPath: "/usr/bin/env", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--env"]
         task.standardError = FileHandle.nullDevice
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
@@ -554,9 +493,9 @@ class TestProcess : XCTestCase {
 
 
     func test_redirect_all_using_null() throws {
-        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--cat"]
         task.standardInput = FileHandle.nullDevice
         task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
@@ -565,16 +504,45 @@ class TestProcess : XCTestCase {
     }
 
     func test_redirect_all_using_nil() throws {
-        let url = URL(fileURLWithPath: "/bin/cat", isDirectory: false)
         let task = Process()
-        task.executableURL = url
+        task.executableURL = xdgTestHelperURL()
+        task.arguments = ["--cat"]
         task.standardInput = nil
         task.standardOutput = nil
         task.standardError = nil
         XCTAssertNoThrow(try task.run())
         task.waitUntilExit()
     }
-#endif
+
+    static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
+        return [
+            ("test_exit0" , test_exit0),
+            ("test_exit1" , test_exit1),
+            ("test_exit100" , test_exit100),
+            ("test_sleep2", test_sleep2),
+            ("test_terminationReason_uncaughtSignal", test_terminationReason_uncaughtSignal),
+            ("test_pipe_stdin", test_pipe_stdin),
+            ("test_pipe_stdout", test_pipe_stdout),
+            ("test_pipe_stderr", test_pipe_stderr),
+            ("test_current_working_directory", test_current_working_directory),
+            ("test_pipe_stdout_and_stderr_same_pipe", test_pipe_stdout_and_stderr_same_pipe),
+            ("test_file_stdout", test_file_stdout),
+            ("test_passthrough_environment", test_passthrough_environment),
+            ("test_no_environment", test_no_environment),
+            ("test_custom_environment", test_custom_environment),
+            ("test_run", test_run),
+            ("test_preStartEndState", test_preStartEndState),
+            ("test_interrupt", test_interrupt),
+            ("test_terminate", test_terminate),
+            ("test_suspend_resume", test_suspend_resume),
+            ("test_redirect_stdin_using_null", test_redirect_stdin_using_null),
+            ("test_redirect_stdout_using_null", test_redirect_stdout_using_null),
+            ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
+            ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
+            ("test_redirect_all_using_null", test_redirect_all_using_null),
+            ("test_redirect_all_using_nil", test_redirect_all_using_nil),
+        ]
+    }
 }
 
 private enum Error: Swift.Error {
@@ -661,7 +629,6 @@ class _SignalHelperRunner {
     }
 }
 
-#if !os(Android)
 internal func runTask(_ arguments: [String], environment: [String: String]? = nil, currentDirectoryPath: String? = nil) throws -> (String, String) {
     let process = Process()
 
@@ -674,8 +641,8 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
         process.environment = e
     }
 
-    if let directoryPath = currentDirectoryPath {
-        process.currentDirectoryPath = directoryPath
+    if let dirPath = currentDirectoryPath {
+        process.currentDirectoryURL = URL(fileURLWithPath: dirPath, isDirectory: true)
     }
 
     let stdoutPipe = Pipe()
@@ -738,5 +705,5 @@ private func parseEnv(_ env: String) throws -> [String: String] {
     }
     return result
 }
-#endif
+#endif // !os(Android)
 
