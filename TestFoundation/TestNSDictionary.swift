@@ -8,24 +8,6 @@
 //
 
 class TestNSDictionary : XCTestCase {
-    
-    static var allTests: [(String, (TestNSDictionary) -> () throws -> Void)] {
-        return [
-            ("test_BasicConstruction", test_BasicConstruction),
-            ("test_ArrayConstruction", test_ArrayConstruction),
-            ("test_description", test_description),
-            ("test_enumeration", test_enumeration),
-            ("test_equality", test_equality),
-            ("test_copying", test_copying),
-            ("test_mutableCopying", test_mutableCopying),
-            ("test_writeToFile", test_writeToFile),
-            ("test_initWithContentsOfFile", test_initWithContentsOfFile),
-            ("test_settingWithStringKey", test_settingWithStringKey),
-            ("test_valueForKey", test_valueForKey),
-            ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
-        ]
-    }
-        
     func test_BasicConstruction() {
         let dict = NSDictionary()
         let dict2: NSDictionary = ["foo": "bar"]
@@ -252,4 +234,42 @@ class TestNSDictionary : XCTestCase {
         try? FileManager.default.removeItem(atPath: location)
     }
 
+    func test_sharedKeySets() {
+        let keys: [NSCopying] = [ "a" as NSString, "b" as NSString, 1 as NSNumber, 2 as NSNumber ]
+        let keySet = NSDictionary.sharedKeySet(forKeys: keys)
+        
+        let dictionary = NSMutableDictionary(sharedKeySet: keySet)
+        dictionary["a" as NSString] = "w"
+        XCTAssertEqual(dictionary["a" as NSString] as? String, "w")
+        dictionary["b" as NSString] = "x"
+        XCTAssertEqual(dictionary["b" as NSString] as? String, "x")
+        dictionary[1 as NSNumber] = "y"
+        XCTAssertEqual(dictionary[1 as NSNumber] as? String, "y")
+        dictionary[2 as NSNumber] = "z"
+        XCTAssertEqual(dictionary[2 as NSNumber] as? String, "z")
+        
+        // Keys not in the key set must be supported.
+        dictionary["c" as NSString] = "h"
+        XCTAssertEqual(dictionary["c" as NSString] as? String, "h")
+        dictionary[3 as NSNumber] = "k"
+        XCTAssertEqual(dictionary[3 as NSNumber] as? String, "k")
+    }
+    
+    static var allTests: [(String, (TestNSDictionary) -> () throws -> Void)] {
+        return [
+            ("test_BasicConstruction", test_BasicConstruction),
+            ("test_ArrayConstruction", test_ArrayConstruction),
+            ("test_description", test_description),
+            ("test_enumeration", test_enumeration),
+            ("test_equality", test_equality),
+            ("test_copying", test_copying),
+            ("test_mutableCopying", test_mutableCopying),
+            ("test_writeToFile", test_writeToFile),
+            ("test_initWithContentsOfFile", test_initWithContentsOfFile),
+            ("test_settingWithStringKey", test_settingWithStringKey),
+            ("test_valueForKey", test_valueForKey),
+            ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
+            ("test_sharedKeySets", test_sharedKeySets),
+        ]
+    }
 }
