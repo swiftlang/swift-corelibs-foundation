@@ -90,7 +90,7 @@ open class Bundle: NSObject {
         }
         
         let url = URL(fileURLWithPath: resolvedPath)
-        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, unsafeBitCast(url, to: CFURL.self))
+        _bundle = CFBundleCreate(kCFAllocatorSystemDefault, url._cfObject)
         if (_bundle == nil) {
             return nil
         }

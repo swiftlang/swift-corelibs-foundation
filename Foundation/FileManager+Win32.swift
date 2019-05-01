@@ -235,6 +235,10 @@ extension FileManager {
             return faAttributes
         }
     }
+    
+    internal func _attributesOfFileSystemIncludingBlockSize(forPath path: String) throws -> (attributes: [FileAttributeKey : Any], blockSize: UInt64?) {
+        return (attributes: try _attributesOfFileSystem(forPath: path), blockSize: nil)
+    }
 
     internal func _attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey : Any] {
         var result: [FileAttributeKey:Any] = [:]

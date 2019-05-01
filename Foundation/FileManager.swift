@@ -13,6 +13,14 @@ internal func &(left: UInt32, right: mode_t) -> mode_t {
 }
 #endif
 
+#if !canImport(Darwin) && !os(FreeBSD)
+// The values do not matter as long as they are nonzero.
+fileprivate let UF_IMMUTABLE: Int32 = 1
+fileprivate let SF_IMMUTABLE: Int32 = 1
+fileprivate let UF_APPEND: Int32 = 1
+fileprivate let UF_HIDDEN: Int32 = 1
+#endif
+
 import CoreFoundation
 
 open class FileManager : NSObject {
@@ -259,11 +267,40 @@ open class FileManager : NSObject {
         This method replaces changeFileAttributes:atPath:.
      */
     open func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAtPath path: String) throws {
+        try _setAttributes(attributes, ofItemAtPath: path)
+    }
+    
+    internal func _setAttributes(_ attributeValues: [FileAttributeKey : Any], ofItemAtPath path: String, includingPrivateAttributes: Bool = false) throws {
+        var attributes = Set(attributeValues.keys)
+        if !includingPrivateAttributes {
+            attributes.formIntersection(FileAttributeKey.allPublicKeys)
+        }
+        
         try _fileSystemRepresentation(withPath: path, { fsRep in
-            for attribute in attributes.keys {
-                if attribute == .posixPermissions {
-                    guard let number = attributes[attribute] as? NSNumber else {
-                        fatalError("Can't set file permissions to \(attributes[attribute] as Any?)")
+            var flagsToSet: UInt32 = 0
+            var flagsToUnset: UInt32 = 0
+            
+            var newModificationDate: Date?
+            var newAccessDate: Date?
+            
+            for attribute in attributes {
+                
+                func prepareToSetOrUnsetFlag(_ flag: Int32) {
+                    guard let shouldSet = attributeValues[attribute] as? Bool else {
+                        fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
+                    }
+                    
+                    if shouldSet {
+                        flagsToSet |= UInt32(flag)
+                    } else {
+                        flagsToUnset |= UInt32(flag)
+                    }
+                }
+                
+                switch attribute {
+                case .posixPermissions:
+                    guard let number = attributeValues[attribute] as? NSNumber else {
+                        fatalError("Can't set file permissions to \(attributeValues[attribute] as Any?)")
                     }
                     #if os(macOS) || os(iOS)
                         let modeT = number.uint16Value
@@ -273,8 +310,92 @@ open class FileManager : NSObject {
                     guard chmod(fsRep, mode_t(modeT)) == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
-                } else {
-                    fatalError("Attribute type not implemented: \(attribute)")
+                
+                case .modificationDate: fallthrough
+                case ._accessDate:
+                    #if os(Windows)
+                        // Setting this attribute is unsupported on these platforms.
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+                    #else
+                        guard let providedDate = attributeValues[attribute] as? Date else {
+                            fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
+                        }
+                    
+                    if attribute == .modificationDate {
+                        newModificationDate = providedDate
+                    } else if attribute == ._accessDate {
+                        newAccessDate = providedDate
+                    }
+                    #endif
+                    
+                case .immutable: fallthrough
+                case ._userImmutable:
+                    prepareToSetOrUnsetFlag(UF_IMMUTABLE)
+                    
+                case ._systemImmutable:
+                    prepareToSetOrUnsetFlag(SF_IMMUTABLE)
+                    
+                case .appendOnly:
+                    prepareToSetOrUnsetFlag(UF_APPEND)
+                    
+                case ._hidden:
+                    prepareToSetOrUnsetFlag(UF_HIDDEN)
+                    
+                // FIXME: On Darwin, these can be set with setattrlist(); and of course chown/chgrp on other OSes.
+                case .ownerAccountID: fallthrough
+                case .ownerAccountName: fallthrough
+                case .groupOwnerAccountID: fallthrough
+                case .groupOwnerAccountName: fallthrough
+                case .creationDate: fallthrough
+                case .extensionHidden:
+                    // Setting these attributes is unsupported (for now) in swift-corelibs-foundation
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+                    
+                default:
+                    fatalError("This attribute is unknown or cannot be set: \(attribute)")
+                }
+            }
+
+            if flagsToSet != 0 || flagsToUnset != 0 {
+                #if !canImport(Darwin) && !os(FreeBSD)
+                    // Setting these attributes is unsupported on these platforms.
+                    throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileWriteUnknown.rawValue)
+                #else
+                    let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+                    var flags = stat.st_flags
+                    flags |= flagsToSet
+                    flags &= ~flagsToUnset
+                
+                    guard chflags(fsRep, flags) == 0 else {
+                        throw _NSErrorWithErrno(errno, reading: false, path: path)
+                    }
+                #endif
+            }
+            
+            // Set dates as the very last step, to avoid other operations overwriting these values:
+            if newModificationDate != nil || newAccessDate != nil {
+                let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsRep)
+                
+                let accessDate = newAccessDate ?? stat.lastAccessDate
+                let modificationDate = newModificationDate ?? stat.lastModificationDate
+                
+                let (accessTimeSince1970Seconds, accessTimeSince1970FractionsOfSecond) = modf(accessDate.timeIntervalSince1970)
+                let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * accessTimeSince1970FractionsOfSecond))
+                
+                let (modificationTimeSince1970Seconds, modificationTimeSince1970FractionsOfSecond) = modf(modificationDate.timeIntervalSince1970)
+                let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * modificationTimeSince1970FractionsOfSecond))
+                
+                let array = [accessTimeval, modificationTimeval]
+                let errnoValue = array.withUnsafeBufferPointer { (bytes) -> Int32? in
+                    if utimes(fsRep, bytes.baseAddress) < 0 {
+                        return errno
+                    } else {
+                        return nil
+                    }
+                }
+                
+                if let error = errnoValue {
+                    throw _NSErrorWithErrno(error, reading: false, path: path)
                 }
             }
         })
@@ -332,6 +453,10 @@ open class FileManager : NSObject {
         This method replaces fileAttributesAtPath:traverseLink:.
      */
     open func attributesOfItem(atPath path: String) throws -> [FileAttributeKey : Any] {
+        return try _attributesOfItem(atPath: path)
+    }
+    
+    internal func _attributesOfItem(atPath path: String, includingPrivateAttributes: Bool = false) throws -> [FileAttributeKey: Any] {
         var result: [FileAttributeKey:Any] = [:]
 
 #if os(Linux)
@@ -343,16 +468,10 @@ open class FileManager : NSObject {
 
         result[.size] = NSNumber(value: UInt64(s.st_size))
 
-#if os(macOS) || os(iOS)
-        let ti = (TimeInterval(s.st_mtimespec.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtimespec.tv_nsec))
-#elseif os(Android)
-        let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtime_nsec))
-#elseif os(Windows)
-        let ti = (TimeInterval(s.st_mtime) - kCFAbsoluteTimeIntervalSince1970)
-#else
-        let ti = (TimeInterval(s.st_mtim.tv_sec) - kCFAbsoluteTimeIntervalSince1970) + (1.0e-9 * TimeInterval(s.st_mtim.tv_nsec))
-#endif
-        result[.modificationDate] = Date(timeIntervalSinceReferenceDate: ti)
+        result[.modificationDate] = s.lastModificationDate
+        if includingPrivateAttributes {
+            result[._accessDate] = s.lastAccessDate
+        }
 
         result[.posixPermissions] = NSNumber(value: _filePermissionsMask(mode: UInt32(s.st_mode)))
         result[.referenceCount] = NSNumber(value: UInt64(s.st_nlink))
@@ -381,10 +500,17 @@ open class FileManager : NSObject {
             result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
         }
 
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
         if (s.st_flags & UInt32(UF_IMMUTABLE | SF_IMMUTABLE)) != 0 {
             result[.immutable] = NSNumber(value: true)
         }
+        
+        if includingPrivateAttributes {
+            result[._userImmutable] = (s.st_flags & UInt32(UF_IMMUTABLE)) != 0
+            result[._systemImmutable] = (s.st_flags & UInt32(SF_IMMUTABLE)) != 0
+            result[._hidden] = (s.st_flags & UInt32(UF_HIDDEN)) != 0
+        }
+        
         if (s.st_flags & UInt32(UF_APPEND | SF_APPEND)) != 0 {
             result[.appendOnly] = NSNumber(value: true)
         }
@@ -965,6 +1091,41 @@ public struct FileAttributeKey : RawRepresentable, Equatable, Hashable {
     public static let systemFreeSize = FileAttributeKey(rawValue: "NSFileSystemFreeSize")
     public static let systemNodes = FileAttributeKey(rawValue: "NSFileSystemNodes")
     public static let systemFreeNodes = FileAttributeKey(rawValue: "NSFileSystemFreeNodes")
+    
+    // These are the public keys:
+    internal static let allPublicKeys: Set<FileAttributeKey> = [
+        .type,
+        .size,
+        .modificationDate,
+        .referenceCount,
+        .deviceIdentifier,
+        .ownerAccountName,
+        .groupOwnerAccountName,
+        .posixPermissions,
+        .systemNumber,
+        .systemFileNumber,
+        .extensionHidden,
+        .hfsCreatorCode,
+        .hfsTypeCode,
+        .immutable,
+        .appendOnly,
+        .creationDate,
+        .ownerAccountID,
+        .groupOwnerAccountID,
+        .busy,
+        .systemSize,
+        .systemFreeSize,
+        .systemNodes,
+        .systemFreeNodes,
+    ]
+    
+    // These are internal keys. They're not generated or accepted by public methods, but they're accepted by internal _setAttributes… methods.
+    // They are intended for use by NSURL's resource keys.
+    
+    internal static let _systemImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._systemImmutable")
+    internal static let _userImmutable = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._userImmutable")
+    internal static let _hidden = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._hidden")
+    internal static let _accessDate = FileAttributeKey(rawValue: "org.swift.Foundation.FileAttributeKey._accessDate")
 }
 
 public struct FileAttributeType : RawRepresentable, Equatable, Hashable {

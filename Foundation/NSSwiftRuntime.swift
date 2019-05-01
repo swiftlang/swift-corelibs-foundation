@@ -305,6 +305,15 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSCalendar.setGregorianStartDate = _CFSwiftCalendarSetGregorianStartDate
     
 //    __CFDefaultEightBitStringEncoding = UInt32(kCFStringEncodingUTF8)
+    
+    __CFSwiftBridge.NSURL.copyResourcePropertyForKey = _CFSwiftURLCopyResourcePropertyForKey
+    __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys = _CFSwiftURLCopyResourcePropertiesForKeys
+    __CFSwiftBridge.NSURL.setResourcePropertyForKey = _CFSwiftURLSetResourcePropertyForKey
+    __CFSwiftBridge.NSURL.setResourcePropertiesForKeys = _CFSwiftURLSetResourcePropertiesForKeys
+    __CFSwiftBridge.NSURL.clearResourcePropertyCacheForKey = _CFSwiftURLClearResourcePropertyCacheForKey
+    __CFSwiftBridge.NSURL.clearResourcePropertyCache = _CFSwiftURLClearResourcePropertyCache
+    __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey = _CFSwiftSetTemporaryResourceValueForKey
+    __CFSwiftBridge.NSURL.resourceIsReachable = _CFSwiftURLResourceIsReachable
 }
 
 public func === (lhs: AnyClass, rhs: AnyClass) -> Bool {

@@ -1629,7 +1629,11 @@ static void __CFURLDeallocate(CFTypeRef  cf) {
     if (sanitizedString) CFRelease(sanitizedString);
     if ( url->_extra != NULL ) CFAllocatorDeallocate( alloc, url->_extra );
     void *resourceInfo = _getResourceInfo(url);
+#if DEPLOYMENT_RUNTIME_SWIFT
+    if (resourceInfo) _CFSwiftRelease(resourceInfo);
+#else
     if (resourceInfo) CFRelease(resourceInfo);
+#endif
     atomic_store(&((struct __CFURL *)url)->_resourceInfo, (void *)0xdeadbeef); // 20362546: catch anyone using URL after it was released
 }
 
@@ -5233,3 +5237,187 @@ CFURLRef CFURLCreateFilePathURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *
 
 CFURLRef CFURLCreateFileReferenceURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *error) { return NULL; }
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+
+CONST_STRING_DECL(kCFURLKeysOfUnsetValuesKey, "NSURLKeysOfUnsetValuesKey");
+
+CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfo(CFURLRef url) {
+    void *value = _getResourceInfo(url);
+    if (value) {
+        _CFSwiftRetain(value);
+    }
+    return value;
+}
+
+CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(CFURLRef url, CFTypeRef initialValue) {
+    _CFSwiftRetain((CFSwiftRef)initialValue);
+    void *expected = NULL;
+    if (!atomic_compare_exchange_strong(&((struct __CFURL *)url)->_resourceInfo, &expected, (void *)initialValue)) {
+        _CFSwiftRelease((CFSwiftRef)initialValue);
+        // 'expected' contains the actual value of _resourceInfo.
+        _CFSwiftRetain(expected);
+        return expected;
+    } else {
+        _CFSwiftRetain((CFSwiftRef)initialValue); // To satisfy the copy semantics of the function.
+        return (CFSwiftRef)initialValue;
+    }
+}
+
+CF_CROSS_PLATFORM_EXPORT void _CFURLSetResourceInfo(CFURLRef url, CFTypeRef resourceInfo) {
+    _CFSwiftRetain((CFSwiftRef)resourceInfo);
+    CFSwiftRef previousValue = (CFSwiftRef)atomic_exchange(&(((struct __CFURL *)url)->_resourceInfo), (CFSwiftRef)resourceInfo);
+    if (previousValue && previousValue != (CFSwiftRef)resourceInfo) {
+        _CFSwiftRelease(previousValue);
+    }
+}
+
+// The base implementation of these functions exclusively exists in Swift only.
+
+Boolean CFURLCopyResourcePropertyForKey(CFURLRef url, CFStringRef key, void *propertyValueTypeRefPtr, CFErrorRef *error) {
+    return __CFSwiftBridge.NSURL.copyResourcePropertyForKey(url, key, propertyValueTypeRefPtr, error);
+}
+
+CFDictionaryRef CFURLCopyResourcePropertiesForKeys(CFURLRef url, CFArrayRef keys, CFErrorRef *error) {
+    return __CFSwiftBridge.NSURL.copyResourcePropertiesForKeys(url, keys, error);
+}
+
+Boolean CFURLSetResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue, CFErrorRef *error) {
+    return __CFSwiftBridge.NSURL.setResourcePropertyForKey(url, key, propertyValue, error);
+}
+
+Boolean CFURLSetResourcePropertiesForKeys(CFURLRef url, CFDictionaryRef keyedPropertyValues, CFErrorRef *error) {
+    return __CFSwiftBridge.NSURL.setResourcePropertiesForKeys(url, keyedPropertyValues, error);
+}
+
+void CFURLClearResourcePropertyCacheForKey(CFURLRef url, CFStringRef key) {
+    __CFSwiftBridge.NSURL.clearResourcePropertyCacheForKey(url, key);
+}
+
+void CFURLClearResourcePropertyCache(CFURLRef url) {
+    __CFSwiftBridge.NSURL.clearResourcePropertyCache(url);
+}
+
+void CFURLSetTemporaryResourcePropertyForKey(CFURLRef url, CFStringRef key, CFTypeRef propertyValue) {
+    __CFSwiftBridge.NSURL.setTemporaryResourceValueForKey(url, key, propertyValue);
+}
+
+CONST_STRING_DECL(kCFURLNameKey, "NSURLNameKey");
+CONST_STRING_DECL(kCFURLLocalizedNameKey, "NSURLLocalizedNameKey");
+CONST_STRING_DECL(kCFURLIsRegularFileKey, "NSURLIsRegularFileKey");
+CONST_STRING_DECL(kCFURLIsDirectoryKey, "NSURLIsDirectoryKey");
+CONST_STRING_DECL(kCFURLIsSymbolicLinkKey, "NSURLIsSymbolicLinkKey");
+CONST_STRING_DECL(kCFURLIsVolumeKey, "NSURLIsVolumeKey");
+CONST_STRING_DECL(kCFURLIsPackageKey, "NSURLIsPackageKey");
+CONST_STRING_DECL(kCFURLIsApplicationKey, "NSURLIsApplicationKey");
+CONST_STRING_DECL(kCFURLApplicationIsScriptableKey, "NSURLApplicationIsScriptableKey");
+CONST_STRING_DECL(kCFURLIsSystemImmutableKey, "NSURLIsSystemImmutableKey");
+CONST_STRING_DECL(kCFURLIsUserImmutableKey, "NSURLIsUserImmutableKey");
+CONST_STRING_DECL(kCFURLIsHiddenKey, "NSURLIsHiddenKey");
+CONST_STRING_DECL(kCFURLHasHiddenExtensionKey, "NSURLHasHiddenExtensionKey");
+CONST_STRING_DECL(kCFURLCreationDateKey, "NSURLCreationDateKey");
+CONST_STRING_DECL(kCFURLContentAccessDateKey, "NSURLContentAccessDateKey");
+CONST_STRING_DECL(kCFURLContentModificationDateKey, "NSURLContentModificationDateKey");
+CONST_STRING_DECL(kCFURLAttributeModificationDateKey, "NSURLAttributeModificationDateKey");
+CONST_STRING_DECL(kCFURLLinkCountKey, "NSURLLinkCountKey");
+CONST_STRING_DECL(kCFURLParentDirectoryURLKey, "NSURLParentDirectoryURLKey");
+CONST_STRING_DECL(kCFURLVolumeURLKey, "NSURLVolumeURLKey");
+CONST_STRING_DECL(kCFURLTypeIdentifierKey, "NSURLTypeIdentifierKey");
+CONST_STRING_DECL(kCFURLLocalizedTypeDescriptionKey, "NSURLLocalizedTypeDescriptionKey");
+CONST_STRING_DECL(kCFURLLabelNumberKey, "NSURLLabelNumberKey");
+CONST_STRING_DECL(kCFURLLabelColorKey, "NSURLLabelColorKey");
+CONST_STRING_DECL(kCFURLLocalizedLabelKey, "NSURLLocalizedLabelKey");
+CONST_STRING_DECL(kCFURLEffectiveIconKey, "NSURLEffectiveIconKey");
+CONST_STRING_DECL(kCFURLCustomIconKey, "NSURLCustomIconKey");
+CONST_STRING_DECL(kCFURLFileResourceIdentifierKey, "NSURLFileResourceIdentifierKey");
+CONST_STRING_DECL(kCFURLVolumeIdentifierKey, "NSURLVolumeIdentifierKey");
+CONST_STRING_DECL(kCFURLPreferredIOBlockSizeKey, "NSURLPreferredIOBlockSizeKey");
+CONST_STRING_DECL(kCFURLIsReadableKey, "NSURLIsReadableKey");
+CONST_STRING_DECL(kCFURLIsWritableKey, "NSURLIsWritableKey");
+CONST_STRING_DECL(kCFURLIsExecutableKey, "NSURLIsExecutableKey");
+CONST_STRING_DECL(kCFURLFileSecurityKey, "NSURLFileSecurityKey");
+CONST_STRING_DECL(kCFURLIsExcludedFromBackupKey, "NSURLIsExcludedFromBackupKey");
+CONST_STRING_DECL(kCFURLTagNamesKey, "NSURLTagNamesKey");
+CONST_STRING_DECL(kCFURLPathKey, "NSURLPathKey");
+CONST_STRING_DECL(kCFURLCanonicalPathKey, "NSURLCanonicalPathKey");
+CONST_STRING_DECL(kCFURLIsMountTriggerKey, "NSURLIsMountTriggerKey");
+CONST_STRING_DECL(kCFURLGenerationIdentifierKey, "NSURLGenerationIdentifierKey");
+CONST_STRING_DECL(kCFURLDocumentIdentifierKey, "NSURLDocumentIdentifierKey");
+CONST_STRING_DECL(kCFURLAddedToDirectoryDateKey, "NSURLAddedToDirectoryDateKey");
+CONST_STRING_DECL(kCFURLQuarantinePropertiesKey, "NSURLQuarantinePropertiesKey");
+CONST_STRING_DECL(kCFURLFileResourceTypeKey, "NSURLFileResourceTypeKey");
+CONST_STRING_DECL(kCFURLFileResourceTypeNamedPipe, "NSURLFileResourceTypeNamedPipe");
+CONST_STRING_DECL(kCFURLFileResourceTypeCharacterSpecial, "NSURLFileResourceTypeCharacterSpecial");
+CONST_STRING_DECL(kCFURLFileResourceTypeDirectory, "NSURLFileResourceTypeDirectory");
+CONST_STRING_DECL(kCFURLFileResourceTypeBlockSpecial, "NSURLFileResourceTypeBlockSpecial");
+CONST_STRING_DECL(kCFURLFileResourceTypeRegular, "NSURLFileResourceTypeRegular");
+CONST_STRING_DECL(kCFURLFileResourceTypeSymbolicLink, "NSURLFileResourceTypeSymbolicLink");
+CONST_STRING_DECL(kCFURLFileResourceTypeSocket, "NSURLFileResourceTypeSocket");
+CONST_STRING_DECL(kCFURLFileResourceTypeUnknown, "NSURLFileResourceTypeUnknown");
+CONST_STRING_DECL(kCFURLFileSizeKey, "NSURLFileSizeKey");
+CONST_STRING_DECL(kCFURLFileAllocatedSizeKey, "NSURLFileAllocatedSizeKey");
+CONST_STRING_DECL(kCFURLTotalFileSizeKey, "NSURLTotalFileSizeKey");
+CONST_STRING_DECL(kCFURLTotalFileAllocatedSizeKey, "NSURLTotalFileAllocatedSizeKey");
+CONST_STRING_DECL(kCFURLIsAliasFileKey, "NSURLIsAliasFileKey");
+CONST_STRING_DECL(kCFURLFileProtectionKey, "NSURLFileProtectionKey");
+CONST_STRING_DECL(kCFURLFileProtectionNone, "NSURLFileProtectionNone");
+CONST_STRING_DECL(kCFURLFileProtectionComplete, "NSURLFileProtectionComplete");
+CONST_STRING_DECL(kCFURLFileProtectionCompleteUnlessOpen, "NSURLFileProtectionCompleteUnlessOpen");
+CONST_STRING_DECL(kCFURLFileProtectionCompleteUntilFirstUserAuthentication, "NSURLFileProtectionCompleteUntilFirstUserAuthentication");
+CONST_STRING_DECL(kCFURLVolumeLocalizedFormatDescriptionKey, "NSURLVolumeLocalizedFormatDescriptionKey");
+CONST_STRING_DECL(kCFURLVolumeTotalCapacityKey, "NSURLVolumeTotalCapacityKey");
+CONST_STRING_DECL(kCFURLVolumeAvailableCapacityKey, "NSURLVolumeAvailableCapacityKey");
+CONST_STRING_DECL(kCFURLVolumeAvailableCapacityForImportantUsageKey, "NSURLVolumeAvailableCapacityForImportantUsageKey");
+CONST_STRING_DECL(kCFURLVolumeAvailableCapacityForOpportunisticUsageKey, "NSURLVolumeAvailableCapacityForOpportunisticUsageKey");
+CONST_STRING_DECL(kCFURLVolumeResourceCountKey, "NSURLVolumeResourceCountKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsPersistentIDsKey, "NSURLVolumeSupportsPersistentIDsKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsSymbolicLinksKey, "NSURLVolumeSupportsSymbolicLinksKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsHardLinksKey, "NSURLVolumeSupportsHardLinksKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsJournalingKey, "NSURLVolumeSupportsJournalingKey");
+CONST_STRING_DECL(kCFURLVolumeIsJournalingKey, "NSURLVolumeIsJournalingKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsSparseFilesKey, "NSURLVolumeSupportsSparseFilesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsZeroRunsKey, "NSURLVolumeSupportsZeroRunsKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsCaseSensitiveNamesKey, "NSURLVolumeSupportsCaseSensitiveNamesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsCasePreservedNamesKey, "NSURLVolumeSupportsCasePreservedNamesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsRootDirectoryDatesKey, "NSURLVolumeSupportsRootDirectoryDatesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsVolumeSizesKey, "NSURLVolumeSupportsVolumeSizesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsRenamingKey, "NSURLVolumeSupportsRenamingKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsAdvisoryFileLockingKey, "NSURLVolumeSupportsAdvisoryFileLockingKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsExtendedSecurityKey, "NSURLVolumeSupportsExtendedSecurityKey");
+CONST_STRING_DECL(kCFURLVolumeIsBrowsableKey, "NSURLVolumeIsBrowsableKey");
+CONST_STRING_DECL(kCFURLVolumeMaximumFileSizeKey, "NSURLVolumeMaximumFileSizeKey");
+CONST_STRING_DECL(kCFURLVolumeIsEjectableKey, "NSURLVolumeIsEjectableKey");
+CONST_STRING_DECL(kCFURLVolumeIsRemovableKey, "NSURLVolumeIsRemovableKey");
+CONST_STRING_DECL(kCFURLVolumeIsInternalKey, "NSURLVolumeIsInternalKey");
+CONST_STRING_DECL(kCFURLVolumeIsAutomountedKey, "NSURLVolumeIsAutomountedKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsBrowsingKey, "NSURLVolumeSupportsBrowsingKey");
+CONST_STRING_DECL(kCFURLVolumeIsLocalKey, "NSURLVolumeIsLocalKey");
+CONST_STRING_DECL(kCFURLVolumeIsReadOnlyKey, "NSURLVolumeIsReadOnlyKey");
+CONST_STRING_DECL(kCFURLVolumeCreationDateKey, "NSURLVolumeCreationDateKey");
+CONST_STRING_DECL(kCFURLVolumeURLForRemountingKey, "NSURLVolumeURLForRemountingKey");
+CONST_STRING_DECL(kCFURLVolumeUUIDStringKey, "NSURLVolumeUUIDStringKey");
+CONST_STRING_DECL(kCFURLVolumeNameKey, "NSURLVolumeNameKey");
+CONST_STRING_DECL(kCFURLVolumeLocalizedNameKey, "NSURLVolumeLocalizedNameKey");
+CONST_STRING_DECL(kCFURLVolumeIsEncryptedKey, "NSURLVolumeIsEncryptedKey");
+CONST_STRING_DECL(kCFURLVolumeIsRootFileSystemKey, "NSURLVolumeIsRootFileSystemKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsCompressionKey, "NSURLVolumeSupportsCompressionKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsFileCloningKey, "NSURLVolumeSupportsFileCloningKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsSwapRenamingKey, "NSURLVolumeSupportsSwapRenamingKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsExclusiveRenamingKey, "NSURLVolumeSupportsExclusiveRenamingKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsImmutableFilesKey, "NSURLVolumeSupportsImmutableFilesKey");
+CONST_STRING_DECL(kCFURLVolumeSupportsAccessPermissionsKey, "NSURLVolumeSupportsAccessPermissionsKey");
+CONST_STRING_DECL(kCFURLIsUbiquitousItemKey, "NSURLIsUbiquitousItemKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemHasUnresolvedConflictsKey, "NSURLUbiquitousItemHasUnresolvedConflictsKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemIsDownloadedKey, "NSURLUbiquitousItemIsDownloadedKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemDownloadingStatusKey, "NSURLUbiquitousItemDownloadingStatusKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemIsDownloadingKey, "NSURLUbiquitousItemIsDownloadingKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemIsUploadedKey, "NSURLUbiquitousItemIsUploadedKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemIsUploadingKey, "NSURLUbiquitousItemIsUploadingKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemPercentDownloadedKey, "NSURLUbiquitousItemPercentDownloadedKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemPercentUploadedKey, "NSURLUbiquitousItemPercentUploadedKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemDownloadingErrorKey, "NSURLUbiquitousItemDownloadingErrorKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemUploadingErrorKey, "NSURLUbiquitousItemUploadingErrorKey");
+CONST_STRING_DECL(kCFURLUbiquitousItemDownloadingStatusNotDownloaded, "NSURLUbiquitousItemDownloadingStatusNotDownloaded");
+CONST_STRING_DECL(kCFURLUbiquitousItemDownloadingStatusDownloaded, "NSURLUbiquitousItemDownloadingStatusDownloaded");
+CONST_STRING_DECL(kCFURLUbiquitousItemDownloadingStatusCurrent, "NSURLUbiquitousItemDownloadingStatusCurrent");
+
+#endif

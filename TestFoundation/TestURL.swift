@@ -47,22 +47,6 @@ private func getTestData() -> [Any]? {
 }
 
 class TestURL : XCTestCase {
-    static var allTests: [(String, (TestURL) -> () throws -> Void)] {
-        return [
-            ("test_URLStrings", test_URLStrings),
-            ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
-            // TODO: these tests fail on linux, more investigation is needed
-            ("test_fileURLWithPath", test_fileURLWithPath),
-            ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
-            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
-            ("test_reachable", test_reachable),
-            ("test_copy", test_copy),
-            ("test_itemNSCoding", test_itemNSCoding),
-            ("test_dataRepresentation", test_dataRepresentation),
-            ("test_description", test_description),
-        ]
-    }
-    
     func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
@@ -542,6 +526,99 @@ class TestURL : XCTestCase {
         urlComponents.password = "abcd"
         let relativeURL = urlComponents.url(relativeTo: url)
         XCTAssertEqual(relativeURL?.description, "//:abcd@amazon.in:8080 -- http://amazon.in")
+    }
+    
+    // MARK: Resource values.
+    
+    func test_URLResourceValues() throws {
+        do {
+            try FileManager.default.createDirectory(at: writableTestDirectoryURL, withIntermediateDirectories: true)
+            var a = writableTestDirectoryURL.appendingPathComponent("a")
+            try Data().write(to: a)
+            
+            // Not all OSes support fractions of a second; remove the fractional part.
+            let (roughlyAYearFromNowInterval, _) = modf(Date(timeIntervalSinceNow: 1 * 365 * 24 * 60 * 60).timeIntervalSinceReferenceDate)
+            let roughlyAYearFromNow = Date(timeIntervalSinceReferenceDate: roughlyAYearFromNowInterval)
+            
+            var values = URLResourceValues()
+            values.contentModificationDate = roughlyAYearFromNow
+            
+            try a.setResourceValues(values)
+            
+            let keys: Set<URLResourceKey> = [
+                .contentModificationDateKey,
+            ]
+            
+            func assertRelevantValuesAreEqual(in newValues: URLResourceValues) {
+                XCTAssertEqual(values.contentModificationDate, newValues.contentModificationDate)
+            }
+            
+            do {
+                let newValues = try a.resourceValues(forKeys: keys)
+                assertRelevantValuesAreEqual(in: newValues)
+            }
+            
+            do {
+                a.removeAllCachedResourceValues()
+                let newValues = try a.resourceValues(forKeys: keys)
+                assertRelevantValuesAreEqual(in: newValues)
+            }
+            
+            do {
+                let separateA = writableTestDirectoryURL.appendingPathComponent("a")
+                let newValues = try separateA.resourceValues(forKeys: keys)
+                assertRelevantValuesAreEqual(in: newValues)
+            }
+        } catch {
+            if let error = error as? NSError {
+                print("error: \(error.description) - \(error.userInfo)")
+            } else {
+                print("error: \(error)")
+            }
+            throw error
+        }
+    }
+    
+    // MARK: -
+    
+    var writableTestDirectoryURL: URL!
+    
+    override func setUp() {
+        super.setUp()
+        
+        let pid = ProcessInfo.processInfo.processIdentifier
+        writableTestDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("org.swift.TestFoundation.TestURL.resourceValues.\(pid)")
+    }
+    
+    override func tearDown() {
+        if let directoryURL = writableTestDirectoryURL,
+            (try? FileManager.default.attributesOfItem(atPath: directoryURL.path)) != nil {
+            do {
+                try FileManager.default.removeItem(at: directoryURL)
+            } catch {
+                NSLog("Could not remove test directory at URL \(directoryURL): \(error)")
+            }
+        }
+        
+        super.tearDown()
+    }
+    
+    static var allTests: [(String, (TestURL) -> () throws -> Void)] {
+        return [
+            ("test_URLStrings", test_URLStrings),
+            ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
+            // TODO: these tests fail on linux, more investigation is needed
+            ("test_fileURLWithPath", test_fileURLWithPath),
+            ("test_fileURLWithPath_isDirectory", test_fileURLWithPath_isDirectory),
+            ("test_URLByResolvingSymlinksInPath", test_URLByResolvingSymlinksInPath),
+            ("test_reachable", test_reachable),
+            ("test_copy", test_copy),
+            ("test_itemNSCoding", test_itemNSCoding),
+            ("test_dataRepresentation", test_dataRepresentation),
+            ("test_description", test_description),
+            ("test_URLResourceValues", testExpectedToFail(test_URLResourceValues,
+                "test_URLResourceValues: Except for .nameKey, we have no testable attributes that work in the environment Swift CI uses, for now. SR-XXXX")),
+        ]
     }
 }
     

@@ -470,7 +470,7 @@ CF_IMPLICIT_BRIDGING_ENABLED
 
 
 
-#if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || CF_BUILDING_CF || NSBUILDINGFOUNDATION
+#if (TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE) || CF_BUILDING_CF || NSBUILDINGFOUNDATION || DEPLOYMENT_RUNTIME_SWIFT
 CF_IMPLICIT_BRIDGING_DISABLED
 
 /* Resource access
@@ -1138,6 +1138,7 @@ CF_EXPORT
 const CFStringRef kCFURLUbiquitousItemDownloadingStatusCurrent API_AVAILABLE(macos(10.9), ios(7.0), watchos(2.0), tvos(9.0));
     /* there is a local version of this item and it is the most up-to-date version known to this device. */
 
+#if !DEPLOYMENT_TARGET_SWIFT
 
 typedef CF_OPTIONS(CFOptionFlags, CFURLBookmarkCreationOptions) {
     kCFURLBookmarkCreationMinimalBookmarkMask = ( 1UL << 9 ), // creates bookmark data with "less" information, which may be smaller but still be able to resolve in certain ways
@@ -1209,7 +1210,8 @@ Boolean CFURLStartAccessingSecurityScopedResource(CFURLRef url) API_AVAILABLE(ma
 CF_EXPORT
 void CFURLStopAccessingSecurityScopedResource(CFURLRef url) API_AVAILABLE(macos(10.7), ios(8.0), watchos(2.0), tvos(9.0)); // On OSX, available in MacOS X 10.7.3 and later
 
-#endif /* TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE */
+#endif /* !DEPLOYMENT_TARGET_SWIFT */
+#endif /* TARGET_OS_MAC || TARGET_OS_EMBEDDED || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_SWIFT */
 
 CF_EXTERN_C_END
 CF_IMPLICIT_BRIDGING_DISABLED

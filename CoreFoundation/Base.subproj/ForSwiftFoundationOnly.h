@@ -292,6 +292,17 @@ struct _NSCalendarBridge {
     void (*_Nonnull setGregorianStartDate)(CFTypeRef obj, CFTypeRef _Nullable date);
 };
 
+struct _NSURLBridge {
+    Boolean (*_Nonnull copyResourcePropertyForKey)(CFTypeRef url, CFStringRef key, CFTypeRef _Nullable *_Nullable propertyValueTypeRefPtr, CFErrorRef *error);
+    CFDictionaryRef _Nullable (*_Nonnull copyResourcePropertiesForKeys)(CFTypeRef url, CFArrayRef keys, CFErrorRef *error);
+    Boolean (*_Nonnull setResourcePropertyForKey)(CFTypeRef url, CFStringRef key, CFTypeRef _Nullable propertyValue, CFErrorRef *error);
+    Boolean (*_Nonnull setResourcePropertiesForKeys)(CFTypeRef url, CFDictionaryRef keyedPropertyValues, CFErrorRef *error);
+    void (*_Nonnull clearResourcePropertyCacheForKey)(CFTypeRef url, CFStringRef key);
+    void (*_Nonnull clearResourcePropertyCache)(CFTypeRef url);
+    void (*_Nonnull setTemporaryResourceValueForKey)(CFTypeRef url, CFStringRef key, CFTypeRef propertyValue);
+    Boolean (*_Nonnull resourceIsReachable)(CFTypeRef url, CFErrorRef *error);
+};
+
 struct _CFSwiftBridge {
     struct _NSObjectBridge NSObject;
     struct _NSArrayBridge NSArray;
@@ -309,6 +320,7 @@ struct _CFSwiftBridge {
     struct _NSNumberBridge NSNumber;
     struct _NSDataBridge NSData;
     struct _NSCalendarBridge NSCalendar;
+    struct _NSURLBridge NSURL;
 };
 
 CF_EXPORT struct _CFSwiftBridge __CFSwiftBridge;
@@ -399,6 +411,10 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef _Nullable _CFBundleCopyExecutablePath(CFBun
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles(void);
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFreestandingBundles(void);
 CF_CROSS_PLATFORM_EXPORT CFStringRef __CFTimeZoneCopyDataVersionString(void);
+
+CF_CROSS_PLATFORM_EXPORT void *_Nullable _CFURLCopyResourceInfo(CFURLRef url);
+CF_CROSS_PLATFORM_EXPORT void *_CFURLCopyResourceInfoInitializingAtomicallyIfNeeded(CFURLRef url, CFTypeRef initialValue);
+CF_CROSS_PLATFORM_EXPORT void _CFURLSetResourceInfo(CFURLRef url, CFTypeRef resourceInfo);
 
 // https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 // Version 0.8
