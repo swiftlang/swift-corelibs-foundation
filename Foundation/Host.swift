@@ -105,9 +105,7 @@ open class Host: NSObject {
 
         ulResult = GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, arAdapterInfo, &ulSize)
 
-        var buffer: UnsafeMutablePointer<WCHAR> =
-            UnsafeMutablePointer<WCHAR>.allocate(capacity: Int(NI_MAXHOST))
-        defer { buffer.deallocate() }
+        var buffer: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
 
         var arCurrentAdapterInfo: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES>? =
           arAdapterInfo
@@ -120,9 +118,9 @@ open class Host: NSObject {
             case ADDRESS_FAMILY(AF_INET), ADDRESS_FAMILY(AF_INET6):
               if GetNameInfoW(arCurrentAddress.Address.lpSockaddr,
                               arCurrentAddress.Address.iSockaddrLength,
-                              buffer, DWORD(NI_MAXHOST),
+                              &buffer, DWORD(NI_MAXHOST),
                               nil, 0, NI_NUMERICHOST) == 0 {
-                _addresses.append(String(decodingCString: buffer,
+                _addresses.append(String(decodingCString: &buffer,
                                          as: UTF16.self))
               }
             default: break
@@ -190,9 +188,7 @@ open class Host: NSObject {
           guard bSucceeded == true else { return }
           defer { FreeAddrInfoW(aiResult) }
 
-          let wszHostName =
-              UnsafeMutablePointer<WCHAR>.allocate(capacity: Int(NI_MAXHOST))
-          defer { wszHostName.deallocate() }
+          var wszHostName: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
 
           while aiResult != nil {
             let aiInfo: ADDRINFOW = aiResult!.pointee
@@ -209,9 +205,9 @@ open class Host: NSObject {
             }
 
             let lookup = { (content: inout [String], flags: Int32) in
-              if GetNameInfoW(aiInfo.ai_addr, sa_len, wszHostName,
+              if GetNameInfoW(aiInfo.ai_addr, sa_len, &wszHostName,
                               DWORD(NI_MAXHOST), nil, 0, flags) == 0 {
-                content.append(String(decodingCString: wszHostName,
+                content.append(String(decodingCString: &wszHostName,
                                       as: UTF16.self))
               }
             }
