@@ -721,16 +721,16 @@ class TestIndexPath: XCTestCase {
         let ip1: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip1)
         XCTAssertEqual(ip1.count, 0)
         
-        var ip2: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip2)
+        let ip2: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip2)
         XCTAssertEqual(ip2.count, 1)
         XCTAssertEqual(ip2[0], 1)
         
-        var ip3: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip3)
+        let ip3: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip3)
         XCTAssertEqual(ip3.count, 2)
         XCTAssertEqual(ip3[0], 1)
         XCTAssertEqual(ip3[1], 2)
         
-        var ip4: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip4)
+        let ip4: IndexPath = IndexPath._unconditionallyBridgeFromObjectiveC(nsip4)
         XCTAssertEqual(ip4.count, 3)
         XCTAssertEqual(ip4[0], 1)
         XCTAssertEqual(ip4[1], 2)

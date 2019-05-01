@@ -1293,7 +1293,7 @@ extension TestNSData {
     
     func testCopyBytes_undersized() {
         let a : [UInt8] = [1, 2, 3, 4, 5]
-        var data = a.withUnsafeBufferPointer {
+        let data = a.withUnsafeBufferPointer {
             return Data(buffer: $0)
         }
         let expectedSize = MemoryLayout<UInt8>.stride * a.count
@@ -1318,7 +1318,7 @@ extension TestNSData {
     
     func testCopyBytes_oversized() {
         let a : [Int32] = [1, 0, 1, 0, 1]
-        var data = a.withUnsafeBufferPointer {
+        let data = a.withUnsafeBufferPointer {
             return Data(buffer: $0)
         }
         let expectedSize = MemoryLayout<Int32>.stride * a.count
@@ -1339,7 +1339,7 @@ extension TestNSData {
         do {
             // Equal sized buffer, data
             let a : [UInt8] = [1, 2, 3, 4, 5]
-            var data = a.withUnsafeBufferPointer {
+            let data = a.withUnsafeBufferPointer {
                 return Data(buffer: $0)
             }
 
@@ -4333,7 +4333,7 @@ extension TestNSData {
     }
 
     func test_dropFirst() {
-        var data = Data([0, 1, 2, 3, 4, 5])
+        let data = Data([0, 1, 2, 3, 4, 5])
         let sliced = data.dropFirst()
         XCTAssertEqual(data.count - 1, sliced.count)
         XCTAssertEqual(UInt8(1), sliced[1])
@@ -4344,7 +4344,7 @@ extension TestNSData {
     }
 
     func test_dropFirst2() {
-        var data = Data([0, 1, 2, 3, 4, 5])
+        let data = Data([0, 1, 2, 3, 4, 5])
         let sliced = data.dropFirst(2)
         XCTAssertEqual(data.count - 2, sliced.count)
         XCTAssertEqual(UInt8(2), sliced[2])
@@ -4355,7 +4355,7 @@ extension TestNSData {
 
     func test_copyBytes1() {
         var array: [UInt8] = [0, 1, 2, 3]
-        var data = Data(array)
+        let data = Data(array)
 
         array.withUnsafeMutableBufferPointer {
             data[1..<3].copyBytes(to: $0.baseAddress!, from: 1..<3)
@@ -4365,7 +4365,7 @@ extension TestNSData {
 
     func test_copyBytes2() {
         let array: [UInt8] = [0, 1, 2, 3]
-        var data = Data(array)
+        let data = Data(array)
 
         let expectedSlice = array[1..<3]
 
