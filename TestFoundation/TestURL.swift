@@ -297,7 +297,7 @@ class TestURL : XCTestCase {
           try FileManager.default.removeItem(atPath: gFileDoesNotExistPath)
         } catch {
           // The error code is a CocoaError
-          if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+          if error.asNSError().code != CocoaError.fileNoSuchFile.rawValue {
             return false
           }
         }
@@ -306,7 +306,7 @@ class TestURL : XCTestCase {
           try FileManager.default.createDirectory(atPath: gDirectoryExistsPath, withIntermediateDirectories: false)
         } catch {
             // The error code is a CocoaError
-            if (error as? NSError)?.code != CocoaError.fileWriteFileExists.rawValue {
+            if error.asNSError().code != CocoaError.fileWriteFileExists.rawValue {
                 return false
             }
         }
@@ -315,7 +315,7 @@ class TestURL : XCTestCase {
           try FileManager.default.removeItem(atPath: gDirectoryDoesNotExistPath)
         } catch {
             // The error code is a CocoaError
-            if (error as? NSError)?.code != CocoaError.fileNoSuchFile.rawValue {
+            if error.asNSError().code != CocoaError.fileNoSuchFile.rawValue {
                 return false
             }
         }
@@ -624,11 +624,8 @@ class TestURL : XCTestCase {
                 assertRelevantValuesAreEqual(in: newValues)
             }
         } catch {
-            if let error = error as? NSError {
-                print("error: \(error.description) - \(error.userInfo)")
-            } else {
-                print("error: \(error)")
-            }
+            let error = error.asNSError()
+            print("error: \(error.description) - \(error.userInfo)")
             throw error
         }
     }

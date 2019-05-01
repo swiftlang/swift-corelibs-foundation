@@ -46,7 +46,7 @@ class TestNSError : XCTestCase {
         let nsdictionary = ["error": error] as NSDictionary
         let dictionary = nsdictionary as? Dictionary<String, Error>
         XCTAssertNotNil(dictionary)
-        XCTAssertEqual(error, dictionary?["error"] as? NSError)
+        XCTAssertEqual(error, dictionary?["error"]?.asNSError())
     }
 
     func test_CustomNSError_domain() {
@@ -94,14 +94,11 @@ class TestNSError : XCTestCase {
     func test_errorConvenience() {
         let error = CocoaError.error(.fileReadNoSuchFile, url: URL(fileURLWithPath: #file))
 
-        if let nsError = error as? NSError {
-            XCTAssertEqual(nsError._domain, NSCocoaErrorDomain)
-            XCTAssertEqual(nsError._code, CocoaError.fileReadNoSuchFile.rawValue)
-            if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
-                XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
-            } else {
-                XCTFail()
-            }
+        let nsError = error.asNSError()
+        XCTAssertEqual(nsError.domain, NSCocoaErrorDomain)
+        XCTAssertEqual(nsError.code, CocoaError.fileReadNoSuchFile.rawValue)
+        if let filePath = nsError.userInfo[NSURLErrorKey] as? URL {
+            XCTAssertEqual(filePath, URL(fileURLWithPath: #file))
         } else {
             XCTFail()
         }

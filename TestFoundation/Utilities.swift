@@ -133,6 +133,17 @@ func _checkHashing<Source: Hashable, Target: Hashable, S: Sequence>(
     }
 }
 
+extension Error {
+    func asNSError() -> NSError {
+        // The cast will never fail, and this will create a warning during
+        // compilation, but since it is SwiftFoundation.NSError (and not ObjC
+        // NSError) the macOS build cannot detect that and might fail indicating
+        // some catch is not exhaustive. This avoid the compilation problem,
+        // but centralizes all the warnings in only this point.
+        return (self as? NSError)!
+    }
+}
+
 enum TestError: Error {
     case unexpectedNil
 }

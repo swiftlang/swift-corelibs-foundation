@@ -1321,81 +1321,81 @@ VIDEOS=StopgapVideos
         XCTAssertNil(NSHomeDirectoryForUser(""))
 
         XCTAssertThrowsError(try fm.contentsOfDirectory(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertNil(fm.enumerator(atPath: ""))
         XCTAssertNil(fm.subpaths(atPath: ""))
         XCTAssertThrowsError(try fm.subpathsOfDirectory(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.createDirectory(atPath: "", withIntermediateDirectories: true)) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertFalse(fm.createFile(atPath: "", contents: Data()))
         XCTAssertThrowsError(try fm.removeItem(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: "/tmp/t"))  {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "", toPath: ""))  {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.copyItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.moveItem(atPath: "", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.moveItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.linkItem(atPath: "/tmp/t", toPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadNoSuchFile)
         }
 
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "", withDestinationPath: "/tmp/t")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.createSymbolicLink(atPath: "/tmp/t", withDestinationPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
         XCTAssertThrowsError(try fm.destinationOfSymbolicLink(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertFalse(fm.fileExists(atPath: ""))
@@ -1406,15 +1406,15 @@ VIDEOS=StopgapVideos
         XCTAssertTrue(fm.isDeletableFile(atPath: ""))
 
         XCTAssertThrowsError(try fm.attributesOfItem(atPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.attributesOfFileSystem(forPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
         XCTAssertThrowsError(try fm.setAttributes([:], ofItemAtPath: "")) {
-            let code = CocoaError.Code(rawValue: ($0 as? NSError)!.code)
+            let code = CocoaError.Code(rawValue: $0.asNSError().code)
             XCTAssertEqual(code, .fileReadInvalidFileName)
         }
 
