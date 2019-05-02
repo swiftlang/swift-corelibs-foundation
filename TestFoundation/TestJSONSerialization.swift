@@ -1394,10 +1394,10 @@ extension TestJSONSerialization {
  */
     
     func test_jsonReadingOffTheEndOfBuffers() {
-        let data = "12345679".data(using: .utf8)!
+        var data = "12345679".data(using: .utf8)!
         do {
-            let res = try data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Any in
-                let slice = Data(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), count: 1, deallocator: .none)
+            let res = try data.withUnsafeMutableBytes { (bytes: UnsafeMutableRawBufferPointer) -> Any in
+                let slice = Data(bytesNoCopy: bytes.baseAddress!, count: 1, deallocator: .none)
                 return try JSONSerialization.jsonObject(with: slice, options: .allowFragments)
             }
             if let num = res as? Int {

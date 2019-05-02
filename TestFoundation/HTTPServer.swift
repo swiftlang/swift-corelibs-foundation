@@ -175,7 +175,7 @@ class _TCPSocket {
         }
 #else
         _ = try data.withUnsafeBytes { ptr in
-            try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, ptr, data.count, sendFlags)))
+            try attempt("send", valid: isNotNegative, CInt(send(connectionSocket, ptr.baseAddress!, data.count, sendFlags)))
         }
 #endif
     }

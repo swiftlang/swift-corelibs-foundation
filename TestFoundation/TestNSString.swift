@@ -105,8 +105,8 @@ class TestNSString: LoopbackServerTest {
         let testString = "\u{00} This is a test string"
         let data = testString.data(using: .utf8)!
         XCTAssertEqual(data.count, 23)
-        _ = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) in
-            if let text1 = NSString(bytes: bytes , length: data.count, encoding: String.Encoding.utf8.rawValue) {
+        _ = data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            if let text1 = NSString(bytes: bytes.baseAddress!, length: data.count, encoding: String.Encoding.utf8.rawValue) {
                 XCTAssertEqual(text1.length, data.count)
                 XCTAssertEqual(text1, testString as NSString)
             } else {
@@ -127,8 +127,8 @@ class TestNSString: LoopbackServerTest {
         // as UTF-16 bytes it is 0x1, 0x38
         let kra = "ĸ"
         let utf8KraData = Data([0xc4, 0xb8])
-        if let utf8kra = utf8KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
-            return NSString(bytes: bytes, length: utf8KraData.count, encoding: String.Encoding.utf8.rawValue)
+        if let utf8kra = utf8KraData.withUnsafeBytes( { (bytes: UnsafeRawBufferPointer) -> NSString? in
+            return NSString(bytes: bytes.baseAddress!, length: utf8KraData.count, encoding: String.Encoding.utf8.rawValue)
         }) {
             XCTAssertEqual(kra.count, 1)
             XCTAssertEqual(kra.utf8.count, 2)
@@ -139,8 +139,8 @@ class TestNSString: LoopbackServerTest {
         }
 
         let utf16KraData = Data([0x1, 0x38])
-        if let utf16kra = utf16KraData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
-            return NSString(bytes: bytes, length: utf16KraData.count, encoding: String.Encoding.utf16.rawValue)
+        if let utf16kra = utf16KraData.withUnsafeBytes( { (bytes: UnsafeRawBufferPointer) -> NSString? in
+            return NSString(bytes: bytes.baseAddress!, length: utf16KraData.count, encoding: String.Encoding.utf16.rawValue)
         }) {
             XCTAssertEqual(kra.count, 1)
             XCTAssertEqual(kra.utf8.count, 2)
@@ -154,8 +154,8 @@ class TestNSString: LoopbackServerTest {
         let largeString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut at tincidunt arcu. Suspendisse nec sodales erat, sit amet imperdiet ipsum. Etiam sed ornare felis. Nunc mauris turpis, bibendum non lectus quis, malesuada placerat turpis. Nam adipiscing non massa et semper. Nulla convallis semper bibendum."
         XCTAssertTrue(largeString.count > 255)
         let largeData = largeString.data(using: .utf8)!
-        if let largeText = largeData.withUnsafeBytes( { (bytes: UnsafePointer<UInt8>) in
-            return NSString(bytes: bytes, length: largeData.count, encoding: String.Encoding.ascii.rawValue)
+        if let largeText = largeData.withUnsafeBytes( { (bytes: UnsafeRawBufferPointer) -> NSString? in
+            return NSString(bytes: bytes.baseAddress!, length: largeData.count, encoding: String.Encoding.ascii.rawValue)
         }) {
             XCTAssertEqual(largeText.length, largeString.count)
             XCTAssertEqual(largeText.length, largeData.count)

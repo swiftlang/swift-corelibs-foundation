@@ -1015,7 +1015,7 @@ extension TestNSData {
         let world = dataFrom(" world")
         var helloWorld = hello
         world.withUnsafeBytes {
-            helloWorld.append($0, count: world.count)
+            helloWorld.append($0.baseAddress!.assumingMemoryBound(to: UInt8.self), count: world.count)
         }
         
         XCTAssertEqual(hello[0], 0x68, "First byte should not have changed")
@@ -1047,12 +1047,12 @@ extension TestNSData {
         XCTAssertEqual(mutatingHello.count, helloLength * 2, "The length should have changed")
         
         // Get the underlying data for hello2
-        mutatingHello.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
-            XCTAssertEqual(bytes.pointee, 0x68, "First byte should be 0x68")
+        mutatingHello.withUnsafeMutableBytes { (bytes : UnsafeMutableRawBufferPointer) in
+            XCTAssertEqual(bytes[0], 0x68, "First byte should be 0x68")
             
             // Mutate it
-            bytes.pointee = 0x67
-            XCTAssertEqual(bytes.pointee, 0x67, "First byte should be 0x67")
+            bytes[0] = 0x67
+            XCTAssertEqual(bytes[0], 0x67, "First byte should be 0x67")
         }
         XCTAssertEqual(mutatingHello[0], 0x67, "First byte accessed via other method should still be 0x67")
 
@@ -1698,8 +1698,8 @@ extension TestNSData {
     func test_sliceWithUnsafeBytes() {
         let base = Data([0, 1, 2, 3, 4, 5])
         let slice = base[2..<4]
-        let segment = slice.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> [UInt8] in
-            return [ptr.pointee, ptr.advanced(by: 1).pointee]
+        let segment = slice.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) -> [UInt8] in
+            return [buffer[0], buffer[1]]
         }
         XCTAssertEqual(segment, [UInt8(2), UInt8(3)])
     }
@@ -1717,8 +1717,8 @@ extension TestNSData {
 
         func test_validateMutation_withUnsafeMutableBytes() {
             var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 5).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[5] = 0xFF
         }
             XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
     }
@@ -1813,8 +1813,8 @@ extension TestNSData {
     
     func test_validateMutation_slice_withUnsafeMutableBytes() {
         var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (buffer: UnsafeMutableRawBufferPointer) in
+            buffer[1] = 0xFF
         }
         XCTAssertEqual(data, Data([4, 0xFF, 6, 7, 8]))
     }
@@ -1907,8 +1907,8 @@ extension TestNSData {
     func test_validateMutation_cow_withUnsafeMutableBytes() {
         var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 5).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[5] = 0xFF
             }
             XCTAssertEqual(data, Data([0, 1, 2, 3, 4, 0xFF, 6, 7, 8, 9]))
         }
@@ -2028,8 +2028,8 @@ extension TestNSData {
     func test_validateMutation_slice_cow_withUnsafeMutableBytes() {
         var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<9]
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 1).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[1] = 0xFF
             }
             XCTAssertEqual(data, Data([4, 0xFF, 6, 7, 8]))
         }
@@ -2144,8 +2144,8 @@ extension TestNSData {
     
     func test_validateMutation_immutableBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 5).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[5] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
     }
@@ -2239,8 +2239,8 @@ extension TestNSData {
     
     func test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))[4..<9]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -2361,8 +2361,8 @@ extension TestNSData {
     func test_validateMutation_cow_immutableBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 5).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[5] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
         }
@@ -2482,8 +2482,8 @@ extension TestNSData {
     func test_validateMutation_slice_cow_immutableBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))[4..<9]
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 1).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[1] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
         }
@@ -2625,8 +2625,8 @@ extension TestNSData {
             return Data(referencing: NSData(bytes: $0.baseAddress!, length: $0.count))
         }
         data.append(contentsOf: [7, 8, 9])
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 5).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[5] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
     }
@@ -2760,8 +2760,8 @@ extension TestNSData {
         var base = Data(referencing: NSData(bytes: "hello world", length: 11))
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<9]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -2883,8 +2883,8 @@ extension TestNSData {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))
         data.append(contentsOf: [1, 2, 3, 4, 5, 6])
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 5).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[5] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
         }
@@ -3016,8 +3016,8 @@ extension TestNSData {
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<9]
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 1).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[1] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
         }
@@ -3182,8 +3182,8 @@ extension TestNSData {
     
     func test_validateMutation_customBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 5).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[5] = 0xFF
         }
         XCTAssertEqual(data, Data([1, 1, 1, 1, 1, 0xFF, 1, 1, 1, 1]))
     }
@@ -3273,8 +3273,8 @@ extension TestNSData {
     
     func test_validateMutation_slice_customBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<9]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -3366,8 +3366,8 @@ extension TestNSData {
     func test_validateMutation_cow_customBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 5).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[5] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
         }
@@ -3477,8 +3477,8 @@ extension TestNSData {
     func test_validateMutation_slice_cow_customBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<9]
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 1).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[1] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
         }
@@ -3588,8 +3588,8 @@ extension TestNSData {
     func test_validateMutation_customMutableBacking_withUnsafeMutableBytes() {
         var data = Data(referencing: AllOnesData(length: 1))
         data.count = 10
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 5).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[5] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
     }
@@ -3688,8 +3688,8 @@ extension TestNSData {
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<9]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -3799,8 +3799,8 @@ extension TestNSData {
         var data = Data(referencing: AllOnesData(length: 1))
         data.count = 10
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 5).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[5].pointee = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 5)], 0xFF)
         }
@@ -3922,8 +3922,8 @@ extension TestNSData {
         base.count = 10
         var data = base[4..<9]
         holdReference(data) {
-            data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-                ptr.advanced(by: 1).pointee = 0xFF
+            data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+                ptr[1] = 0xFF
             }
             XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
         }
@@ -4123,16 +4123,16 @@ extension TestNSData {
     
     func test_validateMutation_slice_withUnsafeMutableBytes_lengthLessThanLowerBound() {
         var data = Data([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])[4..<6]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data, Data([4, 0xFF]))
     }
     
     func test_validateMutation_slice_immutableBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
         var data = Data(referencing: NSData(bytes: "hello world", length: 11))[4..<6]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -4141,16 +4141,16 @@ extension TestNSData {
         var base = Data(referencing: NSData(bytes: "hello world", length: 11))
         base.append(contentsOf: [1, 2, 3, 4, 5, 6])
         var data = base[4..<6]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
 
     func test_validateMutation_slice_customBacking_withUnsafeMutableBytes_lengthLessThanLowerBound() {
         var data = Data(referencing: AllOnesImmutableData(length: 10))[4..<6]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -4159,8 +4159,8 @@ extension TestNSData {
         var base = Data(referencing: AllOnesData(length: 1))
         base.count = 10
         var data = base[4..<6]
-        data.withUnsafeMutableBytes { (ptr: UnsafeMutablePointer<UInt8>) in
-            ptr.advanced(by: 1).pointee = 0xFF
+        data.withUnsafeMutableBytes { (ptr: UnsafeMutableRawBufferPointer) in
+            ptr[1] = 0xFF
         }
         XCTAssertEqual(data[data.startIndex.advanced(by: 1)], 0xFF)
     }
@@ -4178,12 +4178,12 @@ extension TestNSData {
         XCTAssertEqual(allOnesCopyToMutate.count, length * 2, "The length should have changed")
 
         // Force the second data to create its storage
-        allOnesCopyToMutate.withUnsafeMutableBytes { (bytes : UnsafeMutablePointer<UInt8>) in
-            XCTAssertEqual(bytes.pointee, 1, "First byte should be 1")
+        allOnesCopyToMutate.withUnsafeMutableBytes { (bytes : UnsafeMutableRawBufferPointer) in
+            XCTAssertEqual(bytes[0], 1, "First byte should be 1")
 
             // Mutate the second data
-            bytes.pointee = 0
-            XCTAssertEqual(bytes.pointee, 0, "First byte should be 0")
+            bytes[0] = 0
+            XCTAssertEqual(bytes[0], 0, "First byte should be 0")
 
         }
         XCTAssertEqual(allOnesCopyToMutate[0], 0, "First byte accessed via other method should still be 0")
@@ -4225,10 +4225,10 @@ extension TestNSData {
         let dataToEncode = "Hello World".data(using: .utf8)!
 
         let subdata1 = dataToEncode.withUnsafeBytes { bytes in
-            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+            return DispatchData(bytes: bytes)
         }
         let subdata2 = dataToEncode.withUnsafeBytes { bytes in
-            return DispatchData(bytes: UnsafeBufferPointer(start: bytes, count: dataToEncode.count))
+            return DispatchData(bytes: bytes)
         }
         var data = subdata1
         data.append(subdata2)
@@ -4246,9 +4246,9 @@ extension TestNSData {
     }
 
     func test_doubleDeallocation() {
-        let data = "12345679".data(using: .utf8)!
-        let len = data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Int in
-            let slice = Data(bytesNoCopy: UnsafeMutablePointer(mutating: bytes), count: 1, deallocator: .none)
+        var data = "12345679".data(using: .utf8)!
+        let len = data.withUnsafeMutableBytes { (bytes: UnsafeMutableRawBufferPointer) -> Int in
+            let slice = Data(bytesNoCopy: bytes.baseAddress!, count: 1, deallocator: .none)
             return slice.count
         }
         XCTAssertEqual(len, 1)
