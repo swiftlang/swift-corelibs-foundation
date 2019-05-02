@@ -201,7 +201,7 @@ class TestStream : XCTestCase {
 
         let outputStream = OutputStream(toFileAtPath: filePath, append: true)
         XCTAssertEqual(.notOpen, outputStream!.streamStatus)
-        var myString = "Hello world!"
+        let myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         outputStream?.open()
         XCTAssertEqual(.open, outputStream!.streamStatus)
@@ -214,7 +214,7 @@ class TestStream : XCTestCase {
     
     func  test_outputStreamCreationToBuffer() {
         var buffer = Array<UInt8>(repeating: 0, count: 12)
-        var myString = "Hello world!"
+        let myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         XCTAssertEqual(.notOpen, outputStream.streamStatus)
@@ -235,7 +235,7 @@ class TestStream : XCTestCase {
 
         let outputStream = OutputStream(url: URL(fileURLWithPath: filePath), append: true)
         XCTAssertEqual(.notOpen, outputStream!.streamStatus)
-        var myString = "Hello world!"
+        let myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         outputStream!.open()
         XCTAssertEqual(.open, outputStream!.streamStatus)
@@ -248,7 +248,7 @@ class TestStream : XCTestCase {
     
     func test_outputStreamCreationToMemory(){
         var buffer = Array<UInt8>(repeating: 0, count: 12)
-        var myString = "Hello world!"
+        let myString = "Hello world!"
         let encodedData = [UInt8](myString.utf8)
         let outputStream = OutputStream.toMemory()
         XCTAssertEqual(.notOpen, outputStream.streamStatus)
@@ -269,7 +269,7 @@ class TestStream : XCTestCase {
 
     func test_outputStreamHasSpaceAvailable() {
         let buffer = Array<UInt8>(repeating: 0, count: 12)
-        var myString = "Welcome To Hello world  !"
+        let myString = "Welcome To Hello world  !"
         let encodedData = [UInt8](myString.utf8)
         let outputStream = OutputStream(toBuffer: UnsafeMutablePointer(mutating: buffer), capacity: 12)
         outputStream.open()
