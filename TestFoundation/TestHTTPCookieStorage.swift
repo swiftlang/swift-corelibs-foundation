@@ -307,7 +307,7 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies(for: superSwiftOrgUrl)!, [])
     }
 
-    func test_cookieInXDGSpecPath() {
+    func test_cookieInXDGSpecPath() throws {
 #if !os(Android) && !DARWIN_COMPATIBILITY_TESTS // No XDG on native Foundation
         //Test without setting the environment variable
         let testCookie = HTTPCookie(properties: [
@@ -341,7 +341,7 @@ class TestHTTPCookieStorage: XCTestCase {
         task.environment = environment
 
         // Launch the task
-        task.launch()
+        try task.run()
         task.waitUntilExit()
         let status = task.terminationStatus
         XCTAssertEqual(status, 0)

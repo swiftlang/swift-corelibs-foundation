@@ -12,16 +12,9 @@ class TestProcess : XCTestCase {
     
     func test_exit0() throws {
         let process = Process()
-        let executableURL = xdgTestHelperURL()
-        if #available(OSX 10.13, *) {
-            process.executableURL = executableURL
-        } else {
-            // Fallback on earlier versions
-            process.launchPath = executableURL.path
-        }
-        XCTAssertEqual(executableURL.path, process.launchPath)
+        process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "0"]
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         
         XCTAssertEqual(process.terminationStatus, 0)
@@ -33,7 +26,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "1"]
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -44,7 +37,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "100"]
         
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 100)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -55,7 +48,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--sleep", "2"]
         
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -65,7 +58,7 @@ class TestProcess : XCTestCase {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--signal-self", SIGTERM.description]
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, SIGTERM)
         XCTAssertEqual(process.terminationReason, .uncaughtSignal)
@@ -81,7 +74,7 @@ class TestProcess : XCTestCase {
 
         let inputPipe = Pipe()
         process.standardInput = inputPipe
-        try? process.run()
+        try process.run()
         inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
 
         // Close the input pipe to send EOF to cat.
@@ -107,7 +100,7 @@ class TestProcess : XCTestCase {
         process.standardOutput = pipe
         process.standardError = nil
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
@@ -129,7 +122,7 @@ class TestProcess : XCTestCase {
         let errorPipe = Pipe()
         process.standardError = errorPipe
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -156,7 +149,7 @@ class TestProcess : XCTestCase {
         // Clear the environment to stop the malloc debug flags used in Xcode debug being
         // set in the subprocess.
         process.environment = [:]
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -185,7 +178,7 @@ class TestProcess : XCTestCase {
 
         process.standardOutput = handle
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
@@ -210,35 +203,27 @@ class TestProcess : XCTestCase {
         }
     }
 
-    func test_no_environment() {
-        do {
-            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: [:])
-            let env = try parseEnv(output)
+    func test_no_environment() throws {
+        let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: [:])
+        let env = try parseEnv(output)
 #if os(Windows)
-            // On Windows, Path is always passed to the sub process
-            XCTAssertEqual(env.count, 1)
+        // On Windows, Path is always passed to the sub process
+        XCTAssertEqual(env.count, 1)
 #else
-            XCTAssertEqual(env.count, 0)
+        XCTAssertEqual(env.count, 0)
 #endif
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
     }
 
-    func test_custom_environment() {
-        do {
-            let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
-            let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: input)
-            var env = try parseEnv(output)
+    func test_custom_environment() throws {
+        let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
+        let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: input)
+        var env = try parseEnv(output)
 #if os(Windows)
-            // On Windows, Path is always passed to the sub process, remove it
-            // before comparing.
-            env.removeValue(forKey: "Path")
+        // On Windows, Path is always passed to the sub process, remove it
+        // before comparing.
+        env.removeValue(forKey: "Path")
 #endif
-            XCTAssertEqual(env, input)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        XCTAssertEqual(env, input)
     }
 
     func test_current_working_directory() throws {
@@ -251,91 +236,59 @@ class TestProcess : XCTestCase {
         let previousWorkingDirectory = fm.currentDirectoryPath
 
         // Test that getcwd() returns the currentDirectoryPath
-        do {
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
-            // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        let (pwd1, _) = try runTask([xdgTestHelperURL().path, "--getcwd"], currentDirectoryPath: tmpDir)
+        // Check the sub-process used the correct directory
+        XCTAssertEqual(pwd1.trimmingCharacters(in: .newlines), tmpDir)
 
         // Test that $PWD by default is set to currentDirectoryPath
-        do {
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
-            // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), tmpDir)
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        let (pwd2, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], currentDirectoryPath: tmpDir)
+        // Check the sub-process used the correct directory
+        XCTAssertEqual(pwd2.trimmingCharacters(in: .newlines), tmpDir)
 
         // Test that $PWD can be over-ridden
-        do {
-            var env = ProcessInfo.processInfo.environment
-            env["PWD"] = "/bin"
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
-            // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "/bin")
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        var env = ProcessInfo.processInfo.environment
+        env["PWD"] = "/bin"
+        let (pwd3, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+        // Check the sub-process used the correct directory
+        XCTAssertEqual(pwd3.trimmingCharacters(in: .newlines), "/bin")
 
         // Test that $PWD can be set to empty
-        do {
-            var env = ProcessInfo.processInfo.environment
-            env["PWD"] = ""
-            let (pwd, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
-            // Check the sub-process used the correct directory
-            XCTAssertEqual(pwd.trimmingCharacters(in: .newlines), "")
-        } catch {
-            XCTFail("Test failed: \(error)")
-        }
+        env["PWD"] = ""
+        let (pwd4, _) = try runTask([xdgTestHelperURL().path, "--echo-PWD"], environment: env, currentDirectoryPath: tmpDir)
+        // Check the sub-process used the correct directory
+        XCTAssertEqual(pwd4.trimmingCharacters(in: .newlines), "")
 
         XCTAssertEqual(previousWorkingDirectory, fm.currentDirectoryPath)
     }
 
-    func test_run() {
+    func test_run() throws {
         let fm = FileManager.default
         let cwd = fm.currentDirectoryPath
 
-        do {
-            let process = try Process.run(xdgTestHelperURL(), arguments: ["--exit", "123"], terminationHandler: nil)
-            process.waitUntilExit()
-            XCTAssertEqual(process.terminationReason, .exit)
-            XCTAssertEqual(process.terminationStatus, 123)
-        } catch {
-            XCTFail("Cant execute \(xdgTestHelperURL().path): \(error)")
-        }
+        let process1 = try Process.run(xdgTestHelperURL(), arguments: ["--exit", "123"], terminationHandler: nil)
+        process1.waitUntilExit()
+        XCTAssertEqual(process1.terminationReason, .exit)
+        XCTAssertEqual(process1.terminationStatus, 123)
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
-        do {
-            let process = Process()
-            process.executableURL = xdgTestHelperURL()
-            process.arguments = ["--exit", "0"]
-            process.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
-            try process.run()
-            XCTFail("Executed \(xdgTestHelperURL().path) with invalid currentDirectoryURL")
-            process.terminate()
-            process.waitUntilExit()
-        } catch {
-        }
+        let process2 = Process()
+        process2.executableURL = xdgTestHelperURL()
+        process2.arguments = ["--exit", "0"]
+        process2.currentDirectoryURL = URL(fileURLWithPath: "/.../_no_such_directory", isDirectory: true)
+        XCTAssertThrowsError(try process2.run(), "Executed \(xdgTestHelperURL().path) with invalid currentDirectoryURL")
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
 
-        do {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
-            process.arguments = []
-            process.currentDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
-            try process.run()
-            XCTFail("Somehow executed a directory!")
-            process.terminate()
-            process.waitUntilExit()
-        } catch {
-        }
+        let process3 = Process()
+        process3.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
+        process3.arguments = []
+        process3.currentDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+        XCTAssertThrowsError(try process3.run(), "Somehow executed a directory!")
+
         XCTAssertEqual(fm.currentDirectoryPath, cwd)
         fm.changeCurrentDirectoryPath(cwd)
     }
 
-    func test_preStartEndState() {
+    func test_preStartEndState() throws {
         let process = Process()
         XCTAssertNil(process.executableURL)
         XCTAssertNotNil(process.currentDirectoryURL)
@@ -347,7 +300,7 @@ class TestProcess : XCTestCase {
 
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--cat"]
-        _ = try? process.run()
+        try process.run()
         XCTAssertTrue(process.isRunning)
         XCTAssertTrue(process.processIdentifier > 0)
         process.terminate()
@@ -358,14 +311,9 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(process.terminationStatus, SIGTERM)
     }
 
-    func test_interrupt() {
+    func test_interrupt() throws {
         let helper = _SignalHelperRunner()
-        do {
-            try helper.start()
-        }  catch {
-            XCTFail("Cant run xdgTestHelper: \(error)")
-            return
-        }
+        try helper.start()
         if !helper.waitForReady() {
             XCTFail("Didnt receive Ready from sub-process")
             return
@@ -397,12 +345,8 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(status, 99)
     }
 
-    func test_terminate() {
-        guard let process = try? Process.run(xdgTestHelperURL(), arguments: ["--cat"]) else {
-            XCTFail("Cant run 'cat'")
-            return
-        }
-
+    func test_terminate() throws {
+        let process = try Process.run(xdgTestHelperURL(), arguments: ["--cat"])
         process.terminate()
         process.waitUntilExit()
         let terminationReason = process.terminationReason
@@ -411,14 +355,9 @@ class TestProcess : XCTestCase {
     }
 
 
-    func test_suspend_resume() {
+    func test_suspend_resume() throws {
         let helper = _SignalHelperRunner()
-        do {
-            try helper.start()
-        }  catch {
-            XCTFail("Cant run xdgTestHelper: \(error)")
-            return
-        }
+        try helper.start()
         if !helper.waitForReady() {
             XCTFail("Didnt receive Ready from sub-process")
             return
@@ -452,8 +391,8 @@ class TestProcess : XCTestCase {
         XCTAssertTrue(helper.process.resume())
         if waitForSemaphore() == false { return }
 
-        _ = helper.process.suspend()
-        _ = helper.process.resume()
+        XCTAssertTrue(helper.process.suspend())
+        XCTAssertTrue(helper.process.resume())
         if waitForSemaphore() == false { return }
         XCTAssertEqual(helper.sigContCount, 3)
 
@@ -528,7 +467,6 @@ class TestProcess : XCTestCase {
         task.waitUntilExit()
     }
 
-
     func test_plutil() throws {
         let task = Process()
 
@@ -554,6 +492,48 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
     }
 
+    @available(*, deprecated)
+    func test_deprecated_launchPath() {
+        let process = Process()
+        XCTAssertNil(process.launchPath)
+
+        process.launchPath = "/foo/bar/test"
+        XCTAssertEqual(process.executableURL, URL(fileURLWithPath: "/foo/bar/test", isDirectory: false))
+
+        process.executableURL = URL(fileURLWithPath: "/bar/baz/test", isDirectory: false)
+        XCTAssertEqual(process.launchPath, "/bar/baz/test")
+    }
+
+    @available(*, deprecated)
+    func test_deprecated_currentDirectoryPath() {
+        let process = Process()
+        XCTAssertNotNil(process.currentDirectoryPath)
+
+        process.currentDirectoryPath = "/foo/bar/test/"
+        XCTAssertEqual(process.currentDirectoryURL, URL(fileURLWithPath: "/foo/bar/test/", isDirectory: true))
+
+        process.currentDirectoryURL = URL(fileURLWithPath: "/bar/baz/test/", isDirectory: true)
+        XCTAssertEqual(process.currentDirectoryPath, "/bar/baz/test")
+    }
+
+    @available(*, deprecated)
+    func test_deprecated_launch() {
+        let process = Process()
+        process.executableURL = xdgTestHelperURL()
+        process.arguments = ["--exit", "0"]
+        process.launch()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(process.terminationReason, .exit)
+    }
+
+    @available(*, deprecated)
+    func test_deprecated_launchedProcess() {
+        let process = Process.launchedProcess(launchPath: xdgTestHelperURL().path, arguments: ["--exit", "0"])
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        XCTAssertEqual(process.terminationReason, .exit)
+    }
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         var tests = [
@@ -581,6 +561,10 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_null", test_redirect_all_using_null),
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
+            ("test_deprecated_launchPath", test_deprecated_launchPath),
+            ("test_deprecated_currentDirectoryPath", test_deprecated_currentDirectoryPath),
+            ("test_deprecated_launch", test_deprecated_launch),
+            ("test_deprecated_launchedProcess", test_deprecated_launchedProcess),
         ]
 
 #if !os(Windows)
@@ -683,7 +667,8 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     let process = Process()
 
     var arguments = arguments
-    process.launchPath = arguments.removeFirst()
+    let executablePath = arguments.removeFirst()
+    process.executableURL = URL(fileURLWithPath: executablePath)
     process.arguments = arguments
     // Darwin Foundation doesnt allow .environment to be set to nil although the documentation
     // says it is an optional. https://developer.apple.com/documentation/foundation/process/1409412-environment
@@ -691,8 +676,8 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
         process.environment = e
     }
 
-    if let dirPath = currentDirectoryPath {
-        process.currentDirectoryURL = URL(fileURLWithPath: dirPath, isDirectory: true)
+    if let directoryPath = currentDirectoryPath {
+        process.currentDirectoryURL = URL(fileURLWithPath: directoryPath)
     }
 
     let stdoutPipe = Pipe()
@@ -756,4 +741,3 @@ private func parseEnv(_ env: String) throws -> [String: String] {
     return result
 }
 #endif // !os(Android)
-
