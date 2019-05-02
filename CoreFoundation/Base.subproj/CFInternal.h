@@ -788,11 +788,12 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #if DEPLOYMENT_RUNTIME_SWIFT
 #define CF_IS_SWIFT(type, obj) (_CFIsSwift(type, (CFSwiftRef)obj))
 
-#define CF_SWIFT_FUNCDISPATCHV(type, ret, obj, fn, ...) do { \
-    if (CF_IS_SWIFT(type, obj)) { \
+#define CF_SWIFT_FUNCDISPATCHV_CHECK(check, type, ret, obj, fn, ...) do { \
+    if (check(type, obj)) { \
         return (ret)__CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__); \
     } \
 } while (0)
+#define CF_SWIFT_FUNCDISPATCHV(type, ret, obj, fn, ...) CF_SWIFT_FUNCDISPATCHV_CHECK(CF_IS_SWIFT, type, ret, obj, fn, ## __VA_ARGS__)
 
 #define CF_SWIFT_CALLV(obj, fn, ...) __CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__)
 #else

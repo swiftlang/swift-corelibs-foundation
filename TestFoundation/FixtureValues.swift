@@ -169,6 +169,37 @@ enum Fixtures {
         return result
     }
     
+    // ===== NSIndexSet =====
+    
+    static let indexSetEmpty = TypedFixture<NSIndexSet>("NSIndexSet-Empty") {
+        return NSIndexSet(indexesIn: NSMakeRange(0, 0))
+    }
+    
+    static let indexSetOneRange = TypedFixture<NSIndexSet>("NSIndexSet-OneRange") {
+        return NSIndexSet(indexesIn: NSMakeRange(0, 50))
+    }
+    
+    static let indexSetManyRanges = TypedFixture<NSIndexSet>("NSIndexSet-ManyRanges") {
+        let indexSet = NSMutableIndexSet()
+        indexSet.add(in: NSMakeRange(0, 50))
+        indexSet.add(in: NSMakeRange(100, 50))
+        indexSet.add(in: NSMakeRange(1000, 50))
+        indexSet.add(in: NSMakeRange(Int.max - 50, 50))
+        return indexSet.copy() as! NSIndexSet
+    }
+    
+    static let mutableIndexSetEmpty = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-Empty") {
+        return (try Fixtures.indexSetEmpty.make()).mutableCopy() as! NSMutableIndexSet
+    }
+    
+    static let mutableIndexSetOneRange = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-OneRange") {
+        return (try Fixtures.indexSetOneRange.make()).mutableCopy() as! NSMutableIndexSet
+    }
+    
+    static let mutableIndexSetManyRanges = TypedFixture<NSMutableIndexSet>("NSMutableIndexSet-ManyRanges") {
+        return (try Fixtures.indexSetManyRanges.make()).mutableCopy() as! NSMutableIndexSet
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -184,6 +215,12 @@ enum Fixtures {
         AnyFixture(Fixtures.textCheckingResultSimpleRegex),
         AnyFixture(Fixtures.textCheckingResultExtendedRegex),
         AnyFixture(Fixtures.textCheckingResultComplexRegex),
+        AnyFixture(Fixtures.indexSetEmpty),
+        AnyFixture(Fixtures.indexSetOneRange),
+        AnyFixture(Fixtures.indexSetManyRanges),
+        AnyFixture(Fixtures.mutableIndexSetEmpty),
+        AnyFixture(Fixtures.mutableIndexSetOneRange),
+        AnyFixture(Fixtures.mutableIndexSetManyRanges),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
@@ -267,6 +304,7 @@ extension Fixture where ValueType: NSObject & NSCoding {
         let data = try Data(contentsOf: url(inFixtureRepository: fixtureRepository, variant: variant))
         let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
         unarchiver.requiresSecureCoding = self.supportsSecureCoding
+        unarchiver.decodingFailurePolicy = .setErrorAndReturn
         
         let value = unarchiver.decodeObject(of: ValueType.self, forKey: NSKeyedArchiveRootObjectKey)
         if let error = unarchiver.error {

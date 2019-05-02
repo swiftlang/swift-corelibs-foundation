@@ -15,7 +15,17 @@
 #include "CFRuntime_Internal.h"
 #include <string.h>
 
+#if DEPLOYMENT_RUNTIME_SWIFT
 
+DECLARE_STATIC_CLASS_REF(NSMutableData);
+static const void *_NSMutableData = STATIC_CLASS_REF(NSMutableData);
+static Boolean _CFDataShouldBridgeToSwift(CFTypeID type, CFDataRef data);
+
+#define CF_SWIFT_NSDATA_FUNCDISPATCHV(type, ret, obj, fn, ...) CF_SWIFT_FUNCDISPATCHV_CHECK(_CFDataShouldBridgeToSwift, type, ret, obj, fn, ## __VA_ARGS__)
+
+#else
+#define CF_SWIFT_NSDATA_FUNCDISPATCHV(...)
+#endif
 
 
 #if TARGET_RT_64_BIT
@@ -52,6 +62,12 @@ struct __CFData {
 #endif
     uint8_t *_bytes;	/* compaction: direct access to _bytes is only valid when data is not inline */
 };
+
+#if DEPLOYMENT_RUNTIME_SWIFT
+static Boolean _CFDataShouldBridgeToSwift(CFTypeID type, CFDataRef data) {
+    return CF_IS_SWIFT(type, data) && data->_base._cfisa != (uintptr_t)_NSMutableData;
+}
+#endif
 
 /*  
  Bit 0 = is mutable
@@ -458,7 +474,7 @@ CFDataRef CFDataCreateCopy(CFAllocatorRef allocator, CFDataRef data) {
     Boolean allowRetain = true;
     if (allowRetain) {
         CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (NSData *)data, copy);
-        CF_SWIFT_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSData.copy);
+        CF_SWIFT_NSDATA_FUNCDISPATCHV(CFDataGetTypeID(), CFDataRef, (CFSwiftRef)data, NSData.copy);
 
         // If the data isn't mutable...
         if (!__CFDataIsMutable(data)) {
@@ -499,6 +515,7 @@ CFMutableDataRef CFDataCreateMutableCopy(CFAllocatorRef allocator, CFIndex capac
 
 CFIndex CFDataGetLength(CFDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), CFIndex, (NSData *)data, length);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, CFIndex, data, NSData.length);
     __CFGenericValidateType(data, CFDataGetTypeID());
     return __CFDataLength(data);
 }
@@ -510,17 +527,20 @@ CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data) {
 
 const uint8_t *CFDataGetBytePtr(CFDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), const uint8_t *, (NSData *)data, bytes);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, const uint8_t *, data, NSData.bytes);
     return _CFDataGetBytePtrNonObjC(data);
 }
 
 uint8_t *CFDataGetMutableBytePtr(CFMutableDataRef data) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), uint8_t *, (NSMutableData *)data, mutableBytes);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, uint8_t *, data, NSData.mutableBytes);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     return _CFDataGetBytePtrNonObjC(data);
 }
 
 void CFDataGetBytes(CFDataRef data, CFRange range, uint8_t *buffer) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSData *)data, getBytes:(void *)buffer range:NSMakeRange(range.location, range.length));
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.getBytes, range, buffer);
     __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
     memmove(buffer, _CFDataGetBytePtrNonObjC(data) + range.location, range.length);
 }
@@ -566,6 +586,7 @@ void CFDataSetLength(CFMutableDataRef data, CFIndex newLength) {
     CFIndex oldLength, capacity;
     Boolean isGrowable;
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, setLength:(NSUInteger)newLength);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.setLength, newLength);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     oldLength = __CFDataLength(data);
     capacity = __CFDataCapacity(data);
@@ -597,6 +618,7 @@ void CFDataSetLength(CFMutableDataRef data, CFIndex newLength) {
 
 void CFDataIncreaseLength(CFMutableDataRef data, CFIndex extraLength) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, increaseLengthBy:(NSUInteger)extraLength);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.increaseLengthBy, extraLength);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     if (extraLength < 0) HALT; // Avoid integer overflow.
     CFDataSetLength(data, __CFDataLength(data) + extraLength);
@@ -604,18 +626,21 @@ void CFDataIncreaseLength(CFMutableDataRef data, CFIndex extraLength) {
 
 void CFDataAppendBytes(CFMutableDataRef data, const uint8_t *bytes, CFIndex length) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, appendBytes:(const void *)bytes length:(NSUInteger)length);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.appendBytes, bytes, length);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     CFDataReplaceBytes(data, CFRangeMake(__CFDataLength(data), 0), bytes, length); 
 }
 
 void CFDataDeleteBytes(CFMutableDataRef data, CFRange range) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, replaceBytesInRange:NSMakeRange(range.location, range.length) withBytes:NULL length:0);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.replaceBytes, range, NULL, 0);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);
     CFDataReplaceBytes(data, range, NULL, 0); 
 }
 
 void CFDataReplaceBytes(CFMutableDataRef data, CFRange range, const uint8_t *newBytes, CFIndex newLength) {
     CF_OBJC_FUNCDISPATCHV(CFDataGetTypeID(), void, (NSMutableData *)data, replaceBytesInRange:NSMakeRange(range.location, range.length) withBytes:(const void *)newBytes length:(NSUInteger)newLength);
+    CF_SWIFT_NSDATA_FUNCDISPATCHV(_kCFRuntimeIDCFData, void, data, NSData.replaceBytes, range, newBytes, newLength);
     __CFGenericValidateType(data, CFDataGetTypeID());
     __CFDataValidateRange(data, range, __PRETTY_FUNCTION__);
     CFAssert1(__CFDataIsMutable(data), __kCFLogAssertion, "%s(): data is immutable", __PRETTY_FUNCTION__);

@@ -1011,6 +1011,38 @@ extension NSData : _StructTypeBridgeable {
     }
 }
 
-internal func _CFSwiftDataCreateCopy(_ data: AnyObject) -> Unmanaged<AnyObject> {
+internal func _CFSwiftDataCreateCopy(_ data: CFTypeRef) -> Unmanaged<AnyObject> {
     return Unmanaged<AnyObject>.passRetained((data as! NSData).copy() as! NSObject)
+}
+
+internal func _CFSwiftDataGetLength(_ data: CFTypeRef) -> CFIndex {
+    return (data as! NSData).length
+}
+
+internal func _CFSwiftDataGetBytesPtr(_ data: CFTypeRef) -> UnsafeRawPointer? {
+    return (data as! NSData).bytes
+}
+
+internal func _CFSwiftDataGetMutableBytesPtr(_ data: CFTypeRef) -> UnsafeMutableRawPointer? {
+    return (data as! NSMutableData).mutableBytes
+}
+
+internal func _CFSwiftDataGetBytes(_ data: CFTypeRef, _ range: CFRange, _ buffer: UnsafeMutableRawPointer) -> Void {
+    (data as! NSData).getBytes(buffer, range: NSMakeRange(range.location, range.length))
+}
+
+internal func _CFSwiftDataSetLength(_ data: CFTypeRef, _ newLength: CFIndex) {
+    (data as! NSMutableData).length = newLength
+}
+
+internal func _CFSwiftDataIncreaseLength(_ data: CFTypeRef, _ extraLength: CFIndex) {
+    (data as! NSMutableData).increaseLength(by: extraLength)
+}
+
+internal func _CFSwiftDataAppendBytes(_ data: CFTypeRef, _ buffer: UnsafeRawPointer, length: CFIndex) {
+    (data as! NSMutableData).append(buffer, length: length)
+}
+
+internal func _CFSwiftDataReplaceBytes(_ data: CFTypeRef, _ range: CFRange, _ buffer: UnsafeRawPointer?, _ count: CFIndex) {
+    (data as! NSMutableData).replaceBytes(in: NSMakeRange(range.location, range.length), withBytes: buffer, length: count)
 }

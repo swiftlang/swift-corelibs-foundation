@@ -291,6 +291,14 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSNumber.boolValue = _CFSwiftNumberGetBoolValue
     
     __CFSwiftBridge.NSData.copy = _CFSwiftDataCreateCopy
+    __CFSwiftBridge.NSData.length = _CFSwiftDataGetLength
+    __CFSwiftBridge.NSData.bytes = _CFSwiftDataGetBytesPtr
+    __CFSwiftBridge.NSData.mutableBytes = _CFSwiftDataGetMutableBytesPtr
+    __CFSwiftBridge.NSData.getBytes = _CFSwiftDataGetBytes
+    __CFSwiftBridge.NSData.setLength = _CFSwiftDataSetLength
+    __CFSwiftBridge.NSData.increaseLengthBy = _CFSwiftDataIncreaseLength
+    __CFSwiftBridge.NSData.appendBytes = _CFSwiftDataAppendBytes
+    __CFSwiftBridge.NSData.replaceBytes = _CFSwiftDataReplaceBytes
     
     __CFSwiftBridge.NSCalendar.calendarIdentifier = _CFSwiftCalendarGetCalendarIdentifier
     __CFSwiftBridge.NSCalendar.copyLocale = _CFSwiftCalendarCopyLocale
