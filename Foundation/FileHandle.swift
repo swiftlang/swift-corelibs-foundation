@@ -211,7 +211,46 @@ open class FileHandle : NSObject {
             fatalError("\(error)")
         }
     }
-    
+
+    private func _fstat() throws -> stat {
+        var statbuf = stat()
+        if fstat(_fd, &statbuf) < 0 {
+            throw _NSErrorWithErrno(errno, reading: true)
+        }
+        return statbuf
+    }
+
+    private func _fileSize() throws -> Int64 {
+        let statbuf = try _fstat()
+        return Int64(statbuf.st_size)
+    }
+
+    private var _isRegularFile: Bool? = nil
+    private var _blockSize: Int? = nil
+
+    private func _isFileAndBlockSize() throws -> (Bool, Int, Int64?) {
+        var fileSize: Int64?
+        if _blockSize == nil || _isRegularFile == nil {
+            let statbuf = try _fstat()
+            if statbuf.st_mode & S_IFMT == S_IFREG {
+                _isRegularFile = true
+            } else {
+                _isRegularFile = false
+            }
+
+            if statbuf.st_blksize > 0 {
+                _blockSize = Int(clamping: statbuf.st_blksize)
+            } else {
+                // Default for pipes, fifos etc
+                _blockSize = 1024 * 8
+            }
+            // Return the current filesize since it was just obtained.
+            fileSize = Int64(statbuf.st_size)
+        }
+
+        return (_isRegularFile!, _blockSize!, fileSize)
+    }
+
     internal func _readDataOfLength(_ length: Int, untilEOF: Bool, options: NSData.ReadingOptions = []) throws -> NSData.NSDataReadResult {
         guard _isPlatformHandleValid else { throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadUnknown.rawValue) }
         
@@ -291,35 +330,21 @@ open class FileHandle : NSObject {
             return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
 
-        var statbuf = stat()
-        if fstat(_fd, &statbuf) < 0 {
-            throw _NSErrorWithErrno(errno, reading: true)
-        }
+        let (isRegularFile, readBlockSize, fileSize) = try _isFileAndBlockSize()
 
-        let readBlockSize: Int
-        if statbuf.st_mode & S_IFMT == S_IFREG {
-            // TODO: Should files over a certain size always be mmap()'d?
-            if options.contains(.alwaysMapped) {
-                // Filesizes are often 64bit even on 32bit systems
-                let mapSize = min(length, Int(clamping: statbuf.st_size))
-                let data = mmap(nil, mapSize, PROT_READ, MAP_PRIVATE, _fd, 0)
-                // Swift does not currently expose MAP_FAILURE
-                if data != UnsafeMutableRawPointer(bitPattern: -1) {
-                    return NSData.NSDataReadResult(bytes: data!, length: mapSize) { buffer, length in
-                        munmap(buffer, length)
-                    }
+        if isRegularFile && options.contains(.alwaysMapped) {
+            // Filesizes are often 64bit even on 32bit systems
+            let size = try fileSize ?? _fileSize()
+            let mapSize = min(length, Int(clamping: size))
+            let data = mmap(nil, mapSize, PROT_READ, MAP_PRIVATE, _fd, 0)
+            // Swift does not currently expose MAP_FAILURE
+            if data != UnsafeMutableRawPointer(bitPattern: -1) {
+                return NSData.NSDataReadResult(bytes: data!, length: mapSize) { buffer, length in
+                    munmap(buffer, length)
                 }
             }
-
-            if statbuf.st_blksize > 0 {
-                readBlockSize = Int(clamping: statbuf.st_blksize)
-            } else {
-                readBlockSize = 1024 * 8
-            }
-        } else {
-            /* We get here on sockets, character special files, FIFOs ... */
-            readBlockSize = 1024 * 8
         }
+
         var currentAllocationSize = readBlockSize
         var dynamicBuffer = malloc(currentAllocationSize)!
         var total = 0
@@ -637,6 +662,8 @@ open class FileHandle : NSObject {
         }
         _handle = INVALID_HANDLE_VALUE
         #else
+        _isRegularFile = nil
+        _blockSize = nil
         guard _close(_fd) >= 0 else {
             throw _NSErrorWithErrno(errno, reading: true)
         }
