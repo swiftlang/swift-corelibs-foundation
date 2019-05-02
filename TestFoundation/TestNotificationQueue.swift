@@ -205,8 +205,9 @@ FIXME SR-4280 timeouts in TestNSNotificationQueue tests
         weak var notificationQueue: NotificationQueue?
 
         self.executeInBackgroundThread() {
-            notificationQueue = NotificationQueue(notificationCenter: NotificationCenter())
-            XCTAssertNotNil(notificationQueue)
+            let nq = NotificationQueue(notificationCenter: NotificationCenter())
+            notificationQueue = nq
+            XCTAssertNotNil(nq)
         }
         
         XCTAssertNil(notificationQueue)
