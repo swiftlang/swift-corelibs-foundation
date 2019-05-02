@@ -670,9 +670,9 @@ class TestURLComponents : XCTestCase {
         XCTAssertEqual(receivedString, expectedString, "expected \(expectedString) but received \(receivedString as Optional)")
     }
 
-    func test_url() {
+    func test_url() throws {
 
-        let baseURL = URL(string: "https://www.example.com")
+        let baseURL = try URL(string: "https://www.example.com").unwrapped()
 
         /* test NSURLComponents without authority */
         guard var compWithAuthority = URLComponents(string: "https://www.swift.org") else {
