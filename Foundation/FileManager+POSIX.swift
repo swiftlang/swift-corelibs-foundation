@@ -693,7 +693,7 @@ extension FileManager {
                 let ps = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: 2)
                 ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                 ps.advanced(by: 1).initialize(to: nil)
-                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                let stream = fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 ps.deinitialize(count: 2)
                 ps.deallocate()
 
@@ -1050,7 +1050,7 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
                     defer { ps.deallocate() }
                     ps.initialize(to: UnsafeMutablePointer(mutating: fsRep))
                     ps.advanced(by: 1).initialize(to: nil)
-                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR, nil)
+                    return fts_open(ps, FTS_PHYSICAL | FTS_XDEV | FTS_NOCHDIR | FTS_NOSTAT, nil)
                 }
                 if _stream == nil {
                     throw _NSErrorWithErrno(errno, reading: true, url: url)
@@ -1106,13 +1106,13 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
                                 fts_set(_stream, _current, FTS_SKIP)
                             }
                             if showFile {
-                                 return URL(fileURLWithPath: filename)
+                                 return URL(fileURLWithPath: filename, isDirectory: true)
                             }
 
                         case FTS_DEFAULT, FTS_F, FTS_NSOK, FTS_SL, FTS_SLNONE:
                             let (showFile, _) = match(filename: filename, to: _options, isDir: false)
                             if showFile {
-                                return URL(fileURLWithPath: filename)
+                                return URL(fileURLWithPath: filename, isDirectory: false)
                             }
                         case FTS_DNR, FTS_ERR, FTS_NS:
                             let keepGoing: Bool
