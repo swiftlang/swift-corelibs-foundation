@@ -94,7 +94,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
     }
     let scanner = Scanner(string: aString)
     let digitSet = CharacterSet.decimalDigits
-    let _ = scanner.scanUpToCharactersFromSet(digitSet)
+    let _ = scanner.scanUpToCharacters(from: digitSet)
     if scanner.isAtEnd {
         // fail early if there are no decimal digits
         return emptyRange
@@ -107,7 +107,7 @@ public func NSRangeFromString(_ aString: String) -> NSRange {
         // return early if there are no more characters after the first int in the string
         return partialRange
     }
-    let _ = scanner.scanUpToCharactersFromSet(digitSet)
+    let _ = scanner.scanUpToCharacters(from: digitSet)
     if scanner.isAtEnd {
         // return early if there are no integer characters after the first int in the string
         return partialRange
@@ -152,7 +152,7 @@ extension NSRange {
         }
         let scanner = Scanner(string: string)
         let digitSet = CharacterSet.decimalDigits
-        let _ = scanner.scanUpToCharacters(from: digitSet, into: nil)
+        let _ = scanner.scanUpToCharacters(from: digitSet)
         if scanner.isAtEnd {
             // fail early if there are no decimal digits
             return nil
@@ -166,7 +166,7 @@ extension NSRange {
             // return early if there are no more characters after the first int in the string
             return nil
         }
-        if scanner.scanString(".", into: nil) {
+        if scanner.scanString(".") != nil {
             scanner.scanLocation = savedLocation
             var double = 0.0
             guard scanner.scanDouble(&double) else {
@@ -178,7 +178,7 @@ extension NSRange {
             location = integral
         }
         
-        let _ = scanner.scanUpToCharacters(from: digitSet, into: nil)
+        let _ = scanner.scanUpToCharacters(from: digitSet)
         if scanner.isAtEnd {
             // return early if there are no integer characters after the first int in the string
             return nil
@@ -190,7 +190,7 @@ extension NSRange {
         }
         
         if !scanner.isAtEnd {
-            if scanner.scanString(".", into: nil) {
+            if scanner.scanString(".") != nil {
                 scanner.scanLocation = savedLocation
                 var double = 0.0
                 guard scanner.scanDouble(&double) else {

@@ -667,9 +667,9 @@ extension NSString {
     public var boolValue: Bool {
         let scanner = Scanner(string: _swiftObject)
         // skip initial whitespace if present
-        let _ = scanner.scanCharactersFromSet(.whitespaces)
+        let _ = scanner.scanCharacters(from: .whitespaces)
 
-        if scanner.scanCharactersFromSet(CharacterSet(charactersIn: "tTyY")) != nil {
+        if scanner.scanCharacters(from: CharacterSet(charactersIn: "tTyY")) != nil {
             return true
         }
 
@@ -679,8 +679,8 @@ extension NSString {
         }
         
         // scan any following zeroes
-        let _ = scanner.scanCharactersFromSet(CharacterSet(charactersIn: "0"))
-        return scanner.scanCharactersFromSet(CharacterSet(charactersIn: "123456789")) != nil
+        let _ = scanner.scanCharacters(from: CharacterSet(charactersIn: "0"))
+        return scanner.scanCharacters(from: CharacterSet(charactersIn: "123456789")) != nil
     }
 
     public var uppercased: String {
