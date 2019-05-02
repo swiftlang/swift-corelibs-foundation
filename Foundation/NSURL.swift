@@ -1799,8 +1799,10 @@ fileprivate extension URLResourceValuesStorage {
                 result[key] = try attribute(.size)
             case .totalFileAllocatedSizeKey: fallthrough // FIXME: This should add the size of any metadata.
             case .fileAllocatedSizeKey:
+#if !os(Windows)
                 let stat = try urlStat()
                 result[key] = Int(stat.st_blocks) * Int(stat.st_blksize)
+#endif
             case .isAliasFileKey:
                 // swift-corelibs-foundation does not support aliases and bookmarks.
                 break
@@ -2042,7 +2044,7 @@ extension stat {
         #elseif os(Android)
         return Date(timeIntervalSince1970: st_mtime, nanoseconds: st_mtime_nsec)
         #elseif os(Windows)
-        return Date(timeIntervalSince1970: st_mtime)
+        return Date(timeIntervalSince1970: TimeInterval(st_mtime))
         #else
         return Date(timespec: st_mtim)
         #endif
@@ -2054,7 +2056,7 @@ extension stat {
         #elseif os(Android)
         return Date(timeIntervalSince1970: st_atime, nanoseconds: st_atime_nsec)
         #elseif os(Windows)
-        return Date(timeIntervalSince1970: st_atime)
+        return Date(timeIntervalSince1970: TimeInterval(st_atime))
         #else
         return Date(timespec: st_atim)
         #endif
@@ -2066,7 +2068,7 @@ extension stat {
         #elseif os(Android)
         return Date(timeIntervalSince1970: st_ctime, nanoseconds: st_ctime_nsec)
         #elseif os(Windows)
-        return Date(timeIntervalSince1970: st_ctime)
+        return Date(timeIntervalSince1970: TimeInterval(st_ctime))
         #else
         return Date(timespec: st_ctim)
         #endif

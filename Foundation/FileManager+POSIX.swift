@@ -1159,6 +1159,32 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
             return nil
         }
     }
+
+    internal func _updateTimes(atPath path: String, withFileSystemRepresentation fsr: UnsafePointer<Int8>, creationTime: Date? = nil, accessTime: Date? = nil, modificationTime: Date? = nil) throws {
+        let stat = try _lstatFile(atPath: path, withFileSystemRepresentation: fsr)
+
+        let accessDate = accessTime ?? stat.lastAccessDate
+        let modificationDate = modificationTime ?? stat.lastModificationDate
+
+        let (accessTimeSince1970Seconds, accessTimeSince1970FractionsOfSecond) = modf(accessDate.timeIntervalSince1970)
+        let accessTimeval = timeval(tv_sec: time_t(accessTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * accessTimeSince1970FractionsOfSecond))
+
+        let (modificationTimeSince1970Seconds, modificationTimeSince1970FractionsOfSecond) = modf(modificationDate.timeIntervalSince1970)
+        let modificationTimeval = timeval(tv_sec: time_t(modificationTimeSince1970Seconds), tv_usec: suseconds_t(1.0e9 * modificationTimeSince1970FractionsOfSecond))
+
+        let array = [accessTimeval, modificationTimeval]
+        let errnoValue = array.withUnsafeBufferPointer { (bytes) -> Int32? in
+            if utimes(fsr, bytes.baseAddress) < 0 {
+                return errno
+            } else {
+                return nil
+            }
+        }
+
+        if let error = errnoValue {
+            throw _NSErrorWithErrno(error, reading: false, path: path)
+        }
+    }
 }
 
 extension FileManager.NSPathDirectoryEnumerator {
