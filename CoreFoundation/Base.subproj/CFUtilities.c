@@ -71,6 +71,9 @@
 #include <pthread.h>
 #endif
 
+#if DEPLOYMENT_TARGET_LINUX && __has_include(<sched.h>)
+#include <sched.h>
+#endif
 
 
 #if !defined(CF_HAVE_HW_CONFIG_COMMPAGE) && defined(_COMM_PAGE_LOGICAL_CPUS) && defined(_COMM_PAGE_PHYSICAL_CPUS) && defined(_COMM_PAGE_ACTIVE_CPUS) && !__has_feature(address_sanitizer)
@@ -451,6 +454,14 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
         pcnt = 0;
     }
 #elif DEPLOYMENT_TARGET_LINUX
+
+#ifdef _SCHED_H
+    cpu_set_t set;
+    if (sched_getaffinity (getpid(), sizeof(set), &set) == 0) {
+        return CPU_COUNT (&set);
+    }
+#endif
+
     pcnt = sysconf(_SC_NPROCESSORS_ONLN);
 #else
     // Assume the worst
