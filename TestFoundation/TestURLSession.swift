@@ -766,9 +766,10 @@ class TestURLSession : LoopbackServerTest {
         let expect = expectation(description: "GET \(urlString): with a completion handler")
         var expectedResult = "unknown"
         let session = URLSession(configuration: URLSessionConfiguration.default)
-        let task = session.dataTask(with: url) { _, _, error in
+        let task = session.dataTask(with: url) { _, response, error in
             defer { expect.fulfill() }
-            XCTAssertNotNil(error)
+            XCTAssertNotNil(response)
+            XCTAssertNil(error)
         }
         task.resume()
         waitForExpectations(timeout: 12, handler: nil)
