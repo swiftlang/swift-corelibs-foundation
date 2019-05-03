@@ -220,6 +220,29 @@ enum Fixtures {
         return NSMutableSet()
     }
     
+    // ===== NSCharacterSet, NSMutableCharacterSet =====
+    
+    static let characterSetEmpty = TypedFixture<NSCharacterSet>("NSCharacterSet-Empty") {
+        return NSCharacterSet()
+    }
+    
+    static let characterSetRange = TypedFixture<NSCharacterSet>("NSCharacterSet-Range") {
+        return NSCharacterSet(range: NSMakeRange(0, 255))
+    }
+    
+    static let characterSetString = TypedFixture<NSCharacterSet>("NSCharacterSet-String") {
+        return NSCharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz")
+    }
+    
+    static let characterSetBitmap = TypedFixture<NSCharacterSet>("NSCharacterSet-Bitmap") {
+        let someSet = NSCharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz")
+        return NSCharacterSet(bitmapRepresentation: someSet.bitmapRepresentation)
+    }
+    
+    static let characterSetBuiltin = TypedFixture<NSCharacterSet>("NSCharacterSet-Builtin") {
+        return NSCharacterSet.alphanumerics as NSCharacterSet
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -245,6 +268,11 @@ enum Fixtures {
         AnyFixture(Fixtures.setEmpty),
         AnyFixture(Fixtures.mutableSetOfNumbers),
         AnyFixture(Fixtures.mutableSetEmpty),
+        AnyFixture(Fixtures.characterSetEmpty),
+        AnyFixture(Fixtures.characterSetRange),
+        AnyFixture(Fixtures.characterSetString),
+        AnyFixture(Fixtures.characterSetBitmap),
+        AnyFixture(Fixtures.characterSetBuiltin),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
