@@ -4205,11 +4205,14 @@ extension TestNSData {
         let filePath = dirPath.appendingPathComponent("temp_file")
         guard FileManager.default.createFile(atPath: filePath.path, contents: nil, attributes: nil) else { XCTAssertTrue(false, "Unable to create temporary file"); return}
         guard let fh = FileHandle(forWritingAtPath: filePath.path) else { XCTAssertTrue(false, "Unable to open temporary file"); return }
-        defer { try! FileManager.default.removeItem(atPath: dirPath.path) }
-        
+        defer {
+          fh.closeFile()
+          try! FileManager.default.removeItem(atPath: dirPath.path)
+        }
+
         // Now use this data with some Objective-C code that takes NSData arguments
         fh.write(data)
-        
+
         // Get the data back
         do {
             let url = URL(fileURLWithPath: filePath.path)
