@@ -81,11 +81,13 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(deployment_target -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(deployment_target -DDEPLOYMENT_TARGET_FREEBSD)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
+  set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
@@ -399,6 +401,7 @@ if(ENABLE_TESTING)
                          -lFoundation
                          ${Foundation_INTERFACE_LIBRARIES}
                          ${WORKAROUND_SR9995}
+                         ${XDG_TEST_HELPER_RPATH}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
