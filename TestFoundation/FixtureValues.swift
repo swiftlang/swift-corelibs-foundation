@@ -243,6 +243,26 @@ enum Fixtures {
         return NSCharacterSet.alphanumerics as NSCharacterSet
     }
     
+    // ===== NSOrderedSet, NSMutableOrderedSet =====
+    
+    static let orderedSetOfNumbers = TypedFixture<NSOrderedSet>("NSOrderedSet-Numbers") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        return NSOrderedSet(array: numbers)
+    }
+    
+    static let orderedSetEmpty = TypedFixture<NSOrderedSet>("NSOrderedSet-Empty") {
+        return NSOrderedSet()
+    }
+    
+    static let mutableOrderedSetOfNumbers = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Numbers") {
+        let numbers = [1, 2, 3, 4, 5].map { NSNumber(value: $0) }
+        return NSMutableOrderedSet(array: numbers)
+    }
+    
+    static let mutableOrderedSetEmpty = TypedFixture<NSMutableOrderedSet>("NSMutableOrderedSet-Empty") {
+        return NSMutableOrderedSet()
+    }
+    
     // ===== Fixture list =====
     
     static let _listOfAllFixtures: [AnyFixture] = [
@@ -273,6 +293,10 @@ enum Fixtures {
         AnyFixture(Fixtures.characterSetString),
         AnyFixture(Fixtures.characterSetBitmap),
         AnyFixture(Fixtures.characterSetBuiltin),
+        AnyFixture(Fixtures.orderedSetOfNumbers),
+        AnyFixture(Fixtures.orderedSetEmpty),
+        AnyFixture(Fixtures.mutableOrderedSetOfNumbers),
+        AnyFixture(Fixtures.mutableOrderedSetEmpty),
     ]
     
     // This ensures that we do not have fixtures with duplicate identifiers:
