@@ -12,6 +12,9 @@ import SwiftFoundation
 #else
 import Foundation
 #endif
+#if os(Windows)
+import WinSDK
+#endif
 
 enum HelperCheckStatus : Int32 {
     case ok                 = 0
@@ -222,7 +225,11 @@ case "--sleep":
 
 case "--signal-self":
     if let signalnum = arguments.next(), let signal = Int32(signalnum) {
+#if os(Windows)
+        TerminateProcess(GetCurrentProcess(), UINT(signal))
+#else
         kill(ProcessInfo.processInfo.processIdentifier, signal)
+#endif
     }
     exit(1)
 
