@@ -400,7 +400,7 @@ open class Process: NSObject {
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdInput = try devNullHnd()
+            siStartupInfo.hStdInput = try devNullFd()
 
         case let handle as FileHandle:
             siStartupInfo.hStdInput = handle.handle
@@ -414,7 +414,7 @@ open class Process: NSObject {
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdOutput = try devNullHnd()
+            siStartupInfo.hStdOutput = try devNullFd()
 
         case let handle as FileHandle:
             siStartupInfo.hStdOutput = handle.handle
@@ -428,7 +428,7 @@ open class Process: NSObject {
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
         case .none:
-            siStartupInfo.hStdError = try devNullHnd()
+            siStartupInfo.hStdError = try devNullFd()
 
         case let handle as FileHandle:
             siStartupInfo.hStdError = handle.handle
