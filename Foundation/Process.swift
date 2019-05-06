@@ -607,10 +607,16 @@ open class Process: NSObject {
             envp.deallocate()
         }
 
-        var taskSocketPair : [Int32] = [0, 0]
 #if os(macOS) || os(iOS)
+        var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
+#elseif os(Windows)
+        let taskSocketPair: (SOCKET, SOCKET) = _socketpair()
+        if taskSocketPair[0] == INVALID_SOCKET || taskSocketPair[1] == INVALID_SOCKET {
+          fatalError("_socketPair failed")
+        }
 #else
+        var taskSocketPair : [Int32] = [0, 0]
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
 #endif
         var context = CFSocketContext()
@@ -801,7 +807,11 @@ open class Process: NSObject {
             pipe.fileHandleForWriting.closeFile()
         }
 
+#if os(Windows)
+        closesocket(taskSocketPair[1])
+#else
         close(taskSocketPair[1])
+#endif
 
         self.runLoop = RunLoop.current
         self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
