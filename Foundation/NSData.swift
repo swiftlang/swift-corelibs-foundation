@@ -271,11 +271,13 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     /// The number of bytes contained by the data object.
     open var length: Int {
+        requireFunnelOverridden()
         return CFDataGetLength(_cfObject)
     }
 
     /// A pointer to the data object's contents.
     open var bytes: UnsafeRawPointer {
+        requireFunnelOverridden()
         guard let bytePtr = CFDataGetBytePtr(_cfObject) else {
             //This could occure on empty data being encoded.
             //TODO: switch with nil when signature is fixed
@@ -517,14 +519,29 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     // MARK: - Bytes
     /// Copies a number of bytes from the start of the data object into a given buffer.
     open func getBytes(_ buffer: UnsafeMutableRawPointer, length: Int) {
-        let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: length)
-        CFDataGetBytes(_cfObject, CFRangeMake(0, length), bytePtr)
+        if funnelsAreAbstract {
+            let actualCount = Swift.min(length, self.length)
+            let sourceBuffer = UnsafeRawBufferPointer(start: bytes, count: actualCount)
+            let destinationBuffer = UnsafeMutableRawBufferPointer(start: buffer, count: actualCount)
+            sourceBuffer.copyBytes(to: destinationBuffer)
+        } else {
+            let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: length)
+            CFDataGetBytes(_cfObject, CFRangeMake(0, length), bytePtr)
+        }
     }
 
     /// Copies a range of bytes from the data object into a given buffer.
     open func getBytes(_ buffer: UnsafeMutableRawPointer, range: NSRange) {
-        let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: range.length)
-        CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), bytePtr)
+        if funnelsAreAbstract {
+            precondition(range.location >= 0 && range.length >= 0)
+            let actualCount = Swift.min(range.length, self.length - range.location)
+            let sourceBuffer = UnsafeRawBufferPointer(start: bytes.advanced(by: range.location), count: actualCount)
+            let destinationBuffer = UnsafeMutableRawBufferPointer(start: buffer, count: actualCount)
+            sourceBuffer.copyBytes(to: destinationBuffer)
+        } else {
+            let bytePtr = buffer.bindMemory(to: UInt8.self, capacity: range.length)
+            CFDataGetBytes(_cfObject, CFRangeMake(range.location, range.length), bytePtr)
+        }
     }
 
     /// Returns a new data object containing the data object's bytes that fall within the limits specified by a given range.
@@ -927,15 +944,18 @@ open class NSMutableData : NSData {
     // MARK: - Funnel Methods
     /// A pointer to the data contained by the mutable data object.
     open var mutableBytes: UnsafeMutableRawPointer {
+        requireFunnelOverridden()
         return UnsafeMutableRawPointer(CFDataGetMutableBytePtr(_cfMutableObject))
     }
 
     /// The number of bytes contained in the mutable data object.
     open override var length: Int {
         get {
+            requireFunnelOverridden()
             return CFDataGetLength(_cfObject)
         }
         set {
+            requireFunnelOverridden()
             CFDataSetLength(_cfMutableObject, newValue)
         }
     }
@@ -948,8 +968,15 @@ open class NSMutableData : NSData {
     // MARK: - Mutability
     /// Appends to the data object a given number of bytes from a given buffer.
     open func append(_ bytes: UnsafeRawPointer, length: Int) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
-        CFDataAppendBytes(_cfMutableObject, bytePtr, length)
+        guard length > 0 else { return }
+        
+        if funnelsAreAbstract {
+            self.length += length
+            UnsafeRawBufferPointer(start: bytes, count: length).copyBytes(to: UnsafeMutableRawBufferPointer(start: mutableBytes, count: length))
+        } else {
+            let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
+            CFDataAppendBytes(_cfMutableObject, bytePtr, length)
+        }
     }
 
     /// Appends the content of another data object to the data object.
@@ -962,13 +989,21 @@ open class NSMutableData : NSData {
 
     /// Increases the length of the data object by a given number of bytes.
     open func increaseLength(by extraLength: Int) {
-        CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
+        if funnelsAreAbstract {
+            self.length += extraLength
+        } else {
+            CFDataSetLength(_cfMutableObject, CFDataGetLength(_cfObject) + extraLength)
+        }
     }
 
     /// Replaces with a given set of bytes a given range within the contents of the data object.
     open func replaceBytes(in range: NSRange, withBytes bytes: UnsafeRawPointer) {
-        let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
-        CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, length)
+        if funnelsAreAbstract {
+            replaceBytes(in: range, withBytes: bytes, length: range.length)
+        } else {
+            let bytePtr = bytes.bindMemory(to: UInt8.self, capacity: length)
+            CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, length)
+        }
     }
 
     /// Replaces with zeroes the contents of the data object in a given range.
@@ -986,8 +1021,22 @@ open class NSMutableData : NSData {
 
     /// Replaces with a given set of bytes a given range within the contents of the data object.
     open func replaceBytes(in range: NSRange, withBytes replacementBytes: UnsafeRawPointer?, length replacementLength: Int) {
-        let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
-        CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
+        precondition(range.location + range.length <= self.length)
+        if funnelsAreAbstract {
+            let delta = replacementLength - range.length
+            if delta != 0 {
+                let originalLength = self.length
+                self.length += delta
+                
+                if delta > 0 {
+                    UnsafeRawBufferPointer(start: mutableBytes.advanced(by: range.location), count: originalLength).copyBytes(to: UnsafeMutableRawBufferPointer(start: mutableBytes.advanced(by: range.location + range.length), count: originalLength))
+                }
+            }
+            UnsafeRawBufferPointer(start: replacementBytes, count: replacementLength).copyBytes(to: UnsafeMutableRawBufferPointer(start: mutableBytes.advanced(by: range.location), count: replacementLength))
+        } else {
+            let bytePtr = replacementBytes?.bindMemory(to: UInt8.self, capacity: replacementLength)
+            CFDataReplaceBytes(_cfMutableObject, CFRangeMake(range.location, range.length), bytePtr, replacementLength)
+        }
     }
 }
 
@@ -1045,4 +1094,16 @@ internal func _CFSwiftDataAppendBytes(_ data: CFTypeRef, _ buffer: UnsafeRawPoin
 
 internal func _CFSwiftDataReplaceBytes(_ data: CFTypeRef, _ range: CFRange, _ buffer: UnsafeRawPointer?, _ count: CFIndex) {
     (data as! NSMutableData).replaceBytes(in: NSMakeRange(range.location, range.length), withBytes: buffer, length: count)
+}
+
+extension NSData {
+    var funnelsAreAbstract: Bool {
+        return type(of: self) != NSData.self && type(of: self) != NSMutableData.self
+    }
+    
+    func requireFunnelOverridden() {
+        if funnelsAreAbstract {
+            NSRequiresConcreteImplementation()
+        }
+    }
 }
