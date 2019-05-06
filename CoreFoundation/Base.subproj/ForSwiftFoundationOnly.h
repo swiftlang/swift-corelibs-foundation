@@ -80,14 +80,6 @@ struct __CFSwiftObject {
 
 typedef struct __CFSwiftObject *CFSwiftRef;
 
-#define CF_IS_SWIFT(type, obj) (_CFIsSwift(type, (CFSwiftRef)obj))
-
-#define CF_SWIFT_FUNCDISPATCHV(type, ret, obj, fn, ...) do { \
-    if (CF_IS_SWIFT(type, obj)) { \
-        return (ret)__CFSwiftBridge.fn((CFSwiftRef)obj, ##__VA_ARGS__); \
-    } \
-} while (0) 
-
 CF_EXPORT bool _CFIsSwift(CFTypeID type, CFSwiftRef obj);
 CF_EXPORT void _CFDeinit(CFTypeRef cf);
 
@@ -276,6 +268,14 @@ struct _NSNumberBridge {
 
 struct _NSDataBridge {
     _Nonnull CFTypeRef (*_Nonnull copy)(CFTypeRef obj);
+    CFIndex (*_Nonnull length)(CFTypeRef obj);
+    const void *_Nullable (*_Nonnull bytes)(CFTypeRef obj);
+    void *_Nullable (*_Nonnull mutableBytes)(CFTypeRef obj);
+    void (*_Nonnull getBytes)(CFTypeRef obj, CFRange range, void *buffer);
+    void (*_Nonnull setLength)(CFTypeRef obj, CFIndex newLength);
+    void (*_Nonnull increaseLengthBy)(CFTypeRef obj, CFIndex extraLength);
+    void (*_Nonnull appendBytes)(CFTypeRef obj, const void *bytes, CFIndex length);
+    void (*_Nonnull replaceBytes)(CFTypeRef obj, CFRange range, const void *_Nullable newBytes, CFIndex newLength);
 };
 
 struct _NSCalendarBridge {

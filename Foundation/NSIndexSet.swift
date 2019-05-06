@@ -101,9 +101,62 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
 
     public static var supportsSecureCoding: Bool { return true }
 
-    public required init?(coder aDecoder: NSCoder)  { NSUnimplemented() }
+    public required init?(coder aDecoder: NSCoder)  {
+        let rangesCount = aDecoder.decodeInteger(forKey: "NSRangeCount")
+        if rangesCount == 1 {
+            let location = aDecoder.decodeInteger(forKey: "NSLocation")
+            let length = aDecoder.decodeInteger(forKey: "NSLength")
+            
+            _count = length
+            _ranges = length == 0 ? [] : [NSMakeRange(location, length)]
+        } else if rangesCount > 1 {
+            guard let data = aDecoder.decodeObject(of: NSData.self, forKey: "NSRangeData") else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: [ NSLocalizedDescriptionKey: "-[NSIndexSet initWithCoder:] decoder did not provide range data" ]))
+                return nil
+            }
+            
+            let sequence = PackedUIntSequence(data: data._swiftObject)
+            guard sequence.count == rangesCount * 2 else {
+                aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: CocoaError.coderReadCorrupt.rawValue, userInfo: [ NSLocalizedDescriptionKey: "Range data did not match expected length." ]))
+                return nil
+            }
+            
+            var ranges: [NSRange] = []
+            
+            let integers = sequence.unsignedIntegers
+            var count = 0
+            var i = 0
+            while i <= integers.count - 2 {
+                let range = NSRange(location: Int(integers[i]), length: Int(integers[i + 1]))
+                count += range.length
+                ranges.append(range)
+                i += 2
+            }
+            
+            _count = count
+            _ranges = ranges
+        } else {
+            _count = 0
+            _ranges = []
+        }
+    }
+    
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        let rangesCount = _ranges.count
+        
+        aCoder.encode(rangesCount, forKey: "NSRangeCount")
+        if rangesCount == 1 {
+            let range = _ranges[0]
+            aCoder.encode(range.location, forKey: "NSLocation")
+            aCoder.encode(range.length, forKey: "NSLength")
+        } else {
+            var sequence = PackedUIntSequence(data: Data(capacity: rangesCount * 2 + 16))
+            for range in _ranges {
+                sequence.append(UInt(range.location))
+                sequence.append(UInt(range.length))
+            }
+            aCoder.encode(sequence.data._nsObject.copy(), forKey: "NSRangeData")
+        }
     }
     
     public convenience init(index value: Int) {
@@ -127,6 +180,11 @@ open class NSIndexSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
 
         return true
+    }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let indexSet = object as? NSIndexSet else { return false }
+        return isEqual(to: indexSet._swiftObject)
     }
     
     open var count: Int {
@@ -788,10 +846,64 @@ open class NSMutableIndexSet : NSIndexSet {
     }
 }
 
-extension NSIndexSet : _StructTypeBridgeable {
+extension NSIndexSet : _StructTypeBridgeable, _SwiftBridgeable {
     public typealias _StructType = IndexSet
     
     public func _bridgeToSwift() -> IndexSet {
         return IndexSet._unconditionallyBridgeFromObjectiveC(self)
+    }
+    
+    var _swiftObject: IndexSet { return _bridgeToSwift() }
+}
+
+// MARK: NSCoding
+
+extension NSIndexSet {
+    struct PackedUIntSequence {
+        var data: Data
+        init(data: Data) {
+            self.data = data
+        }
+        
+        var count: Int {
+            var result = 0
+            for byte in data {
+                if byte < 128 {
+                    result += 1
+                }
+            }
+            return result
+        }
+        
+        var unsignedIntegers: [UInt] {
+            var result: [UInt] = []
+            var index = data.startIndex
+            while index < data.endIndex {
+                let fromIndex = unsignedInt(atIndex: index)
+                result.append(fromIndex.value)
+                index = fromIndex.nextIndex
+            }
+            return result
+        }
+        
+        private func unsignedInt(atIndex index: Int) -> (value: UInt, nextIndex: Int) {
+            var result = UInt(data[index])
+            if result < 128 {
+                return (value: result, nextIndex: index + 1)
+            } else {
+                let fromNext = unsignedInt(atIndex: index + 1)
+                result = (result - 128) + 128 * fromNext.value
+                return (value: result, nextIndex: fromNext.nextIndex)
+            }
+        }
+        
+        mutating func append(_ value: UInt) {
+            if value > 127 {
+                data.append(UInt8(128 + (value % 128)))
+                append(value / 128)
+            } else {
+                data.append(UInt8(value))
+            }
+        }
     }
 }

@@ -673,6 +673,9 @@ CF_EXPORT void *_CFCreateArrayStorage(size_t numPointers, Boolean zeroed, size_t
 #define STATIC_CLASS_NAME_LENGTH_LOOKUP___NSCFNumber 8
 #define STATIC_CLASS_NAME_LOOKUP___NSCFNumber NSNumberCN
 
+#define STATIC_CLASS_NAME_LENGTH_LOOKUP_NSMutableData 13
+#define STATIC_CLASS_NAME_LOOKUP_NSMutableData NSMutableDataCN
+
 #define STATIC_CLASS_NAME_CONCAT_INNER(x,y) x ## y
 #define STATIC_CLASS_NAME_CONCAT(x,y) STATIC_CLASS_NAME_CONCAT_INNER(x,y)
 
