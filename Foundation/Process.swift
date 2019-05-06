@@ -305,7 +305,7 @@ open class Process: NSObject {
 
       var address: sockaddr_in =
           sockaddr_in(sin_family: ADDRESS_FAMILY(AF_INET), sin_port: USHORT(0),
-                      sin_addr: IN_ADDR(S_un: in_addr.__Unnamed_union_S_un(S_addr: ULONG("127.0.0.1")!)),
+                      sin_addr: IN_ADDR(S_un: in_addr.__Unnamed_union_S_un(S_un_b: in_addr.__Unnamed_union_S_un.__Unnamed_struct_S_un_b(s_b1: 127, s_b2: 0, s_b3: 0, s_b4: 1))),
                       sin_zero: (CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0), CHAR(0)))
       withUnsafePointer(to: &address) {
         $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
