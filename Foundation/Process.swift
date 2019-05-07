@@ -336,12 +336,6 @@ open class Process: NSObject {
         return (first: INVALID_SOCKET, second: INVALID_SOCKET)
       }
 
-      var value: u_long = 1
-      if ioctlsocket(first, FIONBIO, &value) == SOCKET_ERROR {
-        closesocket(first)
-        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
-      }
-
       withUnsafePointer(to: &address) {
         $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
           result = connect(first, $0, Int32(MemoryLayout<sockaddr_in>.size))
@@ -349,6 +343,12 @@ open class Process: NSObject {
       }
 
       if result == SOCKET_ERROR {
+        closesocket(first)
+        return (first: INVALID_SOCKET, second: INVALID_SOCKET)
+      }
+
+      var value: u_long = 1
+      if ioctlsocket(first, FIONBIO, &value) == SOCKET_ERROR {
         closesocket(first)
         return (first: INVALID_SOCKET, second: INVALID_SOCKET)
       }
