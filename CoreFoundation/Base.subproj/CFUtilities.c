@@ -71,8 +71,10 @@
 #include <pthread.h>
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX && __has_include(<sched.h>)
+#if DEPLOYMENT_TARGET_LINUX
+#ifdef HAVE_SCHED_GETAFFINITY
 #include <sched.h>
+#endif
 #endif
 
 
@@ -455,7 +457,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
     }
 #elif DEPLOYMENT_TARGET_LINUX
 
-#ifdef _SCHED_H
+#ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
     if (sched_getaffinity (getpid(), sizeof(set), &set) == 0) {
         return CPU_COUNT (&set);

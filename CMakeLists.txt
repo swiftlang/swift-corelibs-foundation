@@ -24,6 +24,14 @@ include(SwiftSupport)
 include(GNUInstallDirs)
 include(ExternalProject)
 
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+  include(CheckSymbolExists)
+  include(CheckIncludeFile)
+  list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
+  check_include_file("sched.h" HAVE_SCHED_H)
+  check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
+endif()
+
 string(TOLOWER ${CMAKE_SYSTEM_NAME} swift_os)
 get_swift_host_arch(swift_arch)
 
