@@ -9,6 +9,15 @@
 
 import CoreFoundation
 
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
+
+@_silgen_name("swift_getTypeContextDescriptor")
+private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
+
 open class Bundle: NSObject {
     private var _bundle : CFBundle!
     
@@ -100,9 +109,25 @@ open class Bundle: NSObject {
         self.init(path: url.path)
     }
     
+    #if os(Windows)
+    @available(Windows, deprecated, message: "Not yet implemented.")
     public init(for aClass: AnyClass) {
         NSUnimplemented()
     }
+    #else
+    public init(for aClass: AnyClass) {
+        let pointerInImageOfClass = _getTypeContextDescriptor(of: aClass)
+        var info = Dl_info()
+        guard dladdr(pointerInImageOfClass, &info) == 0 && info.dli_fname != nil else {
+            _bundle = CFBundleGetMainBundle()
+            return
+        }
+        
+        let url = URL(fileURLWithFileSystemRepresentation: info.dli_fname, isDirectory: false, relativeTo: nil)
+        let bundle = _CFBundleCreateWithExecutableURLIfMightBeBundle(kCFAllocatorSystemDefault, url._cfObject)?.takeRetainedValue()
+        _bundle = bundle ?? CFBundleGetMainBundle()
+    }
+    #endif
 
     public init?(identifier: String) {
         super.init()
@@ -388,5 +413,15 @@ open class Bundle: NSObject {
         let architectures = CFBundleCopyExecutableArchitectures(_bundle)!
         return architectures._swiftObject.map() { $0 as! NSNumber }
     }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let bundle = object as? Bundle else { return false }
+        return CFEqual(_bundle, bundle._bundle)
+    }
+    
+    open override var hash: Int {
+        return Int(bitPattern: CFHash(_bundle))
+    }
 }
+
 
