@@ -28,6 +28,7 @@ class TestDateFormatter: XCTestCase {
             ("test_expectedTimeZone", test_expectedTimeZone),
             ("test_dateFrom", test_dateFrom),
             ("test_dateParseAndFormatWithJapaneseCalendar", test_dateParseAndFormatWithJapaneseCalendar),
+            ("test_orderOfPropertySetters", test_orderOfPropertySetters),
         ]
     }
     
@@ -442,5 +443,65 @@ class TestDateFormatter: XCTestCase {
         // format test
         let dateString = formatter.string(from: Date(timeIntervalSince1970: 1556633400)) // April 30, 2019, 11:10 PM (JST)
         XCTAssertEqual(dateString, "平成31年4月30日 23:10")
+    }
+
+    func test_orderOfPropertySetters() throws {
+
+        // This produces a .count factorial number of arrays
+        func combinations<T>(of a: [T]) -> [[T]] {
+            precondition(!a.isEmpty)
+            if a.count == 1 { return [a] }
+            if a.count == 2 { return [ [a[0], a[1]], [ a[1], a[0]] ] }
+
+            var result: [[T]] = []
+
+            for idx in a.startIndex..<a.endIndex {
+                let x = a[idx]
+                var b: [T] = a
+                b.remove(at: idx)
+
+                for var c in combinations(of: b) {
+                    c.append(x)
+                    result.append(c)
+                }
+            }
+            return result
+        }
+
+        let formatter = DateFormatter()
+        formatter.timeZone = TimeZone(identifier: "CET")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        let date = try formatter.date(from: "2019-05-05T12:52:10").unwrapped()
+
+        let applySettings: [(String, (DateFormatter) -> Void)] =
+            [(".timeZone", {
+                $0.timeZone = TimeZone(identifier: "Europe/Oslo")
+            }),
+             (".calendar", {
+                $0.calendar = Calendar(identifier: .gregorian)
+             }),
+             (".locale", {
+                $0.locale = Locale(identifier: "nb")
+             }),
+             (".dateStyle", {
+                $0.dateStyle = .medium
+             }),
+             (".timeStyle", {
+                $0.timeStyle = .medium
+             })
+        ]
+
+        // Test all of the combinations of setting the properties produces the same output
+        let expected = "5. mai 2019, 12:52:10"
+        for settings in combinations(of: applySettings) {
+            let f = DateFormatter()
+            settings.forEach { $0.1(f) }
+            XCTAssertEqual(f.dateFormat, "d. MMM y, HH:mm:ss")
+            let formattedString = f.string(from: date)
+            if formattedString != expected {
+                let applied = settings.map { $0.0 }.joined(separator: ",")
+                XCTFail("\(formattedString) != \(expected) using settings applied in order \(applied)")
+            }
+        }
     }
 }
