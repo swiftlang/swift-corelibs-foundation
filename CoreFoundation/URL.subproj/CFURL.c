@@ -894,15 +894,34 @@ static CFStringRef CreateStringFromFileSystemRepresentationByAddingPercentEscape
         if ( idx == numBytes ) {
             if ( isDirectory ) {
                 // if it is a directory and it doesn't end with PATH_SEP, append a PATH_SEP.
-                if ( bytes[numBytes-1] != '/' ) {
-                    *bufBytePtr++ = '/';
+                if ( windowsPath ) {
+                    if ( bufBytePtr - bufStartPtr > 3 ) {
+                        if ( strncmp((const char *)(bufBytePtr - 3), "%2F", 3) ) {
+                            *bufBytePtr++ = '%';
+                            *bufBytePtr++ = '2';
+                            *bufBytePtr++ = 'F';
+                        }
+                    }
+                }
+                else {
+                    if ( bytes[numBytes-1] != '/' ) {
+                        *bufBytePtr++ = '/';
+                    }
                 }
             }
             else {
                 // it is not a directory: remove any pathDelim characters at end (leaving at least one character)
-                while ( (numBytes > 1) && (bytes[numBytes-1] == '/') ) {
-                    --bufBytePtr;
-                    --numBytes;
+                if ( windowsPath ) {
+                    while ( (numBytes > 1) && (bufBytePtr - bufStartPtr > 3) && (strncmp((const char *)(bufBytePtr - 3), "%2F", 3) == 0) ) {
+                        bufBytePtr -= 3;
+                        --numBytes;
+                    }
+                }
+                else {
+                    while ( (numBytes > 1) && (bytes[numBytes-1] == '/') ) {
+                        --bufBytePtr;
+                        --numBytes;
+                    }
                 }
             }
             

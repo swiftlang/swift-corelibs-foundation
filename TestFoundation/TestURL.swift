@@ -47,6 +47,60 @@ private func getTestData() -> [Any]? {
 }
 
 class TestURL : XCTestCase {
+#if os(Windows)
+    func test_WindowsPathSeparator() {
+      // ensure that the mixed slashes are handled properly
+      // e.g. NOT file:///S:/b/u1%2/
+      let u1 = URL(fileURLWithPath: "S:\\b\\u1/")
+      XCTAssertEqual(u1.absoluteString, "file:///S:/b/u1/")
+
+      // ensure that trailing slashes are compressed
+      // e.g. NOT file:///S:/b/u2%2F%2F%2F%/
+      let u2 = URL(fileURLWithPath: "S:\\b\\u2/////")
+      XCTAssertEqual(u2.absoluteString, "file:///S:/b/u2/")
+
+      // ensure that the trailing slashes are compressed even when mixed
+      // e.g. NOT file:///S:/b/u3%2F%/%2F%2/
+      let u3 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
+      // XCTAssertEqual(u3.absoluteString, "file:///S:/b/u3/%2F/")
+      XCTAssertEqual(u3.path, "S:\\b\\u3\\")
+
+      // ensure that the regular conversion works
+      let u4 = URL(fileURLWithPath: "S:\\b\\u4")
+      XCTAssertEqual(u4.absoluteString, "file:///S:/b/u4")
+
+      // ensure that the trailing slash is added
+      let u5 = URL(fileURLWithPath: "S:\\b\\u5", isDirectory: true)
+      XCTAssertEqual(u5.absoluteString, "file:///S:/b/u5/")
+
+      // ensure that the trailing slash is preserved
+      let u6 = URL(fileURLWithPath: "S:\\b\\u6\\")
+      XCTAssertEqual(u6.absoluteString, "file:///S:/b/u6/")
+
+      // ensure that we do not index beyond the start of the string
+      let u7 = URL(fileURLWithPath: "eh", relativeTo: URL(fileURLWithPath: "S:\\b"))
+      XCTAssertEqual(u7.absoluteString, "file:///S:/b/eh")
+
+      // ensure that / is handled properly
+      let u8 = URL(fileURLWithPath: "/")
+      XCTAssertEqual(u8.absoluteString, "file:///")
+    }
+
+    func test_WindowsPathSeparator2() {
+      let u1 = URL(fileURLWithPath: "S:\\b\\u1\\", isDirectory: false)
+      XCTAssertEqual(u1.absoluteString, "file:///S:/b/u1")
+
+      let u2 = URL(fileURLWithPath: "/", isDirectory: false)
+      XCTAssertEqual(u2.absoluteString, "file:///")
+
+      let u3 = URL(fileURLWithPath: "\\", isDirectory: false)
+      XCTAssertEqual(u3.absoluteString, "file:///")
+
+      let u4 = URL(fileURLWithPath: "S:\\b\\u3//\\//")
+      XCTAssertEqual(u4.absoluteString, "file:///S:/b/u3/")
+    }
+#endif
+
     func test_fileURLWithPath_relativeTo() {
         let homeDirectory = NSHomeDirectory()
         let homeURL = URL(fileURLWithPath: homeDirectory, isDirectory: true)
@@ -604,7 +658,7 @@ class TestURL : XCTestCase {
     }
     
     static var allTests: [(String, (TestURL) -> () throws -> Void)] {
-        return [
+        var tests: [(String, (TestURL) -> () throws -> Void)] = [
             ("test_URLStrings", test_URLStrings),
             ("test_fileURLWithPath_relativeTo", test_fileURLWithPath_relativeTo ),
             // TODO: these tests fail on linux, more investigation is needed
@@ -619,6 +673,15 @@ class TestURL : XCTestCase {
             ("test_URLResourceValues", testExpectedToFail(test_URLResourceValues,
                 "test_URLResourceValues: Except for .nameKey, we have no testable attributes that work in the environment Swift CI uses, for now. SR-XXXX")),
         ]
+
+#if os(Windows)
+        tests.append(contentsOf: [
+            ("test_WindowsPathSeparator", test_WindowsPathSeparator),
+            ("test_WindowsPathSeparator2", test_WindowsPathSeparator2),
+        ])
+#endif
+
+        return tests
     }
 }
     
