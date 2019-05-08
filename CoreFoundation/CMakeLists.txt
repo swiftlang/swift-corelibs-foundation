@@ -337,6 +337,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
                              PRIVATE
                                -DDEPLOYMENT_TARGET_LINUX
                                -D_GNU_SOURCE)
+  if(HAVE_SCHED_GETAFFINITY)
+    target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -DHAVE_SCHED_GETAFFINITY)
+  endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   target_compile_definitions(CoreFoundation
                              PRIVATE
@@ -516,4 +521,3 @@ install(DIRECTORY
           ${CMAKE_INSTALL_PREFIX}/System/Library/Frameworks
         USE_SOURCE_PERMISSIONS
         PATTERN PrivateHeaders EXCLUDE)
-
