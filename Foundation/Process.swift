@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !os(Android) // not available
 import CoreFoundation
 
 extension Process {
@@ -287,6 +286,8 @@ open class Process: NSObject {
                 default:
                     fatalError("Process: The specified working directory cannot be set.")
                 }
+            } else {
+                fatalError(String(describing: nserror))
             }
         } catch {
             fatalError(String(describing: error))
@@ -661,7 +662,7 @@ open class Process: NSObject {
         }
 
         var taskSocketPair : [Int32] = [0, 0]
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(Android)
         socketpair(AF_UNIX, SOCK_STREAM, 0, &taskSocketPair)
 #else
         socketpair(AF_UNIX, Int32(SOCK_STREAM.rawValue), 0, &taskSocketPair)
@@ -738,14 +739,12 @@ open class Process: NSObject {
         let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
         CFRunLoopAddSource(managerThreadRunLoop?._cfRunLoop, source, kCFRunLoopDefaultMode)
 
-        // file_actions
-        #if os(macOS) || os(iOS) || CYGWIN
-            var fileActions: posix_spawn_file_actions_t? = nil
-        #else
-            var fileActions: posix_spawn_file_actions_t = posix_spawn_file_actions_t()
-        #endif
-        posix(posix_spawn_file_actions_init(&fileActions))
-        defer { posix_spawn_file_actions_destroy(&fileActions) }
+        var fileActions = _CFPosixSpawnFileActionsAlloc()
+        posix(_CFPosixSpawnFileActionsInit(fileActions))
+        defer {
+            _CFPosixSpawnFileActionsDestroy(fileActions)
+            _CFPosixSpawnFileActionsDealloc(fileActions)
+        }
 
         // File descriptors to duplicate in the child process. This allows
         // output redirection to NSPipe or NSFileHandle.
@@ -820,10 +819,10 @@ open class Process: NSObject {
         }
 
         for (new, old) in adddup2 {
-            posix(posix_spawn_file_actions_adddup2(&fileActions, old, new))
+            posix(_CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
         }
         for fd in addclose {
-            posix(posix_spawn_file_actions_addclose(&fileActions, fd))
+            posix(_CFPosixSpawnFileActionsAddClose(fileActions, fd))
         }
 
         let fileManager = FileManager()
@@ -839,7 +838,7 @@ open class Process: NSObject {
 
         // Launch
         var pid = pid_t()
-        guard posix_spawn(&pid, launchPath, &fileActions, nil, argv, envp) == 0 else {
+        guard _CFPosixSpawn(&pid, launchPath, fileActions, nil, argv, envp) == 0 else {
             throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
         }
 
@@ -1027,11 +1026,10 @@ extension Process {
     public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
 }
     
-private func posix(_ code: Int32) {
+private func posix(_ code: Int32, file: StaticString = #file, line: UInt = #line) {
     switch code {
     case 0: return
-    case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF")
-    default: fatalError("POSIX command failed with error: \(code)")
+    case EBADF: fatalError("POSIX command failed with error: \(code) -- EBADF", file: file, line: line)
+    default: fatalError("POSIX command failed with error: \(code)", file: file, line: line)
     }
 }
-#endif
