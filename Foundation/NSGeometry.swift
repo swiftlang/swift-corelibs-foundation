@@ -704,7 +704,7 @@ public func NSInsetRect(_ aRect: NSRect, _ dX: CGFloat, _ dY: CGFloat) -> NSRect
     let y = aRect.origin.y.native + dY.native
     let w = aRect.size.width.native - (dX.native * 2)
     let h = aRect.size.height.native - (dY.native * 2)
-    return NSRect(x: x, y: y, width: w, height: h)
+    return NSRect(x: CGFloat(x), y: CGFloat(y), width: CGFloat(w), height: CGFloat(h))
 }
 
 public func NSIntegralRect(_ aRect: NSRect) -> NSRect {
