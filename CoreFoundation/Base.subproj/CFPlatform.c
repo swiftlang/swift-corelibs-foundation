@@ -885,9 +885,73 @@ CF_EXPORT int _NS_rename(const char *oldName, const char *newName) {
 
 CF_EXPORT int _NS_open(const char *name, int oflag, int pmode) {
     wchar_t *wide = createWideFileSystemRepresentation(name, NULL);
-    int fd;
-    _wsopen_s(&fd, wide, oflag, _SH_DENYNO, _S_IREAD | _S_IWRITE);
+
+    DWORD dwDesiredAccess = 0;
+    switch (oflag & (O_RDONLY | O_WRONLY | O_RDWR)) {
+      case _O_RDONLY:
+        dwDesiredAccess = GENERIC_READ;
+        break;
+      case _O_WRONLY:
+        dwDesiredAccess = GENERIC_WRITE;
+        break;
+      case _O_RDWR:
+        dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+        break;
+    }
+
+    DWORD dwCreationDisposition;
+    switch (oflag & (O_CREAT | O_EXCL | O_TRUNC)) {
+      case O_CREAT:
+        dwCreationDisposition = OPEN_ALWAYS;
+        break;
+      case O_EXCL:
+        dwCreationDisposition = CREATE_NEW;
+        break;
+      case O_TRUNC:
+        dwCreationDisposition = TRUNCATE_EXISTING;
+        break;
+      default:
+        dwCreationDisposition = OPEN_EXISTING;
+    }
+
+    // Backup semantics are required to receive a handle to a directory
+    DWORD dwFlagsAndAttributes = FILE_FLAG_BACKUP_SEMANTICS;
+    if (pmode & _S_IREAD) {
+      dwFlagsAndAttributes |= FILE_ATTRIBUTE_READONLY;
+    }
+
+    HANDLE handle = CreateFileW(wide, dwDesiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        /* lpSecurityAttributes= */NULL, dwCreationDisposition, dwFlagsAndAttributes,
+        /* hTemplatefile= */ NULL);
     free(wide);
+    if (handle == INVALID_HANDLE_VALUE) {
+      DWORD error = GetLastError();
+      switch (error) {
+        case ERROR_ACCESS_DENIED:
+        case ERROR_SHARING_VIOLATION:
+          errno = EACCES;
+          break;
+        case ERROR_FILE_EXISTS:
+        case ERROR_ALREADY_EXISTS:
+          errno = EEXIST;
+          break;
+        case ERROR_FILE_NOT_FOUND:
+        case ERROR_PATH_NOT_FOUND:
+          errno = ENOENT;
+          break;
+        default:
+          errno = EIO;
+          break;
+      }
+      return -1;
+    }
+
+    // _open_osfhandle handles _O_APPEND and _O_RDONLY
+    int fd = _open_osfhandle((intptr_t)handle, oflag);
+    if (fd == -1) {
+      CloseHandle(handle);
+      return -1;
+    }
     return fd;
 }
 
@@ -1446,8 +1510,9 @@ CF_EXPORT char **_CFEnviron(void) {
 CF_CROSS_PLATFORM_EXPORT int _CFOpenFileWithMode(const char *path, int opts, mode_t mode) {
     return open(path, opts, mode);
 }
+
 int _CFOpenFile(const char *path, int opts) {
-    return open(path, opts);
+    return open(path, opts, 0);
 }
 
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
