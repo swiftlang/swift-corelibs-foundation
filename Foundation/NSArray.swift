@@ -683,6 +683,12 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     override open var _cfTypeID: CFTypeID {
         return CFArrayGetTypeID()
     }
+    
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] {
+        let copied = mutableCopy() as! NSMutableArray
+        copied.sort(using: sortDescriptors)
+        return copied._swiftObject
+    }
 }
 
 extension NSArray : _CFBridgeable, _SwiftBridgeable {
@@ -938,6 +944,28 @@ open class NSMutableArray : NSArray {
 
     open func sort(options opts: NSSortOptions = [], usingComparator cmptr: Comparator) {
         self.setArray(self.sortedArray(options: opts, usingComparator: cmptr))
+    }
+    
+    open func sort(using sortDescriptors: [NSSortDescriptor]) {
+        var descriptors = sortDescriptors._nsObject
+        CFArraySortValues(_cfMutableObject, CFRangeMake(0, count), { (lhsPointer, rhsPointer, context) -> CFComparisonResult in
+            let descriptors = context!.assumingMemoryBound(to: NSArray.self).pointee._swiftObject
+            
+            for item in descriptors {
+                let descriptor = item as! NSSortDescriptor
+                let result =
+                    descriptor.compare(__SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(lhsPointer!).takeUnretainedValue())!,
+                                   to: __SwiftValue.fetch(Unmanaged<AnyObject>.fromOpaque(rhsPointer!).takeUnretainedValue())!)
+                
+                if result == .orderedAscending {
+                    return kCFCompareLessThan
+                } else if result == .orderedDescending {
+                    return kCFCompareGreaterThan
+                }
+            }
+            
+            return kCFCompareEqualTo
+        }, &descriptors)
     }
 }
 

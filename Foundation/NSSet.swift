@@ -320,6 +320,10 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         }
         return result
     }
+    
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] {
+        return allObjects._nsObject.sortedArray(using: sortDescriptors)
+    }
 }
 
 extension NSSet : _CFBridgeable, _SwiftBridgeable {

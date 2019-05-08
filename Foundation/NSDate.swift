@@ -427,3 +427,10 @@ extension NSDateInterval : _StructTypeBridgeable {
         return DateInterval._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSDateInterval : _SwiftBridgeable {
+    var _swiftObject: DateInterval {
+        return _bridgeToSwift()
+    }
+}
+

@@ -7,72 +7,118 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+import CoreFoundation
 
-open class NSSortDescriptor: NSObject, NSSecureCoding, NSCopying {
-    
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    static public var supportsSecureCoding: Bool {
-        return true
-    }
-    
+// In swift-corelibs-foundation, key-value coding is not available. Since encoding and decoding a NSSortDescriptor requires interpreting key paths, NSSortDescriptor does not conform to NSCoding or NSSecureCoding in swift-corelibs-foundation only.
+open class NSSortDescriptor: NSObject, NSCopying {
     open override func copy() -> Any {
         return copy(with: nil)
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self
     }
 
-    // keys may be key paths
-    public init(key: String?, ascending: Bool) { NSUnimplemented() }
+    @available(*, unavailable, message: "Key-value coding is not available in swift-corelibs-foundation. Use Swift key paths instead with init(keyPath:ascending:) or init(keyPath:ascending:comparator:)", renamed: "init(keyPath:ascending:)")
+    public init(key: String?, ascending: Bool) { NSUnsupported() }
     
+    @available(*, unavailable, message: "Key-value coding is not available in swift-corelibs-foundation. Use Swift key paths instead with init(keyPath:ascending:) or init(keyPath:ascending:comparator:)", renamed: "init(keyPath:ascending:)")
+    public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnsupported() }
+    
+    
+    @available(*, unavailable, message: "Key-value coding is not available in swift-corelibs-foundation. Use .keyPath instead.", renamed: "keyPath")
     open var key: String? { NSUnimplemented() }
-    open var ascending: Bool { NSUnimplemented() }
-    public var keyPath: AnyKeyPath? { NSUnimplemented() }
     
-    open func allowEvaluation() { NSUnimplemented() } // Force a sort descriptor which was securely decoded to allow evaluation
+    @available(*, unavailable, message: "Sort descriptors cannot be decoded from archives in swift-corelibs-foundation.")
+    open func allowEvaluation() {}
     
-    public init(key: String?, ascending: Bool, comparator cmptr: Comparator) { NSUnimplemented() }
-    public convenience init<Root, Value>(keyPath: KeyPath<Root, Value>, ascending: Bool) { NSUnimplemented() }
-    public convenience init<Root, Value>(keyPath: KeyPath<Root, Value>, ascending: Bool, comparator cmptr: @escaping Comparator) { NSUnimplemented() }
+    // MARK: Available parts.
     
-    open var comparator: Comparator { NSUnimplemented() }
+    public init<Root, Value: Comparable>(keyPath: KeyPath<Root, Value>, ascending: Bool) {
+        self.keyPath = keyPath
+        self.ascending = ascending
+        self.lens = { ($0 as! Root)[keyPath: keyPath] }
+        self.comparator = { (a, b) -> ComparisonResult in
+            let valueA = a as! Value
+            let valueB = b as! Value
+            
+            if valueA < valueB {
+                return .orderedAscending
+            } else if valueB < valueA {
+                return .orderedDescending
+            } else {
+                return .orderedSame
+            }
+        }
+        self.reversedSortDescriptorProducer = { return NSSortDescriptor(keyPath: keyPath, ascending: !ascending) }
+    }
     
-    open func compare(_ object1: Any, to object2: Any) -> ComparisonResult { NSUnimplemented() }// primitive - override this method if you want to perform comparisons differently (not key based for example)
-    open var reversedSortDescriptor: Any { NSUnimplemented() } // primitive - override this method to return a sort descriptor instance with reversed sort order
+    public init<Root, Value>(keyPath: KeyPath<Root, Value>, ascending: Bool, comparator cmptr: @escaping Comparator) {
+        self.keyPath = keyPath
+        self.ascending = ascending
+        self.lens = { ($0 as! Root)[keyPath: keyPath] }
+        self.comparator = cmptr
+        self.reversedSortDescriptorProducer = { return NSSortDescriptor(keyPath: keyPath, ascending: !ascending, comparator: cmptr) }
+    }
+    
+    private let lens: (Any) -> Any
+    private let reversedSortDescriptorProducer: () -> NSSortDescriptor
+    
+    open private(set) var ascending: Bool
+    open private(set) var keyPath: AnyKeyPath
+    open private(set) var comparator: Comparator
+    
+    // primitive - override this method if you want to perform comparisons differently (not key based for example)
+    open func compare(_ object1: Any, to object2: Any) -> ComparisonResult {
+        let lhs = lens(object1)
+        let rhs = lens(object2)
+        let result = comparator(lhs, rhs)
+        
+        let actualResult: ComparisonResult
+        
+        if ascending {
+            actualResult = result
+        } else {
+            switch result {
+            case .orderedAscending: actualResult = .orderedDescending
+            case .orderedDescending: actualResult = .orderedAscending
+            case .orderedSame: actualResult = .orderedSame
+            }
+        }
+        
+        return actualResult
+    }
+    open var reversedSortDescriptor: Any {
+        return reversedSortDescriptorProducer()
+    }
 }
 
-extension NSSet {
-    
-    public func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+extension NSNumber: Comparable {
+    public static func < (lhs: NSNumber, rhs: NSNumber) -> Bool {
+        return lhs.compare(rhs) == .orderedAscending
+    }
 }
 
-extension NSArray {
-    
-    public func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }// returns a new array by sorting the objects of the receiver
+extension NSString: Comparable {
+    public static func < (lhs: NSString, rhs: NSString) -> Bool {
+        return lhs.compare(rhs._swiftObject) == .orderedAscending
+    }
 }
 
-extension NSMutableArray {
-    
-    public func sort(using sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() } // sorts the array itself
+extension NSDateInterval: Comparable {
+    public static func < (lhs: NSDateInterval, rhs: NSDateInterval) -> Bool {
+        return lhs.compare(rhs._swiftObject) == .orderedAscending
+    }
 }
 
-
-extension NSOrderedSet {
-    
-    // returns a new array by sorting the objects of the receiver
-    public func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] { NSUnimplemented() }
+extension NSDate: Comparable {
+    public static func < (lhs: NSDate, rhs: NSDate) -> Bool {
+        return lhs.compare(rhs._swiftObject) == .orderedAscending
+    }
 }
 
-extension NSMutableOrderedSet {
-    
-    // sorts the ordered set itself
-    public func sort(using sortDescriptors: [NSSortDescriptor]) { NSUnimplemented() }
+extension NSIndexPath: Comparable {
+    public static func < (lhs: NSIndexPath, rhs: NSIndexPath) -> Bool {
+        return lhs.compare(rhs._swiftObject) == .orderedAscending
+    }
 }
