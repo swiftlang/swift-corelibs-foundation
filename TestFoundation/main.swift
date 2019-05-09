@@ -27,6 +27,7 @@ var allTestCases = [
     testCase(TestBundle.allTests),
     testCase(TestByteCountFormatter.allTests),
     testCase(TestNSCache.allTests),
+    testCase(TestCachedURLResponse.allTests),
     testCase(TestCalendar.allTests),
     testCase(TestNSCalendar.allTests),
     testCase(TestCharacterSet.allTests),

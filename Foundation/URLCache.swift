@@ -50,11 +50,42 @@ extension URLCache {
 open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
     
     public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
+        guard aDecoder.allowsKeyedCoding else {
+            /* Unkeyed unarchiving is not supported. */
+            return nil
+        }
+
+        guard let data = aDecoder.decodeObject(of: NSData.self, forKey: "Data") else {
+            return nil
+        }
+        guard let response = aDecoder.decodeObject(of: URLResponse.self, forKey: "URLResponse") else {
+            return nil
+        }
+        guard let storagePolicyValue = aDecoder.decodeObject(of: NSNumber.self, forKey: "StoragePolicy") else {
+            return nil
+        }
+        guard let storagePolicy = URLCache.StoragePolicy(rawValue: storagePolicyValue.uintValue) else {
+            return nil
+        }
+        let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "UserInfo")
+
+        self.data = data as Data
+        self.response = response
+        self.storagePolicy = storagePolicy
+        self.userInfo = userInfo?._swiftObject
     }
     
     open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+        guard aCoder.allowsKeyedCoding else {
+            fatalError("We do not support saving to a non-keyed coder.")
+        }
+
+        aCoder.encode(data as NSData, forKey: "Data")
+        aCoder.encode(response, forKey: "URLResponse")
+        aCoder.encode(NSNumber(value: storagePolicy.rawValue), forKey: "StoragePolicy")
+        if let userInfo = userInfo {
+            aCoder.encode(userInfo._nsObject, forKey: "UserInfo")
+        }
     }
     
     static public var supportsSecureCoding: Bool {
@@ -66,7 +97,7 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        return self
     }
 
     /*!
@@ -81,7 +112,12 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         corresponding to the given response.
         @result an initialized CachedURLResponse.
     */
-    public init(response: URLResponse, data: Data) { NSUnimplemented() }
+    public init(response: URLResponse, data: Data) {
+        self.response = response.copy() as! URLResponse
+        self.data = data
+        self.userInfo = nil
+        self.storagePolicy = .allowed
+    }
     
     /*! 
         @method initWithResponse:data:userInfo:storagePolicy:
@@ -95,35 +131,69 @@ open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
         @param storagePolicy an URLCache.StoragePolicy constant.
         @result an initialized CachedURLResponse.
     */
-    public init(response: URLResponse, data: Data, userInfo: [AnyHashable : Any]? = [:], storagePolicy: URLCache.StoragePolicy) { NSUnimplemented() }
+    public init(response: URLResponse, data: Data, userInfo: [AnyHashable : Any]? = nil, storagePolicy: URLCache.StoragePolicy) {
+        self.response = response.copy() as! URLResponse
+        self.data = data
+        self.userInfo = userInfo
+        self.storagePolicy = storagePolicy
+    }
     
     /*! 
         @method response
         @abstract Returns the response wrapped by this instance. 
         @result The response wrapped by this instance. 
     */
-    /*@NSCopying*/ open var response: URLResponse { NSUnimplemented() }
+    /*@NSCopying*/ open private(set) var response: URLResponse
     
     /*! 
         @method data
         @abstract Returns the data of the receiver. 
         @result The data of the receiver. 
     */
-    /*@NSCopying*/ open var data: Data { NSUnimplemented() }
+    /*@NSCopying*/ open private(set) var data: Data
     
     /*! 
         @method userInfo
         @abstract Returns the userInfo dictionary of the receiver. 
         @result The userInfo dictionary of the receiver. 
     */
-    open var userInfo: [AnyHashable : Any]? { NSUnimplemented() }
+    open private(set) var userInfo: [AnyHashable : Any]?
     
     /*! 
         @method storagePolicy
         @abstract Returns the URLCache.StoragePolicy constant of the receiver.
         @result The URLCache.StoragePolicy constant of the receiver.
     */
-    open var storagePolicy: URLCache.StoragePolicy { NSUnimplemented() }
+    open private(set) var storagePolicy: URLCache.StoragePolicy
+
+    open override func isEqual(_ value: Any?) -> Bool {
+        switch value {
+        case let other as CachedURLResponse:
+            return self.isEqual(to: other)
+        default:
+            return false
+        }
+    }
+
+    private func isEqual(to other: CachedURLResponse) -> Bool {
+        if self === other {
+            return true
+        }
+
+        // We cannot compare userInfo because of the values are Any, which
+        // doesn't conform to Equatable.
+        return self.response == other.response &&
+                self.data == other.data &&
+                self.storagePolicy == other.storagePolicy
+    }
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(response)
+        hasher.combine(data)
+        hasher.combine(storagePolicy)
+        return hasher.finalize()
+    }
 }
 
 open class URLCache : NSObject {
