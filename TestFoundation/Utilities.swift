@@ -497,6 +497,17 @@ func shouldAttemptXFailTests(_ reason: String) -> Bool {
     }
 }
 
+func shouldAttemptWindowsXFailTests(_ reason: String) -> Bool {
+  var isOSWindows: Bool = false
+#if os(Windows)
+  isOSWindows = true
+#endif
+
+  if !isOSWindows || shouldRunXFailTests { return true }
+  try? FileHandle.standardError.write(contentsOf: Data("warning: Skipping test expected to fail with reason '\(reason)'\n".utf8))
+  return false
+}
+
 func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
     if shouldAttemptXFailTests(reason) {
         array.append(testCase(allTests))

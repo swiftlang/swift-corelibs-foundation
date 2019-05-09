@@ -366,15 +366,16 @@ class TestFileManager : XCTestCase {
             let systemSize = attrs[.systemSize] as? NSNumber
             XCTAssertNotNil(systemSize)
             XCTAssertGreaterThan(systemSize!.uint64Value, systemFreeSize!.uint64Value)
-            
-            let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
-            XCTAssertNotNil(systemFreeNodes)
-            XCTAssertNotEqual(systemFreeNodes!.uint64Value, 0)
-            
-            let systemNodes = attrs[.systemNodes] as? NSNumber
-            XCTAssertNotNil(systemNodes)
-            XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
-            
+
+            if shouldAttemptWindowsXFailTests("FileAttributes[.systemFreeNodes], FileAttributes[.systemNodes] not implemented") {
+              let systemFreeNodes = attrs[.systemFreeNodes] as? NSNumber
+              XCTAssertNotNil(systemFreeNodes)
+              XCTAssertNotEqual(systemFreeNodes!.uint64Value, 0)
+
+              let systemNodes = attrs[.systemNodes] as? NSNumber
+              XCTAssertNotNil(systemNodes)
+              XCTAssertGreaterThan(systemNodes!.uint64Value, systemFreeNodes!.uint64Value)
+            }
         } catch {
             XCTFail("\(error)")
         }
