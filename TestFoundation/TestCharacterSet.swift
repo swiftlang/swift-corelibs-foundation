@@ -358,11 +358,11 @@ class TestCharacterSet : XCTestCase {
     }
     
     let fixtures = [
-//        Fixtures.characterSetEmpty,
-//        Fixtures.characterSetRange,
-//        Fixtures.characterSetString,
+        Fixtures.characterSetEmpty,
+        Fixtures.characterSetRange,
+        Fixtures.characterSetString,
         Fixtures.characterSetBitmap,
-//        Fixtures.characterSetBuiltin,
+        Fixtures.characterSetBuiltin,
     ]
     
     func test_codingRoundtrip() throws {
