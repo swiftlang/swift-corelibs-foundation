@@ -27,7 +27,7 @@ open class NSSortDescriptor: NSObject, NSCopying {
     
     
     @available(*, unavailable, message: "Key-value coding is not available in swift-corelibs-foundation. Use .keyPath instead.", renamed: "keyPath")
-    open var key: String? { NSUnimplemented() }
+    open var key: String? { NSUnsupported() }
     
     @available(*, unavailable, message: "Sort descriptors cannot be decoded from archives in swift-corelibs-foundation.")
     open func allowEvaluation() {}
