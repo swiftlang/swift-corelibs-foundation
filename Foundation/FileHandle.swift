@@ -111,7 +111,17 @@ open class FileHandle : NSObject {
         
         // Duplicate the file descriptor.
         // Closing the file descriptor while Dispatch is monitoring it leads to undefined behavior; guard against that.
+        #if os(Windows)
+        var dupHandle: HANDLE?
+        if !DuplicateHandle(GetCurrentProcess(), handle, GetCurrentProcess(), &dupHandle,
+                        /*dwDesiredAccess:*/0, /*bInheritHandle:*/true, DWORD(DUPLICATE_SAME_ACCESS)) {
+            fatalError("DuplicateHandleFailed: \(GetLastError())")
+        }
+
+        let fd = _open_osfhandle(intptr_t(bitPattern: dupHandle), 0)
+        #else
         let fd = dup(fileDescriptor)
+        #endif
         let source: DispatchSourceProtocol
         if reading {
             source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
