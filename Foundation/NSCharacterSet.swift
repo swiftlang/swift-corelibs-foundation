@@ -36,6 +36,12 @@ let kCFCharacterSetKeyedCodingTypeBuiltinAndBitmap = CFCharacterSetKeyedCodingTy
 
 #if _runtime(_ObjC)
 fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline.rawValue
+
+fileprivate extension Int {
+    init(_ predefinedSet: CFCharacterSetPredefinedSet) {
+        self = predefinedSet.rawValue
+    }
+}
 #else
 fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline
 #endif
@@ -296,7 +302,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
         
         switch _CFCharacterSetGetKeyedCodingType(_cfObject) {
         case kCFCharacterSetKeyedCodingTypeBuiltin:
-            aCoder.encode(CFIndex(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject).rawValue), forKey: .characterSetBuiltinIDKey)
+            aCoder.encode(Int(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject)), forKey: .characterSetBuiltinIDKey)
             
         case kCFCharacterSetKeyedCodingTypeRange:
             let range = _CFCharacterSetGetKeyedCodingRange(_cfObject)
@@ -316,7 +322,7 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCodin
             }
             
         case kCFCharacterSetKeyedCodingTypeBuiltinAndBitmap:
-            aCoder.encode(CFIndex(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject).rawValue), forKey: .characterSetNewBuiltinIDKey)
+            aCoder.encode(Int(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject)), forKey: .characterSetNewBuiltinIDKey)
             if isInverted { aCoder.encode(true, forKey: .characterSetNewIsInvertedKey )}
             
             fallthrough
