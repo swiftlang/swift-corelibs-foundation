@@ -92,18 +92,27 @@ set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
   set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    file(TO_CMAKE_PATH "${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}" FOUNDATION_PATH_TO_LIBDISPATCH_BUILD)
-    list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
-  endif()
 endif()
 
-set(plutil_rpath)
-if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux OR
-    CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
-  set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
-  set(plutil_rpath -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}")
+
+if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  append_linker_rpath(Foundation_RPATH "\\\$\$ORIGIN")
+  append_linker_rpath(TestFoundation_RPATH ${CMAKE_CURRENT_BINARY_DIR})
+  append_linker_rpath(TestFoundation_RPATH ${FOUNDATION_PATH_TO_XCTEST_BUILD})
+  append_linker_rpath(XDG_TEST_HELPER_RPATH ${CMAKE_CURRENT_BINARY_DIR})
+  append_linker_rpath(plutil_rpath "\\\$\$ORIGIN/../lib/swift/${swift_os}")
+  if (FOUNDATION_ENABLE_LIBDISPATCH)
+    file(TO_CMAKE_PATH "${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}" FOUNDATION_PATH_TO_LIBDISPATCH_BUILD)
+    # NOTE: the following two are for testing LLDB and others, but should be removed
+    append_linker_rpath(Foundation_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+    append_linker_rpath(Foundation_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD})
+    append_linker_rpath(TestFoundation_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+    append_linker_rpath(TestFoundation_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD})
+    append_linker_rpath(XDG_TEST_HELPER_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
+    append_linker_rpath(XDG_TEST_HELPER_RPATH ${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD})
+  endif()
+elseif(CMAKE_SYSTEM_NAME STREQUAL Android)
+  append_linker_rpath(Foundation_RPATH "\\\$\$ORIGIN")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
@@ -535,6 +544,7 @@ if(ENABLE_TESTING)
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                          ${WORKAROUND_SR9138}
+                         ${TestFoundation_RPATH}
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist

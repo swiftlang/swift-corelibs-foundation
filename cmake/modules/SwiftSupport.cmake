@@ -273,3 +273,20 @@ function(get_swift_host_arch result_var_name)
     message(FATAL_ERROR "Unrecognized architecture on host system: ${CMAKE_SYSTEM_PROCESSOR}")
   endif()
 endfunction()
+
+
+# Appends an the given path as an rpath prefixed by the -Xlinker arguments for
+# the Swift compiler to pass to the linker.
+#
+# Usage:
+#   append_linker_rpath(MyTarget_RPATH one)
+#   append_linker_rpath(MyTarget_RPATH two)
+#   # MyTarget_RPATH=-Xlinker;-rpath;-Xlinker;one;-Xlinker;-rpath;-Xlinker;two
+#
+function(append_linker_rpath result_var_name rpath)
+  set(tmp ${${result_var_name}})
+
+  list(APPEND tmp -Xlinker -rpath -Xlinker "${rpath}")
+
+  set(${result_var_name} ${tmp} PARENT_SCOPE)
+endfunction()
