@@ -281,10 +281,11 @@ class TestFileHandle : XCTestCase {
                        "\(FileHandle.readCompletionNotification.rawValue) is not equal to NSFileHandleReadCompletionNotification")
     }
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_nullDevice() {
         let fh = FileHandle.nullDevice
 
-        XCTAssertEqual(fh.fileDescriptor, -1)
+        XCTAssertFalse(fh._isPlatformHandleValid)
         fh.closeFile()
         fh.seek(toFileOffset: 10)
         XCTAssertEqual(fh.offsetInFile, 0)
@@ -299,6 +300,7 @@ class TestFileHandle : XCTestCase {
         fh.seek(toFileOffset: 0)
         XCTAssertEqual(fh.readDataToEndOfFile().count, 0)
     }
+#endif
 
     func test_truncateFile() {
         let url: URL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: false)
@@ -494,7 +496,6 @@ class TestFileHandle : XCTestCase {
             ("testWritingWithBuffer", testWritingWithBuffer),
             ("testWritingWithMultiregionData", testWritingWithMultiregionData),
             ("test_constants", test_constants),
-            ("test_nullDevice", test_nullDevice),
             ("test_truncateFile", test_truncateFile),
             ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
             ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
@@ -509,6 +510,7 @@ class TestFileHandle : XCTestCase {
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         tests.append(contentsOf: [
             ("test_fileDescriptor", test_fileDescriptor),
+            ("test_nullDevice", test_nullDevice),
             ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
             ("testOffset", testOffset),
         ])
