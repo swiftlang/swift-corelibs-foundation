@@ -10,6 +10,9 @@
 #if !DARWIN_COMPATIBILITY_TESTS // Disable until Foundation has the new FileHandle API
 
 import Dispatch
+#if os(Windows)
+import WinSDK
+#endif
 
 class TestFileHandle : XCTestCase {
     var allHandles: [FileHandle] = []
@@ -101,9 +104,28 @@ class TestFileHandle : XCTestCase {
     func createFileHandleForReadErrors() -> FileHandle {
         // Create a file handle where calling read returns -1.
         // Accomplish this by creating one for a directory.
+#if os(Windows)
+        let hDirectory: HANDLE = ".".withCString(encodedAs: UTF16.self) {
+            // NOTE(compnerd) we need the FILE_FLAG_BACKUP_SEMANTICS so that we
+            // can create the handle to the directory.
+            CreateFileW($0, GENERIC_READ,
+                        DWORD(FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE),
+                        nil, DWORD(OPEN_EXISTING),
+                        DWORD(FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS), nil)
+        }
+        if hDirectory == INVALID_HANDLE_VALUE {
+          fatalError("unable to create handle to current directory")
+        }
+        let fd = _open_osfhandle(intptr_t(bitPattern: hDirectory), 0)
+        if fd == -1 {
+          fatalError("unable to associate file descriptor with handle")
+        }
+        let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+#else
         let fd = open(".", O_RDONLY)
         expectTrue(fd > 0, "We must be able to open a fd to the current directory (.)")
         let fh = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+#endif
         allHandles.append(fh)
         return fh
     }
