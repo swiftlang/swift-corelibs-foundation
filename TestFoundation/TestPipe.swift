@@ -11,12 +11,19 @@
 class TestPipe: XCTestCase {
     
     static var allTests: [(String, (TestPipe) -> () throws -> Void)] {
-        return [
-            ("test_MaxPipes", test_MaxPipes),
+        var tests: [(String, (TestPipe) -> () throws -> Void)] = [
             ("test_Pipe", test_Pipe),
         ]
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_MaxPipes", test_MaxPipes),
+        ])
+#endif
+        return tests
     }
 
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_MaxPipes() {
         // Try and create enough pipes to exhaust the process's limits. 1024 is a reasonable
         // hard limit for the test. This is reached when testing on Linux (at around 488 pipes)
@@ -27,7 +34,7 @@ class TestPipe: XCTestCase {
         pipes.reserveCapacity(maxPipes)
         for _ in 1...maxPipes {
             let pipe = Pipe()
-            if pipe.fileHandleForReading.fileDescriptor == -1 {
+            if !pipe.fileHandleForReading._isPlatformHandleValid {
                 XCTAssertEqual(pipe.fileHandleForReading.fileDescriptor, pipe.fileHandleForWriting.fileDescriptor)
                 break
             }
@@ -35,6 +42,7 @@ class TestPipe: XCTestCase {
         }
         pipes = []
     }
+#endif
 
     func test_Pipe() throws {
         let aPipe = Pipe()
