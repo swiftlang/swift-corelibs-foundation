@@ -94,40 +94,50 @@ open class Host: NSObject {
     
     internal func _resolveCurrent() {
 #if os(Windows)
+        var szAddress: [WCHAR] =
+            Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
+
         var ulSize: ULONG = 0
         var ulResult: ULONG =
             GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, nil, &ulSize)
 
-        let arAdapterInfo: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES> =
-            UnsafeMutablePointer<IP_ADAPTER_ADDRESSES_LH>
-                .allocate(capacity: Int(ulSize) / MemoryLayout<IP_ADAPTER_ADDRESSES>.size)
-        defer { arAdapterInfo.deallocate() }
+        var arAdapters: UnsafeMutableRawPointer =
+            UnsafeMutableRawPointer.allocate(byteCount: Int(ulSize),
+                                             alignment: 1)
+        defer { arAdapters.deallocate() }
 
-        ulResult = GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil, arAdapterInfo, &ulSize)
+        ulResult = GetAdaptersAddresses(ULONG(AF_UNSPEC), 0, nil,
+                                        arAdapters.assumingMemoryBound(to: IP_ADAPTER_ADDRESSES.self),
+                                        &ulSize)
+        guard ulResult == ERROR_SUCCESS else { return }
 
-        var buffer: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(NI_MAXHOST))
+        var pAdapter: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES>? =
+            arAdapters.assumingMemoryBound(to: IP_ADAPTER_ADDRESSES.self)
+        while pAdapter != nil {
+          // print("Adapter: \(String(cString: pAdapter!.pointee.AdapterName))")
 
-        var arCurrentAdapterInfo: UnsafeMutablePointer<IP_ADAPTER_ADDRESSES>? =
-          arAdapterInfo
-        while arCurrentAdapterInfo != nil {
-          var arAddress: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS>? =
-              arCurrentAdapterInfo!.pointee.FirstUnicastAddress
-          while arAddress != nil {
-            let arCurrentAddress: IP_ADAPTER_UNICAST_ADDRESS = arAddress!.pointee
-            switch arCurrentAddress.Address.lpSockaddr.pointee.sa_family {
+          var arAddresses: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS> =
+              pAdapter!.pointee.FirstUnicastAddress
+
+          var pAddress: UnsafeMutablePointer<IP_ADAPTER_UNICAST_ADDRESS>? =
+              arAddresses
+          while pAddress != nil {
+            switch pAddress!.pointee.Address.lpSockaddr.pointee.sa_family {
             case ADDRESS_FAMILY(AF_INET), ADDRESS_FAMILY(AF_INET6):
-              if GetNameInfoW(arCurrentAddress.Address.lpSockaddr,
-                              arCurrentAddress.Address.iSockaddrLength,
-                              &buffer, DWORD(NI_MAXHOST),
-                              nil, 0, NI_NUMERICHOST) == 0 {
-                _addresses.append(String(decodingCString: &buffer,
+              if GetNameInfoW(pAddress!.pointee.Address.lpSockaddr,
+                              pAddress!.pointee.Address.iSockaddrLength,
+                              &szAddress, DWORD(szAddress.capacity), nil, 0,
+                              NI_NUMERICHOST) == 0 {
+                // print("\tIP Address: \(String(decodingCString: &szAddress, as: UTF16.self))")
+                _addresses.append(String(decodingCString: &szAddress,
                                          as: UTF16.self))
               }
             default: break
             }
-            arAddress = arCurrentAddress.Next
+            pAddress = pAddress!.pointee.Next
           }
-          arCurrentAdapterInfo = arCurrentAdapterInfo!.pointee.Next
+
+          pAdapter = pAdapter!.pointee.Next
         }
         _resolved = true
 #else
