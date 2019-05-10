@@ -9,12 +9,6 @@
 
 import CoreFoundation
 
-#if canImport(Darwin)
-import Darwin
-#elseif canImport(Glibc)
-import Glibc
-#endif
-
 @_silgen_name("swift_getTypeContextDescriptor")
 private func _getTypeContextDescriptor(of cls: AnyClass) -> UnsafeRawPointer
 
@@ -117,13 +111,26 @@ open class Bundle: NSObject {
     #else
     public init(for aClass: AnyClass) {
         let pointerInImageOfClass = _getTypeContextDescriptor(of: aClass)
-        var info = Dl_info()
-        guard dladdr(pointerInImageOfClass, &info) == 0 && info.dli_fname != nil else {
+        guard let imagePath = _CFBundleCopyLoadedImagePathForAddress(pointerInImageOfClass)?._swiftObject else {
             _bundle = CFBundleGetMainBundle()
             return
         }
         
-        let url = URL(fileURLWithFileSystemRepresentation: info.dli_fname, isDirectory: false, relativeTo: nil)
+        let path = (try? FileManager.default._canonicalizedPath(toFileAtPath: imagePath)) ?? imagePath
+        
+        let url = URL(fileURLWithPath: path)
+        if Bundle.main.executableURL == url {
+            _bundle = CFBundleGetMainBundle()
+            return
+        }
+        
+        for bundle in Bundle.allBundlesRegardlessOfType {
+            if bundle.executableURL == url {
+                _bundle = bundle._bundle
+                return
+            }
+        }
+        
         let bundle = _CFBundleCreateWithExecutableURLIfMightBeBundle(kCFAllocatorSystemDefault, url._cfObject)?.takeRetainedValue()
         _bundle = bundle ?? CFBundleGetMainBundle()
     }
