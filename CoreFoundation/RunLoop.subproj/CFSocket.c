@@ -951,7 +951,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #else
 #include <arpa/inet.h>
 #endif
-#if !DEPLOYMENT_TARGET_WINDOWS
+#if !TARGET_OS_WIN32
 #include <sys/ioctl.h>
 #endif
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -966,7 +966,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 
@@ -974,7 +974,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #define NBBY 8
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 // redefine this to the winsock error in this file
 #undef EINPROGRESS
@@ -1013,7 +1013,7 @@ static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) 
   }
 }
 
-#endif // DEPLOYMENT_TARGET_WINDOWS
+#endif // TARGET_OS_WIN32
 
 
 // On Mach we use a v0 RunLoopSource to make client callbacks.  That source is signalled by a
@@ -1034,7 +1034,7 @@ static _CFThreadRef __cfSocketTid()
     if (0 != pthread_threadid_np(NULL, &tid))
         tid = pthread_mach_thread_np(pthread_self());
     return (_CFThreadRef) tid;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return (_CFThreadRef) GetCurrentThreadId();
 #else
     return (_CFThreadRef) pthread_self();
@@ -1124,7 +1124,7 @@ static void __cfSocketLogWithSocket(CFSocketRef s, const char* function, int lin
 #endif
 
 CF_INLINE int __CFSocketLastError(void) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     return WSAGetLastError();
 #else
     return thread_errno();
@@ -1317,7 +1317,7 @@ CF_INLINE void __CFSocketEstablishPeerAddress(CFSocketRef s) {
 static Boolean __CFNativeSocketIsValid(CFSocketNativeHandle sock) {
     Boolean result;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     SInt32 errorCode = 0;
     int errorSize = sizeof(errorCode);
     result = !(0 != getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *)&errorCode, &errorSize) && __CFSocketLastError() == WSAENOTSOCK);
@@ -1435,7 +1435,7 @@ CF_INLINE Boolean __CFSocketClearFDForWrite(CFSocketRef s) {
     return b;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static Boolean WinSockUsed = FALSE;
 
 static void __CFSocketInitializeWinSock_Guts(void) {
@@ -1481,7 +1481,7 @@ static void __CFSocketInitializeSockets(void) {
     __CFWriteSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
     __CFReadSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
     zeroLengthData = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     __CFSocketInitializeWinSock_Guts();
 #endif
     if (0 > __CFSocketCreateWakeupSocketPair()) {
@@ -2248,7 +2248,7 @@ static void *__CFSocketManager(void * arg)
 		
         __CFUnlock(&__CFActiveSocketsLock);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         // On Windows, select checks connection failed sockets via the exceptfds parameter. connection succeeded is checked via writefds. We need both.
         exceptfds = writefds;
 #elif defined(LOG_CFSOCKET) && defined(DEBUG_POLLING_SELECT)
@@ -2528,7 +2528,7 @@ CFTypeID CFSocketGetTypeID(void) {
     return _kCFRuntimeIDCFSocket;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 struct _args {
     void *func;
     void *arg;
@@ -2628,7 +2628,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
         pthread_attr_destroy(&attr);
         _Static_assert(sizeof(_CFThreadRef) == sizeof(void *), "_CFThreadRef is not pointer sized");
         __CFSocketManagerThread = (void *)tid;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
         unsigned tid;
         struct _args *args = (struct _args*)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(struct _args), 0);
         if (__CFOASafe) __CFSetLastAllocationEventName(args, "CFUtilities (thread-args)");
@@ -3336,7 +3336,7 @@ CFSocketError CFSocketConnectToAddress(CFSocketRef s, CFDataRef address, CFTimeI
         result = connect(sock, (struct sockaddr *)name, namelen);
         if (result != 0) {
             connect_err = __CFSocketLastError();
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             if (connect_err == WSAEWOULDBLOCK) connect_err = EINPROGRESS;
 #endif
         }
@@ -3386,7 +3386,7 @@ CFSocketRef CFSocketCreate(CFAllocatorRef allocator, SInt32 protocolFamily, SInt
 #if TARGET_OS_MAC
     if (PF_LOCAL == protocolFamily && 0 >= socketType) socketType = SOCK_STREAM;
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // make sure we've called proper Win32 startup facilities before socket()
     __CFSocketInitializeWinSock();
 #endif

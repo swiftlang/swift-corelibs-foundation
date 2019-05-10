@@ -55,7 +55,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT
 #include <objc/message.h>
 #endif
 
@@ -425,7 +425,7 @@ CF_EXPORT CFErrorUserInfoKeyCallBack _Nullable CFErrorGetCallBackForDomain(CFStr
 _CF_EXPORT_SCOPE_END
 
 // ---- Windows-specific material ---------------------------------------
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 #include <sys/stat.h>
 
@@ -576,7 +576,7 @@ CF_EXPORT CFRange _CFDataFindBytes(CFDataRef data, CFDataRef dataToFind, CFRange
     #if !defined(__CFReadTSR)
     #define __CFReadTSR() mach_absolute_time()
     #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if 0
 CF_INLINE UInt64 __CFReadTSR(void) {
     LARGE_INTEGER freq;

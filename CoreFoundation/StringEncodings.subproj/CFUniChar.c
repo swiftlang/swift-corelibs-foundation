@@ -28,7 +28,7 @@
 #include <mach/mach.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #endif
 
@@ -36,13 +36,13 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
 #endif
 
 #if TARGET_OS_MAC
 #define USE_MACHO_SEGMENT 1
-#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || DEPLOYMENT_TARGET_WINDOWS)
+#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32)
 #define USE_RAW_SYMBOL 1
 #endif
 
@@ -109,7 +109,7 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 CF_INLINE void __CFUniCharCharacterSetPath(char *cpath) {
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
@@ -118,7 +118,7 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     wchar_t frameworkPath[MAXPATHLEN];
     _CFGetFrameworkPath(frameworkPath, MAXPATHLEN);
     wcsncpy(wpath, frameworkPath, MAXPATHLEN);
@@ -129,7 +129,7 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #endif
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define MAX_BITMAP_STATE 512
 //
 //  If a string is placed into this array, then it has been previously 
@@ -173,12 +173,12 @@ void __AddBitmapStateForName(const wchar_t *bitmapName) {
 
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static bool __CFUniCharLoadBytesFromFile(const char *fileName, const void **bytes, int64_t *fileSize) {
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **bytes, int64_t *fileSize) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     HANDLE bitmapFileHandle = NULL;
     HANDLE mappingHandle = NULL;
     
@@ -246,7 +246,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define CF_UNICHAR_BITMAP_FILE "/CFCharacterSetBitmaps.bitmap"
 #endif
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #define CF_UNICHAR_BITMAP_FILE L"CFCharacterSetBitmaps.bitmap"
 #endif
@@ -268,7 +268,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define MAPPING_TABLE_FILE "/CFUnicodeData-L.mapping"
 #endif
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if __CF_BIG_ENDIAN__
 #if USE_MACHO_SEGMENT
 #define MAPPING_TABLE_FILE "__data"
@@ -292,7 +292,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #else
 #define PROP_DB_FILE "/CFUniCharPropertyDatabase.data"
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if USE_MACHO_SEGMENT
 #define PROP_DB_FILE "__properties"
 #else
@@ -343,7 +343,7 @@ static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int6
     return result;
 #endif
 }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, int64_t *fileSize) {
 #if USE_RAW_SYMBOL
     extern void *__CFCharacterSetBitmapData;

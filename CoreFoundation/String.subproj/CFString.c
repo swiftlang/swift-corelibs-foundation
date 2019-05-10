@@ -27,7 +27,7 @@
 #include "CFString_Internal.h"
 #include "CFRuntime_Internal.h"
 #include <assert.h>
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include "CFLocaleInternal.h"
 #include "CFStringLocalizedFormattingInternal.h"
 #endif
@@ -418,7 +418,7 @@ CFStringEncoding __CFDefaultEightBitStringEncoding = kCFStringEncodingInvalidId;
 #define __defaultEncoding kCFStringEncodingMacRoman
 #elif TARGET_OS_LINUX
 #define __defaultEncoding kCFStringEncodingUTF8
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #define __defaultEncoding kCFStringEncodingWindowsLatin1
 #else
 #warning This value must match __CFGetConverter condition in CFStringEncodingConverter.c
@@ -443,7 +443,7 @@ CF_INLINE CFStringEncoding __CFStringGetSystemEncoding(void) {
 
 CFStringEncoding CFStringFileSystemEncoding(void) {
     if (__CFDefaultFileSystemEncoding == kCFStringEncodingInvalidId) {
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
         __CFDefaultFileSystemEncoding = kCFStringEncodingUTF8;
 #else
         __CFDefaultFileSystemEncoding = CFStringGetSystemEncoding();
@@ -1867,7 +1867,7 @@ static Boolean __CFStrIsConstantString(CFStringRef str) {
 #endif
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 void __CFStringCleanup (void) {
     /* in case library is unloaded, release store for the constant string table */
     if (constantStringTable != NULL) {
@@ -6740,7 +6740,7 @@ static CFIndex __CFStringValidateFormat(CFStringRef expected, CFStringRef untrus
 
     if (!verified) {
         if (errorPtr) {
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
             CFStringRef debugMsg = CFStringCreateWithFormat(tmpAlloc, NULL, CFSTR("Format '%@' does not match expected '%@'"), untrustedFormat, expected);
             CFMutableDictionaryRef userInfo = CFDictionaryCreateMutable(tmpAlloc, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             CFDictionarySetValue(userInfo, kCFErrorDebugDescriptionKey, debugMsg);
@@ -7186,7 +7186,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 			}
 			// See if we need to localize the decimal point
                         if (formatOptions) {	// We have localization info
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 			    CFStringRef decimalSeparator = (CFGetTypeID(formatOptions) == CFLocaleGetTypeID()) ? (CFStringRef)CFLocaleGetValue((CFLocaleRef)formatOptions, kCFLocaleDecimalSeparatorKey) : (CFStringRef)CFDictionaryGetValue(formatOptions, CFSTR("NSDecimalSeparator"));
 #else
                             CFStringRef decimalSeparator = CFSTR(".");

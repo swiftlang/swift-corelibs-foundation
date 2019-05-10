@@ -47,7 +47,7 @@ CONST_STRING_DECL(kCFStreamSocketSecurityLevelNegotiatedSSL, "kCFStreamSocketSec
 #endif
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 typedef void (*CF_SOCKET_STREAM_PAIR)(CFAllocatorRef, CFStringRef, UInt32, CFSocketNativeHandle, const CFSocketSignature*, CFReadStreamRef*, CFWriteStreamRef*);
 #endif
 
@@ -90,7 +90,7 @@ enum {
 static struct {
     CFLock_t lock;
     UInt32	flags;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     HMODULE	image;
 #endif
     void (*_CFSocketStreamCreatePair)(CFAllocatorRef, CFStringRef, UInt32, CFSocketNativeHandle, const CFSocketSignature*, CFReadStreamRef*, CFWriteStreamRef*);
@@ -99,7 +99,7 @@ static struct {
 } CFNetworkSupport = {
     CFLockInit,
     0x0,
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     NULL,
 #endif
     NULL,
@@ -111,7 +111,7 @@ static struct {
 
 #if TARGET_OS_MAC
 #define CFNETWORK_LOAD_SYM(sym)   __CFLookupCFNetworkFunction(#sym)
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #define CFNETWORK_LOAD_SYM(sym)   (void *)GetProcAddress(CFNetworkSupport.image, #sym)
 #endif
 
@@ -122,7 +122,7 @@ static void initializeCFNetworkSupport(void) {
     CFNetworkSupport._CFSocketStreamCreatePair = CFNETWORK_LOAD_SYM(_CFSocketStreamCreatePair);
     CFNetworkSupport._CFErrorCreateWithStreamError = CFNETWORK_LOAD_SYM(_CFErrorCreateWithStreamError);
     CFNetworkSupport._CFStreamErrorFromCFError = CFNETWORK_LOAD_SYM(_CFStreamErrorFromCFError);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     if (!CFNetworkSupport.image) {
 #if _DEBUG
         CFNetworkSupport.image = GetModuleHandleW(L"CFNetwork_debug.dll");

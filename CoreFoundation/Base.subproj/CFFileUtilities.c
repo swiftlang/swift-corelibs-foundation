@@ -17,7 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <io.h>
 #include <fcntl.h>
 
@@ -46,7 +46,7 @@
 #endif
 
 CF_INLINE int openAutoFSNoWait() {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     return -1;
 #else
     return (__CFProphylacticAutofsAccess ? open("/dev/autofs_nowait", 0) : -1);
@@ -191,7 +191,7 @@ CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex 
         thread_set_errno(saveerr);
         return false;
     }
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     FlushFileBuffers((HANDLE)_get_osfhandle(fd));
 #else
     fsync(fd);
@@ -213,7 +213,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     CFStringRef extension = (matchingAbstractType ? _CFCopyExtensionForAbstractType(matchingAbstractType) : NULL);
     CFIndex targetExtLen = (extension ? CFStringGetLength(extension) : 0);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // This is a replacement for 'dirent' below, and also uses wchar_t to support unicode paths
     wchar_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
@@ -545,7 +545,7 @@ CF_PRIVATE SInt32 _CFGetPathProperties(CFAllocatorRef alloc, char *path, Boolean
     
     if (modTime != NULL) {
         if (fileExists) {
-#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
             struct timespec ts = {statBuf.st_mtime, 0};
 #else
             struct timespec ts = statBuf.st_mtimespec;
@@ -599,7 +599,7 @@ CF_PRIVATE bool _CFURLExists(CFURLRef url) {
     return url && (0 == _CFGetFileProperties(kCFAllocatorSystemDefault, url, &exists, NULL, NULL, NULL, NULL, NULL)) && exists;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define WINDOWS_PATH_SEMANTICS
 #else
 #define UNIX_PATH_SEMANTICS
@@ -1011,7 +1011,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFInde
     return ((0 < start) ? start : length);
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define	DT_LNK		10
@@ -1023,7 +1023,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     char directoryPathBuf[CFMaxPathSize];
     if (!CFStringGetFileSystemRepresentation(directoryPath, directoryPathBuf, CFMaxPathSize)) return;
     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // Make sure there is room for the additional space we need in the win32 api
     if (strlen(directoryPathBuf) > CFMaxPathSize - 2) return;
 

@@ -34,7 +34,7 @@
 #include <dirent.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <io.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -172,7 +172,7 @@ CF_EXPORT CFArrayRef CFBundleCopyResourceURLsOfTypeInDirectory(CFURLRef bundleUR
 
 #pragma mark -
 
-#if TARGET_OS_OSX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_WIN32
 CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     Boolean isDir = false, result = false;
     CFURLRef dirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, subDirName, url);
@@ -198,7 +198,7 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
     CFRelease(absoluteURL);
     
     Boolean hasFrameworkSuffix = CFStringHasSuffix(CFURLGetString(url), CFSTR(".framework/"));
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     hasFrameworkSuffix = hasFrameworkSuffix || CFStringHasSuffix(CFURLGetString(url), CFSTR(".framework\\"));
 #endif
 
@@ -257,7 +257,7 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
         }
     }
 
-#if TARGET_OS_OSX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_WIN32
     // Do a more substantial check for the subdirectories that make up version 0/1/2 bundles. These are sometimes symlinks (like in Frameworks) and they would have been missed by our check above.
     // n.b. that the readdir above may return DT_UNKNOWN, for example, when the directory is on a network mount.
     if (foundUnknown && localVersion == 3) {
@@ -290,7 +290,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
     return CFSTR("MacOS");
 #elif TARGET_OS_IPHONE
     return CFSTR("iPhoneOS");
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return CFSTR("Windows");
 #elif DEPLOYMENT_TARGET_SOLARIS
     return CFSTR("Solaris");
@@ -312,7 +312,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
 #if TARGET_OS_MAC
     return CFSTR("MacOS");
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return CFSTR("Windows");
 #elif DEPLOYMENT_TARGET_SOLARIS
     return CFSTR("Solaris");

@@ -22,7 +22,7 @@
     #include <mach-o/dyld.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <shellapi.h>
 #include <shlobj.h>
 #include <WinIoCtl.h>
@@ -35,7 +35,7 @@
 
 #endif
 
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 #define kCFPlatformInterfaceStringEncoding	kCFStringEncodingUTF8
 #else
 #define kCFPlatformInterfaceStringEncoding	CFStringGetSystemEncoding()
@@ -54,7 +54,7 @@ CF_PRIVATE Boolean _CFGetCurrentDirectory(char *path, int maxlen) {
     return getcwd(path, maxlen) != NULL;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 // Returns the path to the CF DLL, which we can then use to find resources like char sets
 bool bDllPathCached = false;
 CF_PRIVATE const wchar_t *_CFDLLPath(void) {
@@ -104,7 +104,7 @@ const char **_CFGetProcessPath(void) {
     return &__CFProcessPath;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
     wchar_t buf[CFMaxPathSize] = {0};
@@ -126,7 +126,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
@@ -274,7 +274,7 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
             result = CFStringCreateWithCString(kCFAllocatorSystemDefault, cuser, kCFPlatformInterfaceStringEncoding);
         }
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 	wchar_t username[1040];
 	DWORD size = 1040;
 	username[0] = 0;
@@ -334,7 +334,7 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
 CFURLRef CFCopyHomeDirectoryURL(void) {
 #if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     return _CFCopyHomeDirURLForUser(NULL, true);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     CFURLRef retVal = NULL;
     CFIndex len = 0;
     CFStringRef str = NULL;
@@ -436,7 +436,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
         }
         return result;
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     // This code can only get the directory for the current user
     CFStringRef userName = uName ? CFCopyUserName() : NULL;
     if (uName && !CFEqual(uName, userName)) {
@@ -455,7 +455,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
 #undef CFMaxHostNameLength
 #undef CFMaxHostNameSize
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_INLINE CFIndex strlen_UniChar(const UniChar* p) {
 	CFIndex result = 0;
 	while ((*p++) != 0)
@@ -529,7 +529,7 @@ CF_EXPORT CFMutableStringRef _CFCreateApplicationRepositoryPath(CFAllocatorRef a
 #pragma mark -
 #pragma mark Thread Functions
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 CF_EXPORT void _NS_pthread_setname_np(const char *name) {
   _CFThreadSetName(GetCurrentThread(), name);
@@ -574,7 +574,7 @@ typedef struct __CFTSDTable {
 
 static void __CFTSDFinalize(void *arg);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 static DWORD __CFTSDIndexKey = 0xFFFFFFFF;
 
@@ -616,7 +616,7 @@ static void __CFTSDSetSpecific(void *arg) {
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif TARGET_OS_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     FlsSetValue(__CFTSDIndexKey, arg);
 #endif
 }
@@ -626,7 +626,7 @@ static void *__CFTSDGetSpecific() {
     return pthread_getspecific(__CFTSDIndexKey);
 #elif TARGET_OS_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return FlsGetValue(__CFTSDIndexKey);
 #endif
 }
@@ -690,7 +690,7 @@ static __CFTSDTable *__CFTSDGetTable(const Boolean create) {
         // This memory is freed in the finalize function
         table = (__CFTSDTable *)calloc(1, sizeof(__CFTSDTable));
         // Windows and Linux have created the table already, we need to initialize it here for other platforms. On Windows, the cleanup function is called by DllMain when a thread exits. On Linux the destructor is set at init time.
-#if !DEPLOYMENT_TARGET_WINDOWS
+#if !TARGET_OS_WIN32
         __CFTSDInitialize();
 #endif
         __CFTSDSetSpecific(table);
@@ -750,7 +750,7 @@ CF_EXPORT void *_CFSetTSD(uint32_t slot, void *newVal, tsdDestructor destructor)
 #pragma mark -
 #pragma mark Windows Wide to UTF8 and UTF8 to Wide
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 /* On Windows, we want to use UTF-16LE for path names to get full unicode support. Internally, however, everything remains in UTF-8 representation. These helper functions stand between CF and the Microsoft CRT to ensure that we are using the right representation on both sides. */
 
 #include <sys/stat.h>
@@ -1177,7 +1177,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
     return 0;
 }
 
-#endif // DEPLOYMENT_TARGET_WINDOWS
+#endif // TARGET_OS_WIN32
 
 #pragma mark -
 #pragma mark Linux OSAtomic
@@ -1348,7 +1348,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
 #pragma mark -
 #pragma mark Windows and Linux Helpers
 
-#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
 
 #include <stdio.h>
 
@@ -1389,7 +1389,7 @@ static void _CFThreadSpecificDestructor(void *ctx) {
 
 _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
     _CFThreadSpecificKey key;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     key = FlsAlloc(_CFThreadSpecificDestructor);
 #else
     pthread_key_create(&key, &_CFThreadSpecificDestructor);
@@ -1398,7 +1398,7 @@ _CFThreadSpecificKey _CFThreadSpecificKeyCreate() {
 }
 
 CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
   return (CFTypeRef)FlsGetValue(key);
 #else
     return (CFTypeRef)pthread_getspecific(key);
@@ -1406,7 +1406,7 @@ CFTypeRef _Nullable _CFThreadSpecificGet(_CFThreadSpecificKey key) {
 }
 
 void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     if (value != NULL) {
         swift_retain((void *)value);
     }
@@ -1422,7 +1422,7 @@ void _CFThreadSpecificSet(_CFThreadSpecificKey key, CFTypeRef _Nullable value) {
 }
 
 _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (* _Nonnull startfn)(void *_Nullable), void *_CF_RESTRICT _Nullable context) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     DWORD dwCreationFlags = 0;
     DWORD dwStackSize = 0;
     if (attrs.dwSizeOfAttributes >=
@@ -1444,7 +1444,7 @@ _CFThreadRef _CFThreadCreate(const _CFThreadAttributes attrs, void *_Nullable (*
 #endif
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 // This code from here:
 // http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx
@@ -1468,7 +1468,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
         return pthread_setname_np(name);
     }
     return EINVAL;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     THREADNAME_INFO info;
 
     info.dwType = 0x1000;
@@ -1500,7 +1500,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 CF_EXPORT char **_CFEnviron(void) {
 #if TARGET_OS_MAC
     return *_NSGetEnviron();
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return _environ;
 #else
     return environ;

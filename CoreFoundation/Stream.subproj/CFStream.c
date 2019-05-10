@@ -15,7 +15,7 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <stdio.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 
@@ -973,7 +973,7 @@ CF_PRIVATE Boolean _CFStreamOpen(struct _CFStream *stream) {
             }
             _CFStreamScheduleEvent(stream, kCFStreamEventOpenCompleted);
         } else {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             _CFStreamClose(stream);
 #endif
             _CFStreamSetStatusCode(stream, kCFStreamStatusError);
@@ -1732,7 +1732,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
         if (sLegacyRL == NULL) {
             dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             HANDLE hThread =
                 (HANDLE)_beginthreadex(NULL, 0,
                                        (_beginthreadex_proc_type)_legacyStreamRunLoop_workThread,
@@ -1908,7 +1908,7 @@ CF_EXPORT CFIndex _CFStreamInstanceSize(void) {
     return sizeof(struct _CFStream);
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 void __CFStreamCleanup(void) {
     __CFLock(&sSourceLock);
     if (sSharedSources) {

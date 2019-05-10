@@ -16,7 +16,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
 
     #if TARGET_OS_LINUX
         #if TARGET_RT_64_BIT
@@ -49,7 +49,7 @@
         _kCFBundleFHSDirectory_lib
 #endif // TARGET_OS_LINUX
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
 
 // This is here because on iPhoneOS with the dyld shared cache, we remove binaries from their
 // original locations on disk, so checking whether a binary's path exists is no longer sufficient.
@@ -74,7 +74,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
     CFURLRef executableURL = NULL;
     if (!urlPath || !exeName) return NULL;
     
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLPOSIXPathStyle, false, urlPath);
         if (!_binaryLoadable(executableURL)) {
@@ -117,7 +117,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
             executableURL = NULL;
         }
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     if (!executableURL) {
         executableURL = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, exeName, kCFURLWindowsPathStyle, false, urlPath);
         if (executableURL && !_binaryLoadable(executableURL)) {
@@ -200,7 +200,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             Boolean doExecSearch = true;
 #endif
             
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
             if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
                 // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
                 
@@ -224,13 +224,13 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                 
                 CFRelease(prefixPath);
             }
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
             
             // Now, look for the executable inside the bundle.
             if (!foundIt && doExecSearch && 0 != version) {
                 CFURLRef exeDirURL = NULL;
                 
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
                 if (bundle && bundle->_isFHSInstalledBundle) {
                     CFURLRef withoutExtension = CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, url);
                     CFStringRef lastPathComponent = CFURLCopyLastPathComponent(withoutExtension);
@@ -245,13 +245,13 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     CFRelease(libexec);
                     CFRelease(exeDirName);
                 } else
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
                 if (1 == version) {
                     exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase1, url);
                 } else if (2 == version) {
                     exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase2, url);
                 } else {
-#if DEPLOYMENT_TARGET_WINDOWS || !DEPLOYMENT_RUNTIME_OBJC
+#if TARGET_OS_WIN32 || !DEPLOYMENT_RUNTIME_OBJC
                     // On Windows and on targets that support FHS bundles, if the bundle URL is foo.resources, then the executable is at the same level as the .resources directory
                     CFStringRef extension = CFURLCopyPathExtension(url);
                     if (extension && CFEqual(extension, _CFBundleSiblingResourceDirectoryExtension)) {
@@ -276,7 +276,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             // If this was an old bundle, or we did not find the executable in the Executables subdirectory, look directly in the bundle wrapper.
             if (!executableURL) executableURL = _CFBundleCopyExecutableURLRaw(url, executableName);
             
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             // Windows only: If we still haven't found the exe, look in the Executables folder.
             // But only for the main bundle exe
             if (lookupMainExe && !executableURL) {
@@ -315,7 +315,7 @@ static CFURLRef _CFBundleCopyBundleURLForExecutablePath(CFStringRef str) {
     if (buffLen > CFMaxPathSize) buffLen = CFMaxPathSize;
     CFStringGetCharacters(str, CFRangeMake(0, buffLen), buff);
     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // Is this a .dll or .exe?
     if (buffLen >= 5 && (_wcsnicmp((wchar_t *)&(buff[buffLen-4]), L".dll", 4) == 0 || _wcsnicmp((wchar_t *)&(buff[buffLen-4]), L".exe", 4) == 0)) {
         CFIndex extensionLength = CFStringGetLength(_CFBundleSiblingResourceDirectoryExtension);
@@ -392,7 +392,7 @@ static CFURLRef _CFBundleCopyResolvedURLForExecutableURL(CFURLRef url) {
         if (len1 > 0 && len1 + 1 < buffLen) {
             str1 = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, buff, len1);
             CFIndex skipSlashCount = 1;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             // On Windows, _CFLengthAfterDeletingLastPathComponent will return a value of 3 if the path is at the root (e.g. C:\). This includes the \, which is not the case for URLs with subdirectories
             if (len1 == 3 && buff[1] == ':' && buff[2] == '\\') {
                 skipSlashCount = 0;

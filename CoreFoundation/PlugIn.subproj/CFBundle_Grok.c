@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
-#if !DEPLOYMENT_TARGET_WINDOWS
+#if !TARGET_OS_WIN32
 #include <sys/mman.h>
 #endif
 
@@ -38,7 +38,7 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define statinfo _stat
 #define stat(x,y) _NS_stat(x,y)
 #define open _NS_open

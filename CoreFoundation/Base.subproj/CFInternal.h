@@ -184,7 +184,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define __builtin_unreachable() do { } while (0)
 #endif
 
@@ -400,14 +400,14 @@ extern const char *__CFgetenvIfNotRestricted(const char *n);    // Returns NULL 
 CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // This is really about the availability of C99. We don't have that on Windows, but we should everywhere else.
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define STACK_BUFFER_DECL(T, N, C) T *N = (T *)_alloca((C) * sizeof(T))
 #else
 #define STACK_BUFFER_DECL(T, N, C) T N[C]
 #endif
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
@@ -421,7 +421,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // Be sure to call this before your SAFE_STACK_BUFFER exits scope.
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
-#endif // !DEPLOYMENT_TARGET_WINDOWS
+#endif // !TARGET_OS_WIN32
 
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
@@ -766,7 +766,7 @@ CF_EXPORT CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFIndex
 CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, char delimiter);
 
 #if __BLOCKS__
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
@@ -806,7 +806,7 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define __has_attribute(...) 0
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
 #elif __has_attribute(visibility)
 #define _CF_VISIBILITY_HIDDEN_ATTRIBUTE __attribute__((visibility("hidden")))
@@ -943,13 +943,13 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 #endif
 
 // Need to use the _O_BINARY flag on Windows to get the correct behavior
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define CF_OPENFLGS	(_O_BINARY|_O_NOINHERIT)
 #else
 #define CF_OPENFLGS	(0)
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 // These are replacements for pthread calls on Windows
 CF_EXPORT int _NS_pthread_main_np();
@@ -975,12 +975,12 @@ CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 #define pthread_main_np _CFIsMainThread
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_PRIVATE const wchar_t *_CFDLLPath(void);
 #endif
 
 /* Buffer size for file pathname */
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 /// Use this constant for the size (in characters) of a buffer in which to hold a path. This size adds space for at least a couple of null terminators at the end of a buffer into which you copy up to kCFMaxPathLength characters.
 #define CFMaxPathSize ((CFIndex)262)
 /// Use this constant for the maximum length (in characters) of a path you want to copy into a buffer. This should be the maximum number of characters before the null terminator(s).
@@ -1026,7 +1026,7 @@ enum {
 };
 #endif
 
-#if TARGET_OS_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW

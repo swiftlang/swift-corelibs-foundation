@@ -96,7 +96,7 @@ static void constructCFFD(_CFFileStreamContext *fileStream, Boolean forRead, str
 
 static Boolean constructFD(_CFFileStreamContext *fileStream, CFStreamError *error, Boolean forRead, struct _CFStream *stream) {
     int flags = forRead ? O_RDONLY : (O_CREAT | O_TRUNC | O_WRONLY);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     wchar_t path[CFMaxPathSize];
     flags |= (_O_BINARY|_O_NOINHERIT);
     if (_CFURLGetWideFileSystemRepresentation(fileStream->url, TRUE, path, CFMaxPathSize) == FALSE)

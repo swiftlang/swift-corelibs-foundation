@@ -250,7 +250,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
             if (reason) {
                 CFStringRef const backstopComboString = CFSTR("%@ %@");
                 CFStringRef comboString = backstopComboString;
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
                 CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
                 if (cfBundle) comboString = CFCopyLocalizedStringFromTableInBundle(CFSTR("%@ %@"), CFSTR("Error"), cfBundle, "Used for presenting the 'what failed' and 'why it failed' sections of an error message, where each one is one or more complete sentences. The first %@ corresponds to the 'what failed' (For instance 'The file could not be saved.') and the second one 'why it failed' (For instance 'The volume is out of space.')");
 #endif
@@ -265,7 +265,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
         }
     }
     
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
     // Cache the CF bundle since we will be using it for localized strings. Note that for platforms without bundle support we also go this non-localized route.
     CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
     if (!cfBundle) {	// This should be rare, but has been observed in the wild, due to running out of file descriptors. Normally we might not go to such extremes, but since we want to be able to present reasonable errors even in the case of errors such as running out of file descriptors, why not. This is CFError after all. !!! Be sure to have the same logic here as below for going through various options for fetching the strings.
@@ -281,7 +281,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
 	}
 	if (reasonOrDesc) CFRelease(reasonOrDesc);
 	return result;
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
     }
     
     // Then look for kCFErrorLocalizedFailureReasonKey; if there, create a full sentence from that.

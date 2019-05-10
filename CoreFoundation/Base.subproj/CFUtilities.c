@@ -14,12 +14,12 @@
 #include "CFLocaleInternal.h"
 #include "CFBundle_Internal.h"
 #include <CoreFoundation/CFPriv.h>
-#if TARGET_OS_MAC || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFURLAccess.h>
 #include <CoreFoundation/CFPropertyList.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 #if TARGET_OS_ANDROID
@@ -291,7 +291,7 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
 	CFRelease(fullVersionString);
         CFRelease(fullVersion);
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     OSVERSIONINFOEX osvi;
     ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
@@ -431,7 +431,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
 #else
     
     int32_t pcnt;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     DWORD_PTR activeProcessorMask = sysInfo.dwActiveProcessorMask;
@@ -644,7 +644,7 @@ static void _CFShowToFile(FILE *file, Boolean flush, const void *obj) {
      }
      cnt = CFStringGetLength(str);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     UniChar *ptr = (UniChar *)CFStringGetCharactersPtr(str);
     BOOL freePtr = false;
     if (!ptr) {
@@ -768,7 +768,7 @@ static bool also_do_stderr(const _cf_logging_style style) {
     return result;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static struct tm *localtime_r(time_t *tv, struct tm *result) {
   struct tm *tm = localtime(tv);
   if (tm) {
@@ -796,7 +796,7 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     if (0 != pthread_threadid_np(NULL, &tid)) tid = pthread_mach_thread_np(pthread_self());
     asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
     asprintf(thread, "%x", pthread_mach_thread_np(pthread_self()));
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
     asprintf(thread, "%lx", GetCurrentThreadId());
 #else
@@ -820,7 +820,7 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     __CFLock(&lock);
     writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
     __CFUnlock(&lock);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     size_t bannerLen = strlen(banner);
     size_t bufLen = bannerLen + length + 1;
     char *buf = (char *)malloc(sizeof(char) * bufLen);
@@ -1157,7 +1157,7 @@ size_t _CFSuddenTerminationDisablingCount(void) {
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <io.h>
 #include <direct.h>
 #define close _close
@@ -1272,7 +1272,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
 	}
 	length = (unsigned long)statBuf.st_size - numBytesRemaining;
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     } else {
         bytes = malloc(statBuf.st_size);
         DWORD numBytesRead;

@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS && defined(__cplusplus)
+#if TARGET_OS_WIN32 && defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -129,7 +129,7 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 // Compatibility with boolean.h
 #if defined(__x86_64__)
 typedef unsigned int	boolean_t;
@@ -263,13 +263,13 @@ void OSMemoryBarrier();
 #if TARGET_OS_LINUX
 #include <sys/param.h>
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
 #if !defined(ABS)
 #define ABS(A)	((A) < 0 ? (-(A)) : (A))
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 #define MAXPATHLEN MAX_PATH
 #undef MAX_PATH
@@ -454,7 +454,7 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 #define CF_TEST_PRIVATE CF_PRIVATE
 #endif
 
-#if TARGET_OS_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
 
 #include <stdarg.h>
 
@@ -477,7 +477,7 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...);
 
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS && defined(__cplusplus)
+#if TARGET_OS_WIN32 && defined(__cplusplus)
 } // extern "C"
 #endif
 

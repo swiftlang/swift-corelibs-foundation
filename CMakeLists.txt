@@ -93,7 +93,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
   set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
-  set(deployment_target -DDEPLOYMENT_TARGET_WINDOWS)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
   set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)

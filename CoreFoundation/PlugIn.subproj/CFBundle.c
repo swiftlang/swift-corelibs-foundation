@@ -41,7 +41,7 @@
 
 #if TARGET_OS_MAC
 #include <fcntl.h>
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #include <fcntl.h>
 #include <io.h>
 #endif
@@ -163,7 +163,7 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
-#if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
     return true;
 #else
     return false;
@@ -706,7 +706,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     localVersion = _CFBundleGetBundleVersionForURL(newURL);
     if (localVersion == 3) {
         SInt32 res = _CFGetPathProperties(allocator, (char *)buff, &exists, &mode, NULL, NULL, NULL, NULL);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         if (!(res == 0 && exists && ((mode & S_IFMT) == S_IFDIR))) {
             // 2nd chance at finding a bundle path - remove the last path component (e.g., mybundle.resources) and try again
             CFURLRef shorterPath = CFURLCreateCopyDeletingLastPathComponent(allocator, newURL);
@@ -1460,7 +1460,7 @@ CF_PRIVATE Boolean _CFBundleCouldBeBundle(CFURLRef url) {
 //If 'permissive' is set, we will maintain the historical behavior of returning frameworks with names that don't match, and frameworks for executables in Resources/
 static CFURLRef __CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executablePath, Boolean permissive) {
     // MF:!!! Implement me.  We need to be able to find the bundle from the exe, dealing with old vs. new as well as the Executables dir business on Windows.
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     UniChar executablesToFrameworksPathBuff[] = {'.', '.', '\\', 'F', 'r', 'a', 'm', 'e', 'w', 'o', 'r', 'k', 's'};
     UniChar executablesToPrivateFrameworksPathBuff[] = {'.', '.', '\\', 'P', 'r', 'i', 'v', 'a', 't', 'e', 'F', 'r', 'a', 'm', 'e', 'w', 'o', 'r', 'k', 's'};
     UniChar frameworksExtension[] = {'f', 'r', 'a', 'm', 'e', 'w', 'o', 'r', 'k'};
@@ -1485,7 +1485,7 @@ static CFURLRef __CFBundleCopyFrameworkURLForExecutablePath(CFStringRef executab
     length = _CFLengthAfterDeletingLastPathComponent(pathBuff, length);
     savedLength = length;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // * (Windows-only) First check the "Executables" directory parallel to the "Frameworks" directory case.
     if (_CFAppendPathComponent(pathBuff, &length, CFMaxPathSize, executablesToFrameworksPathBuff, LENGTH_OF(executablesToFrameworksPathBuff)) && _CFAppendPathComponent(pathBuff, &length, CFMaxPathSize, nameBuff, nameLength) && _CFAppendPathExtension(pathBuff, &length, CFMaxPathSize, frameworksExtension, LENGTH_OF(frameworksExtension))) {
         CFStringSetExternalCharactersNoCopy(cheapStr, pathBuff, length, CFMaxPathSize);

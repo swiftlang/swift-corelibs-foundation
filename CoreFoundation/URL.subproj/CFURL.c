@@ -1957,7 +1957,7 @@ static Boolean _CFStringIsLegalURLString(CFStringRef string) {
                                 break;
                             }
                         }
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
                         // <rdar://problem/7134119> CF on Windows: CFURLCreateWithString should work with | in path on Windows
                         if ( isURLLegalCharacter(*chPtr) || *chPtr == '|' ) {
                             continue;
@@ -2324,7 +2324,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
         if ( releaseBaseURL && baseURL ) {
             CFRelease(baseURL);
         }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
         CFStringRef filePath = CFStringCreateWithBytes(allocator, buffer, bufLen, CFStringFileSystemEncoding(), false);
         if ( filePath ) {
             result = (struct __CFURL *)_CFURLCreateWithFileSystemPath(allocator, filePath, kCFURLWindowsPathStyle, isDirectory, baseURL);
@@ -4188,7 +4188,7 @@ static Boolean CanonicalFileURLStringToFileSystemRepresentation(CFStringRef str,
 }
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 // From CFPlatform.c
 extern CFStringRef CFCreateWindowsDrivePathFromVolumeName(CFStringRef volNameStr);
 #endif
@@ -4228,7 +4228,7 @@ static CFStringRef URLPathToWindowsPath(CFStringRef path, CFAllocatorRef allocat
 			CFRelease(driveStr);
 		    }
 		}
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 		else {
 		    // From <rdar://problem/5623405> [DEFECT] CFURL returns a Windows path that contains volume name instead of a drive letter
 		    // we need to replace the volume name (it is not valid on Windows) with the drive mounting point path
@@ -4515,7 +4515,7 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
 }
 
 Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, uint8_t *buffer, CFIndex bufLen) {
-#if TARGET_OS_MAC || TARGET_OS_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
     CFAllocatorRef alloc = CFGetAllocator(url);
     CFStringRef path;
 
@@ -4537,7 +4537,7 @@ Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBas
         CFRelease(path);
         return convResult;
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     path = CFURLCreateStringWithFileSystemPath(alloc, url, kCFURLWindowsPathStyle, resolveAgainstBase);
     if (path) {
         CFIndex usedLen;
@@ -4553,7 +4553,7 @@ Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBas
     return false;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_EXPORT Boolean _CFURLGetWideFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, wchar_t *buffer, CFIndex bufferLength) {
 	CFStringRef path = CFURLCreateStringWithFileSystemPath(CFGetAllocator(url), url, kCFURLWindowsPathStyle, resolveAgainstBase);
 	CFIndex pathLength, charsConverted, usedBufLen;

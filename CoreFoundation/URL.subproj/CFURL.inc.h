@@ -250,7 +250,7 @@
                 } else if (!sawPercent) {
                     flags |= POSIX_AND_URL_PATHS_MATCH;
                 }
-#elif TARGET_OS_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_LINUX || TARGET_OS_WIN32
                 if (!sawPercent) {
                     flags |= POSIX_AND_URL_PATHS_MATCH;
                 }

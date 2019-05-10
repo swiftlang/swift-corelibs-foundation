@@ -32,7 +32,7 @@ CFData read/write routines
 #include <sys/types.h>
 #include <pwd.h>
 #include <fcntl.h>
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #include <io.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -235,7 +235,7 @@ static Boolean _CFFileURLWritePropertiesToResource(CFURLRef url, CFDictionaryRef
             } else {
 #if TARGET_OS_OSX || TARGET_OS_IOS || TARGET_OS_LINUX || TARGET_OS_BSD
 #define MODE_TYPE mode_t
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #define MODE_TYPE uint16_t
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
