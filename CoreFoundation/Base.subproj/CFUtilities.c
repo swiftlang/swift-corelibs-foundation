@@ -264,19 +264,12 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     if (url) CFRelease(url);
 
     if (plist) {
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI
-	CFStringRef fullVersion, vers, versExtra, build;
-	CFStringRef versionString = CFRetain(_kCFSystemVersionProductVersionStringKey);
-	CFStringRef buildString = CFRetain(_kCFSystemVersionBuildStringKey);
-	CFStringRef fullVersionString = CFRetain(CFSTR("FullVersionString"));
-#else
 	CFBundleRef locBundle = NULL;
 	CFStringRef fullVersion, vers, versExtra, build;
 	CFStringRef versionString = _CFCopyLocalizedVersionKey(&locBundle, _kCFSystemVersionProductVersionStringKey);
 	CFStringRef buildString = _CFCopyLocalizedVersionKey(&locBundle, _kCFSystemVersionBuildStringKey);
 	CFStringRef fullVersionString = _CFCopyLocalizedVersionKey(&locBundle, CFSTR("FullVersionString"));
 	if (locBundle) CFRelease(locBundle);
-#endif
 
         // Now build the full version string
         if (CFEqual(fullVersionString, CFSTR("FullVersionString"))) {
@@ -719,7 +712,7 @@ typedef enum {
 
 static bool also_do_stderr(const _cf_logging_style style) {
     bool result = false;
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_LINUX
     // just log to stderr, other logging facilities are out
     result = true;
 #elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED

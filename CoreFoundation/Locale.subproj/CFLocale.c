@@ -52,18 +52,6 @@ uameasfmt_getUnitsForUsage( const char*     locale,
 #include <stdio.h>
 #include <string.h>
 
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI
-// Some compatibility definitions
-#define ULOC_FULLNAME_CAPACITY 157
-#define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
-
-//typedef long UErrorCode;
-//#define U_BUFFER_OVERFLOW_ERROR 15
-//#define U_ZERO_ERROR 0
-//
-//typedef uint16_t UChar;
-#endif
-
 #if DEPLOYMENT_TARGET_EMBEDDED
 #include <mach-o/dyld_priv.h>
 #endif

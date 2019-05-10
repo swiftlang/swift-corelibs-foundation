@@ -34,7 +34,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
-#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
 #elif DEPLOYMENT_TARGET_WINDOWS
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
