@@ -19,7 +19,7 @@
 #include <sys/socket.h>
 #endif
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 // On Mach these live in CF for historical reasons, even though they are declared in CFNetwork
 
 const int kCFStreamErrorDomainSSL = 3;
@@ -109,7 +109,7 @@ static struct {
 
 #define CFNETWORK_CALL(sym, args)		((CFNetworkSupport.sym)args)
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 #define CFNETWORK_LOAD_SYM(sym)   __CFLookupCFNetworkFunction(#sym)
 #elif DEPLOYMENT_TARGET_WINDOWS
 #define CFNETWORK_LOAD_SYM(sym)   (void *)GetProcAddress(CFNetworkSupport.image, #sym)
@@ -118,7 +118,7 @@ static struct {
 static void initializeCFNetworkSupport(void) {
     __CFBitSet(CFNetworkSupport.flags, kTriedToLoad);
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
     CFNetworkSupport._CFSocketStreamCreatePair = CFNETWORK_LOAD_SYM(_CFSocketStreamCreatePair);
     CFNetworkSupport._CFErrorCreateWithStreamError = CFNETWORK_LOAD_SYM(_CFErrorCreateWithStreamError);
     CFNetworkSupport._CFStreamErrorFromCFError = CFNETWORK_LOAD_SYM(_CFStreamErrorFromCFError);

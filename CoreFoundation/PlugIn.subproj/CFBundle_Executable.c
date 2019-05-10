@@ -89,7 +89,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
             }
         }
     }
-#elif TARGET_OS_OSX || TARGET_OS_IPHONE
+#elif TARGET_OS_MAC
     const uint8_t *image_suffix = (uint8_t *)__CFgetenvIfNotRestricted("DYLD_IMAGE_SUFFIX");
     
     if (image_suffix) {

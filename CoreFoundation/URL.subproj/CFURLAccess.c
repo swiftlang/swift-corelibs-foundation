@@ -45,7 +45,7 @@ CFData read/write routines
 #include <dlfcn.h>
 #endif
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 
 
 DEFINE_WEAK_CFNETWORK_FUNC_FAIL(Boolean, _CFURLCreateDataAndPropertiesFromResource, (CFAllocatorRef A, CFURLRef B, CFDataRef *C, CFDictionaryRef *D, CFArrayRef E, SInt32 *F), (A, B, C, D, E, F), { if(C) *C=NULL; if (D) *D=NULL; if(F) *F=kCFURLImproperArgumentsError; }, false)
@@ -712,7 +712,7 @@ Boolean CFURLCreateDataAndPropertiesFromResource(CFAllocatorRef alloc, CFURLRef 
         } else if (CFStringCompare(scheme, CFSTR("data"), kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
 	    result = _CFDataURLCreateDataAndPropertiesFromResource(alloc, url, fetchedData, desiredProperties, fetchedProperties, errorCode);
 	} else {
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
             result = __CFNetwork__CFURLCreateDataAndPropertiesFromResource(alloc, url, fetchedData, fetchedProperties, desiredProperties, errorCode);
 #else
             if (fetchedData) *fetchedData = NULL;
@@ -779,7 +779,7 @@ Boolean CFURLWriteDataAndPropertiesToResource(CFURLRef url, CFDataRef data, CFDi
         return success;
     } else {
         CFRelease(scheme);
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
         Boolean result = __CFNetwork__CFURLWriteDataAndPropertiesToResource(url, data, propertyDict, errorCode);
 	if (!result) {
 	    if (errorCode) *errorCode = kCFURLUnknownSchemeError;
@@ -825,7 +825,7 @@ Boolean CFURLDestroyResource(CFURLRef url, SInt32 *errorCode) {
         }
     } else {
         CFRelease(scheme);
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
         Boolean result = __CFNetwork__CFURLDestroyResource(url, errorCode);
 	if (!result) {
 	    if (errorCode) *errorCode = kCFURLUnknownSchemeError;

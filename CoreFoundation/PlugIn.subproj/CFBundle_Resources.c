@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
@@ -310,7 +310,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
     return CFSTR("MacOS");
 #elif DEPLOYMENT_TARGET_WINDOWS
     return CFSTR("Windows");

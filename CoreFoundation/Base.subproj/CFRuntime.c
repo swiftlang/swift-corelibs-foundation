@@ -21,7 +21,7 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFURLComponents.h>
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -60,7 +60,7 @@ __kCFReleaseEvent = 29
 
 #define FAKE_INSTRUMENTS 0
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 CF_PRIVATE void __CFOAInitializeNSObject(void);  // from NSObject.m
 
 bool __CFOASafe = false;
@@ -404,7 +404,7 @@ CF_INLINE uint32_t __CFHighRCFromInfo(__CFInfoType info) {
 CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
 #elif TARGET_OS_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
@@ -971,7 +971,7 @@ CF_PRIVATE void __CFTSDWindowsCleanup(void);
 CF_PRIVATE void __CFFinalizeWindowsThreadData();
 #endif
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 _Atomic(uint8_t) __CF120290 = false;
 static _Atomic(uint8_t) __CF120291 = false;
 _Atomic(uint8_t) __CF120293 = false;
@@ -1145,7 +1145,7 @@ void __CFInitialize(void) {
             }
         }
         
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
 	pthread_atfork(__01121__, NULL, __01123__);
@@ -1162,7 +1162,7 @@ void __CFInitialize(void) {
 #endif
         
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
         {
             CFIndex idx, cnt;
             char **args = *_NSGetArgv();
@@ -1205,7 +1205,7 @@ void __CFInitialize(void) {
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
             args = *_NSGetArgv();
             cnt = *_NSGetArgc();
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -1256,7 +1256,7 @@ void __CFInitialize(void) {
         if (value && (*value == 'Y' || *value == 'y')) __CFDeallocateZombies = 0xff;
 #endif
 
-#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && TARGET_OS_MAC
         CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
 #endif
 

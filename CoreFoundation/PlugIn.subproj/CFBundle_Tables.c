@@ -178,7 +178,7 @@ CF_EXPORT CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
         }
         _CFMutexLock(&CFBundleGlobalDataLock);
         result = _CFBundlePrimitiveGetBundleWithIdentifierAlreadyLocked(bundleID);
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
         if (!result) {
             // Try to create the bundle for the caller and try again
             void *p = __builtin_return_address(0);
