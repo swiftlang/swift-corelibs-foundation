@@ -289,13 +289,16 @@ class TestNSKeyedArchiver : XCTestCase {
                 guard let value = unarchiver.decodeObject(of: NSValue.self, forKey: "root") else {
                     return false
                 }
-                var expectedCharPtr: UnsafeMutablePointer<CChar>? = nil
-                value.getValue(&expectedCharPtr)
-                
-                let s1 = String(cString: charPtr)
-                let s2 = String(cString: expectedCharPtr!)
 
-                return s1 == s2
+                return withExtendedLifetime(value) { value in
+                    var expectedCharPtr: UnsafeMutablePointer<CChar>? = nil
+                    value.getValue(&expectedCharPtr)
+
+                    let s1 = String(cString: charPtr)
+                    let s2 = String(cString: expectedCharPtr!)
+
+                    return s1 == s2
+                }
         })
     }
     
