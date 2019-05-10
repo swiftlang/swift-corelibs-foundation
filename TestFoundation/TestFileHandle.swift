@@ -356,17 +356,17 @@ class TestFileHandle : XCTestCase {
             Thread.sleep(forTimeInterval: 0.001)
         }
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_fileDescriptor() throws {
         let handle = createFileHandle()
-        #if !os(Windows)
-        XCTAssertTrue(handle.fileDescriptor > 0, "File descriptor after opening should be valid (is \(handle.fileDescriptor))")
-        #endif
-        
+        XCTAssertTrue(handle._isPlatformHandleValid, "File descriptor after opening should be valid")
+
         try handle.close()
-        XCTAssertEqual(handle.fileDescriptor, -1, "File descriptor after closing should not be valid")
+        XCTAssertFalse(handle._isPlatformHandleValid, "File descriptor after closing should not be valid")
     }
-    
+#endif
+
     func test_availableData() {
         let handle = createFileHandle()
         
@@ -498,7 +498,6 @@ class TestFileHandle : XCTestCase {
             ("test_truncateFile", test_truncateFile),
             ("test_readabilityHandlerCloseFileRace", test_readabilityHandlerCloseFileRace),
             ("test_readabilityHandlerCloseFileRaceWithError", test_readabilityHandlerCloseFileRaceWithError),
-            ("test_fileDescriptor", test_fileDescriptor),
             ("test_availableData", test_availableData),
             ("test_readToEndOfFileInBackgroundAndNotify", test_readToEndOfFileInBackgroundAndNotify),
             ("test_readToEndOfFileAndNotify", test_readToEndOfFileAndNotify),
@@ -509,6 +508,7 @@ class TestFileHandle : XCTestCase {
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         tests.append(contentsOf: [
+            ("test_fileDescriptor", test_fileDescriptor),
             ("testHandleCreationAndCleanup", testHandleCreationAndCleanup),
             ("testOffset", testOffset),
         ])
