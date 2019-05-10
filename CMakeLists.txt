@@ -480,6 +480,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestNSRange.swift
                          TestFoundation/TestNSRegularExpression.swift
                          TestFoundation/TestNSSet.swift
+                         TestFoundation/TestNSSortDescriptor.swift
                          TestFoundation/TestNSString.swift
                          TestFoundation/TestNSTextCheckingResult.swift
                          TestFoundation/TestNSURLRequest.swift

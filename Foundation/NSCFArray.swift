@@ -125,6 +125,11 @@ internal func _CFSwiftArrayRemoveAllValues(_ array: AnyObject) {
 }
 
 internal func _CFSwiftArrayReplaceValues(_ array: AnyObject, _ range: CFRange, _ newValues: UnsafeMutablePointer<Unmanaged<AnyObject>>, _ newCount: CFIndex) {
-    NSUnimplemented()
-//    (array as! NSMutableArray).replaceObjectsInRange(NSRange(location: range.location, length: range.length), withObjectsFrom: newValues.array(newCount))
+    let buffer: UnsafeBufferPointer<Unmanaged<AnyObject>> = UnsafeBufferPointer(start: newValues, count: newCount)
+    let replacements = Array(buffer).map { $0.takeUnretainedValue() }
+    (array as! NSMutableArray).replaceObjects(in: NSRange(location: range.location, length: range.length), withObjectsFrom: replacements)
+}
+
+internal func _CFSwiftArrayIsSubclassOfNSMutableArray(_ array: AnyObject) -> _DarwinCompatibleBoolean {
+    return array is NSMutableArray ? true : false
 }

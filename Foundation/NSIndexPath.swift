@@ -120,3 +120,10 @@ extension NSIndexPath : _StructTypeBridgeable {
         return IndexPath._unconditionallyBridgeFromObjectiveC(self)
     }
 }
+
+extension NSIndexPath : _SwiftBridgeable {
+    var _swiftObject: IndexPath {
+        return _bridgeToSwift()
+    }
+}
+

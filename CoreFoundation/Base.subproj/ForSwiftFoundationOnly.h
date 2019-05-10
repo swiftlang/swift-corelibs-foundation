@@ -94,6 +94,7 @@ struct _NSArrayBridge {
     CFIndex (*_Nonnull count)(CFTypeRef obj);
     _Nonnull CFTypeRef (*_Nonnull objectAtIndex)(CFTypeRef obj, CFIndex index);
     void (*_Nonnull getObjects)(CFTypeRef array, CFRange range, CFTypeRef _Nullable *_Nonnull values);
+    Boolean (*_Nonnull isSubclassOfNSMutableArray)(CFTypeRef array);
 };
 
 struct _NSMutableArrayBridge {

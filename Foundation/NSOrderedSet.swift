@@ -255,7 +255,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
     // being made.
     public var array: [Any] {
         if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
-            return _orderedStorage._storage
+            return _orderedStorage._swiftObject
         } else {
             var result: [Any] = []
             result.reserveCapacity(self.count)
@@ -268,7 +268,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
 
     public var set: Set<AnyHashable> {
         if type(of: self) === NSOrderedSet.self || type(of: self) === NSMutableOrderedSet.self {
-            return _storage._storage
+            return _storage._swiftObject
         } else {
             var result: Set<AnyHashable> = []
             result.reserveCapacity(self.count)
@@ -391,6 +391,10 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
 
     public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
         self.init(array: Array(set), copyItems: flag)
+    }
+    
+    open func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] {
+        return self.array._nsObject.sortedArray(using: sortDescriptors)
     }
 }
 
@@ -663,6 +667,10 @@ open class NSMutableOrderedSet: NSOrderedSet {
     open func sortRange(_ range: NSRange, options opts: NSSortOptions = [], usingComparator cmptr: (Any, Any) -> ComparisonResult) {
         let sortedSubrange = _mutableOrderedStorage.sortedArray(from: range, options: opts, usingComparator: cmptr)
         _mutableOrderedStorage.replaceObjects(in: range, withObjectsFrom: sortedSubrange)
+    }
+    
+    open func sort(using sortDescriptors: [NSSortDescriptor]) {
+        _mutableOrderedStorage.sort(using: sortDescriptors)
     }
 }
 
