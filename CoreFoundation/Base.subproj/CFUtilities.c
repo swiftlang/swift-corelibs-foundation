@@ -14,7 +14,7 @@
 #include "CFLocaleInternal.h"
 #include "CFBundle_Internal.h"
 #include <CoreFoundation/CFPriv.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFURLAccess.h>
@@ -29,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <asl.h>
 #else
 #define ASL_LEVEL_EMERG 0
@@ -225,7 +225,7 @@ static CFStringRef copySystemVersionPath(CFStringRef suffix) {
 // Looks for localized version of "nonLocalized" in the SystemVersion bundle
 // If not found, and returnNonLocalizedFlag == true, will return the non localized string (retained of course), otherwise NULL
 // If bundlePtr != NULL, will use *bundlePtr and will return the bundle in there; otherwise bundle is created and released
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRef nonLocalized) {
     CFStringRef localized = NULL;
     CFBundleRef locBundle = bundlePtr ? *bundlePtr : NULL;
@@ -392,7 +392,7 @@ CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 CF_PRIVATE void *__CFLookupCoreServicesInternalFunction(const char *name) {
     static void *image = NULL;
     static dispatch_once_t onceToken;
@@ -692,7 +692,7 @@ void CFShow(const void *obj) {
 // message must be a UTF8-encoded, null-terminated, byte buffer with at least length bytes
 typedef void (*CFLogFunc)(int32_t lev, const char *message, size_t length, char withBanner);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 static Boolean debugger_attached() {
     BOOL debuggerAttached = NO;
     struct proc_bsdshortinfo info;
@@ -715,7 +715,7 @@ static bool also_do_stderr(const _cf_logging_style style) {
 #if DEPLOYMENT_TARGET_LINUX
     // just log to stderr, other logging facilities are out
     result = true;
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     if (style == _cf_logging_style_os_log) {
         //
         // This might seem a bit odd, so an explanation is in order:
@@ -889,7 +889,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
         _populateBanner(&banner, &time, &thread, &bannerLen);
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
@@ -1037,7 +1037,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
 
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 kern_return_t _CFDiscorporateMemoryAllocate(CFDiscorporateMemory *hm, size_t size, bool purgeable) {
     kern_return_t ret = KERN_SUCCESS;

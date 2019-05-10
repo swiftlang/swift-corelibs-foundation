@@ -421,7 +421,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // Be sure to call this before your SAFE_STACK_BUFFER exits scope.
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
-#endif // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#endif // !DEPLOYMENT_TARGET_WINDOWS
 
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
@@ -856,7 +856,7 @@ CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
 //   DEFINE_WEAK_CARBONCORE_FUNC(void, DisposeHandle, (Handle h), (h))
 //
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 extern void *__CFLookupCFNetworkFunction(const char *name);
 
@@ -881,7 +881,7 @@ extern void *__CFLookupCFNetworkFunction(const char *name);
 
 #define DEFINE_WEAK_CARBONCORE_FUNC(R, N, P, A, ...)
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 extern void *__CFLookupCoreServicesInternalFunction(const char *name);
 
@@ -1083,7 +1083,7 @@ CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data);
 #pragma mark -
 #pragma mark CF Instruments SPI
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 extern void __CFRecordAllocationEvent(int eventnum, void *ptr, int64_t size, uint64_t data, const char *classname);
 #else
 #define __CFRecordAllocationEvent(a, b, c, d, e) ((void)0)

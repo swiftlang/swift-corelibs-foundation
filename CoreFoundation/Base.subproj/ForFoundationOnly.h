@@ -55,7 +55,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if (INCLUDE_OBJC || DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
 #include <objc/message.h>
 #endif
 
@@ -465,7 +465,7 @@ CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex 
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 /* Enumeration
  Call CFStartSearchPathEnumeration() once, then call
  CFGetNextSearchPathEnumeration() one or more times with the returned state.
@@ -545,7 +545,7 @@ CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 typedef struct {
     mach_vm_address_t address;
     mach_vm_size_t size;
@@ -586,7 +586,7 @@ CF_INLINE UInt64 __CFReadTSR(void) {
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 /* Identical to CFStringGetFileSystemRepresentation, but returns additional information about the failure.
  */

@@ -1029,7 +1029,7 @@ static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) 
 
 static _CFThreadRef __cfSocketTid()
 {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     uint64_t tid = 0;
     if (0 != pthread_threadid_np(NULL, &tid))
         tid = pthread_mach_thread_np(pthread_self());

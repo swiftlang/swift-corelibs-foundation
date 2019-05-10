@@ -33,7 +33,7 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFCalendar.h>
-#if DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_IPHONE
 // This isn't in the embedded runtime.h header
 OBJC_EXPORT void *objc_destructInstance(id obj);
 #endif
@@ -60,7 +60,7 @@ __kCFReleaseEvent = 29
 
 #define FAKE_INSTRUMENTS 0
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 CF_PRIVATE void __CFOAInitializeNSObject(void);  // from NSObject.m
 
 bool __CFOASafe = false;
@@ -404,7 +404,7 @@ CF_INLINE uint32_t __CFHighRCFromInfo(__CFInfoType info) {
 CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
 #elif DEPLOYMENT_TARGET_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
@@ -1162,7 +1162,7 @@ void __CFInitialize(void) {
 #endif
         
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         {
             CFIndex idx, cnt;
             char **args = *_NSGetArgv();
@@ -1256,7 +1256,7 @@ void __CFInitialize(void) {
         if (value && (*value == 'Y' || *value == 'y')) __CFDeallocateZombies = 0xff;
 #endif
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
         CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
 #endif
 

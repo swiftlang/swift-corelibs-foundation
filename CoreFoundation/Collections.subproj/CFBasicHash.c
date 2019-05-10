@@ -20,7 +20,7 @@
 #endif
 #include "CFOverflow.h"
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #define __SetLastAllocationEventName(A, B) do { if (__CFOASafe && (A)) __CFSetLastAllocationEventName(A, B); } while (0)
 #else
 #define __SetLastAllocationEventName(A, B) do { } while (0)

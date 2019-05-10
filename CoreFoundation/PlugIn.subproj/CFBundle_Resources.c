@@ -430,7 +430,7 @@ static _CFBundleFileVersion _CFBundleVersionForFileName(CFStringRef fileName, CF
         if (c == '.') {
             dotLocation = i;
         }
-#if DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_IPHONE
         // Product names are only supported on iOS
         // ref docs here: "iOS Supports Device-Specific Resources" in "Resource Programming Guide"
         else if (c == '~' && !foundProduct) {

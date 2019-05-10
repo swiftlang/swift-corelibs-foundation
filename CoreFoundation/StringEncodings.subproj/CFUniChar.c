@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <mach/mach.h>
 #endif
 
@@ -32,7 +32,7 @@
 extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
 #elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
@@ -40,7 +40,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #define USE_MACHO_SEGMENT 1
 #elif DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD || DEPLOYMENT_TARGET_WINDOWS)
 #define USE_RAW_SYMBOL 1
@@ -56,7 +56,7 @@ enum {
 CF_INLINE uint32_t __CFUniCharMapExternalSetToInternalIndex(uint32_t cset) { return ((kCFUniCharFirstInternalSet <= cset) ? ((cset - kCFUniCharFirstInternalSet) + kCFUniCharLastExternalSet) : cset) - kCFUniCharFirstBitmapSet; }
 CF_INLINE uint32_t __CFUniCharMapCompatibilitySetID(uint32_t cset) { return ((cset == kCFUniCharControlCharacterSet) ? kCFUniCharControlAndFormatterCharacterSet : (((cset > kCFUniCharLastExternalSet) && (cset < kCFUniCharFirstInternalSet)) ? ((cset - kCFUniCharLastExternalSet) + kCFUniCharFirstInternalSet) : cset)); }
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && USE_MACHO_SEGMENT
+#if (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE) && USE_MACHO_SEGMENT
 #include <mach-o/getsect.h>
 #include <mach-o/dyld.h>
 #include <mach-o/ldsyms.h>
@@ -114,7 +114,7 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
 #elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);

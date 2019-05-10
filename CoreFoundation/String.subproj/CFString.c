@@ -34,7 +34,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #include <unistd.h>
 #endif
 
@@ -6740,7 +6740,7 @@ static CFIndex __CFStringValidateFormat(CFStringRef expected, CFStringRef untrus
 
     if (!verified) {
         if (errorPtr) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
             CFStringRef debugMsg = CFStringCreateWithFormat(tmpAlloc, NULL, CFSTR("Format '%@' does not match expected '%@'"), untrustedFormat, expected);
             CFMutableDictionaryRef userInfo = CFDictionaryCreateMutable(tmpAlloc, 0, &kCFCopyStringDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
             CFDictionarySetValue(userInfo, kCFErrorDebugDescriptionKey, debugMsg);

@@ -45,7 +45,7 @@ extern "C" {
 #define pthread_set_qos_class_self_np(A, B) do {} while (0)
 #define pthread_override_qos_class_start_np(A, B, C) (NULL)
 #define pthread_override_qos_class_end_np(A) do {} while (0)
-#elif (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#elif (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
 #include <pthread.h>
 #include <pthread/qos.h>
 #endif

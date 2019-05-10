@@ -1498,7 +1498,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 }
 
 CF_EXPORT char **_CFEnviron(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     return *_NSGetEnviron();
 #elif DEPLOYMENT_TARGET_WINDOWS
     return _environ;

@@ -194,7 +194,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
     if (!foundIt) {
         if (lookupMainExe) executableName = _CFBundleCopyExecutableName(bundle, url, infoDict);
         if (executableName) {
-#if (DEPLOYMENT_TARGET_EMBEDDED && !TARGET_IPHONE_SIMULATOR)
+#if (TARGET_OS_IPHONE && !TARGET_IPHONE_SIMULATOR)
             Boolean doExecSearch = false;
 #else
             Boolean doExecSearch = true;

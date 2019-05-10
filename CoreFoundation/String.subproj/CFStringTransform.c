@@ -28,7 +28,7 @@ static const char *__CFStringTransformGetICUIdentifier(CFStringRef identifier);
 #include <stdio.h>
 #endif
 
-#if DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_IPHONE
 #define LITE_CACHE 1
 #endif
 

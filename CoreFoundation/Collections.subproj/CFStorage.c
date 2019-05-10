@@ -1091,7 +1091,7 @@ CFStorageRef CFStorageCreate(CFAllocatorRef allocator, CFIndex valueSize) {
     storage->valueSize = valueSize;
     /* if valueSize is a power of 2, then set the shifter to the log base 2 of valueSize.  Otherwise set it to NO_SHIFTER */
     if (valueSize > 0 && !(valueSize & (valueSize - 1))) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 	storage->byteToValueShifter = __builtin_ctzl(valueSize);
 #else
 	CFIndex tempSize = valueSize;
