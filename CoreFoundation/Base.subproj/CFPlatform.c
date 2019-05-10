@@ -295,7 +295,7 @@ CF_EXPORT CFStringRef CFCopyUserName(void) {
     return result;
 }
 
-#if DEPLOYMENT_TARGET_ANDROID
+#if TARGET_OS_ANDROID
 #define pw_gecos pw_name
 #endif
 

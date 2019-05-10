@@ -163,7 +163,7 @@ static Boolean _CFBundleURLIsForFHSInstalledBundle(CFURLRef bundleURL) {
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 
 CF_CROSS_PLATFORM_EXPORT Boolean _CFBundleSupportsFHSBundles() {
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
     return true;
 #else
     return false;

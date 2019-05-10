@@ -107,8 +107,8 @@ if [ ! -f libFoundation.so ]; then
                     BUILD_DIR="$SWIFT_ANDROID_BUILD_PATH/foundation-linux-x86_64" \
                     DSTROOT="/" \
                     PREFIX="/usr" \
-                    CFLAGS="-DDEPLOYMENT_TARGET_ANDROID -DDEPLOYMENT_ENABLE_LIBDISPATCH --sysroot=$ANDROID_NDK_PATH/platforms/android-21/arch-arm -I$ANDROID_ICU_PATH/armeabi-v7a/include -I${SDKROOT}/lib/swift -I$ANDROID_NDK_PATH/sources/android/support/include -I$ANDROID_STANDALONE_SYSROOT/usr/include -I$SWIFT_PATH/swift-corelibs-foundation/closure" \
-                    SWIFTCFLAGS="-DDEPLOYMENT_TARGET_ANDROID -DDEPLOYMENT_ENABLE_LIBDISPATCH -I$ANDROID_NDK_PATH/platforms/android-21/arch-arm/usr/include" \
+                    CFLAGS="-DDEPLOYMENT_ENABLE_LIBDISPATCH --sysroot=$ANDROID_NDK_PATH/platforms/android-21/arch-arm -I$ANDROID_ICU_PATH/armeabi-v7a/include -I${SDKROOT}/lib/swift -I$ANDROID_NDK_PATH/sources/android/support/include -I$ANDROID_STANDALONE_SYSROOT/usr/include -I$SWIFT_PATH/swift-corelibs-foundation/closure" \
+                    SWIFTCFLAGS="-DDEPLOYMENT_ENABLE_LIBDISPATCH -I$ANDROID_NDK_PATH/platforms/android-21/arch-arm/usr/include" \
                     LDFLAGS="-fuse-ld=gold --sysroot=$ANDROID_NDK_PATH/platforms/android-21/arch-arm -L$ANDROID_NDK_PATH/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/lib/gcc/arm-linux-androideabi/4.9.x -L$ANDROID_ICU_PATH/armeabi-v7a -L$ANDROID_STANDALONE_SYSROOT/usr/lib -ldispatch " \
                     ./configure \
                         Release \

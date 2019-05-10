@@ -229,7 +229,7 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if TARGET_RT_64_BIT || DEPLOYMENT_TARGET_ANDROID
+#if TARGET_RT_64_BIT || TARGET_OS_ANDROID
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else

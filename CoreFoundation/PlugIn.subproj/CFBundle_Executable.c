@@ -16,7 +16,7 @@
 #include <dlfcn.h>
 #endif
 
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 
     #if TARGET_OS_LINUX
         #if TARGET_RT_64_BIT
@@ -49,7 +49,7 @@
         _kCFBundleFHSDirectory_lib
 #endif // TARGET_OS_LINUX
 
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 
 // This is here because on iPhoneOS with the dyld shared cache, we remove binaries from their
 // original locations on disk, so checking whether a binary's path exists is no longer sufficient.
@@ -200,7 +200,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
             Boolean doExecSearch = true;
 #endif
             
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
             if (lookupMainExe && bundle && bundle->_isFHSInstalledBundle) {
                 // For a FHS installed bundle, the URL points to share/Bundle.resources, and the binary is in:
                 
@@ -224,13 +224,13 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                 
                 CFRelease(prefixPath);
             }
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
             
             // Now, look for the executable inside the bundle.
             if (!foundIt && doExecSearch && 0 != version) {
                 CFURLRef exeDirURL = NULL;
                 
-#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
                 if (bundle && bundle->_isFHSInstalledBundle) {
                     CFURLRef withoutExtension = CFURLCreateCopyDeletingPathExtension(kCFAllocatorSystemDefault, url);
                     CFStringRef lastPathComponent = CFURLCopyLastPathComponent(withoutExtension);
@@ -245,7 +245,7 @@ static CFURLRef _CFBundleCopyExecutableURLInDirectory2(CFBundleRef bundle, CFURL
                     CFRelease(libexec);
                     CFRelease(exeDirName);
                 } else
-#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !DEPLOYMENT_TARGET_ANDROID
+#endif // !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
                 if (1 == version) {
                     exeDirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, _CFBundleExecutablesURLFromBase1, url);
                 } else if (2 == version) {
