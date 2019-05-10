@@ -500,7 +500,7 @@ CF_EXPORT Boolean _CFBundleDlfcnPreflight(CFBundleRef bundle, CFErrorRef *error)
         
         retval = false;
         if (executableURL && CFURLGetFileSystemRepresentation(executableURL, true, (uint8_t *)buff, CFMaxPathSize)) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
             retval = dlopen_preflight(buff);
 #endif
             if (!retval && error) {
@@ -519,7 +519,7 @@ CF_EXPORT Boolean _CFBundleDlfcnPreflight(CFBundleRef bundle, CFErrorRef *error)
                     if (hasSuitableArch) {
                         uint32_t mainFlags = 0;
                         if (_CFBundleGrokObjCImageInfoFromMainExecutable(NULL, &mainFlags) && (mainFlags & 0x2) != 0) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
                             uint32_t bundleFlags = 0;
                             if (_CFBundleGetObjCImageInfo(bundle, NULL, &bundleFlags) && (bundleFlags & 0x2) == 0) hasRuntimeMismatch = true;
 #endif

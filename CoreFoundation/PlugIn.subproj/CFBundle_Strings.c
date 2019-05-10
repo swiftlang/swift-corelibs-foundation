@@ -11,7 +11,7 @@
 #include "CFBundle_Internal.h"
 #include "CFCollections_Internal.h"
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 
 #endif
 

@@ -39,7 +39,7 @@
 #endif
 #endif /* BINARY_SUPPORT_DLFCN */
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <fcntl.h>
 #elif DEPLOYMENT_TARGET_WINDOWS
 #include <fcntl.h>
@@ -200,7 +200,7 @@ CF_PRIVATE os_log_t _CFBundleLocalizedStringLogger(void) {
 
 #pragma mark -
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 // Some apps may rely on the fact that CFBundle used to allow bundle objects to be deallocated (despite handing out unretained pointers via CFBundleGetBundleWithIdentifier or CFBundleGetAllBundles). To remain compatible even in the face of unsafe behavior, we can optionally use unsafe-unretained memory management for holding on to bundles.
 static Boolean _useUnsafeUnretainedTables(void) {
     return false;
@@ -220,7 +220,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle) {
     // Add to the _allBundles list
     if (!_allBundles) {
         CFArrayCallBacks callbacks = kCFTypeArrayCallBacks;
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
         if (_useUnsafeUnretainedTables()) {
             callbacks.retain = NULL;
             callbacks.release = NULL;
@@ -279,7 +279,7 @@ static void _CFBundleAddToTables(CFBundleRef bundle) {
 
 static void _CFBundleRemoveFromTables(CFBundleRef bundle, CFURLRef bundleURL, CFStringRef bundleID) {
     // Since we no longer allow bundles to be removed from tables, this method does nothing. Modifying the tables during deallocation is risky because if the caller has over-released the bundle object then we will deadlock on the global lock.
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     if (_useUnsafeUnretainedTables()) {
         // Except for special cases of unsafe-unretained, where we must clean up the table or risk handing out a zombie object. There may still be outstanding pointers to these bundes (e.g. the result of CFBundleGetBundleWithIdentifier) but there is nothing we can do about that after this point.
         
@@ -512,7 +512,7 @@ CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
         }
         
         result = _CFBundleGetFromTables(bundleID);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
         if (!result) {
             // Try to create the bundle for the caller and try again
             void *p = __builtin_return_address(0);
@@ -762,7 +762,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     bundle->_sharesStringsFiles = false;
     bundle->_isUnique = unique;
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (!__CFgetenv("CFBundleDisableStringsSharing") && 
         (strncmp(buff, "/System/Library/Frameworks", 26) == 0) && 
         (strncmp(buff + strlen(buff) - 10, ".framework", 10) == 0)) bundle->_sharesStringsFiles = true;

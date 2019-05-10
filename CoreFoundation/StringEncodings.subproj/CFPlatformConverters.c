@@ -27,7 +27,7 @@ CF_INLINE bool __CFIsPlatformConverterAvailable(int encoding) {
 #endif
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 
 static const CFStringEncodingConverter __CFICUBootstrap = {
     .toBytes.standard = NULL,
@@ -65,7 +65,7 @@ CF_PRIVATE const CFStringEncodingConverter *__CFStringEncodingGetExternalConvert
     if (__CFIsPlatformConverterAvailable(encoding)) {
         return &__CFPlatformBootstrap;
     } else {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         if (__CFStringEncodingGetICUName(encoding)) {
             return &__CFICUBootstrap;
         }
@@ -74,7 +74,7 @@ CF_PRIVATE const CFStringEncodingConverter *__CFStringEncodingGetExternalConvert
     }
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 CF_PRIVATE CFStringEncoding *__CFStringEncodingCreateListOfAvailablePlatformConverters(CFAllocatorRef allocator, CFIndex *numberOfConverters) {
 
     return NULL;

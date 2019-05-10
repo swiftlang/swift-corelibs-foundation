@@ -20,7 +20,7 @@
 #endif
 #include "CFOverflow.h"
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #define __SetLastAllocationEventName(A, B) do { if (__CFOASafe && (A)) __CFSetLastAllocationEventName(A, B); } while (0)
 #else
 #define __SetLastAllocationEventName(A, B) do { } while (0)
@@ -362,7 +362,7 @@ static inline void *CFBasicHashGetPtrAtIndex(int32_t i) __attribute__((no_saniti
 }
 
 CF_PRIVATE Boolean CFBasicHashHasStrongValues(CFConstBasicHashRef ht) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return ht->bits.strong_values ? true : false;
 #else
     return false;
@@ -370,7 +370,7 @@ CF_PRIVATE Boolean CFBasicHashHasStrongValues(CFConstBasicHashRef ht) {
 }
 
 CF_PRIVATE Boolean CFBasicHashHasStrongKeys(CFConstBasicHashRef ht) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return ht->bits.strong_keys ? true : false;
 #else
     return false;
@@ -378,7 +378,7 @@ CF_PRIVATE Boolean CFBasicHashHasStrongKeys(CFConstBasicHashRef ht) {
 }
 
 CF_INLINE Boolean __CFBasicHashHasHashCache(CFConstBasicHashRef ht) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return ht->bits.hashes_offset ? true : false;
 #else
     return false;

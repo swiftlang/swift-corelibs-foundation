@@ -2320,7 +2320,7 @@ static CFStringEncoding encodingForXMLData(CFDataRef data, CFErrorRef *error, CF
         if (len == 5 && (*base == 'u' || *base == 'U') && (base[1] == 't' || base[1] == 'T') && (base[2] == 'f' || base[2] == 'F') && (base[3] == '-') && (base[4] == '8'))
             return kCFStringEncodingUTF8;
         encodingName = CFStringCreateWithBytes(kCFAllocatorSystemDefault, base, len, kCFStringEncodingISOLatin1, false);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         CFStringEncoding enc = CFStringConvertIANACharSetNameToEncoding(encodingName);
         if (enc != kCFStringEncodingInvalidId) {
             CFRelease(encodingName);

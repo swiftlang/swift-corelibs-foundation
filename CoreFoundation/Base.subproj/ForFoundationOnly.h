@@ -50,12 +50,12 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
-#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#elif TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <malloc/malloc.h>
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if (INCLUDE_OBJC || TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
 #include <objc/message.h>
 #endif
 
@@ -465,7 +465,7 @@ CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex 
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 /* Enumeration
  Call CFStartSearchPathEnumeration() once, then call
  CFGetNextSearchPathEnumeration() one or more times with the returned state.
@@ -545,7 +545,7 @@ CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 typedef struct {
     mach_vm_address_t address;
     mach_vm_size_t size;
@@ -572,7 +572,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags
 CF_EXPORT CFRange _CFDataFindBytes(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     #if !defined(__CFReadTSR)
     #define __CFReadTSR() mach_absolute_time()
     #endif
@@ -586,7 +586,7 @@ CF_INLINE UInt64 __CFReadTSR(void) {
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 
 /* Identical to CFStringGetFileSystemRepresentation, but returns additional information about the failure.
  */

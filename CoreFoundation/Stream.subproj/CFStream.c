@@ -1742,7 +1742,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
             _CFThreadRef workThread;

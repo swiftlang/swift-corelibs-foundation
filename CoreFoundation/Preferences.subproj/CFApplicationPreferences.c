@@ -17,7 +17,7 @@
 #include <CoreFoundation/CFNumberFormatter.h>
 #include <CoreFoundation/CFDateFormatter.h>
 #include <sys/types.h>
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <unistd.h>
 #endif
 

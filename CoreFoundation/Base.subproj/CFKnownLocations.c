@@ -18,7 +18,7 @@
 CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUser user, CFStringRef _Nullable username) {
     CFURLRef location = NULL;
     
-#if (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if (TARGET_OS_OSX || TARGET_OS_IPHONE)
     
 /*
  Building for a Darwin OS. (We use these paths on Swift builds as well, so that we can interoperate a little with Darwin's defaults(1) command and the other system facilities; but you want to use the system version of CF if possible on those platforms, which will talk to cfprefsd(8) and has stronger interprocess consistency guarantees.)

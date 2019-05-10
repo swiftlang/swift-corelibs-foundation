@@ -17,7 +17,7 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <malloc/malloc.h>
 #include <mach/mach.h>
 #include <dlfcn.h>
@@ -29,7 +29,7 @@
 
 struct __CFAllocator {
     CFRuntimeBase _base;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     // CFAllocator structure must match struct _malloc_zone_t!
     // The first two reserved fields in struct _malloc_zone_t are for us with CFRuntimeBase
     size_t 	(*size)(struct _malloc_zone_t *zone, const void *ptr); /* returns the size of a block or 0 if not in this zone; must be fast, especially for negative answers */
@@ -465,7 +465,7 @@ void CFAllocatorSetDefault(CFAllocatorRef allocator) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator && allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return;		// require allocator to this function to be an allocator
     }
@@ -491,7 +491,7 @@ static CFAllocatorRef __CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorC
     CFAllocatorRetainCallBack retainFunc;
     CFAllocatorAllocateCallBack allocateFunc;
     void *retainedInfo;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator && kCFAllocatorUseContext != allocator && allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return NULL;	// require allocator to this function to be an allocator
     }
@@ -525,7 +525,7 @@ static CFAllocatorRef __CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorC
     memset(memory, 0, sizeof(CFRuntimeBase));
     __CFRuntimeSetRC(memory, 1);
     _CFAllocatorSetInstanceTypeIDAndIsa(memory);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     memory->size = __CFAllocatorCustomSize;
     memory->malloc = __CFAllocatorCustomMalloc;
     memory->calloc = __CFAllocatorCustomCalloc;
@@ -574,7 +574,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
 	allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
     if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
@@ -582,7 +582,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     if (0 == size) return NULL;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_IOS_IPHONE
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_malloc((malloc_zone_t *)allocator, size);
     }
@@ -605,7 +605,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
     if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
@@ -613,7 +613,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     if (NULL == ptr && 0 < newsize) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 	if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	    return malloc_zone_malloc((malloc_zone_t *)allocator, newsize);
 	}
@@ -626,7 +626,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	return newptr;
     }
     if (NULL != ptr && 0 == newsize) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 	if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	    size_t size = malloc_size(ptr);
@@ -643,7 +643,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	return NULL;
     }
     if (NULL == ptr && 0 == newsize) return NULL;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_realloc((malloc_zone_t *)allocator, ptr, newsize);
     }
@@ -661,14 +661,14 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr) {
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
     if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	size_t size = malloc_size(ptr);
@@ -691,14 +691,14 @@ CFIndex CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex siz
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
     if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_good_size(size);
     }
@@ -716,7 +716,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
         allocator = __CFGetDefaultAllocator();
     }
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
     if (allocator->_base._cfisa == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
@@ -724,7 +724,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if (allocator->_base._cfisa != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return;
     }

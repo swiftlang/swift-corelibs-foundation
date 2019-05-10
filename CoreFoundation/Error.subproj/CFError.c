@@ -14,7 +14,7 @@
 #include "CFRuntime_Internal.h"
 #include <CoreFoundation/CFPriv.h>
 #include <CoreFoundation/ForFoundationOnly.h>
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <mach/mach_error.h>
 #endif
 
@@ -250,7 +250,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
             if (reason) {
                 CFStringRef const backstopComboString = CFSTR("%@ %@");
                 CFStringRef comboString = backstopComboString;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
                 CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
                 if (cfBundle) comboString = CFCopyLocalizedStringFromTableInBundle(CFSTR("%@ %@"), CFSTR("Error"), cfBundle, "Used for presenting the 'what failed' and 'why it failed' sections of an error message, where each one is one or more complete sentences. The first %@ corresponds to the 'what failed' (For instance 'The file could not be saved.') and the second one 'why it failed' (For instance 'The volume is out of space.')");
 #endif
@@ -265,7 +265,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
         }
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
     // Cache the CF bundle since we will be using it for localized strings. Note that for platforms without bundle support we also go this non-localized route.
     CFBundleRef cfBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreFoundation"));
     if (!cfBundle) {	// This should be rare, but has been observed in the wild, due to running out of file descriptors. Normally we might not go to such extremes, but since we want to be able to present reasonable errors even in the case of errors such as running out of file descriptors, why not. This is CFError after all. !!! Be sure to have the same logic here as below for going through various options for fetching the strings.
@@ -281,7 +281,7 @@ CFStringRef _CFErrorCreateLocalizedDescription(CFErrorRef err) {
 	}
 	if (reasonOrDesc) CFRelease(reasonOrDesc);
 	return result;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
     }
     
     // Then look for kCFErrorLocalizedFailureReasonKey; if there, create a full sentence from that.
@@ -495,7 +495,7 @@ static CFTypeRef _CFErrorPOSIXCallBack(CFErrorRef err, CFStringRef key) CF_RETUR
     if (!errStr) return NULL;
     if (CFEqual(key, kCFErrorDescriptionKey)) return errStr;	// If all we wanted was the non-localized description, we're done
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     // We need a kCFErrorLocalizedFailureReasonKey, so look up a possible localization for the error message
     // Look for the bundle in /System/Library/CoreServices/CoreTypes.bundle
     CFArrayRef paths = CFCopySearchPathForDirectoriesInDomains(kCFLibraryDirectory, kCFSystemDomainMask, false);
@@ -534,7 +534,7 @@ static CFTypeRef _CFErrorPOSIXCallBack(CFErrorRef err, CFStringRef key) CF_RETUR
     return errStr;
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 /* Built-in callback for Mach domain.
 */
 static CFTypeRef _CFErrorMachCallBack(CFErrorRef err, CFStringRef key) CF_RETURNS_RETAINED {
@@ -565,7 +565,7 @@ static void _CFErrorInitializeCallBackTable(void) {
         _CFErrorCallBackTable = table;
         // Register the known providers, going thru a special variant of the function that doesn't lock
         __CFErrorSetCallBackForDomainNoLock(kCFErrorDomainPOSIX, _CFErrorPOSIXCallBack);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
         __CFErrorSetCallBackForDomainNoLock(kCFErrorDomainMach, _CFErrorMachCallBack);
 #endif
         __CFUnlock(&_CFErrorSpinlock);

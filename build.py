@@ -22,7 +22,6 @@ elif Configuration.current.target.sdk == OSType.FreeBSD:
 	foundation.CFLAGS = '-I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
 	foundation.LDFLAGS = ''
 elif Configuration.current.target.sdk == OSType.MacOSX:
-	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	foundation.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,CoreFoundation/Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CoreFoundation/CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CoreFoundation/CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
 elif Configuration.current.target.sdk == OSType.Win32 and Configuration.current.target.environ == EnvironmentType.Cygnus:
 	foundation.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -mcmodel=large '

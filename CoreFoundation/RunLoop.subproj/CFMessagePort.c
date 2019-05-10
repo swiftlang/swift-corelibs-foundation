@@ -28,7 +28,7 @@
 #include <dlfcn.h>
 #if __HAS_DISPATCH__
 #include <dispatch/dispatch.h>
-#if (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE) && __has_include(<dispatch/private.h>)
+#if (TARGET_OS_OSX || TARGET_OS_IPHONE) && __has_include(<dispatch/private.h>)
 #include <dispatch/private.h>
 #endif
 #endif

@@ -21,7 +21,7 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFURLComponents.h>
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -60,7 +60,7 @@ __kCFReleaseEvent = 29
 
 #define FAKE_INSTRUMENTS 0
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 CF_PRIVATE void __CFOAInitializeNSObject(void);  // from NSObject.m
 
 bool __CFOASafe = false;
@@ -404,7 +404,7 @@ CF_INLINE uint32_t __CFHighRCFromInfo(__CFInfoType info) {
 CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
 #elif DEPLOYMENT_TARGET_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
@@ -601,7 +601,7 @@ enum {
     __kCFObjectReleasedEvent = 13
 };
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #define NUM_EXTERN_TABLES 8
 #define EXTERN_TABLE_IDX(O) (((uintptr_t)(O) >> 8) & 0x7)
 #else
@@ -971,7 +971,7 @@ CF_PRIVATE void __CFTSDWindowsCleanup(void);
 CF_PRIVATE void __CFFinalizeWindowsThreadData();
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 _Atomic(uint8_t) __CF120290 = false;
 static _Atomic(uint8_t) __CF120291 = false;
 _Atomic(uint8_t) __CF120293 = false;
@@ -989,7 +989,7 @@ static void __01123__(void) {
     // This is not a problem for CF.
     if (__CF120290) {
 	__CF120293 = true;
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 	if (__CF120291) {
 	    CRSetCrashLogMessage2("*** multi-threaded process forked ***");
 	} else {
@@ -1145,7 +1145,7 @@ void __CFInitialize(void) {
             }
         }
         
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
 	pthread_atfork(__01121__, NULL, __01123__);
@@ -1162,7 +1162,7 @@ void __CFInitialize(void) {
 #endif
         
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
         {
             CFIndex idx, cnt;
             char **args = *_NSGetArgv();
@@ -1205,7 +1205,7 @@ void __CFInitialize(void) {
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
             args = *_NSGetArgv();
             cnt = *_NSGetArgc();
 #elif DEPLOYMENT_TARGET_WINDOWS
@@ -1256,7 +1256,7 @@ void __CFInitialize(void) {
         if (value && (*value == 'Y' || *value == 'y')) __CFDeallocateZombies = 0xff;
 #endif
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#if defined(DEBUG) && (TARGET_OS_OSX || TARGET_OS_IPHONE)
         CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
 #endif
 

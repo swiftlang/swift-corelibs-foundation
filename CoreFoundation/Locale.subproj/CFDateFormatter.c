@@ -1557,7 +1557,7 @@ static UDate __CFDateFormatterCorrectTimeToARangeAroundCurrentDate(UCalendar *ca
     return __CFDateFormatterCorrectTimeWithTarget(calendar, at, currEraOrCentury+offset, isEra, status);
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 static int32_t __CFDateFormatterGetMaxYearGivenJapaneseEra(UCalendar *calendar, int32_t era, UErrorCode *status) {
     int32_t years = 0;
     __cficu_ucal_clear(calendar);
@@ -1610,7 +1610,7 @@ static Boolean __CFDateFormatterHandleAmbiguousYear(CFDateFormatterRef formatter
             }
         }
     } else if (calendar_id == kCFCalendarIdentifierJapanese) { // ??? need more work
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         __cficu_ucal_clear(cal);
         __cficu_ucal_set(cal, UCAL_ERA, 1);
         __cficu_udat_parseCalendar(df, cal, ustr, length, NULL, status);

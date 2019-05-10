@@ -15,7 +15,7 @@
 #include "CFStringEncodingConverterExt.h"
 #include "CFUnicodeDecomposition.h"
 #include "CFUniCharPriv.h"
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <mach/mach.h>
 #endif
 
@@ -32,7 +32,7 @@
 extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
 #elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
@@ -40,7 +40,7 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #define USE_MACHO_SEGMENT 1
 #elif DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD || DEPLOYMENT_TARGET_WINDOWS)
 #define USE_RAW_SYMBOL 1
@@ -56,7 +56,7 @@ enum {
 CF_INLINE uint32_t __CFUniCharMapExternalSetToInternalIndex(uint32_t cset) { return ((kCFUniCharFirstInternalSet <= cset) ? ((cset - kCFUniCharFirstInternalSet) + kCFUniCharLastExternalSet) : cset) - kCFUniCharFirstBitmapSet; }
 CF_INLINE uint32_t __CFUniCharMapCompatibilitySetID(uint32_t cset) { return ((cset == kCFUniCharControlCharacterSet) ? kCFUniCharControlAndFormatterCharacterSet : (((cset > kCFUniCharLastExternalSet) && (cset < kCFUniCharFirstInternalSet)) ? ((cset - kCFUniCharLastExternalSet) + kCFUniCharFirstInternalSet) : cset)); }
 
-#if (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE) && USE_MACHO_SEGMENT
+#if (TARGET_OS_OSX || TARGET_OS_IPHONE) && USE_MACHO_SEGMENT
 #include <mach-o/getsect.h>
 #include <mach-o/dyld.h>
 #include <mach-o/ldsyms.h>
@@ -107,14 +107,14 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
 
 // Memory map the file
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 CF_INLINE void __CFUniCharCharacterSetPath(char *cpath) {
 #elif DEPLOYMENT_TARGET_WINDOWS
 CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
 #elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
@@ -171,7 +171,7 @@ void __AddBitmapStateForName(const wchar_t *bitmapName) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 static bool __CFUniCharLoadBytesFromFile(const char *fileName, const void **bytes, int64_t *fileSize) {
 #elif DEPLOYMENT_TARGET_WINDOWS
 static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **bytes, int64_t *fileSize) {
@@ -238,7 +238,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #endif // USE_MACHO_SEGMENT
 
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #if USE_MACHO_SEGMENT
 #define CF_UNICHAR_BITMAP_FILE "__csbitmaps"
@@ -254,7 +254,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #if __CF_BIG_ENDIAN__
 #if USE_MACHO_SEGMENT
 #define MAPPING_TABLE_FILE "__data"
@@ -286,7 +286,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #if USE_MACHO_SEGMENT
 #define PROP_DB_FILE "__properties"
 #else
@@ -308,7 +308,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define CF_UNICODE_DATA_SYM __CFUnicodeDataL
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int64_t *fileSize) {
 #if USE_MACHO_SEGMENT
     *bytes = __CFGetSectDataPtr("__UNICODE", bitmapName, NULL);

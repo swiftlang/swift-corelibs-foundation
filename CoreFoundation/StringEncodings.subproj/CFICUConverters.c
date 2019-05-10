@@ -220,7 +220,7 @@ static CFIndex __CFStringEncodingConverterReleaseICUConverter(UConverter *conver
 
 #define MAX_BUFFER_SIZE (1000)
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #if 0
 // we're no longer doing this check. Revive when the status in the bug changed.
 #if (U_ICU_VERSION_MAJOR_NUM > 49)

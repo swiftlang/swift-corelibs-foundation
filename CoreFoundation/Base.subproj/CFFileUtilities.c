@@ -342,7 +342,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     FindClose(handle);
     pathBuf[pathLength] = '\0';
 
-#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     uint8_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
     
@@ -1141,7 +1141,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 if (dent->d_type == DT_DIR) {
                     isDirectory = true;
                 }
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
                 else if (dent->d_type == DT_UNKNOWN) {
                     // We need to do an additional stat on this to see if it's really a directory or not.
                     // This path should be uncommon.

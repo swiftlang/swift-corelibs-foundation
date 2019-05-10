@@ -533,7 +533,7 @@ CF_INLINE _CFEncodingConverter *__CFEncodingConverterFromDefinition(const CFStri
             converter->toCanonicalUnicode = __CFToCanonicalUnicodeCheapMultiByteWrapper;
             break;
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         case kCFStringEncodingConverterICU:
             converter->toBytes = (_CFToBytesProc)__CFStringEncodingGetICUName(encoding);
             break;
@@ -599,7 +599,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
 
 	    /* the swith here should avoid possible bootstrap issues in the default: case below when invoked from CFStringGetSystemEncoding() */
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 	case kCFStringEncodingMacRoman: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[1]); break;
 #elif DEPLOYMENT_TARGET_WINDOWS
 	case kCFStringEncodingWindowsLatin1: commonConverterSlot = (const _CFEncodingConverter **)(&(commonConverters[1])); break;
@@ -696,7 +696,7 @@ uint32_t CFStringEncodingUnicodeToBytes(uint32_t encoding, uint32_t flags, const
             }
         }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         if (kCFStringEncodingConverterICU == converter->definition->encodingClass) return __CFStringEncodingICUToBytes((const char *)converter->toBytes, flags, characters, numChars, usedCharLen, bytes, maxByteLen, usedByteLen);
 #endif
 
@@ -825,7 +825,7 @@ uint32_t CFStringEncodingBytesToUnicode(uint32_t encoding, uint32_t flags, const
 
     if (!converter) return kCFStringEncodingConverterUnavailable;
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
     if (kCFStringEncodingConverterICU == converter->definition->encodingClass) return __CFStringEncodingICUToUnicode((const char *)converter->toBytes, flags, bytes, numBytes, usedByteLen, characters, maxCharLen, usedCharLen);
 #endif
 
@@ -869,7 +869,7 @@ CF_PRIVATE CFIndex CFStringEncodingCharLengthForBytes(uint32_t encoding, uint32_
     const _CFEncodingConverter *converter = __CFGetConverter(encoding);
 
     if (converter) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         if (kCFStringEncodingConverterICU == converter->definition->encodingClass) return __CFStringEncodingICUCharLength((const char *)converter->toBytes, flags, bytes, numBytes);
 #endif
         
@@ -913,7 +913,7 @@ CF_PRIVATE CFIndex CFStringEncodingByteLengthForCharacters(uint32_t encoding, ui
     const _CFEncodingConverter *converter = __CFGetConverter(encoding);
 
     if (converter) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         if (kCFStringEncodingConverterICU == converter->definition->encodingClass) return __CFStringEncodingICUByteLength((const char *)converter->toBytes, flags, characters, numChars);
 #endif
 
@@ -998,7 +998,7 @@ CF_PRIVATE const CFStringEncoding *CFStringEncodingListOfAvailableEncodings(void
     if (NULL == encodings) {
         CFStringEncoding *list = (CFStringEncoding *)__CFBuiltinEncodings;
         CFIndex numICUConverters = 0, numPlatformConverters = 0;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
         CFStringEncoding *icuConverters = __CFStringEncodingCreateICUEncodings(NULL, &numICUConverters);
 #else
         CFStringEncoding *icuConverters = NULL;

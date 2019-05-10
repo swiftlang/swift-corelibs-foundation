@@ -151,7 +151,7 @@ CFUUIDRef CFUUIDCreate(CFAllocatorRef alloc) {
         long rStatus = UuidCreate(&u);
         if (RPC_S_OK != rStatus && RPC_S_UUID_LOCAL_ONLY != rStatus) retval = 1;
         memmove(&bytes, &u, sizeof(bytes));
-#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
         static Boolean useV1UUIDs = false, checked = false;
         uuid_t uuid;
         if (!checked) {

@@ -45,7 +45,7 @@ extern "C" {
 #define pthread_set_qos_class_self_np(A, B) do {} while (0)
 #define pthread_override_qos_class_start_np(A, B, C) (NULL)
 #define pthread_override_qos_class_end_np(A) do {} while (0)
-#elif (DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE)
+#elif (TARGET_OS_OSX || TARGET_OS_IPHONE)
 #include <pthread.h>
 #include <pthread/qos.h>
 #endif
@@ -73,7 +73,7 @@ typedef char * Class;
 #define CRSetCrashLogMessage(A) do {} while (0)
 #define CRSetCrashLogMessage2(A) do {} while (0)
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 #include <libkern/OSAtomic.h>
 #include <pthread.h>
 #endif

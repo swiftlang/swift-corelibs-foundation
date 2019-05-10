@@ -568,7 +568,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetFromCanonicalName(const char *c
 }
 #undef LENGTH_LIMIT
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || DEPLOYMENT_TARGET_LINUX
 // This list indexes from DOS range
 static uint16_t const __CFISO8859SimilarScriptList[] = {
     kCFStringEncodingMacRoman,
@@ -777,10 +777,10 @@ static const char * const __CFOtherNameList[] = {
     "Western (NextStep)",
     "Western (EBCDIC Latin 1)",
 };
-#endif /* DEPLOYMENT_TARGET_MACOSX */
+#endif /* TARGET_OS_OSX */
 
 CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStringEncoding encoding) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || DEPLOYMENT_TARGET_LINUX
     switch (encoding & 0x0F00) {
         case 0: return encoding & 0xFF; break; // Mac scripts
 
@@ -799,7 +799,7 @@ CF_PRIVATE CFStringEncoding __CFStringEncodingGetMostCompatibleMacScript(CFStrin
             }
         }
     }
-#endif /* DEPLOYMENT_TARGET_MACOSX */
+#endif /* TARGET_OS_OSX */
 
     return kCFStringEncodingInvalidId;
 }
@@ -817,7 +817,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
         case kCFStringEncodingUTF7: return "Unicode (UTF-7)"; break;
     }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || DEPLOYMENT_TARGET_LINUX
     if (0x0200 == (encoding & 0x0F00)) {
         encoding &= 0x00FF;
 
@@ -827,7 +827,7 @@ CF_PRIVATE const char *__CFStringEncodingGetName(CFStringEncoding encoding) {
 
         if (kCFNotFound != index) return __CFOtherNameList[index];
     }
-#endif /* DEPLOYMENT_TARGET_MACOSX */
+#endif /* TARGET_OS_OSX */
     
     return NULL;
 }

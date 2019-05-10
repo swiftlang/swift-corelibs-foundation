@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
@@ -172,7 +172,7 @@ CF_EXPORT CFArrayRef CFBundleCopyResourceURLsOfTypeInDirectory(CFURLRef bundleUR
 
 #pragma mark -
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || DEPLOYMENT_TARGET_WINDOWS
 CF_INLINE Boolean _CFBundleURLHasSubDir(CFURLRef url, CFStringRef subDirName) {
     Boolean isDir = false, result = false;
     CFURLRef dirURL = CFURLCreateWithString(kCFAllocatorSystemDefault, subDirName, url);
@@ -257,7 +257,7 @@ CF_PRIVATE uint8_t _CFBundleGetBundleVersionForURL(CFURLRef url) {
         }
     }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || DEPLOYMENT_TARGET_WINDOWS
     // Do a more substantial check for the subdirectories that make up version 0/1/2 bundles. These are sometimes symlinks (like in Frameworks) and they would have been missed by our check above.
     // n.b. that the readdir above may return DT_UNKNOWN, for example, when the directory is on a network mount.
     if (foundUnknown && localVersion == 3) {
@@ -286,7 +286,7 @@ CF_EXPORT CFArrayRef _CFBundleGetSupportedPlatforms(CFBundleRef bundle) {
 }
 
 CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return CFSTR("MacOS");
 #elif TARGET_OS_IPHONE
     return CFSTR("iPhoneOS");
@@ -310,7 +310,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     return CFSTR("MacOS");
 #elif DEPLOYMENT_TARGET_WINDOWS
     return CFSTR("Windows");

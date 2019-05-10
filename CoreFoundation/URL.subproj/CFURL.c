@@ -20,8 +20,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX
 #include <CoreFoundation/CFNumberFormatter.h>
 #endif
 #include <unistd.h>
@@ -52,7 +52,7 @@ static CFStringRef POSIXPathToURLPath(CFStringRef path, CFAllocatorRef alloc, Bo
 static CFStringRef CreateStringFromFileSystemRepresentationByAddingPercentEscapes(CFAllocatorRef alloc, const UInt8 *bytes, CFIndex numBytes, Boolean isDirectory, Boolean isAbsolute, Boolean windowsPath, Boolean *addedPercentEncoding) CF_RETURNS_RETAINED;
 CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLRef anURL, CFURLPathStyle fsType, Boolean resolveAgainstBase) CF_RETURNS_RETAINED;
 CF_EXPORT CFURLRef _CFURLCreateCurrentDirectoryURL(CFAllocatorRef allocator) CF_RETURNS_RETAINED;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 static Boolean _CFURLHasFileURLScheme(CFURLRef url, Boolean *hasScheme);
 #endif
 
@@ -66,7 +66,7 @@ static CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
 static CONST_STRING_DECL(kCFURLFileScheme, "file")
 static CONST_STRING_DECL(kCFURLDataScheme, "data")
 static CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 static CONST_STRING_DECL(kCFURLLocalhost, "localhost")
 #endif
 #else
@@ -75,7 +75,7 @@ CONST_STRING_DECL(kCFURLHTTPSScheme, "https")
 CONST_STRING_DECL(kCFURLFileScheme, "file")
 CONST_STRING_DECL(kCFURLDataScheme, "data")
 CONST_STRING_DECL(kCFURLFTPScheme, "ftp")
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 CONST_STRING_DECL(kCFURLLocalhost, "localhost")
 #endif
 #endif
@@ -2262,7 +2262,7 @@ static CFURLRef _CFURLCreateWithFileSystemRepresentation(CFAllocatorRef allocato
 #endif
     struct __CFURL *result = NULL;
     if (bufLen > 0) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
         Boolean isAbsolute = bufLen && (*buffer == '/');
         Boolean addedPercentEncoding;
         Boolean releaseBaseURL = false;
@@ -2348,7 +2348,7 @@ CFURLRef _CFURLCopyFileURL(CFURLRef url)
 {
     struct __CFURL *result = NULL;
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     // make sure we have a CFURL since this might be a subclassed NSURL
     url = _CFURLFromNSURL(url);
     __CFGenericValidateType(url, CFURLGetTypeID());
@@ -2841,7 +2841,7 @@ CFURLRef CFURLCopyAbsoluteURL(CFURLRef  relativeURL) {
     uint8_t numberOfRanges;
     const CFRange *baseRanges;
     Boolean baseIsObjC;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     Boolean filePathURLCreated = false;
 #endif
     
@@ -2858,7 +2858,7 @@ CFURLRef CFURLCopyAbsoluteURL(CFURLRef  relativeURL) {
     if (!base) {
         return (CFURLRef)CFRetain(relativeURL);
     }
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     else if ( CFURLIsFileReferenceURL(base) && !CFURLHasDirectoryPath(base) ) {
         // 16695827 - If the base URL is a file reference URL which doesn't end with a slash, we have to convert it to a file path URL before we can make it absolute.
         base = CFURLCreateFilePathURL(alloc, base, NULL);
@@ -2895,7 +2895,7 @@ CFURLRef CFURLCopyAbsoluteURL(CFURLRef  relativeURL) {
 #endif
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if ( filePathURLCreated ) {
         CFRelease(base);
     }
@@ -4045,7 +4045,7 @@ static CFStringRef URLPathToPOSIXPath(CFStringRef path, CFAllocatorRef allocator
     return result;
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 static Boolean CanonicalFileURLStringToFileSystemRepresentation(CFStringRef str, UInt8 *inBuffer, CFIndex inBufferLen)
 {
     size_t fileURLPrefixLength;
@@ -4371,7 +4371,7 @@ CF_EXPORT CFStringRef CFURLCopyFileSystemPath(CFURLRef anURL, CFURLPathStyle pat
     
     CFStringRef result = NULL;
     CFAllocatorRef alloc = CFGetAllocator(anURL);
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
     Boolean isCanonicalFileURL = false;
     
     if ( (pathStyle == kCFURLPOSIXPathStyle) && (CFURLGetBaseURL(anURL) == NULL) ) {
@@ -4402,9 +4402,9 @@ CF_EXPORT CFStringRef CFURLCopyFileSystemPath(CFURLRef anURL, CFURLPathStyle pat
         // fall back to slower way.
         result = CFURLCreateStringWithFileSystemPath(alloc, anURL, pathStyle, false);
     }
-#else // !DEPLOYMENT_TARGET_MACOSX
+#else // !TARGET_OS_OSX
     result = CFURLCreateStringWithFileSystemPath(alloc, anURL, pathStyle, false);
-#endif // !DEPLOYMENT_TARGET_MACOSX
+#endif // !TARGET_OS_OSX
     
     return ( result );
 }
@@ -4515,13 +4515,13 @@ CFStringRef CFURLCreateStringWithFileSystemPath(CFAllocatorRef allocator, CFURLR
 }
 
 Boolean CFURLGetFileSystemRepresentation(CFURLRef url, Boolean resolveAgainstBase, uint8_t *buffer, CFIndex bufLen) {
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
     CFAllocatorRef alloc = CFGetAllocator(url);
     CFStringRef path;
 
     if (!url) return false;
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
     if ( !resolveAgainstBase || (CFURLGetBaseURL(url) == NULL) ) {
         if (!CF_IS_OBJC(CFURLGetTypeID(), url)) {
             // We can access the ivars
@@ -4655,7 +4655,7 @@ CFStringRef CFURLCopyLastPathComponent(CFURLRef url) {
         }
     } else {
         Boolean filePathURLCreated = false;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
         if ( CFURLIsFileReferenceURL(url) ) {
             // use a file path URL or fail
             CFURLRef filePathURL = CFURLCreateFilePathURL(CFGetAllocator(url), url, NULL);
@@ -4784,7 +4784,7 @@ CFURLRef CFURLCreateCopyAppendingPathComponent(CFAllocatorRef allocator, CFURLRe
     CFAssert1(pathComponent != NULL, __kCFLogAssertion, "%s(): Cannot be called with a NULL component to append", __PRETTY_FUNCTION__);
 
     Boolean filePathURLCreated = false;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if ( CFURLIsFileReferenceURL(url) ) {
         // use a file path URL if possible (only because this is appending a path component)
         CFURLRef filePathURL = CFURLCreateFilePathURL(allocator, url, NULL);
@@ -4848,7 +4848,7 @@ CFURLRef CFURLCreateCopyDeletingLastPathComponent(CFAllocatorRef allocator, CFUR
     __CFGenericValidateType(url, CFURLGetTypeID());
 
     Boolean filePathURLCreated = false;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if ( CFURLIsFileReferenceURL(url) ) {
         // use a file path URL or fail
         CFURLRef filePathURL = CFURLCreateFilePathURL(allocator, url, NULL);
@@ -4930,7 +4930,7 @@ CFURLRef CFURLCreateCopyAppendingPathExtension(CFAllocatorRef allocator, CFURLRe
             __CFGenericValidateType(extension, CFStringGetTypeID());
             
             Boolean filePathURLCreated = false;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
             if ( CFURLIsFileReferenceURL(url) ) {
                 // use a file path URL or fail
                 CFURLRef filePathURL = CFURLCreateFilePathURL(allocator, url, NULL);
@@ -4991,7 +4991,7 @@ CFURLRef CFURLCreateCopyDeletingPathExtension(CFAllocatorRef allocator, CFURLRef
     __CFGenericValidateType(url, CFURLGetTypeID());
     
     Boolean filePathURLCreated = false;
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
     if ( CFURLIsFileReferenceURL(url) ) {
         // use a file path URL or fail
         CFURLRef filePathURL = CFURLCreateFilePathURL(allocator, url, NULL);
@@ -5134,7 +5134,7 @@ CFURLRef _CFURLCreateFromPropertyListRepresentation(CFAllocatorRef alloc, CFProp
     return url;
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 Boolean _CFURLIsFileReferenceURL(CFURLRef url)
 {
     return ( CFURLIsFileReferenceURL(url) );
@@ -5160,7 +5160,7 @@ Boolean CFURLIsFileReferenceURL(CFURLRef url)
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_OSX || TARGET_OS_IPHONE
 
 CFURLRef CFURLCreateFilePathURL(CFAllocatorRef alloc, CFURLRef url, CFErrorRef *error)
 {
