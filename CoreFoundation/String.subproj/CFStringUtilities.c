@@ -17,7 +17,7 @@
 #include "CFICUConverters.h"
 #include <limits.h>
 #include <stdlib.h>
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 #include <unicode/ucol.h>
 #include <unicode/ucoleitr.h>
 #endif
@@ -110,7 +110,7 @@ CFStringEncoding CFStringConvertIANACharSetNameToEncoding(CFStringRef charsetNam
 
     encoding = __CFStringEncodingGetFromCanonicalName(name);
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
     if (kCFStringEncodingInvalidId == encoding) encoding = __CFStringEncodingGetFromICUName(name);
 #endif
     
@@ -258,7 +258,7 @@ CFStringEncoding CFStringGetMostCompatibleMacStringEncoding(CFStringEncoding enc
 
 #define kCFStringCompareAllocationIncrement (128)
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 
 // -------------------------------------------------------------------------------------------------
 //	CompareSpecials - ignore case & diacritic differences
@@ -526,7 +526,7 @@ static OSStatus __CompareTextDefault(UCollator *collator, CFOptionFlags options,
 	return 0; // noErr
 }
 
-#endif // TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#endif // TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 
 static inline CFIndex __extendLocationBackward(CFIndex location, CFStringInlineBuffer *str, const uint8_t *nonBaseBMP, const uint8_t *punctBMP) {
     while (location > 0) {
@@ -570,7 +570,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
     CFRange range1 = str1Range;
     CFRange range2 = str2Range;
     SInt32 order;
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
     Boolean isEqual;
     bool forcedOrdering = ((options & kCFCompareForcedOrdering) ? true : false);
 
@@ -604,7 +604,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	range2.location = __extendLocationBackward(range2.location - 1, str2, nonBaseBMP, punctBMP);
     }
     
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     // First we try to use the last one used on this thread, if the locale is the same,
     // otherwise we try to check out a default one, or then we create one.
@@ -632,7 +632,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
 	range1.length = (str1Range.location + str1Range.length) - range1.location;
 	range2.length = (str2Range.location + str2Range.length) - range2.location;
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
         if ((NULL != collator) && (__CompareTextDefault(collator, options, characters1, range1.length, characters2, range2.length, &isEqual, &order) == 0 /* noErr */)) {
             compResult = ((isEqual && !forcedOrdering) ? kCFCompareEqualTo : ((order < 0) ? kCFCompareLessThan : kCFCompareGreaterThan));
         } else
@@ -702,7 +702,7 @@ CF_PRIVATE CFComparisonResult _CFCompareStringsWithLocale(CFStringInlineBuffer *
                 }
             }
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
             if ((NULL != collator) && (__CompareTextDefault(collator, options, characters1, range1.length, characters2, range2.length, &isEqual, &order) ==  0 /* noErr */)) {
                 if (isEqual) {
                     if (forcedOrdering && (kCFCompareEqualTo == compResult) && (0 != order)) compResult = ((order < 0) ? kCFCompareLessThan : kCFCompareGreaterThan);

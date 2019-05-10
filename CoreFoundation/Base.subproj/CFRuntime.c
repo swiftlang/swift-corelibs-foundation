@@ -50,7 +50,7 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
@@ -406,7 +406,7 @@ CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const ch
     
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
     int error = errno;
     enum { errorStringBufferLength = 64 };
@@ -1094,7 +1094,7 @@ Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
 CF_EXPORT _CFThreadRef _CFMainPThread;
 _CFThreadRef _CFMainPThread = kNilPthreadT;
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 _CFThreadRef _CF_pthread_main_thread_np(void) {
@@ -1106,7 +1106,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 static void __CFInitialize(void) __attribute__ ((constructor));
 static
 #endif

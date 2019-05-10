@@ -336,7 +336,6 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_compile_definitions(CoreFoundation
                              PRIVATE
-                               -DDEPLOYMENT_TARGET_LINUX
                                -D_GNU_SOURCE)
   if(HAVE_SCHED_GETAFFINITY)
     target_compile_definitions(CoreFoundation

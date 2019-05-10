@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/mman.h>

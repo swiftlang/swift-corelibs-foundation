@@ -18,25 +18,25 @@
 
 #if !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 
-    #if DEPLOYMENT_TARGET_LINUX
+    #if TARGET_OS_LINUX
         #if TARGET_RT_64_BIT
             #define _CFBundleFHSArchDirectorySuffix "64"
         #else // !TARGET_RT_64_BIT
             #define _CFBundleFHSArchDirectorySuffix "32"
         #endif // TARGET_RT_64_BIT
-    #endif // DEPLOYMENT_TARGET_LINUX
+    #endif // TARGET_OS_LINUX
 
     CONST_STRING_DECL(_kCFBundleFHSDirectory_bin, "bin");
     CONST_STRING_DECL(_kCFBundleFHSDirectory_sbin, "sbin");
     CONST_STRING_DECL(_kCFBundleFHSDirectory_lib, "lib");
-    #if DEPLOYMENT_TARGET_LINUX
+    #if TARGET_OS_LINUX
         CONST_STRING_DECL(_kCFBundleFHSDirectory_libWithArchSuffix, "lib" _CFBundleFHSArchDirectorySuffix);
     #endif
 
     #define _CFBundleFHSExecutablesDirectorySuffix CFSTR(".executables")
     #define _CFBundleFHSDirectoryCLiteral_libexec "libexec"
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
     #define _CFBundleFHSDirectoriesInExecutableSearchOrder \
         _kCFBundleFHSDirectory_bin, \
         _kCFBundleFHSDirectory_sbin, \
@@ -47,7 +47,7 @@
         _kCFBundleFHSDirectory_bin, \
         _kCFBundleFHSDirectory_sbin, \
         _kCFBundleFHSDirectory_lib
-#endif // DEPLOYMENT_TARGET_LINUX
+#endif // TARGET_OS_LINUX
 
 #endif // !DEPLOYMENT_RUNTIME_OBJC && !DEPLOYMENT_TARGET_WINDOWS && !DEPLOYMENT_TARGET_ANDROID
 

@@ -428,7 +428,7 @@ CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
 #if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
 #else
 #define CONST_STRING_SECTION
@@ -543,7 +543,7 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
     return (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) == 0);
 }
 
-#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 
 typedef int32_t CFLock_t;
 #define CFLockInit 0
@@ -971,7 +971,7 @@ CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define pthread_main_np _CFIsMainThread
 #endif
 
@@ -1026,7 +1026,7 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_LINUX || DEPLOYMENT_TARGET_WINDOWS
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW

@@ -59,7 +59,7 @@
 #include <os/lock.h>
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -71,7 +71,7 @@
 #include <pthread.h>
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #ifdef HAVE_SCHED_GETAFFINITY
 #include <sched.h>
 #endif
@@ -448,7 +448,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
     if (result != 0) {
         pcnt = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 
 #ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
@@ -475,7 +475,7 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
     if (result != 0) {
         pcnt = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     pcnt = sysconf(_SC_NPROCESSORS_CONF);
 #else
     // Assume the worst
@@ -493,7 +493,7 @@ CF_PRIVATE uint64_t __CFMemorySize() {
     if (result != 0) {
         memsize = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     memsize = sysconf(_SC_PHYS_PAGES);
     memsize *= sysconf(_SC_PAGESIZE);
 #endif
@@ -712,7 +712,7 @@ typedef enum {
 
 static bool also_do_stderr(const _cf_logging_style style) {
     bool result = false;
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
     // just log to stderr, other logging facilities are out
     result = true;
 #elif TARGET_OS_OSX || TARGET_OS_IPHONE
@@ -1232,7 +1232,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     if (0LL == statBuf.st_size) {
         bytes = malloc(8); // don't return constant string -- it's freed!
 	length = 0;
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
     } else if (map) {
         if((void *)-1 == (bytes = mmap(0, (size_t)statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))) {
 	    int32_t savederrno = errno;

@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
@@ -296,7 +296,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
     return CFSTR("Solaris");
 #elif DEPLOYMENT_TARGET_HPUX
     return CFSTR("HPUX");
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else
@@ -318,7 +318,7 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
     return CFSTR("Solaris");
 #elif DEPLOYMENT_TARGET_HPUX
     return CFSTR("HPUX");
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #if TARGET_OS_CYGWIN
     return CFSTR("Cygwin");
 #else

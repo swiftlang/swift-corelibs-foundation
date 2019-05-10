@@ -87,7 +87,6 @@ if(FOUNDATION_ENABLE_LIBDISPATCH)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux)
-  set(deployment_target -DDEPLOYMENT_TARGET_LINUX)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
   set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
 elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)

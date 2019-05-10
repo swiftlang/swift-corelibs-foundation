@@ -46,7 +46,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 
 // ---- CFRuntime material ----------------------------------------
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()

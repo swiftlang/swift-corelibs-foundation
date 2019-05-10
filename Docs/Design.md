@@ -124,5 +124,5 @@ Parts of the CoreFoundation and Foundation libraries are as old as macOS (or old
 There are some additional considerations when working on the CoreFoundation part of our code, both because it is written in C and also because it is shared amongst platforms.
 
 * Surround Swift-runtime-specific code with the standard macro `#if DEPLOYMENT_RUNTIME_SWIFT`.
-* Surround platform-specific code with our standard macros `TARGET_OS_OSX`, `TARGET_OS_IPHONE` (all iOS platforms and derivatives), `DEPLOYMENT_TARGET_LINUX`.
+* Surround platform-specific code with our standard macros `TARGET_OS_OSX`, `TARGET_OS_IPHONE` (all iOS platforms and derivatives), `TARGET_OS_LINUX`.
 * Follow the coding style of the .c file that you are working in.

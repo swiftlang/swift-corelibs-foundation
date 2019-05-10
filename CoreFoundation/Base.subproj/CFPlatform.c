@@ -161,7 +161,7 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #include <unistd.h>
 #if __has_include(<syscall.h>)
 #include <syscall.h>
@@ -206,7 +206,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
 }
 
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
 
 #include <pwd.h>
 #include <sys/param.h>
@@ -262,7 +262,7 @@ CF_EXPORT CFStringRef CFGetUserName(void) {
 
 CF_EXPORT CFStringRef CFCopyUserName(void) {
     CFStringRef result = NULL;
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     struct passwd *upwd = getpwuid(euid ? euid : getuid());
@@ -332,7 +332,7 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
 
 
 CFURLRef CFCopyHomeDirectoryURL(void) {
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
     return _CFCopyHomeDirURLForUser(NULL, true);
 #elif DEPLOYMENT_TARGET_WINDOWS
     CFURLRef retVal = NULL;
@@ -412,7 +412,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
         }
     }
 #endif
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
     if (!uName) {
         return _CFCopyHomeDirURLForUser(NULL, true);
     } else {
@@ -614,7 +614,7 @@ CF_PRIVATE void __CFTSDInitialize() {
 static void __CFTSDSetSpecific(void *arg) {
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     pthread_setspecific(__CFTSDIndexKey, arg);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif DEPLOYMENT_TARGET_WINDOWS
     FlsSetValue(__CFTSDIndexKey, arg);
@@ -624,7 +624,7 @@ static void __CFTSDSetSpecific(void *arg) {
 static void *__CFTSDGetSpecific() {
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     return pthread_getspecific(__CFTSDIndexKey);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_WINDOWS
     return FlsGetValue(__CFTSDIndexKey);
@@ -1182,7 +1182,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #pragma mark -
 #pragma mark Linux OSAtomic
 
-#if defined(DEPLOYMENT_TARGET_LINUX) || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 
 bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
 { 
@@ -1237,7 +1237,7 @@ void OSMemoryBarrier() {
     __sync_synchronize();
 }
 
-#endif // DEPLOYMENT_TARGET_LINUX
+#endif // TARGET_OS_LINUX
 
 #pragma mark -
 #pragma mark Dispatch Replacements
@@ -1348,7 +1348,7 @@ void _CF_dispatch_once(dispatch_once_t *predicate, void (^block)(void)) {
 #pragma mark -
 #pragma mark Windows and Linux Helpers
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
 
 #include <stdio.h>
 
@@ -1483,7 +1483,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
     }
 
     return 0;
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     return pthread_setname_np(thread, name);
 #endif
 }
@@ -1491,7 +1491,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
     return pthread_getname_np(pthread_self(), buf, length);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     return pthread_getname_np(pthread_self(), buf, length);
 #endif
     return -1;
@@ -1516,7 +1516,7 @@ int _CFOpenFile(const char *path, int opts) {
 }
 
 CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
-#if TARGET_OS_WIN32 || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
     void *mem = realloc(ptr, size);
     if (mem == NULL && ptr != NULL && size != 0) {
         free(ptr);

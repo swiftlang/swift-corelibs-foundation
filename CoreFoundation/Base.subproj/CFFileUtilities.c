@@ -342,7 +342,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     FindClose(handle);
     pathBuf[pathLength] = '\0';
 
-#elif TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
     uint8_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
     
@@ -452,13 +452,13 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
                     isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
                 }
             }
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, namelen, isDir, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, dp->d_namlen, isDir, dirURL);
 #endif
         } else {
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, namelen, false, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, dp->d_namlen, false, dirURL);
@@ -545,7 +545,7 @@ CF_PRIVATE SInt32 _CFGetPathProperties(CFAllocatorRef alloc, char *path, Boolean
     
     if (modTime != NULL) {
         if (fileExists) {
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_LINUX
             struct timespec ts = {statBuf.st_mtime, 0};
 #else
             struct timespec ts = statBuf.st_mtimespec;
@@ -1072,7 +1072,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     struct dirent *dent;
     if ((dirp = opendir(directoryPathBuf))) {
         while ((dent = readdir(dirp))) {
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             CFIndex nameLen = strlen(dent->d_name);
             if (dent->d_type == DT_UNKNOWN) {
                 // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
@@ -1141,7 +1141,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 if (dent->d_type == DT_DIR) {
                     isDirectory = true;
                 }
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_LINUX || TARGET_OS_BSD
                 else if (dent->d_type == DT_UNKNOWN) {
                     // We need to do an additional stat on this to see if it's really a directory or not.
                     // This path should be uncommon.
