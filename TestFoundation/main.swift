@@ -112,6 +112,7 @@ var allTestCases = [
     testCase(TestDimension.allTests),
     testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
+    testCase(TestNSSortDescriptor.allTests),
 ]
 
 XCTMain(allTestCases)

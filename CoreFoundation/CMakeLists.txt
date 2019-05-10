@@ -139,6 +139,7 @@ add_framework(CoreFoundation
                 Parsing.subproj/CFXMLInterface.h
                 PlugIn.subproj/CFBundlePriv.h
                 Stream.subproj/CFStreamPriv.h
+                String.subproj/CFCharacterSetPriv.h
                 String.subproj/CFRegularExpression.h
                 String.subproj/CFRunArray.h
                 StringEncodings.subproj/CFStringEncodingConverter.h

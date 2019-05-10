@@ -966,9 +966,12 @@ void CFArraySortValues(CFMutableArrayRef array, CFRange range, CFComparatorFunct
     __CFArrayValidateRange(array, range, __PRETTY_FUNCTION__);
     CFAssert1(NULL != comparator, __kCFLogAssertion, "%s(): pointer to comparator function may not be NULL", __PRETTY_FUNCTION__);
     Boolean immutable = false;
-    if (CF_IS_OBJC(CFArrayGetTypeID(), array) || CF_IS_SWIFT(CFArrayGetTypeID(), array)) {
+    if (CF_IS_OBJC(CFArrayGetTypeID(), array)) {
         BOOL result;
-        result = CF_OBJC_CALLV((NSMutableArray *)array, isKindOfClass:[NSMutableArray class]); // TODO: Fixme for swift (we need a isKindOfClass replacement: (array as? NSMutableArray) != nil)
+        result = CF_OBJC_CALLV((NSMutableArray *)array, isKindOfClass:[NSMutableArray class]);
+        immutable = !result;
+    } else if (CF_IS_SWIFT(CFArrayGetTypeID(), array)) {
+        Boolean result = __CFSwiftBridge.NSArray.isSubclassOfNSMutableArray(array);
         immutable = !result;
     } else if (__kCFArrayImmutable == __CFArrayGetType(array)) {
         immutable = true;

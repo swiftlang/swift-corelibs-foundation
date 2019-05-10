@@ -10,7 +10,7 @@
 
 import CoreFoundation
 
-#if os(macOS) || os(iOS)
+#if _runtime(_ObjC) // if objc_enum works, restore the old names:
 let kCFCharacterSetControl = CFCharacterSetPredefinedSet.control
 let kCFCharacterSetWhitespace = CFCharacterSetPredefinedSet.whitespace
 let kCFCharacterSetWhitespaceAndNewline = CFCharacterSetPredefinedSet.whitespaceAndNewline
@@ -26,10 +26,52 @@ let kCFCharacterSetCapitalizedLetter = CFCharacterSetPredefinedSet.capitalizedLe
 let kCFCharacterSetSymbol = CFCharacterSetPredefinedSet.symbol
 let kCFCharacterSetNewline = CFCharacterSetPredefinedSet.newline
 let kCFCharacterSetIllegal = CFCharacterSetPredefinedSet.illegal
+
+let kCFCharacterSetKeyedCodingTypeBitmap = CFCharacterSetKeyedCodingType.bitmap
+let kCFCharacterSetKeyedCodingTypeBuiltin = CFCharacterSetKeyedCodingType.builtin
+let kCFCharacterSetKeyedCodingTypeRange = CFCharacterSetKeyedCodingType.range
+let kCFCharacterSetKeyedCodingTypeString = CFCharacterSetKeyedCodingType.string
+let kCFCharacterSetKeyedCodingTypeBuiltinAndBitmap = CFCharacterSetKeyedCodingType.builtinAndBitmap
 #endif
 
+#if _runtime(_ObjC)
+fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline.rawValue
 
-open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
+fileprivate extension Int {
+    init(_ predefinedSet: CFCharacterSetPredefinedSet) {
+        self = predefinedSet.rawValue
+    }
+}
+#else
+fileprivate let lastKnownPredefinedCharacterSetConstant = kCFCharacterSetNewline
+#endif
+
+fileprivate func knownPredefinedCharacterSet(rawValue: Int) -> CFCharacterSetPredefinedSet? {
+    if rawValue > 0 && rawValue <= lastKnownPredefinedCharacterSetConstant {
+        #if _runtime(_ObjC)
+            return CFCharacterSetPredefinedSet(rawValue: rawValue)
+        #else
+            return CFCharacterSetPredefinedSet(rawValue)
+        #endif
+    } else {
+        return nil
+    }
+}
+
+fileprivate extension String {
+    static let characterSetBitmapRepresentationKey = "NSBitmap"
+    static let characterSetAltBitmapRepresentationKey = "NSBitmapObject"
+    static let characterSetStringKey = "NSString"
+    static let characterSetAltStringKey = "NSStringObject"
+    static let characterSetRangeKey = "NSRange"
+    static let characterSetBuiltinIDKey = "NSBuiltinID"
+    static let characterSetNewBuiltinIDKey = "NSBuiltinID2"
+    static let characterSetIsInvertedKey = "NSIsInverted"
+    static let characterSetNewIsInvertedKey = "NSIsInverted2"
+}
+
+
+open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
     typealias CFType = CFCharacterSet
     private var _base = _CFInfo(typeID: CFCharacterSetGetTypeID())
     private var _hashValue = CFHashCode(0)
@@ -162,9 +204,141 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         }
     }
     
-    public convenience required init(coder aDecoder: NSCoder) {
-        self.init(charactersIn: "")
-        NSUnimplemented()
+    open class var supportsSecureCoding: Bool { return true }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        guard aDecoder.allowsKeyedCoding else {
+            fatalError("Decoding requires a NSCoder that allows keyed coding.")
+        }
+        
+        func fail(code: CocoaError.Code = .coderReadCorrupt, _ message: String) {
+            aDecoder.failWithError(NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: [ NSLocalizedDescriptionKey: message ]))
+        }
+        
+        let finalSet: CFCharacterSet
+        
+        var builtinType = aDecoder.decodeInteger(forKey: .characterSetBuiltinIDKey)
+        if builtinType == 0 {
+            builtinType = aDecoder.decodeInteger(forKey: .characterSetNewBuiltinIDKey)
+        }
+        
+        let isInverted = aDecoder.decodeBool(forKey: .characterSetIsInvertedKey)
+        
+        let keyedUnarchiver = aDecoder as? NSKeyedUnarchiver
+        let containsCharacterSetStringKeyName = aDecoder.containsValue(forKey: .characterSetStringKey)
+        let containsCharacterSetStringAltKeyName = aDecoder.containsValue(forKey: .characterSetAltStringKey)
+        
+        if let predefinedSet = knownPredefinedCharacterSet(rawValue: builtinType) {
+            guard let theSet = CFCharacterSetGetPredefined(predefinedSet) else {
+                fail("CFCharacterSetGetPredefined -- Predefined Character Set not found")
+                return nil
+            }
+            
+            finalSet = theSet
+        } else if aDecoder.containsValue(forKey: .characterSetRangeKey) {
+            let range = UInt64(bitPattern: aDecoder.decodeInt64(forKey: .characterSetRangeKey))
+            guard let theSet = CFCharacterSetCreateWithCharactersInRange(kCFAllocatorSystemDefault, CFRangeMake(CFIndex(range >> 32), CFIndex(range & 0xFFFFFFFF))) else {
+                fail("CFCharacterSetCreateWithCharactersInRange -- Character Set creation with characters in range failed")
+                return nil
+            }
+            
+            finalSet = theSet
+        } else if containsCharacterSetStringKeyName || containsCharacterSetStringAltKeyName {
+            let maybeResult: NSString?
+            
+            if let keyedUnarchiver = keyedUnarchiver, containsCharacterSetStringKeyName {
+                maybeResult = keyedUnarchiver._decodePropertyListForKey(.characterSetStringKey) as? NSString
+            } else {
+                maybeResult = aDecoder.decodeObject(of: NSString.self, forKey: .characterSetAltStringKey)
+            }
+            
+            guard let result = maybeResult else {
+                fail(code: .coderValueNotFound, "Decoder value not found")
+                return nil
+            }
+            
+            guard let theSet = CFCharacterSetCreateWithCharactersInString(kCFAllocatorSystemDefault, result._cfObject) else {
+                fail("CFCharacterSetCreateWithCharactersInString -- Character Set creation with characters in string failed")
+                return nil
+            }
+            
+            finalSet = theSet
+        } else {
+            let maybeResult: NSData?
+            
+            if let keyedUnarchiver = keyedUnarchiver, keyedUnarchiver.containsValue(forKey: .characterSetBitmapRepresentationKey) {
+                maybeResult = keyedUnarchiver._decodePropertyListForKey(.characterSetBitmapRepresentationKey) as? NSData
+            } else {
+                maybeResult = aDecoder.decodeObject(of: NSData.self, forKey: .characterSetAltBitmapRepresentationKey)
+            }
+            
+            guard let result = maybeResult else {
+                fail(code: .coderValueNotFound, "Decoder value not found")
+                return nil
+            }
+            
+            guard let theSet = CFCharacterSetCreateWithBitmapRepresentation(kCFAllocatorSystemDefault, result._cfObject) else {
+                fail("CFCharacterSetCreateWithBitmapRepresentation -- Character Set creation with bitmap representation failed")
+                return nil
+            }
+            
+            finalSet = theSet
+        }
+        
+        super.init()
+        _CFCharacterSetInitCopyingSet(kCFAllocatorSystemDefault, _cfMutableObject, finalSet, type(of: self) is NSMutableCharacterSet.Type, false)
+        if isInverted {
+            _CFCharacterSetSetIsInverted(_cfMutableObject, isInverted)
+        }
+    }
+    
+    public func encode(with aCoder: NSCoder) {
+        guard aCoder.allowsKeyedCoding else {
+            fatalError("Encoding requires a NSCoder that allows keyed coding.")
+        }
+        
+        var isInverted = _CFCharacterSetIsInverted(_cfObject)
+        let keyedArchiver = aCoder as? NSKeyedArchiver
+        
+        switch _CFCharacterSetGetKeyedCodingType(_cfObject) {
+        case kCFCharacterSetKeyedCodingTypeBuiltin:
+            aCoder.encode(Int(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject)), forKey: .characterSetBuiltinIDKey)
+            
+        case kCFCharacterSetKeyedCodingTypeRange:
+            let range = _CFCharacterSetGetKeyedCodingRange(_cfObject)
+            
+            var value = UInt64(range.location)
+            value <<= 32
+            value |= UInt64(range.length)
+            
+            aCoder.encode(Int64(bitPattern: value), forKey: .characterSetRangeKey)
+            
+        case kCFCharacterSetKeyedCodingTypeString:
+            let string = _CFCharacterSetCreateKeyedCodingString(_cfObject).takeRetainedValue()
+            if let keyedArchiver = keyedArchiver {
+                keyedArchiver._encodePropertyList(string._nsObject, forKey: .characterSetStringKey)
+            } else {
+                aCoder.encode(string._nsObject, forKey: .characterSetAltStringKey)
+            }
+            
+        case kCFCharacterSetKeyedCodingTypeBuiltinAndBitmap:
+            aCoder.encode(Int(_CFCharacterSetGetKeyedCodingBuiltinType(_cfObject)), forKey: .characterSetNewBuiltinIDKey)
+            if isInverted { aCoder.encode(true, forKey: .characterSetNewIsInvertedKey )}
+            
+            fallthrough
+        default:
+            if let keyedArchiver = keyedArchiver {
+                keyedArchiver._encodePropertyList(bitmapRepresentation._nsObject, forKey: .characterSetBitmapRepresentationKey)
+            } else {
+                aCoder.encode(bitmapRepresentation._nsObject, forKey: .characterSetAltBitmapRepresentationKey)
+            }
+            
+            isInverted = false
+        }
+        
+        if isInverted {
+            aCoder.encode(true, forKey: .characterSetIsInvertedKey)
+        }
     }
     
     open func characterIsMember(_ aCharacter: unichar) -> Bool {
@@ -225,10 +399,6 @@ open class NSCharacterSet : NSObject, NSCopying, NSMutableCopying, NSCoding {
         } else {
             NSRequiresConcreteImplementation()
         }
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
     }
 }
 

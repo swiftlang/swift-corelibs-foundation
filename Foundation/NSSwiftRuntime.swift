@@ -199,6 +199,7 @@ internal func __CFInitializeSwift() {
     __CFSwiftBridge.NSArray.count = _CFSwiftArrayGetCount
     __CFSwiftBridge.NSArray.objectAtIndex = _CFSwiftArrayGetValueAtIndex
     __CFSwiftBridge.NSArray.getObjects = _CFSwiftArrayGetValues
+    __CFSwiftBridge.NSArray.isSubclassOfNSMutableArray = _CFSwiftArrayIsSubclassOfNSMutableArray
     
     __CFSwiftBridge.NSMutableArray.addObject = _CFSwiftArrayAppendValue
     __CFSwiftBridge.NSMutableArray.setObject = _CFSwiftArraySetValueAtIndex

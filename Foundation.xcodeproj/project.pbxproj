@@ -11,6 +11,7 @@
 		03B6F5841F15F339004F25AF /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestURLProtocol.swift */; };
 		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
+		152EF3942283457C001E1269 /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
 		153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
@@ -556,6 +557,7 @@
 		03B6F5831F15F339004F25AF /* TestURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLProtocol.swift; sourceTree = "<group>"; };
 		1513A8422044893F00539722 /* FileManager_XDG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager_XDG.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
+		152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSSortDescriptor.swift; sourceTree = "<group>"; };
 		153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerAPI.swift; sourceTree = "<group>"; };
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
@@ -1641,6 +1643,7 @@
 				EA66F6401BF1619600136161 /* TestPropertyListSerialization.swift */,
 				E876A73D1C1180E000F279EC /* TestNSRange.swift */,
 				5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */,
+				152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */,
 				61E0117B1C1B554D000037DD /* TestRunLoop.swift */,
 				844DC3321C17584F005611F9 /* TestScanner.swift */,
 				EA66F6411BF1619600136161 /* TestNSSet.swift */,
@@ -2624,6 +2627,7 @@
 				B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */,
 				A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */,
 				5B13B3381C582D4C00651CE2 /* TestNotificationQueue.swift in Sources */,
+				152EF3942283457C001E1269 /* TestNSSortDescriptor.swift in Sources */,
 				CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */,
 				5B13B3331C582D4C00651CE2 /* TestJSONSerialization.swift in Sources */,
 				5B13B33C1C582D4C00651CE2 /* TestNSOrderedSet.swift in Sources */,
