@@ -57,7 +57,7 @@ open class FileHandle : NSObject {
         precondition(_handle != INVALID_HANDLE_VALUE, "Invalid file handle")
     }
 
-    private var _isPlatformHandleValid: Bool {
+    internal var _isPlatformHandleValid: Bool {
         return _handle != INVALID_HANDLE_VALUE
     }
 #else
@@ -71,7 +71,7 @@ open class FileHandle : NSObject {
         precondition(_fd >= 0, "Bad file descriptor")
     }
 
-    private var _isPlatformHandleValid: Bool {
+    internal var _isPlatformHandleValid: Bool {
         return fileDescriptor >= 0
     }
 #endif
