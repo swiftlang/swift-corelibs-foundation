@@ -50,7 +50,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #include <malloc.h>
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <malloc/malloc.h>
 #include <mach/mach_time.h>
 #endif
@@ -572,7 +572,7 @@ CF_CROSS_PLATFORM_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags
 CF_EXPORT CFRange _CFDataFindBytes(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     #if !defined(__CFReadTSR)
     #define __CFReadTSR() mach_absolute_time()
     #endif

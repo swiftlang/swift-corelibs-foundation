@@ -244,7 +244,7 @@
                         break;
                     }
                 }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
                 if (pathRg.length > 6 && characterArray[pathRg.location] == '/' && characterArray[pathRg.location + 1] == '.' && characterArray[pathRg.location + 2] == 'f' && characterArray[pathRg.location + 3] == 'i' && characterArray[pathRg.location + 4] == 'l' && characterArray[pathRg.location + 5] == 'e' && characterArray[pathRg.location + 6] == '/') {
                     flags |= PATH_HAS_FILE_ID;
                 } else if (!sawPercent) {

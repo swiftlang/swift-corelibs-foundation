@@ -599,7 +599,7 @@ static const _CFEncodingConverter *__CFGetConverter(uint32_t encoding) {
 	case kCFStringEncodingUTF8: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[0]); break;
 
 	    /* the swith here should avoid possible bootstrap issues in the default: case below when invoked from CFStringGetSystemEncoding() */
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 	case kCFStringEncodingMacRoman: commonConverterSlot = (const _CFEncodingConverter **)&(commonConverters[1]); break;
 #elif DEPLOYMENT_TARGET_WINDOWS
 	case kCFStringEncodingWindowsLatin1: commonConverterSlot = (const _CFEncodingConverter **)(&(commonConverters[1])); break;

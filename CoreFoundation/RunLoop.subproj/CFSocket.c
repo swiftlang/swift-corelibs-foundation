@@ -937,7 +937,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/types.h>
 #include <math.h>
 #include <limits.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <sys/sysctl.h>
 #include <sys/un.h>
 #include <libc.h>
@@ -1117,7 +1117,7 @@ static void __cfSocketLogWithSocket(CFSocketRef s, const char* function, int lin
 #endif
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #define INVALID_SOCKET (CFSocketNativeHandle)(-1)
 #define closesocket(a) close((a))
 #define ioctlsocket(a,b,c) ioctl((a),(b),(c))
@@ -1349,7 +1349,7 @@ CF_INLINE Boolean __CFSocketFdClr(CFSocketNativeHandle sock, CFMutableDataRef fd
 }
 
 static SInt32 __CFSocketCreateWakeupSocketPair(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     SInt32 error;
 
     error = socketpair(PF_LOCAL, SOCK_DGRAM, 0, __CFWakeupSocketPair);
@@ -2447,7 +2447,7 @@ static CFStringRef __CFSocketCopyDescription(CFTypeRef cf) {
     result = CFStringCreateMutable(CFGetAllocator(s), 0);
     __CFSocketLock(s);
     void *addr = s->_callout;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 #else
@@ -2508,7 +2508,7 @@ const CFRuntimeClass __CFSocketClass = {
 CFTypeID CFSocketGetTypeID(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         struct rlimit lim1;
         int ret1 = getrlimit(RLIMIT_NOFILE, &lim1);
         int mib[] = {CTL_KERN, KERN_MAXFILESPERPROC};
@@ -2615,13 +2615,13 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
     
     if (INVALID_SOCKET != sock) CFDictionaryAddValue(__CFAllSockets, (void *)(uintptr_t)sock, memory);
     if (NULL == __CFSocketManagerThread) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
         _CFThreadRef tid = 0;
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
@@ -3269,7 +3269,7 @@ CFSocketError CFSocketSetAddress(CFSocketRef s, CFDataRef address) {
     if (!name || namelen <= 0) return kCFSocketError;
     
     CFSocketNativeHandle sock = CFSocketGetNative(s);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     // Verify that the namelen is correct. If not, we have to fix it up. Developers will often incorrectly use 0 or strlen(path). See 9217961 and the second half of 9098274.
     // Max size is a size byte, plus family byte, plus path of 255, plus a null byte.
     char newName[255];
@@ -3321,7 +3321,7 @@ CFSocketError CFSocketConnectToAddress(CFSocketRef s, CFDataRef address, CFTimeI
     if (!name || namelen <= 0) return kCFSocketError;
     CFSocketNativeHandle sock = CFSocketGetNative(s);
     {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         SInt32 flags = fcntl(sock, F_GETFL, 0);
         if (flags >= 0) wasBlocking = ((flags & O_NONBLOCK) == 0);
         if (wasBlocking && (timeout > 0.0 || timeout < 0.0)) ioctlsocket(sock, FIONBIO, (u_long *)&yes);
@@ -3383,7 +3383,7 @@ CFSocketRef CFSocketCreate(CFAllocatorRef allocator, SInt32 protocolFamily, SInt
         if (0 >= protocol && SOCK_STREAM == socketType) protocol = IPPROTO_TCP;
         if (0 >= protocol && SOCK_DGRAM == socketType) protocol = IPPROTO_UDP;
     }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     if (PF_LOCAL == protocolFamily && 0 >= socketType) socketType = SOCK_STREAM;
 #endif
 #if DEPLOYMENT_TARGET_WINDOWS
@@ -3470,7 +3470,7 @@ static void __CFSocketSendNameRegistryRequest(CFSocketSignature *signature, CFDi
 static void __CFSocketValidateSignature(const CFSocketSignature *providedSignature, CFSocketSignature *signature, uint16_t defaultPortNumber) {
     struct sockaddr_in sain, *sainp;
     memset(&sain, 0, sizeof(sain));
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     sain.sin_len = sizeof(sain);
 #endif
     sain.sin_family = AF_INET;
@@ -3496,7 +3496,7 @@ static void __CFSocketValidateSignature(const CFSocketSignature *providedSignatu
         } else {
             sainp = (struct sockaddr_in *)CFDataGetBytePtr(providedSignature->address);
             if ((int)sizeof(struct sockaddr_in) <= CFDataGetLength(providedSignature->address) && (AF_INET == sainp->sin_family || 0 == sainp->sin_family)) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
                 sain.sin_len = sizeof(sain);
 #endif
                 sain.sin_family = AF_INET;

@@ -26,7 +26,7 @@
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #include <sys/time.h>
 #endif
 
@@ -164,7 +164,7 @@ const CFRuntimeClass __CFDateClass = {
 };
 
 CF_PRIVATE void __CFDateInitialize(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     struct mach_timebase_info info;
     mach_timebase_info(&info);
     __CFTSRRate = (1.0E9 / (double)info.numer) * (double)info.denom;

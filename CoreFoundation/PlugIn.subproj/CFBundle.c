@@ -39,7 +39,7 @@
 #endif
 #endif /* BINARY_SUPPORT_DLFCN */
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <fcntl.h>
 #elif DEPLOYMENT_TARGET_WINDOWS
 #include <fcntl.h>
@@ -512,7 +512,7 @@ CFBundleRef CFBundleGetBundleWithIdentifier(CFStringRef bundleID) {
         }
         
         result = _CFBundleGetFromTables(bundleID);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         if (!result) {
             // Try to create the bundle for the caller and try again
             void *p = __builtin_return_address(0);
@@ -762,7 +762,7 @@ static CFBundleRef _CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL,
     bundle->_sharesStringsFiles = false;
     bundle->_isUnique = unique;
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     if (!__CFgetenv("CFBundleDisableStringsSharing") && 
         (strncmp(buff, "/System/Library/Frameworks", 26) == 0) && 
         (strncmp(buff + strlen(buff) - 10, ".framework", 10) == 0)) bundle->_sharesStringsFiles = true;

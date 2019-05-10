@@ -11,7 +11,7 @@
 
 #include "CFInternal.h"
 #include <CoreFoundation/CFPriv.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     #include <stdlib.h>
     #include <sys/stat.h>
     #include <string.h>
@@ -35,7 +35,7 @@
 
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
 #define kCFPlatformInterfaceStringEncoding	kCFStringEncodingUTF8
 #else
 #define kCFPlatformInterfaceStringEncoding	CFStringGetSystemEncoding()
@@ -43,7 +43,7 @@
 
 extern void __CFGetUGIDs(uid_t *euid, gid_t *egid);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 // CoreGraphics and LaunchServices are only projects (1 Dec 2006) that use these
 char **_CFArgv(void) { return *_NSGetArgv(); }
 int _CFArgc(void) { return *_NSGetArgc(); }
@@ -126,13 +126,13 @@ const char *_CFProcessPath(void) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
 CF_CROSS_PLATFORM_EXPORT Boolean _CFIsMainThread(void) {
     return pthread_main_np() == 1;
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 const char *_CFProcessPath(void) {
     if (__CFProcessPath) return __CFProcessPath;
 #if DEPLOYMENT_TARGET_MACOSX
@@ -206,7 +206,7 @@ CF_PRIVATE CFStringRef _CFProcessNameString(void) {
 }
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 
 #include <pwd.h>
 #include <sys/param.h>
@@ -262,7 +262,7 @@ CF_EXPORT CFStringRef CFGetUserName(void) {
 
 CF_EXPORT CFStringRef CFCopyUserName(void) {
     CFStringRef result = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     uid_t euid;
     __CFGetUGIDs(&euid, NULL);
     struct passwd *upwd = getpwuid(euid ? euid : getuid());
@@ -332,7 +332,7 @@ CF_CROSS_PLATFORM_EXPORT CFStringRef CFCopyFullUserName(void) {
 
 
 CFURLRef CFCopyHomeDirectoryURL(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     return _CFCopyHomeDirURLForUser(NULL, true);
 #elif DEPLOYMENT_TARGET_WINDOWS
     CFURLRef retVal = NULL;
@@ -412,7 +412,7 @@ CF_EXPORT CFURLRef CFCopyHomeDirectoryURLForUser(CFStringRef uName) {
         }
     }
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     if (!uName) {
         return _CFCopyHomeDirURLForUser(NULL, true);
     } else {
@@ -612,7 +612,7 @@ CF_PRIVATE void __CFTSDInitialize() {
 #endif
 
 static void __CFTSDSetSpecific(void *arg) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     pthread_setspecific(__CFTSDIndexKey, arg);
 #elif DEPLOYMENT_TARGET_LINUX
     pthread_setspecific(__CFTSDIndexKey, arg);
@@ -622,7 +622,7 @@ static void __CFTSDSetSpecific(void *arg) {
 }
 
 static void *__CFTSDGetSpecific() {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     return pthread_getspecific(__CFTSDIndexKey);
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getspecific(__CFTSDIndexKey);
@@ -674,7 +674,7 @@ static void __CFTSDFinalize(void *arg) {
 #endif
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 extern int pthread_key_init_np(int, void (*)(void *));
 #endif
 
@@ -1463,7 +1463,7 @@ typedef struct tagTHREADNAME_INFO
 #endif
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_Nonnull name) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     if (pthread_equal(pthread_self(), thread)) {
         return pthread_setname_np(name);
     }
@@ -1489,7 +1489,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef thread, const char *_
 }
 
 CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *buf, int length) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     return pthread_getname_np(pthread_self(), buf, length);
 #elif DEPLOYMENT_TARGET_LINUX
     return pthread_getname_np(pthread_self(), buf, length);

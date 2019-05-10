@@ -18,7 +18,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 #include <sys/time.h>
 #include <unistd.h>
 #endif
@@ -49,7 +49,7 @@ typedef struct {
 
 
 CONST_STRING_DECL(kCFStreamPropertyFileCurrentOffset, "kCFStreamPropertyFileCurrentOffset");
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 CONST_STRING_DECL(_kCFStreamPropertyFileNativeHandle, "_kCFStreamPropertyFileNativeHandle");
 #endif
 CONST_STRING_DECL(_kCFStreamPropertyHTTPTrailer, "_kCFStreamPropertyHTTPTrailer");
@@ -442,7 +442,7 @@ static CFTypeRef fileCopyProperty(struct _CFStream *stream, CFStringRef property
         if (fileStream->offset != -1) {
             result = CFNumberCreate(CFGetAllocator((CFTypeRef)stream), kCFNumberSInt64Type, &(fileStream->offset));
         }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     } else if (CFEqual(propertyName, _kCFStreamPropertyFileNativeHandle)) {
 		int fd = fileStream->fd;
 		if (fd != -1) {

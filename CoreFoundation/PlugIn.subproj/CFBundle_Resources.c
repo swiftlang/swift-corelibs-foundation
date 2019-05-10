@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/sysctl.h>
@@ -288,7 +288,7 @@ CF_EXPORT CFArrayRef _CFBundleGetSupportedPlatforms(CFBundleRef bundle) {
 CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 #if DEPLOYMENT_TARGET_MACOSX
     return CFSTR("MacOS");
-#elif DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_IPHONE
     return CFSTR("iPhoneOS");
 #elif DEPLOYMENT_TARGET_WINDOWS
     return CFSTR("Windows");
@@ -310,7 +310,7 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 }
 
 CF_PRIVATE CFStringRef _CFBundleGetPlatformExecutablesSubdirectoryName(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     return CFSTR("MacOS");
 #elif DEPLOYMENT_TARGET_WINDOWS
     return CFSTR("Windows");

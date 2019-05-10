@@ -81,7 +81,7 @@ typedef HANDLE dispatch_runloop_handle_t;
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_SIMULATOR
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_SIMULATOR
 #include <sys/param.h>
 #include <CoreFoundation/CFUserNotification.h>
 #include <mach/mach.h>
@@ -225,7 +225,7 @@ static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
 
 // In order to reuse most of the code across Mach and Windows v1 RunLoopSources, we define a
 // simple abstraction layer spanning Mach ports and Windows HANDLES
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 CF_PRIVATE uint32_t __CFGetProcessPortCount(void) {
     ipc_info_space_t info;
@@ -552,7 +552,7 @@ typedef	struct UnsignedWide {
 typedef UnsignedWide		AbsoluteTime;
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
 #endif
@@ -1951,7 +1951,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__(void (*pe
 }
 
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         void *(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info),
         mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply,
 #else
@@ -1960,7 +1960,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
         void *info) __attribute__((noinline));
 
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         void *(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info),
         mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply,
 #else
@@ -1968,7 +1968,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
 #endif
         void *info) {
     if (perform) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         *reply = perform(msg, size, kCFAllocatorSystemDefault, info);
 #else
         perform(info);
@@ -2053,7 +2053,7 @@ CF_INLINE void __CFRunLoopDebugInfoForRunLoopSource(CFRunLoopSourceRef rls) {
 }
 
 // msg, size and reply are unused on Windows
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopSourceRef rls, mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply) __attribute__((noinline));
 
 static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRunLoopSourceRef rls, mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply)
@@ -2079,7 +2079,7 @@ static Boolean __CFRunLoopDoSource1(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFRun
         void *info = rls->_context.version1.info;
         cf_trace(KDEBUG_EVENT_CFRL_IS_CALLING_SOURCE1 | DBG_FUNC_START, rl, rlm, perform, info);
         __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(perform,
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
             msg, size, reply,
 #endif
             info);
@@ -2450,7 +2450,7 @@ CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef modeName) {
 
 static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInterval seconds, Boolean stopAfterHandle, CFRunLoopModeRef previousMode) __attribute__((noinline));
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 
 #define TIMEOUT_INFINITY (~(mach_msg_timeout_t)0)
 
@@ -2742,12 +2742,12 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     Boolean didDispatchPortLastTime = true;
     int32_t retVal = 0;
     do {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         voucher_mach_msg_state_t voucherState = VOUCHER_MACH_MSG_STATE_UNCHANGED;
         voucher_t voucherCopy = NULL;
 #endif
         uint8_t msg_buffer[3 * 1024];
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         mach_msg_header_t *msg = NULL;
         mach_port_t livePort = MACH_PORT_NULL;
 #elif DEPLOYMENT_TARGET_WINDOWS || TARGET_OS_CYGWIN
@@ -2779,7 +2779,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
 #if __HAS_DISPATCH__
         if (MACH_PORT_NULL != dispatchPort && !didDispatchPortLastTime) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL, rl, rlm)) {
                 goto handle_msg;
@@ -2814,7 +2814,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
         CFAbsoluteTime sleepStart = poll ? 0.0 : CFAbsoluteTimeGetCurrent();
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
         do {
             msg = (mach_msg_header_t *)msg_buffer;
@@ -2974,7 +2974,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             // Despite the name, this works for windows handles as well
             CFRunLoopSourceRef rls = __CFRunLoopModeFindSourceForMachPort(rl, rlm, livePort);
             if (rls) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 		mach_msg_header_t *reply = NULL;
 		sourceHandledThisLoop = __CFRunLoopDoSource1(rl, rlm, rls, msg, msg->msgh_size, &reply) || sourceHandledThisLoop;
 		if (NULL != reply) {
@@ -2992,7 +2992,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         
         /* --- BLOCKS --- */
         
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
         if (msg && msg != (mach_msg_header_t *)msg_buffer) free(msg);
 #endif
         
@@ -3114,7 +3114,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
         __CFRunLoopUnlock(rl);
         return;
     }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     kern_return_t ret;
     /* We unconditionally try to send the message, since we don't want
      * to lose a wakeup, but the send may fail if there is already a
@@ -3717,7 +3717,7 @@ static CFStringRef __CFRunLoopSourceCopyDescription(CFTypeRef cf) {	/* DOES CALL
 	void *addr = rls->_context.version0.version == 0 ? (void *)rls->_context.version0.perform : (rls->_context.version0.version == 1 ? (void *)rls->_context.version1.perform : NULL);
 #if DEPLOYMENT_TARGET_WINDOWS
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %p}"), rls->_context.version0.version, rls->_context.version0.info, addr);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
+#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
 	Dl_info info;
 	const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %s (%p)}"), rls->_context.version0.version, rls->_context.version0.info, name, addr);
@@ -3916,7 +3916,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
     }
 #if DEPLOYMENT_TARGET_WINDOWS
     result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopObserver %p [%p]>{valid = %s, activities = 0x%x, repeats = %s, order = %d, callout = %p, context = %@}"), cf, CFGetAllocator(rlo), __CFIsValid(rlo) ? "Yes" : "No", rlo->_activities, __CFRunLoopObserverRepeats(rlo) ? "Yes" : "No", rlo->_order, rlo->_callout, contextDesc);    
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
+#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || (DEPLOYMENT_TARGET_LINUX && !TARGET_OS_CYGWIN)
     void *addr = rlo->_callout;
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
@@ -4370,7 +4370,7 @@ void CFRunLoopTimerGetContext(CFRunLoopTimerRef rlt, CFRunLoopTimerContext *cont
 }
 
 CFTimeInterval CFRunLoopTimerGetTolerance(CFRunLoopTimerRef rlt) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     CHECK_FOR_FORK();
     CF_OBJC_FUNCDISPATCHV(CFRunLoopTimerGetTypeID(), CFTimeInterval, (NSTimer *)rlt, tolerance);
     __CFGenericValidateType(rlt, CFRunLoopTimerGetTypeID());
@@ -4381,7 +4381,7 @@ CFTimeInterval CFRunLoopTimerGetTolerance(CFRunLoopTimerRef rlt) {
 }
 
 void CFRunLoopTimerSetTolerance(CFRunLoopTimerRef rlt, CFTimeInterval tolerance) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     CHECK_FOR_FORK();
     CF_OBJC_FUNCDISPATCHV(CFRunLoopTimerGetTypeID(), void, (NSTimer *)rlt, setTolerance:tolerance);
     __CFGenericValidateType(rlt, CFRunLoopTimerGetTypeID());

@@ -21,7 +21,7 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFURLComponents.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -971,7 +971,7 @@ CF_PRIVATE void __CFTSDWindowsCleanup(void);
 CF_PRIVATE void __CFFinalizeWindowsThreadData();
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 _Atomic(uint8_t) __CF120290 = false;
 static _Atomic(uint8_t) __CF120291 = false;
 _Atomic(uint8_t) __CF120293 = false;
@@ -1145,7 +1145,7 @@ void __CFInitialize(void) {
             }
         }
         
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
 	pthread_atfork(__01121__, NULL, __01123__);
@@ -1205,7 +1205,7 @@ void __CFInitialize(void) {
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
             args = *_NSGetArgv();
             cnt = *_NSGetArgc();
 #elif DEPLOYMENT_TARGET_WINDOWS

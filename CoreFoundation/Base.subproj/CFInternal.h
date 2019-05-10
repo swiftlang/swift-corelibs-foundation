@@ -166,7 +166,7 @@ CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
 
 CF_EXPORT CFStringRef _CFStringCreateHostName(void);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <CoreFoundation/CFRunLoop.h>
 CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 #endif
@@ -678,7 +678,7 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 CF_PRIVATE _Atomic(uint8_t) __CF120293;
 CF_PRIVATE _Atomic(uint8_t) __CF120290;
 extern void __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(void);

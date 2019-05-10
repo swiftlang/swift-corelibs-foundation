@@ -1588,7 +1588,7 @@ CF_PRIVATE CFBasicHashRef CFBasicHashCreate(CFAllocatorRef allocator, CFOptionFl
     ht->bits.counts_offset = (flags & kCFBasicHashHasCounts) ? offset++ : 0;
     ht->bits.hashes_offset = (flags & kCFBasicHashHasHashCache) ? offset++ : 0;
 
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
     ht->bits.hashes_offset = 0;
     ht->bits.strong_values = 0;
     ht->bits.strong_keys = 0;

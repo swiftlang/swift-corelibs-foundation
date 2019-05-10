@@ -27,7 +27,7 @@
 #include "CFString_Internal.h"
 #include "CFRuntime_Internal.h"
 #include <assert.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 #include "CFLocaleInternal.h"
 #include "CFStringLocalizedFormattingInternal.h"
 #endif
@@ -103,7 +103,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
 }
 #endif //INSTRUMENT_SHARED_STRINGS
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 extern size_t malloc_good_size(size_t size);
 #endif
 extern void __CFStrConvertBytesToUnicode(const uint8_t *bytes, UniChar *buffer, CFIndex numChars);
@@ -414,7 +414,7 @@ static CFStringEncoding __CFDefaultFileSystemEncoding = kCFStringEncodingInvalid
 CFStringEncoding __CFDefaultEightBitStringEncoding = kCFStringEncodingInvalidId;
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #define __defaultEncoding kCFStringEncodingMacRoman
 #elif DEPLOYMENT_TARGET_LINUX
 #define __defaultEncoding kCFStringEncodingUTF8
@@ -443,7 +443,7 @@ CF_INLINE CFStringEncoding __CFStringGetSystemEncoding(void) {
 
 CFStringEncoding CFStringFileSystemEncoding(void) {
     if (__CFDefaultFileSystemEncoding == kCFStringEncodingInvalidId) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS
         __CFDefaultFileSystemEncoding = kCFStringEncodingUTF8;
 #else
         __CFDefaultFileSystemEncoding = CFStringGetSystemEncoding();
@@ -645,7 +645,7 @@ CF_INLINE CFIndex __CFStrNewCapacity(CFMutableStringRef str, unsigned long reqCa
             }
 	    if (__CFStrHasContentsAllocator(str)) {	/* Also apply any preferred size from the allocator  */
                 newCapacity = CFAllocatorGetPreferredSizeForSize(__CFStrContentsAllocator(str), newCapacity, 0);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
             } else {
                 newCapacity = malloc_good_size(newCapacity);
 #endif
@@ -4657,7 +4657,7 @@ CFDataRef CFStringCreateExternalRepresentation(CFAllocatorRef alloc, CFStringRef
     if (((encoding & 0x0FFF) == kCFStringEncodingUnicode) && ((encoding == kCFStringEncodingUnicode) || ((encoding > kCFStringEncodingUTF8) && (encoding <= kCFStringEncodingUTF32LE)))) {
         guessedByteLength = (length + 1) * ((((encoding >> 26)  & 2) == 0) ? sizeof(UTF16Char) : sizeof(UTF32Char)); // UTF32 format has the bit set
     } else if (((guessedByteLength = CFStringGetMaximumSizeForEncoding(length, encoding)) > length) && !CF_IS_OBJC(_kCFRuntimeIDCFString, string) && !CF_IS_SWIFT(_kCFRuntimeIDCFString, string)) { // Multi byte encoding
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
         if (__CFStrIsUnicode(string)) {
             CFIndex aLength = CFStringEncodingByteLengthForCharacters(encoding, kCFStringEncodingPrependBOM, __CFStrContents(string), __CFStrLength(string));
             if (aLength > 0) guessedByteLength = aLength;
@@ -4671,7 +4671,7 @@ CFDataRef CFStringCreateExternalRepresentation(CFAllocatorRef alloc, CFStringRef
         if (guessedByteLength == length && __CFStrIsEightBit(string) && __CFStringEncodingIsSupersetOfASCII(encoding)) { // It's all ASCII !!
             return CFDataCreate(alloc, ((uint8_t *)__CFStrContents(string) + __CFStrSkipAnyLengthByte(string)), __CFStrLength(string));
         }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
         }
 #endif
     }
@@ -6500,7 +6500,7 @@ reswtch:switch (ch) {
 // Length of the buffer to call sprintf() with
 #define BUFFER_LEN 512
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #define SNPRINTF(TYPE, WHAT) {				\
     TYPE value = (TYPE) WHAT;				\
     if (-1 != specs[curSpec].widthArgNum) {		\
@@ -7186,7 +7186,7 @@ static Boolean __CFStringAppendFormatCore(CFMutableStringRef outputString, CFStr
 			}
 			// See if we need to localize the decimal point
                         if (formatOptions) {	// We have localization info
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 			    CFStringRef decimalSeparator = (CFGetTypeID(formatOptions) == CFLocaleGetTypeID()) ? (CFStringRef)CFLocaleGetValue((CFLocaleRef)formatOptions, kCFLocaleDecimalSeparatorKey) : (CFStringRef)CFDictionaryGetValue(formatOptions, CFSTR("NSDecimalSeparator"));
 #else
                             CFStringRef decimalSeparator = CFSTR(".");

@@ -34,7 +34,7 @@ static Boolean _CFDataShouldBridgeToSwift(CFTypeID type, CFDataRef data);
 #define CFDATA_MAX_SIZE	    ((1ULL << 31) - 1)
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
 #include <mach/mach.h>
 CF_INLINE unsigned long __CFPageSize() { return vm_page_size; }
 #elif DEPLOYMENT_TARGET_WINDOWS

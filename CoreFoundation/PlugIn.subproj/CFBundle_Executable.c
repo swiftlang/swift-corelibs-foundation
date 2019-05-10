@@ -12,7 +12,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include "CFBundle_Internal.h"
 
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
 #include <dlfcn.h>
 #endif
 
@@ -58,7 +58,7 @@
 // See <rdar://problem/6956670>
 static Boolean _binaryLoadable(CFURLRef url) {
     Boolean loadable = _CFURLExists(url);
-#if DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_IPHONE
     if (!loadable) {
         uint8_t path[PATH_MAX];
         if (url && CFURLGetFileSystemRepresentation(url, true, path, sizeof(path))) {
@@ -89,7 +89,7 @@ static CFURLRef _CFBundleCopyExecutableURLRaw(CFURLRef urlPath, CFStringRef exeN
             }
         }
     }
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
     const uint8_t *image_suffix = (uint8_t *)__CFgetenvIfNotRestricted("DYLD_IMAGE_SUFFIX");
     
     if (image_suffix) {
