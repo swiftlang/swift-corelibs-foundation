@@ -338,31 +338,6 @@ class BundlePlayground {
 }
 
 class TestBundle : XCTestCase {
-    
-    static var allTests: [(String, (TestBundle) -> () throws -> Void)] {
-        var tests: [(String, (TestBundle) -> () throws -> Void)] = [
-            ("test_paths", test_paths),
-            ("test_resources", test_resources),
-            ("test_infoPlist", test_infoPlist),
-            ("test_localizations", test_localizations),
-            ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
-            ("test_bundleLoad", test_bundleLoad),
-            ("test_bundleLoadWithError", test_bundleLoadWithError),
-            ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
-            ("test_bundlePreflight", test_bundlePreflight),
-            ("test_bundleFindExecutable", test_bundleFindExecutable),
-            ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
-            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
-        ]
-
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
-        tests.append(contentsOf: [
-            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
-        ])
-#endif
-
-        return tests
-    }
 
     func test_paths() {
         let bundle = testBundle()
@@ -578,4 +553,34 @@ class TestBundle : XCTestCase {
 #endif
     }
 #endif
+    
+    func test_bundleForClass() {
+        XCTAssertEqual(testBundle(), Bundle(for: type(of: self)))
+    }
+    
+    static var allTests: [(String, (TestBundle) -> () throws -> Void)] {
+        var tests: [(String, (TestBundle) -> () throws -> Void)] = [
+            ("test_paths", test_paths),
+            ("test_resources", test_resources),
+            ("test_infoPlist", test_infoPlist),
+            ("test_localizations", test_localizations),
+            ("test_URLsForResourcesWithExtension", test_URLsForResourcesWithExtension),
+            ("test_bundleLoad", test_bundleLoad),
+            ("test_bundleLoadWithError", test_bundleLoadWithError),
+            ("test_bundleWithInvalidPath", test_bundleWithInvalidPath),
+            ("test_bundlePreflight", test_bundlePreflight),
+            ("test_bundleFindExecutable", test_bundleFindExecutable),
+            ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
+            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
+            ("test_bundleForClass", testExpectedToFailOnWindows(test_bundleForClass, "Functionality not yet implemented on Windows. SR-XXXX")),
+        ]
+        
+        #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
+        tests.append(contentsOf: [
+            ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
+            ])
+        #endif
+        
+        return tests
+    }
 }

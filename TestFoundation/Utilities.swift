@@ -498,14 +498,11 @@ func shouldAttemptXFailTests(_ reason: String) -> Bool {
 }
 
 func shouldAttemptWindowsXFailTests(_ reason: String) -> Bool {
-  var isOSWindows: Bool = false
-#if os(Windows)
-  isOSWindows = true
-#endif
-
-  if !isOSWindows || shouldRunXFailTests { return true }
-  try? FileHandle.standardError.write(contentsOf: Data("warning: Skipping test expected to fail with reason '\(reason)'\n".utf8))
-  return false
+    #if os(Windows)
+    return shouldAttemptXFailTests(reason)
+    #else
+    return true
+    #endif
 }
 
 func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
@@ -515,7 +512,15 @@ func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [
 }
 
 func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
-    if shouldAttemptXFailTests(reason) {
+    testExpectedToFailWithCheck(check: shouldAttemptXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    testExpectedToFailWithCheck(check: shouldAttemptWindowsXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailWithCheck<T>(check: (String) -> Bool, _ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    if check(reason) {
         return test
     } else {
         return { _ in return { } }

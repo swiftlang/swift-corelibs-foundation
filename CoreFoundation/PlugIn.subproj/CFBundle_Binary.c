@@ -746,6 +746,11 @@ CF_PRIVATE void *_CFBundleDLLGetSymbolByName(CFBundleRef bundle, CFStringRef sym
 
 #endif /* BINARY_SUPPORT_DLL */
 
+// For Swift:
+CF_CROSS_PLATFORM_EXPORT CFStringRef _CFBundleCopyLoadedImagePathForAddress(const void *p) {
+    return _CFBundleCopyLoadedImagePathForPointer((void *)p);
+}
+
 CF_PRIVATE CFStringRef _CFBundleCopyLoadedImagePathForPointer(void *p) {
     CFStringRef imagePath = NULL;
 #if defined(BINARY_SUPPORT_DYLD)
