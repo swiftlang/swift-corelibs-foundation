@@ -552,7 +552,7 @@ typedef	struct UnsignedWide {
 typedef UnsignedWide		AbsoluteTime;
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
 #endif
@@ -1951,7 +1951,7 @@ static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE0_PERFORM_FUNCTION__(void (*pe
 }
 
 static void __CFRUNLOOP_IS_CALLING_OUT_TO_A_SOURCE1_PERFORM_FUNCTION__(
-#if DEPLOYMENT_TARGET_MACOSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
         void *(*perform)(void *msg, CFIndex size, CFAllocatorRef allocator, void *info),
         mach_msg_header_t *msg, CFIndex size, mach_msg_header_t **reply,
 #else
