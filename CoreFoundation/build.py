@@ -18,7 +18,7 @@ if Configuration.current.target.sdk == OSType.Linux:
 	cf.LDFLAGS = '-Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
-	cf.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
+	cf.CFLAGS = '-I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
 	cf.LDFLAGS = ''
 elif Configuration.current.target.sdk == OSType.MacOSX:
 	cf.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '

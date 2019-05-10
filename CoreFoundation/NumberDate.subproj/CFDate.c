@@ -26,7 +26,7 @@
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 #include <sys/time.h>
 #endif
 
@@ -114,7 +114,7 @@ CF_EXPORT CFTimeInterval CFGetSystemUptime(void) {
 #if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
     uint64_t tsr = mach_absolute_time();
     return (CFTimeInterval)((double)tsr * __CF1_TSRRate);
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     struct timespec res;
     if (clock_gettime(CLOCK_MONOTONIC, &res) != 0) {
         HALT;
@@ -176,7 +176,7 @@ CF_PRIVATE void __CFDateInitialize(void) {
     }
     __CFTSRRate = (double)freq.QuadPart;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
     struct timespec res;
     if (clock_getres(CLOCK_MONOTONIC, &res) != 0) {
         HALT;

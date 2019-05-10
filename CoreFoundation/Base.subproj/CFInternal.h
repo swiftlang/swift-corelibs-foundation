@@ -543,7 +543,7 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
     return (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) == 0);
 }
 
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 
 typedef int32_t CFLock_t;
 #define CFLockInit 0

@@ -52,7 +52,7 @@ __kCFReleaseEvent = 29
 
 #if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
 #include <malloc.h>
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
 #else
 #include <malloc/malloc.h>
@@ -1106,7 +1106,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if DEPLOYMENT_TARGET_LINUX || TARGET_OS_BSD
 static void __CFInitialize(void) __attribute__ ((constructor));
 static
 #endif

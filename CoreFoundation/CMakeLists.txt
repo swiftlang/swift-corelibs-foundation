@@ -343,10 +343,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
                                PRIVATE
                                  -DHAVE_SCHED_GETAFFINITY)
   endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_TARGET_FREEBSD)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_compile_definitions(CoreFoundation
                              PRIVATE

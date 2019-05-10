@@ -138,7 +138,7 @@ typedef int		boolean_t;
 #endif
 #endif
     
-#if DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_BSD
 #include <string.h>
 #include <sys/stat.h> // mode_t
 #endif
@@ -234,7 +234,7 @@ CF_INLINE uint64_t mach_absolute_time() {
 
 #endif
     
-#if DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_BSD
 #define HAVE_STRUCT_TIMESPEC 1
 
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
