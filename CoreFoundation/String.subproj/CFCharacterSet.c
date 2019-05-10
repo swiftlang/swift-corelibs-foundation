@@ -1618,21 +1618,28 @@ CFMutableCharacterSetRef CFCharacterSetCreateMutable(CFAllocatorRef allocator) {
     return cset;
 }
 
+CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
+
 static CFMutableCharacterSetRef __CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses) {
     CFMutableCharacterSetRef cset;
-
+    
     if (validateSubclasses) {
         CF_OBJC_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, CFMutableCharacterSetRef , (NSCharacterSet *)theSet, mutableCopy);
         CF_SWIFT_FUNCDISPATCHV(_kCFRuntimeIDCFCharacterSet, CFMutableCharacterSetRef, (CFSwiftRef)theSet, NSCharacterSet.mutableCopy);
         
         __CFGenericValidateType(theSet, _kCFRuntimeIDCFCharacterSet);
     }
-
+    
     if (!isMutable && !__CFCSetIsMutable(theSet)) {
         return (CFMutableCharacterSetRef)CFRetain(theSet);
     }
-
+    
     cset = CFCharacterSetCreateMutable(alloc);
+    _CFCharacterSetInitCopyingSet(alloc, cset, theSet, isMutable, validateSubclasses);
+    return cset;
+}
+
+CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses) {
 
     __CFCSetPutClassType(cset, __CFCSetClassType(theSet));
     __CFCSetPutHasHashValue(cset, __CFCSetHasHashValue(theSet));
@@ -1704,9 +1711,8 @@ static CFMutableCharacterSetRef __CFCharacterSetCreateCopy(CFAllocatorRef alloc,
     } else if (__CFCSetAnnexIsInverted(theSet)) {
         __CFCSetAnnexSetIsInverted(cset, true);
     }
-    
-    return cset;
 }
+
 
 CFCharacterSetRef CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet) {
     return __CFCharacterSetCreateCopy(alloc, theSet, false, true);

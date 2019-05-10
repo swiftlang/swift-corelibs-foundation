@@ -26,6 +26,8 @@
 #include <CoreFoundation/CFURLSessionInterface.h>
 #include <CoreFoundation/CFDateIntervalFormatter.h>
 #include <CoreFoundation/ForFoundationOnly.h>
+#include <CoreFoundation/CFCharacterSetPriv.h>
+
 #if DEPLOYMENT_TARGET_WINDOWS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -403,6 +405,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
 CF_EXPORT Boolean _CFCharacterSetIsLongCharacterMember(CFCharacterSetRef theSet, UTF32Char theChar);
 CF_EXPORT CFCharacterSetRef _CFCharacterSetCreateCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
 CF_EXPORT CFMutableCharacterSetRef _CFCharacterSetCreateMutableCopy(CFAllocatorRef alloc, CFCharacterSetRef theSet);
+CF_CROSS_PLATFORM_EXPORT void _CFCharacterSetInitCopyingSet(CFAllocatorRef alloc, CFMutableCharacterSetRef cset, CFCharacterSetRef theSet, bool isMutable, bool validateSubclasses);
 
 CF_EXPORT _Nullable CFErrorRef CFReadStreamCopyError(CFReadStreamRef _Null_unspecified stream);
 
