@@ -106,12 +106,12 @@ open class Thread : NSObject {
     open class func sleep(until date: Date) {
 #if os(Windows)
         var hTimer: HANDLE = CreateWaitableTimerW(nil, true, nil)
-        // FIXME(compnerd) how to check that hTimer is not NULL?
+        if hTimer == HANDLE(bitPattern: 0) { fatalError("unable to create timer: \(GetLastError())") }
         defer { CloseHandle(hTimer) }
 
         // the timeout is in 100ns units
         var liTimeout: LARGE_INTEGER =
-            LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceReferenceDate) * -10000000)
+            LARGE_INTEGER(QuadPart: LONGLONG(date.timeIntervalSinceNow) * -10000000)
         if !SetWaitableTimer(hTimer, &liTimeout, 0, nil, nil, false) {
           return
         }
