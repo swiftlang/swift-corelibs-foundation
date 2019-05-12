@@ -512,11 +512,11 @@ func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [
 }
 
 func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
-    testExpectedToFailWithCheck(check: shouldAttemptXFailTests(_:), test, reason)
+    return testExpectedToFailWithCheck(check: shouldAttemptXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
-    testExpectedToFailWithCheck(check: shouldAttemptWindowsXFailTests(_:), test, reason)
+    return testExpectedToFailWithCheck(check: shouldAttemptWindowsXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailWithCheck<T>(check: (String) -> Bool, _ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
