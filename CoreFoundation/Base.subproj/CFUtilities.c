@@ -14,12 +14,12 @@
 #include "CFLocaleInternal.h"
 #include "CFBundle_Internal.h"
 #include <CoreFoundation/CFPriv.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_MAC || TARGET_OS_WIN32
 #include <CoreFoundation/CFBundle.h>
 #endif
 #include <CoreFoundation/CFURLAccess.h>
 #include <CoreFoundation/CFPropertyList.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 #if TARGET_OS_ANDROID
@@ -29,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #include <asl.h>
 #else
 #define ASL_LEVEL_EMERG 0
@@ -37,7 +37,7 @@
 #endif
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <unistd.h>
 #include <sys/uio.h>
 #include <mach/mach.h>
@@ -59,7 +59,7 @@
 #include <os/lock.h>
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -71,7 +71,7 @@
 #include <pthread.h>
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #ifdef HAVE_SCHED_GETAFFINITY
 #include <sched.h>
 #endif
@@ -159,7 +159,7 @@ CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length) {
 #undef ELF_STEP
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 CF_PRIVATE uintptr_t __CFFindPointer(uintptr_t ptr, uintptr_t start) {
     vm_map_t task = mach_task_self();
     mach_vm_address_t address = start;
@@ -225,7 +225,7 @@ static CFStringRef copySystemVersionPath(CFStringRef suffix) {
 // Looks for localized version of "nonLocalized" in the SystemVersion bundle
 // If not found, and returnNonLocalizedFlag == true, will return the non localized string (retained of course), otherwise NULL
 // If bundlePtr != NULL, will use *bundlePtr and will return the bundle in there; otherwise bundle is created and released
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRef nonLocalized) {
     CFStringRef localized = NULL;
     CFBundleRef locBundle = bundlePtr ? *bundlePtr : NULL;
@@ -249,7 +249,7 @@ static CFStringRef _CFCopyLocalizedVersionKey(CFBundleRef *bundlePtr, CFStringRe
 static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     CFPropertyListRef plist = NULL;
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     CFDataRef data;
     CFURLRef url;
     
@@ -264,19 +264,12 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
     if (url) CFRelease(url);
 
     if (plist) {
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI
-	CFStringRef fullVersion, vers, versExtra, build;
-	CFStringRef versionString = CFRetain(_kCFSystemVersionProductVersionStringKey);
-	CFStringRef buildString = CFRetain(_kCFSystemVersionBuildStringKey);
-	CFStringRef fullVersionString = CFRetain(CFSTR("FullVersionString"));
-#else
 	CFBundleRef locBundle = NULL;
 	CFStringRef fullVersion, vers, versExtra, build;
 	CFStringRef versionString = _CFCopyLocalizedVersionKey(&locBundle, _kCFSystemVersionProductVersionStringKey);
 	CFStringRef buildString = _CFCopyLocalizedVersionKey(&locBundle, _kCFSystemVersionBuildStringKey);
 	CFStringRef fullVersionString = _CFCopyLocalizedVersionKey(&locBundle, CFSTR("FullVersionString"));
 	if (locBundle) CFRelease(locBundle);
-#endif
 
         // Now build the full version string
         if (CFEqual(fullVersionString, CFSTR("FullVersionString"))) {
@@ -298,7 +291,7 @@ static CFDictionaryRef _CFCopyVersionDictionary(CFStringRef path) {
 	CFRelease(fullVersionString);
         CFRelease(fullVersion);
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     OSVERSIONINFOEX osvi;
     ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
@@ -384,7 +377,7 @@ CF_EXPORT Boolean _CFExecutableLinkedOnOrAfter(CFSystemVersion version) {
 
 
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
     static void *image = NULL;
     static dispatch_once_t onceToken;
@@ -399,7 +392,7 @@ CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 CF_PRIVATE void *__CFLookupCoreServicesInternalFunction(const char *name) {
     static void *image = NULL;
     static dispatch_once_t onceToken;
@@ -438,7 +431,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
 #else
     
     int32_t pcnt;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     DWORD_PTR activeProcessorMask = sysInfo.dwActiveProcessorMask;
@@ -448,14 +441,14 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
     v = (v & 0x3333333333333333ULL) + ((v >> 2) & 0x3333333333333333ULL);
     v = (v + (v >> 4)) & 0xf0f0f0f0f0f0f0fULL;
     pcnt = (v * 0x0101010101010101ULL) >> ((sizeof(v) - 1) * 8);
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_MAC
     int32_t mib[] = {CTL_HW, HW_AVAILCPU};
     size_t len = sizeof(pcnt);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &pcnt, &len, NULL, 0);
     if (result != 0) {
         pcnt = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 
 #ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
@@ -475,14 +468,14 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount() {
 
 CF_PRIVATE CFIndex __CFProcessorCount() {
     int32_t pcnt;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     int32_t mib[] = {CTL_HW, HW_NCPU};
     size_t len = sizeof(pcnt);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &pcnt, &len, NULL, 0);
     if (result != 0) {
         pcnt = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     pcnt = sysconf(_SC_NPROCESSORS_CONF);
 #else
     // Assume the worst
@@ -493,14 +486,14 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
 
 CF_PRIVATE uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     int32_t mib[] = {CTL_HW, HW_NCPU};
     size_t len = sizeof(memsize);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &memsize, &len, NULL, 0);
     if (result != 0) {
         memsize = 0;
     }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     memsize = sysconf(_SC_PHYS_PAGES);
     memsize *= sysconf(_SC_PAGESIZE);
 #endif
@@ -557,7 +550,7 @@ typedef struct _ugids {
 CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
     ugids(^lookup)(void) = ^{
         ugids ids;
-#if 1 && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI)
+#if 1 && TARGET_OS_MAC
         if (0 != pthread_getugid_np(&ids._euid, &ids._egid))
 #endif
         {
@@ -651,7 +644,7 @@ static void _CFShowToFile(FILE *file, Boolean flush, const void *obj) {
      }
      cnt = CFStringGetLength(str);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     UniChar *ptr = (UniChar *)CFStringGetCharactersPtr(str);
     BOOL freePtr = false;
     if (!ptr) {
@@ -679,7 +672,7 @@ static void _CFShowToFile(FILE *file, Boolean flush, const void *obj) {
          }
      }
      if (!lastNL) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
          fprintf_l(file, NULL, "\n");
 #else
          fprintf(file, "\n");
@@ -699,7 +692,7 @@ void CFShow(const void *obj) {
 // message must be a UTF8-encoded, null-terminated, byte buffer with at least length bytes
 typedef void (*CFLogFunc)(int32_t lev, const char *message, size_t length, char withBanner);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 static Boolean debugger_attached() {
     BOOL debuggerAttached = NO;
     struct proc_bsdshortinfo info;
@@ -719,10 +712,10 @@ typedef enum {
 
 static bool also_do_stderr(const _cf_logging_style style) {
     bool result = false;
-#if DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
     // just log to stderr, other logging facilities are out
     result = true;
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#elif TARGET_OS_MAC
     if (style == _cf_logging_style_os_log) {
         //
         // This might seem a bit odd, so an explanation is in order:
@@ -775,7 +768,7 @@ static bool also_do_stderr(const _cf_logging_style style) {
     return result;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static struct tm *localtime_r(time_t *tv, struct tm *result) {
   struct tm *tm = localtime(tv);
   if (tm) {
@@ -798,12 +791,12 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     int32_t minute = mine.tm_min;
     int32_t second = mine.tm_sec;
     int32_t ms = (int32_t)floor(1000.0 * modf(at, &dummy));
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     uint64_t tid = 0;
     if (0 != pthread_threadid_np(NULL, &tid)) tid = pthread_mach_thread_np(pthread_self());
     asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
     asprintf(thread, "%x", pthread_mach_thread_np(pthread_self()));
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%lx] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), GetCurrentThreadId());
     asprintf(thread, "%lx", GetCurrentThreadId());
 #else
@@ -814,7 +807,7 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
 }
 
 static void _logToStderr(char *banner, const char *message, size_t length) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     struct iovec v[3];
     v[0].iov_base = banner;
     v[0].iov_len = banner ? strlen(banner) : 0;
@@ -827,7 +820,7 @@ static void _logToStderr(char *banner, const char *message, size_t length) {
     __CFLock(&lock);
     writev(STDERR_FILENO, v[0].iov_base ? v : v + 1, nv);
     __CFUnlock(&lock);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     size_t bannerLen = strlen(banner);
     size_t bufLen = bannerLen + length + 1;
     char *buf = (char *)malloc(sizeof(char) * bufLen);
@@ -896,7 +889,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
         _populateBanner(&banner, &time, &thread, &bannerLen);
     }
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
     uid_t euid;
@@ -928,7 +921,7 @@ static void __CFLogCStringLegacy(int32_t lev, const char *message, size_t length
 
 
 static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(void *, const void *), CFStringRef (*contextDescFunc)(void *, const void *, const void *, bool, bool *), CFDictionaryRef formatOptions, int32_t lev, CFStringRef format, va_list args, _cf_logging_style loggingStyle) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     uintptr_t val = (uintptr_t)_CFGetTSD(__CFTSDKeyIsInCFLog);
     if (3 < val) return; // allow up to 4 nested invocations
     _CFSetTSD(__CFTSDKeyIsInCFLog, (void *)(val + 1), NULL);
@@ -954,7 +947,7 @@ static void _CFLogvEx2Predicate(CFLogFunc logit, CFStringRef (*copyDescFunc)(voi
     }
     if (buf) free(buf);
     if (str) CFRelease(str);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     _CFSetTSD(__CFTSDKeyIsInCFLog, (void *)val, NULL);
 #endif
 }
@@ -1044,7 +1037,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
 
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 
 kern_return_t _CFDiscorporateMemoryAllocate(CFDiscorporateMemory *hm, size_t size, bool purgeable) {
     kern_return_t ret = KERN_SUCCESS;
@@ -1097,14 +1090,14 @@ kern_return_t _CFDiscorporateMemoryMaterialize(CFDiscorporateMemory *hm) {
 
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 static os_unfair_lock __CFProcessKillingLock = OS_UNFAIR_LOCK_INIT;
 static CFIndex __CFProcessKillingDisablingCount = 1;
 static Boolean __CFProcessKillingWasTurnedOn = false;
 #endif
 
 void _CFSuddenTerminationDisable(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount++;
     os_unfair_lock_unlock(&__CFProcessKillingLock);
@@ -1114,7 +1107,7 @@ void _CFSuddenTerminationDisable(void) {
 }
 
 void _CFSuddenTerminationEnable(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     // In our model the first call of _CFSuddenTerminationEnable() that does not balance a previous call of _CFSuddenTerminationDisable() actually enables sudden termination so we have to keep a count that's almost redundant with vproc's.
     os_unfair_lock_lock(&__CFProcessKillingLock);
     __CFProcessKillingDisablingCount--;
@@ -1129,7 +1122,7 @@ void _CFSuddenTerminationEnable(void) {
 }
 
 void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     // This is for when the caller wants to try to exit quickly if possible but not automatically exit the process when it next becomes clean, because quitting might still be cancelled by the user.
     os_unfair_lock_lock(&__CFProcessKillingLock);
     os_unfair_lock_unlock(&__CFProcessKillingLock);
@@ -1139,7 +1132,7 @@ void _CFSuddenTerminationExitIfTerminationEnabled(int exitStatus) {
 }
 
 void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     // The user has had their final opportunity to cancel quitting. Exit as soon as the process is clean. Same carefulness as in _CFSuddenTerminationExitIfTerminationEnabled().
     os_unfair_lock_lock(&__CFProcessKillingLock);
     if (__CFProcessKillingWasTurnedOn) {
@@ -1151,7 +1144,7 @@ void _CFSuddenTerminationExitWhenTerminationEnabled(int exitStatus) {
 }
 
 size_t _CFSuddenTerminationDisablingCount(void) {
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     return (__CFProcessKillingWasTurnedOn ? 0 : 1);
 #else
     // Elsewhere, sudden termination is always disabled
@@ -1164,7 +1157,7 @@ size_t _CFSuddenTerminationDisablingCount(void) {
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <io.h>
 #include <direct.h>
 #define close _close
@@ -1208,7 +1201,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
         if (errorPtr) *errorPtr = _CFErrorWithFilePathCodeDomain(kCFErrorDomainPOSIX, errno, path);
         return false;
     }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI    
+#if TARGET_OS_MAC
     if (uncached) (void)fcntl(fd, F_NOCACHE, 1);  // Non-zero arg turns off caching; we ignore error as uncached is just a hint
 #endif
     if (fstat(fd, &statBuf) < 0) {
@@ -1239,7 +1232,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
     if (0LL == statBuf.st_size) {
         bytes = malloc(8); // don't return constant string -- it's freed!
 	length = 0;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     } else if (map) {
         if((void *)-1 == (bytes = mmap(0, (size_t)statBuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0))) {
 	    int32_t savederrno = errno;
@@ -1279,7 +1272,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
 	}
 	length = (unsigned long)statBuf.st_size - numBytesRemaining;
     }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     } else {
         bytes = malloc(statBuf.st_size);
         DWORD numBytesRead;

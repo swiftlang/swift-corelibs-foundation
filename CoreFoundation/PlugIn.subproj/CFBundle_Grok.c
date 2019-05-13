@@ -27,7 +27,7 @@
 #include <unistd.h>
 #endif
 #include <fcntl.h>
-#if !DEPLOYMENT_TARGET_WINDOWS
+#if !TARGET_OS_WIN32
 #include <sys/mman.h>
 #endif
 
@@ -38,7 +38,7 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define statinfo _stat
 #define stat(x,y) _NS_stat(x,y)
 #define open _NS_open
@@ -970,7 +970,7 @@ CF_PRIVATE CFArrayRef _CFBundleCopyArchitecturesForExecutable(CFURLRef url) {
     return result;
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 static Boolean _CFBundleGetObjCImageInfoForExecutable(CFURLRef url, uint32_t *objcVersion, uint32_t *objcFlags) {
     Boolean retval = false;
     (void)_CFBundleGrokFileType(url, NULL, NULL, NULL, NULL, NULL, &retval, objcVersion, objcFlags);

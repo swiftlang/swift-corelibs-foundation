@@ -17,7 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <io.h>
 #include <fcntl.h>
 
@@ -46,7 +46,7 @@
 #endif
 
 CF_INLINE int openAutoFSNoWait() {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     return -1;
 #else
     return (__CFProphylacticAutofsAccess ? open("/dev/autofs_nowait", 0) : -1);
@@ -191,7 +191,7 @@ CF_PRIVATE Boolean _CFWriteBytesToFile(CFURLRef url, const void *bytes, CFIndex 
         thread_set_errno(saveerr);
         return false;
     }
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     FlushFileBuffers((HANDLE)_get_osfhandle(fd));
 #else
     fsync(fd);
@@ -213,7 +213,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     CFStringRef extension = (matchingAbstractType ? _CFCopyExtensionForAbstractType(matchingAbstractType) : NULL);
     CFIndex targetExtLen = (extension ? CFStringGetLength(extension) : 0);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // This is a replacement for 'dirent' below, and also uses wchar_t to support unicode paths
     wchar_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
@@ -342,7 +342,7 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
     FindClose(handle);
     pathBuf[pathLength] = '\0';
 
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
     uint8_t extBuff[CFMaxPathSize];
     int extBuffInteriorDotCount = 0; //people insist on using extensions like ".trace.plist", so we need to know how many dots back to look :(
     
@@ -452,13 +452,13 @@ CF_PRIVATE CFMutableArrayRef _CFCreateContentsOfDirectory(CFAllocatorRef alloc, 
                     isDir = ((statBuf.st_mode & S_IFMT) == S_IFDIR);
                 }
             }
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, namelen, isDir, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase(alloc, (uint8_t *)dp->d_name, dp->d_namlen, isDir, dirURL);
 #endif
         } else {
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, namelen, false, dirURL);
 #else
             fileURL = CFURLCreateFromFileSystemRepresentationRelativeToBase (alloc, (uint8_t *)dp->d_name, dp->d_namlen, false, dirURL);
@@ -545,7 +545,7 @@ CF_PRIVATE SInt32 _CFGetPathProperties(CFAllocatorRef alloc, char *path, Boolean
     
     if (modTime != NULL) {
         if (fileExists) {
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
             struct timespec ts = {statBuf.st_mtime, 0};
 #else
             struct timespec ts = statBuf.st_mtimespec;
@@ -599,7 +599,7 @@ CF_PRIVATE bool _CFURLExists(CFURLRef url) {
     return url && (0 == _CFGetFileProperties(kCFAllocatorSystemDefault, url, &exists, NULL, NULL, NULL, NULL, NULL)) && exists;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define WINDOWS_PATH_SEMANTICS
 #else
 #define UNIX_PATH_SEMANTICS
@@ -1011,7 +1011,7 @@ CF_PRIVATE CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFInde
     return ((0 < start) ? start : length);
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define	DT_LNK		10
@@ -1023,7 +1023,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     char directoryPathBuf[CFMaxPathSize];
     if (!CFStringGetFileSystemRepresentation(directoryPath, directoryPathBuf, CFMaxPathSize)) return;
     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // Make sure there is room for the additional space we need in the win32 api
     if (strlen(directoryPathBuf) > CFMaxPathSize - 2) return;
 
@@ -1072,7 +1072,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
     struct dirent *dent;
     if ((dirp = opendir(directoryPathBuf))) {
         while ((dent = readdir(dirp))) {
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
             CFIndex nameLen = strlen(dent->d_name);
             if (dent->d_type == DT_UNKNOWN) {
                 // on some old file systems readdir may always fill d_type as DT_UNKNOWN (0), double check with stat
@@ -1141,7 +1141,7 @@ CF_PRIVATE void _CFIterateDirectory(CFStringRef directoryPath, Boolean appendSla
                 if (dent->d_type == DT_DIR) {
                     isDirectory = true;
                 }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
                 else if (dent->d_type == DT_UNKNOWN) {
                     // We need to do an additional stat on this to see if it's really a directory or not.
                     // This path should be uncommon.

@@ -34,16 +34,16 @@ static Boolean _CFDataShouldBridgeToSwift(CFTypeID type, CFDataRef data);
 #define CFDATA_MAX_SIZE	    ((1ULL << 31) - 1)
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <mach/mach.h>
 CF_INLINE unsigned long __CFPageSize() { return vm_page_size; }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 CF_INLINE unsigned long __CFPageSize() {
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     return sysInfo.dwPageSize;
 }
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
 #include <unistd.h>
 CF_INLINE unsigned long __CFPageSize() {
     return (unsigned long)getpagesize();

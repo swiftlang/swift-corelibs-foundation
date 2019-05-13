@@ -46,16 +46,16 @@ CF_IMPLICIT_BRIDGING_DISABLED
 
 // ---- CFRuntime material ----------------------------------------
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #include <malloc.h>
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
-#elif DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_MAC
 #include <malloc/malloc.h>
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS) && !DEPLOYMENT_RUNTIME_SWIFT
+#if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT
 #include <objc/message.h>
 #endif
 
@@ -425,7 +425,7 @@ CF_EXPORT CFErrorUserInfoKeyCallBack _Nullable CFErrorGetCallBackForDomain(CFStr
 _CF_EXPORT_SCOPE_END
 
 // ---- Windows-specific material ---------------------------------------
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 #include <sys/stat.h>
 
@@ -465,7 +465,7 @@ CF_EXPORT const void *_CFArrayCheckAndGetValueAtIndex(CFArrayRef array, CFIndex 
 CF_EXPORT void _CFArrayReplaceValues(CFMutableArrayRef array, CFRange range, const void *_Nullable * _Nullable newValues, CFIndex newCount);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 /* Enumeration
  Call CFStartSearchPathEnumeration() once, then call
  CFGetNextSearchPathEnumeration() one or more times with the returned state.
@@ -545,7 +545,7 @@ CF_EXPORT Boolean _CFRunLoopIsCurrent(CFRunLoopRef rl);
 CF_EXPORT CFIndex _CFStreamInstanceSize(void);
 CF_EXPORT CFReadStreamRef CFReadStreamCreateWithData(_Nullable CFAllocatorRef alloc, CFDataRef data);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 typedef struct {
     mach_vm_address_t address;
     mach_vm_size_t size;
@@ -572,11 +572,11 @@ CF_CROSS_PLATFORM_EXPORT void _CFDataInit(CFMutableDataRef memory, CFOptionFlags
 CF_EXPORT CFRange _CFDataFindBytes(CFDataRef data, CFDataRef dataToFind, CFRange searchRange, CFDataSearchFlags compareOptions);
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     #if !defined(__CFReadTSR)
     #define __CFReadTSR() mach_absolute_time()
     #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if 0
 CF_INLINE UInt64 __CFReadTSR(void) {
     LARGE_INTEGER freq;
@@ -586,7 +586,7 @@ CF_INLINE UInt64 __CFReadTSR(void) {
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 
 /* Identical to CFStringGetFileSystemRepresentation, but returns additional information about the failure.
  */

@@ -18,7 +18,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <limits.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_MAC || TARGET_OS_LINUX
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/mman.h>
@@ -27,7 +27,7 @@
 #include <errno.h>
 #include <assert.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define open _NS_open
 #define statinfo _stat
 #define stat(x,y) _NS_stat(x,y)
@@ -248,7 +248,7 @@ struct _CFBurstTrie {
     uint32_t count;
     uint32_t containerSize;
     int retain;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     HANDLE mapHandle;
     HANDLE mappedFileHandle;
 #endif
@@ -353,7 +353,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
     /* Check if file can be opened */
     if ((fd = open(filename, CF_OPENFLGS|O_RDONLY, 0)) < 0) return NULL;
     
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     HANDLE mappedFileHandle = (HANDLE)_get_osfhandle(fd);   
     if (!mappedFileHandle) return NULL;
     
@@ -377,7 +377,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
         trie->cflags = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->flags);
         trie->count = CFSwapInt32LittleToHost(((fileHeader*)trie->mapBase)->count);
         trie->retain = 1;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         trie->mappedFileHandle = mappedFileHandle;
         trie->mapHandle = mapHandle;
 #else
@@ -391,7 +391,7 @@ CFBurstTrieRef CFBurstTrieCreateFromFile(CFStringRef path) {
         trie->cflags = CFSwapInt32LittleToHost(header->flags);
         trie->count = CFSwapInt32LittleToHost(header->count);
         trie->retain = 1;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         trie->mappedFileHandle = mappedFileHandle;
         trie->mapHandle = mapHandle;
 #else
@@ -635,7 +635,7 @@ Boolean CFBurstTrieSerializeWithFileDescriptor(CFBurstTrieRef trie, int fd, CFBu
         trie->cflags = opts;
         trie->mapSize = serializeCFBurstTrie(trie, start_offset, fd);
         
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         HANDLE mappedFileHandle = (HANDLE)_get_osfhandle(fd);
         // We need to make sure we have our own handle to keep this file open as long as the mmap lasts
         DuplicateHandle(GetCurrentProcess(), mappedFileHandle, GetCurrentProcess(), &mappedFileHandle, 0, 0, DUPLICATE_SAME_ACCESS);
@@ -1972,7 +1972,7 @@ static size_t serializeCFBurstTrie(CFBurstTrieRef trie, size_t start_offset, int
 
 static void destroyCFBurstTrie(CFBurstTrieRef trie) {
     if (trie->mapBase) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         UnmapViewOfFile(trie->mapBase);
         CloseHandle(trie->mapHandle);
         CloseHandle(trie->mappedFileHandle);

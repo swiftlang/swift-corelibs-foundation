@@ -341,7 +341,7 @@ CF_EXPORT Boolean CFBundleGetLocalizationInfoForLocalization(CFStringRef localiz
 CFStringRef CFBundleCopyLocalizationForLocalizationInfo(SInt32 languageCode, SInt32 regionCode, SInt32 scriptCode, CFStringEncoding stringEncoding) {
     CFStringRef localizationName = NULL;
     if (!localizationName) localizationName = _CFBundleCopyLocaleAbbreviationForRegionCode(regionCode);
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     if (!localizationName && 0 <= languageCode && languageCode < SHRT_MAX) localizationName = CFLocaleCreateCanonicalLocaleIdentifierFromScriptManagerCodes(kCFAllocatorSystemDefault, (LangCode)languageCode, (RegionCode)-1);
 #endif
     if (!localizationName) localizationName = _CFBundleCopyLanguageAbbreviationForLanguageCode(languageCode);

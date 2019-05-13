@@ -21,7 +21,7 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFURLComponents.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach/mach.h>
@@ -33,13 +33,13 @@
 #include <CoreFoundation/CFUUID.h>
 #include <CoreFoundation/CFTimeZone.h>
 #include <CoreFoundation/CFCalendar.h>
-#if DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_IPHONE
 // This isn't in the embedded runtime.h header
 OBJC_EXPORT void *objc_destructInstance(id obj);
 #endif
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <Shellapi.h>
 #endif
 
@@ -50,9 +50,9 @@ __kCFRetainEvent = 28,
 __kCFReleaseEvent = 29
 };
 
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include <malloc.h>
-#elif DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
 #else
 #include <malloc/malloc.h>
@@ -60,7 +60,7 @@ __kCFReleaseEvent = 29
 
 #define FAKE_INSTRUMENTS 0
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 CF_PRIVATE void __CFOAInitializeNSObject(void);  // from NSObject.m
 
 bool __CFOASafe = false;
@@ -268,7 +268,7 @@ bool (*__CFObjCIsCollectable)(void *) = NULL;
 // The constant string class reference is set at link time to _NSCFConstantString
 void *__CFConstantStringClassReferencePtr = &_CF_CONSTANT_STRING_SWIFT_CLASS;
 #else
-#if !__CONSTANT_CFSTRINGS__ || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if !__CONSTANT_CFSTRINGS__
 // Compiler uses this symbol name; must match compiler built-in decl, so we use 'int'
 #if TARGET_RT_64_BIT
 int __CFConstantStringClassReference[24] = {0};
@@ -404,9 +404,9 @@ CF_INLINE uint32_t __CFHighRCFromInfo(__CFInfoType info) {
 CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
-#elif DEPLOYMENT_TARGET_LINUX
+#elif TARGET_OS_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
     int error = errno;
     enum { errorStringBufferLength = 64 };
@@ -418,7 +418,7 @@ CF_INLINE CFRuntimeBase *_cf_aligned_malloc(size_t align, CFIndex size, const ch
 #endif
     strerror_r(errno, errorStringBuffer, errorStringBufferLength);
     CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but memory could not be so allocated: %s"), className, align, errorStringPointer);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     CFLog(kCFLogLevelWarning, CFSTR("*** _CFRuntimeCreateInstance() tried to allocate an instance of '%s', which requires %zu-byte alignment, but aligned memory is not supported on this platform"), className, align);
     memory = (CFRuntimeBase *)malloc(size);
 #else
@@ -601,7 +601,7 @@ enum {
     __kCFObjectReleasedEvent = 13
 };
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 #define NUM_EXTERN_TABLES 8
 #define EXTERN_TABLE_IDX(O) (((uintptr_t)(O) >> 8) & 0x7)
 #else
@@ -965,13 +965,13 @@ extern CFTypeID CFStorageGetTypeID(void);
 #if TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 // From CFPlatform.c
 CF_PRIVATE void __CFTSDWindowsCleanup(void);
 CF_PRIVATE void __CFFinalizeWindowsThreadData();
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 _Atomic(uint8_t) __CF120290 = false;
 static _Atomic(uint8_t) __CF120291 = false;
 _Atomic(uint8_t) __CF120293 = false;
@@ -989,7 +989,7 @@ static void __01123__(void) {
     // This is not a problem for CF.
     if (__CF120290) {
 	__CF120293 = true;
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
 	if (__CF120291) {
 	    CRSetCrashLogMessage2("*** multi-threaded process forked ***");
 	} else {
@@ -1072,7 +1072,7 @@ CF_PRIVATE Boolean __CFProcessIsRestricted() {
     return issetugid();
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define kNilPthreadT  INVALID_HANDLE_VALUE
 #else
 #define kNilPthreadT  (_CFThreadRef)0
@@ -1094,7 +1094,7 @@ Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
 CF_EXPORT _CFThreadRef _CFMainPThread;
 _CFThreadRef _CFMainPThread = kNilPthreadT;
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
 
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 _CFThreadRef _CF_pthread_main_thread_np(void) {
@@ -1106,18 +1106,18 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD
 static void __CFInitialize(void) __attribute__ ((constructor));
 static
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_EXPORT
 #endif
 void __CFInitialize(void) {
     if (!__CFInitialized && !__CFInitializing) {
         __CFInitializing = 1;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         if (!pthread_main_np()) HALT;   // CoreFoundation must be initialized on the main thread
 
         DuplicateHandle(GetCurrentProcess(), GetCurrentThread(),
@@ -1128,7 +1128,7 @@ void __CFInitialize(void) {
         _CFMainPThread = pthread_self();
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
 #elif TARGET_OS_LINUX || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
@@ -1145,7 +1145,7 @@ void __CFInitialize(void) {
             }
         }
         
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
 	pthread_atfork(__01121__, NULL, __01123__);
@@ -1162,7 +1162,7 @@ void __CFInitialize(void) {
 #endif
         
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
         {
             CFIndex idx, cnt;
             char **args = *_NSGetArgv();
@@ -1205,10 +1205,10 @@ void __CFInitialize(void) {
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
             args = *_NSGetArgv();
             cnt = *_NSGetArgc();
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
             wchar_t *commandLine = GetCommandLineW();
             // result is actually pointer to wchar_t *, make sure to account for that below
             args = (char **)CommandLineToArgvW(commandLine, (int *)&cnt);
@@ -1218,7 +1218,7 @@ void __CFInitialize(void) {
             list = (cnt <= 256) ? buffer : (CFStringRef *)malloc(cnt * sizeof(CFStringRef));
             for (idx = 0, count = 0; idx < cnt; idx++) {
                 if (NULL == args[idx]) continue;
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
                 list[count] = CFStringCreateWithCharacters(kCFAllocatorSystemDefault, (const UniChar *)args[idx], wcslen((wchar_t *)args[idx]));
 #else
                 list[count] = CFStringCreateWithCString(kCFAllocatorSystemDefault, args[idx], kCFStringEncodingUTF8);
@@ -1236,7 +1236,7 @@ void __CFInitialize(void) {
             }
             __CFArgStuff = CFArrayCreate(kCFAllocatorSystemDefault, (const void **)list, count, &kCFTypeArrayCallBacks);
             if (list != buffer) free(list);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             LocalFree(args);
 #endif
         }
@@ -1256,7 +1256,7 @@ void __CFInitialize(void) {
         if (value && (*value == 'Y' || *value == 'y')) __CFDeallocateZombies = 0xff;
 #endif
 
-#if defined(DEBUG) && (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#if defined(DEBUG) && TARGET_OS_MAC
         CFLog(kCFLogLevelWarning, CFSTR("Assertions enabled"));
 #endif
 
@@ -1268,7 +1268,7 @@ void __CFInitialize(void) {
     }
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 CF_PRIVATE void __CFStringCleanup(void);
 CF_PRIVATE void __CFSocketCleanup(void);
@@ -1330,7 +1330,7 @@ int DllMain( HINSTANCE hInstance, DWORD dwReason, LPVOID pReserved ) {
         __CFStreamCleanup();
         __CFSocketCleanup();
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         // No CF functions should access TSD after this is called
         __CFTSDWindowsCleanup();
 #endif

@@ -45,7 +45,7 @@ CF_PRIVATE Boolean __calcNextDaylightSavingTimeTransition(UCalendar *ucal, UDate
     }
     UErrorCode status = U_ZERO_ERROR;
     ucal_setMillis(ucal, start_udate, &status);
-#if DEPLOYMENT_TARGET_WINDOWS // TODO: Unify this and CFTimeZoneGetNextDaylightSavingTimeTransition.
+#if TARGET_OS_WIN32 // TODO: Unify this and CFTimeZoneGetNextDaylightSavingTimeTransition.
     UBool b = false;
 #else
     UBool b = ucal_getTimeZoneTransitionDate(ucal, UCAL_TZ_TRANSITION_NEXT, answer, &status);

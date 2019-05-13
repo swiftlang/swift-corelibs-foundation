@@ -15,7 +15,7 @@
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 #include <stdio.h>
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 
@@ -973,7 +973,7 @@ CF_PRIVATE Boolean _CFStreamOpen(struct _CFStream *stream) {
             }
             _CFStreamScheduleEvent(stream, kCFStreamEventOpenCompleted);
         } else {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             _CFStreamClose(stream);
 #endif
             _CFStreamSetStatusCode(stream, kCFStreamStatusError);
@@ -1663,7 +1663,7 @@ static void _perform(void* info)
 
 static void* _legacyStreamRunLoop_workThread(void* arg)
 {
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
     pthread_setname_np(pthread_self(), "com.apple.CFStream.LegacyThread");
 #else
     pthread_setname_np("com.apple.CFStream.LegacyThread");
@@ -1732,7 +1732,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
         if (sLegacyRL == NULL) {
             dispatch_semaphore_t sem = dispatch_semaphore_create(0);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             HANDLE hThread =
                 (HANDLE)_beginthreadex(NULL, 0,
                                        (_beginthreadex_proc_type)_legacyStreamRunLoop_workThread,
@@ -1742,7 +1742,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
             _CFThreadRef workThread;
@@ -1908,7 +1908,7 @@ CF_EXPORT CFIndex _CFStreamInstanceSize(void) {
     return sizeof(struct _CFStream);
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 void __CFStreamCleanup(void) {
     __CFLock(&sSourceLock);
     if (sSharedSources) {

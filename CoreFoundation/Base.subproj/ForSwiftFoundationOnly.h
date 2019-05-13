@@ -28,7 +28,7 @@
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <CoreFoundation/CFCharacterSetPriv.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -375,7 +375,7 @@ CF_EXPORT char *_Nullable *_Nonnull _CFEnviron(void);
 
 CF_EXPORT void CFLog1(CFLogLevel lev, CFStringRef message);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 typedef HANDLE _CFThreadRef;
 typedef struct _CFThreadAttributes {
   DWORD dwSizeOfAttributes;
@@ -507,7 +507,7 @@ CF_CROSS_PLATFORM_EXPORT int _CFOpenFile(const char *path, int opts);
 static inline int _direntNameLength(struct dirent *entry) {
 #ifdef _D_EXACT_NAMLEN  // defined on Linux
     return _D_EXACT_NAMLEN(entry);
-#elif DEPLOYMENT_TARGET_ANDROID
+#elif TARGET_OS_ANDROID
     return strlen(entry->d_name);
 #else
     return entry->d_namlen;
@@ -595,7 +595,7 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
 #warning "Enabling statx"
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_EXPORT void __CFSocketInitializeWinSock(void);
 #endif
 
