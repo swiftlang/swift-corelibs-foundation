@@ -119,7 +119,15 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     open class var `default`: URLSessionConfiguration {
         return URLSessionConfiguration()
     }
-    open class var ephemeral: URLSessionConfiguration { NSUnimplemented() }
+
+    open class var ephemeral: URLSessionConfiguration {
+        // Return a new ephemeral URLSessionConfiguration every time this property is invoked
+        // TODO: urlCache and urlCredentialStorage should also be ephemeral/in-memory
+        // URLCache and URLCredentialStorage are still unimplemented
+        let ephemeralConfiguration = URLSessionConfiguration()
+        ephemeralConfiguration.httpCookieStorage = HTTPCookieStorage.ephemeralStorage()
+        return ephemeralConfiguration
+    }
 
     open class func background(withIdentifier identifier: String) -> URLSessionConfiguration { NSUnimplemented() }
     
