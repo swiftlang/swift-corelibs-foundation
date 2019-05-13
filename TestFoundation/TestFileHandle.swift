@@ -488,7 +488,7 @@ class TestFileHandle : XCTestCase {
                 try? handle.write(contentsOf: self.content)
             }
             
-            let result = semaphore.wait(timeout: .distantFuture)
+            let result = semaphore.wait(timeout: .now() + .seconds(30))
             XCTAssertEqual(result, .success, "Waiting on the semaphore should not have had time to time out")
             XCTAssertTrue(notificationReceived, "Notification should be sent")
         }
