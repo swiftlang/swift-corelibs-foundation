@@ -90,7 +90,7 @@ There is no _Complete_ status for test coverage because there are always additio
 
 * **Formatters**: Locale and language-correct formatted values.
 
-    This group contains the is the base `NSFormatter` class and its subclasses. These formatters can be used for dates, numbers, sizes, energy, and many other types.
+    This group contains the base `NSFormatter` class and its subclasses. These formatters can be used for dates, numbers, sizes, energy, and many other types.
 
     | Entity Name                     | Status          | Test Coverage | Notes                                                                                     |
     |---------------------------------|-----------------|---------------|-------------------------------------------------------------------------------------------|
