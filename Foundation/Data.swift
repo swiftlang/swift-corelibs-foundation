@@ -1613,7 +1613,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                     precondition(range.lowerBound <= endIndex, "index \(range.lowerBound) is out of bounds of \(startIndex)..<\(endIndex)")
                     self = .large(LargeSlice(count: range.upperBound))
                 }
-                break
             case .inline(var inline):
                 if inline.count < range.upperBound {
                     if InlineSlice.canStore(count: range.upperBound) {
@@ -1629,7 +1628,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                     inline.resetBytes(in: range)
                     self = .inline(inline)
                 }
-                break
             case .slice(var slice):
                 if InlineSlice.canStore(count: range.upperBound) {
                     self = .empty
@@ -1641,7 +1639,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                     newSlice.resetBytes(in: range)
                     self = .large(newSlice)
                 }
-                break
             case .large(var slice):
                 self = .empty
                 slice.resetBytes(in: range)
@@ -1663,7 +1660,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 } else {
                     self = .large(LargeSlice(UnsafeRawBufferPointer(start: bytes, count: cnt)))
                 }
-                break
             case .inline(var inline):
                 let resultingCount = inline.count + cnt - (subrange.upperBound - subrange.lowerBound)
                 if resultingCount == 0 {
@@ -1680,7 +1676,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                     slice.replaceSubrange(subrange, with: bytes, count: cnt)
                     self = .large(slice)
                 }
-                break
             case .slice(var slice):
                 let resultingUpper = slice.endIndex + cnt - (subrange.upperBound - subrange.lowerBound)
                 if slice.startIndex == 0 && resultingUpper == 0 {
@@ -1853,7 +1848,6 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
                 return
             case .inline(let inline):
                 inline.copyBytes(to: pointer, from: range)
-                break
             case .slice(let slice):
                 slice.copyBytes(to: pointer, from: range)
             case .large(let slice):
