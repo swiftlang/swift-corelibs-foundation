@@ -15,7 +15,7 @@
 #include "CFStringEncodingConverterExt.h"
 #include "CFUnicodeDecomposition.h"
 #include "CFUniCharPriv.h"
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,25 +24,25 @@
 #include <unistd.h>
 #include <stdlib.h>
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #include <mach/mach.h>
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #define __kCFCharacterSetDir "/System/Library/CoreServices"
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 #define __kCFCharacterSetDir "/usr/local/share/CoreFoundation"
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 #define USE_MACHO_SEGMENT 1
-#elif DEPLOYMENT_RUNTIME_SWIFT && (DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD || DEPLOYMENT_TARGET_WINDOWS)
+#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32)
 #define USE_RAW_SYMBOL 1
 #endif
 
@@ -56,7 +56,7 @@ enum {
 CF_INLINE uint32_t __CFUniCharMapExternalSetToInternalIndex(uint32_t cset) { return ((kCFUniCharFirstInternalSet <= cset) ? ((cset - kCFUniCharFirstInternalSet) + kCFUniCharLastExternalSet) : cset) - kCFUniCharFirstBitmapSet; }
 CF_INLINE uint32_t __CFUniCharMapCompatibilitySetID(uint32_t cset) { return ((cset == kCFUniCharControlCharacterSet) ? kCFUniCharControlAndFormatterCharacterSet : (((cset > kCFUniCharLastExternalSet) && (cset < kCFUniCharFirstInternalSet)) ? ((cset - kCFUniCharLastExternalSet) + kCFUniCharFirstInternalSet) : cset)); }
 
-#if (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED) && USE_MACHO_SEGMENT
+#if TARGET_OS_MAC && USE_MACHO_SEGMENT
 #include <mach-o/getsect.h>
 #include <mach-o/dyld.h>
 #include <mach-o/ldsyms.h>
@@ -107,18 +107,18 @@ static const void *__CFGetSectDataPtr(const char *segname, const char *sectname,
 
 // Memory map the file
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 CF_INLINE void __CFUniCharCharacterSetPath(char *cpath) {
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
     strlcpy(cpath, __kCFCharacterSetDir, MAXPATHLEN);
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     wchar_t frameworkPath[MAXPATHLEN];
     _CFGetFrameworkPath(frameworkPath, MAXPATHLEN);
     wcsncpy(wpath, frameworkPath, MAXPATHLEN);
@@ -129,7 +129,7 @@ CF_INLINE void __CFUniCharCharacterSetPath(wchar_t *wpath) {
 #endif
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define MAX_BITMAP_STATE 512
 //
 //  If a string is placed into this array, then it has been previously 
@@ -171,14 +171,14 @@ void __AddBitmapStateForName(const wchar_t *bitmapName) {
 }
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static bool __CFUniCharLoadBytesFromFile(const char *fileName, const void **bytes, int64_t *fileSize) {
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **bytes, int64_t *fileSize) {
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     HANDLE bitmapFileHandle = NULL;
     HANDLE mappingHandle = NULL;
     
@@ -238,7 +238,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #endif // USE_MACHO_SEGMENT
 
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #if USE_MACHO_SEGMENT
 #define CF_UNICHAR_BITMAP_FILE "__csbitmaps"
@@ -246,7 +246,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define CF_UNICHAR_BITMAP_FILE "/CFCharacterSetBitmaps.bitmap"
 #endif
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if !defined(CF_UNICHAR_BITMAP_FILE)
 #define CF_UNICHAR_BITMAP_FILE L"CFCharacterSetBitmaps.bitmap"
 #endif
@@ -254,7 +254,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #if __CF_BIG_ENDIAN__
 #if USE_MACHO_SEGMENT
 #define MAPPING_TABLE_FILE "__data"
@@ -268,7 +268,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define MAPPING_TABLE_FILE "/CFUnicodeData-L.mapping"
 #endif
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if __CF_BIG_ENDIAN__
 #if USE_MACHO_SEGMENT
 #define MAPPING_TABLE_FILE "__data"
@@ -286,13 +286,13 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
     
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 #if USE_MACHO_SEGMENT
 #define PROP_DB_FILE "__properties"
 #else
 #define PROP_DB_FILE "/CFUniCharPropertyDatabase.data"
 #endif
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 #if USE_MACHO_SEGMENT
 #define PROP_DB_FILE "__properties"
 #else
@@ -308,7 +308,7 @@ static bool __CFUniCharLoadBytesFromFile(const wchar_t *fileName, const void **b
 #define CF_UNICODE_DATA_SYM __CFUnicodeDataL
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int64_t *fileSize) {
 #if USE_MACHO_SEGMENT
     *bytes = __CFGetSectDataPtr("__UNICODE", bitmapName, NULL);
@@ -343,7 +343,7 @@ static bool __CFUniCharLoadFile(const char *bitmapName, const void **bytes, int6
     return result;
 #endif
 }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
 static bool __CFUniCharLoadFile(const wchar_t *bitmapName, const void **bytes, int64_t *fileSize) {
 #if USE_RAW_SYMBOL
     extern void *__CFCharacterSetBitmapData;

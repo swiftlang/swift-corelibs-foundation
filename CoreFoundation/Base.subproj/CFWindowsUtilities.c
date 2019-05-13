@@ -9,7 +9,7 @@
 	Responsibility: Tony Parker
 */
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFString.h>

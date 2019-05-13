@@ -937,7 +937,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <sys/types.h>
 #include <math.h>
 #include <limits.h>
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <sys/sysctl.h>
 #include <sys/un.h>
 #include <libc.h>
@@ -951,7 +951,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #else
 #include <arpa/inet.h>
 #endif
-#if !DEPLOYMENT_TARGET_WINDOWS
+#if !TARGET_OS_WIN32
 #include <sys/ioctl.h>
 #endif
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -966,7 +966,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #include <CoreFoundation/CFPropertyList.h>
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #include <process.h>
 #endif
 
@@ -974,7 +974,7 @@ Boolean __CFSocketGetBytesAvailable(CFSocketRef s, CFIndex* ctBytesAvailable) {
 #define NBBY 8
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 // redefine this to the winsock error in this file
 #undef EINPROGRESS
@@ -1013,7 +1013,7 @@ static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) 
   }
 }
 
-#endif // DEPLOYMENT_TARGET_WINDOWS
+#endif // TARGET_OS_WIN32
 
 
 // On Mach we use a v0 RunLoopSource to make client callbacks.  That source is signalled by a
@@ -1029,12 +1029,12 @@ static void timeradd(struct timeval *a, struct timeval *b, struct timeval *res) 
 
 static _CFThreadRef __cfSocketTid()
 {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
     uint64_t tid = 0;
     if (0 != pthread_threadid_np(NULL, &tid))
         tid = pthread_mach_thread_np(pthread_self());
     return (_CFThreadRef) tid;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
     return (_CFThreadRef) GetCurrentThreadId();
 #else
     return (_CFThreadRef) pthread_self();
@@ -1117,14 +1117,14 @@ static void __cfSocketLogWithSocket(CFSocketRef s, const char* function, int lin
 #endif
 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_UNIX
 #define INVALID_SOCKET (CFSocketNativeHandle)(-1)
 #define closesocket(a) close((a))
 #define ioctlsocket(a,b,c) ioctl((a),(b),(c))
 #endif
 
 CF_INLINE int __CFSocketLastError(void) {
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     return WSAGetLastError();
 #else
     return thread_errno();
@@ -1317,7 +1317,7 @@ CF_INLINE void __CFSocketEstablishPeerAddress(CFSocketRef s) {
 static Boolean __CFNativeSocketIsValid(CFSocketNativeHandle sock) {
     Boolean result;
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     SInt32 errorCode = 0;
     int errorSize = sizeof(errorCode);
     result = !(0 != getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *)&errorCode, &errorSize) && __CFSocketLastError() == WSAENOTSOCK);
@@ -1349,7 +1349,7 @@ CF_INLINE Boolean __CFSocketFdClr(CFSocketNativeHandle sock, CFMutableDataRef fd
 }
 
 static SInt32 __CFSocketCreateWakeupSocketPair(void) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     SInt32 error;
 
     error = socketpair(PF_LOCAL, SOCK_DGRAM, 0, __CFWakeupSocketPair);
@@ -1435,7 +1435,7 @@ CF_INLINE Boolean __CFSocketClearFDForWrite(CFSocketRef s) {
     return b;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 static Boolean WinSockUsed = FALSE;
 
 static void __CFSocketInitializeWinSock_Guts(void) {
@@ -1481,7 +1481,7 @@ static void __CFSocketInitializeSockets(void) {
     __CFWriteSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
     __CFReadSocketsFds = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
     zeroLengthData = CFDataCreateMutable(kCFAllocatorSystemDefault, 0);
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     __CFSocketInitializeWinSock_Guts();
 #endif
     if (0 > __CFSocketCreateWakeupSocketPair()) {
@@ -2248,7 +2248,7 @@ static void *__CFSocketManager(void * arg)
 		
         __CFUnlock(&__CFActiveSocketsLock);
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
         // On Windows, select checks connection failed sockets via the exceptfds parameter. connection succeeded is checked via writefds. We need both.
         exceptfds = writefds;
 #elif defined(LOG_CFSOCKET) && defined(DEBUG_POLLING_SELECT)
@@ -2447,7 +2447,7 @@ static CFStringRef __CFSocketCopyDescription(CFTypeRef cf) {
     result = CFStringCreateMutable(CFGetAllocator(s), 0);
     __CFSocketLock(s);
     void *addr = s->_callout;
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 #else
@@ -2508,7 +2508,7 @@ const CFRuntimeClass __CFSocketClass = {
 CFTypeID CFSocketGetTypeID(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
         struct rlimit lim1;
         int ret1 = getrlimit(RLIMIT_NOFILE, &lim1);
         int mib[] = {CTL_KERN, KERN_MAXFILESPERPROC};
@@ -2528,7 +2528,7 @@ CFTypeID CFSocketGetTypeID(void) {
     return _kCFRuntimeIDCFSocket;
 }
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 struct _args {
     void *func;
     void *arg;
@@ -2615,20 +2615,20 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
     
     if (INVALID_SOCKET != sock) CFDictionaryAddValue(__CFAllSockets, (void *)(uintptr_t)sock, memory);
     if (NULL == __CFSocketManagerThread) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI || DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
         _CFThreadRef tid = 0;
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
         pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
         pthread_attr_destroy(&attr);
         _Static_assert(sizeof(_CFThreadRef) == sizeof(void *), "_CFThreadRef is not pointer sized");
         __CFSocketManagerThread = (void *)tid;
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
         unsigned tid;
         struct _args *args = (struct _args*)CFAllocatorAllocate(kCFAllocatorSystemDefault, sizeof(struct _args), 0);
         if (__CFOASafe) __CFSetLastAllocationEventName(args, "CFUtilities (thread-args)");
@@ -3269,7 +3269,7 @@ CFSocketError CFSocketSetAddress(CFSocketRef s, CFDataRef address) {
     if (!name || namelen <= 0) return kCFSocketError;
     
     CFSocketNativeHandle sock = CFSocketGetNative(s);
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     // Verify that the namelen is correct. If not, we have to fix it up. Developers will often incorrectly use 0 or strlen(path). See 9217961 and the second half of 9098274.
     // Max size is a size byte, plus family byte, plus path of 255, plus a null byte.
     char newName[255];
@@ -3321,7 +3321,7 @@ CFSocketError CFSocketConnectToAddress(CFSocketRef s, CFDataRef address, CFTimeI
     if (!name || namelen <= 0) return kCFSocketError;
     CFSocketNativeHandle sock = CFSocketGetNative(s);
     {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
         SInt32 flags = fcntl(sock, F_GETFL, 0);
         if (flags >= 0) wasBlocking = ((flags & O_NONBLOCK) == 0);
         if (wasBlocking && (timeout > 0.0 || timeout < 0.0)) ioctlsocket(sock, FIONBIO, (u_long *)&yes);
@@ -3336,7 +3336,7 @@ CFSocketError CFSocketConnectToAddress(CFSocketRef s, CFDataRef address, CFTimeI
         result = connect(sock, (struct sockaddr *)name, namelen);
         if (result != 0) {
             connect_err = __CFSocketLastError();
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
             if (connect_err == WSAEWOULDBLOCK) connect_err = EINPROGRESS;
 #endif
         }
@@ -3383,10 +3383,10 @@ CFSocketRef CFSocketCreate(CFAllocatorRef allocator, SInt32 protocolFamily, SInt
         if (0 >= protocol && SOCK_STREAM == socketType) protocol = IPPROTO_TCP;
         if (0 >= protocol && SOCK_DGRAM == socketType) protocol = IPPROTO_UDP;
     }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     if (PF_LOCAL == protocolFamily && 0 >= socketType) socketType = SOCK_STREAM;
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     // make sure we've called proper Win32 startup facilities before socket()
     __CFSocketInitializeWinSock();
 #endif
@@ -3470,7 +3470,7 @@ static void __CFSocketSendNameRegistryRequest(CFSocketSignature *signature, CFDi
 static void __CFSocketValidateSignature(const CFSocketSignature *providedSignature, CFSocketSignature *signature, uint16_t defaultPortNumber) {
     struct sockaddr_in sain, *sainp;
     memset(&sain, 0, sizeof(sain));
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
     sain.sin_len = sizeof(sain);
 #endif
     sain.sin_family = AF_INET;
@@ -3496,7 +3496,7 @@ static void __CFSocketValidateSignature(const CFSocketSignature *providedSignatu
         } else {
             sainp = (struct sockaddr_in *)CFDataGetBytePtr(providedSignature->address);
             if ((int)sizeof(struct sockaddr_in) <= CFDataGetLength(providedSignature->address) && (AF_INET == sainp->sin_family || 0 == sainp->sin_family)) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
                 sain.sin_len = sizeof(sain);
 #endif
                 sain.sin_family = AF_INET;

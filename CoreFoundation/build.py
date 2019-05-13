@@ -14,17 +14,16 @@ cf = DynamicLibrary("CoreFoundation", uses_swift_runtime_object=False)
 cf.GCC_PREFIX_HEADER = 'Base.subproj/CoreFoundation_Prefix.h'
 
 if Configuration.current.target.sdk == OSType.Linux:
-	cf.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CharacterSets" '
+	cf.CFLAGS = '-D_GNU_SOURCE -DCF_CHARACTERSET_DATA_DIR="CharacterSets" '
 	cf.LDFLAGS = '-Wl,-Bsymbolic '
 	Configuration.current.requires_pkg_config = True
 elif Configuration.current.target.sdk == OSType.FreeBSD:
-	cf.CFLAGS = '-DDEPLOYMENT_TARGET_FREEBSD -I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
+	cf.CFLAGS = '-I/usr/local/include -I/usr/local/include/libxml2 -I/usr/local/include/curl '
 	cf.LDFLAGS = ''
 elif Configuration.current.target.sdk == OSType.MacOSX:
-	cf.CFLAGS = '-DDEPLOYMENT_TARGET_MACOSX '
 	cf.LDFLAGS = '-licucore -twolevel_namespace -Wl,-alias_list,Base.subproj/DarwinSymbolAliases -sectcreate __UNICODE __csbitmaps CharacterSets/CFCharacterSetBitmaps.bitmap -sectcreate __UNICODE __properties CharacterSets/CFUniCharPropertyDatabase.data -sectcreate __UNICODE __data CharacterSets/CFUnicodeData-L.mapping -segprot __UNICODE r r '
 elif Configuration.current.target.sdk == OSType.Win32 and Configuration.current.target.environ == EnvironmentType.Cygnus:
-	cf.CFLAGS = '-DDEPLOYMENT_TARGET_LINUX -D_GNU_SOURCE -mcmodel=large '
+	cf.CFLAGS = '-D_GNU_SOURCE -mcmodel=large '
 	cf.LDFLAGS = '${SWIFT_USE_LINKER} -lswiftGlibc `icu-config --ldflags` -Wl,--allow-multiple-definition '
 
 cf.ASFLAGS = " ".join([

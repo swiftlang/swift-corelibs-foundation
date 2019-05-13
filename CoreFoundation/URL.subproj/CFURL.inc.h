@@ -244,13 +244,13 @@
                         break;
                     }
                 }
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
                 if (pathRg.length > 6 && characterArray[pathRg.location] == '/' && characterArray[pathRg.location + 1] == '.' && characterArray[pathRg.location + 2] == 'f' && characterArray[pathRg.location + 3] == 'i' && characterArray[pathRg.location + 4] == 'l' && characterArray[pathRg.location + 5] == 'e' && characterArray[pathRg.location + 6] == '/') {
                     flags |= PATH_HAS_FILE_ID;
                 } else if (!sawPercent) {
                     flags |= POSIX_AND_URL_PATHS_MATCH;
                 }
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_LINUX || TARGET_OS_WIN32
                 if (!sawPercent) {
                     flags |= POSIX_AND_URL_PATHS_MATCH;
                 }

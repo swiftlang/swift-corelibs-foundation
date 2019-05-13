@@ -568,7 +568,7 @@ CF_PRIVATE CFIndex __CFBinaryPlistWriteOrPresize(CFPropertyListRef plist, CFType
     const CFSetCallBacks setCallbacks = {0, __CFTypeCollectionRetain, __CFTypeCollectionRelease, 0, 0, 0};
     uniquingset = CFSetCreateMutable(kCFAllocatorSystemDefault, 0, &setCallbacks);
 
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     _CFDictionarySetCapacity(objtable, estimate ? estimate : 650);
     _CFArraySetCapacity(objlist, estimate ? estimate : 650);
     _CFSetSetCapacity(uniquingset, estimate ? estimate : 1000);

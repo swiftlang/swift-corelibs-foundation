@@ -809,7 +809,7 @@ CFIndex CFStringGetMaximumSizeOfFileSystemRepresentation(CFStringRef string) {
     }
 } 
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 _CFStringFileSystemRepresentationError _CFStringGetFileSystemRepresentationWithErrorStatus(CFStringRef string, char *buffer, CFIndex maxBufLen, CFIndex *characterIndex) {
 #define MAX_STACK_BUFFER_LEN	(255)
     const UTF16Char *characters = CFStringGetCharactersPtr(string);
@@ -892,7 +892,7 @@ _CFStringFileSystemRepresentationError _CFStringGetFileSystemRepresentationWithE
 #endif
 
 Boolean CFStringGetFileSystemRepresentation(CFStringRef string, char *buffer, CFIndex maxBufLen) {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
     return _CFStringGetFileSystemRepresentationWithErrorStatus(string, buffer, maxBufLen, NULL) == _kCFStringFileSystemRepresentationErrorNone;
 #else
     return CFStringGetCString(string, buffer, maxBufLen, CFStringFileSystemEncoding());

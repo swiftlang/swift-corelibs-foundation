@@ -336,30 +336,18 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_compile_definitions(CoreFoundation
                              PRIVATE
-                               -DDEPLOYMENT_TARGET_LINUX
                                -D_GNU_SOURCE)
   if(HAVE_SCHED_GETAFFINITY)
     target_compile_definitions(CoreFoundation
                                PRIVATE
                                  -DHAVE_SCHED_GETAFFINITY)
   endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_TARGET_FREEBSD)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_TARGET_MACOSX)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # NOTE(compnerd) we only support building with the dynamic CRT as using the
   # static CRT causes problems for users of the library.
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -D_DLL)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_TARGET_WINDOWS)
   if(BUILD_SHARED_LIBS)
     target_compile_definitions(CoreFoundation
                                PRIVATE

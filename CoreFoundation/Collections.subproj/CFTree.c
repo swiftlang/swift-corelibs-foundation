@@ -88,7 +88,7 @@ static CFStringRef __CFTreeCopyDescription(CFTypeRef cf) {
 static void __CFTreeDeallocate(CFTypeRef cf) {
     CFTreeRef tree = (CFTreeRef)cf;
     const struct __CFTreeCallBacks *cb;
-#if DEPLOYMENT_TARGET_MACOSX
+#if TARGET_OS_OSX
     CFTreeRemoveAllChildren(tree);
 #endif
     cb = __CFTreeGetCallBacks(tree);

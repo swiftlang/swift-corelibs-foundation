@@ -20,14 +20,14 @@
 
 CF_INLINE bool __CFIsPlatformConverterAvailable(int encoding) {
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     return (IsValidCodePage(CFStringConvertEncodingToWindowsCodepage(encoding)) ? true : false);
 #else
     return false;
 #endif
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
 
 static const CFStringEncodingConverter __CFICUBootstrap = {
     .toBytes.standard = NULL,
@@ -65,7 +65,7 @@ CF_PRIVATE const CFStringEncodingConverter *__CFStringEncodingGetExternalConvert
     if (__CFIsPlatformConverterAvailable(encoding)) {
         return &__CFPlatformBootstrap;
     } else {
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_MAC || TARGET_OS_WIN32 || TARGET_OS_LINUX
         if (__CFStringEncodingGetICUName(encoding)) {
             return &__CFICUBootstrap;
         }
@@ -74,12 +74,12 @@ CF_PRIVATE const CFStringEncodingConverter *__CFStringEncodingGetExternalConvert
     }
 }
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 CF_PRIVATE CFStringEncoding *__CFStringEncodingCreateListOfAvailablePlatformConverters(CFAllocatorRef allocator, CFIndex *numberOfConverters) {
 
     return NULL;
 }
-#elif DEPLOYMENT_TARGET_WINDOWS
+#elif TARGET_OS_WIN32
         
 #include <tchar.h>
 
@@ -122,7 +122,7 @@ CF_PRIVATE CFStringEncoding *__CFStringEncodingCreateListOfAvailablePlatformConv
 
 CF_PRIVATE CFIndex __CFStringEncodingPlatformUnicodeToBytes(uint32_t encoding, uint32_t flags, const UniChar *characters, CFIndex numChars, CFIndex *usedCharLen, uint8_t *bytes, CFIndex maxByteLen, CFIndex *usedByteLen) {
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     WORD dwFlags = 0;
     CFIndex usedLen;
 
@@ -166,14 +166,14 @@ CF_PRIVATE CFIndex __CFStringEncodingPlatformUnicodeToBytes(uint32_t encoding, u
         if (usedByteLen) *usedByteLen = usedLen;
         return kCFStringEncodingConversionSuccess;
     }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WIN32 */
 
     return kCFStringEncodingConverterUnavailable;
 }
 
 CF_PRIVATE CFIndex __CFStringEncodingPlatformBytesToUnicode(uint32_t encoding, uint32_t flags, const uint8_t *bytes, CFIndex numBytes, CFIndex *usedByteLen, UniChar *characters, CFIndex maxCharLen, CFIndex *usedCharLen) {
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
     WORD dwFlags = 0;
     CFIndex usedLen;
 
@@ -211,7 +211,7 @@ CF_PRIVATE CFIndex __CFStringEncodingPlatformBytesToUnicode(uint32_t encoding, u
         if (usedByteLen) *usedByteLen = numBytes;
         return kCFStringEncodingConversionSuccess;
     }
-#endif /* DEPLOYMENT_TARGET_WINDOWS */
+#endif /* TARGET_OS_WIN32 */
 
     return kCFStringEncodingConverterUnavailable;
 }

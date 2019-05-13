@@ -131,7 +131,7 @@ typedef struct os_log_s *os_log_t;
 #define _CF_CONSTANT_OBJECT_BACKING const
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX && DEPLOYMENT_RUNTIME_SWIFT
+#if TARGET_OS_OSX && DEPLOYMENT_RUNTIME_SWIFT
 // This target configuration some how misses the availability macros to let these be defined, so this works-around the missing definitions
 #ifndef PTHREAD_ERRORCHECK_MUTEX_INITIALIZER
 #define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER {_PTHREAD_ERRORCHECK_MUTEX_SIG_init, {0}}
@@ -166,7 +166,7 @@ CF_EXPORT CFArrayRef _CFGetWindowsBinaryDirectories(void);
 
 CF_EXPORT CFStringRef _CFStringCreateHostName(void);
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFRunLoop.h>
 CF_EXPORT void _CFMachPortInstallNotifyPort(CFRunLoopRef rl, CFStringRef mode);
 #endif
@@ -184,7 +184,7 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void);
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define __builtin_unreachable() do { } while (0)
 #endif
 
@@ -229,7 +229,7 @@ extern void __CFGenericValidateType_(CFTypeRef cf, CFTypeID type, const char *fu
 #define __CFBitfield64GetValue(V, N1, N2)	(((V) & __CFBitfield64Mask(N1, N2)) >> (N2))
 #define __CFBitfield64SetValue(V, N1, N2, X)	((V) = ((V) & ~__CFBitfield64Mask(N1, N2)) | ((((uint64_t)X) << (N2)) & __CFBitfield64Mask(N1, N2)))
 
-#if TARGET_RT_64_BIT || DEPLOYMENT_TARGET_ANDROID
+#if TARGET_RT_64_BIT || TARGET_OS_ANDROID
 typedef uint64_t __CFInfoType;
 #define __CFInfoMask(N1, N2) __CFBitfield64Mask(N1, N2)
 #else
@@ -400,14 +400,14 @@ extern const char *__CFgetenvIfNotRestricted(const char *n);    // Returns NULL 
 CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // This is really about the availability of C99. We don't have that on Windows, but we should everywhere else.
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define STACK_BUFFER_DECL(T, N, C) T *N = (T *)_alloca((C) * sizeof(T))
 #else
 #define STACK_BUFFER_DECL(T, N, C) T N[C]
 #endif
 
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define SAFE_STACK_BUFFER_DECL(Type, Name, Count, Max) Type *Name; BOOL __ ## Name ## WasMallocd = NO; if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_USE(Type, Name, Count, Max) if (sizeof(Type) * Count > Max) { Name = (Type *)malloc((Count) * sizeof(Type)); __ ## Name ## WasMallocd = YES; } else Name = (Count > 0) ? _alloca((Count) * sizeof(Type)) : NULL
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
@@ -421,14 +421,14 @@ CF_PRIVATE Boolean __CFProcessIsRestricted(void);
 
 // Be sure to call this before your SAFE_STACK_BUFFER exits scope.
 #define SAFE_STACK_BUFFER_CLEANUP(Name) if (__ ## Name ## WasMallocd) free(Name)
-#endif // DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#endif // !TARGET_OS_WIN32
 
 
 CF_EXPORT void * __CFConstantStringClassReferencePtr;
 
 #if DEPLOYMENT_RUNTIME_SWIFT && TARGET_OS_MAC
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define CONST_STRING_SECTION __attribute__((section(".cfstr.data")))
 #else
 #define CONST_STRING_SECTION
@@ -543,7 +543,7 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
     return (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) == 0);
 }
 
-#elif DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_FREEBSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD
 
 typedef int32_t CFLock_t;
 #define CFLockInit 0
@@ -678,7 +678,7 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 
 #endif
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 CF_PRIVATE _Atomic(uint8_t) __CF120293;
 CF_PRIVATE _Atomic(uint8_t) __CF120290;
 extern void __THE_PROCESS_HAS_FORKED_AND_YOU_CANNOT_USE_THIS_COREFOUNDATION_FUNCTIONALITY___YOU_MUST_EXEC__(void);
@@ -766,7 +766,7 @@ CF_EXPORT CFIndex _CFLengthAfterDeletingPathExtension(UniChar *unichars, CFIndex
 CF_PRIVATE CFArrayRef _CFCreateCFArrayByTokenizingString(const char *values, char delimiter);
 
 #if __BLOCKS__
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define	DT_DIR		 4
 #define	DT_REG		 8
 #define DT_LNK          10
@@ -806,7 +806,7 @@ extern void _CFRuntimeSetInstanceTypeIDAndIsa(CFTypeRef cf, CFTypeID newTypeID);
 #define __has_attribute(...) 0
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define _CF_VISIBILITY_HIDDEN_ATTRIBUTE
 #elif __has_attribute(visibility)
 #define _CF_VISIBILITY_HIDDEN_ATTRIBUTE __attribute__((visibility("hidden")))
@@ -856,7 +856,7 @@ CF_INLINE uintptr_t __CFISAForTypeID(CFTypeID typeID) {
 //   DEFINE_WEAK_CARBONCORE_FUNC(void, DisposeHandle, (Handle h), (h))
 //
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 
 extern void *__CFLookupCFNetworkFunction(const char *name);
 
@@ -881,7 +881,7 @@ extern void *__CFLookupCFNetworkFunction(const char *name);
 
 #define DEFINE_WEAK_CARBONCORE_FUNC(R, N, P, A, ...)
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 
 extern void *__CFLookupCoreServicesInternalFunction(const char *name);
 
@@ -943,13 +943,13 @@ CF_PRIVATE bool __CFBinaryPlistIsArray(const uint8_t *databytes, uint64_t datale
 #endif
 
 // Need to use the _O_BINARY flag on Windows to get the correct behavior
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 #define CF_OPENFLGS	(_O_BINARY|_O_NOINHERIT)
 #else
 #define CF_OPENFLGS	(0)
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 // These are replacements for pthread calls on Windows
 CF_EXPORT int _NS_pthread_main_np();
@@ -971,16 +971,16 @@ CF_EXPORT bool _NS_pthread_equal(_CFThreadRef t1, _CFThreadRef t2);
 
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #define pthread_main_np _CFIsMainThread
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 CF_PRIVATE const wchar_t *_CFDLLPath(void);
 #endif
 
 /* Buffer size for file pathname */
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 /// Use this constant for the size (in characters) of a buffer in which to hold a path. This size adds space for at least a couple of null terminators at the end of a buffer into which you copy up to kCFMaxPathLength characters.
 #define CFMaxPathSize ((CFIndex)262)
 /// Use this constant for the maximum length (in characters) of a path you want to copy into a buffer. This should be the maximum number of characters before the null terminator(s).
@@ -1026,7 +1026,7 @@ enum {
 };
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW
@@ -1083,7 +1083,7 @@ CF_PRIVATE uint8_t *_CFDataGetBytePtrNonObjC(CFDataRef data);
 #pragma mark -
 #pragma mark CF Instruments SPI
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED
+#if TARGET_OS_MAC
 extern void __CFRecordAllocationEvent(int eventnum, void *ptr, int64_t size, uint64_t data, const char *classname);
 #else
 #define __CFRecordAllocationEvent(a, b, c, d, e) ((void)0)

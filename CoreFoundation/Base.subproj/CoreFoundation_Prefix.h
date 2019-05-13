@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if DEPLOYMENT_TARGET_WINDOWS && defined(__cplusplus)
+#if TARGET_OS_WIN32 && defined(__cplusplus)
 extern "C" {
 #endif
 
@@ -45,7 +45,7 @@ extern "C" {
 #define pthread_set_qos_class_self_np(A, B) do {} while (0)
 #define pthread_override_qos_class_start_np(A, B, C) (NULL)
 #define pthread_override_qos_class_end_np(A) do {} while (0)
-#elif (DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED)
+#elif TARGET_OS_MAC
 #include <pthread.h>
 #include <pthread/qos.h>
 #endif
@@ -73,7 +73,7 @@ typedef char * Class;
 #define CRSetCrashLogMessage(A) do {} while (0)
 #define CRSetCrashLogMessage2(A) do {} while (0)
 
-#if DEPLOYMENT_TARGET_MACOSX || DEPLOYMENT_TARGET_EMBEDDED || DEPLOYMENT_TARGET_EMBEDDED_MINI
+#if TARGET_OS_MAC
 #include <libkern/OSAtomic.h>
 #include <pthread.h>
 #endif
@@ -129,7 +129,7 @@ static dispatch_queue_t __ ## PREFIX ## Queue(void) {			\
 #define CF_RETAIN_BALANCED_ELSEWHERE(obj, identified_location) do { } while (0)
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 // Compatibility with boolean.h
 #if defined(__x86_64__)
 typedef unsigned int	boolean_t;
@@ -138,12 +138,12 @@ typedef int		boolean_t;
 #endif
 #endif
     
-#if DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_BSD
 #include <string.h>
 #include <sys/stat.h> // mode_t
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
     
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
 #define __weak
@@ -234,7 +234,7 @@ CF_INLINE uint64_t mach_absolute_time() {
 
 #endif
     
-#if DEPLOYMENT_TARGET_FREEBSD
+#if TARGET_OS_BSD
 #define HAVE_STRUCT_TIMESPEC 1
 
 #define CF_PRIVATE extern __attribute__((visibility("hidden")))
@@ -260,16 +260,16 @@ void OSMemoryBarrier();
 
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_LINUX
 #include <sys/param.h>
 #endif
-#if DEPLOYMENT_TARGET_WINDOWS || DEPLOYMENT_TARGET_LINUX
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX
 #if !defined(ABS)
 #define ABS(A)	((A) < 0 ? (-(A)) : (A))
 #endif
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_WIN32
 
 #define MAXPATHLEN MAX_PATH
 #undef MAX_PATH
@@ -454,7 +454,7 @@ CF_EXPORT int64_t OSAtomicAdd64Barrier( int64_t __theAmount, volatile int64_t *_
 #define CF_TEST_PRIVATE CF_PRIVATE
 #endif
 
-#if DEPLOYMENT_TARGET_LINUX || DEPLOYMENT_TARGET_WINDOWS
+#if TARGET_OS_LINUX || TARGET_OS_WIN32
 
 #include <stdarg.h>
 
@@ -477,7 +477,7 @@ CF_PRIVATE int asprintf(char **ret, const char *format, ...);
 
 #endif
 
-#if DEPLOYMENT_TARGET_WINDOWS && defined(__cplusplus)
+#if TARGET_OS_WIN32 && defined(__cplusplus)
 } // extern "C"
 #endif
 
