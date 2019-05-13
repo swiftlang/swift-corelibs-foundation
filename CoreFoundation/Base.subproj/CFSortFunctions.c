@@ -271,8 +271,14 @@ static void __CFSortIndexesN(VALUE_TYPE listp[], INDEX_TYPE count, int32_t ncore
 }
 #endif
 
+#if DEPLOYMENT_RUNTIME_SWIFT
+#define _CF_SORT_INDEXES_EXPORT CF_CROSS_PLATFORM_EXPORT
+#else
+#define _CF_SORT_INDEXES_EXPORT
+#endif
+
 // fills an array of indexes (of length count) giving the indexes 0 - count-1, as sorted by the comparator block
-void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFComparisonResult (^cmp)(CFIndex, CFIndex)) {
+_CF_SORT_INDEXES_EXPORT void CFSortIndexes(CFIndex *indexBuffer, CFIndex count, CFOptionFlags opts, CFComparisonResult (^cmp)(CFIndex, CFIndex)) {
     if (count < 1) return;
     if (INTPTR_MAX / sizeof(CFIndex) < count) return;
     int32_t ncores = 0;
