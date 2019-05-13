@@ -18,7 +18,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE
+#if TARGET_OS_MAC
 
 /* We use the System framework implementation on Mach.
 */
