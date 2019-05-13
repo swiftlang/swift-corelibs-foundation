@@ -86,17 +86,19 @@ open class NSSet : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCodi
         self.init(array: [object])
     }
 
-    internal class func _objects(from aDecoder: NSCoder) -> [NSObject] {
+    internal class func _objects(from aDecoder: NSCoder, allowDecodingNonindexedArrayKey: Bool = true) -> [NSObject] {
         guard aDecoder.allowsKeyedCoding else {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
-        if type(of: aDecoder) == NSKeyedUnarchiver.self || aDecoder.containsValue(forKey: "NS.objects") {
+        if (allowDecodingNonindexedArrayKey && type(of: aDecoder) == NSKeyedUnarchiver.self) || aDecoder.containsValue(forKey: "NS.objects") {
             let objects = aDecoder._decodeArrayOfObjectsForKey("NS.objects")
             return objects as! [NSObject]
         } else {
             var objects: [NSObject] = []
             var count = 0
-            while let object = aDecoder.decodeObject(forKey: "NS.object.\(count)") {
+            var key: String { return "NS.object.\(count)" }
+            while aDecoder.containsValue(forKey: key) {
+                let object = aDecoder.decodeObject(forKey: key)
                 objects.append(object as! NSObject)
                 count += 1
             }

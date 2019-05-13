@@ -69,19 +69,8 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        var idx = 0
-        var objects : [AnyObject] = []
-        while aDecoder.containsValue(forKey: ("NS.object.\(idx)")) {
-            guard let object = aDecoder.decodeObject(forKey: "NS.object.\(idx)") else {
-                return nil
-            }
-            objects.append(object as! NSObject)
-            idx += 1
-        }
-        self.init(array: objects)
+        // This uses the same storage setup as NSSet, but without allowing the use of the "NS.objects" key:
+        self.init(array: NSSet._objects(from: aDecoder, allowDecodingNonindexedArrayKey: false))
     }
     
     open var count: Int {
@@ -339,7 +328,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
     public func description(withLocale locale: Locale?, indent level: Int) -> String {
         return _orderedStorage.description(withLocale: locale, indent: level)
     }
-
+    
     public convenience init(object: Any) {
         self.init(array: [object])
     }
@@ -370,7 +359,7 @@ open class NSOrderedSet: NSObject, NSCopying, NSMutableCopying, NSSecureCoding, 
     public convenience init(array set: [Any], copyItems flag: Bool) {
         self.init(array: set, range: NSRange(location: 0, length: set.count), copyItems: flag)
     }
-
+    
     public convenience init(array set: [Any], range: NSRange, copyItems flag: Bool) {
         var objects = set
 
@@ -470,7 +459,10 @@ open class NSMutableOrderedSet: NSOrderedSet {
         _orderedStorage = _mutableOrderedStorage
     }
 
-    public required init?(coder aDecoder: NSCoder) { NSUnimplemented() }
+    public required convenience init?(coder aDecoder: NSCoder) {
+        // See NSOrderedSet.init?(coder:)
+        self.init(array: NSSet._objects(from: aDecoder, allowDecodingNonindexedArrayKey: false))
+    }
 
     open override func copy(with zone: NSZone? = nil) -> Any {
         if type(of: self) === NSMutableOrderedSet.self {
@@ -671,6 +663,69 @@ open class NSMutableOrderedSet: NSOrderedSet {
     
     open func sort(using sortDescriptors: [NSSortDescriptor]) {
         _mutableOrderedStorage.sort(using: sortDescriptors)
+    }
+    
+    // MARK: Convenience initializers that are automatically inherited in ObjC, but not in Swift:
+    
+    public convenience init() {
+        self.init(objects: [], count: 0)
+    }
+    
+    public convenience init(object: Any) {
+        self.init(array: [object])
+    }
+    
+    public convenience init(orderedSet set: NSOrderedSet) {
+        self.init(orderedSet: set, copyItems: false)
+    }
+    
+    public convenience init(orderedSet set: NSOrderedSet, copyItems flag: Bool) {
+        self.init(orderedSet: set, range: NSRange(location: 0, length: set.count), copyItems: flag)
+    }
+    
+    public convenience init(orderedSet set: NSOrderedSet, range: NSRange, copyItems flag: Bool) {
+        // TODO: Use the array method here when available.
+        self.init(array: Array(set), range: range, copyItems: flag)
+    }
+    
+    public convenience init(array: [Any]) {
+        let buffer = UnsafeMutablePointer<AnyObject>.allocate(capacity: array.count)
+        for (idx, element) in array.enumerated() {
+            buffer.advanced(by: idx).initialize(to: __SwiftValue.store(element))
+        }
+        self.init(objects: buffer, count: array.count)
+        buffer.deinitialize(count: array.count)
+        buffer.deallocate()
+    }
+    
+    public convenience init(array set: [Any], copyItems flag: Bool) {
+        self.init(array: set, range: NSRange(location: 0, length: set.count), copyItems: flag)
+    }
+    
+    public convenience init(array set: [Any], range: NSRange, copyItems flag: Bool) {
+        var objects = set
+        
+        if let range = Range(range), range.count != set.count || flag {
+            objects = [Any]()
+            for index in range.indices {
+                let object = set[index]
+                objects.append(flag ? (object as! NSObject).copy() : object)
+            }
+        }
+        
+        self.init(array: objects)
+    }
+    
+    public convenience init(set: Set<AnyHashable>) {
+        self.init(set: set, copyItems: false)
+    }
+    
+    public convenience init(set: Set<AnyHashable>, copyItems flag: Bool) {
+        self.init(array: Array(set), copyItems: flag)
+    }
+    
+    public convenience init(objects elements: Any...) {
+        self.init(array: elements)
     }
 }
 
