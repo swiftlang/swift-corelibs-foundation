@@ -1065,16 +1065,12 @@ open class NSNumber : NSValue {
         switch type {
         case kCFNumberSInt8Type:
             valuePtr.assumingMemoryBound(to: Int8.self).pointee = int8Value
-            break
         case kCFNumberSInt16Type:
             valuePtr.assumingMemoryBound(to: Int16.self).pointee = int16Value
-            break
         case kCFNumberSInt32Type:
             valuePtr.assumingMemoryBound(to: Int32.self).pointee = int32Value
-            break
         case kCFNumberSInt64Type:
             valuePtr.assumingMemoryBound(to: Int64.self).pointee = int64Value
-            break
         case kCFNumberSInt128Type:
             struct CFSInt128Struct {
                 var high: Int64
@@ -1082,10 +1078,8 @@ open class NSNumber : NSValue {
             }
             let val = int64Value
             valuePtr.assumingMemoryBound(to: CFSInt128Struct.self).pointee = CFSInt128Struct.init(high: (val < 0) ? -1 : 0, low: UInt64(bitPattern: val))
-            break
         case kCFNumberFloat32Type:
             valuePtr.assumingMemoryBound(to: Float.self).pointee = floatValue
-            break
         case kCFNumberFloat64Type:
             valuePtr.assumingMemoryBound(to: Double.self).pointee = doubleValue
         default: fatalError()
@@ -1106,7 +1100,6 @@ open class NSNumber : NSValue {
                 switch objCType.pointee {
                 case 0x42:
                     aCoder.encode(boolValue, forKey: "NS.boolval")
-                    break
                 case 0x63: fallthrough
                 case 0x43: fallthrough
                 case 0x73: fallthrough
