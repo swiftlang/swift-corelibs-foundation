@@ -212,7 +212,7 @@ public struct NSTextCheckingKey: RawRepresentable, Hashable {
         self.init(rawValue: string)
     }
     
-    public init(rawValue: Self.RawValue) {
+    public init(rawValue: String) {
         self.rawValue = rawValue
     }
 }
