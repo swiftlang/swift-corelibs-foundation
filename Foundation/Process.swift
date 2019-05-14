@@ -445,7 +445,10 @@ open class Process: NSObject {
           environment["PWD"] = currentDirectoryURL.path
         }
 
-        let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0")
+        // NOTE(compnerd) the environment string must be terminated by a double
+        // null-terminator.  Otherwise, CreateProcess will fail with
+        // INVALID_PARMETER.
+        let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0") + "\0\0"
 
         let sockets: (first: SOCKET, second: SOCKET) = _socketpair()
 
@@ -503,7 +506,7 @@ open class Process: NSObject {
                                  DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
                                  wszCurrentDirectory,
                                  &siStartupInfo, &piProcessInfo) {
-                throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
               }
             }
           }
@@ -511,7 +514,7 @@ open class Process: NSObject {
 
         self.processHandle = piProcessInfo.hProcess
         if !CloseHandle(piProcessInfo.hThread) {
-          throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+          throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
 
         if let pipe = standardInput as? Pipe {
