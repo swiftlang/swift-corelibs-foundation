@@ -503,7 +503,7 @@ open class Process: NSObject {
                                  DWORD(CREATE_UNICODE_ENVIRONMENT), UnsafeMutableRawPointer(mutating: wszEnvironment),
                                  wszCurrentDirectory,
                                  &siStartupInfo, &piProcessInfo) {
-                throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
               }
             }
           }
@@ -511,7 +511,7 @@ open class Process: NSObject {
 
         self.processHandle = piProcessInfo.hProcess
         if !CloseHandle(piProcessInfo.hThread) {
-          throw NSError(domain: _NSWindowsErrorDomain, code: Int(GetLastError()))
+          throw _NSErrorWithWindowsError(GetLastError(), reading: false)
         }
 
         if let pipe = standardInput as? Pipe {
