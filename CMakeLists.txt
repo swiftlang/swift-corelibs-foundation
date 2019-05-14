@@ -347,7 +347,8 @@ add_swift_library(Foundation
                     ${swift_optimization_flags}
                   DEPENDS
                     uuid
-                    CoreFoundation)
+                    CoreFoundation
+                    $<$<PLATFORM_ID:Windows>:CoreFoundationResources>)
 
 if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES
