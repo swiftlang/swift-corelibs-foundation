@@ -378,10 +378,10 @@ open class FileHandle : NSObject {
         while bytesRemaining > 0 {
             var bytesWritten: DWORD = 0
             if !WriteFile(handle, buf.advanced(by: length - bytesRemaining), DWORD(bytesRemaining), &bytesWritten, nil) {
-                throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: nil)
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
             if bytesWritten == 0 {
-                throw _NSErrorWithErrno(Int32(GetLastError()), reading: false, path: nil)
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
             }
             bytesRemaining -= Int(bytesWritten)
         }
