@@ -508,74 +508,7 @@ CF_PRIVATE Boolean __CFProphylacticAutofsAccess;
 CF_EXPORT id __NSDictionary0__;
 CF_EXPORT id __NSArray0__;
 
-
-#if TARGET_OS_MAC
-
-typedef pthread_mutex_t CFLock_t;
-
-#define CFLockInit ((pthread_mutex_t)PTHREAD_ERRORCHECK_MUTEX_INITIALIZER)
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-#define __CFLock(LP) ({ (void)pthread_mutex_lock(LP); })
-
-#define __CFUnlock(LP) ({ (void)pthread_mutex_unlock(LP); })
-
-#define __CFLockTry(LP) ({ pthread_mutex_trylock(LP) == 0; })
-
-#elif DEPLOYMENT_TARGET_WINDOWS
-
-typedef int32_t CFLock_t;
-#define CFLockInit 0
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-CF_INLINE void __CFLock(volatile CFLock_t *lock) {
-    while (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) != 0) {
-	Sleep(0);
-    }
-}
-
-CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
-    MemoryBarrier();
-    *lock = 0;
-}
-
-CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-    return (InterlockedCompareExchange((LONG volatile *)lock, ~0, 0) == 0);
-}
-
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
-
-typedef int32_t CFLock_t;
-#define CFLockInit 0
-#define CF_LOCK_INIT_FOR_STRUCTS(X) (X = CFLockInit)
-
-CF_INLINE void __CFLock(volatile CFLock_t *lock) {
-    while (__sync_val_compare_and_swap(lock, 0, ~0) != 0) {
-	sleep(0);
-    }
-}
-
-CF_INLINE void __CFUnlock(volatile CFLock_t *lock) {
-    __sync_synchronize();
-    *lock = 0;
-}
-
-CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
-    return (__sync_val_compare_and_swap(lock, 0, ~0) == 0);
-}
-
-typedef CFLock_t OSSpinLock;
-#define OS_SPINLOCK_INIT CFLockInit
-#define OSSpinLockLock(lock) __CFLock(lock)
-#define OSSpinLockUnlock(lock) __CFUnlock(lock)
-
-#else
-
-#warning CF locks not defined for this platform -- CF is not thread-safe
-#define __CFLock(A)	do {} while (0)
-#define __CFUnlock(A)	do {} while (0)
-
-#endif
+#include <CoreFoundation/CFLocking.h>
 
 #if __has_include(<os/lock.h>)
 #include <os/lock.h>

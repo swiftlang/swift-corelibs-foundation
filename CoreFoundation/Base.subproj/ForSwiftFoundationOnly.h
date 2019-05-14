@@ -17,6 +17,7 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFNumber.h>
+#include <CoreFoundation/CFLocking.h>
 #include <CoreFoundation/CFLocaleInternal.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFPriv.h>
