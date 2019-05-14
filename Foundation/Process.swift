@@ -445,7 +445,10 @@ open class Process: NSObject {
           environment["PWD"] = currentDirectoryURL.path
         }
 
-        let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0")
+        // NOTE(compnerd) the environment string must be terminated by a double
+        // null-terminator.  Otherwise, CreateProcess will fail with
+        // INVALID_PARMETER.
+        let szEnvironment: String = environment.map { $0.key + "=" + $0.value }.joined(separator: "\0") + "\0\0"
 
         let sockets: (first: SOCKET, second: SOCKET) = _socketpair()
 
