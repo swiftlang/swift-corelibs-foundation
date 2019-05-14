@@ -1185,6 +1185,120 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
             throw _NSErrorWithErrno(error, reading: false, path: path)
         }
     }
+    
+    internal func _replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = [], allowPlatformSpecificSyscalls: Bool = true) throws -> URL? {
+
+        // 1. Make a backup, if asked to.
+        var backupItemURL: URL?
+        if let backupItemName = backupItemName {
+            let url = originalItemURL.deletingLastPathComponent().appendingPathComponent(backupItemName)
+            try copyItem(at: originalItemURL, to: url)
+            backupItemURL = url
+        }
+        
+        // 2. Make sure we have a copy of the original attributes if we're being asked to preserve them (the default)
+        let originalAttributes = try attributesOfItem(atPath: originalItemURL.path)
+        let newAttributes = try attributesOfItem(atPath: newItemURL.path)
+        
+        func applyPostprocessingRequiredByOptions() throws {
+            if !options.contains(.usingNewMetadataOnly) {
+                var attributesToReapply: [FileAttributeKey: Any] = [:]
+                attributesToReapply[.creationDate] = originalAttributes[.creationDate]
+                attributesToReapply[.posixPermissions] = originalAttributes[.posixPermissions]
+                try setAttributes(attributesToReapply, ofItemAtPath: originalItemURL.path)
+            }
+            
+            // As the very last step, if not explicitly asked to keep the backup, remove it.
+            if let backupItemURL = backupItemURL, !options.contains(.withoutDeletingBackupItem) {
+                try removeItem(at: backupItemURL)
+            }
+        }
+        
+        if allowPlatformSpecificSyscalls {
+            // First, a little OS-specific detour.
+            // Blindly try these operations first, and fall back to the non-OS-specific code below if they all fail.
+            #if canImport(Darwin)
+            do {
+                let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
+                    return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
+                        // Note that Darwin allows swapping a file with a directory this way.
+                        if renameatx_np(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, UInt32(RENAME_SWAP)) == 0 {
+                            return nil
+                        } else {
+                            return errno
+                        }
+                    }
+                }
+                
+                if let finalErrno = finalErrno, finalErrno != ENOTSUP {
+                    throw _NSErrorWithErrno(finalErrno, reading: false, url: originalItemURL)
+                } else if finalErrno == nil {
+                    try applyPostprocessingRequiredByOptions()
+                    return originalItemURL
+                }
+            }
+            #endif
+            
+            #if canImport(Glibc)
+            do {
+                let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
+                    return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
+                        if let originalFS = originalFS,
+                           let newItemFS = newItemFS {
+                            if _CF_renameat2(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
+                                return nil
+                            } else {
+                                return errno
+                            }
+                        } else {
+                            return Int32(EINVAL)
+                        }
+                    }
+                }
+                
+                // ENOTDIR is raised if the objects are directories; EINVAL may indicate that the filesystem does not support the operation.
+                if let finalErrno = finalErrno, finalErrno != ENOTDIR && finalErrno != EINVAL {
+                    throw _NSErrorWithErrno(finalErrno, reading: false, url: originalItemURL)
+                } else if finalErrno == nil {
+                    try applyPostprocessingRequiredByOptions()
+                    return originalItemURL
+                }
+            }
+            #endif
+        }
+        
+        // 3. Replace!
+        // Are they both regular files?
+        let originalType = originalAttributes[.type] as? FileAttributeType
+        let newType = newAttributes[.type] as? FileAttributeType
+        if originalType == newType, originalType == .typeRegular {
+            let finalErrno = originalItemURL.withUnsafeFileSystemRepresentation { (originalFS) -> Int32? in
+                return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
+                    // This is an atomic operation in many OSes, but is not guaranteed to be atomic by the standard.
+                    if rename(newItemFS, originalFS) == 0 {
+                        return nil
+                    } else {
+                        return errno
+                    }
+                }
+            }
+            if let theErrno = finalErrno {
+                throw _NSErrorWithErrno(theErrno, reading: false, url: originalItemURL)
+            }
+        } else {
+            // Only perform a replacement of different object kinds nonatomically.
+            let uniqueName = UUID().uuidString
+            let tombstoneURL = newItemURL.deletingLastPathComponent().appendingPathComponent(uniqueName)
+            try moveItem(at: originalItemURL, to: tombstoneURL)
+            try moveItem(at: newItemURL, to: originalItemURL)
+            try removeItem(at: tombstoneURL)
+        }
+        
+        // 4. Reapply attributes if asked to preserve, and delete the backup if not asked otherwise.
+        try applyPostprocessingRequiredByOptions()
+        
+        return originalItemURL
+    }
 }
 
 extension FileManager.NSPathDirectoryEnumerator {

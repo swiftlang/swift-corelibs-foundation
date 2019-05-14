@@ -138,23 +138,80 @@ open class FileManager : NSObject {
      
         You may pass only one of the values from the NSSearchPathDomainMask enumeration, and you may not pass NSAllDomainsMask.
      */
-    open func url(for directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor url: URL?, create shouldCreate: Bool) throws -> URL {
-        let urls = self.urls(for: directory, in: domain)
-        guard let url = urls.first else {
-            // On Apple OSes, this case returns nil without filling in the error parameter; Swift then synthesizes an error rather than trap.
-            // We simulate that behavior by throwing a private error.
-            throw URLForDirectoryError.directoryUnknown
+    open func url(for directory: SearchPathDirectory, in domain: SearchPathDomainMask, appropriateFor reference: URL?, create
+        shouldCreate: Bool) throws -> URL {
+        var url: URL
+        
+        if directory == .itemReplacementDirectory {
+            // We mimic Darwin here — .itemReplacementDirectory has a number of requirements for use and not meeting them is a programmer error and should panic out.
+            precondition(domain == .userDomainMask)
+            let referenceURL = reference!
+            
+            // If the temporary directory and the reference URL are on the same device, use a subdirectory in the temporary directory. Otherwise, use a temporary directory at the same path as the filesystem that contains this file if it's writable. Fall back to the temporary directory if the latter doesn't work.
+            let temporaryDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
+            let useTemporaryDirectory: Bool
+            
+            let maybeVolumeIdentifier = try? temporaryDirectory.resourceValues(forKeys: [.volumeIdentifierKey]).volumeIdentifier as? AnyHashable
+            let maybeReferenceVolumeIdentifier = try? referenceURL.resourceValues(forKeys: [.volumeIdentifierKey]).volumeIdentifier as? AnyHashable
+            
+            if let volumeIdentifier = maybeVolumeIdentifier,
+               let referenceVolumeIdentifier = maybeReferenceVolumeIdentifier {
+                useTemporaryDirectory = volumeIdentifier == referenceVolumeIdentifier
+            } else {
+                useTemporaryDirectory = !isWritableFile(atPath: referenceURL.deletingPathExtension().path)
+            }
+            
+            // This is the same name Darwin uses.
+            if useTemporaryDirectory {
+                url = temporaryDirectory.appendingPathComponent("TemporaryItems")
+            } else {
+                url = referenceURL.deletingPathExtension()
+            }
+        } else {
+            
+            let urls = self.urls(for: directory, in: domain)
+            guard let theURL = urls.first else {
+                // On Apple OSes, this case returns nil without filling in the error parameter; Swift then synthesizes an error rather than trap.
+                // We simulate that behavior by throwing a private error.
+                throw URLForDirectoryError.directoryUnknown
+            }
+            url = theURL
         }
         
-        if shouldCreate {
+        var nameStorage: String?
+        
+        func itemReplacementDirectoryName(forAttempt attempt: Int) -> String {
+            let name: String
+            if let someName = nameStorage {
+                name = someName
+            } else {
+                // Sanitize the process name for filesystem use:
+                var someName = ProcessInfo.processInfo.processName
+                let characterSet = CharacterSet.alphanumerics.inverted
+                while let whereIsIt = someName.rangeOfCharacter(from: characterSet, options: [], range: nil) {
+                    someName.removeSubrange(whereIsIt)
+                }
+                name = someName
+                nameStorage = someName
+            }
+
+            if attempt == 0 {
+                return "(A Document Being Saved By \(name))"
+            } else {
+                return "(A Document Being Saved By \(name) \(attempt + 1)"
+            }
+        }
+        
+        // To avoid races, on Darwin, the item replacement directory is _ALWAYS_ created, even if create is false.
+        if shouldCreate || directory == .itemReplacementDirectory {
             var attributes: [FileAttributeKey : Any] = [:]
             
             switch _SearchPathDomain(domain) {
             case .some(.user):
-                attributes[.posixPermissions] = 0700
+                attributes[.posixPermissions] = 0o700
                 
             case .some(.system):
-                attributes[.posixPermissions] = 0755
+                attributes[.posixPermissions] = 0o755
                 attributes[.ownerAccountID] = 0 // root
                 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
                     attributes[.ownerAccountID] = 80 // on Darwin, the admin group's fixed ID.
@@ -164,7 +221,29 @@ open class FileManager : NSObject {
                 break
             }
             
-            try createDirectory(at: url, withIntermediateDirectories: true, attributes: attributes)
+            if directory == .itemReplacementDirectory {
+                
+                try createDirectory(at: url, withIntermediateDirectories: true, attributes: attributes)
+                var attempt = 0
+                
+                while true {
+                    do {
+                        let attemptedURL = url.appendingPathComponent(itemReplacementDirectoryName(forAttempt: attempt))
+                        try createDirectory(at: attemptedURL, withIntermediateDirectories: false)
+                        url = attemptedURL
+                        break
+                    } catch {
+                        if let error = error as? NSError, error.domain == NSCocoaErrorDomain, error.code == CocoaError.fileWriteFileExists.rawValue {
+                            attempt += 1
+                        } else {
+                            throw error
+                        }
+                    }
+                }
+                
+            } else {
+                try createDirectory(at: url, withIntermediateDirectories: true, attributes: attributes)
+            }
         }
         
         return url
@@ -939,8 +1018,20 @@ open class FileManager : NSObject {
     
     /// - Experiment: This is a draft API currently under consideration for official import into Foundation as a suitable alternative
     /// - Note: Since this API is under consideration it may be either removed or revised in the near future
-    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws {
+    #if os(Windows)
+    @available(Windows, deprecated, message: "Not yet implemented")
+    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
+    }
+    #else
+    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
+        return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
+    }
+    #endif
+    
+    @available(*, unavailable, message: "Returning an object through an autoreleased pointer is not supported in swift-corelibs-foundation. Use replaceItem(at:withItemAt:backupItemName:options:) instead.", renamed: "replaceItem(at:withItemAt:backupItemName:options:)")
+    open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: FileManager.ItemReplacementOptions = [], resultingItemURL resultingURL: UnsafeMutablePointer<NSURL?>?) throws {
+        NSUnsupported()
     }
     
     internal func _tryToResolveTrailingSymlinkInPath(_ path: String) -> String? {

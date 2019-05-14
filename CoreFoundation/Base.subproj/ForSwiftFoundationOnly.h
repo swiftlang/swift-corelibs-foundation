@@ -64,6 +64,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/stat.h>
+#include <linux/fs.h>
 #define AT_STATX_SYNC_AS_STAT   0x0000  /* - Do whatever stat() does */
 #endif //__GLIBC_PREREQ(2. 28)
 #endif // TARGET_OS_LINUX
@@ -591,6 +592,12 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
     return lstat(filename, buffer);
 }
 #endif // __NR_statx
+
+static unsigned int const _CF_renameat2_RENAME_EXCHANGE = 1 << 1;
+static int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
+                            int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
+    return syscall(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
+}
 #endif // TARGET_OS_LINUX
 
 #if __HAS_STATX
