@@ -10,7 +10,7 @@
 #if !os(Android)
 class TestProcess : XCTestCase {
     
-    func test_exit0() {
+    func test_exit0() throws {
         let process = Process()
         let executableURL = xdgTestHelperURL()
         if #available(OSX 10.13, *) {
@@ -21,57 +21,57 @@ class TestProcess : XCTestCase {
         }
         XCTAssertEqual(executableURL.path, process.launchPath)
         process.arguments = ["--exit", "0"]
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
     
-    func test_exit1() {
+    func test_exit1() throws {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "1"]
 
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
         XCTAssertEqual(process.terminationReason, .exit)
     }
     
-    func test_exit100() {
+    func test_exit100() throws {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "100"]
         
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 100)
         XCTAssertEqual(process.terminationReason, .exit)
     }
     
-    func test_sleep2() {
+    func test_sleep2() throws {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--sleep", "2"]
         
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
     }
 
-    func test_terminationReason_uncaughtSignal() {
+    func test_terminationReason_uncaughtSignal() throws {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--signal-self", SIGTERM.description]
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, SIGTERM)
         XCTAssertEqual(process.terminationReason, .uncaughtSignal)
     }
 
-    func test_pipe_stdin() {
+    func test_pipe_stdin() throws {
         let process = Process()
 
         process.executableURL = xdgTestHelperURL()
@@ -81,7 +81,7 @@ class TestProcess : XCTestCase {
 
         let inputPipe = Pipe()
         process.standardInput = inputPipe
-        process.launch()
+        try? process.run()
         inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
 
         // Close the input pipe to send EOF to cat.
@@ -98,7 +98,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(string, "Hello, 🐶.\n")
     }
 
-    func test_pipe_stdout() {
+    func test_pipe_stdout() throws {
         let process = Process()
 
         process.executableURL = xdgTestHelperURL()
@@ -107,7 +107,7 @@ class TestProcess : XCTestCase {
         process.standardOutput = pipe
         process.standardError = nil
 
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
@@ -119,7 +119,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n"])), FileManager.default.currentDirectoryPath)
     }
 
-    func test_pipe_stderr() {
+    func test_pipe_stderr() throws {
         let process = Process()
 
         process.executableURL = xdgTestHelperURL()
@@ -128,7 +128,7 @@ class TestProcess : XCTestCase {
         let errorPipe = Pipe()
         process.standardError = errorPipe
 
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -142,7 +142,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(errMsg, "cat: invalid_file_name: No such file or directory")
     }
 
-    func test_pipe_stdout_and_stderr_same_pipe() {
+    func test_pipe_stdout_and_stderr_same_pipe() throws {
         let process = Process()
 
         process.executableURL = xdgTestHelperURL()
@@ -155,7 +155,7 @@ class TestProcess : XCTestCase {
         // Clear the environment to stop the malloc debug flags used in Xcode debug being
         // set in the subprocess.
         process.environment = [:]
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -170,7 +170,7 @@ class TestProcess : XCTestCase {
         XCTAssertEqual(errMsg, "cat: invalid_file_name: No such file or directory")
     }
 
-    func test_file_stdout() {
+    func test_file_stdout() throws {
         let process = Process()
 
         process.executableURL = xdgTestHelperURL()
@@ -184,7 +184,7 @@ class TestProcess : XCTestCase {
 
         process.standardOutput = handle
 
-        process.launch()
+        try? process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
