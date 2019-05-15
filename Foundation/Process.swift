@@ -519,15 +519,12 @@ open class Process: NSObject {
 
         if let pipe = standardInput as? Pipe {
           pipe.fileHandleForReading.closeFile()
-          pipe.fileHandleForWriting.closeFile()
         }
         if let pipe = standardOutput as? Pipe {
-          pipe.fileHandleForReading.closeFile()
           pipe.fileHandleForWriting.closeFile()
         }
         if let pipe = standardError as? Pipe {
           pipe.fileHandleForWriting.closeFile()
-          pipe.fileHandleForReading.closeFile()
         }
 
         self.runLoop = RunLoop.current
