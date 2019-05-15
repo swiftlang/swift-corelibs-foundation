@@ -21,7 +21,7 @@ open class DateFormatter : Formatter {
                 let dateStyle = CFDateFormatterStyle(self.dateStyle.rawValue)
                 let timeStyle = CFDateFormatterStyle(self.timeStyle.rawValue)
             #endif
-            
+
             let obj = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale._cfObject, dateStyle, timeStyle)!
             _setFormatterAttributes(obj)
             if let dateFormat = _dateFormat {
@@ -139,7 +139,7 @@ open class DateFormatter : Formatter {
     open var dateFormat: String! {
         get {
             guard let format = _dateFormat else {
-                return __cfObject.map { CFDateFormatterGetFormat($0)._swiftObject } ?? ""
+                return CFDateFormatterGetFormat(_cfObject)._swiftObject
             }
             return format
         }
@@ -152,17 +152,11 @@ open class DateFormatter : Formatter {
         willSet {
             _dateFormat = nil
         }
-        didSet {
-            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
-        }
     }
 
     open var timeStyle: Style = .none {
         willSet {
             _dateFormat = nil
-        }
-        didSet {
-            _dateFormat = CFDateFormatterGetFormat(_cfObject)._swiftObject
         }
     }
 
