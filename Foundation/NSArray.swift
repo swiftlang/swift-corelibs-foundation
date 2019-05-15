@@ -543,7 +543,7 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             }
         }
         
-        return Array(unsafeUninitializedCapacity: range.length) { (buffer, initializedCount) in
+        let result = Array<Any>(unsafeUninitializedCapacity: range.length) { (buffer, initializedCount) in
             var destinationIndex = 0
             for index in indexes {
                 buffer.baseAddress?.advanced(by: destinationIndex).initialize(to: objects[index])
@@ -551,6 +551,9 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
             }
             initializedCount = range.length
         }
+        
+        indexes.deallocate()
+        return result
     }
     
     open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
