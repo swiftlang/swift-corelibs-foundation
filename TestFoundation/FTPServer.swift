@@ -6,6 +6,8 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+
+#if !os(Windows)
 //This is a very rudimentary FTP server written plainly for testing URLSession FTP Implementation.
 import Dispatch
 
@@ -283,3 +285,4 @@ class LoopbackFTPServerTest: XCTestCase {
         serverReady.wait(timeout: timeout)
     }
 }
+#endif

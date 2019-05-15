@@ -113,7 +113,12 @@ var allTestCases = [
     testCase(TestMeasurement.allTests),
     testCase(TestNSLock.allTests),
     testCase(TestNSSortDescriptor.allTests),
-    testCase(TestURLSessionFTP.allTests),
 ]
+
+#if !os(Windows)
+allTestCases.append(contentsOf: [
+    testCase(TestURLSessionFTP.allTests),
+])
+#endif
 
 XCTMain(allTestCases)

@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !os(Windows)
 #if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
     import Foundation
     import XCTest
@@ -121,3 +122,4 @@ extension FTPDataTask : URLSessionTaskDelegate {
         self.error = true
     }
 }
+#endif
