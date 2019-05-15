@@ -33,7 +33,7 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             fatalError("Received header data but no task available.")
         }
         do {
-            let newTS = try ts.byAppending(headerLine: data)
+            let newTS = try ts.byAppendingHTTP(headerLine: data)
             internalState = .transferInProgress(newTS)
             let didCompleteHeader = !ts.isHeaderComplete && newTS.isHeaderComplete
             if didCompleteHeader {
