@@ -221,12 +221,12 @@ open class FileHandle : NSObject {
           return NSData.NSDataReadResult(bytes: nil, length: 0, deallocator: nil)
         }
 
-        var fiFileInfo: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
-        if !GetFileInformationByHandle(_handle, &fiFileInfo) {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
-        }
+        if GetFileType(_handle) == FILE_TYPE_DISK {
+          var fiFileInfo: BY_HANDLE_FILE_INFORMATION = BY_HANDLE_FILE_INFORMATION()
+          if !GetFileInformationByHandle(_handle, &fiFileInfo) {
+              throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+          }
 
-        if fiFileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_NORMAL) == FILE_ATTRIBUTE_NORMAL {
           if options.contains(.alwaysMapped) {
             let hMapping: HANDLE =
                 CreateFileMappingA(_handle, nil, DWORD(PAGE_READONLY), 0, 0, nil)
