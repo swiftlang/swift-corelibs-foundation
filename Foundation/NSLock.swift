@@ -234,6 +234,8 @@ open class NSRecursiveLock: NSObject, NSLocking {
         super.init()
 #if os(Windows)
         InitializeCriticalSection(mutex)
+        InitializeConditionVariable(timeoutCond)
+        InitializeSRWLock(timeoutMutex)
 #else
 #if CYGWIN
         var attrib : pthread_mutexattr_t? = nil
