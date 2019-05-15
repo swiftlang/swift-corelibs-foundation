@@ -298,6 +298,7 @@ add_swift_library(Foundation
                     Foundation/URLSession/libcurl/MultiHandle.swift
                     Foundation/URLSession/Message.swift
                     Foundation/URLSession/NativeProtocol.swift
+                    Foundation/URLSession/ftp/FTPURLProtocol.swift
                     Foundation/URLSession/TaskRegistry.swift
                     Foundation/URLSession/TransferState.swift
                     Foundation/URLSession/URLSession.swift
@@ -421,6 +422,7 @@ if(ENABLE_TESTING)
                        SOURCES
                          TestFoundation/main.swift
                          TestFoundation/HTTPServer.swift
+                         TestFoundation/FTPServer.swift
                          Foundation/ProgressFraction.swift
                          TestFoundation/Utilities.swift
                          TestFoundation/FixtureValues.swift
@@ -507,6 +509,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestURLRequest.swift
                          TestFoundation/TestURLResponse.swift
                          TestFoundation/TestURLSession.swift
+                         TestFoundation/TestURLSessionFTP.swift
                          TestFoundation/TestURL.swift
                          TestFoundation/TestUserDefaults.swift
                          TestFoundation/TestUtils.swift

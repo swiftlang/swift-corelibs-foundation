@@ -458,6 +458,7 @@ swift_sources = CompileSwiftSources([
 	'Foundation/URLSession/TransferState.swift',
 	'Foundation/URLSession/libcurl/libcurlHelpers.swift',
 	'Foundation/URLSession/http/HTTPURLProtocol.swift',
+	'Foundation/URLSession/ftp/FTPURLProtocol.swift',
 	'Foundation/UserDefaults.swift',
 	'Foundation/NSUUID.swift',
 	'Foundation/NSValue.swift',
@@ -538,6 +539,7 @@ foundation_tests_resources = CopyResources('TestFoundation', [
 foundation_tests = SwiftExecutable('TestFoundation', [
 	'TestFoundation/main.swift',
         'TestFoundation/HTTPServer.swift',
+	'TestFoundation/FTPServer.swift',
         'Foundation/ProgressFraction.swift',
         'TestFoundation/Utilities.swift',
 ] + glob.glob('./TestFoundation/Test*.swift')) # all TestSomething.swift are considered sources to the test project in the TestFoundation directory
