@@ -28,36 +28,36 @@ extension NSExpression {
     }
 }
 
-open class NSExpression : NSObject, NSSecureCoding, NSCopying {
-    
-    public static var supportsSecureCoding: Bool {
-        return true
-    }
-    
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
-    }
+@available(*, deprecated, message: "NSExpression is not available in swift-corelibs-foundation")
+open class NSExpression : NSObject, NSCopying {
     
     open override func copy() -> Any {
         return copy(with: nil)
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        NSUnimplemented()
+        NSUnsupported()
     }
-
-    public /*not inherited*/ init(format expressionFormat: String, argumentArray arguments: [Any]) { NSUnimplemented() }
-    public /*not inherited*/ init(format expressionFormat: String, arguments argList: CVaListPointer) { NSUnimplemented() }
     
-    public /*not inherited*/ init(forConstantValue obj: Any?) { NSUnimplemented() } // Expression that returns a constant value
-    open class func expressionForEvaluatedObject() -> NSExpression { NSUnimplemented() } // Expression that returns the object being evaluated
-    public /*not inherited*/ init(forVariable string: String) { NSUnimplemented() } // Expression that pulls a value from the variable bindings dictionary
-    public /*not inherited*/ init(forKeyPath keyPath: String) { NSUnimplemented() } // Expression that invokes valueForKeyPath with keyPath
-    public /*not inherited*/ init(forFunction name: String, arguments parameters: [Any]) { NSUnimplemented() } // Expression that invokes one of the predefined functions. Will throw immediately if the selector is bad; will throw at runtime if the parameters are incorrect.
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(format expressionFormat: String, argumentArray arguments: [Any]) { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(format expressionFormat: String, arguments argList: CVaListPointer) { NSUnsupported() }
+    
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forConstantValue obj: Any?) { NSUnsupported() } // Expression that returns a constant value
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open class func expressionForEvaluatedObject() -> NSExpression { NSUnsupported() } // Expression that returns the object being evaluated
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forVariable string: String) { NSUnsupported() } // Expression that pulls a value from the variable bindings dictionary
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forKeyPath keyPath: String) { NSUnsupported() } // Expression that invokes valueForKeyPath with keyPath
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forFunction name: String, arguments parameters: [Any]) { NSUnsupported() } // Expression that invokes one of the predefined functions. Will throw immediately if the selector is bad; will throw at runtime if the parameters are incorrect.
     // Predefined functions are:
     // name              parameter array contents				returns
     //-------------------------------------------------------------------------------------------------------------------------------------
@@ -99,43 +99,77 @@ open class NSExpression : NSObject, NSSecureCoding, NSCopying {
     //                   two NSExpression instances representing CLLocations    NSNumber
     // length:           an NSExpression instance representing a string         NSNumber
     
-    public /*not inherited*/ init(forAggregate subexpressions: [Any]) { NSUnimplemented() } // Expression that returns a collection containing the results of other expressions
-    public /*not inherited*/ init(forUnionSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the union of the collections expressed by left and right
-    public /*not inherited*/ init(forIntersectSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the intersection of the collections expressed by left and right
-    public /*not inherited*/ init(forMinusSet left: NSExpression, with right: NSExpression) { NSUnimplemented() } // return an expression that will return the disjunction of the collections expressed by left and right
-    public /*not inherited*/ init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: Any) { NSUnimplemented() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifer returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
-    public /*not inherited*/ init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [Any]?) { NSUnimplemented() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.
-    open class func expressionForAnyKey() -> NSExpression { NSUnimplemented() }
-    public /*not inherited*/ init(block: @escaping (Any?, [Any], NSMutableDictionary?) -> Any, arguments: [NSExpression]?) { NSUnimplemented() } // Expression that invokes the block with the parameters; note that block expressions are not encodable or representable as parseable strings.
-    public /*not inherited*/ init(forConditional predicate: Any, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnimplemented() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forAggregate subexpressions: [Any]) { NSUnsupported() } // Expression that returns a collection containing the results of other expressions
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forUnionSet left: NSExpression, with right: NSExpression) { NSUnsupported() } // return an expression that will return the union of the collections expressed by left and right
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forIntersectSet left: NSExpression, with right: NSExpression) { NSUnsupported() } // return an expression that will return the intersection of the collections expressed by left and right
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forMinusSet left: NSExpression, with right: NSExpression) { NSUnsupported() } // return an expression that will return the disjunction of the collections expressed by left and right
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forSubquery expression: NSExpression, usingIteratorVariable variable: String, predicate: Any) { NSUnsupported() } // Expression that filters a collection by storing elements in the collection in the variable variable and keeping the elements for which qualifer returns true; variable is used as a local variable, and will shadow any instances of variable in the bindings dictionary, the variable is removed or the old value replaced once evaluation completes
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forFunction target: NSExpression, selectorName name: String, arguments parameters: [Any]?) { NSUnsupported() } // Expression that invokes the selector on target with parameters. Will throw at runtime if target does not implement selector or if parameters are wrong.
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open class func expressionForAnyKey() -> NSExpression { NSUnsupported() }
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(block: @escaping (Any?, [Any], NSMutableDictionary?) -> Any, arguments: [NSExpression]?) { NSUnsupported() } // Expression that invokes the block with the parameters; note that block expressions are not encodable or representable as parseable strings.
+
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(forConditional predicate: Any, trueExpression: NSExpression, falseExpression: NSExpression) { NSUnsupported() } // Expression that will return the result of trueExpression or falseExpression depending on the value of predicate
     
-    public init(expressionType type: ExpressionType) { NSUnimplemented() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public init(expressionType type: ExpressionType) { NSUnsupported() }
     
     // accessors for individual parameters - raise if not applicable
-    open var expressionType: ExpressionType { NSUnimplemented() }
-    open var constantValue: Any { NSUnimplemented() }
-    open var keyPath: String { NSUnimplemented() }
-    open var function: String { NSUnimplemented() }
-    open var variable: String { NSUnimplemented() }
-    /*@NSCopying*/ open var operand: NSExpression { NSUnimplemented() } // the object on which the selector will be invoked (the result of evaluating a key path or one of the defined functions)
-    open var arguments: [NSExpression]? { NSUnimplemented() } // array of expressions which will be passed as parameters during invocation of the selector on the operand of a function expression
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var expressionType: ExpressionType { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var constantValue: Any { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var keyPath: String { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var function: String { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var variable: String { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var operand: NSExpression { NSUnsupported() } // the object on which the selector will be invoked (the result of evaluating a key path or one of the defined functions)
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var arguments: [NSExpression]? { NSUnsupported() } // array of expressions which will be passed as parameters during invocation of the selector on the operand of a function expression
     
-    open var collection: Any { NSUnimplemented() }
-    /*@NSCopying*/ open var predicate: NSPredicate { NSUnimplemented() }
-    /*@NSCopying*/ open var left: NSExpression { NSUnimplemented() } // expression which represents the left side of a set expression
-    /*@NSCopying*/ open var right: NSExpression { NSUnimplemented() } // expression which represents the right side of a set expression
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var collection: Any { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var predicate: NSPredicate { NSUnsupported() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var left: NSExpression { NSUnsupported() } // expression which represents the left side of a set expression
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var right: NSExpression { NSUnsupported() } // expression which represents the right side of a set expression
     
-    /*@NSCopying*/ open var `true`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to true
-    /*@NSCopying*/ open var `false`: NSExpression { NSUnimplemented() } // expression which will be evaluated if a conditional expression's predicate evaluates to false
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var `true`: NSExpression { NSUnsupported() } // expression which will be evaluated if a conditional expression's predicate evaluates to true
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    /*@NSCopying*/ open var `false`: NSExpression { NSUnsupported() } // expression which will be evaluated if a conditional expression's predicate evaluates to false
     
-    open var expressionBlock: (Any?, [Any], NSMutableDictionary?) -> Any { NSUnimplemented() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open var expressionBlock: (Any?, [Any], NSMutableDictionary?) -> Any { NSUnsupported() }
     
     // evaluate the expression using the object and bindings- note that context is mutable here and can be used by expressions to store temporary state for one predicate evaluation
-    open func expressionValue(with object: Any?, context: NSMutableDictionary?) -> Any? { NSUnimplemented() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open func expressionValue(with object: Any?, context: NSMutableDictionary?) -> Any? { NSUnsupported() }
     
-    open func allowEvaluation() { NSUnimplemented() } // Force an expression which was securely decoded to allow evaluation
-}
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    open func allowEvaluation() { NSUnsupported() } // Force an expression which was securely decoded to allow evaluation
 
-extension NSExpression {
-    public convenience init(format expressionFormat: String, _ args: CVarArg...) { NSUnimplemented() }
+    @available(*, unavailable, message: "NSExpression is not available in swift-corelibs-foundation")
+    public convenience init(format expressionFormat: String, _ args: CVarArg...) { NSUnsupported() }
 }

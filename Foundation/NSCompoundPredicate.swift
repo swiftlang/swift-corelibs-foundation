@@ -28,8 +28,6 @@ open class NSCompoundPredicate : NSPredicate {
         self.subpredicates = subpredicates
         super.init(value: false)
     }
-
-    public required init?(coder: NSCoder) { NSUnimplemented() }
     
     open var compoundPredicateType: LogicalType
     open var subpredicates: [NSPredicate]
