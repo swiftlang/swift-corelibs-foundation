@@ -525,20 +525,35 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
     }
 
     internal func sortedArray(from range: NSRange, options: NSSortOptions, usingComparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
-        // The sort options are not available. We use the Array's sorting algorithm. It is not stable neither concurrent.
-        guard options.isEmpty else {
-            NSUnimplemented()
-        }
-
         let count = self.count
         if range.length == 0 || count == 0 {
             return []
         }
 
-        let swiftRange = Range(range)!
-        return allObjects[swiftRange].sorted { lhs, rhs in
-            return cmptr(lhs, rhs) == .orderedAscending
+        let objects = subarray(with: range)
+        
+        let indexes = UnsafeMutableBufferPointer<CFIndex>.allocate(capacity: range.length)
+        withoutActuallyEscaping(cmptr) { (cmptr) in
+            CFSortIndexes(indexes.baseAddress!, range.length, CFOptionFlags(options.rawValue)) { (a, b) -> CFComparisonResult in
+                switch cmptr(objects[a], objects[b]) {
+                case .orderedAscending: return kCFCompareLessThan
+                case .orderedDescending: return kCFCompareGreaterThan
+                case .orderedSame: return kCFCompareEqualTo
+                }
+            }
         }
+        
+        let result = Array<Any>(unsafeUninitializedCapacity: range.length) { (buffer, initializedCount) in
+            var destinationIndex = 0
+            for index in indexes {
+                buffer.baseAddress?.advanced(by: destinationIndex).initialize(to: objects[index])
+                destinationIndex += 1
+            }
+            initializedCount = range.length
+        }
+        
+        indexes.deallocate()
+        return result
     }
     
     open func sortedArray(comparator cmptr: (Any, Any) -> ComparisonResult) -> [Any] {
@@ -828,7 +843,7 @@ open class NSMutableArray : NSArray {
         if type(of: self) === NSMutableArray.self {
             _storage.swapAt(idx1, idx2)
         } else {
-            NSUnimplemented()
+            NSRequiresConcreteImplementation()
         }
     }
     
@@ -906,7 +921,7 @@ open class NSMutableArray : NSArray {
                 _storage.insert(__SwiftValue.store(otherArray[idx]), at: idx + range.location)
             }
         } else {
-            NSUnimplemented()
+            NSRequiresConcreteImplementation()
         }
     }
     
