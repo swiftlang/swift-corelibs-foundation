@@ -27,7 +27,7 @@ open class Operation : NSObject {
 #endif
     // prioritizedPrevious && prioritizedNext used to traverse in the order in which the operations need to be dequeued
     fileprivate weak var prioritizedPrevious: Operation?
-    fileprivate var prioritizedNext: Operation?
+    fileprivate weak var prioritizedNext: Operation?
     // orderdedPrevious && orderdedNext used to traverse in the order in which the operations added to the queue
     fileprivate weak var orderdedPrevious: Operation?
     fileprivate var orderdedNext: Operation?
