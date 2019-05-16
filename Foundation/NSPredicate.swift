@@ -10,65 +10,32 @@
 
 // Predicates wrap some combination of expressions and operators and when evaluated return a BOOL.
 
-open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
+// NSPredicates are supported only in a limited form in swift-corelibs-foundation:
+// - We only support predicates that do not use strings. Metadata queries and format strings are not supported in swift-corelibs-foundation.
+// - We do not support archiving predicates. NSPredicate does not conform to NSSecureCoding in swift-corelibs-foundation.
+// We support the following features for compatibility with XCTest:
+// - Predicates that are always true or false.
+// - Predicates built using a closure.
+// - Compound predicates that include the two kinds above. Use NSCompoundPredicate to construct these.
+open class NSPredicate : NSObject, NSCopying {
 
     private enum PredicateKind {
         case boolean(Bool)
         case block((Any?, [String : Any]?) -> Bool)
-        case format(String)
-        case metadataQuery(String)
     }
 
     private let kind: PredicateKind
 
-    public static var supportsSecureCoding: Bool {
-        return true
-    }
-    
-    public required init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        
-        let encodedBool = aDecoder.decodeBool(forKey: "NS.boolean.value")
-        self.kind = .boolean(encodedBool)
-        
-        super.init()
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        guard aCoder.allowsKeyedCoding else {
-            preconditionFailure("Unkeyed coding is unsupported.")
-        }
-        
-        //TODO: store kind key for .boolean, .format, .metadataQuery
-        
-        switch self.kind {
-        case .boolean(let value):
-            aCoder.encode(value, forKey: "NS.boolean.value")
-        case .block:
-            preconditionFailure("NSBlockPredicate cannot be encoded or decoded.")
-        case .format:
-            NSUnimplemented()
-        case .metadataQuery:
-            NSUnimplemented()
-        }
-    }
-    
     open override func copy() -> Any {
         return copy(with: nil)
     }
     
     open func copy(with zone: NSZone? = nil) -> Any {
-        switch self.kind {
-        case .boolean(let value):
-            return NSPredicate(value: value)
+        switch kind {
+        case .boolean(let bool):
+            return NSPredicate(value: bool)
         case .block(let block):
             return NSPredicate(block: block)
-        case .format:
-            NSUnimplemented()
-        case .metadataQuery:
-            NSUnimplemented()
         }
     }
     
@@ -81,10 +48,6 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
             switch (other.kind, self.kind) {
             case (.boolean(let otherBool), .boolean(let selfBool)):
                 return otherBool == selfBool
-            case (.format, .format):
-                NSUnimplemented()
-            case (.metadataQuery, .metadataQuery):
-                NSUnimplemented()
             default:
                 // NSBlockPredicate returns false even for copy
                 return false
@@ -92,12 +55,14 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         }
     }
     
-    // Parse predicateFormat and return an appropriate predicate
-    public init(format predicateFormat: String, argumentArray arguments: [Any]?) { NSUnimplemented() }
+    @available(*, unavailable, message: "Predicate strings and key-value coding are not supported in swift-corelibs-foundation. Use a closure instead if possible.", renamed: "init(block:)")
+    public init(format predicateFormat: String, argumentArray arguments: [Any]?) { NSUnsupported() }
     
-    public init(format predicateFormat: String, arguments argList: CVaListPointer) { NSUnimplemented() }
+    @available(*, unavailable, message: "Predicate strings and key-value coding are not supported in swift-corelibs-foundation. Use a closure instead if possible.", renamed: "init(block:)")
+    public init(format predicateFormat: String, arguments argList: CVaListPointer) { NSUnsupported() }
 
-    public init?(fromMetadataQueryString queryString: String) { NSUnimplemented() }
+    @available(*, unavailable, message: "Spotlight queries are not supported by swift-corelibs-foundation")
+    public init?(fromMetadataQueryString queryString: String) { NSUnsupported() }
     
     public init(value: Bool) {
         kind = .boolean(value)
@@ -109,50 +74,39 @@ open class NSPredicate : NSObject, NSSecureCoding, NSCopying {
         super.init()
     }
     
+    @available(*, deprecated, message: "Predicate strings are not supported in swift-corelibs-foundation. The string returned by this method is not useful outside of this process and should not be serialized.")
     open var predicateFormat: String {
         switch self.kind {
         case .boolean(let value):
             return value ? "TRUEPREDICATE" : "FALSEPREDICATE"
         case .block:
-            // TODO: Bring NSBlockPredicate's predicateFormat to macOS's Foundation version
-            // let address = unsafeBitCast(block, to: Int.self)
-            // return String(format:"BLOCKPREDICATE(%2X)", address)
             return "BLOCKPREDICATE"
-        case .format:
-            NSUnimplemented()
-        case .metadataQuery:
-            NSUnimplemented()
         }
     }
     
-    open func withSubstitutionVariables(_ variables: [String : Any]) -> Self { NSUnimplemented() } // substitute constant values for variables
+    @available(*, unavailable, message: "Predicates with substitution variables are not supported in swift-corelibs-foundation.")
+    open func withSubstitutionVariables(_ variables: [String : Any]) -> Self { NSUnsupported() } // substitute constant values for variables
     
     open func evaluate(with object: Any?) -> Bool {
         return evaluate(with: object, substitutionVariables: nil)
     } // evaluate a predicate against a single object
     
     open func evaluate(with object: Any?, substitutionVariables bindings: [String : Any]?) -> Bool {
-        if bindings != nil {
-            NSUnimplemented()
-        }
-
         switch kind {
         case let .boolean(value):
             return value
         case let .block(block):
             return block(object, bindings)
-        case .format:
-            NSUnimplemented()
-        case .metadataQuery:
-            NSUnimplemented()
         }
     } // single pass evaluation substituting variables from the bindings dictionary for any variable expressions encountered
     
-    open func allowEvaluation() { NSUnimplemented() } // Force a predicate which was securely decoded to allow evaluation
+    @available(*, unavailable, message: "Archived predicates are not supported in swift-corelibs-foundation.")
+    open func allowEvaluation() { NSUnsupported() } // Force a predicate which was securely decoded to allow evaluation
 }
 
 extension NSPredicate {
-    public convenience init(format predicateFormat: String, _ args: CVarArg...) { NSUnimplemented() }
+    @available(*, unavailable, message: "Predicate strings and key-value coding are not supported in swift-corelibs-foundation. Use a closure instead if possible.", renamed: "init(block:)")
+    public convenience init(format predicateFormat: String, _ args: CVarArg...) { NSUnsupported() }
 }
 
 extension NSArray {

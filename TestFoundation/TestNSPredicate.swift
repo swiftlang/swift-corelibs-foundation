@@ -19,7 +19,6 @@ class TestNSPredicate: XCTestCase {
             ("test_filterNSMutableSet", test_filterNSMutableSet),
             ("test_filterNSOrderedSet", test_filterNSOrderedSet),
             ("test_filterNSMutableOrderedSet", test_filterNSMutableOrderedSet),
-            ("test_NSCoding", test_NSCoding),
             ("test_copy", test_copy),
         ]
     }
@@ -87,15 +86,6 @@ class TestNSPredicate: XCTestCase {
         let expectedOrderedSet = NSMutableOrderedSet()
         expectedOrderedSet.addObjects(from: expectedArray)
         XCTAssertEqual(expectedOrderedSet, orderedSet)
-    }
-    
-    func test_NSCoding() {
-        let predicateA = NSPredicate(value: true)
-        let predicateB = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: predicateA)) as! NSPredicate
-        XCTAssertEqual(predicateA, predicateB, "Archived then unarchived uuid must be equal.")
-        let predicateC = NSPredicate(value: false)
-        let predicateD = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: predicateC)) as! NSPredicate
-        XCTAssertEqual(predicateC, predicateD, "Archived then unarchived uuid must be equal.")
     }
     
     func test_copy() {
