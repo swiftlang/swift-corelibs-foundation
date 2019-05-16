@@ -30,6 +30,8 @@
 #include <unistd.h>
 #if !TARGET_OS_ANDROID
 #include <sys/fcntl.h>
+#else
+#include <sys/endian.h>
 #endif
 #endif
 #if TARGET_OS_WIN32
@@ -70,7 +72,7 @@ struct tzhead {
 
 #include <time.h>
 
-#if !TARGET_OS_WIN32
+#if !TARGET_OS_WIN32 && !TARGET_OS_ANDROID
 static CFStringRef __tzZoneInfo = NULL;
 static char *__tzDir = NULL;
 static void __InitTZStrings(void);
@@ -117,9 +119,10 @@ CF_INLINE void __CFTimeZoneUnlockCompatibilityMapping(void) {
     __CFUnlock(&__CFTimeZoneCompatibilityMappingLock);
 }
 
+#define COUNT_OF(array) (sizeof((array)) / sizeof((array)[0]))
+
 #if TARGET_OS_WIN32
 #define CF_TIME_ZONES_KEY L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones"
-#define COUNT_OF(array) (sizeof((array)) / sizeof((array)[0]))
 
 /* This function should be used for WIN32 instead of
  * __CFCopyRecursiveDirectoryList function.
@@ -183,11 +186,178 @@ static void __CFTimeZoneGetOffset(CFStringRef timezone, int32_t *offset) {
 
     RegCloseKey(hKey);
 }
+#elif TARGET_OS_ANDROID
+/*
+ * Android does not ship with the standard Unix Olsen files, with the directory
+ * structure, and the files with the same name as the time zone.
+ * Instead all the information is in one file, where all the time zone
+ * information for all the zones is held. Also, to allow upgrades to the time
+ * zone database without an update to the system, the database can be overriden
+ * by a secondary location.
+ * - /data/misc/zoneinfo/current/tzdata overrides for the time zone information
+ *   from the system.
+ * - /system/usr/share/zoneinfo/tzdata system time zone information.
+ * The format of these files is slightly documented in Bionic's source file
+ * libc/tzcode/bionic.cpp.
+ * The file start with a header which is 24 bytes long.
+ * - 6 bytes should be the ASCII string "tzdata"
+ * - 6 bytes of the Olson database version in ASCII. For example 2018a. Includes
+ *   a final nul character.
+ * - 4 bytes MSB of the offset of the index inside the file.
+ * - 4 bytes MSB of the offset of the start of the data inside the file.
+ * - 4 bytes MSB of the zonetab (unused in this code).
+ * The index sits between the offset for the index and the offset for the data.
+ * Each index entry is 52 bytes long.
+ * - 40 bytes for the name of the zone. Seems to be nul terminated.
+ * - 4 bytes MSB of the offset to this time zone data. Notice that this offset
+ *   is relative to the data offset from the header.
+ * - 4 bytes MSB of the data length.
+ * - 4 bytes unused.
+ */
+
+#define ANDROID_TZ_HEADER_SIZE 24
+#define ANDROID_TZ_HEADER_TAG_SIZE 6
+#define ANDROID_TZ_HEADER_INDEX_OFFSET 12
+#define ANDROID_TZ_HEADER_DATA_OFFSET 16
+#define ANDROID_TZ_ENTRY_SIZE 52
+#define ANDROID_TZ_ENTRY_NAME_LENGTH 40
+#define ANDROID_TZ_ENTRY_START_OFFSET 40
+#define ANDROID_TZ_ENTRY_LENGTH_OFFSET 44
+
+/**
+ * Callback invoked for each of the time zones in the timezone file.
+ * - name: The name of the time zone.
+ * - offset: The final offset inside the file of the data for the time zone.
+ * - length: The length of the data for the time zone.
+ * - fp: The file pointer to read the data from. The file might not be in the
+ *       right offset, so if you want to read the right time zone data, you
+ *       probably want to fseek into offset.
+ * - context1: The argument passed into __CFAndroidTimeZoneListEnumerate.
+ * - context2: The argument passed into __CFAndroidTimeZoneListEnumerate.
+ */
+typedef Boolean (*__CFAndroidTimeZoneListEnumerateCallback)(const char name[ANDROID_TZ_ENTRY_NAME_LENGTH], int32_t offset, int32_t length, FILE *fp, void *context1, void *context2);
+
+static void __CFAndroidTimeZoneParse(FILE *fp, __CFAndroidTimeZoneListEnumerateCallback callback, void *context1, void *context2) {
+    if (!fp) {
+        return;
+    }
+
+    char header[ANDROID_TZ_HEADER_SIZE];
+    if (fread(header, 1, sizeof(header), fp) != sizeof(header)) {
+        return;
+    }
+    if (strncmp(header, "tzdata", ANDROID_TZ_HEADER_TAG_SIZE) != 0) {
+        return;
+    }
+
+    int32_t indexOffset;
+    memcpy(&indexOffset, &header[ANDROID_TZ_HEADER_INDEX_OFFSET], sizeof(int32_t));
+    indexOffset = betoh32(indexOffset);
+
+    int32_t dataOffset;
+    memcpy(&dataOffset, &header[ANDROID_TZ_HEADER_DATA_OFFSET], sizeof(int32_t));
+    dataOffset = betoh32(dataOffset);
+
+    if (indexOffset < 0 || dataOffset < indexOffset) {
+        return;
+    }
+    if (fseek(fp, indexOffset, SEEK_SET) != 0) {
+        return;
+    }
+
+    char entry[52];
+    size_t indexSize = dataOffset - indexOffset;
+    size_t zoneCount = indexSize / sizeof(entry);
+    if (zoneCount * sizeof(entry) != indexSize) {
+        return;
+    }
+    for (size_t idx = 0; idx < zoneCount; idx++) {
+        if (fread(entry, 1, sizeof(entry), fp) != sizeof(entry)) {
+            break;
+        }
+
+        int32_t start;
+        memcpy(&start, &entry[ANDROID_TZ_ENTRY_START_OFFSET], sizeof(int32_t));
+        start = betoh32(start);
+        start += dataOffset;
+
+        int32_t length;
+        memcpy(&length, &entry[ANDROID_TZ_ENTRY_LENGTH_OFFSET], sizeof(int32_t));
+        length = betoh32(length);
+
+        if (start < 0 || length < 0) {
+            break;
+        }
+
+        long pos = ftell(fp);
+        Boolean done = callback(entry, start, length, fp, context1, context2);
+        if (done || fseek(fp, pos, SEEK_SET) != 0) {
+            break;
+        }
+    }
+}
+
+static void __CFAndroidTimeZoneListEnumerate(__CFAndroidTimeZoneListEnumerateCallback callback, void *context1, void *context2) {
+    // The best reference should be Android Bionic's libc/tzcode/bionic.cpp
+    static const char *tzDataFiles[] = {
+        "/data/misc/zoneinfo/current/tzdata",
+        "/system/usr/share/zoneinfo/tzdata"
+    };
+
+    for (int idx = 0; idx < COUNT_OF(tzDataFiles); idx++) {
+        FILE *fp = fopen(tzDataFiles[idx], "rb");
+        __CFAndroidTimeZoneParse(fp, callback, context1, context2);
+        if (fp) {
+            fclose(fp);
+        }
+    }
+}
+
+static Boolean __CFCopyAndroidTimeZoneListCallback(const char name[ANDROID_TZ_ENTRY_NAME_LENGTH], int32_t start, int32_t length, FILE *fp, void *context1, void *context2) {
+    CFMutableArrayRef result = (CFMutableArrayRef)context1;
+    CFStringRef timeZoneName = CFStringCreateWithCString(kCFAllocatorSystemDefault, name, kCFStringEncodingASCII);
+    CFArrayAppendValue(result, timeZoneName);
+    CFRelease(timeZoneName);
+    return FALSE;
+}
+
+static Boolean __CFTimeZoneDataCreateCallback(const char name[ANDROID_TZ_ENTRY_NAME_LENGTH], int32_t start, int32_t length, FILE *fp, void *context1, void *context2) {
+    char *tzNameCstr = (char *)context1;
+    CFDataRef *dataPtr = (CFDataRef *)context2;
+
+    if (strncmp(tzNameCstr, name, ANDROID_TZ_ENTRY_NAME_LENGTH) == 0) {
+        if (fseek(fp, start, SEEK_SET) != 0) {
+            return TRUE;
+        }
+        uint8_t *bytes = malloc(length);
+        if (!bytes) {
+            return TRUE;
+        }
+        if (fread(bytes, 1, length, fp) != length) {
+            free(bytes);
+            return TRUE;
+        }
+        *dataPtr = CFDataCreate(kCFAllocatorSystemDefault, bytes, length);
+        free(bytes);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static CFMutableArrayRef __CFCopyAndroidTimeZoneList() {
+    CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+    __CFAndroidTimeZoneListEnumerate(__CFCopyAndroidTimeZoneListCallback, result, NULL);
+    return result;
+}
+
 #elif TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_BSD
 static CFMutableArrayRef __CFCopyRecursiveDirectoryList() {
     CFMutableArrayRef result = CFArrayCreateMutable(kCFAllocatorSystemDefault, 0, &kCFTypeArrayCallBacks);
+#if !TARGET_OS_ANDROID
     if (!__tzDir) __InitTZStrings();
     if (!__tzDir) return result;
+#endif
     int fd = open(__tzDir, O_RDONLY);
 
     for (; 0 <= fd;) {
@@ -637,6 +807,8 @@ static void __InitTZStrings(void) {
     });
 }
 
+#elif TARGET_OS_ANDROID
+// Nothing
 #elif TARGET_OS_LINUX || TARGET_OS_BSD
 static void __InitTZStrings(void) {
     __tzZoneInfo = CFSTR(TZDIR);
@@ -690,6 +862,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         if (result) return result;
     }
 
+#if !TARGET_OS_ANDROID
     if (!__tzZoneInfo) __InitTZStrings();
     ret = readlink(TZDEFAULT, linkbuf, sizeof(linkbuf));
     if (__tzZoneInfo && (0 < ret)) {
@@ -702,7 +875,9 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         } else {
             name = CFStringCreateWithBytes(kCFAllocatorSystemDefault, (uint8_t *)linkbuf, strlen(linkbuf), kCFStringEncodingUTF8, false);
         }
-    } else {
+    } else
+#endif
+    {
         // TODO: This can still fail on Linux if the time zone is not recognized by ICU later
         // Try localtime
         tzset();
@@ -718,15 +893,6 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
         CFRelease(name);
         if (result) return result;
     }
-#if TARGET_OS_ANDROID
-    // Timezone database by name not available on Android.
-    // Approximate with gmtoff - could be general default.
-    struct tm info;
-    time_t now = time(NULL);
-    if (NULL != localtime_r(&now, &info)) {
-        return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, info.tm_gmtoff);
-    }
-#endif
     return CFTimeZoneCreateWithTimeIntervalFromGMT(kCFAllocatorSystemDefault, 0.0);
 }
 
@@ -808,6 +974,8 @@ CFArrayRef CFTimeZoneCopyKnownNames(void) {
  */
 #if TARGET_OS_WIN32
         list = __CFCopyWindowsTimeZoneList();
+#elif TARGET_OS_ANDROID
+        list = __CFCopyAndroidTimeZoneList();
 #else
         list = __CFCopyRecursiveDirectoryList();
 #endif
@@ -1059,6 +1227,33 @@ Boolean _CFTimeZoneInitInternal(CFTimeZoneRef timezone, CFStringRef name, CFData
 }
 
 CFDataRef _CFTimeZoneDataCreate(CFURLRef baseURL, CFStringRef tzName) {
+#if TARGET_OS_ANDROID
+    CFDataRef data = NULL;
+    char *buffer = NULL;
+    const char *tzNameCstr = CFStringGetCStringPtr(tzName, kCFStringEncodingASCII);
+    if (!tzNameCstr) {
+        CFIndex maxSize = CFStringGetMaximumSizeForEncoding(CFStringGetLength(tzName), kCFStringEncodingASCII) + 2;
+        if (maxSize == kCFNotFound) {
+            return NULL;
+        }
+        buffer = malloc(maxSize);
+        if (!buffer) {
+            return NULL;
+        }
+        if (CFStringGetCString(tzName, buffer, maxSize, kCFStringEncodingASCII)) {
+            tzNameCstr = buffer;
+        }
+    }
+    if (!tzNameCstr) {
+        free(buffer);
+        return NULL;
+    }
+
+    __CFAndroidTimeZoneListEnumerate(__CFTimeZoneDataCreateCallback, tzNameCstr, &data);
+
+    free(buffer);
+    return data;
+#else
     void *bytes;
     CFIndex length;
     CFDataRef data = NULL;
@@ -1070,6 +1265,7 @@ CFDataRef _CFTimeZoneDataCreate(CFURLRef baseURL, CFStringRef tzName) {
         CFRelease(tempURL);
     }
     return data;
+#endif
 }
 
 Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data) {
@@ -1107,7 +1303,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
     }
 
     CFStringRef tzName = NULL;
-    CFURLRef baseURL;
+    CFURLRef baseURL = NULL;
     Boolean result = false;
 
 #if TARGET_OS_WIN32
@@ -1132,9 +1328,11 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 
     return FALSE;
 #else
+#if !TARGET_OS_ANDROID
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
+#endif
 
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
     tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1148,7 +1346,9 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         CFStringRef mapping = CFDictionaryGetValue(dict, name);
         if (mapping) {
             name = mapping;
-        } else if (CFStringHasPrefix(name, __tzZoneInfo)) {
+        }
+#if !TARGET_OS_ANDROID
+        else if (CFStringHasPrefix(name, __tzZoneInfo)) {
             CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
             CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
             mapping = CFDictionaryGetValue(dict, unprefixed);
@@ -1157,6 +1357,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
             }
             CFRelease(unprefixed);
         }
+#endif
         CFRelease(dict);
         if (CFEqual(CFSTR(""), name)) {
             return false;
@@ -1166,7 +1367,9 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         tzName = name;
         data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
-    CFRelease(baseURL);
+    if (baseURL) {
+        CFRelease(baseURL);
+    }
     if (NULL != data) {
         result = _CFTimeZoneInitInternal(timeZone, tzName, data);
         CFRelease(data);
@@ -1310,7 +1513,7 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	    }
 	}
     }
-    CFURLRef baseURL;
+    CFURLRef baseURL = NULL;
 
 #if TARGET_OS_WIN32
     CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
@@ -1333,9 +1536,11 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 
     return result;
 #else
+#if !TARGET_OS_ANDROID
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
     baseURL = CFURLCreateWithFileSystemPath(kCFAllocatorSystemDefault, __tzZoneInfo, kCFURLPOSIXPathStyle, true);
+#endif
     if (tryAbbrev) {
 	CFDictionaryRef abbrevs = CFTimeZoneCopyAbbreviationDictionary();
 	tzName = CFDictionaryGetValue(abbrevs, name);
@@ -1349,7 +1554,9 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	CFStringRef mapping = CFDictionaryGetValue(dict, name);
 	if (mapping) {
 	    name = mapping;
-	} else if (CFStringHasPrefix(name, __tzZoneInfo)) {
+	}
+#if !TARGET_OS_ANDROID
+	else if (CFStringHasPrefix(name, __tzZoneInfo)) {
 	    CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
 	    CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));
 	    mapping = CFDictionaryGetValue(dict, unprefixed);
@@ -1358,16 +1565,19 @@ CFTimeZoneRef CFTimeZoneCreateWithName(CFAllocatorRef allocator, CFStringRef nam
 	    }
 	    CFRelease(unprefixed);
 	}
+#endif
 	CFRelease(dict);
 	if (CFEqual(CFSTR(""), name)) {
 	    return NULL;
 	}
     }
     if (NULL == data) {
-       tzName = name;
-       data = _CFTimeZoneDataCreate(baseURL, tzName);
+        tzName = name;
+        data = _CFTimeZoneDataCreate(baseURL, tzName);
     }
-    CFRelease(baseURL);
+    if (baseURL) {
+        CFRelease(baseURL);
+    }
     if (NULL != data) {
 	result = CFTimeZoneCreate(allocator, tzName, data);
 	if (name != tzName) {

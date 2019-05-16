@@ -29,17 +29,13 @@ open class NSTimeZone : NSObject, NSCopying, NSSecureCoding, NSCoding {
     }
 
     public init?(name tzName: String, data aData: Data?) {
-#if os(Android) || os(Windows)
+#if os(Windows)
         var tzName = tzName
         if tzName == "UTC" || tzName == "GMT" {
             tzName = "GMT+0000"
         }
         else if !(tzName.hasPrefix("GMT+") || tzName.hasPrefix("GMT-")) {
-#if os(Android)
-            NSLog("Time zone database not available on Android")
-#else
             NSLog("Time zone database not available on Windows")
-#endif
         }
 #endif
         
