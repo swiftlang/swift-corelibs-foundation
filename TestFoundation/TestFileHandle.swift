@@ -511,7 +511,8 @@ class TestFileHandle : XCTestCase {
             ("test_readToEndOfFileAndNotify", test_readToEndOfFileAndNotify),
             ("test_readToEndOfFileAndNotify_readError", test_readToEndOfFileAndNotify_readError),
             ("test_waitForDataInBackgroundAndNotify", test_waitForDataInBackgroundAndNotify),
-            ("test_readWriteHandlers", test_readWriteHandlers),
+            /* ⚠️ */ ("test_readWriteHandlers", testExpectedToFail(test_readWriteHandlers,
+            /* ⚠️ */     "<rdar://problem/50860781> sporadically times out")),
         ]
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
