@@ -61,17 +61,24 @@ class TestFileHandle : XCTestCase {
         emperor of Blefuscu, and sue for peace
         """.data(using: .utf8)!
     }()
-    
-    func createFileHandle() -> FileHandle {
+
+    func createTemporaryFile(containing data: Data = Data()) -> URL {
         let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString)
-        
-        expectDoesNotThrow({ try content.write(to: url) }, "Couldn't write file at \(url.path) for testing")
-        
+
+        allTemporaryFileURLs.append(url)
+
+        expectDoesNotThrow({ try data.write(to: url) }, "Couldn't create file at \(url.path) for testing")
+
+        return url
+    }
+
+    func createFileHandle() -> FileHandle {
+        let url = createTemporaryFile(containing: content)
+
         var fh: FileHandle?
         expectDoesNotThrow({ fh = try FileHandle(forReadingFrom: url) }, "Couldn't create file handle.")
-        
+
         allHandles.append(fh!)
-        allTemporaryFileURLs.append(url)
         return fh!
     }
 
@@ -227,22 +234,22 @@ class TestFileHandle : XCTestCase {
     }
 #endif
 
-    func createPipe() -> Pipe {
-        let pipe = Pipe()
-        allHandles.append(pipe.fileHandleForWriting)
-        allHandles.append(pipe.fileHandleForReading)
-        return pipe
-    }
-    
     func performWriteTest<T: DataProtocol>(with data: T, expecting expectation: Data? = nil) {
-        let pipe = createPipe()
-        let writer = pipe.fileHandleForWriting
-        let reader = pipe.fileHandleForReading
-        
-        expectDoesNotThrow({ try writer.write(contentsOf: data) }, "Writing must succeed")
-        expectDoesNotThrow({
-            expectEqual(try reader.read(upToCount: data.count), expectation ?? content, "The content must be the same")
-        }, "Reading must succeed")
+        let url = createTemporaryFile()
+
+        var maybeFH: FileHandle?
+        expectDoesNotThrow({ maybeFH = try FileHandle(forWritingTo: url) }, "Opening write handle must succeed")
+        guard let fh = maybeFH else { return }
+        allHandles.append(fh)
+
+        expectDoesNotThrow({ try fh.write(contentsOf: data) }, "Writing must succeed")
+
+        expectDoesNotThrow({ try fh.close() }, "Closing write handle must succeed")
+
+        var readData: Data?
+        expectDoesNotThrow({ readData = try Data(contentsOf: url) }, "Must be able to read data")
+
+        expectEqual(readData, expectation ?? content, "The content must be the same")
     }
     
     func testWritingWithData() {
