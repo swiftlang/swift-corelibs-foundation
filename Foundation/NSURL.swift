@@ -581,7 +581,13 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
             CFURLGetFileSystemRepresentation(_cfObject, true, $0, maxBufferLength)
         }
     }
-    
+
+#if os(Windows)
+    internal func _getWideFileSystemRepresentation(_ buffer: UnsafeMutablePointer<UInt16>, maxLength: Int) -> Bool {
+      _CFURLGetWideFileSystemRepresentation(_cfObject, true, buffer, maxLength)
+    }
+#endif
+
     /* Returns the URL's path in file system representation. File system representation is a null-terminated C string with canonical UTF-8 encoding. The returned C string will be automatically freed just as a returned object would be released; your code should copy the representation or use getFileSystemRepresentation:maxLength: if it needs to store the representation outside of the autorelease context in which the representation is created.
     */
     
@@ -606,7 +612,22 @@ open class NSURL : NSObject, NSSecureCoding, NSCopying {
         fatalError("URL cannot be expressed in the filesystem representation;" +
                    "use getFileSystemRepresentation to handle this case")
     }
-    
+
+#if os(Windows)
+    internal var _wideFileSystemRepresentation: UnsafePointer<UInt16> {
+      let capacity: Int = Int(MAX_PATH) + 1
+      let buffer: UnsafeMutablePointer<UInt16> =
+          UnsafeMutablePointer<UInt16>.allocate(capacity: capacity)
+      buffer.initialize(repeating: 0, count: capacity)
+
+      if _getWideFileSystemRepresentation(buffer, maxLength: capacity) {
+        return UnsafePointer(buffer)
+      }
+
+      fatalError("URL cannot be expressed in the filesystem representation; use getFileSystemRepresentation to handle this case")
+    }
+#endif
+
     // Whether the scheme is file:; if myURL.isFileURL is true, then myURL.path is suitable for input into FileManager or NSPathUtilities.
     open var isFileURL: Bool {
         return _CFURLIsFileURL(_cfObject)
