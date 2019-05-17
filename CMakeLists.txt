@@ -4,10 +4,21 @@ cmake_minimum_required(VERSION 3.4.3)
 list(APPEND CMAKE_MODULE_PATH
      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
+# NOTE(compnerd) enable CMP0091 - select MSVC runtime based on
+# CMAKE_MSVC_RUNTIME_LIBRARY.  Requires CMake 3.15 or newer
+if(POLICY CMP0091)
+  cmake_policy(CMP0091 NEW)
+endif()
+
 project(Foundation
         LANGUAGES
           C)
 enable_testing()
+
+# NOTE(compnerd) default to /MD or /MDd by default based on the configuration.
+# Cache the variable to allow the user to alter the configuration.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
+  STRING "MSVC Runtime Library")
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 
@@ -73,6 +84,12 @@ endif()
 if(ENABLE_TESTING)
   set(swift_enable_testing -enable-testing)
 endif()
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(swift_libc_flags -libc;${CMAKE_MSVC_RUNTIME_LIBRARY})
+  if(CMAKE_SYSTEM_NAME STREQUAL Debug)
+    list(APPEND swift_libc_flags -Xcc;-D_DEBUG)
+  endif()
+endif()
 
 set(deployment_enable_libdispatch)
 set(libdispatch_cflags)
@@ -95,7 +112,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
-  set(WORKAROUND_SR9995 -Xlinker;-nodefaultlib:libcmt)
 endif()
 
 # NOTE(compnerd) this is a horrible hack to work around the fact that we do not
@@ -110,35 +126,6 @@ foreach(library ${CoreFoundation_LINK_LIBRARIES})
     list(APPEND CoreFoundation_LIBRARIES -l${library})
   endif()
 endforeach()
-
-# Windows uses 4 different variants of the C library that are normally
-# controlled by options to the compiler:
-#
-# Option  | Flags                 | Runtime
-# --------+-----------------------+------------
-# /MTd    | -D_DEBUG -D_MT        | libcmtd.lib
-# /MT     | -D_MT                 | libcmt.lib
-# /MDd    | -D_DEBUG -D_DLL -D_MT | msvcrtd.lib
-# /MD     | -D_DLL -D_MT          | msvcrt.lib
-
-if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-  set(MSVCRT_C_FLAGS)
-  set(MSVCRT_LINK_FLAGS)
-  if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    list(APPEND MSVCRT_C_FLAGS -D_DEBUG)
-  endif()
-  # We currently do not support building in /MT or /MTd
-  list(APPEND MSVCRT_C_FLAGS -D_MT)
-  list(APPEND MSVCRT_C_FLAGS -D_DLL)
-  # Ensure that we link against the correct CRT
-  if(CMAKE_BUILD_TYPE STREQUAL Debug)
-    list(APPEND MSVCRT_C_FLAGS -Xclang --dependent-lib=msvcrtd)
-    list(APPEND MSVCRT_LINK_FLAGS -Xlinker -defaultlib:msvcrtd.lib)
-  else()
-    list(APPEND MSVCRT_C_FLAGS -Xclang --dependent-lib=msvcrt)
-    list(APPEND MSVCRT_LINK_FLAGS -Xlinker -defaultlib:msvcrt.lib)
-  endif()
-endif()
 
 add_swift_library(Foundation
                   MODULE_NAME
@@ -316,12 +303,10 @@ add_swift_library(Foundation
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
-                    ${MSVCRT_C_FLAGS}
                     ${deployment_target}
                     ${deployment_enable_libdispatch}
                     -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
-                    ${MSVCRT_LINK_FLAGS}
                     ${CoreFoundation_LIBRARIES}
                     ${CURL_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
@@ -330,7 +315,6 @@ add_swift_library(Foundation
                     $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
-                    ${WORKAROUND_SR9995}
                     $<$<PLATFORM_ID:Windows>:-lDbgHelp>
                     $<$<PLATFORM_ID:Windows>:-lOle32>
                     $<$<PLATFORM_ID:Windows>:-lShLwApi>
@@ -346,6 +330,7 @@ add_swift_library(Foundation
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
                     ${swift_optimization_flags}
+                    ${swift_libc_flags}
                   DEPENDS
                     uuid
                     CoreFoundation
@@ -367,18 +352,15 @@ add_swift_executable(plutil
                      SOURCES
                        Tools/plutil/main.swift
                      CFLAGS
-                       ${MSVCRT_C_FLAGS}
                        ${deployment_target}
                        ${deployment_enable_libdispatch}
                        -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
-                       ${MSVCRT_LINK_FLAGS}
                        ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
                        ${Foundation_RPATH}
-                       ${WORKAROUND_SR9995}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        ${deployment_enable_libdispatch}
@@ -387,6 +369,7 @@ add_swift_executable(plutil
                        ${libdispatch_cflags}
                        ${swift_enable_testing}
                        ${swift_optimization_flags}
+                       ${swift_libc_flags}
                      DEPENDS
                        uuid
                        Foundation
@@ -395,17 +378,14 @@ add_swift_executable(plutil
 if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
-                         ${MSVCRT_C_FLAGS}
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
-                         ${MSVCRT_LINK_FLAGS}
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
                          ${Foundation_INTERFACE_LIBRARIES}
-                         ${WORKAROUND_SR9995}
                          ${XDG_TEST_HELPER_RPATH}
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
@@ -517,13 +497,10 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLDocument.swift
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
-                         ${MSVCRT_C_FLAGS}
                          ${deployment_target}
                          ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
-                         -D_DLL
                        LINK_FLAGS
-                         ${MSVCRT_LINK_FLAGS}
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
                          -lFoundation
@@ -531,7 +508,6 @@ if(ENABLE_TESTING)
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                          ${WORKAROUND_SR9138}
-                         ${WORKAROUND_SR9995}
                          $<$<PLATFORM_ID:Windows>:-lWS2_32>
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
@@ -565,6 +541,7 @@ if(ENABLE_TESTING)
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
                          ${swift_optimization_flags}
+                         ${swift_libc_flags}
                        DEPENDS
                          Foundation
                          CoreFoundation
