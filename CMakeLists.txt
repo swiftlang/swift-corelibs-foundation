@@ -22,7 +22,6 @@ find_package(LibXml2 REQUIRED)
 
 include(SwiftSupport)
 include(GNUInstallDirs)
-include(ExternalProject)
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
   include(CheckSymbolExists)
