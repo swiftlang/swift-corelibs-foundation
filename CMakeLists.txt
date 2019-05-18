@@ -73,11 +73,9 @@ if(ENABLE_TESTING)
   set(swift_enable_testing -enable-testing)
 endif()
 
-set(deployment_enable_libdispatch)
 set(libdispatch_cflags)
 set(libdispatch_ldflags)
 if(FOUNDATION_ENABLE_LIBDISPATCH)
-  set(deployment_enable_libdispatch -DDEPLOYMENT_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
   set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
   if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -316,7 +314,6 @@ add_swift_library(Foundation
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
                     ${MSVCRT_C_FLAGS}
-                    ${deployment_enable_libdispatch}
                     -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
                     ${MSVCRT_LINK_FLAGS}
@@ -339,7 +336,7 @@ add_swift_library(Foundation
                     $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
-                    ${deployment_enable_libdispatch}
+                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     ${swift_enable_testing}
@@ -366,7 +363,6 @@ add_swift_executable(plutil
                        Tools/plutil/main.swift
                      CFLAGS
                        ${MSVCRT_C_FLAGS}
-                       ${deployment_enable_libdispatch}
                        -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
                        ${MSVCRT_LINK_FLAGS}
@@ -378,7 +374,6 @@ add_swift_executable(plutil
                        ${WORKAROUND_SR9995}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
-                       ${deployment_enable_libdispatch}
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                        -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
@@ -393,7 +388,6 @@ if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        CFLAGS
                          ${MSVCRT_C_FLAGS}
-                         ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${MSVCRT_LINK_FLAGS}
@@ -514,7 +508,6 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLParser.swift
                        CFLAGS
                          ${MSVCRT_C_FLAGS}
-                         ${deployment_enable_libdispatch}
                          -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${MSVCRT_LINK_FLAGS}
@@ -553,7 +546,6 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Fixtures
                        SWIFT_FLAGS
-                         ${deployment_enable_libdispatch}
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}
