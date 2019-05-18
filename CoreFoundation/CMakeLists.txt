@@ -55,11 +55,13 @@ add_framework(CoreFoundation
                 CoreFoundation_FRAMEWORK_DIRECTORY
               MODULE_MAP
                 Base.subproj/module.modulemap
+                Base.subproj/module.private.modulemap
               PRIVATE_HEADERS
                 # Base
                 Base.subproj/CFAsmMacros.h
                 Base.subproj/CFInternal.h
                 Base.subproj/CFKnownLocations.h
+                Base.subproj/CFLocking.h
                 Base.subproj/CFLogUtilities.h
                 Base.subproj/CFPriv.h
                 Base.subproj/CFOverflow.h
@@ -124,30 +126,6 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLPriv.h
                 URL.subproj/CFURLSessionInterface.h
               PUBLIC_HEADERS
-                # FIXME: PrivateHeaders referenced by public headers
-                Base.subproj/CFKnownLocations.h
-                Base.subproj/CFLocking.h
-                Base.subproj/CFLogUtilities.h
-                Base.subproj/CFPriv.h
-                Base.subproj/CFRuntime.h
-                Base.subproj/ForFoundationOnly.h
-                Base.subproj/ForSwiftFoundationOnly.h
-                Locale.subproj/CFCalendar_Internal.h
-                Locale.subproj/CFDateComponents.h
-                Locale.subproj/CFDateInterval.h
-                Locale.subproj/CFLocaleInternal.h
-                Parsing.subproj/CFXMLInterface.h
-                PlugIn.subproj/CFBundlePriv.h
-                Stream.subproj/CFStreamPriv.h
-                String.subproj/CFCharacterSetPriv.h
-                String.subproj/CFRegularExpression.h
-                String.subproj/CFRunArray.h
-                StringEncodings.subproj/CFStringEncodingConverter.h
-                StringEncodings.subproj/CFStringEncodingConverterExt.h
-                URL.subproj/CFURLPriv.h
-                URL.subproj/CFURLSessionInterface.h
-                Locale.subproj/CFDateIntervalFormatter.h
-
                 # AppServices
                 AppServices.subproj/CFNotificationCenter.h
                 AppServices.subproj/CFUserNotification.h
