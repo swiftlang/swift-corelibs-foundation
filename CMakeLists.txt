@@ -75,10 +75,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
 endif()
 add_dependencies(uuid CoreFoundation)
 
-set(swift_optimization_flags)
-if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
-  set(swift_optimization_flags -O)
-endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(swift_libc_flags -libc;${CMAKE_MSVC_RUNTIME_LIBRARY})
   if(CMAKE_SYSTEM_NAME STREQUAL Debug)
@@ -294,7 +290,7 @@ add_swift_library(Foundation
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
-                    ${swift_optimization_flags}
+                    $<$<NOT:$<CONFIG:Debug>>:-O>
                     ${swift_libc_flags}
                   DEPENDS
                     uuid
@@ -399,7 +395,7 @@ add_swift_executable(plutil
                        -I;${ICU_INCLUDE_DIR}
                        ${libdispatch_cflags}
                        $<$<BOOL:ENABLE_TESTING>:-enable-testing>
-                       ${swift_optimization_flags}
+                       $<$<NOT:$<CONFIG:Debug>>:-O>
                        ${swift_libc_flags}
                      DEPENDS
                        uuid
@@ -568,7 +564,7 @@ if(ENABLE_TESTING)
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
-                         ${swift_optimization_flags}
+                         $<$<NOT:$<CONFIG:Debug>>:-O>
                          ${swift_libc_flags}
                        DEPENDS
                          Foundation
