@@ -13,7 +13,8 @@ class TestNSLock: XCTestCase {
 
             ("test_lockWait", test_lockWait),
             ("test_threadsAndLocks", test_threadsAndLocks),
-
+            ("test_recursiveLock", test_recursiveLock),
+            
         ]
     }
 
@@ -114,5 +115,76 @@ class TestNSLock: XCTestCase {
         if gotLock {
             lock.unlock()
         }
+    }
+    
+    func test_recursiveLock() {
+        // We will start 10 threads, and their collective task will be to reduce
+        // the countdown value to zero in less than 30 seconds.
+        
+        let threadCount = 10
+        let countdownPerThread = 1000
+        let endTime = Date(timeIntervalSinceNow: 30)
+        
+        var completedThreadCount = 0
+        var countdownValue = threadCount * countdownPerThread
+        
+        let threadCompletedCondition = NSCondition()
+        let countdownValueLock = NSRecursiveLock()
+        
+        for _ in 0..<threadCount {
+            let thread = Thread {
+                
+                // Some dummy work on countdown.
+                // Add/substract operations are balanced to decrease countdown
+                // exactly by countdownPerThread
+                
+                for _ in 0..<countdownPerThread {
+                    countdownValueLock.lock()
+                    countdownValue -= 3
+                    countdownValueLock.lock()
+                    countdownValue += 4
+                    countdownValueLock.unlock()
+                    countdownValueLock.unlock()
+                    
+                    countdownValueLock.lock()
+                    countdownValue += 2
+                    countdownValueLock.lock()
+                    countdownValue -= 1
+                    countdownValueLock.unlock()
+                    countdownValue -= 3
+                    countdownValueLock.unlock()
+                    
+                    countdownValueLock.lock()
+                    countdownValue += 1
+                    countdownValueLock.unlock()
+                    
+                    countdownValueLock.lock()
+                    countdownValue -= 1
+                    countdownValueLock.unlock()
+                }
+                
+                threadCompletedCondition.lock()
+                completedThreadCount += 1
+                threadCompletedCondition.broadcast()
+                threadCompletedCondition.unlock()
+            }
+            thread.start()
+        }
+        
+        threadCompletedCondition.lock()
+        
+        var isTimedOut = false
+        while !isTimedOut && completedThreadCount < threadCount {
+            isTimedOut = !threadCompletedCondition.wait(until: endTime)
+        }
+        
+        countdownValueLock.lock()
+        let resultCountdownValue = countdownValue
+        countdownValueLock.unlock()
+        
+        XCTAssertEqual(completedThreadCount, threadCount, "Some threads are still not finished, could be hung")
+        XCTAssertEqual(resultCountdownValue, 0, "Wrong coundtdown means unresolved race conditions, locks broken")
+        
+        threadCompletedCondition.unlock()
     }
 }
