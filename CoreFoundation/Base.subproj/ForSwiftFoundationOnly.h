@@ -179,7 +179,7 @@ struct _NSMutableStringBridge {
 
 struct _NSXMLParserBridge {
     _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
-    _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface interface, const char *url, const char * identifier, _CFXMLInterfaceParserContext context, _CFXMLInterfaceExternalEntityLoader originalLoaderFunction);
+    _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface /*interface*/, const char * /*url*/, const char * /*identifier*/, _CFXMLInterfaceParserContext /*context*/, _CFXMLInterfaceExternalEntityLoader /*originalLoaderFunction*/);
     
     _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
     
