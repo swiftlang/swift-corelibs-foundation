@@ -122,7 +122,7 @@ fileprivate extension URLSession._MultiHandle {
             let handler = DispatchWorkItem { [weak self] in
                 self?.performAction(for: socket)
             }
-            ss.createSources(with: action, fileDescriptor: Int(socket), queue: queue, handler: handler)
+            ss.createSources(with: action, socket: socket, queue: queue, handler: handler)
         }
         return 0
     }
@@ -395,17 +395,25 @@ fileprivate class _SocketSources {
     var readSource: DispatchSource?
     var writeSource: DispatchSource?
 
-    func createReadSource(fileDescriptor fd: Int, queue: DispatchQueue, handler: DispatchWorkItem) {
+    func createReadSource(socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
         guard readSource == nil else { return }
-        let s = DispatchSource.makeReadSource(fileDescriptor: Int32(fd), queue: queue)
+#if os(Windows)
+        let s = DispatchSource.makeReadSource(handle: HANDLE(bitPattern: Int(socket))!, queue: queue)
+#else
+        let s = DispatchSource.makeReadSource(fileDescriptor: socket, queue: queue)
+#endif
         s.setEventHandler(handler: handler)
         readSource = s as? DispatchSource
         s.resume()
     }
 
-    func createWriteSource(fileDescriptor fd: Int, queue: DispatchQueue, handler: DispatchWorkItem) {
+    func createWriteSource(socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
         guard writeSource == nil else { return }
-        let s = DispatchSource.makeWriteSource(fileDescriptor: Int32(fd), queue: queue)
+#if os(Windows)
+        let s = DispatchSource.makeWriteSource(handle: HANDLE(bitPattern: Int(socket))!, queue: queue)
+#else
+        let s = DispatchSource.makeWriteSource(fileDescriptor: socket, queue: queue)
+#endif
         s.setEventHandler(handler: handler)
         writeSource = s as? DispatchSource
         s.resume()
@@ -424,12 +432,12 @@ fileprivate class _SocketSources {
 }
 extension _SocketSources {
     /// Create a read and/or write source as specified by the action.
-    func createSources(with action: URLSession._MultiHandle._SocketRegisterAction, fileDescriptor fd: Int, queue: DispatchQueue, handler: DispatchWorkItem) {
+    func createSources(with action: URLSession._MultiHandle._SocketRegisterAction, socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
         if action.needsReadSource {
-            createReadSource(fileDescriptor: fd, queue: queue, handler: handler)
+            createReadSource(socket: socket, queue: queue, handler: handler)
         }
         if action.needsWriteSource {
-            createWriteSource(fileDescriptor: fd, queue: queue, handler: handler)
+            createWriteSource(socket: socket, queue: queue, handler: handler)
         }
     }
 }
