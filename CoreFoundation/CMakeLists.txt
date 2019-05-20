@@ -316,6 +316,21 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
+				
+add_framework(CFURLSessionInterface
+                ${FRAMEWORK_LIBRARY_TYPE}
+              FRAMEWORK_DIRECTORY
+                CoreFoundation_FRAMEWORK_DIRECTORY
+              MODULE_MAP
+                URL.subproj/module.modulemap
+              PRIVATE_HEADERS
+                URL.subproj/CFURLSessionInterface.h
+              PUBLIC_HEADERS
+                URL.subproj/CFURLSessionInterface.h
+              SOURCES
+                URL.subproj/CFURLSessionInterface.c)
+add_dependencies(CFURLSessionInterface CoreFoundation)
+
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   add_library(CoreFoundationResources OBJECT
     CoreFoundation.rc)
@@ -337,8 +352,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -D_GNU_SOURCE)
+  target_compile_definitions(CFURLSessionInterface
+                             PRIVATE
+                               -D_GNU_SOURCE)
   if(HAVE_SCHED_GETAFFINITY)
     target_compile_definitions(CoreFoundation
+                               PRIVATE
+                                 -DHAVE_SCHED_GETAFFINITY)
+    target_compile_definitions(CFURLSessionInterface
                                PRIVATE
                                  -DHAVE_SCHED_GETAFFINITY)
   endif()
@@ -348,12 +369,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -D_DLL)
+  target_compile_definitions(CFURLSessionInterface
+                             PRIVATE
+                               -D_DLL)
   if(BUILD_SHARED_LIBS)
     target_compile_definitions(CoreFoundation
                                PRIVATE
                                  -D_WINDLL)
+    target_compile_definitions(CFURLSessionInterface
+                               PRIVATE
+                                 -D_WINDLL)
   endif()
   target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DCURL_STATICLIB)
+  target_compile_definitions(CFURLSessionInterface
                              PRIVATE
                                -DCURL_STATICLIB)
 endif()
@@ -361,12 +391,22 @@ target_compile_definitions(CoreFoundation
                            PRIVATE
                              -DU_SHOW_DRAFT_API
                              -DCF_BUILDING_CF)
+target_compile_definitions(CFURLSessionInterface
+                           PRIVATE
+                             -DU_SHOW_DRAFT_API
+                             -DCF_BUILDING_CF)
 if(CF_DEPLOYMENT_SWIFT)
   target_compile_definitions(CoreFoundation
                              PRIVATE
                                -DDEPLOYMENT_RUNTIME_SWIFT)
+  target_compile_definitions(CFURLSessionInterface
+                             PRIVATE
+                               -DDEPLOYMENT_RUNTIME_SWIFT)
 else()
   target_compile_definitions(CoreFoundation
+                             PRIVATE
+                               -DDEPLOYMENT_RUNTIME_C)
+  target_compile_definitions(CFURLSessionInterface
                              PRIVATE
                                -DDEPLOYMENT_RUNTIME_C)
 endif()
@@ -386,7 +426,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
   find_package(CURL REQUIRED)
-  target_include_directories(CoreFoundation
+  target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
   find_package(ICU COMPONENTS uc i18n REQUIRED)
@@ -398,8 +438,15 @@ target_include_directories(CoreFoundation
                            PRIVATE
                              ${CF_PATH_TO_LIBDISPATCH_SOURCE}
                              ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
+target_include_directories(CFURLSessionInterface
+                           PRIVATE
+                             ${CF_PATH_TO_LIBDISPATCH_SOURCE}
+                             ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_include_directories(CoreFoundation
+                             SYSTEM PRIVATE
+                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
+  target_include_directories(CFURLSessionInterface
                              SYSTEM PRIVATE
                                ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
 endif()
@@ -408,8 +455,14 @@ if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
   target_compile_options(CoreFoundation
                          PRIVATE
                            $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+  target_compile_options(CFURLSessionInterface
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:/FI${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
 else()
   target_compile_options(CoreFoundation
+                         PRIVATE
+                           $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
+  target_compile_options(CFURLSessionInterface
                          PRIVATE
                            $<$<COMPILE_LANGUAGE:C>:-include;${PROJECT_SOURCE_DIR}/Base.subproj/CoreFoundation_Prefix.h>)
 endif()
@@ -419,8 +472,19 @@ if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
                          PRIVATE
                            -fblocks
                            /EHsc)
+  target_compile_options(CFURLSessionInterface
+                         PRIVATE
+                           -fblocks
+                           /EHsc)
 else()
   target_compile_options(CoreFoundation
+                         PRIVATE
+                           -fblocks
+                           -fconstant-cfstrings
+                           -fdollars-in-identifiers
+                           -fexceptions
+                           -fno-common)
+  target_compile_options(CFURLSessionInterface
                          PRIVATE
                            -fblocks
                            -fconstant-cfstrings
@@ -433,8 +497,14 @@ if(CF_DEPLOYMENT_SWIFT)
     target_compile_options(CoreFoundation
                            PRIVATE
                              /clang:-fcf-runtime-abi=swift)
+    target_compile_options(CFURLSessionInterface
+                           PRIVATE
+                             /clang:-fcf-runtime-abi=swift)
   else()
     target_compile_options(CoreFoundation
+                           PRIVATE
+                             -fcf-runtime-abi=swift)
+    target_compile_options(CFURLSessionInterface
                            PRIVATE
                              -fcf-runtime-abi=swift)
   endif()
@@ -450,19 +520,38 @@ target_compile_options(CoreFoundation
                          -Wno-int-conversion
                          -Wno-unused-function
                          -Wno-microsoft-enum-forward-reference)
+target_compile_options(CFURLSessionInterface
+                       PRIVATE
+                         -Wno-shorten-64-to-32
+                         -Wno-deprecated-declarations
+                         -Wno-unreachable-code
+                         -Wno-conditional-uninitialized
+                         -Wno-unused-variable
+                         -Wno-int-conversion
+                         -Wno-unused-function
+                         -Wno-microsoft-enum-forward-reference)
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
-                          ${CURL_LIBRARIES}
                           ${LIBXML2_LIBRARIES})
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          ${CURL_LIBRARIES})
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           log)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          log)
 endif()
 target_link_libraries(CoreFoundation
+                      PRIVATE
+                        Threads::Threads
+                        ${CMAKE_DL_LIBS})
+target_link_libraries(CFURLSessionInterface
                       PRIVATE
                         Threads::Threads
                         ${CMAKE_DL_LIBS})
@@ -473,26 +562,45 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
                           Secur32
                           User32
                           mincore)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          AdvAPI32
+                          Secur32
+                          User32
+                          mincore)
 endif()
 if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
+                        PRIVATE
+                          m)
+  target_link_libraries(CFURLSessionInterface
                         PRIVATE
                           m)
 endif()
 target_link_libraries(CoreFoundation
                       PRIVATE
                         dispatch)
+target_link_libraries(CFURLSessionInterface
+                      PRIVATE
+                        dispatch)
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           icucore)
+  target_link_libraries(CFURLSessionInterface
+                        PRIVATE
+                          icucore)
   set_target_properties(CoreFoundation
+                        PROPERTIES LINK_FLAGS
+                          -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
+  set_target_properties(CFURLSessionInterface
                         PROPERTIES LINK_FLAGS
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
 
 install(TARGETS
           CoreFoundation
+		  CFURLSessionInterface
         DESTINATION
           "${CMAKE_INSTALL_FULL_LIBDIR}")
 install(DIRECTORY

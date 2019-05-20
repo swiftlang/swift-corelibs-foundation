@@ -7,10 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if canImport(SwiftFoundation) && !DEPLOYMENT_RUNTIME_OBJC
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 import SwiftFoundation
+import SwiftFoundationNetworking
 #else
 import Foundation
+import FoundationNetworking
 #endif
 #if os(Windows)
 import WinSDK

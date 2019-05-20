@@ -7,6 +7,12 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
+
 public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     

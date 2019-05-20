@@ -196,45 +196,15 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         }
     }
 
-    internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (NSData, URLResponse?) {
-        var readResult: NSData = NSData()
-        var urlResponse: URLResponse?
-
+    internal static func contentsOf(url: URL, options readOptionsMask: ReadingOptions = []) throws -> (result: NSData, textEncodingNameIfAvailable: String?) {
         if url.isFileURL {
-            try url.withUnsafeFileSystemRepresentation {
-              let data = try NSData.readBytesFromFileWithExtendedAttributes(String(cString: $0!), options: readOptionsMask)
-              readResult = data.toNSData()
+            return try url.withUnsafeFileSystemRepresentation { (fsRep) -> (result: NSData, textEncodingNameIfAvailable: String?) in
+              let data = try NSData.readBytesFromFileWithExtendedAttributes(String(cString: fsRep!), options: readOptionsMask)
+              return (data.toNSData(), nil)
             }
         } else {
-            let session = URLSession(configuration: URLSessionConfiguration.default)
-            let cond = NSCondition()
-            cond.lock()
-
-            var resError: Error?
-            var resData: Data?
-            var taskFinished = false
-            let task = session.dataTask(with: url, completionHandler: { data, response, error in
-                cond.lock()
-                resData = data
-                urlResponse = response
-                resError = error
-                taskFinished = true
-                cond.signal()
-                cond.unlock()
-            })
-
-            task.resume()
-            while taskFinished == false {
-                cond.wait()
-            }
-            cond.unlock()
-
-            guard let data = resData else {
-                throw resError!
-            }
-            readResult = NSData(bytes: UnsafeMutableRawPointer(mutating: data._nsObject.bytes), length: data.count)
+            return try _NSNonfileURLContentLoader.current.contentsOf(url: url)
         }
-        return (readResult, urlResponse)
     }
 
     /// Initializes a data object with the given Base64 encoded string.
