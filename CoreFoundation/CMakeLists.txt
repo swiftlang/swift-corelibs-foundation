@@ -39,7 +39,6 @@ find_package(Threads)
 include(GNUInstallDirs)
 include(CoreFoundationAddFramework)
 
-option(CF_ENABLE_LIBDISPATCH "Enable GCD Support" YES)
 option(CF_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source")
 option(CF_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build")
 option(CF_DEPLOYMENT_SWIFT "Build for swift" NO)
@@ -362,11 +361,6 @@ target_compile_definitions(CoreFoundation
                            PRIVATE
                              -DU_SHOW_DRAFT_API
                              -DCF_BUILDING_CF)
-if(CF_ENABLE_LIBDISPATCH)
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DDEPLOYMENT_ENABLE_LIBDISPATCH)
-endif()
 if(CF_DEPLOYMENT_SWIFT)
   target_compile_definitions(CoreFoundation
                              PRIVATE
@@ -400,16 +394,14 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${ICU_INCLUDE_DIR})
 endif()
-if(CF_ENABLE_LIBDISPATCH)
+target_include_directories(CoreFoundation
+                           PRIVATE
+                             ${CF_PATH_TO_LIBDISPATCH_SOURCE}
+                             ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}
-                               ${CF_PATH_TO_LIBDISPATCH_BUILD}/tests)
-  if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    target_include_directories(CoreFoundation
-                               SYSTEM PRIVATE
-                                 ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
-  endif()
+                             SYSTEM PRIVATE
+                               ${CF_PATH_TO_LIBDISPATCH_SOURCE}/src/BlocksRuntime)
 endif()
 
 if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
@@ -487,11 +479,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Windows AND NOT CMAKE_SYSTEM_NAME STREQUAL Dar
                         PRIVATE
                           m)
 endif()
-if(CF_ENABLE_LIBDISPATCH)
-  target_link_libraries(CoreFoundation
-                        PRIVATE
-                          dispatch)
-endif()
+target_link_libraries(CoreFoundation
+                      PRIVATE
+                        dispatch)
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_link_libraries(CoreFoundation
                         PRIVATE
