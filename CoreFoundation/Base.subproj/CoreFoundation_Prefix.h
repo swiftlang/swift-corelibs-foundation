@@ -14,17 +14,7 @@
 
 #include <CoreFoundation/CFAvailability.h>
 
-#if TARGET_OS_MAC || TARGET_OS_LINUX || TARGET_OS_WIN32
-#if DEPLOYMENT_RUNTIME_SWIFT
-#if DEPLOYMENT_ENABLE_LIBDISPATCH
 #define __HAS_DISPATCH__ 1
-#else
-#define __HAS_DISPATCH__ 0
-#endif
-#else
-#define __HAS_DISPATCH__ 1
-#endif
-#endif
 
 #include <CoreFoundation/CFBase.h>
 
