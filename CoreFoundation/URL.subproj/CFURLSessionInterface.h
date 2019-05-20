@@ -28,6 +28,9 @@
 #define __COREFOUNDATION_URLSESSIONINTERFACE__ 1
 
 #include <stdio.h>
+#if defined(_WIN32)
+#include <winsock2.h>
+#endif
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_EXTERN_C_BEGIN
@@ -40,7 +43,11 @@ typedef void * CFURLSessionEasyHandle;
 typedef void * CFURLSessionMultiHandle;
 
 // This must match libcurl's curl_socket_t
+#if defined(_WIN32)
+typedef SOCKET CFURLSession_socket_t;
+#else
 typedef int CFURLSession_socket_t;
+#endif
 
 
 
@@ -544,7 +551,7 @@ CF_EXPORT int const CFURLSessionWriteFuncPause;
 CF_EXPORT int const CFURLSessionReadFuncPause;
 CF_EXPORT int const CFURLSessionReadFuncAbort;
 
-CF_EXPORT int const CFURLSessionSocketTimeout;
+CF_EXPORT CFURLSession_socket_t const CFURLSessionSocketTimeout;
 
 CF_EXPORT int const CFURLSessionSeekOk;
 CF_EXPORT int const CFURLSessionSeekCantSeek;
