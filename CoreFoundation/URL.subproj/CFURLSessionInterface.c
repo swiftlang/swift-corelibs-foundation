@@ -602,7 +602,7 @@ int const CFURLSessionReadFuncPause = CURL_READFUNC_PAUSE;
 int const CFURLSessionReadFuncAbort = CURL_READFUNC_ABORT;
 
 
-int const CFURLSessionSocketTimeout = CURL_SOCKET_TIMEOUT;
+CFURLSession_socket_t const CFURLSessionSocketTimeout = CURL_SOCKET_TIMEOUT;
 
 int const CFURLSessionSeekOk = CURL_SEEKFUNC_OK;
 int const CFURLSessionSeekCantSeek = CURL_SEEKFUNC_CANTSEEK;
