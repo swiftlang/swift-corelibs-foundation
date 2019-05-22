@@ -518,6 +518,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestUnitConverter.swift
                          TestFoundation/TestUnit.swift
                          TestFoundation/TestURLCredential.swift
+                         TestFoundation/TestURLCredentialStorage.swift
                          TestFoundation/TestURLProtectionSpace.swift
                          TestFoundation/TestURLProtocol.swift
                          TestFoundation/TestURLRequest.swift
