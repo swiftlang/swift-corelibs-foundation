@@ -346,27 +346,22 @@ add_swift_library(FoundationNetworking
                     ${CMAKE_C_COMPILER_TARGET}
                   CFLAGS
                     ${MSVCRT_C_FLAGS}
-                    ${deployment_target}
-                    ${deployment_enable_libdispatch}
                     -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
                     ${MSVCRT_LINK_FLAGS}
                     -L${CMAKE_CURRENT_BINARY_DIR}
-                    ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${libdispatch_ldflags}
                     -lFoundation
                     ${Foundation_INTERFACE_LIBRARIES}
-					${CFURLSessionInterface_LIBRARIES}
+                    ${CFURLSessionInterface_LIBRARIES}
                     ${CURL_LIBRARIES}
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
-                    $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
-					-DNS_BUILDING_FOUNDATION_NETWORKING
+                    -DNS_BUILDING_FOUNDATION_NETWORKING
                     ${deployment_enable_libdispatch}
-                    -I;${ICU_INCLUDE_DIR}
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     ${swift_enable_testing}

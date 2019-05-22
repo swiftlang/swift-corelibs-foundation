@@ -543,15 +543,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation
                         PRIVATE
                           log)
-  target_link_libraries(CFURLSessionInterface
-                        PRIVATE
-                          log)
 endif()
 target_link_libraries(CoreFoundation
-                      PRIVATE
-                        Threads::Threads
-                        ${CMAKE_DL_LIBS})
-target_link_libraries(CFURLSessionInterface
                       PRIVATE
                         Threads::Threads
                         ${CMAKE_DL_LIBS})
@@ -591,9 +584,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
                         PRIVATE
                           icucore)
   set_target_properties(CoreFoundation
-                        PROPERTIES LINK_FLAGS
-                          -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
-  set_target_properties(CFURLSessionInterface
                         PROPERTIES LINK_FLAGS
                           -Xlinker;-alias_list;-Xlinker;Base.subproj/DarwinSymbolAliases;-twolevel_namespace;-sectcreate;__UNICODE;__csbitmaps;CharacterSets/CFCharacterSetBitmaps.bitmap;-sectcreate;__UNICODE;__properties;CharacterSets/CFUniCharPropertyDatabase.data;-sectcreate;__UNICODE;__data;CharacterSets/CFUnicodeData-L.mapping;-segprot;__UNICODE;r;r)
 endif()
