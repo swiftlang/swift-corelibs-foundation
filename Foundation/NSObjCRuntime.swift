@@ -431,3 +431,77 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     
     return _typeByName(aClassNameWithPrefix) as? AnyClass
 }
+
+// The following types have been moved to FoundationNetworking. They exist here only to allow appropriate diagnostics to surface in the compiler.
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+    renamed: "FoundationNetworking.CachedURLResponse")
+public typealias CachedURLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.HTTPCookie")
+public typealias HTTPCookie = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.HTTPCookieStorage")
+public typealias HTTPCookieStorage = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.HTTPURLResponse")
+public typealias HTTPURLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLResponse")
+public typealias URLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSession")
+public typealias URLSession = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionConfiguration")
+public typealias URLSessionConfiguration = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionDataTask")
+public typealias URLSessionDataTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionDownloadTask")
+public typealias URLSessionDownloadTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionStreamTask")
+public typealias URLSessionStreamTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionTask")
+public typealias URLSessionTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLSessionUploadTask")
+public typealias URLSessionUploadTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLAuthenticationChallenge")
+public typealias URLAuthenticationChallenge = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLCache")
+public typealias URLCache = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLCredential")
+public typealias URLCredential = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLCredentialStorage")
+public typealias URLCredentialStorage = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLProtectionSpace")
+public typealias URLProtectionSpace = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
+renamed: "FoundationNetworking.URLProtocol")
+public typealias URLProtocol = AnyObject
