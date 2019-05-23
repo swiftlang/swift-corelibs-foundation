@@ -95,6 +95,8 @@ open class URLSessionTask : NSObject, NSCopying {
     
     /// How many times the task has been suspended, 0 indicating a running task.
     internal var suspendCount = 1
+    
+    internal var actualSession: URLSession? { return session as? URLSession }
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
     
@@ -193,6 +195,27 @@ open class URLSessionTask : NSObject, NSCopying {
         }
     }
     
+    
+    internal let knownBody: _Body?
+    func getBody(completion: @escaping (_Body) -> Void) {
+        if let body = knownBody {
+            completion(body)
+            return
+        }
+        
+        if let session = actualSession, let delegate = session.delegate as? URLSessionTaskDelegate {
+            delegate.urlSession(session, task: self) { (stream) in
+                if let stream = stream {
+                    completion(.stream(stream))
+                } else {
+                    completion(.none)
+                }
+            }
+        } else {
+            completion(.none)
+        }
+    }
+    
     private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
     private var hasTriggeredResume: Bool = false
     internal var isSuspendedAfterResume: Bool {
@@ -212,7 +235,7 @@ open class URLSessionTask : NSObject, NSCopying {
         session = _MissingURLSession()
         taskIdentifier = 0
         originalRequest = nil
-        body = .none
+        knownBody = .none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
         super.init()
     }
@@ -226,13 +249,13 @@ open class URLSessionTask : NSObject, NSCopying {
             self.init(session: session, request: request, taskIdentifier: taskIdentifier, body: .none)
         }
     }
-    internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body) {
+    internal init(session: URLSession, request: URLRequest, taskIdentifier: Int, body: _Body?) {
         self.session = session
         /* make sure we're actually having a serial queue as it's used for synchronization */
         self.workQueue = DispatchQueue.init(label: "org.swift.URLSessionTask.WorkQueue", target: session.workQueue)
         self.taskIdentifier = taskIdentifier
         self.originalRequest = request
-        self.body = body
+        self.knownBody = body
         super.init()
         self.currentRequest = request
         self.progress.cancellationHandler = { [weak self] in
@@ -252,7 +275,7 @@ open class URLSessionTask : NSObject, NSCopying {
     }
     
     /// An identifier for this task, assigned by and unique to the owning session
-    open private(set) var taskIdentifier: Int
+    open internal(set) var taskIdentifier: Int
     
     /// May be nil if this is a stream task
     

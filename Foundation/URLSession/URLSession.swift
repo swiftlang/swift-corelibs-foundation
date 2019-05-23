@@ -433,7 +433,10 @@ open class URLSession : NSObject {
     }
     
     /* Creates an upload task with the given request.  The previously set body stream of the request (if any) is ignored and the URLSession:task:needNewBodyStream: delegate will be called when the body payload is required. */
-    open func uploadTask(withStreamedRequest request: URLRequest) -> URLSessionUploadTask { NSUnimplemented() }
+    open func uploadTask(withStreamedRequest request: URLRequest) -> URLSessionUploadTask {
+        let r = URLSession._Request(request)
+        return uploadTask(with: r, body: nil, behaviour: .callDelegate)
+    }
     
     /* Creates a download task with the given request. */
     open func downloadTask(with request: URLRequest) -> URLSessionDownloadTask {
@@ -447,7 +450,9 @@ open class URLSession : NSObject {
     }
     
     /* Creates a download task with the resume data.  If the download cannot be successfully resumed, URLSession:task:didCompleteWithError: will be called. */
-    open func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask {
+        return invalidDownloadTask(behavior: .callDelegate)
+    }
     
     /* Creates a bidirectional stream task to a given host and port.
      */
@@ -511,7 +516,7 @@ fileprivate extension URLSession {
     /// Create an upload task.
     ///
     /// All public methods funnel into this one.
-    func uploadTask(with request: _Request, body: URLSessionTask._Body, behaviour: _TaskRegistry._Behaviour) -> URLSessionUploadTask {
+    func uploadTask(with request: _Request, body: URLSessionTask._Body?, behaviour: _TaskRegistry._Behaviour) -> URLSessionUploadTask {
         guard !self.invalidated else { fatalError("Session invalidated") }
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
@@ -528,6 +533,20 @@ fileprivate extension URLSession {
         let r = createConfiguredRequest(from: request)
         let i = createNextTaskIdentifier()
         let task = URLSessionDownloadTask(session: self, request: r, taskIdentifier: i)
+        workQueue.async {
+            self.taskRegistry.add(task, behaviour: behavior)
+        }
+        return task
+    }
+    
+    /// Create a download task that is marked invalid.
+    func invalidDownloadTask(behavior: _TaskRegistry._Behaviour) -> URLSessionDownloadTask {
+        /* We do not support resume data in swift-corelibs-foundation, so whatever we are passed, we should just behave as Darwin does in the presence of invalid data. */
+        
+        guard !self.invalidated else { fatalError("Session invalidated") }
+        let task = URLSessionDownloadTask()
+        task.taskIdentifier = createNextTaskIdentifier()
+        task.session = self
         workQueue.async {
             self.taskRegistry.add(task, behaviour: behavior)
         }
@@ -588,7 +607,9 @@ extension URLSession {
        return downloadTask(with: _Request(url), behavior: .downloadCompletionHandler(completionHandler)) 
     }
 
-    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask { NSUnimplemented() }
+    open func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        return invalidDownloadTask(behavior: .downloadCompletionHandler(completionHandler))
+    }
 }
 
 internal extension URLSession {
