@@ -199,7 +199,7 @@ extension NSString {
 #endif
     }
     
-    public static func pathWithComponents(_ components: [String]) -> String {
+    public static func path(withComponents components: [String]) -> String {
         var result = ""
         for comp in components.prefix(components.count - 1) {
             result = result._stringByAppendingPathComponent(comp._stringByFixingSlashes(), doneAppending: false)
