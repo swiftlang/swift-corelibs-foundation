@@ -434,74 +434,56 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
 
 // The following types have been moved to FoundationNetworking. They exist here only to allow appropriate diagnostics to surface in the compiler.
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-    renamed: "FoundationNetworking.CachedURLResponse")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias CachedURLResponse = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.HTTPCookie")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias HTTPCookie = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.HTTPCookieStorage")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias HTTPCookieStorage = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.HTTPURLResponse")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias HTTPURLResponse = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLResponse")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLResponse = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSession")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSession = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionConfiguration")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionConfiguration = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionDataTask")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionDataTask = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionDownloadTask")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionDownloadTask = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionStreamTask")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionStreamTask = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionTask")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionTask = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLSessionUploadTask")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLSessionUploadTask = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLAuthenticationChallenge")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLAuthenticationChallenge = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLCache")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLCache = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLCredential")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLCredential = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLCredentialStorage")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLCredentialStorage = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLProtectionSpace")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLProtectionSpace = AnyObject
 
-@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.",
-renamed: "FoundationNetworking.URLProtocol")
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLProtocol = AnyObject
