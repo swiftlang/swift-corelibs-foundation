@@ -211,8 +211,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
                     } else {
                         self = .pair(first, newValue)
                     }
-                case .array(let indexes_):
-                    var indexes = indexes_
+                case .array(var indexes):
                     indexes[index] = newValue
                     self = .array(indexes)
                 }
@@ -429,8 +428,7 @@ public struct IndexPath : ReferenceConvertible, Equatable, Hashable, MutableColl
             switch self {
             case .empty:
                 return try body(UnsafeBufferPointer<Int>(start: nil, count: 0))
-            case .single(let index_):
-                var index = index_
+            case .single(var index):
                 return try withUnsafePointer(to: &index) { (start) throws -> R in
                     return try body(UnsafeBufferPointer<Int>(start: start, count: 1))
                 }

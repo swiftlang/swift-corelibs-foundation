@@ -880,7 +880,7 @@ extension NSURL {
     /* The following methods work on the path portion of a URL in the same manner that the NSPathUtilities methods on NSString do.
     */
     open class func fileURL(withPathComponents components: [String]) -> URL? {
-        let path = NSString.pathWithComponents(components)
+        let path = NSString.path(withComponents: components)
         if components.last == "/" {
             return URL(fileURLWithPath: path, isDirectory: true)
         } else {
