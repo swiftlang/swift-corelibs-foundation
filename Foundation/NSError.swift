@@ -267,7 +267,7 @@ public protocol RecoverableError : Error {
     /// This entry point is used for recovery of errors handled at a
     /// "document" granularity, that do not affect the entire
     /// application.
-    func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: (_ recovered: Bool) -> Void)
+    func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void)
 
     /// Attempt to recover from this error when the user selected the
     /// option at the given index. Returns true to indicate
@@ -284,7 +284,7 @@ public extension RecoverableError {
     /// Default implementation that uses the application-model recovery
     /// mechanism (``attemptRecovery(optionIndex:)``) to implement
     /// document-modal recovery.
-    func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: (_ recovered: Bool) -> Void) {
+    func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void) {
         handler(attemptRecovery(optionIndex: recoveryOptionIndex))
     }
 }
