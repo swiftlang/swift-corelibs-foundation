@@ -28,6 +28,20 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "15B80384228F376000B30FF6"
+               BuildableName = "SwiftFoundationNetworking.framework"
+               BlueprintName = "SwiftFoundationNetworking"
+               ReferencedContainer = "container:Foundation.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "5B5D86DA1BBC74AD00234F36"
                BuildableName = "SwiftXCTest.framework"
                BlueprintName = "SwiftXCTest"

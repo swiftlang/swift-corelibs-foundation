@@ -7,6 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 
 /// An `URLResponse` object represents a URL load response in a
 /// manner independent of protocol and URL scheme.
@@ -28,21 +33,21 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
         }
         
         if let encodedUrl = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
-            self.url = encodedUrl._swiftObject
+            self.url = encodedUrl as URL
         }
         
         if let encodedMimeType = aDecoder.decodeObject(forKey: "NS.mimeType") as? NSString {
-            self.mimeType = encodedMimeType._swiftObject
+            self.mimeType = encodedMimeType as String
         }
         
         self.expectedContentLength = aDecoder.decodeInt64(forKey: "NS.expectedContentLength")
         
         if let encodedEncodingName = aDecoder.decodeObject(forKey: "NS.textEncodingName") as? NSString {
-            self.textEncodingName = encodedEncodingName._swiftObject
+            self.textEncodingName = encodedEncodingName as String
         }
         
         if let encodedFilename = aDecoder.decodeObject(forKey: "NS.suggestedFilename") as? NSString {
-            self.suggestedFilename = encodedFilename._swiftObject
+            self.suggestedFilename = encodedFilename as String
         }
     }
     
@@ -170,7 +175,7 @@ open class HTTPURLResponse : URLResponse {
         self.statusCode = aDecoder.decodeInteger(forKey: "NS.statusCode")
         
         if let encodedHeaders = aDecoder.decodeObject(forKey: "NS.allHeaderFields") as? NSDictionary {
-            self.allHeaderFields = encodedHeaders._swiftObject
+            self.allHeaderFields = encodedHeaders as! [AnyHashable: Any]
         } else {
             self.allHeaderFields = [:]
         }
@@ -322,7 +327,7 @@ private func getSuggestedFilename(fromHeaderFields headerFields: [String : Strin
         else { return nil }
     for part in field.parameters where part.attribute == "filename" {
         if let path = part.value {
-            return _pathComponents(path)?.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
+            return (path as? NSString)?.pathComponents.map{ $0 == "/" ? "" : $0}.joined(separator: "_")
         } else {
             return nil
         }

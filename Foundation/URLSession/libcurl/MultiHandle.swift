@@ -16,7 +16,14 @@
 ///
 // -----------------------------------------------------------------------------
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
+
 import CoreFoundation
+import CFURLSessionInterface
 import Dispatch
 
 
@@ -39,6 +46,7 @@ extension URLSession {
         let group = DispatchGroup()
         fileprivate var easyHandles: [_EasyHandle] = []
         fileprivate var timeoutSource: _TimeoutSource? = nil
+        private var reentrantInUpdateTimeoutTimer = false
         
         init(configuration: URLSession._Configuration, workQueue: DispatchQueue) {
             queue = DispatchQueue(label: "MultiHandle.isolation", target: workQueue)
@@ -211,7 +219,7 @@ fileprivate extension URLSession._MultiHandle {
         if let errorCode = easyHandle.urlErrorCode(for: easyCode) {
             let errorDescription = easyHandle.errorBuffer[0] != 0 ?
                 String(cString: easyHandle.errorBuffer) :
-                CFURLSessionCreateErrorDescription(easyCode.value)._swiftObject
+                unsafeBitCast(CFURLSessionCreateErrorDescription(easyCode.value), to: NSString.self) as String
             error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: [
                 NSLocalizedDescriptionKey: errorDescription
             ])
@@ -344,7 +352,7 @@ fileprivate extension URLSession._MultiHandle {
     func updateTimeoutTimer(to value: Int) {
         updateTimeoutTimer(to: _Timeout(timeout: value))
     }
-
+    
     func updateTimeoutTimer(to timeout: _Timeout) {
         // Set up a timeout timer based on the given value:
         switch timeout {
@@ -352,7 +360,7 @@ fileprivate extension URLSession._MultiHandle {
             timeoutSource = nil
         case .immediate:
             timeoutSource = nil
-            timeoutTimerFired()
+            queue.async { self.timeoutTimerFired() }
         case .milliseconds(let milliseconds):
             if (timeoutSource == nil) || timeoutSource!.milliseconds != milliseconds {
                 //TODO: Could simply change the existing timer by using DispatchSourceTimer again.

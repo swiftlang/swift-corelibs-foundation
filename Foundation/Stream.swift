@@ -220,6 +220,18 @@ open class OutputStream : Stream {
     }
 }
 
+public struct _InputStreamSPIForFoundationNetworkingUseOnly {
+    var inputStream: InputStream
+    
+    public init(_ inputStream: InputStream) {
+        self.inputStream = inputStream
+    }
+    
+    public func seek(to position: UInt64) throws {
+        try inputStream.seek(to: position)
+    }
+}
+
 extension InputStream {
     func seek(to position: UInt64) throws {
         guard position > 0 else {

@@ -394,3 +394,27 @@ extension Array {
 #else
     internal typealias _DarwinCompatibleBoolean = Bool
 #endif
+
+public protocol _NSNonfileURLContentLoading: AnyObject {
+    init()
+    func contentsOf(url: URL) throws -> (result: NSData, textEncodingNameIfAvailable: String?)
+}
+
+
+internal enum _NSNonfileURLContentLoader {
+    static private(set) var external: _NSNonfileURLContentLoading?
+    
+    static var current: _NSNonfileURLContentLoading {
+        if let external = _NSNonfileURLContentLoader.external {
+            return external
+        } else {
+            guard let type = _typeByName(_SwiftFoundationNetworkingModuleName + "._NSNonfileURLContentLoader") as? _NSNonfileURLContentLoading.Type else {
+                fatalError("You must link or load module \(_SwiftFoundationNetworkingModuleName) to load non-file: URL content using String(contentsOf:…), Data(contentsOf:…), etc.")
+            }
+            
+            let result = type.init()
+            _NSNonfileURLContentLoader.external = result
+            return result
+        }
+    }
+}

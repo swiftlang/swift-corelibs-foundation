@@ -1302,7 +1302,7 @@ extension NSString {
     }
 
     public convenience init(contentsOf url: URL, usedEncoding enc: UnsafeMutablePointer<UInt>?) throws {
-        let (readResult, urlResponse) = try NSData.contentsOf(url: url)
+        let (readResult, textEncodingNameMaybe) = try NSData.contentsOf(url: url)
 
         let encoding: UInt
         let offset: Int
@@ -1325,7 +1325,7 @@ extension NSString {
             encoding = String.Encoding.utf32BigEndian.rawValue
             offset = 4
         }
-        else if let charSet = urlResponse?.textEncodingName, let textEncoding = String.Encoding(charSet: charSet) {
+        else if let charSet = textEncodingNameMaybe, let textEncoding = String.Encoding(charSet: charSet) {
             encoding = textEncoding.rawValue
             offset = 0
         } else {

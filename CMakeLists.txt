@@ -117,10 +117,12 @@ endif()
 # be able to remove this and just use
 # `target_link_libraries(Foundation PRIVATE CoreFoundation)`.
 set(CoreFoundation_LIBRARIES $<TARGET_FILE:CoreFoundation>)
+set(CFURLSessionInterface_LIBRARIES $<TARGET_FILE:CFURLSessionInterface>)
 get_target_property(CoreFoundation_LINK_LIBRARIES CoreFoundation LINK_LIBRARIES)
 foreach(library ${CoreFoundation_LINK_LIBRARIES})
   if(NOT library STREQUAL Threads::Threads)
     list(APPEND CoreFoundation_LIBRARIES -l${library})
+    list(APPEND CFURLSessionInterface_LIBRARIES -l${library})
   endif()
 endforeach()
 
@@ -165,8 +167,6 @@ add_swift_library(Foundation
                     Foundation/Formatter.swift
                     Foundation/FoundationErrors.swift
                     Foundation/Host.swift
-                    Foundation/HTTPCookie.swift
-                    Foundation/HTTPCookieStorage.swift
                     Foundation/IndexPath.swift
                     Foundation/IndexSet.swift
                     Foundation/ISO8601DateFormatter.swift
@@ -235,7 +235,6 @@ add_swift_library(Foundation
                     Foundation/NSTimeZone.swift
                     Foundation/NSURL.swift
                     Foundation/NSURLError.swift
-                    Foundation/NSURLRequest.swift
                     Foundation/NSUUID.swift
                     Foundation/NSValue.swift
                     Foundation/NumberFormatter.swift
@@ -264,31 +263,7 @@ add_swift_library(Foundation
                     Foundation/TimeZone.swift
                     Foundation/Unit.swift
                     Foundation/URL.swift
-                    Foundation/URLAuthenticationChallenge.swift
-                    Foundation/URLCache.swift
                     Foundation/URLComponents.swift
-                    Foundation/URLCredential.swift
-                    Foundation/URLCredentialStorage.swift
-                    Foundation/URLProtectionSpace.swift
-                    Foundation/URLProtocol.swift
-                    Foundation/URLRequest.swift
-                    Foundation/URLResponse.swift
-                    Foundation/URLSession/BodySource.swift
-                    Foundation/URLSession/Configuration.swift
-                    Foundation/URLSession/http/HTTPMessage.swift
-                    Foundation/URLSession/http/HTTPURLProtocol.swift
-                    Foundation/URLSession/libcurl/EasyHandle.swift
-                    Foundation/URLSession/libcurl/libcurlHelpers.swift
-                    Foundation/URLSession/libcurl/MultiHandle.swift
-                    Foundation/URLSession/Message.swift
-                    Foundation/URLSession/NativeProtocol.swift
-                    Foundation/URLSession/ftp/FTPURLProtocol.swift
-                    Foundation/URLSession/TaskRegistry.swift
-                    Foundation/URLSession/TransferState.swift
-                    Foundation/URLSession/URLSession.swift
-                    Foundation/URLSession/URLSessionConfiguration.swift
-                    Foundation/URLSession/URLSessionDelegate.swift
-                    Foundation/URLSession/URLSessionTask.swift
                     Foundation/UserDefaults.swift
                     Foundation/UUID.swift
                     Foundation/XMLDocument.swift
@@ -303,7 +278,6 @@ add_swift_library(Foundation
                     -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
                     ${CoreFoundation_LIBRARIES}
-                    ${CURL_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
@@ -330,6 +304,75 @@ add_swift_library(Foundation
                     uuid
                     CoreFoundation
                     $<$<PLATFORM_ID:Windows>:CoreFoundationResources>)
+
+add_swift_library(FoundationNetworking
+                  MODULE_NAME
+                    FoundationNetworking
+                  MODULE_LINK_NAME
+                    FoundationNetworking
+                  MODULE_PATH
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationNetworking.swiftmodule
+                  SOURCES
+                  Foundation/Boxing.swift
+                  Foundation/NSURLRequest.swift
+                  Foundation/HTTPCookie.swift
+                  Foundation/HTTPCookieStorage.swift
+                  Foundation/URLAuthenticationChallenge.swift
+                  Foundation/URLCache.swift
+                  Foundation/URLCredential.swift
+                  Foundation/URLCredentialStorage.swift
+                  Foundation/URLProtectionSpace.swift
+                  Foundation/URLProtocol.swift
+                  Foundation/URLRequest.swift
+                  Foundation/URLResponse.swift
+                  Foundation/URLSession/BodySource.swift
+                  Foundation/URLSession/Configuration.swift
+                  Foundation/URLSession/http/HTTPMessage.swift
+                  Foundation/URLSession/http/HTTPURLProtocol.swift
+                  Foundation/URLSession/libcurl/EasyHandle.swift
+                  Foundation/URLSession/libcurl/libcurlHelpers.swift
+                  Foundation/URLSession/libcurl/MultiHandle.swift
+                  Foundation/URLSession/Message.swift
+                  Foundation/URLSession/NativeProtocol.swift
+                  Foundation/URLSession/NetworkingSpecific.swift
+                  Foundation/URLSession/ftp/FTPURLProtocol.swift
+                  Foundation/URLSession/TaskRegistry.swift
+                  Foundation/URLSession/TransferState.swift
+                  Foundation/URLSession/URLSession.swift
+                  Foundation/URLSession/URLSessionConfiguration.swift
+                  Foundation/URLSession/URLSessionDelegate.swift
+                  Foundation/URLSession/URLSessionTask.swift
+                  TARGET
+                    ${CMAKE_C_COMPILER_TARGET}
+                  CFLAGS
+                    ${MSVCRT_C_FLAGS}
+                    -F${CMAKE_CURRENT_BINARY_DIR}
+                  LINK_FLAGS
+                    ${MSVCRT_LINK_FLAGS}
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    ${libdispatch_ldflags}
+                    -lFoundation
+                    ${Foundation_INTERFACE_LIBRARIES}
+                    ${CFURLSessionInterface_LIBRARIES}
+                    ${CURL_LIBRARIES}
+                    ${Foundation_RPATH}
+                    ${WORKAROUND_SR9138}
+                    ${WORKAROUND_SR9995}
+                  SWIFT_FLAGS
+                    -DDEPLOYMENT_RUNTIME_SWIFT
+                    -DNS_BUILDING_FOUNDATION_NETWORKING
+                    ${deployment_enable_libdispatch}
+                    -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                    ${libdispatch_cflags}
+                    ${swift_enable_testing}
+                    ${swift_optimization_flags}
+                  DEPENDS
+                    uuid
+                    CoreFoundation
+                    $<$<PLATFORM_ID:Windows>:CoreFoundationResources>
+                    Foundation)
+
+
 
 if(NOT BUILD_SHARED_LIBS)
   set(Foundation_INTERFACE_LIBRARIES

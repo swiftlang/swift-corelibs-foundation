@@ -17,6 +17,12 @@
 ///
 // -----------------------------------------------------------------------------
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
+
 import CoreFoundation
 import Dispatch
 
@@ -280,7 +286,7 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
             case .transferInProgress(let currentTransferState):
                 switch currentTransferState.requestBodySource {
                 case is _BodyStreamSource:
-                    try inputStream.seek(to: position)
+                    try _InputStreamSPIForFoundationNetworkingUseOnly(inputStream).seek(to: position)
                     let drain = self.createTransferBodyDataDrain()
                     let source = _BodyStreamSource(inputStream: inputStream)
                     let transferState = _TransferState(url: url, bodyDataDrain: drain, bodySource: source)
