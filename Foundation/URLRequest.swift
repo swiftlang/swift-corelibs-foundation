@@ -10,6 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
+
 public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
     public typealias ReferenceType = NSURLRequest
     public typealias CachePolicy = NSURLRequest.CachePolicy

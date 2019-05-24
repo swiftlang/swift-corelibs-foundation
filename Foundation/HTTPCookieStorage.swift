@@ -6,7 +6,13 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-import Dispatch
+
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
+
 import CoreFoundation
 
 /*!
@@ -74,7 +80,7 @@ open class HTTPCookieStorage: NSObject {
             if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
                 bundleName = String(bundleName[..<range.lowerBound])
             }
-            let cookieFolderPath = _CFXDGCreateDataHomePath()._swiftObject + "/" + bundleName
+            let cookieFolderPath = (((_CFXDGCreateDataHomePath() as! AnyObject) as! NSString) as String) + "/" + bundleName
             cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
             loadPersistedCookies()
         }
@@ -224,7 +230,7 @@ open class HTTPCookieStorage: NSObject {
             persistDictionary[key] = cookie.persistableDictionary()
         }
 
-        let nsdict = __SwiftValue.store(persistDictionary) as! NSDictionary
+        let nsdict = persistDictionary as NSDictionary
         _ = nsdict.write(toFile: cookieFilePath, atomically: true)
     }
 

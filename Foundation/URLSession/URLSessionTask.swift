@@ -15,11 +15,12 @@
 ///
 // -----------------------------------------------------------------------------
 
-
-
-
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
-import Dispatch
 
 /// A cancelable object that refers to the lifetime
 /// of processing a given request.

@@ -27,6 +27,7 @@
 #if !defined(__COREFOUNDATION_URLSESSIONINTERFACE__)
 #define __COREFOUNDATION_URLSESSIONINTERFACE__ 1
 
+#include <CoreFoundation/CoreFoundation.h>
 #include <stdio.h>
 #if defined(_WIN32)
 #include <winsock2.h>

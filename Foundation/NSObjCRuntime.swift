@@ -234,20 +234,29 @@ internal struct _CFInfo {
 // NSStringFromClass(_:) will return the ObjC name when passed one of these classes, and NSClassFromString(_:) will return the class when passed the ObjC name.
 // This is important for NSCoding archives created on Apple OSes to decode with swift-corelibs-foundation and for general source and data format compatibility.
 
+internal let _NSClassesRenamedByObjCAPINotesInNetworking: [(swiftName: String, objCName: String)] = [
+    (_SwiftFoundationNetworkingModuleName + ".CachedURLResponse", "NSCachedURLResponse"),
+    (_SwiftFoundationNetworkingModuleName + ".HTTPCookie", "NSHTTPCookie"),
+    (_SwiftFoundationNetworkingModuleName + ".HTTPCookieStorage", "NSHTTPCookieStorage"),
+    (_SwiftFoundationNetworkingModuleName + ".HTTPURLResponse", "NSHTTPURLResponse"),
+    (_SwiftFoundationNetworkingModuleName + ".URLResponse", "NSURLResponse"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSession", "NSURLSession"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionConfiguration", "NSURLSessionConfiguration"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionDataTask", "NSURLSessionDataTask"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionDownloadTask", "NSURLSessionDownloadTask"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionStreamTask", "NSURLSessionStreamTask"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionTask", "NSURLSessionTask"),
+    (_SwiftFoundationNetworkingModuleName + ".URLSessionUploadTask", "NSURLSessionUploadTask"),
+    (_SwiftFoundationNetworkingModuleName + ".URLAuthenticationChallenge", "NSURLAuthenticationChallenge"),
+    (_SwiftFoundationNetworkingModuleName + ".URLCache", "NSURLCache"),
+    (_SwiftFoundationNetworkingModuleName + ".URLCredential", "NSURLCredential"),
+    (_SwiftFoundationNetworkingModuleName + ".URLCredentialStorage", "NSURLCredentialStorage"),
+    (_SwiftFoundationNetworkingModuleName + ".URLProtectionSpace", "NSURLProtectionSpace"),
+    (_SwiftFoundationNetworkingModuleName + ".URLProtocol", "NSURLProtocol"),
+]
+
 internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: String)] = [
-    (CachedURLResponse.self, "NSCachedURLResponse"),
-    (HTTPCookie.self, "NSHTTPCookie"),
-    (HTTPCookieStorage.self, "NSHTTPCookieStorage"),
-    (HTTPURLResponse.self, "NSHTTPURLResponse"),
     (ProcessInfo.self, "NSProcessInfo"),
-    (URLResponse.self, "NSURLResponse"),
-    (URLSession.self, "NSURLSession"),
-    (URLSessionConfiguration.self, "NSURLSessionConfiguration"),
-    (URLSessionDataTask.self, "NSURLSessionDataTask"),
-    (URLSessionDownloadTask.self, "NSURLSessionDownloadTask"),
-    (URLSessionStreamTask.self, "NSURLSessionStreamTask"),
-    (URLSessionTask.self, "NSURLSessionTask"),
-    (URLSessionUploadTask.self, "NSURLSessionUploadTask"),
     (MessagePort.self, "NSMessagePort"),
     (Port.self, "NSPort"),
     (PortMessage.self, "NSPortMessage"),
@@ -287,12 +296,6 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
     (Stream.self, "NSStream"),
     (Thread.self, "NSThread"),
     (Timer.self, "NSTimer"),
-    (URLAuthenticationChallenge.self, "NSURLAuthenticationChallenge"),
-    (URLCache.self, "NSURLCache"),
-    (URLCredential.self, "NSURLCredential"),
-    (URLCredentialStorage.self, "NSURLCredentialStorage"),
-    (URLProtectionSpace.self, "NSURLProtectionSpace"),
-    (URLProtocol.self, "NSURLProtocol"),
     (UserDefaults.self, "NSUserDefaults"),
     (FileManager.DirectoryEnumerator.self, "NSDirectoryEnumerator"),
     (Dimension.self, "NSDimension"),
@@ -322,6 +325,22 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
     (UnitTemperature.self, "NSUnitTemperature"),
 ]
 
+fileprivate var mapFromObjCNameToKnownName: [String: String] = {
+    var map: [String: String] = [:]
+    for entry in _NSClassesRenamedByObjCAPINotesInNetworking {
+        map[entry.objCName] = entry.swiftName
+    }
+    return map
+}()
+
+fileprivate var mapFromKnownNameToObjCName: [String: String] = {
+    var map: [String: String] = [:]
+    for entry in _NSClassesRenamedByObjCAPINotesInNetworking {
+        map[entry.swiftName] = entry.objCName
+    }
+    return map
+}()
+
 fileprivate var mapFromObjCNameToClass: [String: AnyClass] = {
     var map: [String: AnyClass] = [:]
     for entry in _NSClassesRenamedByObjCAPINotes {
@@ -338,11 +357,13 @@ fileprivate var mapFromSwiftClassNameToObjCName: [String: String] = {
     return map
 }()
 
-#if os(macOS) || os(iOS)
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 private let _SwiftFoundationModuleName = "SwiftFoundation"
 #else
 private let _SwiftFoundationModuleName = "Foundation"
 #endif
+
+internal let _SwiftFoundationNetworkingModuleName = _SwiftFoundationModuleName + "Networking"
 
 /**
     Returns the class name for a class. For compatibility with Foundation on Darwin,
@@ -367,6 +388,8 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     
     if components[0] == _SwiftFoundationModuleName {
         return components[1]
+    } else if components[0] == _SwiftFoundationNetworkingModuleName, let actualName = mapFromKnownNameToObjCName[classNameString] {
+        return actualName
     } else {
         return String(describing: aClassName)
     }
@@ -394,7 +417,11 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
             NSLog("*** NSClassFromString(\(aClassName)): cannot yet decode mangled class names")
             return nil
         }
-        aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        if let name = mapFromObjCNameToKnownName[aClassName] {
+            aClassNameWithPrefix = name
+        } else {
+            aClassNameWithPrefix = _SwiftFoundationModuleName + "." + aClassName
+        }
     case 2:
         aClassNameWithPrefix = aClassName
     default:
@@ -404,3 +431,59 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     
     return _typeByName(aClassNameWithPrefix) as? AnyClass
 }
+
+// The following types have been moved to FoundationNetworking. They exist here only to allow appropriate diagnostics to surface in the compiler.
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias CachedURLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias HTTPCookie = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias HTTPCookieStorage = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias HTTPURLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLResponse = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSession = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionConfiguration = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionDataTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionDownloadTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionStreamTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLSessionUploadTask = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLAuthenticationChallenge = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLCache = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLCredential = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLCredentialStorage = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLProtectionSpace = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
+public typealias URLProtocol = AnyObject

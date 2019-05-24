@@ -413,8 +413,13 @@ struct _HTTPRequest {
     var messageBody: String?
     let headers: [String]
 
-    public init(request: String) {
+    enum Error: Swift.Error {
+        case headerEndNotFound
+    }
+    
+    public init(request: String) throws {
         let headerEnd = (request as NSString).range(of: _HTTPUtils.CRLF2)
+        guard headerEnd.location != NSNotFound else { throw Error.headerEndNotFound }
         let header = (request as NSString).substring(to: headerEnd.location)
         headers = header.components(separatedBy: _HTTPUtils.CRLF)
         let action = headers[0]

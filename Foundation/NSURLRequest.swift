@@ -7,6 +7,11 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 
 // -----------------------------------------------------------------------------
 ///
@@ -170,7 +175,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
         super.init()
         
         if let encodedURL = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
-            self.url = encodedURL._swiftObject
+            self.url = encodedURL as URL
         }
         
         if let encodedHeaders = aDecoder.decodeObject(forKey: "NS._allHTTPHeaderFields") as? NSDictionary {
@@ -178,18 +183,18 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
                 var result = result
                 if let key = item.key as? NSString,
                     let value = item.value as? NSString {
-                    result[key._swiftObject] = value._swiftObject
+                    result[key as String] = value as String
                 }
                 return result
             }
         }
         
         if let encodedDocumentURL = aDecoder.decodeObject(forKey: "NS.mainDocumentURL") as? NSURL {
-            self.mainDocumentURL = encodedDocumentURL._swiftObject
+            self.mainDocumentURL = encodedDocumentURL as URL
         }
         
         if let encodedMethod = aDecoder.decodeObject(forKey: "NS.httpMethod") as? NSString {
-            self.httpMethod = encodedMethod._swiftObject
+            self.httpMethod = encodedMethod as String
         }
         
         let encodedCachePolicy = aDecoder.decodeObject(forKey: "NS._cachePolicy") as! NSNumber
@@ -300,7 +305,7 @@ open class NSURLRequest : NSObject, NSSecureCoding, NSCopying, NSMutableCopying 
             return "GET"
         }
 
-        let nsMethod = NSString(raw)
+        let nsMethod = NSString(string: raw)
 
         for method in ["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT"] {
             if nsMethod.caseInsensitiveCompare(method) == .orderedSame {

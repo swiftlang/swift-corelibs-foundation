@@ -15,7 +15,11 @@
 ///
 // -----------------------------------------------------------------------------
 
-
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 
 extension URLSession {
     /*
