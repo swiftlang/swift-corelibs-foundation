@@ -370,7 +370,7 @@ add_swift_library(FoundationNetworking
                     uuid
                     CoreFoundation
                     $<$<PLATFORM_ID:Windows>:CoreFoundationResources>
-				    Foundation)
+                    Foundation)
 
 
 
