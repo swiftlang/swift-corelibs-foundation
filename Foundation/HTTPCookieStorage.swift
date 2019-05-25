@@ -89,7 +89,7 @@ open class HTTPCookieStorage: NSObject {
     private func loadPersistedCookies() {
         guard let cookieFilePath = self.cookieFilePath, let cookiesData = try? Data(contentsOf: URL(fileURLWithPath: cookieFilePath)) else { return }
         guard let cookies = try? PropertyListSerialization.propertyList(from: cookiesData, format: nil) else { return }
-        var cookies0 = cookies as? [String: [String: Any]] ?? [:]
+        let cookies0 = cookies as? [String: [String: Any]] ?? [:]
         self.syncQ.sync {
             for key in cookies0.keys {
                 if let cookie = createCookie(cookies0[key]!) {
