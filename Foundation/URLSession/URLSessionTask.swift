@@ -26,9 +26,13 @@ import CoreFoundation
 /// of processing a given request.
 open class URLSessionTask : NSObject, NSCopying {
     
-    public var countOfBytesClientExpectsToReceive: Int64 = NSURLSessionTransferSizeUnknown
-    public var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown
-    public var earliestBeginDate: Date? { NSUnimplemented() }
+    // These properties aren't heeded in swift-corelibs-foundation, but we may heed them in the future. They exist for source compatibility.
+    open var countOfBytesClientExpectsToReceive: Int64 = NSURLSessionTransferSizeUnknown
+    open var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown
+    
+    // We're not going to heed this one. If someone is setting it in Linux code, they may be relying on behavior that isn't there; warn.
+    @available(*, deprecated, message: "swift-corelibs-foundation does not support URLSession instances, and this property is documented to have no effect when set on tasks created from non-background URLSession instances. Modifying this property has no effect in swift-corelibs-foundation and shouldn't be relied upon; resume tasks at the appropriate time instead.")
+    open var earliestBeginDate: Date? = nil
     
     /// How many times the task has been suspended, 0 indicating a running task.
     internal var suspendCount = 1
