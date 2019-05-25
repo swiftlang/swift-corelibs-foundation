@@ -80,7 +80,7 @@ open class HTTPCookieStorage: NSObject {
             if let range = bundleName.range(of: ".", options: .backwards, range: nil, locale: nil) {
                 bundleName = String(bundleName[..<range.lowerBound])
             }
-            let cookieFolderPath = (((_CFXDGCreateDataHomePath() as! AnyObject) as! NSString) as String) + "/" + bundleName
+            let cookieFolderPath = URL(fileURLWithPath: bundleName, relativeTo: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]).path
             cookieFilePath = filePath(path: cookieFolderPath, fileName: "/.cookies." + cookieStorageName, bundleName: bundleName)
             loadPersistedCookies()
         }
