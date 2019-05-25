@@ -316,7 +316,7 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLComponents.c
                 URL.subproj/CFURLComponents_URIParser.c
                 URL.subproj/CFURLSessionInterface.c)
-				
+
 add_framework(CFURLSessionInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
               FRAMEWORK_DIRECTORY
@@ -426,6 +426,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
   find_package(CURL REQUIRED)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               ${CURL_INCLUDE_DIRS})
   target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
