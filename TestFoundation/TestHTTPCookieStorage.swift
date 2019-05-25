@@ -11,29 +11,15 @@ import Dispatch
 
 class TestHTTPCookieStorage: XCTestCase {
 
-    enum _StorageType {
+    enum StorageType {
         case shared
         case groupContainer(String)
     }
 
-    static var allTests: [(String, (TestHTTPCookieStorage) -> () throws -> Void)] {
-        return [
-            ("test_sharedCookieStorageAccessedFromMultipleThreads", test_sharedCookieStorageAccessedFromMultipleThreads),
-            ("test_BasicStorageAndRetrieval", test_BasicStorageAndRetrieval),
-            ("test_deleteCookie", test_deleteCookie),
-            ("test_removeCookies", test_removeCookies),
-            ("test_cookiesForURL", test_cookiesForURL),
-            ("test_cookiesForURLWithMainDocumentURL", test_cookiesForURLWithMainDocumentURL),
-            ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
-            ("test_descriptionCookie", test_descriptionCookie),
-            ("test_cookieDomainMatching", test_cookieDomainMatching),
-        ]
-    }
-
     override func setUp() {
         // Delete any cookies in the storage
-        getStorage(for: .shared).removeCookies(since: Date(timeIntervalSince1970: 0))
-        getStorage(for: .groupContainer("test")).removeCookies(since: Date(timeIntervalSince1970: 0))
+        cookieStorage(for: .shared).removeCookies(since: Date(timeIntervalSince1970: 0))
+        cookieStorage(for: .groupContainer("test")).removeCookies(since: Date(timeIntervalSince1970: 0))
     }
 
     func test_sharedCookieStorageAccessedFromMultipleThreads() {
@@ -74,10 +60,10 @@ class TestHTTPCookieStorage: XCTestCase {
 
     func test_cookiesForURL() {
         setCookiesForURL(with: .shared)
-        getCookiesForURL(with: .shared)
+        checkCookiesForURL(with: .shared)
 
         setCookiesForURL(with: .groupContainer("test"))
-        getCookiesForURL(with: .groupContainer("test"))
+        checkCookiesForURL(with: .groupContainer("test"))
     }
 
     func test_cookiesForURLWithMainDocumentURL() {
@@ -86,16 +72,16 @@ class TestHTTPCookieStorage: XCTestCase {
     }
 
     func test_descriptionCookie() {
-        descriptionCookie(with: .shared)
-        descriptionCookie(with: .groupContainer("test"))
+        checkCookieDescription(for: .shared)
+        checkCookieDescription(for: .groupContainer("test"))
     }
 
     func test_cookieDomainMatching() {
-        cookieDomainMatching(with: .shared)
-        cookieDomainMatching(with: .groupContainer("test"))
+        checkCookieDomainMatching(for: .shared)
+        checkCookieDomainMatching(for: .groupContainer("test"))
     }
 
-    func getStorage(for type: _StorageType) -> HTTPCookieStorage {
+    func cookieStorage(for type: StorageType) -> HTTPCookieStorage {
         switch type {
         case .shared:
             return HTTPCookieStorage.shared
@@ -104,8 +90,8 @@ class TestHTTPCookieStorage: XCTestCase {
         }
     }
 
-    func basicStorageAndRetrieval(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func basicStorageAndRetrieval(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
 
         let simpleCookie = HTTPCookie(properties: [
            .name: "TestCookie1",
@@ -149,8 +135,8 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies!.count, 2)
     }
 
-    func deleteCookie(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func deleteCookie(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
 
         let simpleCookie2 = HTTPCookie(properties: [
             .name: "TestCookie1",
@@ -176,8 +162,8 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies!.count, 0)
     }
 
-    func removeCookies(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func removeCookies(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
         let past = Date(timeIntervalSinceReferenceDate: Date().timeIntervalSinceReferenceDate - 120)
         let future = Date(timeIntervalSinceReferenceDate: Date().timeIntervalSinceReferenceDate + 120)
         let simpleCookie = HTTPCookie(properties: [
@@ -195,8 +181,8 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies!.count, 0)
     }
 
-    func setCookiesForURL(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func setCookiesForURL(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
         let url = URL(string: "https://swift.org")
         let simpleCookie = HTTPCookie(properties: [
             .name: "TestCookie1",
@@ -217,14 +203,14 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies!.count, 1)
     }
 
-    func getCookiesForURL(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func checkCookiesForURL(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
         let url = URL(string: "https://swift.org")
         XCTAssertEqual(storage.cookies(for: url!)!.count, 1)
     }
 
-    func setCookiesForURLWithMainDocumentURL(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func setCookiesForURLWithMainDocumentURL(with storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
         storage.cookieAcceptPolicy = .onlyFromMainDocumentDomain
         let url = URL(string: "https://swift.org/downloads")
         let mainUrl = URL(string: "http://ci.swift.org")
@@ -248,8 +234,8 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.cookies(for: url1!)!.count, 0)
     }
 
-    func descriptionCookie(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func checkCookieDescription(for storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
         guard let cookies = storage.cookies else {
             XCTFail("No cookies")
             return
@@ -278,8 +264,8 @@ class TestHTTPCookieStorage: XCTestCase {
         XCTAssertEqual(storage.description, "<NSHTTPCookieStorage cookies count:\(cookies1.count)>")
     }
 
-    func cookieDomainMatching(with storageType: _StorageType) {
-        let storage = getStorage(for: storageType)
+    func checkCookieDomainMatching(for storageType: StorageType) {
+        let storage = cookieStorage(for: storageType)
 
         let simpleCookie1 = HTTPCookie(properties: [   // swift.org domain only
            .name: "TestCookie1",
@@ -364,4 +350,55 @@ class TestHTTPCookieStorage: XCTestCase {
         try? fm.removeItem(atPath: testPath)
 #endif
     }
+    
+    func test_sorting() {
+        let storage = HTTPCookieStorage.shared
+        let url = URL(string: "https://swift.org")
+        let cookie = HTTPCookie(properties: [
+            .name: "A",
+            .value: "3",
+            .path: "/1",
+            .domain: "swift.org",
+        ])!
+        
+        let cookie2 = HTTPCookie(properties: [
+            .name: "B",
+            .value: "2",
+            .path: "/2",
+            .domain: "swift.org",
+            .expires: Date(timeIntervalSince1970: Date().timeIntervalSince1970 + 1000)
+        ])!
+
+        let cookie3 = HTTPCookie(properties: [
+            .name: "C",
+            .value: "1",
+            .path: "/2",
+            .domain: "swift.org",
+            .expires: Date(timeIntervalSince1970: Date().timeIntervalSince1970 + 2000)
+        ])!
+        
+        storage.setCookies([cookie, cookie2, cookie3], for: url, mainDocumentURL: url)
+        let result = storage.sortedCookies(using: [
+            NSSortDescriptor(keyPath: \HTTPCookie.path, ascending: true),
+            NSSortDescriptor(keyPath: \HTTPCookie.name, ascending: false),
+        ])
+        
+        XCTAssertEqual(result, [cookie, cookie3, cookie2])
+    }
+    
+    static var allTests: [(String, (TestHTTPCookieStorage) -> () throws -> Void)] {
+        return [
+            ("test_sharedCookieStorageAccessedFromMultipleThreads", test_sharedCookieStorageAccessedFromMultipleThreads),
+            ("test_BasicStorageAndRetrieval", test_BasicStorageAndRetrieval),
+            ("test_deleteCookie", test_deleteCookie),
+            ("test_removeCookies", test_removeCookies),
+            ("test_cookiesForURL", test_cookiesForURL),
+            ("test_cookiesForURLWithMainDocumentURL", test_cookiesForURLWithMainDocumentURL),
+            ("test_cookieInXDGSpecPath", test_cookieInXDGSpecPath),
+            ("test_descriptionCookie", test_descriptionCookie),
+            ("test_cookieDomainMatching", test_cookieDomainMatching),
+            ("test_sorting", test_sorting),
+        ]
+    }
+
 }
