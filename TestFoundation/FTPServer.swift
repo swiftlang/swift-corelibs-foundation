@@ -202,7 +202,7 @@ class _FTPServer {
             try respondWithRawData(with: "150 Ok to send data.\r\n")
             // Read data from the data socket and respond with completion header after the transfer
             do {
-                let readData = try readDataOnDataSocket()
+                _ = try readDataOnDataSocket()
                 try respondWithRawData(with: "226 Transfer complete.\r\n")
             } catch {
                 NSLog("Transfer failed.")

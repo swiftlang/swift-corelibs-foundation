@@ -425,7 +425,7 @@ open class NSData : NSObject, NSCopying, NSMutableCopying, NSSecureCoding {
         let permissions = (try? fm._permissionsOfItem(atPath: path)) ?? 0o600
 
         if writeOptionsMask.contains(.atomic) {
-            var (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
+            let (newFD, auxFilePath) = try _NSCreateTemporaryFile(path)
             let fh = FileHandle(fileDescriptor: newFD, closeOnDealloc: true)
             do {
                 try doWrite(fh)
