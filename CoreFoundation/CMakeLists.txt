@@ -314,8 +314,7 @@ add_framework(CoreFoundation
                 URL.subproj/CFURLAccess.c
                 URL.subproj/CFURL.c
                 URL.subproj/CFURLComponents.c
-                URL.subproj/CFURLComponents_URIParser.c
-                URL.subproj/CFURLSessionInterface.c)
+                URL.subproj/CFURLComponents_URIParser.c)
 
 add_framework(CFURLSessionInterface
                 ${FRAMEWORK_LIBRARY_TYPE}
@@ -380,9 +379,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
                                PRIVATE
                                  -D_WINDLL)
   endif()
-  target_compile_definitions(CoreFoundation
-                             PRIVATE
-                               -DCURL_STATICLIB)
   target_compile_definitions(CFURLSessionInterface
                              PRIVATE
                                -DCURL_STATICLIB)
@@ -426,9 +422,6 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
   find_package(CURL REQUIRED)
-  target_include_directories(CoreFoundation
-                             PRIVATE
-                               ${CURL_INCLUDE_DIRS})
   target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
