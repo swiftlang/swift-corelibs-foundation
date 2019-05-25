@@ -157,12 +157,14 @@ open class URLCache : NSObject {
                 if let cache = sharedCache {
                     return cache
                 } else {
+                    guard var cacheDirectoryUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+                        fatalError("Unable to find cache directory")
+                    }
+
                     let fourMegaByte = 4 * 1024 * 1024
                     let twentyMegaByte = 20 * 1024 * 1024
-                    let bundleIdentifier = Bundle.main.bundleIdentifier ?? UUID().uuidString
-                    let cacheDirectoryPath = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.path ?? "\(NSHomeDirectory())/Library/Caches"
-                    let diskPath = cacheDirectoryPath + "/" + bundleIdentifier
-                    let cache = URLCache(memoryCapacity: fourMegaByte, diskCapacity: twentyMegaByte, diskPath: diskPath)
+                    cacheDirectoryUrl.appendPathComponent(ProcessInfo.processInfo.processName)
+                    let cache = URLCache(memoryCapacity: fourMegaByte, diskCapacity: twentyMegaByte, diskPath: cacheDirectoryUrl.path)
                     sharedCache = cache
                     cache.persistence?.setupCacheDirectory()
                     return cache
@@ -173,8 +175,6 @@ open class URLCache : NSObject {
             guard newValue !== sharedCache else { return }
             
             sharedSyncQ.sync {
-                // Remove previous data before resetting new URLCache instance
-                URLCache.sharedCache?.persistence?.deleteAllCaches()
                 sharedCache = newValue
                 newValue.persistence?.setupCacheDirectory()
             }
@@ -201,7 +201,7 @@ open class URLCache : NSObject {
         self.memoryCapacity = memoryCapacity
         self.diskCapacity = diskCapacity
 
-        if let _path = path {
+        if diskCapacity > 0, let _path = path {
             self.persistence = _CachePersistence(path: _path)
         }
 
@@ -290,7 +290,7 @@ open class URLCache : NSObject {
         @result the current usage of the on-disk cache of the receiver.
     */
     open var currentDiskUsage: Int {
-        return self.syncQ.sync { self.persistence?.cacheSizeInDesk ?? 0 }
+        return self.syncQ.sync { self.persistence?.cacheSizeInDisk ?? 0 }
     }
 
 }
@@ -305,7 +305,9 @@ fileprivate struct _CachePersistence {
 
     let path: String
 
-    var cacheSizeInDesk: Int {
+    // FIXME: Create a stored property
+    // Update this value as the cache added and evicted
+    var cacheSizeInDisk: Int {
         do {
             let subFiles = try FileManager.default.subpathsOfDirectory(atPath: path)
             var total: Int = 0
@@ -321,10 +323,6 @@ fileprivate struct _CachePersistence {
 
     func setupCacheDirectory() {
         do {
-            if FileManager.default.fileExists(atPath: path) {
-                try FileManager.default.removeItem(atPath: path)
-            }
-            
             try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
         } catch {
             fatalError("Unable to create directories for URLCache: \(error.localizedDescription)")
@@ -334,15 +332,21 @@ fileprivate struct _CachePersistence {
     func saveCachedResponse(_ response: CachedURLResponse, for request: URLRequest) {
         let archivedData = NSKeyedArchiver.archivedData(withRootObject: response)
         do {
-            let cacheFileURL = urlForFileIdentifier(request.cacheFileIdentifier)
-            try archivedData.write(to: cacheFileURL)
+            if let fileIdentifier = request.cacheFileIdentifier {
+                let cacheFileURL = urlForFileIdentifier(fileIdentifier)
+                try archivedData.write(to: cacheFileURL)
+            }
         } catch {
             fatalError("Unable to save cache data: \(error.localizedDescription)")
         }
     }
 
     func cachedResponse(for request: URLRequest) -> CachedURLResponse? {
-        let url = urlForFileIdentifier(request.cacheFileIdentifier)
+        guard let fileIdentifier = request.cacheFileIdentifier else {
+            return nil
+        }
+
+        let url = urlForFileIdentifier(fileIdentifier)
         guard let data = try? Data(contentsOf: url),
             let response = NSKeyedUnarchiver.unarchiveObject(with: data) as? CachedURLResponse else {
             return nil
@@ -351,29 +355,35 @@ fileprivate struct _CachePersistence {
         return response
     }
 
-    func deleteAllCaches() {
-        do {
-            try FileManager.default.removeItem(atPath: path)
-        } catch {
-            fatalError("Unable to flush database for URLCache: \(error.localizedDescription)")
-        }
-    }
-
     private func urlForFileIdentifier(_ identifier: String) -> URL {
-        return URL(fileURLWithPath: path + "/" + identifier)
+        return URL(fileURLWithPath: path).appendingPathComponent(identifier)
     }
 
 }
 
-fileprivate extension URLRequest {
+extension URLRequest {
 
-    var cacheFileIdentifier: String {
-        guard let urlString = url?.absoluteString else {
-            fatalError("Unable to create cache identifier for request: \(self)")
+    fileprivate var cacheFileIdentifier: String? {
+        guard let scheme = self.url?.scheme, scheme == "http" || scheme == "https",
+            let method = httpMethod, !method.isEmpty,
+            let urlString = url?.absoluteString else {
+            return nil
         }
 
-        let method = httpMethod ?? "GET"
-        return urlString + method
+        var hashString = "\(scheme)_\(method)_\(urlString)"
+        if let userAgent = self.allHTTPHeaderFields?["User-Agent"], !userAgent.isEmpty {
+            hashString.append(contentsOf: "_\(userAgent)")
+        }
+
+        if let acceptLanguage = self.allHTTPHeaderFields?["Accept-Language"], !acceptLanguage.isEmpty {
+            hashString.append(contentsOf: "_\(acceptLanguage)")
+        }
+
+        if let range = self.allHTTPHeaderFields?["Range"], !range.isEmpty {
+            hashString.append(contentsOf: "_\(range)")
+        }
+
+        return String(format: "%X", hashString.hashValue)
     }
 
 }

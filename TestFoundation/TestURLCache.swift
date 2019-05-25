@@ -16,11 +16,12 @@ class TestURLCache: XCTestCase {
     }
 
     private var cacheDirectoryPath: String {
-        if let path = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.path {
-            return "\(path)/org.swift.TestFoundation"
-        } else {
-            return "\(NSHomeDirectory())/Library/Caches/org.swift.TestFoundation"
+        guard var cacheDirectoryUrl = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+            fatalError("Unable to find cache directory")
         }
+
+        cacheDirectoryUrl.appendPathComponent(ProcessInfo.processInfo.processName)
+        return cacheDirectoryUrl.path
     }
 
     func test_cacheFileAndDirectorySetup() {
@@ -35,7 +36,7 @@ class TestURLCache: XCTestCase {
         let newPath = cacheDirectoryPath + ".test_cacheFileAndDirectorySetup/"
         URLCache.shared = URLCache(memoryCapacity: fourMegaByte, diskCapacity: twentyMegaByte, diskPath: newPath)
         XCTAssertTrue(FileManager.default.fileExists(atPath: newPath))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: cacheDirectoryPath))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: cacheDirectoryPath))
     }
 
 }
