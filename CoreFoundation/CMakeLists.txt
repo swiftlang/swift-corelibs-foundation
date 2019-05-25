@@ -1,7 +1,11 @@
 
 cmake_minimum_required(VERSION 3.4.3)
-list(APPEND CMAKE_MODULE_PATH
-     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
 
 project(CoreFoundation
         VERSION
@@ -422,6 +426,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
   find_package(CURL REQUIRED)
+  target_include_directories(CoreFoundation
+                             PRIVATE
+                               ${CURL_INCLUDE_DIRS})
   target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
@@ -586,7 +593,7 @@ endif()
 
 install(TARGETS
           CoreFoundation
-		  CFURLSessionInterface
+          CFURLSessionInterface
         DESTINATION
           "${CMAKE_INSTALL_FULL_LIBDIR}")
 install(DIRECTORY
