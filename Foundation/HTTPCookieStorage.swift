@@ -339,7 +339,7 @@ open class HTTPCookieStorage: NSObject {
     open func sortedCookies(using sortOrder: [NSSortDescriptor]) -> [HTTPCookie] {
         var result: [HTTPCookie] = []
         syncQ.sync {
-            let cookies = Array(allCookies.values)._nsObject
+            let cookies = Array(allCookies.values) as NSArray
             result = cookies.sortedArray(using: sortOrder) as! [HTTPCookie]
         }
         return result
