@@ -4292,7 +4292,7 @@ static CFStringRef URLPathToWindowsPath(CFStringRef path, CFAllocatorRef allocat
 static CFStringRef _resolveFileSystemPaths(CFStringRef relativePath, CFStringRef basePath, Boolean baseIsDir, CFURLPathStyle fsType, CFAllocatorRef alloc) CF_RETURNS_RETAINED {
     CFIndex baseLen = CFStringGetLength(basePath);
     CFIndex relLen = CFStringGetLength(relativePath);
-    UniChar pathDelimiter = '/';
+    UniChar pathDelimiter = _CFGetSlash();
     UniChar *buf = (UniChar *)CFAllocatorAllocate(alloc, sizeof(UniChar)*(relLen + baseLen + 2), 0);
     CFStringGetCharacters(basePath, CFRangeMake(0, baseLen), buf);
     if (baseIsDir) {

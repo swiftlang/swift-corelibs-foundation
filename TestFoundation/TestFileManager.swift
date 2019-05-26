@@ -16,6 +16,11 @@
 #endif
 
 class TestFileManager : XCTestCase {
+#if os(Windows)
+    let pathSep = "\\"
+#else
+    let pathSep = "/"
+#endif
 
     func test_createDirectory() {
         let fm = FileManager.default
@@ -449,11 +454,11 @@ class TestFileManager : XCTestCase {
                 foundItems.insert(item)
                 if item == "item" {
                     item1FileAttributes = e.fileAttributes
-                } else if item == "path2/item" {
+                } else if item == "path2\(pathSep)item" {
                     item2FileAttributes = e.fileAttributes
                 }
             }
-            XCTAssertEqual(foundItems, Set(["item", "path2", "path2/item"]))
+            XCTAssertEqual(foundItems, Set(["item", "path2", "path2\(pathSep)item"]))
         } else {
             XCTFail()
         }
@@ -492,10 +497,17 @@ class TestFileManager : XCTestCase {
         let fm = FileManager.default
         let basePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)/"
         let subDirs1 = basePath + "subdir1/subdir2/.hiddenDir/subdir3/"
-        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5./.subdir6.ext/subdir7.ext./"
         let itemPath1 = basePath + "itemFile1"
+#if os(Windows)
+        // Filenames ending with '.' are not valid on Windows, so don't bother testing them
+        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5/.subdir6.ext/subdir7.ext/"
+        let itemPath2 = subDirs1 + "itemFile2"
+        let itemPath3 = subDirs1 + "itemFile3.ext"
+#else
+        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5./.subdir6.ext/subdir7.ext./"
         let itemPath2 = subDirs1 + "itemFile2."
         let itemPath3 = subDirs1 + "itemFile3.ext."
+#endif
         let hiddenItem1 = basePath + ".hiddenFile1"
         let hiddenItem2 = subDirs1 + ".hiddenFile2"
         let hiddenItem3 = subDirs2 + ".hiddenFile3"
@@ -507,17 +519,24 @@ class TestFileManager : XCTestCase {
             "subdir1": 1,
             "subdir2": 2,
             "subdir4.app": 3,
-            "subdir5.": 4,
             ".subdir6.ext": 5,
-            "subdir7.ext.": 6,
             ".hiddenFile4.ext": 7,
             ".hiddenFile3": 7,
             ".hiddenDir": 3,
             "subdir3": 4,
-            "itemFile3.ext.": 5,
-            "itemFile2.": 5,
-            ".hiddenFile2": 5
+            ".hiddenFile2": 5,
         ]
+#if os(Windows)
+        fileLevels["itemFile2"] = 5
+        fileLevels["subdir5"] = 4
+        fileLevels["subdir7.ext"] = 6
+        fileLevels["itemFile3.ext"] = 5
+#else
+        fileLevels["itemFile2."] = 5
+        fileLevels["subdir5."] = 4
+        fileLevels["subdir7.ext."] = 6
+        fileLevels["itemFile3.ext."] = 5
+#endif
 
         func directoryItems(options: FileManager.DirectoryEnumerationOptions) -> [String: Int]? {
             if let e = FileManager.default.enumerator(at: URL(fileURLWithPath: basePath), includingPropertiesForKeys: nil, options: options, errorHandler: nil) {

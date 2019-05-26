@@ -652,64 +652,69 @@ extension FileManager {
         var _options : FileManager.DirectoryEnumerationOptions
         var _errorHandler : ((URL, Error) -> Bool)?
         var _stack: [URL]
-        var _current: URL?
+        var _lastReturned: URL
         var _rootDepth : Int
 
         init(url: URL, options: FileManager.DirectoryEnumerationOptions, errorHandler: (/* @escaping */ (URL, Error) -> Bool)?) {
             _options = options
             _errorHandler = errorHandler
-            _stack = [url]
+            _stack = []
             _rootDepth = url.pathComponents.count
+            _lastReturned = url
         }
 
         override func nextObject() -> Any? {
-            func contentsOfDir(directory: URL) -> [URL]? {
-                var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
-                guard let dirFSR = directory.withUnsafeFileSystemRepresentation({ $0.flatMap { fsr in String(utf8String: fsr) } })
-                else { return nil }
-                let dirPath = joinPath(prefix: dirFSR, suffix: "*")
-                let h: HANDLE = dirPath.withCString(encodedAs: UTF16.self) {
+            func firstValidItem() -> URL? {
+                while let url = _stack.popLast() {
+                    if !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
+                        guard let handler = _errorHandler,
+                              handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true))
+                        else { return nil }
+                        continue
+                    }
+                    _lastReturned = url
+                    return _lastReturned
+                }
+                return nil
+            }
+
+            // If we most recently returned a directory, decend into it
+            var isDir: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: _lastReturned.path, isDirectory: &isDir) else {
+              guard let handler = _errorHandler,
+                    handler(_lastReturned, _NSErrorWithWindowsError(GetLastError(), reading: true))
+              else { return nil }
+              return firstValidItem()
+            }
+
+            if isDir.boolValue && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
+                var ffd = WIN32_FIND_DATAW()
+                let dirPath = joinPath(prefix: _lastReturned.path, suffix: "*")
+                let handle = dirPath.withCString(encodedAs: UTF16.self) {
                   FindFirstFileW($0, &ffd)
                 }
-                guard h != INVALID_HANDLE_VALUE else { return nil }
-                defer { FindClose(h) }
+                guard handle != INVALID_HANDLE_VALUE else { return firstValidItem() }
+                defer { FindClose(handle) }
 
-                var files: [URL] = []
                 repeat {
                     let fileArr = Array<WCHAR>(
                       UnsafeBufferPointer(start: &ffd.cFileName.0,
                                           count: MemoryLayout.size(ofValue: ffd.cFileName)))
                     let file = String(decodingCString: fileArr, as: UTF16.self)
-                    if file != "."
-                        && file != ".."
+                    if file != "." && file != ".."
                         && (!_options.contains(.skipsHiddenFiles)
                             || (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_HIDDEN) == 0)) {
-                        files.append(URL(fileURLWithPath: joinPath(prefix: dirFSR, suffix: file)))
-                      }
-                } while FindNextFileW(h, &ffd)
-                return files
-            }
-            while let url = _stack.popLast() {
-                if url.hasDirectoryPath && !_options.contains(.skipsSubdirectoryDescendants) {
-                    guard let dirContents = contentsOfDir(directory: url)?.reversed() else {
-                        if let handler = _errorHandler {
-                           let dirFSR = url.withUnsafeFileSystemRepresentation { $0.flatMap { fsr in String(utf8String: fsr) } }
-                           let keepGoing = handler(URL(fileURLWithPath: dirFSR ?? ""),
-                               _NSErrorWithWindowsError(GetLastError(), reading: true))
-                           if !keepGoing { return nil }
-                        }
-                        continue
+                        let relative = URL(fileURLWithPath: file, relativeTo: _lastReturned)
+                        _stack.append(relative)
                     }
-                    _stack.append(contentsOf: dirContents)
-                }
-                _current = url
-                return url
+                } while FindNextFileW(handle, &ffd)
             }
-            return nil
+
+            return firstValidItem()
         }
 
         override var level: Int {
-            return _rootDepth - (_current?.pathComponents.count ?? _rootDepth)
+            return _lastReturned.pathComponents.count - _rootDepth
         }
 
         override func skipDescendants() {
@@ -728,31 +733,24 @@ extension FileManager {
 
 extension FileManager.NSPathDirectoryEnumerator {
     internal func _nextObject() -> Any? {
-        let o = innerEnumerator.nextObject()
-        guard let url = o as? URL else {
-            return nil
-        }
+        guard let url = innerEnumerator.nextObject() as? URL else { return nil }
 
-        var relativePath = UnsafeMutableBufferPointer<WCHAR>.allocate(capacity: Int(MAX_PATH))
-        defer { relativePath.deallocate() }
-        func withURLCString<Result>(url: URL, _ f: (UnsafePointer<WCHAR>) -> Result?) -> Result? {
-            return url.withUnsafeFileSystemRepresentation { fsr in
-                (fsr.flatMap { String(utf8String: $0) })?.withCString(encodedAs: UTF16.self) { f($0) }
-            }
-        }
-        guard withURLCString(url: baseURL, { pszFrom -> Bool? in
-            withURLCString(url: url) { pszTo in
-                let fromAttrs = GetFileAttributesW(pszFrom)
-                let toAttrs = GetFileAttributesW(pszTo)
+        var relativePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(MAX_PATH))
+
+        guard baseURL._withUnsafeWideFileSystemRepresentation({ baseUrlFsr in
+            url._withUnsafeWideFileSystemRepresentation { urlFsr in
+                let fromAttrs = GetFileAttributesW(baseUrlFsr)
+                let toAttrs = GetFileAttributesW(urlFsr)
                 guard fromAttrs != INVALID_FILE_ATTRIBUTES, toAttrs != INVALID_FILE_ATTRIBUTES else {
                     return false
                 }
-                return PathRelativePathToW(relativePath.baseAddress, pszFrom, fromAttrs, pszTo, toAttrs)
+                return PathRelativePathToW(&relativePath, baseUrlFsr, fromAttrs, urlFsr, toAttrs)
             }
-        }) == true, let (path, _) = String.decodeCString(relativePath.baseAddress, as: UTF16.self) else {
-            return nil
-        }
-        _currentItemPath = path
+        }) else { return nil }
+
+        let path = String(decodingCString: &relativePath, as: UTF16.self)
+        // Drop the leading ".\" from the path
+        _currentItemPath = String(path.dropFirst(2))
         return _currentItemPath
     }
 
