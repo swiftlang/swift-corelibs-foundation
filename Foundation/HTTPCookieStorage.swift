@@ -337,12 +337,10 @@ open class HTTPCookieStorage: NSObject {
       @discussion proper sorting of cookies may require extensive string conversion, which can be avoided by allowing the system to perform the sorting.  This API is to be preferred over the more generic -[HTTPCookieStorage cookies] API, if sorting is going to be performed.
     */
     open func sortedCookies(using sortOrder: [NSSortDescriptor]) -> [HTTPCookie] {
-        var result: [HTTPCookie] = []
-        syncQ.sync {
+        return syncQ.sync {
             let cookies = Array(allCookies.values) as NSArray
-            result = cookies.sortedArray(using: sortOrder) as! [HTTPCookie]
+            return cookies.sortedArray(using: sortOrder) as! [HTTPCookie]
         }
-        return result
     }
 }
 
