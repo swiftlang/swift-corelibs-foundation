@@ -56,7 +56,7 @@ typedef struct CFURLSessionEasyCode {
     int value;
 } CFURLSessionEasyCode;
 
-CF_EXPORT CFStringRef _Nonnull CFURLSessionCreateErrorDescription(int value);
+CF_EXPORT const char * _Nullable CFURLSessionEasyCodeDescription(CFURLSessionEasyCode code);
 
 CF_EXPORT int const CFURLSessionEasyErrorSize;
 

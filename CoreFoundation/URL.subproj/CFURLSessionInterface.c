@@ -32,10 +32,8 @@ static CFURLSessionMultiCode MakeMultiCode(CURLMcode value) {
     return (CFURLSessionMultiCode) { value };
 }
 
-CFStringRef CFURLSessionCreateErrorDescription(int value) {
-    const char *description = curl_easy_strerror(value);
-    return CFStringCreateWithBytes(kCFAllocatorSystemDefault,
-        (const uint8_t *)description, strlen(description), kCFStringEncodingUTF8, NO);
+const char *CFURLSessionEasyCodeDescription(CFURLSessionEasyCode code) {
+    return curl_easy_strerror(code.value);
 }
 
 CFURLSessionEasyHandle _Nonnull CFURLSessionEasyHandleInit() {

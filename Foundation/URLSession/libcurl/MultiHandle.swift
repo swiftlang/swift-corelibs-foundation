@@ -217,9 +217,14 @@ fileprivate extension URLSession._MultiHandle {
         // Find the NSURLError code
         var error: NSError?
         if let errorCode = easyHandle.urlErrorCode(for: easyCode) {
-            let errorDescription = easyHandle.errorBuffer[0] != 0 ?
-                String(cString: easyHandle.errorBuffer) :
-                unsafeBitCast(CFURLSessionCreateErrorDescription(easyCode.value), to: NSString.self) as String
+            var errorDescription: String = ""
+            if easyHandle.errorBuffer[0] == 0 {
+              let description = CFURLSessionEasyCodeDescription(easyCode)!
+              errorDescription = NSString(bytes: UnsafeMutableRawPointer(mutating: description), length: strlen(description), encoding: String.Encoding.utf8.rawValue)! as String
+            } else {
+              errorDescription = String(cString: easyHandle.errorBuffer)
+            }
+
             error = NSError(domain: NSURLErrorDomain, code: errorCode, userInfo: [
                 NSLocalizedDescriptionKey: errorDescription
             ])
