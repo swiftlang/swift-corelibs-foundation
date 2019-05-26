@@ -29,7 +29,7 @@ internal let kCFURLPlatformPathStyle = kCFURLPOSIXPathStyle
 #endif
 
 private func _standardizedPath(_ path: String) -> String {
-    if !path.absolutePath {
+    if !path.isAbsolutePath {
         return path._nsObject.standardizingPath
     }
     return path
@@ -1007,7 +1007,7 @@ extension NSURL {
         }
 
         let absolutePath: String
-        if selfPath.hasPrefix("/") {
+        if selfPath.isAbsolutePath {
             absolutePath = selfPath
         } else {
             let workingDir = FileManager.default.currentDirectoryPath

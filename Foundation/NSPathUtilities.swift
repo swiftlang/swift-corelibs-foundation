@@ -117,8 +117,12 @@ extension String {
         return nil
     }
 
-    internal var absolutePath: Bool {
+    internal var isAbsolutePath: Bool {
+#if os(Windows)
+        return !withCString(encodedAs: UTF16.self, PathIsRelativeW)
+#else
         return hasPrefix("~") || hasPrefix("/")
+#endif
     }
     
     internal func _stringByAppendingPathComponent(_ str: String, doneAppending : Bool = true) -> String {
