@@ -91,8 +91,8 @@ open class HTTPCookieStorage: NSObject {
         guard let cookies = try? PropertyListSerialization.propertyList(from: cookiesData, format: nil) else { return }
         let cookies0 = cookies as? [String: [String: Any]] ?? [:]
         self.syncQ.sync {
-            for key in cookies0.keys {
-                if let cookie = createCookie(cookies0[key]!) {
+            for (key, value) in cookies0 {
+                if let cookie = createCookie(value) {
                     allCookies[key] = cookie
                 }
             }
