@@ -600,13 +600,6 @@ if(ENABLE_TESTING)
                            ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
 endif()
 
-# TODO(compnerd) honour lib vs lib64
-install(FILES
-          ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
-          ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
-        DESTINATION
-          lib/swift/${swift_os}/${swift_arch})
-
 if(BUILD_SHARED_LIBS)
   set(library_kind SHARED)
   set(swift_dir swift)
@@ -615,21 +608,36 @@ else()
   set(swift_dir swift_static)
 endif()
 
+# TODO(compnerd) honour lib vs lib64
+install(FILES
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftdoc
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationNetworking.swiftdoc
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationNetworking.swiftmodule
+        DESTINATION
+          lib/${swift_dir}/${swift_os}/${swift_arch})
+
+
 set(Foundation_OUTPUT_FILE
-    ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}Foundation${CMAKE_${library_kind}_LIBRARY_SUFFIX})
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}Foundation${CMAKE_${library_kind}_LIBRARY_SUFFIX})
+set(FoundationNetworking_OUTPUT_FILE
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}FoundationNetworking${CMAKE_${library_kind}_LIBRARY_SUFFIX})
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows AND BUILD_SHARED_LIBS)
   install(FILES
             ${Foundation_OUTPUT_FILE}
+            ${FoundationNetworking_OUTPUT_FILE}
           DESTINATION
             bin)
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}Foundation${CMAKE_IMPORT_LIBRARY_SUFFIX}
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}FoundationNetworking${CMAKE_IMPORT_LIBRARY_SUFFIX}
           DESTINATION
             lib/${swift_dir}/${swift_os})
 else()
   install(FILES
             ${Foundation_OUTPUT_FILE}
+            ${FoundationNetworking_OUTPUT_FILE}
           DESTINATION
             lib/${swift_dir}/${swift_os})
 endif()
