@@ -36,6 +36,8 @@ import Foundation
 /// A background session can be used to perform networking operations
 /// on behalf of a suspended application, within certain constraints.
 open class URLSessionConfiguration : NSObject, NSCopying {
+    // -init is silently incorrect in URLSessionCofiguration on the desktop. Ensure code that relied on swift-corelibs-foundation's init() being functional is redirected to the appropriate cross-platform class property.
+    @available(*, deprecated, message: "Use .default instead.", renamed: "URLSessionConfiguration.default")
     public override init() {
         self.requestCachePolicy = .useProtocolCachePolicy
         self.timeoutIntervalForRequest = 60
@@ -53,6 +55,27 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         self.shouldUseExtendedBackgroundIdleMode = false
         self.protocolClasses = [_HTTPURLProtocol.self, _FTPURLProtocol.self]
         super.init()
+    }
+    
+    internal convenience init(correctly: ()) {
+        self.init(identifier: nil,
+                  requestCachePolicy: .useProtocolCachePolicy,
+                  timeoutIntervalForRequest: 60,
+                  timeoutIntervalForResource: 604800,
+                  networkServiceType: .default,
+                  allowsCellularAccess: true,
+                  isDiscretionary: false,
+                  connectionProxyDictionary: nil,
+                  httpShouldUsePipelining: false,
+                  httpShouldSetCookies: true,
+                  httpCookieAcceptPolicy: .onlyFromMainDocumentDomain,
+                  httpAdditionalHeaders: nil,
+                  httpMaximumConnectionsPerHost: 6,
+                  httpCookieStorage: .shared,
+                  urlCredentialStorage: nil, // Should be .shared once implemented.
+                  urlCache: nil,
+                  shouldUseExtendedBackgroundIdleMode: false,
+                  protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self])
     }
     
     private init(identifier: String?,
@@ -121,15 +144,15 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     }
     
     open class var `default`: URLSessionConfiguration {
-        return URLSessionConfiguration()
+        return URLSessionConfiguration(correctly: ())
     }
 
     open class var ephemeral: URLSessionConfiguration {
         // Return a new ephemeral URLSessionConfiguration every time this property is invoked
         // TODO: urlCache and urlCredentialStorage should also be ephemeral/in-memory
         // URLCache and URLCredentialStorage are still unimplemented
-        let ephemeralConfiguration = URLSessionConfiguration()
-        ephemeralConfiguration.httpCookieStorage = HTTPCookieStorage.ephemeralStorage()
+        let ephemeralConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
+        ephemeralConfiguration.httpCookieStorage = .ephemeralStorage()
         return ephemeralConfiguration
     }
 

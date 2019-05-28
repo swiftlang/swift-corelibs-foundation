@@ -346,9 +346,31 @@ open class URLSession : NSObject {
         }
     }
     
-    open func reset(completionHandler: @escaping () -> Void) { NSUnimplemented() } /* empty all cookies, cache and credential stores, removes disk files, issues -flushWithCompletionHandler:. Invokes completionHandler() on the delegate queue if not nil. */
+    /* empty all cookies, cache and credential stores, removes disk files, issues -flushWithCompletionHandler:. Invokes completionHandler() on the delegate queue. */
+    open func reset(completionHandler: @escaping () -> Void) {
+        let configuration = self.configuration
+        
+        DispatchQueue.global(qos: .background).async {
+            configuration.urlCache?.removeAllCachedResponses()
+            if let storage = configuration.urlCredentialStorage {
+                for credentialEntry in storage.allCredentials {
+                    for credential in credentialEntry.value {
+                        storage.remove(credential.value, for: credentialEntry.key)
+                    }
+                }
+            }
+            
+            self.flush(completionHandler: completionHandler)
+        }
+    }
     
-    open func flush(completionHandler: @escaping () -> Void)  { NSUnimplemented() }/* flush storage to disk and clear transient network caches.  Invokes completionHandler() on the delegate queue if not nil. */
+     /* flush storage to disk and clear transient network caches.  Invokes completionHandler() on the delegate queue. */
+    open func flush(completionHandler: @escaping () -> Void) {
+        // We create new CURL handles every request.
+        delegateQueue.addOperation {
+            completionHandler()
+        }
+    }
 
     /* invokes completionHandler with outstanding data, upload and download tasks. */
     open func getTasksWithCompletionHandler(completionHandler: @escaping ([URLSessionDataTask], [URLSessionUploadTask], [URLSessionDownloadTask]) -> Void)  {
