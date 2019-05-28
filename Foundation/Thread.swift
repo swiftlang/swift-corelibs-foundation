@@ -251,9 +251,12 @@ open class Thread : NSObject {
     }
 
     open var name: String? {
-        didSet {
+        get {
+            return _name
+        }
+        set {
             if let thread = _thread {
-                _CFThreadSetName(thread, name ?? "" )
+                _CFThreadSetName(thread, newValue ?? "" )
             }
         }
     }
