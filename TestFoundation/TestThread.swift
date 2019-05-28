@@ -68,16 +68,17 @@ class TestThread : XCTestCase {
     
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_threadName() {
-        // No name is set initially
-        XCTAssertNil(Thread.current.name)
-
 #if os(Linux) // Linux sets the initial thread name to the process name.
+        XCTAssertEqual(Thread.current.name, "TestFoundation")
         XCTAssertEqual(Thread.current._name, "TestFoundation")
 #else
+        // No name is set initially
+        XCTAssertEqual(Thread.current.name, "")
         XCTAssertEqual(Thread.current._name, "")
 #endif
         Thread.current.name = "mainThread"
         XCTAssertEqual(Thread.mainThread.name, "mainThread")
+        XCTAssertEqual(Thread.mainThread._name, "mainThread")
 
         let condition = NSCondition()
         condition.lock()
