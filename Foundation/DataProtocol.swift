@@ -80,7 +80,7 @@ extension DataProtocol {
     }
     
     public func lastRange<D: DataProtocol>(of data: D) -> Range<Index>? {
-        return self.firstRange(of: data, in: self.startIndex ..< self.endIndex)
+        return self.lastRange(of: data, in: self.startIndex ..< self.endIndex)
     }
     
     @discardableResult
