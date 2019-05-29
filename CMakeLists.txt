@@ -652,6 +652,15 @@ install(FILES
           CoreFoundation/Base.subproj/module.map
         DESTINATION
           lib/swift/CoreFoundation)
+install(DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/CFURLSessionInterface.framework/Headers/
+        DESTINATION
+          lib/swift/CFURLSessionInterface
+        FILES_MATCHING PATTERN "*.h")
+install(FILES
+          CoreFoundation/URL.subproj/module.map
+        DESTINATION
+          lib/swift/CFURLSessionInterface)
 install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/plutil${CMAKE_EXECUTABLE_SUFFIX}
         DESTINATION
