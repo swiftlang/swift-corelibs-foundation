@@ -201,6 +201,7 @@ open class URLCache : NSObject {
         self.memoryCapacity = memoryCapacity
         self.diskCapacity = diskCapacity
 
+        // As per the function of URLCache, `diskCapacity` of `0` is assumed as no-persistence.
         if diskCapacity > 0, let _path = path {
             self.persistence = _CachePersistence(path: _path)
         }
@@ -322,17 +323,13 @@ fileprivate struct _CachePersistence {
     }
 
     func setupCacheDirectory() {
-        do {
-            try FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
-        } catch {
-            fatalError("Unable to create directories for URLCache: \(error.localizedDescription)")
-        }
+        try? FileManager.default.createDirectory(atPath: path, withIntermediateDirectories: true)
     }
 
     func saveCachedResponse(_ response: CachedURLResponse, for request: URLRequest) {
-        let archivedData = NSKeyedArchiver.archivedData(withRootObject: response)
         do {
-            if let fileIdentifier = request.cacheFileIdentifier {
+            if let archivedData = try? NSKeyedArchiver.archivedData(withRootObject: response, requiringSecureCoding: true),
+                let fileIdentifier = request.cacheFileIdentifier {
                 let cacheFileURL = urlForFileIdentifier(fileIdentifier)
                 try archivedData.write(to: cacheFileURL)
             }
@@ -348,7 +345,7 @@ fileprivate struct _CachePersistence {
 
         let url = urlForFileIdentifier(fileIdentifier)
         guard let data = try? Data(contentsOf: url),
-            let response = NSKeyedUnarchiver.unarchiveObject(with: data) as? CachedURLResponse else {
+            let response = try? NSKeyedUnarchiver.unarchivedObject(ofClasses:[CachedURLResponse.self], from: data) as? CachedURLResponse else {
             return nil
         }
 
@@ -367,23 +364,28 @@ extension URLRequest {
         guard let scheme = self.url?.scheme, scheme == "http" || scheme == "https",
             let method = httpMethod, !method.isEmpty,
             let urlString = url?.absoluteString else {
-            return nil
+                return nil
         }
 
-        var hashString = "\(scheme)_\(method)_\(urlString)"
+        var hashString = "\(abs(method.hashValue))-\(abs(urlString.hashValue))"
+
         if let userAgent = self.allHTTPHeaderFields?["User-Agent"], !userAgent.isEmpty {
-            hashString.append(contentsOf: "_\(userAgent)")
+            hashString.append("\(abs(userAgent.hashValue))")
         }
 
         if let acceptLanguage = self.allHTTPHeaderFields?["Accept-Language"], !acceptLanguage.isEmpty {
-            hashString.append(contentsOf: "_\(acceptLanguage)")
+            hashString.append("-\(abs(acceptLanguage.hashValue))")
         }
 
         if let range = self.allHTTPHeaderFields?["Range"], !range.isEmpty {
-            hashString.append(contentsOf: "_\(range)")
+            hashString.append("-\(abs(range.hashValue))")
         }
 
-        return String(format: "%X", hashString.hashValue)
+        if let data = self.httpBody, !data.isEmpty {
+            hashString.append("-\(abs(data.hashValue))")
+        }
+
+        return hashString
     }
 
 }
