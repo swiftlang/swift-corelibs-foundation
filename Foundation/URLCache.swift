@@ -47,51 +47,7 @@ extension URLCache {
     It is used to maintain characteristics and attributes of a cached 
     object. 
 */
-open class CachedURLResponse : NSObject, NSSecureCoding, NSCopying {
-    
-    public required init?(coder aDecoder: NSCoder) {
-        guard aDecoder.allowsKeyedCoding else {
-            /* Unkeyed unarchiving is not supported. */
-            return nil
-        }
-
-        guard let data = aDecoder.decodeObject(of: NSData.self, forKey: "Data") else {
-            return nil
-        }
-        guard let response = aDecoder.decodeObject(of: URLResponse.self, forKey: "URLResponse") else {
-            return nil
-        }
-        guard let storagePolicyValue = aDecoder.decodeObject(of: NSNumber.self, forKey: "StoragePolicy") else {
-            return nil
-        }
-        guard let storagePolicy = URLCache.StoragePolicy(rawValue: storagePolicyValue.uintValue) else {
-            return nil
-        }
-        let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "UserInfo")
-
-        self.data = data as Data
-        self.response = response
-        self.storagePolicy = storagePolicy
-        self.userInfo = userInfo?._swiftObject
-    }
-    
-    open func encode(with aCoder: NSCoder) {
-        guard aCoder.allowsKeyedCoding else {
-            fatalError("We do not support saving to a non-keyed coder.")
-        }
-
-        aCoder.encode(data as NSData, forKey: "Data")
-        aCoder.encode(response, forKey: "URLResponse")
-        aCoder.encode(NSNumber(value: storagePolicy.rawValue), forKey: "StoragePolicy")
-        if let userInfo = userInfo {
-            aCoder.encode(userInfo._nsObject, forKey: "UserInfo")
-        }
-    }
-    
-    static public var supportsSecureCoding: Bool {
-        return true
-    }
-    
+open class CachedURLResponse : NSObject, NSCopying {
     open override func copy() -> Any {
         return copy(with: nil)
     }
