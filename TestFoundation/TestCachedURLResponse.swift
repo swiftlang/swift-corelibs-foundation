@@ -8,23 +8,6 @@
 //
 
 class TestCachedURLResponse : XCTestCase {
-    func test_NSCoding() throws {
-        let url = try URL(string: "http://example.com/").unwrapped()
-        let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
-        let bytes: [UInt8] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        let data = Data(bytes: bytes, count: bytes.count)
-        let userInfo: [AnyHashable: Any] = ["Key1": "Value1", "Key2": "Value2"]
-        let storagePolicy = URLCache.StoragePolicy.allowedInMemoryOnly
-        let cachedResponse = CachedURLResponse(response: response, data: data, userInfo: userInfo, storagePolicy: storagePolicy)
-
-        let unarchivedResponse = NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: cachedResponse)) as! CachedURLResponse
-
-        XCTAssertEqual(cachedResponse.response, unarchivedResponse.response)
-        XCTAssertEqual(cachedResponse.data, unarchivedResponse.data)
-        XCTAssertEqual(cachedResponse.userInfo?.keys, unarchivedResponse.userInfo?.keys)
-        XCTAssertEqual(cachedResponse.storagePolicy, unarchivedResponse.storagePolicy)
-    }
-
     func test_copy() throws {
         let url = try URL(string: "http://example.com/").unwrapped()
         let response = URLResponse(url: url, mimeType: nil, expectedContentLength: -1, textEncodingName: nil)
@@ -208,7 +191,6 @@ class TestCachedURLResponse : XCTestCase {
 
     static var allTests: [(String, (TestCachedURLResponse) -> () throws -> Void)] {
         return [
-            ("test_NSCoding", test_NSCoding),
             ("test_copy", test_copy),
             ("test_initDefaultUserInfoAndStoragePolicy", test_initDefaultUserInfoAndStoragePolicy),
             ("test_initDefaultUserInfo", test_initDefaultUserInfo),
