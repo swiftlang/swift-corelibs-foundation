@@ -561,3 +561,24 @@ extension XCTest {
         }
     }
 }
+
+extension FileHandle: TextOutputStream {
+    public func write(_ string: String) {
+        write(Data(string.utf8))
+    }
+    
+    struct EncodedOutputStream: TextOutputStream {
+        let fileHandle: FileHandle
+        let encoding: String.Encoding
+        
+        init(_ fileHandle: FileHandle, encoding: String.Encoding) {
+            self.fileHandle = fileHandle
+            self.encoding = encoding
+        }
+        
+        func write(_ string: String) {
+            fileHandle.write(string.data(using: encoding)!)
+        }
+    }
+}
+
