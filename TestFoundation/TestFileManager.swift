@@ -1714,7 +1714,8 @@ VIDEOS=StopgapVideos
             ("test_getRelationship", test_getRelationship),
             ("test_displayNames", test_displayNames),
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
-            ("test_replacement", test_replacement),
+            /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
+            /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
         ]
         
         #if !DEPLOYMENT_RUNTIME_OBJC && NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT && !os(Android)
