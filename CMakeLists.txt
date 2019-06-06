@@ -519,6 +519,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestTimeZone.swift
                          TestFoundation/TestUnitConverter.swift
                          TestFoundation/TestUnit.swift
+                         TestFoundation/TestURLCache.swift
                          TestFoundation/TestURLCredential.swift
                          TestFoundation/TestURLProtectionSpace.swift
                          TestFoundation/TestURLProtocol.swift

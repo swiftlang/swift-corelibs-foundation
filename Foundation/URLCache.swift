@@ -13,6 +13,13 @@ import SwiftFoundation
 import Foundation
 #endif
 
+internal extension NSLock {
+    func performLocked<T>(_ block: () throws -> T) rethrows -> T {
+        lock(); defer { unlock() }
+        return try block()
+    }
+}
+
 /*!
     @enum URLCache.StoragePolicy
     
@@ -37,6 +44,35 @@ extension URLCache {
         case allowed
         case allowedInMemoryOnly
         case notAllowed
+    }
+}
+
+class StoredCachedURLResponse: NSObject, NSSecureCoding {
+    class var supportsSecureCoding: Bool { return true }
+    
+    func encode(with aCoder: NSCoder) {
+        aCoder.encode(cachedURLResponse.response, forKey: "response")
+        aCoder.encode(cachedURLResponse.data as NSData, forKey: "data")
+        aCoder.encode(cachedURLResponse.storagePolicy.rawValue, forKey: "storagePolicy")
+        aCoder.encode(cachedURLResponse.userInfo as NSDictionary?, forKey: "userInfo")
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        guard let response = aDecoder.decodeObject(of: URLResponse.self, forKey: "response"),
+              let data = aDecoder.decodeObject(of: NSData.self, forKey: "data"),
+            let storagePolicy = URLCache.StoragePolicy(rawValue: UInt(aDecoder.decodeInt64(forKey: "storagePolicy"))) else {
+                return nil
+        }
+        
+        let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "userInfo") as? [AnyHashable: Any]
+        
+        cachedURLResponse = CachedURLResponse(response: response, data: data as Data, userInfo: userInfo, storagePolicy: storagePolicy)
+    }
+    
+    let cachedURLResponse: CachedURLResponse
+    
+    init(cachedURLResponse: CachedURLResponse) {
+        self.cachedURLResponse = cachedURLResponse
     }
 }
 
@@ -154,6 +190,9 @@ open class CachedURLResponse : NSObject, NSCopying {
 
 open class URLCache : NSObject {
     
+    private static let sharedLock = NSLock()
+    private static var _shared = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 20 * 1024 * 1024, diskPath: nil)
+    
     /*! 
         @method sharedURLCache
         @abstract Returns the shared URLCache instance.
@@ -173,13 +212,100 @@ open class URLCache : NSObject {
     */
     open class var shared: URLCache {
         get {
-            NSUnimplemented()
+            sharedLock.lock(); defer { sharedLock.unlock() }
+            return _shared
         }
         set {
-            NSUnimplemented()
+            sharedLock.lock(); defer { sharedLock.unlock() }
+            _shared = newValue
         }
     }
-
+    
+    private let cacheDirectory: URL?
+    
+    private struct CacheEntry: Hashable {
+        var identifier: String
+        var cachedURLResponse: CachedURLResponse
+        var date: Date
+        var cost: Int
+        
+        init(identifier: String, cachedURLResponse: CachedURLResponse, serializedVersion: Data? = nil) {
+            self.identifier = identifier
+            self.cachedURLResponse = cachedURLResponse
+            self.date = Date()
+            // Estimate cost if we haven't already had to serialize this.
+            self.cost = serializedVersion?.count ?? (cachedURLResponse.data.count + 500 * (cachedURLResponse.userInfo?.count ?? 0))
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(identifier)
+        }
+        
+        static func ==(_ lhs: CacheEntry, _ rhs: CacheEntry) -> Bool {
+            return lhs.identifier == rhs.identifier
+        }
+    }
+    
+    private let inMemoryCacheLock = NSLock()
+    private var inMemoryCacheOrder: [String] = []
+    private var inMemoryCacheContents: [String: CacheEntry] = [:]
+    
+    func evictFromMemoryCacheAssumingLockHeld(maximumSize: Int) {
+        let sizes: [Int] = inMemoryCacheOrder.map {
+            inMemoryCacheContents[$0]!.cost
+        }
+        
+        var totalSize = sizes.reduce(0, +)
+        
+        guard totalSize > maximumSize else { return }
+        
+        var identifiersToRemove: Set<String> = []
+        for (index, identifier) in inMemoryCacheOrder.enumerated() {
+            identifiersToRemove.insert(identifier)
+            totalSize -= sizes[index]
+            if totalSize < maximumSize {
+                break
+            }
+        }
+        
+        for identifier in identifiersToRemove {
+            inMemoryCacheContents.removeValue(forKey: identifier)
+        }
+        inMemoryCacheOrder.removeAll(where: { identifiersToRemove.contains($0) })
+    }
+    
+    func evictFromDiskCache(maximumSize: Int) {
+        var entries: [DiskEntry] = []
+        enumerateDiskEntries(includingPropertiesForKeys: [.fileSizeKey]) { (entry, stop) in
+            entries.append(entry)
+        }
+        
+        entries.sort { (a, b) -> Bool in
+            a.date < b.date
+        }
+        
+        let sizes: [Int] = entries.map {
+            return (try? $0.url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        }
+        
+        var totalSize = sizes.reduce(0, +)
+        
+        guard totalSize > maximumSize else { return }
+        
+        var urlsToRemove: [URL] = []
+        for (index, entry) in entries.enumerated() {
+            urlsToRemove.append(entry.url)
+            totalSize -= sizes[index]
+            if totalSize < maximumSize {
+                break
+            }
+        }
+        
+        for url in urlsToRemove {
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+    
     /*! 
         @method initWithMemoryCapacity:diskCapacity:diskPath:
         @abstract Initializes an URLCache with the given capacity and
@@ -193,7 +319,109 @@ open class URLCache : NSObject {
         @result an initialized URLCache, with the given capacity, backed
         by disk.
     */
-    public init(memoryCapacity: Int, diskCapacity: Int, diskPath path: String?) { NSUnimplemented() }
+    public init(memoryCapacity: Int, diskCapacity: Int, diskPath path: String?) {
+        self.memoryCapacity = memoryCapacity
+        self.diskCapacity = diskCapacity
+        
+        if let path = path {
+            cacheDirectory = URL(fileURLWithPath: path)
+        } else {
+            do {
+                let caches = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                let directoryName = (Bundle.main.bundleIdentifier ?? ProcessInfo.processInfo.processName)
+                    .replacingOccurrences(of: "/", with: "_")
+                    .replacingOccurrences(of: "\\", with: "_")
+                    .replacingOccurrences(of: ":", with: "_")
+
+                // We append a Swift Foundation identifier to avoid clobbering a Darwin cache that may exist at the same path;
+                // the two on-disk cache formats aren't compatible.
+                let url = caches
+                    .appendingPathComponent("org.swift.Foundation.URLCache", isDirectory: true)
+                    .appendingPathComponent(directoryName, isDirectory: true)
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+                
+                cacheDirectory = url
+            } catch {
+                cacheDirectory = nil
+            }
+        }
+    }
+    
+    private func identifier(for request: URLRequest) -> String? {
+        guard let url = request.url?.absoluteString else { return nil }
+        return Data(url.utf8).base64EncodedString()
+    }
+    
+    private struct DiskEntry {
+        static let pathExtension = "storedcachedurlresponse"
+        
+        var url: URL
+        var date: Date
+        var identifier: String
+        
+        init?(_ url: URL) {
+            if url.pathExtension.localizedCompare(DiskEntry.pathExtension) != .orderedSame {
+                return nil
+            }
+            
+            let parts = url.deletingPathExtension().lastPathComponent.components(separatedBy: ".")
+            guard parts.count == 2 else { return nil }
+            let (timeString, identifier) = (parts[0], parts[1])
+            
+            guard let time = Int64(timeString) else { return nil }
+            
+            self.date = Date(timeIntervalSinceReferenceDate: TimeInterval(time))
+            self.identifier = identifier
+            self.url = url
+        }
+    }
+    
+    private func enumerateDiskEntries(includingPropertiesForKeys keys: [URLResourceKey] = [], using block: (DiskEntry, inout Bool) -> Void) {
+        guard let directory = cacheDirectory else { return }
+        for url in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: keys)) ?? [] {
+            if let entry = DiskEntry(url) {
+                var stop = false
+                block(entry, &stop)
+                if stop {
+                    return
+                }
+            }
+        }
+    }
+    
+    private func diskContentsURL(for request: URLRequest, forCreationAt date: Date? = nil) -> URL? {
+        guard let identifier = self.identifier(for: request) else { return nil }
+        guard let directory = cacheDirectory else { return nil }
+        
+        var foundURL: URL?
+        
+        enumerateDiskEntries { (entry, stop) in
+            if entry.identifier == identifier {
+                foundURL = entry.url
+                stop = true
+            }
+        }
+        
+        if let date = date {
+            // If we're trying to _create_ an entry and it already exists, then we can't -- we should evict the old one first.
+            if foundURL != nil {
+                return nil
+            }
+            
+            // Create the new URL
+            let interval = Int64(date.timeIntervalSinceReferenceDate)
+            return directory.appendingPathComponent("\(interval).\(identifier).\(DiskEntry.pathExtension)")
+        } else {
+            return foundURL
+        }
+    }
+    
+    private func diskContents(for request: URLRequest) throws -> StoredCachedURLResponse? {
+        guard let url = diskContentsURL(for: request) else { return nil }
+        
+        let data = try Data(contentsOf: url)
+        return try NSKeyedUnarchiver.unarchivedObject(ofClasses: [StoredCachedURLResponse.self], from: data) as? StoredCachedURLResponse
+    }
     
     /*! 
         @method cachedResponseForRequest:
@@ -206,7 +434,23 @@ open class URLCache : NSObject {
         request, or nil if there is no NSCachedURLResponse stored with the
         given request.
     */
-    open func cachedResponse(for request: URLRequest) -> CachedURLResponse? { NSUnimplemented() }
+    open func cachedResponse(for request: URLRequest) -> CachedURLResponse? {
+        let result = inMemoryCacheLock.performLocked { () -> CachedURLResponse? in
+            if let identifier = identifier(for: request),
+                let entry = inMemoryCacheContents[identifier] {
+                return entry.cachedURLResponse
+            } else {
+                return nil
+            }
+        }
+        
+        if let result = result {
+            return result
+        }
+        
+        guard let contents = try? diskContents(for: request) else { return nil }
+        return contents.cachedURLResponse
+    }
     
     /*! 
         @method storeCachedResponse:forRequest:
@@ -215,7 +459,41 @@ open class URLCache : NSObject {
         @param cachedResponse The cached response to store.
         @param request the NSURLRequest to use as a key for the storage.
     */
-    open func storeCachedResponse(_ cachedResponse: CachedURLResponse, for request: URLRequest) { NSUnimplemented() }
+    open func storeCachedResponse(_ cachedResponse: CachedURLResponse, for request: URLRequest) {
+        let inMemory = cachedResponse.storagePolicy == .allowed || cachedResponse.storagePolicy == .allowedInMemoryOnly
+        let onDisk = cachedResponse.storagePolicy == .allowed
+        guard inMemory || onDisk else { return }
+        
+        guard let identifier = identifier(for: request) else { return }
+        
+        // Only create a serialized version if we are writing to disk:
+        let object = StoredCachedURLResponse(cachedURLResponse: cachedResponse)
+        let serialized = (onDisk && diskCapacity > 0) ? try? NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: true) : nil
+        
+        let entry = CacheEntry(identifier: identifier, cachedURLResponse: cachedResponse, serializedVersion: serialized)
+
+        if inMemory && entry.cost < memoryCapacity {
+            inMemoryCacheLock.performLocked {
+                evictFromMemoryCacheAssumingLockHeld(maximumSize: memoryCapacity - entry.cost)
+                inMemoryCacheOrder.append(identifier)
+                inMemoryCacheContents[identifier] = entry
+            }
+        }
+        
+        if onDisk, let serialized = serialized, entry.cost < diskCapacity {
+            do {
+                evictFromDiskCache(maximumSize: diskCapacity - entry.cost)
+                
+                if let oldURL = diskContentsURL(for: request) {
+                    try FileManager.default.removeItem(at: oldURL)
+                }
+                
+                if let newURL = diskContentsURL(for: request, forCreationAt: Date()) {
+                    try serialized.write(to: newURL, options: .atomic)
+                }
+            } catch { /* Best effort -- do not store on error. */ }
+        }
+    }
     
     /*! 
         @method removeCachedResponseForRequest:
@@ -225,20 +503,67 @@ open class URLCache : NSObject {
         stored with the given request.
         @param request the NSURLRequest to use as a key for the lookup.
     */
-    open func removeCachedResponse(for request: URLRequest) { NSUnimplemented() }
+    open func removeCachedResponse(for request: URLRequest) {
+        guard let identifier = identifier(for: request) else { return }
+        
+        inMemoryCacheLock.performLocked {
+            if inMemoryCacheContents[identifier] != nil {
+                inMemoryCacheOrder.removeAll(where: { $0 == identifier })
+                inMemoryCacheContents.removeValue(forKey: identifier)
+            }
+        }
+        
+        if let oldURL = diskContentsURL(for: request) {
+            try? FileManager.default.removeItem(at: oldURL)
+        }
+    }
     
     /*! 
         @method removeAllCachedResponses
         @abstract Clears the given cache, removing all NSCachedURLResponse
         objects that it stores.
     */
-    open func removeAllCachedResponses() { NSUnimplemented() }
+    open func removeAllCachedResponses() {
+        inMemoryCacheLock.performLocked {
+            inMemoryCacheContents = [:]
+            inMemoryCacheOrder = []
+        }
+        
+        evictFromDiskCache(maximumSize: 0)
+    }
     
     /*!
      @method removeCachedResponsesSince:
      @abstract Clears the given cache of any cached responses since the provided date.
      */
-    open func removeCachedResponses(since date: Date) { NSUnimplemented() }
+    open func removeCachedResponses(since date: Date) {
+        inMemoryCacheLock.performLocked { // Memory cache:
+            var identifiersToRemove: Set<String> = []
+            for entry in inMemoryCacheContents {
+                if entry.value.date > date {
+                    identifiersToRemove.insert(entry.key)
+                }
+            }
+            
+            for toRemove in identifiersToRemove {
+                inMemoryCacheContents.removeValue(forKey: toRemove)
+            }
+            inMemoryCacheOrder.removeAll { identifiersToRemove.contains($0) }
+        }
+        
+        do { // Disk cache:
+            var urlsToRemove: [URL] = []
+            enumerateDiskEntries { (entry, stop) in
+                if entry.date > date {
+                    urlsToRemove.append(entry.url)
+                }
+            }
+            
+            for url in urlsToRemove {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
+    }
     
     /*! 
         @method memoryCapacity
@@ -246,7 +571,13 @@ open class URLCache : NSObject {
         @discussion At the time this call is made, the in-memory cache will truncate its contents to the size given, if necessary.
         @result The in-memory capacity, measured in bytes, for the receiver. 
     */
-    open var memoryCapacity: Int
+    open var memoryCapacity: Int {
+        didSet {
+            inMemoryCacheLock.performLocked {
+                evictFromMemoryCacheAssumingLockHeld(maximumSize: memoryCapacity)
+            }
+        }
+    }
     
     /*! 
         @method diskCapacity
@@ -254,7 +585,9 @@ open class URLCache : NSObject {
         @discussion At the time this call is made, the on-disk cache will truncate its contents to the size given, if necessary.
         @param diskCapacity the new on-disk capacity, measured in bytes, for the receiver.
     */
-    open var diskCapacity: Int
+    open var diskCapacity: Int {
+        didSet { evictFromDiskCache(maximumSize: diskCapacity) }
+    }
     
     /*! 
         @method currentMemoryUsage
@@ -264,7 +597,13 @@ open class URLCache : NSObject {
         usage of the in-memory cache. 
         @result the current usage of the in-memory cache of the receiver.
     */
-    open var currentMemoryUsage: Int { NSUnimplemented() }
+    open var currentMemoryUsage: Int {
+        return inMemoryCacheLock.performLocked {
+            return inMemoryCacheContents.values.reduce(0) { (result, entry) in
+                return result + entry.cost
+            }
+        }
+    }
     
     /*! 
         @method currentDiskUsage
@@ -274,11 +613,34 @@ open class URLCache : NSObject {
         usage of the on-disk cache. 
         @result the current usage of the on-disk cache of the receiver.
     */
-    open var currentDiskUsage: Int { NSUnimplemented() }
-}
+    open var currentDiskUsage: Int {
+        var total = 0
+        enumerateDiskEntries(includingPropertiesForKeys: [.fileSizeKey]) { (entry, stop) in
+            if let size = (try? entry.url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize {
+                total += size
+            }
+        }
+        
+        return total
+    }
 
-extension URLCache {
-    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for dataTask: URLSessionDataTask) { NSUnimplemented() }
-    public func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: (CachedURLResponse?) -> Void) { NSUnimplemented() }
-    public func removeCachedResponse(for dataTask: URLSessionDataTask) { NSUnimplemented() }
+    open func storeCachedResponse(_ cachedResponse: CachedURLResponse, for dataTask: URLSessionDataTask) {
+        guard let request = dataTask.currentRequest else { return }
+        storeCachedResponse(cachedResponse, for: request)
+    }
+    
+    open func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: @escaping (CachedURLResponse?) -> Void) {
+        guard let request = dataTask.currentRequest else {
+            completionHandler(nil)
+            return
+        }
+        DispatchQueue.global(qos: .background).async {
+            completionHandler(self.cachedResponse(for: request))
+        }
+    }
+    
+    open func removeCachedResponse(for dataTask: URLSessionDataTask) {
+        guard let request = dataTask.currentRequest else { return }
+        removeCachedResponse(for: request)
+    }
 }
