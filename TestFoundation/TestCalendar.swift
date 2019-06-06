@@ -26,6 +26,7 @@ class TestCalendar: XCTestCase {
             ("test_currentCalendarRRstability", test_currentCalendarRRstability),
             ("test_hashing", test_hashing),
             ("test_dateFromDoesntMutate", test_dateFromDoesntMutate),
+            ("test_sr10638", test_sr10638),
         ]
     }
     
@@ -253,6 +254,12 @@ class TestCalendar: XCTestCase {
         XCTAssertEqual(calendarCopy.timeZone.description, "GMT (fixed)")
         XCTAssertEqual(calendarCopy.timeZone, calendar.timeZone)
         XCTAssertEqual(calendarCopy, calendar)
+    }
+    
+    func test_sr10638() {
+        // https://bugs.swift.org/browse/SR-10638
+        let cal = Calendar(identifier: .gregorian)
+        XCTAssertGreaterThan(cal.eraSymbols.count, 0)
     }
 }
 

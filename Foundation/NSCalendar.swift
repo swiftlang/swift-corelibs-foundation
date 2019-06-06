@@ -329,7 +329,7 @@ open class NSCalendar : NSObject, NSCopying, NSSecureCoding {
     private func _symbols(_ key: CFString) -> [String] {
         let dateFormatter = CFDateFormatterCreate(kCFAllocatorSystemDefault, locale?._cfObject, kCFDateFormatterNoStyle, kCFDateFormatterNoStyle)
         CFDateFormatterSetProperty(dateFormatter, kCFDateFormatterCalendarKey, _cfObject)
-        let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! CFArray)._swiftObject
+        let result = (CFDateFormatterCopyProperty(dateFormatter, key) as! NSArray)._swiftObject
         return result.map {
             return ($0 as! NSString)._swiftObject
         }
