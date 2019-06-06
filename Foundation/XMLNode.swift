@@ -294,6 +294,15 @@ open class XMLNode: NSObject, NSCopying {
         case _kCFXMLTypeNamespace:
             return .namespace
 
+        case _kCFXMLTypeProcessingInstruction:
+            return .processingInstruction
+
+        case _kCFXMLTypeComment:
+            return .comment
+
+        case _kCFXMLTypeText:
+            return .text
+
         default:
             return .invalid
         }

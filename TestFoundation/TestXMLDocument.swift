@@ -38,6 +38,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_removeNamespace", test_removeNamespace),
             ("test_optionPreserveAll", test_optionPreserveAll),
             ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
+            ("test_nodeKinds", test_nodeKinds),
         ]
     }
 
@@ -549,6 +550,21 @@ class TestXMLDocument : LoopbackServerTest {
         }
 
         XCTAssertEqual(try? test(), "plans")
+    }
+    
+    func test_nodeKinds() {
+        XCTAssertEqual(XMLDocument(rootElement: nil).kind, .document)
+        XCTAssertEqual(XMLElement(name: "prefix:localName").kind, .element)
+        XCTAssertEqual((XMLNode.attribute(withName: "name", stringValue: "value") as? XMLNode)?.kind, .attribute)
+        XCTAssertEqual((XMLNode.namespace(withName: "namespace", stringValue: "http://example.com/") as? XMLNode)?.kind, .namespace)
+        XCTAssertEqual((XMLNode.processingInstruction(withName: "name", stringValue: "value") as? XMLNode)?.kind, .processingInstruction)
+        XCTAssertEqual((XMLNode.comment(withStringValue: "comment") as? XMLNode)?.kind, .comment)
+        XCTAssertEqual((XMLNode.text(withStringValue: "text") as? XMLNode)?.kind, .text)
+        XCTAssertEqual((try? XMLDTD(data:#"<!ENTITY a "A">"#.data(using: .utf8)!))?.kind, .DTDKind)
+        XCTAssertEqual(XMLDTDNode(xmlString: #"<!ENTITY b "B">"#)?.kind, .entityDeclaration)
+        XCTAssertEqual(XMLDTDNode(xmlString: "<!ATTLIST A B CDATA #IMPLIED>")?.kind, .attributeDeclaration)
+        XCTAssertEqual(XMLDTDNode(xmlString: "<!ELEMENT E EMPTY>")?.kind, .elementDeclaration)
+        XCTAssertEqual(XMLDTDNode(xmlString: #"<!NOTATION f SYSTEM "F">"#)?.kind, .notationDeclaration)
     }
 }
 
