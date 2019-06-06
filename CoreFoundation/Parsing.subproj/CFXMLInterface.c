@@ -57,6 +57,9 @@ CFIndex _kCFXMLTypeInvalid = 0;
 CFIndex _kCFXMLTypeDocument = XML_DOCUMENT_NODE;
 CFIndex _kCFXMLTypeElement = XML_ELEMENT_NODE;
 CFIndex _kCFXMLTypeAttribute = XML_ATTRIBUTE_NODE;
+CFIndex _kCFXMLTypeProcessingInstruction = XML_PI_NODE;
+CFIndex _kCFXMLTypeComment = XML_COMMENT_NODE;
+CFIndex _kCFXMLTypeText = XML_TEXT_NODE;
 CFIndex _kCFXMLTypeDTD = XML_DTD_NODE;
 CFIndex _kCFXMLDocTypeHTML = XML_DOC_HTML;
 CFIndex _kCFXMLTypeNamespace = 22; // libxml2 does not define namespaces as nodes, so we have to fake it
@@ -1006,6 +1009,14 @@ _CFXMLDTDPtr _CFXMLNewDTD(_CFXMLDocPtr doc, const unsigned char* name, const uns
     return xmlNewDtd(doc, name, publicID, systemID);
 }
 
+void _CFXMLNotationScanner(void* payload, void* data, xmlChar* name) {
+    xmlNotationPtr notation = (xmlNotationPtr)payload;
+    _cfxmlNotation* node = (_cfxmlNotation*)data;
+    node->type = XML_NOTATION_NODE;
+    node->name = notation->name;
+    node->notation = notation;
+}
+
 _CFXMLDTDNodePtr _CFXMLParseDTDNode(const unsigned char* xmlString) {
     CFDataRef data = CFDataCreateWithBytesNoCopy(NULL, xmlString, xmlStrlen(xmlString), kCFAllocatorNull);
     xmlDtdPtr dtd = _CFXMLParseDTDFromData(data, NULL);
@@ -1016,7 +1027,12 @@ _CFXMLDTDNodePtr _CFXMLParseDTDNode(const unsigned char* xmlString) {
     }
     
     xmlNodePtr node = dtd->children;
-    xmlUnlinkNode(node);
+    if (node != NULL) {
+        xmlUnlinkNode(node);
+    } else if (dtd->notations) {
+        node = (xmlNodePtr)calloc(1, sizeof(_cfxmlNotation));
+        xmlHashScan((xmlNotationTablePtr)dtd->notations, &_CFXMLNotationScanner, (void*)node);
+    }
 
     return node;
 }
