@@ -12,6 +12,7 @@
 		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
 		1539391422A07007006DFF4F /* TestCachedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1539391322A07007006DFF4F /* TestCachedURLResponse.swift */; };
+		1539391522A07160006DFF4F /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
 		153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
@@ -31,6 +32,7 @@
 		1578DA11212B407B003C9516 /* CFString_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA10212B407B003C9516 /* CFString_Internal.h */; };
 		1578DA13212B4C35003C9516 /* CFOverflow.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA12212B4C35003C9516 /* CFOverflow.h */; };
 		1578DA15212B6F33003C9516 /* CFCollections_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1578DA14212B6F33003C9516 /* CFCollections_Internal.h */; };
+		1581706322B1A29100348861 /* TestURLCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1581706222B1A29100348861 /* TestURLCache.swift */; };
 		158BCCAA2220A12600750239 /* TestDateIntervalFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */; };
 		158BCCAD2220A18F00750239 /* CFDateIntervalFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		158BCCAE2220A18F00750239 /* CFDateIntervalFormatter.c in Sources */ = {isa = PBXBuildFile; fileRef = 158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */; };
@@ -636,6 +638,7 @@
 		1578DA10212B407B003C9516 /* CFString_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFString_Internal.h; sourceTree = "<group>"; };
 		1578DA12212B4C35003C9516 /* CFOverflow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFOverflow.h; sourceTree = "<group>"; };
 		1578DA14212B6F33003C9516 /* CFCollections_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCollections_Internal.h; sourceTree = "<group>"; };
+		1581706222B1A29100348861 /* TestURLCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestURLCache.swift; sourceTree = "<group>"; };
 		158BCCA92220A12600750239 /* TestDateIntervalFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateIntervalFormatter.swift; sourceTree = "<group>"; };
 		158BCCAB2220A18F00750239 /* CFDateIntervalFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFDateIntervalFormatter.h; sourceTree = "<group>"; };
 		158BCCAC2220A18F00750239 /* CFDateIntervalFormatter.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFDateIntervalFormatter.c; sourceTree = "<group>"; };
@@ -1756,6 +1759,7 @@
 				84BA558D1C16F90900F48C54 /* TestTimeZone.swift */,
 				EA66F6431BF1619600136161 /* TestURL.swift */,
 				F9E0BB361CA70B8000F7FF3C /* TestURLCredential.swift */,
+				1581706222B1A29100348861 /* TestURLCache.swift */,
 				83712C8D1C1684900049AD49 /* TestNSURLRequest.swift */,
 				DAA79BD820D42C07004AF044 /* TestURLProtectionSpace.swift */,
 				7A7D6FBA1C16439400957E2E /* TestURLResponse.swift */,
@@ -2814,7 +2818,6 @@
 				B90C57BB1EEEEA5A005208AE /* TestFileManager.swift in Sources */,
 				A058C2021E529CF100B07AA1 /* TestMassFormatter.swift in Sources */,
 				5B13B3381C582D4C00651CE2 /* TestNotificationQueue.swift in Sources */,
-				152EF3942283457C001E1269 /* TestNSSortDescriptor.swift in Sources */,
 				CC5249C01D341D23007CB54D /* TestUnitConverter.swift in Sources */,
 				5B13B3331C582D4C00651CE2 /* TestJSONSerialization.swift in Sources */,
 				5B13B33C1C582D4C00651CE2 /* TestNSOrderedSet.swift in Sources */,
@@ -2899,8 +2902,10 @@
 				5B13B3271C582D4C00651CE2 /* TestNSArray.swift in Sources */,
 				5B13B3461C582D4C00651CE2 /* TestProcess.swift in Sources */,
 				555683BD1C1250E70041D4C6 /* TestUserDefaults.swift in Sources */,
+				1539391522A07160006DFF4F /* TestNSSortDescriptor.swift in Sources */,
 				DCA8120B1F046D13000D0C86 /* TestCodable.swift in Sources */,
 				7900433B1CACD33E00ECCBF1 /* TestNSCompoundPredicate.swift in Sources */,
+				1581706322B1A29100348861 /* TestURLCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
