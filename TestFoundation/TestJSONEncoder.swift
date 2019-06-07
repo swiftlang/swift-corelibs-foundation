@@ -439,6 +439,20 @@ class TestJSONEncoder : XCTestCase {
         }
     }
 
+    func test_codingOfFloatToIntFails() {
+        do {
+            let json = "{ \"value\": 1.5, }".data(using: .utf8)!
+            let _ = try JSONDecoder().decode(TopLevelObjectWrapper<Int>.self, from: json)
+            XCTFail("Decoder should fail when decoding Float value to Int.")
+        } catch {}
+
+        do {
+            let json = "{ \"value\": 1.0, }".data(using: .utf8)!
+            let _ = try JSONDecoder().decode(TopLevelObjectWrapper<Int>.self, from: json)
+            XCTFail("Decoder should fail when decoding Float value to Int.")
+        } catch {}
+    }
+
     func test_codingOfUInt() {
         let uintSize = MemoryLayout<UInt>.size
         switch uintSize {
@@ -1291,6 +1305,7 @@ extension TestJSONEncoder {
             ("test_codingOfInt64", test_codingOfInt64),
             ("test_codingOfUInt64", test_codingOfUInt64),
             ("test_codingOfInt", test_codingOfInt),
+            ("test_codingOfFloatToIntFails", test_codingOfFloatToIntFails),
             ("test_codingOfUInt", test_codingOfUInt),
             ("test_codingOfUIntMinMax", test_codingOfUIntMinMax),
             ("test_codingOfFloat", test_codingOfFloat),
