@@ -2109,13 +2109,13 @@ extension _JSONDecoder {
             throw DecodingError._typeMismatch(at: self.codingPath, expectation: type, reality: value)
         }
 
-
         switch number._cfNumberType() {
         case kCFNumberFloatType, kCFNumberDoubleType:
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Parsed JSON number <\(number)> does not fit in \(type)."))
         default:
             break
         }
+
         let int = number.intValue
         guard NSNumber(value: int) == number else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: self.codingPath, debugDescription: "Parsed JSON number <\(number)> does not fit in \(type)."))
