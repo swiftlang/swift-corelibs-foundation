@@ -255,6 +255,13 @@ class TestNSDictionary : XCTestCase {
         XCTAssertEqual(dictionary[3 as NSNumber] as? String, "k")
     }
     
+    func test_NSCoding() {
+        let original: NSDictionary = ["foo": "bar"]
+        let encodedData = NSKeyedArchiver.archivedData(withRootObject: original)
+        let decoded = NSKeyedUnarchiver.unarchiveObject(with: encodedData) as! NSDictionary
+        XCTAssertEqual(original, decoded, "Archived then unarchived `NSDictionary` must be equal.")
+    }
+    
     static var allTests: [(String, (TestNSDictionary) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
@@ -270,6 +277,7 @@ class TestNSDictionary : XCTestCase {
             ("test_valueForKey", test_valueForKey),
             ("test_valueForKeyWithNestedDict", test_valueForKeyWithNestedDict),
             ("test_sharedKeySets", test_sharedKeySets),
+            ("test_NSCoding", test_NSCoding),
         ]
     }
 }
