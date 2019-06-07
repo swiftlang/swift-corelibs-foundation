@@ -429,6 +429,7 @@ if(ENABLE_TESTING)
                        DEPENDS
                          uuid
                          Foundation
+                         FoundationNetworking
                          CoreFoundation)
 
   add_swift_executable(TestFoundation
@@ -574,6 +575,7 @@ if(ENABLE_TESTING)
                          ${swift_libc_flags}
                        DEPENDS
                          Foundation
+                         FoundationNetworking
                          CoreFoundation
                          xdgTestHelper)
 
