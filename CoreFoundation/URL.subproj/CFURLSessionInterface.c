@@ -89,8 +89,8 @@ CFURLSessionEasyCode CFURLSession_easy_setopt_int(CFURLSessionEasyHandle _Nonnul
 CFURLSessionEasyCode CFURLSession_easy_setopt_long(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, long a) {
     return MakeEasyCode(curl_easy_setopt(curl, option.value, a));
 }
-CFURLSessionEasyCode CFURLSession_easy_setopt_int64(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, int64_t a) {
-    return MakeEasyCode(curl_easy_setopt(curl, option.value, a));
+CFURLSessionEasyCode CFURLSession_easy_setopt_int64(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, long long a) {
+    return MakeEasyCode(curl_easy_setopt(curl, option.value, (int64_t)a));
 }
 
 CFURLSessionEasyCode CFURLSession_easy_setopt_wc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, size_t(*_Nonnull a)(char *_Nonnull, size_t, size_t, void *_Nullable)) {

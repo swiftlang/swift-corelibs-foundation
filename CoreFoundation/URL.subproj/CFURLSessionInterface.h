@@ -578,7 +578,7 @@ CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_fptr(CFURLSessionEasyHan
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_ptr(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, void *_Nullable a);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_int(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, int a);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_long(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, long a);
-CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_int64(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, int64_t a);
+CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_int64(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, long long a);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_wc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, size_t(*_Nonnull a)(char *_Nonnull, size_t, size_t, void *_Nullable));
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_fwc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, size_t(*_Nonnull a)(char *_Nonnull, size_t, size_t, void *_Nullable));
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_dc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, int(*_Nonnull a)(CFURLSessionEasyHandle _Nonnull handle, int type, char *_Nonnull data, size_t size, void *_Nullable userptr));
@@ -588,9 +588,9 @@ typedef enum {
 } CFURLSessionSocketType;
 typedef int (CFURLSessionSocketOptionCallback)(void *_Nullable clientp, int fd, CFURLSessionSocketType purpose);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_sc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, CFURLSessionSocketOptionCallback * _Nullable a);
-typedef int (CFURLSessionSeekCallback)(void *_Nullable userp, int64_t offset, int origin);
+typedef int (CFURLSessionSeekCallback)(void *_Nullable userp, long long offset, int origin);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_seek(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, CFURLSessionSeekCallback * _Nullable a);
-typedef int (CFURLSessionTransferInfoCallback)(void *_Nullable userp, int64_t dltotal, int64_t dlnow, int64_t ultotal, int64_t ulnow);
+typedef int (CFURLSessionTransferInfoCallback)(void *_Nullable userp, long long dltotal, long long dlnow, long long ultotal, long long ulnow);
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_setopt_tc(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionOption option, CFURLSessionTransferInfoCallback * _Nullable a);
 
 CF_EXPORT CFURLSessionEasyCode CFURLSession_easy_getinfo_long(CFURLSessionEasyHandle _Nonnull curl, CFURLSessionInfo info, long *_Nonnull a);
