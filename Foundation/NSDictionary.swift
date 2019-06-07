@@ -148,7 +148,7 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
             keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
         } else {
-            NSUnimplemented()
+            NSUnsupported()
         }
     }
     
