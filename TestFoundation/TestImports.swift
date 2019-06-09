@@ -15,6 +15,8 @@
 @_exported import SwiftXCTest
 #else
 @_exported import Foundation
+#if canImport(FoundationNetworking)
 @_exported import FoundationNetworking
+#endif
 @_exported import XCTest
 #endif

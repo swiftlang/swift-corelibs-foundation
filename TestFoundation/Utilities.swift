@@ -7,6 +7,27 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if DARWIN_COMPATIBILITY_TESTS
+public typealias XCTestCaseEntry = (testCaseClass: XCTestCase.Type, allTests: [(String, XCTestCaseClosure)])
+public typealias XCTestCaseClosure = (XCTestCase) throws -> Void
+
+public func testCase<T: XCTestCase>(_ allTests: [(String, (T) -> () throws -> Void)]) -> XCTestCaseEntry {
+    let tests: [(String, XCTestCaseClosure)] = allTests.map { ($0.0, test($0.1)) }
+    return (T.self, tests)
+}
+
+private func test<T: XCTestCase>(_ testFunc: @escaping (T) -> () throws -> Void) -> XCTestCaseClosure {
+    return { testCaseType in
+        guard let testCase = testCaseType as? T else {
+            fatalError("Attempt to invoke test on class \(T.self) with incompatible instance type \(type(of: testCaseType))")
+        }
+
+        try testFunc(testCase)()
+    }
+}
+#endif
+
+
 func checkHashing_ValueType<Item: Hashable, S: Sequence>(
     initialValue item: Item,
     byMutating keyPath: WritableKeyPath<Item, S.Element>,
@@ -488,11 +509,20 @@ private var shouldRunXFailTests: Bool {
     return ProcessInfo.processInfo.environment["NS_FOUNDATION_ATTEMPT_XFAIL_TESTS"] == "YES"
 }
 
+
+private func printStderr(_ msg: String) {
+#if DARWIN_COMPATIBILITY_TESTS
+    FileHandle.standardError.write(Data(msg.utf8))
+#else
+    try? FileHandle.standardError.write(contentsOf: Data(msg.utf8))
+#endif
+}
+
 func shouldAttemptXFailTests(_ reason: String) -> Bool {
     if shouldRunXFailTests {
         return true
     } else {
-        try? FileHandle.standardError.write(contentsOf: Data("warning: Skipping test expected to fail with reason '\(reason)'\n".utf8))
+        printStderr("warning: Skipping test expected to fail with reason '\(reason)'\n")
         return false
     }
 }

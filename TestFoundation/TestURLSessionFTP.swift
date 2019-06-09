@@ -28,6 +28,7 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
                      """
 
     func test_ftpDataTask() {
+#if !DARWIN_COMPATIBILITY_TESTS
             let ftpURL = "ftp://127.0.0.1:\(TestURLSessionFTP.serverPort)/test.txt"
             let req = URLRequest(url: URL(string: ftpURL)!)
             let configuration = URLSessionConfiguration.default
@@ -41,6 +42,7 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
             })
             dataTask1.resume()
             waitForExpectations(timeout: 60)
+#endif
     }
    
     func test_ftpDataTaskDelegate() {

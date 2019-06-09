@@ -7,12 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftFoundationNetworking)
 import SwiftFoundation
 import SwiftFoundationNetworking
 #else
 import Foundation
+#if canImport(FoundationNetworking)
 import FoundationNetworking
+#endif
 #endif
 #if os(Windows)
 import WinSDK
@@ -177,9 +179,19 @@ func cat(_ args: ArraySlice<String>.Iterator) {
                 exitCode = 1
                 return
             }
+ #if DARWIN_COMPATIBILITY_TESTS
+            var data: Data
+            repeat {
+                data = fh.readData(ofLength: Int.max)
+                if data.count > 0 {
+                    FileHandle.standardOutput.write(data)
+                }
+            } while data.count > 0
+#else
             while let data = try fh.readToEnd() {
                 try FileHandle.standardOutput.write(contentsOf: data)
             }
+#endif
         }
         catch { print(error) }
     }
