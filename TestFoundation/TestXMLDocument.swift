@@ -199,7 +199,26 @@ class TestXMLDocument : LoopbackServerTest {
     func test_stringValue() {
         let element = XMLElement(name: "root")
         let foo = XMLElement(name: "foo")
+        let text = XMLNode.text(withStringValue:"<text>") as! XMLNode
+        let comment = XMLNode.comment(withStringValue:"<comment>") as! XMLNode
+        foo.addChild(text)
+        foo.addChild(comment)
         element.addChild(foo)
+        
+        XCTAssertEqual(text.stringValue, "<text>")
+        XCTAssertEqual(comment.stringValue, "<comment>")
+        XCTAssertEqual(foo.stringValue, "<text><comment>") // Same with Darwin
+        XCTAssertEqual(element.stringValue, "<text><comment>") // Same with Darwin
+        
+        // Confirm that SR-10759 is resolved.
+        // https://bugs.swift.org/browse/SR-10759
+        text.stringValue = "<modified text>"
+        comment.stringValue = "<modified comment>"
+        XCTAssertEqual(text.stringValue, "<modified text>")
+        XCTAssertEqual(comment.stringValue, "<modified comment>")
+        
+        XCTAssertEqual(element.stringValue, "<modified text><modified comment>")
+        XCTAssertEqual(element.xmlString, "<root><foo>&lt;modified text&gt;<!--<modified comment>--></foo></root>")
 
         element.stringValue = "Hello!<evil/>"
         XCTAssertEqual(element.xmlString, "<root>Hello!&lt;evil/&gt;</root>")
