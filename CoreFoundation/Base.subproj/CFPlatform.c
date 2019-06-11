@@ -32,6 +32,7 @@
 #include <Security.h>
 
 #define getcwd _NS_getcwd
+#define open _NS_open
 
 #endif
 
@@ -901,6 +902,9 @@ CF_EXPORT int _NS_open(const char *name, int oflag, int pmode) {
 
     DWORD dwCreationDisposition;
     switch (oflag & (O_CREAT | O_EXCL | O_TRUNC)) {
+      case O_CREAT | O_TRUNC:
+        dwCreationDisposition = CREATE_ALWAYS;
+        break;
       case O_CREAT:
         dwCreationDisposition = OPEN_ALWAYS;
         break;
@@ -916,7 +920,7 @@ CF_EXPORT int _NS_open(const char *name, int oflag, int pmode) {
 
     // Backup semantics are required to receive a handle to a directory
     DWORD dwFlagsAndAttributes = FILE_FLAG_BACKUP_SEMANTICS;
-    if (pmode & _S_IREAD) {
+    if (!(pmode & _S_IWRITE)) {
       dwFlagsAndAttributes |= FILE_ATTRIBUTE_READONLY;
     }
 
