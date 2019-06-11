@@ -393,7 +393,7 @@ extension FileManager {
                 case .typeRegular:
                     try srcPath.withCString(encodedAs: UTF16.self) { src in
                         try dstPath.withCString(encodedAs: UTF16.self) { dst in
-                            if !CreateHardLinkW(src, dst, nil) {
+                            if !CreateHardLinkW(dst, src, nil) {
                                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
                             }
                         }

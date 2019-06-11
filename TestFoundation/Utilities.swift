@@ -203,7 +203,6 @@ extension Fixture where ValueType: NSObject & NSCoding {
         let original = try make()
         
         let coder = NSKeyedArchiver(forWritingWith: NSMutableData())
-        coder.decodingFailurePolicy = .setErrorAndReturn
         archiverSetup(coder)
         
         coder.encode(original, forKey: NSKeyedArchiveRootObjectKey)

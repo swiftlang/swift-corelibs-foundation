@@ -747,7 +747,7 @@ open class NSCoder : NSObject {
     
     internal private(set) var _hasFailed = false
     
-    open var decodingFailurePolicy: NSCoder.DecodingFailurePolicy = .raiseException
+    open internal(set) var decodingFailurePolicy: NSCoder.DecodingFailurePolicy = .raiseException
     
     open var error: Error? {
         NSRequiresConcreteImplementation()
