@@ -8,13 +8,6 @@
 //
 
 #if !os(Windows)
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
-    import XCTest
-#else
-    import SwiftFoundation
-    import SwiftXCTest
-#endif
 
 class TestURLSessionFTP : LoopbackFTPServerTest {
     

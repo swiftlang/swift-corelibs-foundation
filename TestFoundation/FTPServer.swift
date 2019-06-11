@@ -11,16 +11,12 @@
 //This is a very rudimentary FTP server written plainly for testing URLSession FTP Implementation.
 import Dispatch
 
-#if DEPLOYMENT_RUNTIME_OBJC || os(Linux)
-    import Foundation
+#if canImport(Glibc)
     import Glibc
-    import XCTest
-#else
-    import CoreFoundation
-    import SwiftFoundation
+#elseif canImport(Darwin)
     import Darwin
-    import SwiftXCTest
 #endif
+
 
 class _FTPSocket {
 
@@ -88,10 +84,11 @@ class _FTPSocket {
         // Listen on the loopback address so that OSX doesnt pop up a dialog
         // asking to accept incoming connections if the firewall is enabled.
         let addr = UInt32(INADDR_LOOPBACK).bigEndian
+        let netPort = port.bigEndian
         #if os(Linux)
-            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: htons(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #else
-            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: CFSwapInt16HostToBig(port), sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
+            return sockaddr_in(sin_len: 0, sin_family: sa_family_t(AF_INET), sin_port: netPort, sin_addr: in_addr(s_addr: addr), sin_zero: (0,0,0,0,0,0,0,0))
         #endif
     }
  
