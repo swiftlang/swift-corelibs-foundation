@@ -172,7 +172,7 @@ class TestOperationQueue : XCTestCase {
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         queue.addOperations(operations, waitUntilFinished: false)
-        for operation in queue.operations {
+        for operation in operations {
             if operation.queuePriority == .normal {
                 operation.cancel()
             }
