@@ -422,6 +422,14 @@ extension FileManager {
         let fsrPath = String(utf16CodeUnits: &fsrBuf, count: length)
 
         let faAttributes = try windowsFileAttributes(atPath: fsrPath)
+
+        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
+        let readableAttributes = faAttributes.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY)
+            guard fsrPath.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+        }
+
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == 0 {
             if !fsrPath.withCString(encodedAs: UTF16.self, DeleteFileW) {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: false)
@@ -458,6 +466,14 @@ extension FileManager {
                                             count: MemoryLayout.size(ofValue: ffd.cFileName)))
                     let file = String(decodingCString: fileArr, as: UTF16.self)
                     itemPath = "\(currentDir)\\\(file)"
+
+                    if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
+                        let readableAttributes = ffd.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY)
+                        guard file.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
+                            throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+                        }
+                    }
+
                     if (ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) != 0) {
                         if file != "." && file != ".." {
                             dirStack.append(itemPath)
