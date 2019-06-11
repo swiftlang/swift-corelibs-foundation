@@ -372,27 +372,33 @@ open class XMLNode: NSObject, NSCopying {
             case .namespace:
                 return _CFXMLNamespaceCopyValue(_xmlNode)?._swiftObject
 
+            case .element:
+                // As with Darwin, children's string values are just concanated without spaces.
+                return children?.compactMap({ $0.stringValue }).joined() ?? ""
+
             default:
                 return _CFXMLNodeCopyContent(_xmlNode)?._swiftObject
             }
         }
         set {
-            if case .namespace = kind {
+            switch kind {
+            case .namespace:
                 if let newValue = newValue {
                     precondition(URL(string: newValue) != nil, "namespace stringValue must be a valid href")
                 }
-
                 _CFXMLNamespaceSetValue(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
-                return
-            }
 
-            _removeAllChildNodesExceptAttributes() // in case anyone is holding a reference to any of these children we're about to destroy
+            case .comment, .text:
+                _CFXMLNodeSetContent(_xmlNode, newValue)
 
-            if let string = newValue {
-                let newContent = _CFXMLEncodeEntities(_CFXMLNodeGetDocument(_xmlNode), string)?._swiftObject ?? ""
-                _CFXMLNodeSetContent(_xmlNode, newContent)
-            } else {
-                _CFXMLNodeSetContent(_xmlNode, nil)
+            default:
+                _removeAllChildNodesExceptAttributes() // in case anyone is holding a reference to any of these children we're about to destroy
+                if let string = newValue {
+                    let newContent = _CFXMLEncodeEntities(_CFXMLNodeGetDocument(_xmlNode), string)?._swiftObject ?? ""
+                    _CFXMLNodeSetContent(_xmlNode, newContent)
+                } else {
+                    _CFXMLNodeSetContent(_xmlNode, nil)
+                }
             }
         }
     }
