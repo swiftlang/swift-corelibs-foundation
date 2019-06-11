@@ -212,10 +212,58 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
 internal let _NSWindowsErrorDomain = "org.swift.Foundation.WindowsError"
 
 internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> NSError {
-    // <#TODO#> os(Windows): Map Win32 errors to Cocoa errors as _NSErrorWithErrno() does.
-    let code: CocoaError.Code = reading ? .fileReadUnknown : .fileWriteUnknown
-    return NSError(domain: NSCocoaErrorDomain, code: code.rawValue, userInfo: [
-        NSUnderlyingErrorKey: NSError(domain: _NSWindowsErrorDomain, code: Int(windowsError))
+    var cocoaError : CocoaError.Code
+    switch Int32(bitPattern: windowsError) {
+        case ERROR_LOCK_VIOLATION: cocoaError = .fileLocking
+        case ERROR_NOT_LOCKED: cocoaError = .fileLocking
+        case ERROR_LOCK_FAILED: cocoaError = .fileLocking
+        case ERROR_INVALID_EXE_SIGNATURE: cocoaError = .executableNotLoadable
+        case ERROR_EXE_MARKED_INVALID: cocoaError = .executableNotLoadable
+        case ERROR_BAD_EXE_FORMAT: cocoaError = .executableNotLoadable
+        case ERROR_BAD_EXE_FORMAT: cocoaError = .executableNotLoadable
+        case ERROR_LOCKED: cocoaError = .fileLocking
+        default:
+            if reading {
+                switch Int32(bitPattern: windowsError) {
+                    case ERROR_FILE_NOT_FOUND: cocoaError = .fileReadNoSuchFile
+                    case ERROR_PATH_NOT_FOUND: cocoaError = .fileReadNoSuchFile
+                    case ERROR_ACCESS_DENIED: cocoaError = .fileReadNoPermission
+                    case ERROR_INVALID_ACCESS: cocoaError = .fileReadNoPermission
+                    case ERROR_INVALID_DRIVE: cocoaError = .fileReadNoSuchFile
+                    case ERROR_SHARING_VIOLATION: cocoaError = .fileReadNoPermission
+                    case ERROR_INVALID_NAME: cocoaError = .fileReadInvalidFileName
+                    case ERROR_LABEL_TOO_LONG: cocoaError = .fileReadInvalidFileName
+                    case ERROR_BAD_PATHNAME: cocoaError = .fileReadInvalidFileName
+                    case ERROR_FILENAME_EXCED_RANGE: cocoaError = .fileReadInvalidFileName
+                    case ERROR_DIRECTORY: cocoaError = .fileReadInvalidFileName
+                    default:  cocoaError = .fileReadUnknown
+                }
+            } else {
+                switch Int32(bitPattern: windowsError) {
+                    case ERROR_FILE_NOT_FOUND: cocoaError = .fileNoSuchFile
+                    case ERROR_PATH_NOT_FOUND: cocoaError = .fileNoSuchFile
+                    case ERROR_ACCESS_DENIED: cocoaError = .fileWriteNoPermission
+                    case ERROR_INVALID_ACCESS: cocoaError = .fileWriteNoPermission
+                    case ERROR_INVALID_DRIVE: cocoaError = .fileNoSuchFile
+                    case ERROR_WRITE_PROTECT: cocoaError = .fileWriteVolumeReadOnly
+                    case ERROR_WRITE_FAULT: cocoaError = .fileWriteNoPermission
+                    case ERROR_SHARING_VIOLATION: cocoaError = .fileWriteNoPermission
+                    case ERROR_FILE_EXISTS: cocoaError = .fileWriteFileExists
+                    case ERROR_DISK_FULL: cocoaError = .fileWriteOutOfSpace
+                    case ERROR_INVALID_NAME: cocoaError = .fileWriteInvalidFileName
+                    case ERROR_LABEL_TOO_LONG: cocoaError = .fileWriteInvalidFileName
+                    case ERROR_BAD_PATHNAME: cocoaError = .fileWriteInvalidFileName
+                    case ERROR_ALREADY_EXISTS: cocoaError = .fileWriteFileExists
+                    case ERROR_FILENAME_EXCED_RANGE: cocoaError = .fileWriteInvalidFileName
+                    case ERROR_DIRECTORY: cocoaError = .fileWriteInvalidFileName
+                    case ERROR_DISK_RESOURCES_EXHAUSTED: cocoaError = .fileWriteOutOfSpace
+                    default:  cocoaError = .fileWriteUnknown
+                }
+            }
+        }
+
+    return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: [
+            NSUnderlyingErrorKey: NSError(domain: _NSWindowsErrorDomain, code: Int(windowsError))
     ])
 }
 #endif
