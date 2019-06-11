@@ -496,15 +496,18 @@ class TestFileManager : XCTestCase {
     func test_directoryEnumerator() {
         let fm = FileManager.default
         let basePath = NSTemporaryDirectory() + "testdir\(NSUUID().uuidString)/"
-        let subDirs1 = basePath + "subdir1/subdir2/.hiddenDir/subdir3/"
+        let hiddenDir1 = basePath + "subdir1/subdir2/.hiddenDir/"
+        let subDirs1 = hiddenDir1 + "subdir3/"
         let itemPath1 = basePath + "itemFile1"
 #if os(Windows)
         // Filenames ending with '.' are not valid on Windows, so don't bother testing them
-        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5/.subdir6.ext/subdir7.ext/"
+        let hiddenDir2 = basePath + "subdir1/subdir2/subdir4.app/subdir5/.subdir6.ext/"
+        let subDirs2 = hiddenDir2 + "subdir7.ext/"
         let itemPath2 = subDirs1 + "itemFile2"
         let itemPath3 = subDirs1 + "itemFile3.ext"
 #else
-        let subDirs2 = basePath + "subdir1/subdir2/subdir4.app/subdir5./.subdir6.ext/subdir7.ext./"
+        let hiddenDir2 = basePath + "subdir1/subdir2/subdir4.app/subdir5./.subdir6.ext/"
+        let subDirs2 = hiddenDir2 + "subdir7.ext./"
         let itemPath2 = subDirs1 + "itemFile2."
         let itemPath3 = subDirs1 + "itemFile3.ext."
 #endif
@@ -555,9 +558,34 @@ class TestFileManager : XCTestCase {
 
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs1, withIntermediateDirectories: true, attributes: nil))
         XCTAssertNotNil(try? fm.createDirectory(atPath: subDirs2, withIntermediateDirectories: true, attributes: nil))
-        for filename in [itemPath1, itemPath2, itemPath3, hiddenItem1, hiddenItem2, hiddenItem3, hiddenItem4] {
+        for filename in [itemPath1, itemPath2, itemPath3] {
             XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Cant create file '\(filename)'")
         }
+
+        var resourceValues = URLResourceValues()
+        resourceValues.isHidden = true
+        for filename in [ hiddenItem1, hiddenItem2, hiddenItem3, hiddenItem4] {
+            XCTAssertTrue(fm.createFile(atPath: filename, contents: Data(), attributes: nil), "Cant create file '\(filename)'")
+#if os(Windows)
+            do {
+                var url = URL(fileURLWithPath: filename)
+                try url.setResourceValues(resourceValues)
+            } catch {
+                XCTFail("Couldn't make \(filename) a hidden file")
+            }
+#endif
+        }
+
+#if os(Windows)
+        do {
+            var hiddenURL1 = URL(fileURLWithPath: hiddenDir1)
+            var hiddenURL2 = URL(fileURLWithPath: hiddenDir2)
+            try hiddenURL1.setResourceValues(resourceValues)
+            try hiddenURL2.setResourceValues(resourceValues)
+        } catch {
+            XCTFail("Couldn't make \(hiddenDir1) and \(hiddenDir2) hidden directories")
+        }
+#endif
 
         if let foundItems = directoryItems(options: []) {
             XCTAssertEqual(foundItems.count, fileLevels.count)
