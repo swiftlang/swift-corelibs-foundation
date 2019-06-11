@@ -6,10 +6,10 @@ swift-corelibs-foundation uses XCTest for its own test suite. This document expl
 
 ### In brief
 
-* Tests should fail rather than crashing; swift-corelibs-xctest does not implement any crash recovery.
-* You should avoid forced optional unwrapping (e.g.: `aValue!`). Use `try aValue.unwrapped()` instead.
-* You can test code that is expected to crash. You must mark the whole body of the test method with `assertCrashes(within:)`.
-* If a test or a portion of a test is giving the build trouble, use `testExpectedToFail` and write a bug.
+* Tests should fail rather than crashing; swift-corelibs-xctest does not implement any crash recovery
+* You should avoid forced optional unwrapping (e.g.: `aValue!`). Use `try aValue.unwrapped()` instead
+* You can test code that is expected to crash; you must mark the whole body of the test method with `assertCrashes(within:)`
+* If a test or a portion of a test is giving the build trouble, use `testExpectedToFail` and write a bug
 
 ### Why and How
 
@@ -47,7 +47,7 @@ func testSomeInterestingAPI() throws { // Step 1: Add 'throws'
 }
 ```
 
-### Asserting That Code Crashes
+#### Asserting That Code Crashes
 
 Some API, like `NSCoder`'s `raiseException` failure policy, are _supposed_ to crash the process when faced with edge conditions. Since tests should fail and not crash, we have been unable to test this behavior for the longest time.
 
@@ -68,7 +68,7 @@ func testRandomClassDoesNotDeserialize() {
 
 Since the closure will only execute to the first crash, ensure you do not use multiple `assertCrashes…` markers in the same test method, that you do _not_ mix crash tests with regular test code, and that if you want to test multiple crashes you do so with separate test methods. Wrapping the entire method body is an easy way to ensure that at least some of these objectives are met.
 
-### Stopping Flaky or Crashing Tests
+#### Stopping Flaky or Crashing Tests
 
 A test that crashes or fails multiple times can jeopardize patch testing and regression reporting. If a test is flaky or outright failing or crashing, it should be marked as expected to fail ASAP using the appropriate Foundation test utilities.
 
