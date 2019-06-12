@@ -10,10 +10,11 @@
 #if !os(Windows)
 
 class TestURLSessionFTP : LoopbackFTPServerTest {
-    
+
     static var allTests: [(String, (TestURLSessionFTP) -> () throws -> Void)] {
         return [
-            ("test_ftpDataTask", test_ftpDataTask),
+            /* ⚠️ */ ("test_ftpDataTask", testExpectedToFail(test_ftpDataTask,
+            /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")),
             ("test_ftpDataTaskDelegate", test_ftpDataTaskDelegate),
         ]
     }
