@@ -189,7 +189,10 @@ extension FileManager {
     }
 
     internal func _contentsOfDir(atPath path: String, _ closure: (String, Int32) throws -> () ) throws {
-        try path.withCString(encodedAs: UTF16.self) {
+        guard path != "" else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInvalidFileName.rawValue, userInfo: [NSFilePathErrorKey : NSString(path)])
+        }
+        try (path + "\\*").withCString(encodedAs: UTF16.self) {
             var ffd: WIN32_FIND_DATAW = WIN32_FIND_DATAW()
 
             let hDirectory: HANDLE = FindFirstFileW($0, &ffd)
@@ -204,8 +207,9 @@ extension FileManager {
                         String(decodingCString: $0, as: UTF16.self)
                     }
                 }
-
-                try closure(path, Int32(ffd.dwFileAttributes))
+                if path != "." && path != ".." {
+                    try closure(path, Int32(ffd.dwFileAttributes))
+                }
             } while FindNextFileW(hDirectory, &ffd)
         }
     }
