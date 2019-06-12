@@ -40,7 +40,7 @@
         fileprivate let foundationVariant = "macOS"
         fileprivate let foundationPlatformVersion: String = {
             let version = ProcessInfo.processInfo.operatingSystemVersion
-            return version.patchVersion == 0 ? "\(version.majorVersion).\(version.minorVersion)" : "\(version.majorVersion).\(version.minorVersion).\(version.patchVersion)"
+            return "\(version.majorVersion).\(version.minorVersion)"
         }()
     #else
         fileprivate let foundationVariant = "Swift"
@@ -51,11 +51,13 @@
 // 2. Figure out the output path and create it if needed.
 
 let arguments = ProcessInfo.processInfo.arguments
-guard arguments.count > 1 else {
-    let name = arguments.first ?? "GenerateTextFixtures"
-    fatalError("usage: \(name) <OUTPUT PATH>\nSee the comments in main.swift for more information.")
+let outputRoot: URL
+if arguments.count > 1 {
+    outputRoot = URL(fileURLWithPath: arguments[1], relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
+} else {
+    outputRoot = Bundle.main.executableURL!.deletingLastPathComponent()
 }
-let outputRoot = URL(fileURLWithPath: arguments[1], relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
+
 let outputDirectory = outputRoot.appendingPathComponent("\(foundationVariant)-\(foundationPlatformVersion)", isDirectory: true)
 
 try! FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true, attributes: nil)
