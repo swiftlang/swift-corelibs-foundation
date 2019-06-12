@@ -141,7 +141,7 @@ There is no _Complete_ status for test coverage because there are always additio
     | `XMLDocument` | Mostly Complete | Substantial   | `init()`, `replacementClass(for:)`, and `object(byApplyingXSLT...)` remain unimplemented                                              |
     | `XMLDTD`      | Mostly Complete | Substantial   | `init()` remains unimplemented                                                                                                        |
     | `XMLDTDNode`  | Complete        | Incomplete    |                                                                                                                                       |
-    | `XMLElement`  | Incomplete      | Incomplete    | `init(xmlString:)`, `elements(forLocalName:uri:)`, `attribute(forLocalName:uri:)`, namespace support, and others remain unimplemented |
+    | `XMLElement`  | Incomplete      | Incomplete    | `init(xmlString:)`, `elements(forLocalName:uri:)`, namespace support, and others remain unimplemented |
     | `XMLNode`     | Incomplete      | Incomplete    | `localName(forName:)`, `prefix(forName:)`, `predefinedNamespace(forPrefix:)`, and others remain unimplemented                         |
     | `XMLParser`   | Complete        | Incomplete    |                                                                                                                                       |
 
