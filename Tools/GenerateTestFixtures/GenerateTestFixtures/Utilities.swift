@@ -24,9 +24,9 @@ extension Optional {
 }
 
 func swiftVersionString() -> String {
-    #if compiler(<5.1)
+    #if compiler(>=5.0) && compiler(<5.1)
         return "5.0"  // We support 5.0 or later.
-    #else
-        return "9999" // 5.1 doesn't have a version yet.
+    #elseif compiler(>=5.1)
+        return "5.1"
     #endif
 }
