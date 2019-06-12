@@ -243,6 +243,9 @@ extension FileManager {
 
         try path.withCString(encodedAs: UTF16.self) {
             let dwLength: DWORD = GetFullPathNameW($0, 0, nil, nil)
+            guard dwLength != 0 else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            }
             var szVolumePath: [WCHAR] = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
 
             guard GetVolumePathNameW($0, &szVolumePath, dwLength) else {
@@ -256,8 +259,14 @@ extension FileManager {
                 throw _NSErrorWithWindowsError(GetLastError(), reading: true)
             }
 
+            var volumeSerialNumber: DWORD = 0
+            guard GetVolumeInformationW(&szVolumePath, nil, 0, &volumeSerialNumber, nil, nil, nil, 0) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            }
+
             result[.systemSize] = NSNumber(value: liTotal.QuadPart)
             result[.systemFreeSize] = NSNumber(value: liFree.QuadPart)
+            result[.systemNumber] = NSNumber(value: volumeSerialNumber)
             // FIXME(compnerd): what about .systemNodes, .systemFreeNodes?
         }
         return result
