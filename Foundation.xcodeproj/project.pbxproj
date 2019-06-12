@@ -11,7 +11,7 @@
 		03B6F5841F15F339004F25AF /* TestURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B6F5831F15F339004F25AF /* TestURLProtocol.swift */; };
 		1513A8432044893F00539722 /* FileManager_XDG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1513A8422044893F00539722 /* FileManager_XDG.swift */; };
 		1520469B1D8AEABE00D02E36 /* HTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1520469A1D8AEABE00D02E36 /* HTTPServer.swift */; };
-		152EF3942283457C001E1269 /* TestNSSortDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */; };
+		1539391422A07007006DFF4F /* TestCachedURLResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1539391322A07007006DFF4F /* TestCachedURLResponse.swift */; };
 		153CC8352215E00200BFE8F3 /* ScannerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */; };
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
@@ -616,6 +616,7 @@
 		1513A8422044893F00539722 /* FileManager_XDG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManager_XDG.swift; sourceTree = "<group>"; };
 		1520469A1D8AEABE00D02E36 /* HTTPServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HTTPServer.swift; sourceTree = "<group>"; };
 		152EF3932283457B001E1269 /* TestNSSortDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSSortDescriptor.swift; sourceTree = "<group>"; };
+		1539391322A07007006DFF4F /* TestCachedURLResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCachedURLResponse.swift; sourceTree = "<group>"; };
 		153CC8322214C3D100BFE8F3 /* ScannerAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerAPI.swift; sourceTree = "<group>"; };
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
@@ -1711,6 +1712,7 @@
 				EA66F63C1BF1619600136161 /* TestNSArray.swift */,
 				294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */,
 				90E645DE1E4C89A400D0D47C /* TestNSCache.swift */,
+				1539391322A07007006DFF4F /* TestCachedURLResponse.swift */,
 				52829AD61C160D64003BC4EF /* TestCalendar.swift */,
 				15F10CDB218909BF00D88114 /* TestNSCalendar.swift */,
 				5BC1D8BC1BF3ADFE009D3973 /* TestCharacterSet.swift */,
@@ -2877,6 +2879,7 @@
 				7D8BD739225ED1480057CF37 /* TestMeasurement.swift in Sources */,
 				CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */,
 				294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */,
+				1539391422A07007006DFF4F /* TestCachedURLResponse.swift in Sources */,
 				5B13B3431C582D4C00651CE2 /* TestScanner.swift in Sources */,
 				5B13B3401C582D4C00651CE2 /* TestNSRange.swift in Sources */,
 				5B13B3371C582D4C00651CE2 /* TestNotificationCenter.swift in Sources */,

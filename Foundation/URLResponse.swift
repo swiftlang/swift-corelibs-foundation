@@ -138,6 +138,35 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
     ///
     /// This method always returns a valid filename.
     open fileprivate(set) var suggestedFilename: String?
+
+    open override func isEqual(_ value: Any?) -> Bool {
+        switch value {
+        case let other as URLResponse:
+            return self.isEqual(to: other)
+        default:
+            return false
+        }
+    }
+
+    private func isEqual(to other: URLResponse) -> Bool {
+        if self === other {
+            return true
+        }
+
+        return self.url == other.url &&
+                self.expectedContentLength == other.expectedContentLength &&
+                self.mimeType == other.mimeType &&
+                self.textEncodingName == other.textEncodingName
+    }
+
+    open override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(url)
+        hasher.combine(expectedContentLength)
+        hasher.combine(mimeType)
+        hasher.combine(textEncodingName)
+        return hasher.finalize()
+    }
 }
 
 /// A Response to an HTTP URL load.

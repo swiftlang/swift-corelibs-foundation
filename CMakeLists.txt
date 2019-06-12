@@ -444,6 +444,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestAffineTransform.swift
                          TestFoundation/TestBundle.swift
                          TestFoundation/TestByteCountFormatter.swift
+                         TestFoundation/TestCachedURLResponse.swift
                          TestFoundation/TestCalendar.swift
                          TestFoundation/TestCharacterSet.swift
                          TestFoundation/TestCodable.swift
