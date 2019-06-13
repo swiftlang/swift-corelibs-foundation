@@ -134,6 +134,88 @@ class TestURLCache : XCTestCase {
         }
     }
     
+    func testRemovingOne() throws {
+        let cache = try self.cache(memoryCapacity: lots, diskCapacity: lots)
+
+        let urls = [ "https://apple.com/",
+                     "https://google.com/",
+                     "https://facebook.com/" ]
+        
+        for (request, response) in try urls.map({ try cachePair(for: $0, ofSize: aBit) }) {
+            cache.storeCachedResponse(response, for: request)
+        }
+
+        let request = URLRequest(url: URL(string: urls[0])!)
+        cache.removeCachedResponse(for: request)
+        
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: writableTestDirectoryURL.path).count, 2)
+        
+        var first = true
+        for request in urls.map({ URLRequest(url: URL(string: $0)!) }) {
+            if first {
+                XCTAssertNil(cache.cachedResponse(for: request))
+            } else {
+                XCTAssertNotNil(cache.cachedResponse(for: request))
+            }
+            
+            first = false
+        }
+    }
+    
+    func testRemovingAll() throws {
+        let cache = try self.cache(memoryCapacity: lots, diskCapacity: lots)
+        
+        let urls = [ "https://apple.com/",
+                     "https://google.com/",
+                     "https://facebook.com/" ]
+        
+        for (request, response) in try urls.map({ try cachePair(for: $0, ofSize: aBit) }) {
+            cache.storeCachedResponse(response, for: request)
+        }
+        
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: writableTestDirectoryURL.path).count, 3)
+        
+        cache.removeAllCachedResponses()
+        
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: writableTestDirectoryURL.path).count, 0)
+        
+        for request in urls.map({ URLRequest(url: URL(string: $0)!) }) {
+            XCTAssertNil(cache.cachedResponse(for: request))
+        }
+    }
+    
+    func testRemovingSince() throws {
+        let cache = try self.cache(memoryCapacity: lots, diskCapacity: lots)
+        
+        let urls = [ "https://apple.com/",
+                     "https://google.com/",
+                     "https://facebook.com/" ]
+        
+        var first = true
+        for (request, response) in try urls.map({ try cachePair(for: $0, ofSize: aBit) }) {
+            cache.storeCachedResponse(response, for: request)
+            if first {
+                Thread.sleep(forTimeInterval: 5.0)
+                first = false
+            }
+        }
+        
+        cache.removeCachedResponses(since: Date(timeIntervalSinceNow: -3.5))
+        
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: writableTestDirectoryURL.path).count, 1)
+        
+        first = true
+        for request in urls.map({ URLRequest(url: URL(string: $0)!) }) {
+            if first {
+                XCTAssertNotNil(cache.cachedResponse(for: request))
+            } else {
+                XCTAssertNil(cache.cachedResponse(for: request))
+            }
+            
+            first = false
+        }
+    }
+    
     // -----
     
     static var allTests: [(String, (TestURLCache) -> () throws -> Void)] {
@@ -144,6 +226,9 @@ class TestURLCache : XCTestCase {
             ("testShrinkingDiskCapacityEvictsItems", testShrinkingDiskCapacityEvictsItems),
             ("testNoMemoryUsageIfDisabled", testNoMemoryUsageIfDisabled),
             ("testShrinkingMemoryCapacityEvictsItems", testShrinkingMemoryCapacityEvictsItems),
+            ("testRemovingOne", testRemovingOne),
+            ("testRemovingAll", testRemovingAll),
+            ("testRemovingSince", testRemovingSince),
         ]
     }
     
