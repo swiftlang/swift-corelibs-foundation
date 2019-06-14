@@ -15,7 +15,8 @@ class TestURLSessionFTP : LoopbackFTPServerTest {
         return [
             /* ⚠️ */ ("test_ftpDataTask", testExpectedToFail(test_ftpDataTask,
             /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")),
-            ("test_ftpDataTaskDelegate", test_ftpDataTaskDelegate),
+            /* ⚠️ */ ("test_ftpDataTaskDelegate", testExpectedToFail(test_ftpDataTaskDelegate,
+            /* ⚠️ */     "<https://bugs.swift.org/browse/SR-10922>  non-deterministic SEGFAULT in TestURLSessionFTP.test_ftpDataTask")),
         ]
     }
 
