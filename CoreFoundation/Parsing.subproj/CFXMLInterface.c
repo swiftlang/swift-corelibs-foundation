@@ -399,6 +399,8 @@ CFStringRef _CFXMLNodeCopyURI(_CFXMLNodePtr node) {
         case XML_ELEMENT_NODE:
             if (nodePtr->ns && nodePtr->ns->href) {
                 return CFStringCreateWithCString(NULL, (const char*)nodePtr->ns->href, kCFStringEncodingUTF8);
+            } else if (nodePtr->nsDef && nodePtr->nsDef->href) {
+                return CFStringCreateWithCString(NULL, (const char*)nodePtr->nsDef->href, kCFStringEncodingUTF8);
             } else {
                 return NULL;
             }
@@ -421,17 +423,17 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
         case XML_ELEMENT_NODE:
 
             if (!URI) {
-                if (nodePtr->ns) {
-                    xmlFree(nodePtr->ns);
+                if (nodePtr->nsDef) {
+                    xmlFree(nodePtr->nsDef);
                 }
-                nodePtr->ns = NULL;
+                nodePtr->nsDef = NULL;
                 return;
             }
 
             xmlNsPtr ns = xmlSearchNsByHref(nodePtr->doc, nodePtr, URI);
             if (!ns) {
-                if (nodePtr->ns && (nodePtr->ns->href == NULL)) {
-                    nodePtr->ns->href = xmlStrdup(URI);
+                if (nodePtr->nsDef && (nodePtr->nsDef->href == NULL)) {
+                    nodePtr->nsDef->href = xmlStrdup(URI);
                     return;
                 }
 
@@ -939,11 +941,27 @@ CFStringRef _Nullable _CFXMLCopyPathForNode(_CFXMLNodePtr node) {
     return result;
 }
 
+static inline const xmlChar* _getNamespacePrefix(const char* name) {
+    // It is "default namespace" if `name` is empty.
+    // Default namespace is represented by `NULL` in libxml2.
+    return (name == NULL || name[0] == '\0') ? NULL : (const xmlChar*)name;
+}
+
+static inline int _compareNamespacePrefix(const xmlChar* prefix1, const xmlChar* prefix2) {
+    if (prefix1 == NULL) {
+        if (prefix2 == NULL) return 0;
+        return -1;
+    } else {
+        if (prefix2 == NULL) return 1;
+        return xmlStrcmp(prefix1, prefix2);
+    }
+}
+
 static inline xmlNsPtr _searchNamespace(xmlNodePtr nodePtr, const xmlChar* prefix) {
     while (nodePtr != NULL) {
-        xmlNsPtr ns = nodePtr->ns;
+        xmlNsPtr ns = nodePtr->nsDef;
         while (ns != NULL) {
-            if (xmlStrcmp(prefix, ns->prefix) == 0) {
+            if (_compareNamespacePrefix(prefix, ns->prefix) == 0) {
                 return ns;
             }
             ns = ns->next;
@@ -1333,14 +1351,14 @@ void _CFXMLDTDNodeSetPublicID(_CFXMLDTDNodePtr node, const unsigned char* public
 // Namespaces
 _CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex* count) {
     *count = 0;
-    xmlNs* ns = ((xmlNode*)node)->ns;
+    xmlNs* ns = ((xmlNode*)node)->nsDef;
     while (ns != NULL) {
         (*count)++;
         ns = ns->next;
     }
     
     _CFXMLNodePtr* result = calloc(*count, sizeof(_CFXMLNodePtr));
-    ns = ((xmlNode*)node)->ns;
+    ns = ((xmlNode*)node)->nsDef;
     for (int i = 0; i < *count; i++) {
         xmlNode* temp = xmlNewNode(ns, (unsigned char *)"");
         
@@ -1353,10 +1371,10 @@ _CFXMLNodePtr _Nonnull * _Nullable _CFXMLNamespaces(_CFXMLNodePtr node, CFIndex*
 
 static inline void _removeAllNamespaces(xmlNodePtr node);
 static inline void _removeAllNamespaces(xmlNodePtr node) {
-    xmlNsPtr ns = node->ns;
+    xmlNsPtr ns = node->nsDef;
     if (ns != NULL) {
         xmlFreeNsList(ns);
-        node->ns = NULL;
+        node->nsDef = NULL;
     }
 }
 
@@ -1368,8 +1386,8 @@ void _CFXMLSetNamespaces(_CFXMLNodePtr node, _CFXMLNodePtr* _Nullable nodes, CFI
     }
     
     xmlNodePtr nsNode = (xmlNodePtr)nodes[0];
-    ((xmlNodePtr)node)->ns = xmlCopyNamespace(nsNode->ns);
-    xmlNsPtr currNs = ((xmlNodePtr)node)->ns;
+    ((xmlNodePtr)node)->nsDef = xmlCopyNamespace(nsNode->ns);
+    xmlNsPtr currNs = ((xmlNodePtr)node)->nsDef;
     for (CFIndex i = 1; i < count; i++) {
         currNs->next = xmlCopyNamespace(((xmlNodePtr)nodes[i])->ns);
         currNs = currNs->next;
@@ -1404,11 +1422,12 @@ CFStringRef _Nullable _CFXMLNamespaceCopyPrefix(_CFXMLNodePtr node) {
 void _CFXMLNamespaceSetPrefix(_CFXMLNodePtr node, const char* prefix, int64_t length) {
     xmlNsPtr ns = ((xmlNodePtr)node)->ns;
     
-    ns->prefix = xmlStrndup((const xmlChar*)prefix, length);
+    ns->prefix = xmlStrndup(_getNamespacePrefix(prefix), length);
 }
 
 _CFXMLNodePtr _CFXMLNewNamespace(const char* name, const char* stringValue) {
-    xmlNsPtr ns = xmlNewNs(NULL, (const xmlChar*)stringValue, (const xmlChar*)name);
+    const xmlChar* namespaceName = _getNamespacePrefix(name);
+    xmlNsPtr ns = xmlNewNs(NULL, (const xmlChar*)stringValue, namespaceName);
     xmlNodePtr node = xmlNewNode(ns, (const xmlChar*)"");
     
     node->type = _kCFXMLTypeNamespace;
@@ -1421,9 +1440,9 @@ void _CFXMLAddNamespace(_CFXMLNodePtr node, _CFXMLNodePtr nsNode) {
     xmlNsPtr ns = xmlCopyNamespace(((xmlNodePtr)nsNode)->ns);
     ns->context = nodePtr->doc;
     
-    xmlNsPtr currNs = nodePtr->ns;
+    xmlNsPtr currNs = nodePtr->nsDef;
     if (currNs == NULL) {
-        nodePtr->ns = ns;
+        nodePtr->nsDef = ns;
         return;
     }
     
@@ -1436,15 +1455,16 @@ void _CFXMLAddNamespace(_CFXMLNodePtr node, _CFXMLNodePtr nsNode) {
 
 void _CFXMLRemoveNamespace(_CFXMLNodePtr node, const char* prefix) {
     xmlNodePtr nodePtr = (xmlNodePtr)node;
-    xmlNsPtr ns = nodePtr->ns;
-    if (ns != NULL && xmlStrcmp((const xmlChar*)prefix, ns->prefix) == 0) {
-        nodePtr->ns = ns->next;
+    xmlNsPtr ns = nodePtr->nsDef;
+    const xmlChar* prefixForLibxml2 = _getNamespacePrefix(prefix);
+    if (ns != NULL && _compareNamespacePrefix(prefixForLibxml2, ns->prefix) == 0) {
+        nodePtr->nsDef = ns->next;
         xmlFreeNs(ns);
         return;
     }
     
     while (ns->next != NULL) {
-        if (xmlStrcmp(ns->next->prefix, (const xmlChar*)prefix) == 0) {
+        if (_compareNamespacePrefix(ns->next->prefix, prefixForLibxml2) == 0) {
             xmlNsPtr next = ns->next;
             ns->next = ns->next->next;
             xmlFreeNs(next);
