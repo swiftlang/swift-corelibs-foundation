@@ -2047,7 +2047,7 @@ fileprivate extension URLResourceValuesStorage {
 // -----
 
 internal extension Date {
-    #if !os(Windows) && !os(Android)
+    #if !os(Windows)
     init(timespec: timespec) {
         self.init(timeIntervalSince1970: TimeInterval(timespec.tv_sec), nanoseconds: Double(timespec.tv_nsec))
     }
@@ -2062,8 +2062,6 @@ extension stat {
     var lastModificationDate: Date {
         #if canImport(Darwin)
         return Date(timespec: st_mtimespec)
-        #elseif os(Android)
-        return Date(timeIntervalSince1970: st_mtime, nanoseconds: st_mtime_nsec)
         #elseif os(Windows)
         return Date(timeIntervalSince1970: TimeInterval(st_mtime))
         #else
@@ -2074,8 +2072,6 @@ extension stat {
     var lastAccessDate: Date {
         #if canImport(Darwin)
         return Date(timespec: st_atimespec)
-        #elseif os(Android)
-        return Date(timeIntervalSince1970: st_atime, nanoseconds: st_atime_nsec)
         #elseif os(Windows)
         return Date(timeIntervalSince1970: TimeInterval(st_atime))
         #else
@@ -2086,8 +2082,6 @@ extension stat {
     var creationDate: Date {
         #if canImport(Darwin)
         return Date(timespec: st_birthtimespec)
-        #elseif os(Android)
-        return Date(timeIntervalSince1970: st_ctime, nanoseconds: st_ctime_nsec)
         #elseif os(Windows)
         return Date(timeIntervalSince1970: TimeInterval(st_ctime))
         #else
