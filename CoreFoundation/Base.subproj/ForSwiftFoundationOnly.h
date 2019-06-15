@@ -526,9 +526,6 @@ static inline unsigned int _dev_minor(dev_t rdev) {
     return minor(rdev);
 }
 
-static inline dev_t _dev_makedev(unsigned int major, unsigned int minor) {
-    return makedev(major, minor);
-}
 #endif
 
 
