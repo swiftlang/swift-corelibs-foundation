@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !DARWIN_COMPATIBILITY_TESTS
 struct IntSortable {
     var value: Int
 }
@@ -233,3 +234,4 @@ class TestNSSortDescriptor: XCTestCase {
         ]
     }
 }
+#endif
