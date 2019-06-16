@@ -63,9 +63,8 @@ set_target_properties(uuid
                         POSITION_INDEPENDENT_CODE YES)
 # Add an include directory for the CoreFoundation framework headers to satisfy
 # the dependency on TargetConditionals.h
-target_compile_options(uuid
-                       PUBLIC
-                         -I${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
+target_include_directories(uuid PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   target_compile_definitions(uuid
                              PRIVATE
