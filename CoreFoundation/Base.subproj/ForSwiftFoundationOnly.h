@@ -55,7 +55,10 @@
 #include <malloc/malloc.h>
 #endif
 
-#if TARGET_OS_LINUX
+#if TARGET_OS_ANDROID
+#include <sys/stat.h>
+#include <sys/syscall.h>
+#elif TARGET_OS_LINUX
 #include <features.h>
 
 #if __GLIBC_PREREQ(2, 28) == 0
