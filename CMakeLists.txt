@@ -54,6 +54,11 @@ set(BUILD_SHARED_LIBS NO)
 add_subdirectory(CoreFoundation)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
+# Setup include paths for uuid/uuid.h
+target_include_directories(CoreFoundation PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/CoreFoundation.framework/Headers)
+
 add_library(uuid
             STATIC
               uuid/uuid.h
