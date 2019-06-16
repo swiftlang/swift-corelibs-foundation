@@ -30,6 +30,15 @@ internal func testBundle() -> Bundle {
     #endif
 }
 
+
+#if DARWIN_COMPATIBILITY_TESTS
+extension Bundle {
+    static let _supportsFreestandingBundles = false
+    static let _supportsFHSBundles = false
+}
+#endif
+
+
 internal func testBundleName() -> String {
     // Either 'TestFoundation' or 'DarwinCompatibilityTests'
     return testBundle().infoDictionary!["CFBundleName"] as! String
@@ -521,7 +530,8 @@ class TestBundle : XCTestCase {
             XCTAssertNil(bundle.url(forAuxiliaryExecutable: "does_not_exist_at_all"))
         }
     }
-    
+
+#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_bundleReverseBundleLookup() {
         _withEachPlaygroundLayout { (playground) in
             #if !os(Windows)
@@ -542,15 +552,12 @@ class TestBundle : XCTestCase {
         }
     }
 
-#if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_mainBundleExecutableURL() {
-#if !DARWIN_COMPATIBILITY_TESTS // _CFProcessPath() is unavailable on native Foundation
         let maybeURL = Bundle.main.executableURL
         XCTAssertNotNil(maybeURL)
         guard let url = maybeURL else { return }
         
         XCTAssertEqual(url.path, ProcessInfo.processInfo._processPath)
-#endif
     }
 #endif
     
@@ -571,13 +578,13 @@ class TestBundle : XCTestCase {
             ("test_bundlePreflight", test_bundlePreflight),
             ("test_bundleFindExecutable", test_bundleFindExecutable),
             ("test_bundleFindAuxiliaryExecutables", test_bundleFindAuxiliaryExecutables),
-            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
             ("test_bundleForClass", testExpectedToFailOnWindows(test_bundleForClass, "Functionality not yet implemented on Windows. SR-XXXX")),
         ]
         
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         tests.append(contentsOf: [
             ("test_mainBundleExecutableURL", test_mainBundleExecutableURL),
+            ("test_bundleReverseBundleLookup", test_bundleReverseBundleLookup),
             ])
         #endif
         

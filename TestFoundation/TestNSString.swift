@@ -1054,10 +1054,12 @@ class TestNSString: LoopbackServerTest {
         }
         
         do {
+#if !DARWIN_COMPATIBILITY_TESTS // https://bugs.swift.org/browse/SR-10916
             let path: NSString =  "~/foo/bar/"
             let result = path.standardizingPath
             let expected = NSHomeDirectory().appendingPathComponent("foo/bar")
             XCTAssertEqual(result, expected, "standardizingPath expanding initial tilde.")
+#endif
         }
         
         // relative file paths depend on file path standardizing that is not yet implemented

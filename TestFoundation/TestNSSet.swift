@@ -231,16 +231,16 @@ class TestNSSet : XCTestCase {
     }
     
     func test_description() {
-        let array = NSArray(array: ["array_element1", "array_element2"])
+        let array = NSArray(array: ["array_element1", "arrayElement2", "", "!@#$%^&*()", "a+b"])
         let dictionary = NSDictionary(dictionary: ["key1": "value1", "key2": "value2"])
         let innerSet = NSSet(array: [4444, 5555])
         let set: NSSet = NSSet(array: [array, dictionary, innerSet, 1111, 2222, 3333])
         
         let description = NSString(string: set.description)
-        
-        XCTAssertTrue(description.substring(to: 2).isEqual(to: "{("))
-        XCTAssertTrue(description.substring(from: description.length - 2).isEqual(to: ")}"))
-        XCTAssertTrue(description.contains("        (\n        array_element1,\n        array_element2\n    )"))
+
+        XCTAssertTrue(description.hasPrefix("{("))
+        XCTAssertTrue(description.hasSuffix(")}"))
+        XCTAssertTrue(description.contains("        (\n        \"array_element1\",\n        arrayElement2,\n        \"\",\n        \"!@#$%^&*()\",\n        \"a+b\"\n    )"))
         XCTAssertTrue(description.contains("        key1 = value1"))
         XCTAssertTrue(description.contains("        key2 = value2"))
         XCTAssertTrue(description.contains("        4444"))

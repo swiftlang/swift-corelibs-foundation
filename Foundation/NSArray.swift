@@ -218,11 +218,19 @@ open class NSArray : NSObject, NSCopying, NSMutableCopying, NSSecureCoding, NSCo
 
     open func description(withLocale locale: Locale?, indent level: Int) -> String {
         var descriptions = [String]()
+        var nonAlphaNum = CharacterSet.alphanumerics
+        nonAlphaNum.invert()
         let cnt = count
         for idx in 0..<cnt {
             let obj = self[idx]
             if let string = obj as? String {
-                descriptions.append(string)
+                if string.isEmpty {
+                    descriptions.append("\"\"")
+                } else if string.rangeOfCharacter(from: nonAlphaNum) != nil {
+                    descriptions.append("\"\(string)\"")
+                } else {
+                    descriptions.append(string)
+                }
             } else if let array = obj as? [Any] {
                 descriptions.append(NSArray(array: array).description(withLocale: locale, indent: level + 1))
             } else if let dict = obj as? [AnyHashable : Any] {

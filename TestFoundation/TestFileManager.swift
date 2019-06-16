@@ -1647,11 +1647,13 @@ VIDEOS=StopgapVideos
             try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: .usingNewMetadataOnly)
             try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
         }
-        
+
+        #if !DARWIN_COMPATIBILITY_TESTS
         print("note: Testing platform-specific replace implementation.", to: &stderr)
         try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
+        #endif
         
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         print("note: Testing cross-platform replace implementation.", to: &stderr)

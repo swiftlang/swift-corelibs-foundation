@@ -7,6 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if !DARWIN_COMPATIBILITY_TESTS     // https://bugs.swift.org/browse/SR-10904
 class CustomUnit: Unit {
     required init(symbol: String) {
         super.init(symbol: symbol)
@@ -19,6 +20,7 @@ class CustomUnit: Unit {
     public static let bugs = CustomUnit(symbol: "bug")
     public static let features = CustomUnit(symbol: "feature")
 }
+#endif
 
 class TestMeasurement: XCTestCase {
     static var allTests: [(String, (TestMeasurement) -> () throws -> Void)] {
@@ -59,6 +61,7 @@ class TestMeasurement: XCTestCase {
         ]
         checkHashableGroups(durations)
 
+#if !DARWIN_COMPATIBILITY_TESTS
         let custom: [Measurement<CustomUnit>] = [
             Measurement(value: 1, unit: CustomUnit.bugs),
             Measurement(value: 2, unit: CustomUnit.bugs),
@@ -70,6 +73,7 @@ class TestMeasurement: XCTestCase {
             Measurement(value: 4, unit: CustomUnit.features),
         ]
         checkHashable(custom, equalityOracle: { $0 == $1 })
+#endif
     }
 
 }
