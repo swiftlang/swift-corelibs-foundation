@@ -41,7 +41,7 @@ function(add_swift_target target)
   cmake_parse_arguments(AST "${options}" "${single_value_options}" "${multiple_value_options}" ${ARGN})
 
   set(compile_flags ${CMAKE_SWIFT_FLAGS})
-  set(link_flags)
+  set(link_flags ${CMAKE_SWIFT_LINK_FLAGS})
 
   list(APPEND compile_flags -incremental)
   ProcessorCount(CPU_COUNT)
