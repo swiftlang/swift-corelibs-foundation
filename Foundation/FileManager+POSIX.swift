@@ -1185,7 +1185,7 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
             throw _NSErrorWithErrno(error, reading: false, path: path)
         }
     }
-    
+
     internal func _replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = [], allowPlatformSpecificSyscalls: Bool = true) throws -> URL? {
 
         // 1. Make a backup, if asked to.
@@ -1245,11 +1245,21 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
                     return newItemURL.withUnsafeFileSystemRepresentation { (newItemFS) -> Int32? in
                         if let originalFS = originalFS,
                            let newItemFS = newItemFS {
-                            if _CF_renameat2(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
-                                return nil
-                            } else {
-                                return errno
-                            }
+
+                                #if os(Linux)
+                                if _CFHasRenameat2 && kernelSupportsRenameat2 {
+                                    if _CF_renameat2(AT_FDCWD, originalFS, AT_FDCWD, newItemFS, _CF_renameat2_RENAME_EXCHANGE) == 0 {
+                                        return nil
+                                    } else {
+                                        return errno
+                                    }
+                                }
+                                #endif
+                                if renameat(AT_FDCWD, originalFS, AT_FDCWD, newItemFS) == 0 {
+                                    return nil
+                                } else {
+                                    return errno
+                                }
                         } else {
                             return Int32(EINVAL)
                         }
