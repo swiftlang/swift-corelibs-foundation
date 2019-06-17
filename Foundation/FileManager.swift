@@ -841,6 +841,12 @@ open class FileManager : NSObject {
         let requiredVersion = OperatingSystemVersion(majorVersion: 4, minorVersion: 11, patchVersion: 0)
         return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
     }()
+
+    // renameat2() is only supported by Linux kernels >= 3.15
+    internal lazy var kernelSupportsRenameat2: Bool = {
+        let requiredVersion = OperatingSystemVersion(majorVersion: 3, minorVersion: 15, patchVersion: 0)
+        return ProcessInfo.processInfo.isOperatingSystemAtLeast(requiredVersion)
+    }()
 #endif
 
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.

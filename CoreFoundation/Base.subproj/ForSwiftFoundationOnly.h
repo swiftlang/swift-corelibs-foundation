@@ -59,6 +59,7 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #elif TARGET_OS_LINUX
+#include <errno.h>
 #include <features.h>
 
 #if __GLIBC_PREREQ(2, 28) == 0
@@ -594,10 +595,21 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
 #endif // __NR_statx
 
 static unsigned int const _CF_renameat2_RENAME_EXCHANGE = 1 << 1;
-static int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
-                            int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
+#ifdef SYS_renameat2
+static _Bool const _CFHasRenameat2 = 1;
+static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
+                                int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
     return syscall(SYS_renameat2, olddirfd, oldpath, newdirfd, newpath, flags);
 }
+#else
+static _Bool const _CFHasRenameat2 = 0;
+static inline int _CF_renameat2(int olddirfd, const char *_Nonnull oldpath,
+                                int newdirfd, const char *_Nonnull newpath, unsigned int flags) {
+    return ENOSYS;
+}
+#endif // __SYS_renameat2
+
+
 #endif // TARGET_OS_LINUX
 
 #if __HAS_STATX
