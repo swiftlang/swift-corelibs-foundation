@@ -311,8 +311,16 @@ extension FileManager {
                               nil, DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_BACKUP_SEMANTICS),
                               nil)
         }
-        if hFile == INVALID_HANDLE_VALUE {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+        guard hFile != INVALID_HANDLE_VALUE else {
+            return try path.withCString(encodedAs: UTF16.self) {
+                var dwLength = GetFullPathNameW($0, 0, nil, nil)
+                var szPath = Array<WCHAR>(repeating: 0, count: Int(dwLength + 1))
+                dwLength = GetFullPathNameW($0, DWORD(szPath.count), &szPath, nil)
+                guard dwLength > 0 && dwLength <= szPath.count else {
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+                }
+                return String(decodingCString: szPath, as: UTF16.self)
+            }
         }
         defer { CloseHandle(hFile) }
 
