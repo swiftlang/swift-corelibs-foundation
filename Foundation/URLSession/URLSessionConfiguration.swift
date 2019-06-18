@@ -156,7 +156,17 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         return ephemeralConfiguration
     }
 
-    open class func background(withIdentifier identifier: String) -> URLSessionConfiguration { NSUnimplemented() }
+    open class func background(withIdentifier identifier: String) -> URLSessionConfiguration {
+        if identifier.isEmpty {
+            // As per document: The unique identifier for the configuration object. This parameter must not be nil or an empty string.
+            // But it is unclear what happens when it is empty, the existing Foundation framework creates an instance anyway.
+            // FIXME: Handle empty string properly
+        }
+        let backgroundConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
+        backgroundConfiguration.identifier = identifier
+        backgroundConfiguration.urlCache = nil
+        return backgroundConfiguration
+    }
     
     /* identifier for the background session configuration */
     open var identifier: String?
