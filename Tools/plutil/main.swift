@@ -6,13 +6,13 @@
 // See http://swift.org/LICENSE.txt for license information
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
-#if os(macOS) || os(iOS)
+#if canImport(Darwin)
 import Darwin
 import SwiftFoundation
-#elseif os(Linux)
+#elseif canImport(Glibc)
 import Foundation
 import Glibc
-#elseif os(Windows)
+#elseif canImport(MSVCRT)
 import Foundation
 import MSVCRT
 #endif
