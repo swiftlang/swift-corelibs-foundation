@@ -28,6 +28,253 @@ extension JSONSerialization {
     }
 }
 
+fileprivate protocol _JSONValue {
+    func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws
+}
+
+//@_specialize(where T == String)
+//extension<T: _JSONValue> [String : T] : _JSONValue {
+extension Dictionary : _JSONValue where Key == String, Value : _JSONValue {
+    
+//    @_specialize(where Visitor == JSONWriter)
+//    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+//@_specialize(where T == String)
+//extension<T: _JSONValue> [T] : _JSONValue {
+extension Array : _JSONValue where Element : _JSONValue {
+    
+//    @_specialize(where Visitor == JSONWriter)
+//    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+extension String : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+//@_specialize(where T == Int)
+//@_specialize(where T == UInt)
+//@_specialize(where T == Int32)
+//@_specialize(where T == UInt32)
+//@_specialize(where T == Int64)
+//@_specialize(where T == UInt64)
+//extension<T: FixedWidthInteger> T : _JSONValue {
+extension Int : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+//@_specialize(where T == Double)
+//@_specialize(where T == Float)
+//extension<T: FloatingPoint> T : _JSONValue {
+extension Float : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        guard isFinite && !isNaN else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(self)) in JSON write"])
+        }
+        try visitor.visit(self)
+    }
+}
+
+//TODO: delete this, use parameterized extensions
+extension Double : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        guard isFinite && !isNaN else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(self)) in JSON write"])
+        }
+        try visitor.visit(self)
+    }
+}
+
+extension Bool : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+extension Decimal : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        guard isFinite else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(self)) in JSON write"])
+        }
+        try visitor.visit(self)
+    }
+}
+
+extension NSNull : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+extension NSNumber : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        if CFNumberIsFloatType(_cfObject) {
+            try doubleValue.visit(with: &visitor)
+        } else {
+            switch _cfTypeID {
+            case CFBooleanGetTypeID():
+                try boolValue.visit(with: &visitor)
+            default:
+                try intValue.visit(with: &visitor)
+            }
+        }
+    }
+}
+
+extension NSArray : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self) //typecheck lazily as we go
+    }
+}
+
+extension NSDictionary : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self) //typecheck lazily as we go
+    }
+}
+
+extension NSString : _JSONValue {
+    
+    @_specialize(where Visitor == JSONWriter)
+    @_specialize(where Visitor == JSONValidator)
+    fileprivate func visit<Visitor: JSONVisitor>(with visitor: inout Visitor) throws {
+        try visitor.visit(self as String)
+    }
+}
+
+fileprivate protocol JSONVisitor {
+    mutating func visit(_ string: String) throws
+    mutating func visit<F: FloatingPoint & LosslessStringConvertible>(_ float: F) throws
+    mutating func visit<I: FixedWidthInteger> (_ int: I) throws
+    mutating func visit(_ bool: Bool) throws
+    mutating func visit(_ null: NSNull) throws
+    mutating func visit(_ decimal: Decimal) throws
+    mutating func visit<J: _JSONValue>(_ dictionary: [String : J]) throws
+    mutating func visit<J: _JSONValue>(_ array: [J]) throws
+    mutating func visit(_ cocoaArray: NSArray) throws
+    mutating func visit(_ cocoaDictionary: NSDictionary) throws
+}
+
+extension JSONVisitor {
+    mutating func visit<T>(topLevelJSON value: T?) throws {
+        guard let value = value else {
+            return
+        }
+        if let dict = value as? [String : _JSONValue] {
+            try visit(dict) //TODO: should be dict.visit(with: &self)
+        } else if let arr = value as? [_JSONValue] {
+            try visit(arr) //TODO: should be arr.visit(with: &self)
+        } else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListWriteInvalid.rawValue, userInfo: ["NSDebugDescription" : "Invalid top level object \(value) in JSON write, must be Dictionary, NSDictionary, Array, or NSArray"])
+        }
+    }
+    
+    mutating func visit<T>(_ any: T) throws {
+        if let value = any as? _JSONValue {
+            try value.visit(with: &self)
+        }
+        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListWriteInvalid.rawValue, userInfo: ["NSDebugDescription" : "Invalid value (\(any)) in JSON write"])
+    }
+    
+    mutating func visit<J:_JSONValue>(_ jsonFragment: J) throws {
+        try jsonFragment.visit(with: &self)
+    }
+}
+
+private struct JSONValidator : JSONVisitor {
+    mutating func visit(_ string: String) throws { }
+    mutating func visit<F: FloatingPoint & LosslessStringConvertible>(_ float: F) throws { }
+    mutating func visit<I: FixedWidthInteger> (_ int: I) throws { }
+    mutating func visit(_ bool: Bool) throws { }
+    mutating func visit(_ null: NSNull) throws { }
+    mutating func visit(_ decimal: Decimal) throws { }
+    mutating func visit<J: _JSONValue>(_ dictionary: [String : J]) throws {
+        for (_, value) in dictionary {
+            try value.visit(with: &self)
+        }
+    }
+    mutating func visit<J: _JSONValue>(_ array: [J]) throws {
+        for value in array {
+            try value.visit(with: &self)
+        }
+    }
+    mutating func visit(_ cocoaArray: NSArray) throws {
+        for object in cocoaArray {
+            guard let json = object as? _JSONValue else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListWriteInvalid.rawValue, userInfo: ["NSDebugDescription" : "Invalid value (\(object)) in JSON write"])
+            }
+            try json.visit(with: &self)
+        }
+    }
+    mutating func visit(_ cocoaDictionary: NSDictionary) throws {
+        var err: NSError? = nil
+        cocoaDictionary.enumerateKeysAndObjects { (key, value, stopPtr) in
+            guard let jsonKey = key as? _JSONValue else {
+                err = NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListWriteInvalid.rawValue, userInfo: ["NSDebugDescription" : "Invalid NSDictionary key (\(key)) in JSON write"])
+                stopPtr.pointee = true
+                return
+            }
+            guard let jsonValue = value as? _JSONValue else {
+                err = NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListWriteInvalid.rawValue, userInfo: ["NSDebugDescription" : "Invalid NSDictionary value (\(value)) in JSON write"])
+                stopPtr.pointee = true
+                return
+            }
+            do {
+                try jsonKey.visit(with: &self)
+                try jsonValue.visit(with: &self)
+            } catch where error is NSError {
+                err = (error as! NSError)
+                stopPtr.pointee = true
+            } catch {
+                fatalError()
+            }
+        }
+        if let error = err {
+            throw error
+        }
+    }
+}
+
 
 /* A class for converting JSON to Foundation/Swift objects and converting Foundation/Swift objects to JSON.
    
@@ -49,104 +296,26 @@ open class JSONSerialization : NSObject {
      */
     open class func isValidJSONObject(_ obj: Any) -> Bool {
         // TODO: - revisit this once bridging story gets fully figured out
-        func isValidJSONObjectInternal(_ obj: Any?) -> Bool {
-            // Emulate the SE-0140 behavior bridging behavior for nils
-            guard let obj = obj else {
-                return true
-            }
-            
-            if !(obj is _NSNumberCastingWithoutBridging) {
-              if obj is String || obj is NSNull || obj is Int || obj is Bool || obj is UInt ||
-                  obj is Int8 || obj is Int16 || obj is Int32 || obj is Int64 ||
-                  obj is UInt8 || obj is UInt16 || obj is UInt32 || obj is UInt64 {
-                  return true
-              }
-            }
-
-            // object is a Double and is not NaN or infinity
-            if let number = obj as? Double  {
-                return number.isFinite
-            }
-            // object is a Float and is not NaN or infinity
-            if let number = obj as? Float  {
-                return number.isFinite
-            }
-
-            if let number = obj as? Decimal {
-                return number.isFinite
-            }
-
-            // object is Swift.Array
-            if let array = obj as? [Any?] {
-                for element in array {
-                    guard isValidJSONObjectInternal(element) else {
-                        return false
-                    }
-                }
-                return true
-            }
-
-            // object is Swift.Dictionary
-            if let dictionary = obj as? [String: Any?] {
-                for (_, value) in dictionary {
-                    guard isValidJSONObjectInternal(value) else {
-                        return false
-                    }
-                }
-                return true
-            }
-
-            // object is NSNumber and is not NaN or infinity
-            // For better performance, this (most expensive) test should be last.
-            if let number = __SwiftValue.store(obj) as? NSNumber {
-                if CFNumberIsFloatType(number._cfObject) {
-                    let dv = number.doubleValue
-                    let invalid = dv.isInfinite || dv.isNaN
-                    return !invalid
-                } else {
-                    return true
-                }
-            }
-
-            // invalid object
+        do {
+            var validator = JSONValidator()
+            try validator.visit(topLevelJSON: obj)
+        } catch {
             return false
         }
-
-        // top level object must be an Swift.Array or Swift.Dictionary
-        guard obj is [Any?] || obj is [String: Any?] else {
-            return false
-        }
-
-        return isValidJSONObjectInternal(obj)
+        return true
     }
     
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
     internal class func _data(withJSONObject value: Any, options opt: WritingOptions, stream: Bool) throws -> Data {
-        var jsonStr = String()
-        
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
-            sortedKeys: opt.contains(.sortedKeys),
-            writer: { (str: String?) in
-                if let str = str {
-                    jsonStr.append(str)
-                }
-            }
+            sortedKeys: opt.contains(.sortedKeys)
         )
         
-        if let container = value as? NSArray {
-            try writer.serializeJSON(container._bridgeToSwift())
-        } else if let container = value as? NSDictionary {
-            try writer.serializeJSON(container._bridgeToSwift())
-        } else if let container = value as? Array<Any> {
-            try writer.serializeJSON(container)
-        } else if let container = value as? Dictionary<AnyHashable, Any> {
-            try writer.serializeJSON(container)
-        } else {
-            fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
-        }
+        try! writer.visit(topLevelJSON: value) // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
 
+        let jsonStr = writer.result
         let count = jsonStr.utf8.count
         return jsonStr.withCString {
             Data(bytes: $0, count: count)
@@ -196,8 +365,8 @@ open class JSONSerialization : NSObject {
     open class func writeJSONObject(_ obj: Any, toStream stream: OutputStream, options opt: WritingOptions) throws -> Int {
         let jsonData = try _data(withJSONObject: obj, options: opt, stream: true)
         let count = jsonData.count
-        return jsonData.withUnsafeBytes { (bytePtr: UnsafePointer<UInt8>) -> Int in
-            let res: Int = stream.write(bytePtr, maxLength: count)
+        return jsonData.withUnsafeBytes { (bytePtr: UnsafeRawBufferPointer) -> Int in
+            let res: Int = stream.write(bytePtr.bindMemory(to: UInt8.self).baseAddress!, maxLength: count)
             /// TODO: If the result here is negative the error should be obtained from the stream to propagate as a throw
             return res
         }
@@ -285,219 +454,176 @@ internal extension JSONSerialization {
 }
 
 //MARK: - JSONSerializer
-private struct JSONWriter {
+private struct JSONWriter : JSONVisitor {
 
     var indent = 0
     let pretty: Bool
     let sortedKeys: Bool
-    let writer: (String?) -> Void
+    var result = ""
 
-    init(pretty: Bool = false, sortedKeys: Bool = false, writer: @escaping (String?) -> Void) {
+    init(pretty: Bool = false, sortedKeys: Bool = false) {
         self.pretty = pretty
         self.sortedKeys = sortedKeys
-        self.writer = writer
     }
     
-    mutating func serializeJSON(_ object: Any?) throws {
+    mutating func visit(_ any: Any?) throws {
 
-        var toSerialize = object
+        var toSerialize = any
 
         if let number = toSerialize as? _NSNumberCastingWithoutBridging {
             toSerialize = number._swiftValueOfOptimalType
         }
         
         guard let obj = toSerialize else {
-            try serializeNull()
+            try NSNull().visit(with: &self)
             return
         }
         
-        // For better performance, the most expensive conditions to evaluate should be last.
-        switch (obj) {
-        case let str as String:
-            try serializeString(str)
-        case let boolValue as Bool:
-            writer(boolValue.description)
-        case let num as Int:
-            writer(num.description)
-        case let num as Int8:
-            writer(num.description)
-        case let num as Int16:
-            writer(num.description)
-        case let num as Int32:
-            writer(num.description)
-        case let num as Int64:
-            writer(num.description)
-        case let num as UInt:
-            writer(num.description)
-        case let num as UInt8:
-            writer(num.description)
-        case let num as UInt16:
-            writer(num.description)
-        case let num as UInt32:
-            writer(num.description)
-        case let num as UInt64:
-            writer(num.description)
-        case let array as Array<Any?>:
-            try serializeArray(array)
-        case let dict as Dictionary<AnyHashable, Any?>:
-            try serializeDictionary(dict)
-        case let num as Float:
-            try serializeFloat(num)
-        case let num as Double:
-            try serializeFloat(num)
-        case let num as Decimal:
-            writer(num.description)
-        case let num as NSDecimalNumber:
-            writer(num.description)
-        case is NSNull:
-            try serializeNull()
-        case _ where __SwiftValue.store(obj) is NSNumber:
-            let num = __SwiftValue.store(obj) as! NSNumber
-            writer(num.description)
-        default:
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
+        guard let jsonObj = obj as? _JSONValue else {
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid value (\(obj)) in JSON write"])
         }
+        
+        try jsonObj.visit(with: &self)
+    }
+    
+    mutating func visit<I: FixedWidthInteger> (_ int: I) {
+        result += int.description //TODO
+    }
+    
+    mutating func visit(_ bool: Bool) {
+        result += bool.description
+    }
+    
+    mutating func visit(_ decimal: Decimal) {
+        result += decimal.description
     }
 
-    func serializeString(_ str: String) throws {
-        writer("\"")
+    mutating func visit(_ str: String) throws {
+        result += "\""
         for scalar in str.unicodeScalars {
             switch scalar {
                 case "\"":
-                    writer("\\\"") // U+0022 quotation mark
+                    result += "\\\"" // U+0022 quotation mark
                 case "\\":
-                    writer("\\\\") // U+005C reverse solidus
+                    result += "\\\\" // U+005C reverse solidus
                 case "/":
-                    writer("\\/") // U+002F solidus
+                    result += "\\/" // U+002F solidus
                 case "\u{8}":
-                    writer("\\b") // U+0008 backspace
+                    result += "\\b" // U+0008 backspace
                 case "\u{c}":
-                    writer("\\f") // U+000C form feed
+                    result += "\\f" // U+000C form feed
                 case "\n":
-                    writer("\\n") // U+000A line feed
+                    result += "\\n" // U+000A line feed
                 case "\r":
-                    writer("\\r") // U+000D carriage return
+                    result += "\\r" // U+000D carriage return
                 case "\t":
-                    writer("\\t") // U+0009 tab
+                    result += "\\t" // U+0009 tab
                 case "\u{0}"..."\u{f}":
-                    writer("\\u000\(String(scalar.value, radix: 16))") // U+0000 to U+000F
+                    result += "\\u000\(String(scalar.value, radix: 16))" // U+0000 to U+000F
                 case "\u{10}"..."\u{1f}":
-                    writer("\\u00\(String(scalar.value, radix: 16))") // U+0010 to U+001F
+                    result += "\\u00\(String(scalar.value, radix: 16))" // U+0010 to U+001F
                 default:
-                    writer(String(scalar))
+                    result += String(scalar)
             }
         }
-        writer("\"")
+        result += "\""
     }
 
-    private func serializeFloat<T: FloatingPoint & LosslessStringConvertible>(_ num: T) throws {
-        guard num.isFinite else {
-             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(num)) in JSON write"])
-        }
-        var str = num.description
+    mutating func visit<F: FloatingPoint & LosslessStringConvertible>(_ num: F) throws {
+        var str = num.description //TODO
         if str.hasSuffix(".0") {
             str.removeLast(2)
         }
-        writer(str)
+        result += str
     }
-
-    mutating func serializeNumber(_ num: NSNumber) throws {
-        if CFNumberIsFloatType(num._cfObject) {
-            try serializeFloat(num.doubleValue)
-        } else {
-            switch num._cfTypeID {
-            case CFBooleanGetTypeID():
-                writer(num.boolValue.description)
-            default:
-                writer(num.stringValue)
-            }
-        }
-    }
-
-    mutating func serializeArray(_ array: [Any?]) throws {
-        writer("[")
+    
+    mutating func visitArrayLikeSequence<Seq: Sequence>(_ array: Seq) throws {
+        result += "["
         if pretty {
-            writer("\n")
+            result += "\n"
             incAndWriteIndent()
         }
         
         var first = true
         for elem in array {
+            guard let jsonElem = elem as? _JSONValue else {
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid NSArray value (\(elem)) in JSON write"])
+            }
             if first {
                 first = false
             } else if pretty {
-                writer(",\n")
+                result += ",\n"
                 writeIndent()
             } else {
-                writer(",")
+                result += ","
             }
-            try serializeJSON(elem)
+            try jsonElem.visit(with: &self)
         }
         if pretty {
-            writer("\n")
+            result += "\n"
             decAndWriteIndent()
         }
-        writer("]")
+        result += "]"
     }
 
-    mutating func serializeDictionary(_ dict: Dictionary<AnyHashable, Any?>) throws {
-        writer("{")
+    mutating func visit<J: _JSONValue>(_ array: [J]) throws {
+        try visitArrayLikeSequence(array)
+    }
+    
+    mutating func visit(_ cocoaArray: NSArray) throws {
+        try visitArrayLikeSequence(cocoaArray)
+    }
+
+    mutating func visit<J: _JSONValue>(_ dict: [String : J]) throws {
+        result += "{"
         if pretty {
-            writer("\n")
+            result += "\n"
             incAndWriteIndent()
         }
 
         var first = true
 
-        func serializeDictionaryElement(key: AnyHashable, value: Any?) throws {
+        func visitElement<J: _JSONValue>(key: String, value: J) throws {
             if first {
                 first = false
             } else if pretty {
-                writer(",\n")
+                result += ",\n"
                 writeIndent()
             } else {
-                writer(",")
+                result += ","
             }
 
-            if let key = key as? String {
-                try serializeString(key)
-            } else {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
-            }
-            pretty ? writer(" : ") : writer(":")
-            try serializeJSON(value)
+            try key.visit(with: &self)
+            result += pretty ? " : " : ":"
+            try value.visit(with: &self)
         }
 
         if sortedKeys {
-            let elems = try dict.sorted(by: { a, b in
-                guard let a = a.key as? String,
-                    let b = b.key as? String else {
-                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
-                }
+            let elems = dict.sorted(by: { a, b in
                 let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
-                let range: Range<String.Index>  = a.startIndex..<a.endIndex
+                let range: Range<String.Index>  = a.key.startIndex..<a.key.endIndex
                 let locale = NSLocale.system
 
-                return a.compare(b, options: options, range: range, locale: locale) == .orderedAscending
+                return a.key.compare(b.key, options: options, range: range, locale: locale) == .orderedAscending
             })
             for elem in elems {
-                try serializeDictionaryElement(key: elem.key, value: elem.value)
+                try visitElement(key: elem.key, value: elem.value)
             }
         } else {
             for (key, value) in dict {
-                try serializeDictionaryElement(key: key, value: value)
+                try visitElement(key: key, value: value)
             }
         }
 
         if pretty {
-            writer("\n")
+            result += "\n"
             decAndWriteIndent()
         }
-        writer("}")
+        result += "}"
     }
 
-    func serializeNull() throws {
-        writer("null")
+    mutating func visit(_ null: NSNull) {
+        result += "null"
     }
     
     let indentAmount = 2
@@ -512,9 +638,9 @@ private struct JSONWriter {
         writeIndent()
     }
     
-    func writeIndent() {
+    mutating func writeIndent() {
         for _ in 0..<indent {
-            writer(" ")
+            result += " "
         }
     }
 
