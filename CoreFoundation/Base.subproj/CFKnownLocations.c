@@ -91,6 +91,26 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
             break;
     }
 
+#elif TARGET_OS_ANDROID
+
+    switch (user) {
+    case _kCFKnownLocationUserAny:
+    case _kCFKnownLocationUserByName:
+      abort();
+    case _kCFKnownLocationUserCurrent: {
+      const char *buffer = getenv("CFFIXED_USER_HOME");
+      if (buffer == NULL || *buffer = '\0') {
+        CFLog(__kCFLogAssertion, CFSTR("CFFIXED_USER_HOME is unset"));
+        HALT;
+      }
+
+      CFURLRef userdir = CFURLCreateFromFileSystemRepresentation(kCFAllocatorSystemDefault, (const unsigned char *)buffer, strlen(buffer), true);
+      location = CFURLCreateWithFileSystemPathRelativeToBase(kCFAllocatorSystemDefault, CFSTR("/Apple/Library/Preferences"), kCFURLPOSIXPathStyle, true, userdir);
+      CFRelease(userdir);
+      break;
+    }
+    }
+
 #else
     
     #error For this platform, you need to define a preferences path for both 'any user' (i.e. installation-wide preferences) or the current user.
