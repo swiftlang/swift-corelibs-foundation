@@ -489,20 +489,29 @@ else()
                            -fno-common)
 endif()
 if(CF_DEPLOYMENT_SWIFT)
-  if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
-    target_compile_options(CoreFoundation
-                           PRIVATE
-                             /clang:-fcf-runtime-abi=swift)
-    target_compile_options(CFURLSessionInterface
-                           PRIVATE
-                             /clang:-fcf-runtime-abi=swift)
+  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0.7 AND CMAKE_SYSTEM_NAME STREQUAL Android)
+      # NOTE(compnerd) we assumme Swift 5.0 or newer
+      # Swift 4.2: $S10Foundation19_NSCFConstantStringCN
+      # Swift 4.1: __T010Foundation19_NSCFConstantStringCN
+      target_link_options(CoreFoundation PRIVATE
+        -Xlinker --defsym
+        -Xlinker __CFConstantStringClassReference=$$s10Foundation19_NSCFConstantStringCN)
   else()
-    target_compile_options(CoreFoundation
-                           PRIVATE
-                             -fcf-runtime-abi=swift)
-    target_compile_options(CFURLSessionInterface
-                           PRIVATE
-                             -fcf-runtime-abi=swift)
+    if("${CMAKE_C_SIMULATE_ID}" STREQUAL "MSVC")
+      target_compile_options(CoreFoundation
+                             PRIVATE
+                               /clang:-fcf-runtime-abi=swift)
+      target_compile_options(CFURLSessionInterface
+                             PRIVATE
+                               /clang:-fcf-runtime-abi=swift)
+    else()
+      target_compile_options(CoreFoundation
+                             PRIVATE
+                               -fcf-runtime-abi=swift)
+      target_compile_options(CFURLSessionInterface
+                             PRIVATE
+                               -fcf-runtime-abi=swift)
+    endif()
   endif()
 endif()
 
