@@ -22,7 +22,7 @@ public func NSTemporaryDirectory() -> String {
     guard GetTempPathW(DWORD(wszPath.count), &wszPath) <= cchLength else {
       preconditionFailure("GetTempPathW mutation race")
     }
-    return String(decodingCString: wszPath, as: UTF16.self)
+    return String(decodingCString: wszPath, as: UTF16.self).standardizingPath
 #else
 #if canImport(Darwin)
     let safe_confstr = { (name: Int32, buf: UnsafeMutablePointer<Int8>?, len: Int) -> Int in
@@ -348,14 +348,32 @@ extension NSString {
         
         return result
     }
-    
+
+#if os(Windows)
+    // Convert to a posix style '/' separated path
+    internal var unixPath: String {
+        var droppedPrefix = self as String
+        // If there is anything before the drive letter,
+        // e.g. "\\?\, \\host\, \??\", remove it
+        if isAbsolutePath, let idx = droppedPrefix.firstIndex(of: ":") {
+            droppedPrefix.removeSubrange(..<droppedPrefix.index(before: idx))
+        }
+        let slashesConverted = String(droppedPrefix.map({ $0 == "\\" ? "/" : $0 }))
+        let compressTrailing = slashesConverted._stringByFixingSlashes(stripTrailing: false)
+        return compressTrailing
+    }
+#endif
+
     public var standardizingPath: String {
+#if os(Windows)
+        let expanded = unixPath.expandingTildeInPath
+#else
         let expanded = expandingTildeInPath
-        var resolved = expanded._bridgeToObjectiveC().resolvingSymlinksInPath
+#endif
+        let resolved = expanded._bridgeToObjectiveC().resolvingSymlinksInPath
         
         let automount = "/var/automount"
-        resolved = resolved._tryToRemovePathPrefix(automount) ?? resolved
-        return resolved
+        return resolved._tryToRemovePathPrefix(automount) ?? resolved
     }
     
     public var resolvingSymlinksInPath: String {
@@ -554,11 +572,61 @@ extension NSString {
     }
     
     public func getFileSystemRepresentation(_ cname: UnsafeMutablePointer<Int8>, maxLength max: Int) -> Bool {
+#if os(Windows)
+        let fsr = UnsafeMutablePointer<WCHAR>.allocate(capacity: max)
+        defer { fsr.deallocate() }
+        guard _getFileSystemRepresentation(fsr, maxLength: max) else { return false }
+        return String(decodingCString: fsr, as: UTF16.self).withCString() {
+            let chars = strnlen_s($0, max)
+            guard chars < max else { return false }
+            cname.assign(from: $0, count: chars + 1)
+            return true
+        }
+#else
+        return _getFileSystemRepresentation(cname, maxLength: max)
+#endif
+    }
+
+    internal func _getFileSystemRepresentation(_ cname: UnsafeMutablePointer<NativeFSRCharType>, maxLength max: Int) -> Bool {
         guard self.length > 0 else {
             return false
         }
-        
+#if os(Windows)
+        var fsr = self._swiftObject
+        let idx = fsr.startIndex
+
+        // If we have an RFC 8089 style path e.g. `/[drive-letter]:/...`, drop the
+        // leading /, otherwise, a leading slash indicates a rooted path on the
+        // drive for the current working directory
+        if fsr.count >= 3 && fsr[idx] == "/" && fsr[fsr.index(after: idx)].isLetter && fsr[fsr.index(idx, offsetBy: 2)] == ":" {
+            fsr.removeFirst()
+        }
+
+        // Windows APIS that go through the path parser can handle
+        // forward slashes in paths. However, symlinks created with
+        // forward slashes do not resolve properly, so we normalize
+        // the path separators anyways.
+        fsr = fsr.replacingOccurrences(of: "/", with: "\\")
+
+        // Drop trailing slashes unless it follows a drive letter. On
+        // Windows the path `C:\` indicates the root directory of the
+        // `C:` drive. The path `C:` indicates the current working
+        // directory on the `C:` drive.
+        while fsr.count > 1
+           && (fsr[fsr.index(before: fsr.endIndex)] == "\\")
+           && !(fsr.count == 3 && fsr[fsr.index(fsr.endIndex, offsetBy: -2)] == ":") {
+            fsr.removeLast()
+        }
+
+        return fsr.withCString(encodedAs: UTF16.self) {
+            let wchars = wcsnlen_s($0, max)
+            guard wchars < max else { return false }
+            cname.assign(from: $0, count: wchars + 1)
+            return true
+        }
+#else
         return CFStringGetFileSystemRepresentation(self._cfObject, cname, max)
+#endif
     }
 
 }

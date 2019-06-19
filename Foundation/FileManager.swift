@@ -20,6 +20,14 @@ import CoreFoundation
 import MSVCRT
 #endif
 
+#if os(Windows)
+internal typealias NativeFSRCharType = WCHAR
+let NativeFSREncoding = String.Encoding.utf16LittleEndian.rawValue
+#else
+internal typealias NativeFSRCharType = CChar
+let NativeFSREncoding = String.Encoding.utf8.rawValue
+#endif
+
 open class FileManager : NSObject {
     
     /* Returns the default singleton instance.
@@ -383,7 +391,12 @@ open class FileManager : NSObject {
                     #elseif os(Linux) || os(Android) || os(Windows)
                         let modeT = number.uint32Value
                     #endif
-                    guard chmod(fsRep, mode_t(modeT)) == 0 else {
+#if os(Windows)
+                    let result = _wchmod(fsRep, mode_t(modeT))
+#else
+                    let result = chmod(fsRep, mode_t(modeT))
+#endif
+                    guard result == 0 else {
                         throw _NSErrorWithErrno(errno, reading: false, path: path)
                     }
                 
@@ -1021,15 +1034,29 @@ open class FileManager : NSObject {
      */
     open func fileSystemRepresentation(withPath path: String) -> UnsafePointer<Int8> {
         precondition(path != "", "Empty path argument")
+#if os(Windows)
+        // On Windows, the internal _fileSystemRepresentation returns
+        // UTF16 encoded data, so we need to re-encode the result as
+        // UTF8 before returning.
+        return try! _fileSystemRepresentation(withPath: path) {
+            String(decodingCString: $0, as: UTF16.self).withCString() {
+                let sz = strnlen($0, Int(MAX_PATH))
+                let buf = UnsafeMutablePointer<Int8>.allocate(capacity: sz + 1)
+                buf.initialize(from: $0, count: sz + 1)
+                return UnsafePointer(buf)
+            }
+        }
+#else
         return try! __fileSystemRepresentation(withPath: path)
+#endif
     }
 
-    internal func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<Int8> {
+    internal func __fileSystemRepresentation(withPath path: String) throws -> UnsafePointer<NativeFSRCharType> {
         let len = CFStringGetMaximumSizeOfFileSystemRepresentation(path._cfObject)
         if len != kCFNotFound {
-            let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+            let buf = UnsafeMutablePointer<NativeFSRCharType>.allocate(capacity: len)
             buf.initialize(repeating: 0, count: len)
-            if path._nsObject.getFileSystemRepresentation(buf, maxLength: len) {
+            if path._nsObject._getFileSystemRepresentation(buf, maxLength: len) {
                 return UnsafePointer(buf)
             }
             buf.deinitialize(count: len)
@@ -1038,13 +1065,13 @@ open class FileManager : NSObject {
         throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInvalidFileName.rawValue, userInfo: [NSFilePathErrorKey: path])
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+    internal func _fileSystemRepresentation<ResultType>(withPath path: String, _ body: (UnsafePointer<NativeFSRCharType>) throws -> ResultType) throws -> ResultType {
         let fsRep = try __fileSystemRepresentation(withPath: path)
         defer { fsRep.deallocate() }
         return try body(fsRep)
     }
 
-    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<Int8>, UnsafePointer<Int8>) throws -> ResultType) throws -> ResultType {
+    internal func _fileSystemRepresentation<ResultType>(withPath path1: String, andPath path2: String, _ body: (UnsafePointer<NativeFSRCharType>, UnsafePointer<NativeFSRCharType>) throws -> ResultType) throws -> ResultType {
         let fsRep1 = try __fileSystemRepresentation(withPath: path1)
         defer { fsRep1.deallocate() }
         let fsRep2 = try __fileSystemRepresentation(withPath: path2)
@@ -1058,7 +1085,7 @@ open class FileManager : NSObject {
     open func string(withFileSystemRepresentation str: UnsafePointer<Int8>, length len: Int) -> String {
         return NSString(bytes: str, length: len, encoding: String.Encoding.utf8.rawValue)!._swiftObject
     }
-    
+
     /* -replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error: is for developers who wish to perform a safe-save without using the full NSDocument machinery that is available in the AppKit.
      
         The `originalItemURL` is the item being replaced.
