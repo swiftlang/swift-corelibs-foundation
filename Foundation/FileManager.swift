@@ -16,6 +16,9 @@ fileprivate let UF_HIDDEN: Int32 = 1
 #endif
 
 import CoreFoundation
+#if os(Windows)
+import MSVCRT
+#endif
 
 open class FileManager : NSObject {
     
@@ -400,7 +403,6 @@ open class FileManager : NSObject {
                         newAccessDate = providedDate
                     }
                     #endif
-                    
                 case .immutable: fallthrough
                 case ._userImmutable:
                     prepareToSetOrUnsetFlag(UF_IMMUTABLE)
@@ -412,7 +414,21 @@ open class FileManager : NSObject {
                     prepareToSetOrUnsetFlag(UF_APPEND)
                     
                 case ._hidden:
+#if os(Windows)
+                    let attrs = try windowsFileAttributes(atPath: path).dwFileAttributes
+                    guard let isHidden = attributeValues[attribute] as? Bool else {
+                      fatalError("Can't set \(attribute) to \(attributeValues[attribute] as Any?)")
+                    }
+
+                    let hiddenAttrs = isHidden
+                        ? attrs | DWORD(FILE_ATTRIBUTE_HIDDEN)
+                        : attrs & DWORD(bitPattern: ~FILE_ATTRIBUTE_HIDDEN)
+                    guard path.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, hiddenAttrs) }) else {
+                        fatalError("Couldn't set \(path) to be hidden")
+                    }
+#else
                     prepareToSetOrUnsetFlag(UF_HIDDEN)
+#endif
                     
                 // FIXME: On Darwin, these can be set with setattrlist(); and of course chown/chgrp on other OSes.
                 case .ownerAccountID: fallthrough
@@ -531,7 +547,8 @@ open class FileManager : NSObject {
 
 #if os(Windows)
         result[.deviceIdentifier] = NSNumber(value: UInt64(s.st_rdev))
-        let type = FileAttributeType(attributes: try windowsFileAttributes(atPath: path), atPath: path)
+        let attributes = try windowsFileAttributes(atPath: path)
+        let type = FileAttributeType(attributes: attributes, atPath: path)
 #else
         if let pwd = getpwuid(s.st_uid), pwd.pointee.pw_name != nil {
             let name = String(cString: pwd.pointee.pw_name)
@@ -565,6 +582,11 @@ open class FileManager : NSObject {
         if (s.st_flags & UInt32(UF_APPEND | SF_APPEND)) != 0 {
             result[.appendOnly] = NSNumber(value: true)
         }
+#endif
+
+#if os(Windows)
+        let attrs = attributes.dwFileAttributes
+        result[._hidden] = attrs & DWORD(FILE_ATTRIBUTE_HIDDEN) != 0
 #endif
         result[.ownerAccountID] = NSNumber(value: UInt64(s.st_uid))
         result[.groupOwnerAccountID] = NSNumber(value: UInt64(s.st_gid))
