@@ -99,7 +99,7 @@ CFURLRef _Nullable _CFKnownLocationCreatePreferencesURLForUser(CFKnownLocationUs
       abort();
     case _kCFKnownLocationUserCurrent: {
       const char *buffer = getenv("CFFIXED_USER_HOME");
-      if (buffer == NULL || *buffer = '\0') {
+      if (buffer == NULL || *buffer == '\0') {
         CFLog(__kCFLogAssertion, CFSTR("CFFIXED_USER_HOME is unset"));
         HALT;
       }
