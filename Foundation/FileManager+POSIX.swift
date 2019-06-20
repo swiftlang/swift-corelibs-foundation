@@ -984,8 +984,8 @@ internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Boo
 
             if file1Type == S_IFCHR || file1Type == S_IFBLK {
                 // For character devices, just check the major/minor pair is the same.
-                return _dev_major(file1.st_rdev) == _dev_major(file2.st_rdev)
-                    && _dev_minor(file1.st_rdev) == _dev_minor(file2.st_rdev)
+                return _dev_major(dev_t(file1.st_rdev)) == _dev_major(dev_t(file2.st_rdev))
+                    && _dev_minor(dev_t(file1.st_rdev)) == _dev_minor(dev_t(file2.st_rdev))
             }
 
             // If both paths point to the same device/inode or they are both zero length
