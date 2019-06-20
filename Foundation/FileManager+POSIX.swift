@@ -591,7 +591,7 @@ extension FileManager {
     internal func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy", _ body: (String, String, FileAttributeType) throws -> ()) throws {
         let stat = try _lstatFile(atPath: srcPath)
 
-        let fileType = FileAttributeType(statMode: stat.st_mode)
+        let fileType = FileAttributeType(statMode: mode_t(stat.st_mode))
         if fileType == .typeDirectory {
             try createDirectory(atPath: dstPath, withIntermediateDirectories: false, attributes: nil)
 
@@ -603,7 +603,7 @@ extension FileManager {
                 let src = srcPath + "/" + item
                 let dst = dstPath + "/" + item
                 if let stat = try? _lstatFile(atPath: src) {
-                    let fileType = FileAttributeType(statMode: stat.st_mode)
+                    let fileType = FileAttributeType(statMode: mode_t(stat.st_mode))
                     if fileType == .typeDirectory {
                         try createDirectory(atPath: dst, withIntermediateDirectories: false, attributes: nil)
                     } else {

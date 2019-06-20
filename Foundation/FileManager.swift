@@ -560,7 +560,7 @@ open class FileManager : NSObject {
             result[.groupOwnerAccountName] = name
         }
 
-        let type = FileAttributeType(statMode: s.st_mode)
+        let type = FileAttributeType(statMode: mode_t(s.st_mode))
 #endif
         result[.type] = type
 
