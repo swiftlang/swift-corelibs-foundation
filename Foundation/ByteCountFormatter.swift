@@ -350,16 +350,14 @@ open class ByteCountFormatter : Formatter {
                 let result: String
                 //Need to add in an extra case for negative numbers as NumberFormatter formats 0.005 to 0 rather than
                 // 0.01
+                numberFormatter.minimumFractionDigits = 0
+                numberFormatter.maximumFractionDigits = 2
                 if bytes < 0 {
                     let negBytes = round(bytes * 100) / 100
                     result = numberFormatter.string(from: NSNumber(value: negBytes))!
                 } else {
-                    numberFormatter.minimumFractionDigits = 0
-                    numberFormatter.maximumFractionDigits = 2
                     result = numberFormatter.string(from: NSNumber(value: bytes))!
                 }
-                
-                
                 return partsToIncludeFor(value: result, unit: unit)
             }
         //zeroPadsFractionDigits is false, isAdaptive is false
