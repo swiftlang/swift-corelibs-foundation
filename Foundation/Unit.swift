@@ -2,9 +2,10 @@
  NSUnitConverter describes how to convert a unit to and from the base unit of its dimension.  Use the NSUnitConverter protocol to implement new ways of converting a unit.
  */
 
+import CoreFoundation
+
 open class UnitConverter : NSObject {
-    
-    
+
     /*
      The following methods perform conversions to and from the base unit of a unit class's dimension.  Each unit is defined against the base unit for the dimension to which the unit belongs.
      
@@ -147,11 +148,226 @@ private class UnitConverterReciprocal : UnitConverter, NSSecureCoding {
  */
 
 open class Unit : NSObject, NSCopying, NSSecureCoding {
-    
-    
+
+    // Supported units (ex. UnitAcceleration.kilograms) will be created once and handed off to Unit's ObjectStore for future access
+    // Not all units correlate with CFMeasureUnit/ICU units
+    fileprivate enum StoreIndex: Int {
+        case gForce
+        case meterPerSecondSquared
+        case arcMinute
+        case arcSecond
+        case degree
+        case radian
+        case revolution
+        case are
+        case acre
+        case hectare
+        case squareCentimeter
+        case squareFoot
+        case squareInch
+        case squareMegameter
+        case squareKilometer
+        case squareMeter
+        case squareMillimeter
+        case squareMicrometer
+        case squareNanometer
+        case squareMile
+        case squareYard
+        case karat
+        case gramPerLiter
+        case milligramPerDeciliter
+        case millimolePerLiter
+        case partPerMillion
+        case literPer100kilometers
+        case literPerKilometer
+        case milePerGallon
+        case milePerGallonImperial
+        case bit
+        case byte
+        case gigabit
+        case gigabyte
+        case kilobit
+        case kilobyte
+        case megabit
+        case megabyte
+        case terabit
+        case terabyte
+        case century
+        case day
+        case hour
+        case microsecond
+        case millisecond
+        case minute
+        case month
+        case nanosecond
+        case second
+        case week
+        case year
+
+
+        case coulomb
+        case megaampereHour
+        case kiloampereHour
+        case ampereHour
+        case milliampereHour
+        case microampereHour
+
+        case megaampere
+        case kiloampere
+        case ampere
+        case milliampere
+        case microampere
+
+        case megaohm
+        case kiloohm
+        case ohm
+        case milliohm
+        case microohm
+
+        case megavolt
+        case kilovolt
+        case volt
+        case millivolt
+        case microvolt
+
+        case calorie
+        case foodcalorie
+        case joule
+        case kilocalorie
+        case kilojoule
+        case kilowattHour
+
+        case terahertz
+        case gigahertz
+        case megahertz
+        case kilohertz
+        case hertz
+        case millihertz
+        case microhertz
+        case nanohertz
+
+        case parasec
+        case astronomicalUnit
+        case centimeter
+        case decimeter
+        case fathom
+        case foot
+        case furlong
+        case inch
+        case megameter
+        case kilometer
+        case hectometer
+        case decameter
+        case meter
+        case millimeter
+        case micrometer
+        case lightYear
+        case mile
+        case mileScandinavian
+        case nanometer
+        case nauticalMile
+        case parsec
+        case picometer
+        case point
+        case yard
+
+        case lux
+
+        case carat
+        case kilogram
+        case gram
+        case decigram
+        case centigram
+        case milligram
+        case microgram
+        case nanogram
+        case picogram
+        case metricTon
+        case shortTon
+        case ton
+        case ounce
+        case ounceTroy
+        case pound
+        case stone
+        case slug
+
+        case percent
+        case permille
+
+        case terawatt
+        case gigawatt
+        case megawatt
+        case kilowatt
+        case watt
+        case milliwatt
+        case microwatt
+        case nanowatt
+        case picowatt
+        case femtowatt
+        case horsepower
+
+        case gigapascal
+        case megapascal
+        case kilopascal
+        case hectopascal
+        case pascal
+        case inchHg
+        case bar
+        case millibar
+        case millimeterOfMercury
+        case poundPerSquareInch
+
+        case kilometerPerHour
+        case knot
+        case meterPerSecond
+        case milePerHour
+        case celsius
+        case fahrenheit
+        case generic
+        case kelvin
+        case acreFoot
+        case bushel
+        case centiliter
+        case cubicCentimeter
+        case cubicFoot
+        case cubicInch
+        case cubicKilometer
+        case cubicMeter
+        case cubicMile
+        case cubicYard
+        case cup
+        case cupMetric
+        case deciliter
+        case fluidOunce
+        case gallon
+        case gallonImperial
+        case hectoliter
+        case liter
+        case megaliter
+        case milliliter
+        case pint
+        case pintMetric
+        case quart
+        case tablespoon
+        case teaspoon
+
+        static let max = teaspoon.rawValue + 1
+    }
+
+    // Store is private, access members by `stored(at:)`
+    // Set members by `stored(_,at:)`
+    private static var ObjectStore = [Unit?](repeating: nil, count: StoreIndex.max)
+
+    fileprivate static func stored(at index: StoreIndex) -> Unit? {
+        return ObjectStore[index.rawValue]
+    }
+
+    fileprivate static func store(_ unit: Unit, at index: StoreIndex) {
+        ObjectStore[index.rawValue] = unit
+    }
+
     open private(set) var symbol: String
-    
-    
+
     public required init(symbol: String) {
         self.symbol = symbol
     }
@@ -192,8 +408,7 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
 }
 
 open class Dimension : Unit {
-    
-    
+
     open private(set) var converter: UnitConverter
     
     public required init(symbol: String, converter: UnitConverter) {
@@ -248,6 +463,32 @@ open class Dimension : Unit {
     }
 }
 
+extension Dimension {
+    /// Efficiently store a dimension
+    /// - Parameter index: A new unit to be stored if it does not exist
+    /// - Parameter newUnit: A new unit to be stored if it does not exist
+    fileprivate static func stored<T: Unit>(at index: StoreIndex, newUnit: @autoclosure () -> T) -> T {
+        // If unit exists, return it
+        if let unit = stored(at: index) {
+            return unit as! T
+        }
+        // Store new unit
+        let unit = newUnit()
+        store(unit, at: index)
+        return unit
+    }
+
+    fileprivate convenience init(symbol: String, coefficient: Double, storeIndex: StoreIndex? = nil) {
+        let converter = UnitConverterLinear(coefficient: coefficient)
+        self.init(symbol: symbol, converter: converter)
+    }
+
+    fileprivate convenience init(symbol: String, reciprocal: Double, storeIndex: StoreIndex? = nil) {
+        let converter = UnitConverterReciprocal(reciprocal: reciprocal)
+        self.init(symbol: symbol, converter: converter)
+    }
+}
+
 public final class UnitAcceleration : Dimension {
     
     /*
@@ -263,20 +504,16 @@ public final class UnitAcceleration : Dimension {
         static let metersPerSecondSquared   = 1.0
         static let gravity                  = 9.81
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var metersPerSecondSquared: UnitAcceleration {
         get {
-            return UnitAcceleration(symbol: Symbol.metersPerSecondSquared, coefficient: Coefficient.metersPerSecondSquared)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAcceleration(symbol: Symbol.metersPerSecondSquared, coefficient: Coefficient.metersPerSecondSquared, storeIndex: .meterPerSecondSquared))
         }
     }
     
     public class var gravity: UnitAcceleration {
         get {
-            return UnitAcceleration(symbol: Symbol.gravity, coefficient: Coefficient.gravity)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAcceleration(symbol: Symbol.gravity, coefficient: Coefficient.gravity, storeIndex: .gForce))
         }
     }
     
@@ -321,43 +558,39 @@ public final class UnitAngle : Dimension {
         static let revolutions  = 360.0
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var degrees: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.degrees, coefficient: Coefficient.degrees)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.degrees, coefficient: Coefficient.degrees, storeIndex: .degree))
         }
     }
     
     public class var arcMinutes: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.arcMinutes, coefficient: Coefficient.arcMinutes)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.arcMinutes, coefficient: Coefficient.arcMinutes, storeIndex: .arcMinute))
         }
     }
     
     public class var arcSeconds: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.arcSeconds, coefficient: Coefficient.arcSeconds)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.arcSeconds, coefficient: Coefficient.arcSeconds, storeIndex: .arcSecond))
         }
     }
     
     public class var radians: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.radians, coefficient: Coefficient.radians)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.radians, coefficient: Coefficient.radians, storeIndex: .radian))
         }
     }
     
     public class var gradians: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.gradians, coefficient: Coefficient.gradians)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.gradians, coefficient: Coefficient.gradians))
         }
     }
     
     public class var revolutions: UnitAngle {
         get {
-            return UnitAngle(symbol: Symbol.revolutions, coefficient: Coefficient.revolutions)
+            return Dimension.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.revolutions, coefficient: Coefficient.revolutions, storeIndex: .revolution))
         }
     }
     
@@ -418,91 +651,87 @@ public final class UnitArea : Dimension {
         static let hectares             = 10000.0
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var squareMegameters: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareMegameters, coefficient: Coefficient.squareMegameters)
+            return Dimension.stored(at: .squareMegameter, newUnit: UnitArea(symbol: Symbol.squareMegameters, coefficient: Coefficient.squareMegameters))
         }
     }
     
     public class var squareKilometers: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareKilometers, coefficient: Coefficient.squareKilometers)
+            return Dimension.stored(at: .squareKilometer, newUnit: UnitArea(symbol: Symbol.squareKilometers, coefficient: Coefficient.squareKilometers, storeIndex: .squareKilometer))
         }
     }
     
     public class var squareMeters: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareMeters, coefficient: Coefficient.squareMeters)
+            return Dimension.stored(at: .squareMeter, newUnit: UnitArea(symbol: Symbol.squareMeters, coefficient: Coefficient.squareMeters, storeIndex: .squareMeter))
         }
     }
     
     public class var squareCentimeters: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareCentimeters, coefficient: Coefficient.squareCentimeters)
+            return Dimension.stored(at: .squareCentimeter, newUnit: UnitArea(symbol: Symbol.squareCentimeters, coefficient: Coefficient.squareCentimeters, storeIndex: .squareCentimeter))
         }
     }
     
     public class var squareMillimeters: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareMillimeters, coefficient: Coefficient.squareMillimeters)
+            return Dimension.stored(at: .squareMillimeter, newUnit: UnitArea(symbol: Symbol.squareMillimeters, coefficient: Coefficient.squareMillimeters))
         }
     }
     
     public class var squareMicrometers: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareMicrometers, coefficient: Coefficient.squareMicrometers)
+            return Dimension.stored(at: .squareMicrometer, newUnit: UnitArea(symbol: Symbol.squareMicrometers, coefficient: Coefficient.squareMicrometers))
         }
     }
     
     public class var squareNanometers: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareNanometers, coefficient: Coefficient.squareNanometers)
+            return Dimension.stored(at: .squareNanometer, newUnit: UnitArea(symbol: Symbol.squareNanometers, coefficient: Coefficient.squareNanometers, storeIndex: .squareNanometer))
         }
     }
     
     public class var squareInches: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareInches, coefficient: Coefficient.squareInches)
+            return Dimension.stored(at: .squareInch, newUnit: UnitArea(symbol: Symbol.squareInches, coefficient: Coefficient.squareInches, storeIndex: .squareInch))
         }
     }
     
     public class var squareFeet: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareFeet, coefficient: Coefficient.squareFeet)
+            return Dimension.stored(at: .squareFoot, newUnit: UnitArea(symbol: Symbol.squareFeet, coefficient: Coefficient.squareFeet, storeIndex: .squareFoot))
         }
     }
     
     public class var squareYards: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareYards, coefficient: Coefficient.squareYards)
+            return Dimension.stored(at: .squareYard, newUnit: UnitArea(symbol: Symbol.squareYards, coefficient: Coefficient.squareYards, storeIndex: .squareYard))
         }
     }
     
     public class var squareMiles: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.squareMiles, coefficient: Coefficient.squareMiles)
+            return Dimension.stored(at: .squareMile, newUnit: UnitArea(symbol: Symbol.squareMiles, coefficient: Coefficient.squareMiles, storeIndex: .squareMile))
         }
     }
     
     public class var acres: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.acres, coefficient: Coefficient.acres)
+            return Dimension.stored(at: .acre, newUnit: UnitArea(symbol: Symbol.acres, coefficient: Coefficient.acres, storeIndex: .acre))
         }
     }
     
     public class var ares: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.ares, coefficient: Coefficient.ares)
+            return Dimension.stored(at: .are, newUnit: UnitArea(symbol: Symbol.ares, coefficient: Coefficient.ares))
         }
     }
     
     public class var hectares: UnitArea {
         get {
-            return UnitArea(symbol: Symbol.hectares, coefficient: Coefficient.hectares)
+            return Dimension.stored(at: .hectare, newUnit: UnitArea(symbol: Symbol.hectares, coefficient: Coefficient.hectares, storeIndex: .hectare))
         }
     }
     
@@ -541,19 +770,15 @@ public final class UnitConcentrationMass : Dimension {
         static let millimolesPerLiter       = 18.0
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var gramsPerLiter: UnitConcentrationMass {
         get {
-            return UnitConcentrationMass(symbol: Symbol.gramsPerLiter, coefficient: Coefficient.gramsPerLiter)
+            return Dimension.stored(at: .gramPerLiter, newUnit: UnitConcentrationMass(symbol: Symbol.gramsPerLiter, coefficient: Coefficient.gramsPerLiter))
         }
     }
     
     public class var milligramsPerDeciliter: UnitConcentrationMass {
         get {
-            return UnitConcentrationMass(symbol: Symbol.milligramsPerDeciliter, coefficient: Coefficient.milligramsPerDeciliter)
+            return Dimension.stored(at: .milligramPerDeciliter, newUnit: UnitConcentrationMass(symbol: Symbol.milligramsPerDeciliter, coefficient: Coefficient.milligramsPerDeciliter, storeIndex: .milligramPerDeciliter))
         }
     }
     
@@ -592,13 +817,9 @@ public final class UnitDispersion : Dimension {
         static let partsPerMillion  = 1.0
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var partsPerMillion: UnitDispersion {
         get {
-            return UnitDispersion(symbol: Symbol.partsPerMillion, coefficient: Coefficient.partsPerMillion)
+            return Dimension.stored(at: .partPerMillion, newUnit: UnitDispersion(symbol: Symbol.partsPerMillion, coefficient: Coefficient.partsPerMillion, storeIndex: .partPerMillion))
         }
     }
     
@@ -637,25 +858,21 @@ public final class UnitDuration : Dimension {
         static let hours    = 3600.0
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var seconds: UnitDuration {
         get {
-            return UnitDuration(symbol: Symbol.seconds, coefficient: Coefficient.seconds)
+            return Dimension.stored(at: .second, newUnit: UnitDuration(symbol: Symbol.seconds, coefficient: Coefficient.seconds, storeIndex: .second))
         }
     }
     
     public class var minutes: UnitDuration {
         get {
-            return UnitDuration(symbol: Symbol.minutes, coefficient: Coefficient.minutes)
+            return Dimension.stored(at: .minute, newUnit: UnitDuration(symbol: Symbol.minutes, coefficient: Coefficient.minutes, storeIndex: .minute))
         }
     }
     
     public class var hours: UnitDuration {
         get {
-            return UnitDuration(symbol: Symbol.hours, coefficient: Coefficient.hours)
+            return Dimension.stored(at: .hour, newUnit: UnitDuration(symbol: Symbol.hours, coefficient: Coefficient.hours, storeIndex: .hour))
         }
     }
     
@@ -699,43 +916,39 @@ public final class UnitElectricCharge : Dimension {
         static let microampereHours = 0.0036
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var coulombs: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.coulombs, coefficient: Coefficient.coulombs)
+            return Dimension.stored(at: .coulomb, newUnit: UnitElectricCharge(symbol: Symbol.coulombs, coefficient: Coefficient.coulombs))
         }
     }
     
     public class var megaampereHours: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.megaampereHours, coefficient: Coefficient.megaampereHours)
+            return Dimension.stored(at: .megaampereHour, newUnit: UnitElectricCharge(symbol: Symbol.megaampereHours, coefficient: Coefficient.megaampereHours))
         }
     }
     
     public class var kiloampereHours: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.kiloampereHours, coefficient: Coefficient.kiloampereHours)
+            return Dimension.stored(at: .kiloampereHour, newUnit: UnitElectricCharge(symbol: Symbol.kiloampereHours, coefficient: Coefficient.kiloampereHours))
         }
     }
     
     public class var ampereHours: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.ampereHours, coefficient: Coefficient.ampereHours)
+            return Dimension.stored(at: .ampereHour, newUnit: UnitElectricCharge(symbol: Symbol.ampereHours, coefficient: Coefficient.ampereHours))
         }
     }
     
     public class var milliampereHours: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.milliampereHours, coefficient: Coefficient.milliampereHours)
+            return Dimension.stored(at: .milliampereHour, newUnit: UnitElectricCharge(symbol: Symbol.milliampereHours, coefficient: Coefficient.milliampereHours))
         }
     }
     
     public class var microampereHours: UnitElectricCharge {
         get {
-            return UnitElectricCharge(symbol: Symbol.microampereHours, coefficient: Coefficient.microampereHours)
+            return Dimension.stored(at: .microampereHour, newUnit: UnitElectricCharge(symbol: Symbol.microampereHours, coefficient: Coefficient.microampereHours))
         }
     }
     
@@ -778,38 +991,34 @@ public final class UnitElectricCurrent : Dimension {
         static let microamperes = 1e-6
         
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var megaamperes: UnitElectricCurrent {
         get {
-            return UnitElectricCurrent(symbol: Symbol.megaamperes, coefficient: Coefficient.megaamperes)
+            return Dimension.stored(at: .megaampere, newUnit: UnitElectricCurrent(symbol: Symbol.megaamperes, coefficient: Coefficient.megaamperes))
         }
     }
     
     public class var kiloamperes: UnitElectricCurrent {
         get {
-            return UnitElectricCurrent(symbol: Symbol.kiloamperes, coefficient: Coefficient.kiloamperes)
+            return Dimension.stored(at: .kiloampere, newUnit: UnitElectricCurrent(symbol: Symbol.kiloamperes, coefficient: Coefficient.kiloamperes))
         }
     }
     
     public class var amperes: UnitElectricCurrent {
         get {
-            return UnitElectricCurrent(symbol: Symbol.amperes, coefficient: Coefficient.amperes)
+            return Dimension.stored(at: .ampere, newUnit: UnitElectricCurrent(symbol: Symbol.amperes, coefficient: Coefficient.amperes, storeIndex: .ampere))
         }
     }
     
     public class var milliamperes: UnitElectricCurrent {
         get {
-            return UnitElectricCurrent(symbol: Symbol.milliamperes, coefficient: Coefficient.milliamperes)
+            return Dimension.stored(at: .milliampere, newUnit: UnitElectricCurrent(symbol: Symbol.milliamperes, coefficient: Coefficient.milliamperes, storeIndex: .milliampere))
         }
     }
     
     public class var microamperes: UnitElectricCurrent {
         get {
-            return UnitElectricCurrent(symbol: Symbol.microamperes, coefficient: Coefficient.microamperes)
+            return Dimension.stored(at: .microampere, newUnit: UnitElectricCurrent(symbol: Symbol.microamperes, coefficient: Coefficient.microamperes))
         }
     }
     
@@ -852,38 +1061,34 @@ public final class UnitElectricPotentialDifference : Dimension {
         static let microvolts = 1e-6
         
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var megavolts: UnitElectricPotentialDifference {
         get {
-            return UnitElectricPotentialDifference(symbol: Symbol.megavolts, coefficient: Coefficient.megavolts)
+            return Dimension.stored(at: .megavolt, newUnit: UnitElectricPotentialDifference(symbol: Symbol.megavolts, coefficient: Coefficient.megavolts))
         }
     }
     
     public class var kilovolts: UnitElectricPotentialDifference {
         get {
-            return UnitElectricPotentialDifference(symbol: Symbol.kilovolts, coefficient: Coefficient.kilovolts)
+            return Dimension.stored(at: .kilovolt, newUnit: UnitElectricPotentialDifference(symbol: Symbol.kilovolts, coefficient: Coefficient.kilovolts))
         }
     }
     
     public class var volts: UnitElectricPotentialDifference {
         get {
-            return UnitElectricPotentialDifference(symbol: Symbol.volts, coefficient: Coefficient.volts)
+            return Dimension.stored(at: .volt, newUnit: UnitElectricPotentialDifference(symbol: Symbol.megavolts, coefficient: Coefficient.volts, storeIndex: .volt))
         }
     }
     
     public class var millivolts: UnitElectricPotentialDifference {
         get {
-            return UnitElectricPotentialDifference(symbol: Symbol.millivolts, coefficient: Coefficient.millivolts)
+            return Dimension.stored(at: .millivolt, newUnit: UnitElectricPotentialDifference(symbol: Symbol.millivolts, coefficient: Coefficient.millivolts))
         }
     }
     
     public class var microvolts: UnitElectricPotentialDifference {
         get {
-            return UnitElectricPotentialDifference(symbol: Symbol.microvolts, coefficient: Coefficient.microvolts)
+            return Dimension.stored(at: .microvolt, newUnit: UnitElectricPotentialDifference(symbol: Symbol.microvolts, coefficient: Coefficient.microvolts))
         }
     }
     
@@ -926,38 +1131,34 @@ public final class UnitElectricResistance : Dimension {
         static let microohms = 1e-6
         
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var megaohms: UnitElectricResistance {
         get {
-            return UnitElectricResistance(symbol: Symbol.megaohms, coefficient: Coefficient.megaohms)
+            return Dimension.stored(at: .megaohm, newUnit: UnitElectricResistance(symbol: Symbol.megaohms, coefficient: Coefficient.megaohms))
         }
     }
     
     public class var kiloohms: UnitElectricResistance {
         get {
-            return UnitElectricResistance(symbol: Symbol.kiloohms, coefficient: Coefficient.kiloohms)
+            return Dimension.stored(at: .kiloohm, newUnit: UnitElectricResistance(symbol: Symbol.kiloohms, coefficient: Coefficient.kiloohms))
         }
     }
     
     public class var ohms: UnitElectricResistance {
         get {
-            return UnitElectricResistance(symbol: Symbol.ohms, coefficient: Coefficient.ohms)
+            return Dimension.stored(at: .ohm, newUnit: UnitElectricResistance(symbol: Symbol.ohms, coefficient: Coefficient.ohms, storeIndex: .ohm))
         }
     }
     
     public class var milliohms: UnitElectricResistance {
         get {
-            return UnitElectricResistance(symbol: Symbol.milliohms, coefficient: Coefficient.milliohms)
+            return Dimension.stored(at: .milliohm, newUnit: UnitElectricResistance(symbol: Symbol.milliohms, coefficient: Coefficient.milliohms))
         }
     }
     
     public class var microohms: UnitElectricResistance {
         get {
-            return UnitElectricResistance(symbol: Symbol.microohms, coefficient: Coefficient.microohms)
+            return Dimension.stored(at: .microohm, newUnit: UnitElectricResistance(symbol: Symbol.microohms, coefficient: Coefficient.microohms))
         }
     }
     
@@ -1001,37 +1202,33 @@ public final class UnitEnergy : Dimension {
         
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var kilojoules: UnitEnergy {
         get {
-            return UnitEnergy(symbol: Symbol.kilojoules, coefficient: Coefficient.kilojoules)
+            return Dimension.stored(at: .kilojoule, newUnit: UnitEnergy(symbol: Symbol.kilojoules, coefficient: Coefficient.kilojoules, storeIndex: .kilojoule))
         }
     }
     
     public class var joules: UnitEnergy {
         get {
-            return UnitEnergy(symbol: Symbol.joules, coefficient: Coefficient.joules)
+            return Dimension.stored(at: .joule, newUnit: UnitEnergy(symbol: Symbol.joules, coefficient: Coefficient.joules, storeIndex: .joule))
         }
     }
     
     public class var kilocalories: UnitEnergy {
         get {
-            return UnitEnergy(symbol: Symbol.kilocalories, coefficient: Coefficient.kilocalories)
+            return Dimension.stored(at: .kilocalorie, newUnit: UnitEnergy(symbol: Symbol.kilocalories, coefficient: Coefficient.kilocalories, storeIndex: .kilocalorie))
         }
     }
     
     public class var calories: UnitEnergy {
         get {
-            return UnitEnergy(symbol: Symbol.calories, coefficient: Coefficient.calories)
+            return Dimension.stored(at: .calorie, newUnit: UnitEnergy(symbol: Symbol.calories, coefficient: Coefficient.calories, storeIndex: .calorie))
         }
     }
     
     public class var kilowattHours: UnitEnergy {
         get {
-            return UnitEnergy(symbol: Symbol.kilowattHours, coefficient: Coefficient.kilowattHours)
+            return Dimension.stored(at: .kilowattHour, newUnit: UnitEnergy(symbol: Symbol.kilowattHours, coefficient: Coefficient.kilowattHours, storeIndex: .kilowattHour))
         }
     }
     
@@ -1079,56 +1276,52 @@ public final class UnitFrequency : Dimension {
         static let microhertz   = 1e-6
         static let nanohertz    = 1e-9
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var terahertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.terahertz, coefficient: Coefficient.terahertz)
+            return Dimension.stored(at: .terahertz, newUnit: UnitFrequency(symbol: Symbol.terahertz, coefficient: Coefficient.terahertz))
         }
     }
     
     public class var gigahertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.gigahertz, coefficient: Coefficient.gigahertz)
+            return Dimension.stored(at: .gigahertz, newUnit: UnitFrequency(symbol: Symbol.gigahertz, coefficient: Coefficient.gigahertz, storeIndex: .gigahertz))
         }
     }
     
     public class var megahertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.megahertz, coefficient: Coefficient.megahertz)
+            return Dimension.stored(at: .megahertz, newUnit: UnitFrequency(symbol: Symbol.megahertz, coefficient: Coefficient.megahertz, storeIndex: .megahertz))
         }
     }
     
     public class var kilohertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.kilohertz, coefficient: Coefficient.kilohertz)
+            return Dimension.stored(at: .kilohertz, newUnit: UnitFrequency(symbol: Symbol.kilohertz, coefficient: Coefficient.kilohertz, storeIndex: .kilohertz))
         }
     }
     
     public class var hertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.hertz, coefficient: Coefficient.hertz)
+            return Dimension.stored(at: .hertz, newUnit: UnitFrequency(symbol: Symbol.hertz, coefficient: Coefficient.hertz, storeIndex: .hertz))
         }
     }
     
     public class var millihertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.millihertz, coefficient: Coefficient.millihertz)
+            return Dimension.stored(at: .millihertz, newUnit: UnitFrequency(symbol: Symbol.millihertz, coefficient: Coefficient.millihertz))
         }
     }
     
     public class var microhertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.microhertz, coefficient: Coefficient.microhertz)
+            return Dimension.stored(at: .microhertz, newUnit: UnitFrequency(symbol: Symbol.microhertz, coefficient: Coefficient.microhertz))
         }
     }
     
     public class var nanohertz: UnitFrequency {
         get {
-            return UnitFrequency(symbol: Symbol.nanohertz, coefficient: Coefficient.nanohertz)
+            return Dimension.stored(at: .nanohertz, newUnit: UnitFrequency(symbol: Symbol.nanohertz, coefficient: Coefficient.nanohertz))
         }
     }
     
@@ -1167,25 +1360,21 @@ public final class UnitFuelEfficiency : Dimension {
         static let milesPerGallon           = 235.215
     }
     
-    private convenience init(symbol: String, reciprocal: Double) {
-        self.init(symbol: symbol, converter: UnitConverterReciprocal(reciprocal: reciprocal))
-    }
-    
     public class var litersPer100Kilometers: UnitFuelEfficiency {
         get {
-            return UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, reciprocal: Coefficient.litersPer100Kilometers)
+            return Dimension.stored(at: .literPer100kilometers, newUnit: UnitFuelEfficiency(symbol: Symbol.litersPer100Kilometers, reciprocal: Coefficient.litersPer100Kilometers, storeIndex: .literPer100kilometers))
         }
     }
     
     public class var milesPerImperialGallon: UnitFuelEfficiency {
         get {
-            return UnitFuelEfficiency(symbol: Symbol.milesPerImperialGallon, reciprocal: Coefficient.milesPerImperialGallon)
+            return Dimension.stored(at: .milePerGallonImperial, newUnit: UnitFuelEfficiency(symbol: Symbol.milesPerImperialGallon, reciprocal: Coefficient.milesPerImperialGallon, storeIndex: .milePerGallonImperial))
         }
     }
     
     public class var milesPerGallon: UnitFuelEfficiency {
         get {
-            return UnitFuelEfficiency(symbol: Symbol.milesPerGallon, reciprocal: Coefficient.milesPerGallon)
+            return Dimension.stored(at: .milePerGallon, newUnit: UnitFuelEfficiency(symbol: Symbol.milesPerGallon, reciprocal: Coefficient.milesPerGallon, storeIndex: .milePerGallon))
         }
     }
     
@@ -1261,140 +1450,136 @@ public final class UnitLength : Dimension {
         static let astronomicalUnits    = 1.496e+11
         static let parsecs              = 3.086e+16
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var megameters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.megameters, coefficient: Coefficient.megameters)
+            return Dimension.stored(at: .megameter, newUnit: UnitLength(symbol: Symbol.megameters, reciprocal: Coefficient.megameters))
         }
     }
     
     public class var kilometers: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.kilometers, coefficient: Coefficient.kilometers)
+            return Dimension.stored(at: .kilometer, newUnit: UnitLength(symbol: Symbol.kilometers, coefficient: Coefficient.kilometers, storeIndex: .kilometer))
         }
     }
     
     public class var hectometers: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.hectometers, coefficient: Coefficient.hectometers)
+            return Dimension.stored(at: .hectometer, newUnit: UnitLength(symbol: Symbol.hectometers, coefficient: Coefficient.hectometers))
         }
     }
     
     public class var decameters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.decameters, coefficient: Coefficient.decameters)
+            return Dimension.stored(at: .decameter, newUnit: UnitLength(symbol: Symbol.decameters, coefficient: Coefficient.decameters))
         }
     }
     
     public class var meters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.meters, coefficient: Coefficient.meters)
+            return Dimension.stored(at: .meter, newUnit: UnitLength(symbol: Symbol.meters, coefficient: Coefficient.meters, storeIndex: .meter))
         }
     }
     
     public class var decimeters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.decimeters, coefficient: Coefficient.decimeters)
+            return Dimension.stored(at: .decimeter, newUnit: UnitLength(symbol: Symbol.decimeters, coefficient: Coefficient.decimeters, storeIndex: .decimeter))
         }
     }
     
     public class var centimeters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.centimeters, coefficient: Coefficient.centimeters)
+            return Dimension.stored(at: .centimeter, newUnit: UnitLength(symbol: Symbol.centimeters, coefficient: Coefficient.centimeters, storeIndex: .centimeter))
         }
     }
     
     public class var millimeters: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.millimeters, coefficient: Coefficient.millimeters)
+            return Dimension.stored(at: .millimeter, newUnit: UnitLength(symbol: Symbol.millimeters, coefficient: Coefficient.millimeters, storeIndex: .millimeter))
         }
     }
     
     public class var micrometers: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.micrometers, coefficient: Coefficient.micrometers)
+            return Dimension.stored(at: .micrometer, newUnit: UnitLength(symbol: Symbol.micrometers, coefficient: Coefficient.micrometers, storeIndex: .micrometer))
         }
     }
     
     public class var nanometers: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.nanometers, coefficient: Coefficient.nanometers)
+            return Dimension.stored(at: .nanometer, newUnit: UnitLength(symbol: Symbol.nanometers, coefficient: Coefficient.nanometers, storeIndex: .nanometer))
         }
     }
     
     public class var picometers: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.picometers, coefficient: Coefficient.picometers)
+            return Dimension.stored(at: .picometer, newUnit: UnitLength(symbol: Symbol.picometers, coefficient: Coefficient.picometers, storeIndex: .picometer))
         }
     }
     
     public class var inches: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.inches, coefficient: Coefficient.inches)
+            return Dimension.stored(at: .inch, newUnit: UnitLength(symbol: Symbol.inches, coefficient: Coefficient.inches, storeIndex: .inch))
         }
     }
     
     public class var feet: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.feet, coefficient: Coefficient.feet)
+            return Dimension.stored(at: .foot, newUnit: UnitLength(symbol: Symbol.feet, coefficient: Coefficient.feet, storeIndex: .foot))
         }
     }
     
     public class var yards: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.yards, coefficient: Coefficient.yards)
+            return Dimension.stored(at: .yard, newUnit: UnitLength(symbol: Symbol.yards, coefficient: Coefficient.yards, storeIndex: .yard))
         }
     }
     
     public class var miles: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.miles, coefficient: Coefficient.miles)
+            return Dimension.stored(at: .mile, newUnit: UnitLength(symbol: Symbol.miles, coefficient: Coefficient.miles, storeIndex: .mile))
         }
     }
     
     public class var scandinavianMiles: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.scandinavianMiles, coefficient: Coefficient.scandinavianMiles)
+            return Dimension.stored(at: .mileScandinavian, newUnit: UnitLength(symbol: Symbol.scandinavianMiles, coefficient: Coefficient.scandinavianMiles, storeIndex: .mileScandinavian))
         }
     }
     
     public class var lightyears: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.lightyears, coefficient: Coefficient.lightyears)
+            return Dimension.stored(at: .lightYear, newUnit: UnitLength(symbol: Symbol.lightyears, coefficient: Coefficient.lightyears, storeIndex: .lightYear))
         }
     }
     
     public class var nauticalMiles: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.nauticalMiles, coefficient: Coefficient.nauticalMiles)
+            return Dimension.stored(at: .nauticalMile, newUnit: UnitLength(symbol: Symbol.nauticalMiles, coefficient: Coefficient.nauticalMiles, storeIndex: .nauticalMile))
         }
     }
     
     public class var fathoms: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.fathoms, coefficient: Coefficient.fathoms)
+            return Dimension.stored(at: .fathom, newUnit: UnitLength(symbol: Symbol.fathoms, coefficient: Coefficient.fathoms, storeIndex: .fathom))
         }
     }
     
     public class var furlongs: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.furlongs, coefficient: Coefficient.furlongs)
+            return Dimension.stored(at: .furlong, newUnit: UnitLength(symbol: Symbol.furlongs, coefficient: Coefficient.furlongs, storeIndex: .furlong))
         }
     }
     
     public class var astronomicalUnits: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.astronomicalUnits, coefficient: Coefficient.astronomicalUnits)
+            return Dimension.stored(at: .astronomicalUnit, newUnit: UnitLength(symbol: Symbol.astronomicalUnits, coefficient: Coefficient.astronomicalUnits, storeIndex: .astronomicalUnit))
         }
     }
     
     public class var parsecs: UnitLength {
         get {
-            return UnitLength(symbol: Symbol.parsecs, coefficient: Coefficient.parsecs)
+            return Dimension.stored(at: .parasec, newUnit: UnitLength(symbol: Symbol.parsecs, coefficient: Coefficient.parsecs))
         }
     }
     
@@ -1428,14 +1613,10 @@ public final class UnitIlluminance : Dimension {
     private struct Coefficient {
         static let lux   = 1.0
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var lux: UnitIlluminance {
         get {
-            return UnitIlluminance(symbol: Symbol.lux, coefficient: Coefficient.lux)
+            return Dimension.stored(at: .lux, newUnit: UnitIlluminance(symbol: Symbol.lux, coefficient: Coefficient.lux, storeIndex: .lux))
         }
     }
     
@@ -1499,104 +1680,100 @@ public final class UnitMass : Dimension {
         static let ouncesTroy   = 0.03110348
         static let slugs        = 14.5939
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var kilograms: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.kilograms, coefficient: Coefficient.kilograms)
+            return Dimension.stored(at: .kilogram, newUnit: UnitMass(symbol: Symbol.kilograms, coefficient: Coefficient.kilograms, storeIndex: .kilogram))
         }
     }
     
     public class var grams: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.grams, coefficient: Coefficient.grams)
+            return Dimension.stored(at: .gram, newUnit: UnitMass(symbol: Symbol.grams, coefficient: Coefficient.grams, storeIndex: .gram))
         }
     }
     
     public class var decigrams: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.decigrams, coefficient: Coefficient.decigrams)
+            return Dimension.stored(at: .decigram, newUnit: UnitMass(symbol: Symbol.decigrams, coefficient: Coefficient.decigrams))
         }
     }
     
     public class var centigrams: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.centigrams, coefficient: Coefficient.centigrams)
+            return Dimension.stored(at: .centigram, newUnit: UnitMass(symbol: Symbol.centigrams, coefficient: Coefficient.centigrams))
         }
     }
     
     public class var milligrams: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.milligrams, coefficient: Coefficient.milligrams)
+            return Dimension.stored(at: .milligram, newUnit: UnitMass(symbol: Symbol.milligrams, coefficient: Coefficient.milligrams, storeIndex: .milligram))
         }
     }
     
     public class var micrograms: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.micrograms, coefficient: Coefficient.micrograms)
+            return Dimension.stored(at: .microgram, newUnit: UnitMass(symbol: Symbol.micrograms, coefficient: Coefficient.micrograms, storeIndex: .microgram))
         }
     }
     
     public class var nanograms: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.nanograms, coefficient: Coefficient.nanograms)
+            return Dimension.stored(at: .nanogram, newUnit: UnitMass(symbol: Symbol.nanograms, coefficient: Coefficient.nanograms))
         }
     }
     
     public class var picograms: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.picograms, coefficient: Coefficient.picograms)
+            return Dimension.stored(at: .picogram, newUnit: UnitMass(symbol: Symbol.picograms, coefficient: Coefficient.picograms))
         }
     }
     
     public class var ounces: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.ounces, coefficient: Coefficient.ounces)
+            return Dimension.stored(at: .ounce, newUnit: UnitMass(symbol: Symbol.ounces, coefficient: Coefficient.ounces, storeIndex: .ounce))
         }
     }
     
     public class var pounds: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.pounds, coefficient: Coefficient.pounds)
+            return Dimension.stored(at: .pound, newUnit: UnitMass(symbol: Symbol.pounds, coefficient: Coefficient.pounds, storeIndex: .pound))
         }
     }
     
     public class var stones: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.stones, coefficient: Coefficient.stones)
+            return Dimension.stored(at: .stone, newUnit: UnitMass(symbol: Symbol.stones, coefficient: Coefficient.stones, storeIndex: .stone))
         }
     }
     
     public class var metricTons: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.metricTons, coefficient: Coefficient.metricTons)
+            return Dimension.stored(at: .metricTon, newUnit: UnitMass(symbol: Symbol.metricTons, coefficient: Coefficient.metricTons, storeIndex: .metricTon))
         }
     }
     
     public class var shortTons: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.shortTons, coefficient: Coefficient.shortTons)
+            return Dimension.stored(at: .shortTon, newUnit: UnitMass(symbol: Symbol.shortTons, coefficient: Coefficient.shortTons))
         }
     }
     
     public class var carats: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.carats, coefficient: Coefficient.carats)
+            return Dimension.stored(at: .carat, newUnit: UnitMass(symbol: Symbol.carats, coefficient: Coefficient.carats, storeIndex: .carat))
         }
     }
     
     public class var ouncesTroy: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.ouncesTroy, coefficient: Coefficient.ouncesTroy)
+            return Dimension.stored(at: .ounceTroy, newUnit: UnitMass(symbol: Symbol.ouncesTroy, coefficient: Coefficient.ouncesTroy, storeIndex: .ounceTroy))
         }
     }
     
     public class var slugs: UnitMass {
         get {
-            return UnitMass(symbol: Symbol.slugs, coefficient: Coefficient.slugs)
+            return Dimension.stored(at: .slug, newUnit: UnitMass(symbol: Symbol.slugs, coefficient: Coefficient.slugs))
         }
     }
     
@@ -1650,74 +1827,70 @@ public final class UnitPower : Dimension {
         static let femtowatts = 1e-15
         static let horsepower = 745.7
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var terawatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.terawatts, coefficient: Coefficient.terawatts)
+            return Dimension.stored(at: .terawatt, newUnit: UnitPower(symbol: Symbol.terawatts, coefficient: Coefficient.terawatts))
         }
     }
     
     public class var gigawatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.gigawatts, coefficient: Coefficient.gigawatts)
+            return Dimension.stored(at: .gigawatt, newUnit: UnitPower(symbol: Symbol.gigawatts, coefficient: Coefficient.gigawatts, storeIndex: .gigawatt))
         }
     }
     
     public class var megawatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.megawatts, coefficient: Coefficient.megawatts)
+            return Dimension.stored(at: .megawatt, newUnit: UnitPower(symbol: Symbol.megawatts, coefficient: Coefficient.megawatts, storeIndex: .megawatt))
         }
     }
     
     public class var kilowatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.kilowatts, coefficient: Coefficient.kilowatts)
+            return Dimension.stored(at: .kilowatt, newUnit: UnitPower(symbol: Symbol.kilowatts, coefficient: Coefficient.kilowatts, storeIndex: .kilowatt))
         }
     }
     
     public class var watts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.watts, coefficient: Coefficient.watts)
+            return Dimension.stored(at: .watt, newUnit: UnitPower(symbol: Symbol.watts, coefficient: Coefficient.watts, storeIndex: .watt))
         }
     }
     
     public class var milliwatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.milliwatts, coefficient: Coefficient.milliwatts)
+            return Dimension.stored(at: .milliwatt, newUnit: UnitPower(symbol: Symbol.milliwatts, coefficient: Coefficient.milliwatts, storeIndex: .milliwatt))
         }
     }
     
     public class var microwatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.microwatts, coefficient: Coefficient.microwatts)
+            return Dimension.stored(at: .microwatt, newUnit: UnitPower(symbol: Symbol.microwatts, coefficient: Coefficient.microwatts))
         }
     }
     
     public class var nanowatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.nanowatts, coefficient: Coefficient.nanowatts)
+            return Dimension.stored(at: .nanowatt, newUnit: UnitPower(symbol: Symbol.nanowatts, coefficient: Coefficient.nanowatts))
         }
     }
     
     public class var picowatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.picowatts, coefficient: Coefficient.picowatts)
+            return Dimension.stored(at: .picowatt, newUnit: UnitPower(symbol: Symbol.picowatts, coefficient: Coefficient.picowatts))
         }
     }
     
     public class var femtowatts: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.femtowatts, coefficient: Coefficient.femtowatts)
+            return Dimension.stored(at: .femtowatt, newUnit: UnitPower(symbol: Symbol.femtowatts, coefficient: Coefficient.femtowatts))
         }
     }
     
     public class var horsepower: UnitPower {
         get {
-            return UnitPower(symbol: Symbol.horsepower, coefficient: Coefficient.horsepower)
+            return Dimension.stored(at: .horsepower, newUnit: UnitPower(symbol: Symbol.horsepower, coefficient: Coefficient.horsepower, storeIndex: .horsepower))
         }
     }
     
@@ -1770,67 +1943,63 @@ public final class UnitPressure : Dimension {
         static let poundsForcePerSquareInch = 6894.76
     }
     
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
     public class var newtonsPerMetersSquared: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.newtonsPerMetersSquared, coefficient: Coefficient.newtonsPerMetersSquared)
+            return Dimension.stored(at: .pascal, newUnit: UnitPressure(symbol: Symbol.newtonsPerMetersSquared, coefficient: Coefficient.newtonsPerMetersSquared))
         }
     }
     
     public class var gigapascals: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.gigapascals, coefficient: Coefficient.gigapascals)
+            return Dimension.stored(at: .gigapascal, newUnit: UnitPressure(symbol: Symbol.gigapascals, coefficient: Coefficient.gigapascals))
         }
     }
     
     public class var megapascals: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.megapascals, coefficient: Coefficient.megapascals)
+            return Dimension.stored(at: .megapascal, newUnit: UnitPressure(symbol: Symbol.megapascals, coefficient: Coefficient.megapascals))
         }
     }
     
     public class var kilopascals: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.kilopascals, coefficient: Coefficient.kilopascals)
+            return Dimension.stored(at: .kilopascal, newUnit: UnitPressure(symbol: Symbol.kilopascals, coefficient: Coefficient.kilopascals))
         }
     }
     
     public class var hectopascals: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.hectopascals, coefficient: Coefficient.hectopascals)
+            return Dimension.stored(at: .hectopascal, newUnit: UnitPressure(symbol: Symbol.hectopascals, coefficient: Coefficient.hectopascals, storeIndex: .hectopascal))
         }
     }
     
     public class var inchesOfMercury: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.inchesOfMercury, coefficient: Coefficient.inchesOfMercury)
+            return Dimension.stored(at: .inchHg, newUnit: UnitPressure(symbol: Symbol.inchesOfMercury, coefficient: Coefficient.inchesOfMercury, storeIndex: .inchHg))
         }
     }
     
     public class var bars: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.bars, coefficient: Coefficient.bars)
+            return Dimension.stored(at: .bar, newUnit: UnitPressure(symbol: Symbol.bars, coefficient: Coefficient.bars))
         }
     }
     
     public class var millibars: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.millibars, coefficient: Coefficient.millibars)
+            return Dimension.stored(at: .millibar, newUnit: UnitPressure(symbol: Symbol.millibars, coefficient: Coefficient.millibars, storeIndex: .millibar))
         }
     }
     
     public class var millimetersOfMercury: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.millimetersOfMercury, coefficient: Coefficient.millimetersOfMercury)
+            return Dimension.stored(at: .millimeterOfMercury, newUnit: UnitPressure(symbol: Symbol.millimetersOfMercury, coefficient: Coefficient.millimetersOfMercury, storeIndex: .millimeterOfMercury))
         }
     }
     
     public class var poundsForcePerSquareInch: UnitPressure {
         get {
-            return UnitPressure(symbol: Symbol.poundsForcePerSquareInch, coefficient: Coefficient.poundsForcePerSquareInch)
+            return Dimension.stored(at: .poundPerSquareInch, newUnit: UnitPressure(symbol: Symbol.poundsForcePerSquareInch, coefficient: Coefficient.poundsForcePerSquareInch, storeIndex: .poundPerSquareInch))
         }
     }
     
@@ -1870,32 +2039,28 @@ public final class UnitSpeed : Dimension {
         static let milesPerHour         = 0.44704
         static let knots                = 0.514444
     }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
-    }
-    
+
     public class var metersPerSecond: UnitSpeed {
         get {
-            return UnitSpeed(symbol: Symbol.metersPerSecond, coefficient: Coefficient.metersPerSecond)
+            return Dimension.stored(at: .meterPerSecond, newUnit: UnitSpeed(symbol: Symbol.metersPerSecond, coefficient: Coefficient.metersPerSecond, storeIndex: .meterPerSecond))
         }
     }
     
     public class var kilometersPerHour: UnitSpeed {
         get {
-            return UnitSpeed(symbol: Symbol.kilometersPerHour, coefficient: Coefficient.kilometersPerHour)
+            return Dimension.stored(at: .kilometerPerHour, newUnit: UnitSpeed(symbol: Symbol.kilometersPerHour, coefficient: Coefficient.kilometersPerHour, storeIndex: .kilometerPerHour))
         }
     }
     
     public class var milesPerHour: UnitSpeed {
         get {
-            return UnitSpeed(symbol: Symbol.milesPerHour, coefficient: Coefficient.milesPerHour)
+            return Dimension.stored(at: .milePerHour, newUnit: UnitSpeed(symbol: Symbol.milesPerHour, coefficient: Coefficient.milesPerHour, storeIndex: .milePerHour))
         }
     }
     
     public class var knots: UnitSpeed {
         get {
-            return UnitSpeed(symbol: Symbol.knots, coefficient: Coefficient.knots)
+            return Dimension.stored(at: .knot, newUnit: UnitSpeed(symbol: Symbol.knots, coefficient: Coefficient.knots, storeIndex: .knot))
         }
     }
     
@@ -1940,25 +2105,25 @@ public final class UnitTemperature : Dimension {
         static let fahrenheit = 255.37222222222427
     }
     
-    private convenience init(symbol: String, coefficient: Double, constant: Double) {
+    private convenience init(symbol: String, coefficient: Double, constant: Double, storeIndex: StoreIndex) {
         self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient, constant: constant))
     }
     
     public class var kelvin: UnitTemperature {
         get {
-            return UnitTemperature(symbol: Symbol.kelvin, coefficient: Coefficient.kelvin, constant: Constant.kelvin)
+            return Dimension.stored(at: .kelvin, newUnit: UnitTemperature(symbol: Symbol.kelvin, coefficient: Coefficient.kelvin, storeIndex: .kelvin))
         }
     }
     
     public class var celsius: UnitTemperature {
         get {
-            return UnitTemperature(symbol: Symbol.celsius, coefficient: Coefficient.celsius, constant: Constant.celsius)
+            return Dimension.stored(at: .celsius, newUnit: UnitTemperature(symbol: Symbol.kelvin, coefficient: Coefficient.celsius, constant: Constant.celsius, storeIndex: .celsius))
         }
     }
     
     public class var fahrenheit: UnitTemperature {
         get {
-            return UnitTemperature(symbol: Symbol.fahrenheit, coefficient: Coefficient.fahrenheit, constant: Constant.fahrenheit)
+            return Dimension.stored(at: .fahrenheit, newUnit: UnitTemperature(symbol: Symbol.fahrenheit, coefficient: Coefficient.fahrenheit, constant: Constant.fahrenheit, storeIndex: .fahrenheit))
         }
     }
     
@@ -2051,10 +2216,6 @@ public final class UnitVolume : Dimension {
         static let imperialQuarts       = 1.13652
         static let imperialGallons      = 4.54609
         static let metricCups           = 0.25
-    }
-    
-    private convenience init(symbol: String, coefficient: Double) {
-        self.init(symbol: symbol, converter: UnitConverterLinear(coefficient: coefficient))
     }
     
     public class var megaliters: UnitVolume {
