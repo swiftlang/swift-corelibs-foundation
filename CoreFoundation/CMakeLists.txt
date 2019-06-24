@@ -589,6 +589,11 @@ install(TARGETS
 		  CFURLSessionInterface
         DESTINATION
           "${CMAKE_INSTALL_FULL_LIBDIR}")
+
+# Needed to avoid double slash "//" when CMAKE_INSTALL_PREFIX set to "/" and DESTDIR used to relocate whole installation.
+# Double slash raise CMake error "file called with network path DESTINATION //System/Library/Frameworks".
+string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+
 install(DIRECTORY
           ${CoreFoundation_FRAMEWORK_DIRECTORY}
         DESTINATION
