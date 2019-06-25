@@ -97,10 +97,12 @@ if(FOUNDATION_ENABLE_LIBDISPATCH)
   endif()
 endif()
 
+set(plutil_rpath)
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux OR
     CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
   set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
   set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
+  set(plutil_rpath -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # FIXME(SR9138) Silence "locally defined symbol '…' imported in function '…'
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
@@ -389,11 +391,11 @@ add_swift_executable(plutil
                      CFLAGS
                        -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
-                       ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
+                       -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
-                       ${Foundation_RPATH}
+                       ${plutil_rpath}
                      SWIFT_FLAGS
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
@@ -601,7 +603,17 @@ if(ENABLE_TESTING)
                          ENVIRONMENT
                            LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:${FOUNDATION_PATH_TO_XCTEST_BUILD}:${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}:${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src
                          DEPENDS
-                           ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
+                         ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/xdgTestHelper${CMAKE_EXECUTABLE_SUFFIX})
+
+  add_custom_command(TARGET TestFoundation
+                     POST_BUILD
+                     BYPRODUCTS
+                       ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/plutil${CMAKE_EXECUTABLE_SUFFIX}
+                     COMMAND
+                       ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/plutil${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_BINARY_DIR}/TestFoundation/plutil${CMAKE_EXECUTABLE_SUFFIX}
+                     DEPENDS
+                       TestFoundation
+                       plutil)
 endif()
 
 if(BUILD_SHARED_LIBS)
