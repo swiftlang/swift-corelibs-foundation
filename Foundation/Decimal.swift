@@ -100,142 +100,6 @@ extension Decimal {
     public typealias CalculationError = NSDecimalNumber.CalculationError
 }
 
-extension Decimal {
-    public static let leastFiniteMagnitude = Decimal(
-        _exponent: 127,
-        _length: 8,
-        _isNegative: 1,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
-    )
-
-    public static let greatestFiniteMagnitude = Decimal(
-        _exponent: 127,
-        _length: 8,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
-    )
-
-    public static let leastNormalMagnitude = Decimal(
-        _exponent: -127,
-        _length: 1,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
-    )
-
-    public static let leastNonzeroMagnitude = Decimal(
-        _exponent: -127,
-        _length: 1,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
-    )
-
-    public static let pi = Decimal(
-        _exponent: -38,
-        _length: 8,
-        _isNegative: 0,
-        _isCompact: 1,
-        _reserved: 0,
-        _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58)
-    )
-
-    public var exponent: Int {
-        return Int(_exponent)
-    }
-
-    public var significand: Decimal {
-        return Decimal(
-            _exponent: 0, _length: _length, _isNegative: _isNegative, _isCompact: _isCompact,
-            _reserved: 0, _mantissa: _mantissa)
-    }
-
-    public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
-        self.init(
-            _exponent: Int32(exponent) + significand._exponent,
-            _length: significand._length,
-            _isNegative: sign == .plus ? 0 : 1,
-            _isCompact: significand._isCompact,
-            _reserved: 0,
-            _mantissa: significand._mantissa)
-    }
-
-    public init(signOf: Decimal, magnitudeOf magnitude: Decimal) {
-        self.init(
-            _exponent: magnitude._exponent,
-            _length: magnitude._length,
-            _isNegative: signOf._isNegative,
-            _isCompact: magnitude._isCompact,
-            _reserved: 0,
-            _mantissa: magnitude._mantissa)
-    }
-
-    public var sign: FloatingPointSign {
-        return _isNegative == 0 ? FloatingPointSign.plus : FloatingPointSign.minus
-    }
-
-    public static var radix: Int {
-        return 10
-    }
-
-    public var ulp: Decimal {
-        if !self.isFinite { return Decimal.nan }
-        return Decimal(
-            _exponent: _exponent, _length: 8, _isNegative: 0, _isCompact: 1,
-            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
-    }
-
-    public func isEqual(to other: Decimal) -> Bool {
-        return self.compare(to: other) == .orderedSame
-    }
-
-    public func isLess(than other: Decimal) -> Bool {
-        return self.compare(to: other) == .orderedAscending
-    }
-
-    public func isLessThanOrEqualTo(_ other: Decimal) -> Bool {
-        let comparison = self.compare(to: other)
-        return comparison == .orderedAscending || comparison == .orderedSame
-    }
-
-    public func isTotallyOrdered(belowOrEqualTo other: Decimal) -> Bool {
-        // Note: Decimal does not have -0 or infinities to worry about
-        if self.isNaN {
-            return false
-        }
-        if self < other {
-            return true
-        }
-        if other < self {
-            return false
-        }
-        // Fall through to == behavior
-        return true
-    }
-
-    public var isCanonical: Bool {
-        return true
-    }
-
-    public var nextUp: Decimal {
-        return self + Decimal(
-            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
-            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
-    }
-
-    public var nextDown: Decimal {
-        return self - Decimal(
-            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
-            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
-    }
-}
-
 extension Decimal : Hashable, Comparable {
     // (Used by VariableLengthNumber and doubleValue.)
     fileprivate subscript(index: UInt32) -> UInt16 {
@@ -634,6 +498,67 @@ extension Decimal : Strideable {
 // If it becomes clear that conformance is truly impossible, we can deprecate
 // some of the methods (e.g. `isEqual(to:)` in favor of operators).
 extension Decimal {
+    public static let leastFiniteMagnitude = Decimal(
+        _exponent: 127,
+        _length: 8,
+        _isNegative: 1,
+        _isCompact: 1,
+        _reserved: 0,
+        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
+    )
+
+    public static let greatestFiniteMagnitude = Decimal(
+        _exponent: 127,
+        _length: 8,
+        _isNegative: 0,
+        _isCompact: 1,
+        _reserved: 0,
+        _mantissa: (0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff)
+    )
+
+    public static let leastNormalMagnitude = Decimal(
+        _exponent: -127,
+        _length: 1,
+        _isNegative: 0,
+        _isCompact: 1,
+        _reserved: 0,
+        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
+    )
+
+    public static let leastNonzeroMagnitude = Decimal(
+        _exponent: -127,
+        _length: 1,
+        _isNegative: 0,
+        _isCompact: 1,
+        _reserved: 0,
+        _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000)
+    )
+
+    public static let pi = Decimal(
+        _exponent: -38,
+        _length: 8,
+        _isNegative: 0,
+        _isCompact: 1,
+        _reserved: 0,
+        _mantissa: (0x6623, 0x7d57, 0x16e7, 0xad0d, 0xaf52, 0x4641, 0xdfa7, 0xec58)
+    )
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var infinity: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
+    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
+    public static var signalingNaN: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
+
+    public static var quietNaN: Decimal {
+        return Decimal(
+            _exponent: 0, _length: 0, _isNegative: 1, _isCompact: 0,
+            _reserved: 0, _mantissa: (0, 0, 0, 0, 0, 0, 0, 0))
+    }
+
+    public static var nan: Decimal { quietNaN }
+
+    public static var radix: Int { 10 }
+
     public init(_ value: UInt8) {
         self.init(UInt64(value))
     }
@@ -655,6 +580,44 @@ extension Decimal {
     }
 
     public init(_ value: Int32) {
+        self.init(Int64(value))
+    }
+
+    public init(_ value: UInt64) {
+        self = Decimal()
+        if value == 0 {
+            return
+        }
+
+        var compactValue = value
+        var exponent: Int32 = 0
+        while compactValue % 10 == 0 {
+            compactValue /= 10
+            exponent += 1
+        }
+        _isCompact = 1
+        _exponent = exponent
+
+        let wordCount = ((UInt64.bitWidth - compactValue.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
+        _length = UInt32(wordCount)
+        _mantissa.0 = UInt16(truncatingIfNeeded: compactValue >> 0)
+        _mantissa.1 = UInt16(truncatingIfNeeded: compactValue >> 16)
+        _mantissa.2 = UInt16(truncatingIfNeeded: compactValue >> 32)
+        _mantissa.3 = UInt16(truncatingIfNeeded: compactValue >> 48)
+    }
+
+    public init(_ value: Int64) {
+        self.init(value.magnitude)
+        if value < 0 {
+            _isNegative = 1
+        }
+    }
+
+    public init(_ value: UInt) {
+        self.init(UInt64(value))
+    }
+
+    public init(_ value: Int) {
         self.init(Int64(value))
     }
 
@@ -714,70 +677,69 @@ extension Decimal {
         }
     }
 
-    public init(_ value: UInt64) {
-        self = Decimal()
-        if value == 0 {
-            return
-        }
-
-        var compactValue = value
-        var exponent: Int32 = 0
-        while compactValue % 10 == 0 {
-            compactValue /= 10
-            exponent += 1
-        }
-        _isCompact = 1
-        _exponent = exponent
-
-        let wordCount = ((UInt64.bitWidth - compactValue.leadingZeroBitCount) + (UInt16.bitWidth - 1)) / UInt16.bitWidth
-        _length = UInt32(wordCount)
-        _mantissa.0 = UInt16(truncatingIfNeeded: compactValue >> 0)
-        _mantissa.1 = UInt16(truncatingIfNeeded: compactValue >> 16)
-        _mantissa.2 = UInt16(truncatingIfNeeded: compactValue >> 32)
-        _mantissa.3 = UInt16(truncatingIfNeeded: compactValue >> 48)
+    public init(sign: FloatingPointSign, exponent: Int, significand: Decimal) {
+        self.init(
+            _exponent: Int32(exponent) + significand._exponent,
+            _length: significand._length,
+            _isNegative: sign == .plus ? 0 : 1,
+            _isCompact: significand._isCompact,
+            _reserved: 0,
+            _mantissa: significand._mantissa)
     }
 
-    public init(_ value: Int64) {
-        self.init(value.magnitude)
-        if value < 0 {
-            _isNegative = 1
-        }
+    public init(signOf: Decimal, magnitudeOf magnitude: Decimal) {
+        self.init(
+            _exponent: magnitude._exponent,
+            _length: magnitude._length,
+            _isNegative: signOf._isNegative,
+            _isCompact: magnitude._isCompact,
+            _reserved: 0,
+            _mantissa: magnitude._mantissa)
     }
 
-    public init(_ value: UInt) {
-        self.init(UInt64(value))
+    public var exponent: Int {
+        return Int(_exponent)
     }
 
-    public init(_ value: Int) {
-        self.init(Int64(value))
-    }
-
-    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
-    public static var infinity: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
-
-    @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
-    public static var signalingNaN: Decimal { fatalError("Decimal does not yet fully adopt FloatingPoint") }
-
-    public var isSignalingNaN: Bool {
-        return false
-    }
-
-    public static var nan: Decimal {
-        return quietNaN
-    }
-
-    public static var quietNaN: Decimal {
+    public var significand: Decimal {
         return Decimal(
-            _exponent: 0, _length: 0, _isNegative: 1, _isCompact: 0,
-            _reserved: 0, _mantissa: (0, 0, 0, 0, 0, 0, 0, 0))
+            _exponent: 0, _length: _length, _isNegative: _isNegative, _isCompact: _isCompact,
+            _reserved: 0, _mantissa: _mantissa)
     }
 
+    public var sign: FloatingPointSign {
+        return _isNegative == 0 ? FloatingPointSign.plus : FloatingPointSign.minus
+    }
+
+    public var ulp: Decimal {
+        if !self.isFinite { return Decimal.nan }
+        return Decimal(
+            _exponent: _exponent, _length: 8, _isNegative: 0, _isCompact: 1,
+            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
+    }
+
+    public var nextUp: Decimal {
+        return self + Decimal(
+            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
+            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
+    }
+
+    public var nextDown: Decimal {
+        return self - Decimal(
+            _exponent: _exponent, _length: 1, _isNegative: 0, _isCompact: 1,
+            _reserved: 0, _mantissa: (0x0001, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000))
+    }
+
+    /// The IEEE 754 "class" of this type.
     public var floatingPointClass: FloatingPointClassification {
         if _length == 0 && _isNegative == 1 {
             return .quietNaN
         } else if _length == 0 {
             return .positiveZero
         }
+        // NSDecimal does not really represent normal and subnormal in the same
+        // manner as the IEEE standard, for now we can probably claim normal for
+        // any nonzero, non-NaN values.
         if _isNegative == 1 {
             return .negativeNormal
         } else {
@@ -785,36 +747,61 @@ extension Decimal {
         }
     }
 
-    public var isSignMinus: Bool {
-        return _isNegative != 0
+    public var isCanonical: Bool { true }
+
+    /// `true` iff `self` is negative.
+    public var isSignMinus: Bool { _isNegative != 0 }
+
+    /// `true` iff `self` is +0.0 or -0.0.
+    public var isZero: Bool { _length == 0 && _isNegative == 0 }
+
+    /// `true` iff `self` is subnormal.
+    public var isSubnormal: Bool { false }
+
+    /// `true` iff `self` is normal (not zero, subnormal, infinity, or NaN).
+    public var isNormal: Bool { !isZero && !isInfinite && !isNaN }
+
+    /// `true` iff `self` is zero, subnormal, or normal (not infinity or NaN).
+    public var isFinite: Bool { !isNaN }
+
+    /// `true` iff `self` is infinity.
+    public var isInfinite: Bool { false }
+
+    /// `true` iff `self` is NaN.
+    public var isNaN: Bool { _length == 0 && _isNegative == 1 }
+
+    /// `true` iff `self` is a signaling NaN.
+    public var isSignaling: Bool { false }
+
+    /// `true` iff `self` is a signaling NaN.
+    public var isSignalingNaN: Bool { false }
+
+    public func isEqual(to other: Decimal) -> Bool {
+        return self.compare(to: other) == .orderedSame
     }
 
-    public var isNormal: Bool {
-        return !isZero && !isInfinite && !isNaN
+    public func isLess(than other: Decimal) -> Bool {
+        return self.compare(to: other) == .orderedAscending
     }
 
-    public var isFinite: Bool {
-        return !isNaN
+    public func isLessThanOrEqualTo(_ other: Decimal) -> Bool {
+        let comparison = self.compare(to: other)
+        return comparison == .orderedAscending || comparison == .orderedSame
     }
 
-    public var isZero: Bool {
-        return _length == 0 && _isNegative == 0
-    }
-
-    public var isSubnormal: Bool {
-        return false
-    }
-
-    public var isInfinite: Bool {
-        return false
-    }
-
-    public var isNaN: Bool {
-        return _length == 0 && _isNegative == 1
-    }
-
-    public var isSignaling: Bool {
-        return false
+    public func isTotallyOrdered(belowOrEqualTo other: Decimal) -> Bool {
+        // Note: Decimal does not have -0 or infinities to worry about
+        if self.isNaN {
+            return false
+        }
+        if self < other {
+            return true
+        }
+        if other < self {
+            return false
+        }
+        // Fall through to == behavior
+        return true
     }
 
     @available(*, unavailable, message: "Decimal does not yet fully adopt FloatingPoint.")
@@ -842,6 +829,8 @@ extension Decimal: _ObjectiveCBridgeable {
         return result!
     }
 }
+
+// MARK: - End of conformances shared with Darwin overlay
 
 fileprivate func divideByShort<T:VariableLengthNumber>(_ d: inout T, _ divisor:UInt16) -> (UInt16,NSDecimalNumber.CalculationError) {
     if divisor == 0 {
