@@ -514,6 +514,33 @@ class TestProcess : XCTestCase {
         task.waitUntilExit()
     }
 
+
+    func test_plutil() throws {
+        let task = Process()
+
+        guard let url = testBundle().url(forAuxiliaryExecutable: "plutil") else {
+            throw Error.ExternalBinaryNotFound("plutil")
+        }
+
+        task.executableURL = url
+        task.arguments = []
+        let stdoutPipe = Pipe()
+        task.standardOutput = stdoutPipe
+
+        var stdoutData = Data()
+        stdoutPipe.fileHandleForReading.readabilityHandler = { fh in
+            stdoutData.append(fh.availableData)
+        }
+        try task.run()
+        task.waitUntilExit()
+        stdoutPipe.fileHandleForReading.readabilityHandler = nil
+        if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
+            stdoutData.append(d)
+        }
+        XCTAssertEqual(String(data: stdoutData, encoding: .utf8), "No files specified.\n")
+    }
+
+
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
         return [
             ("test_exit0" , test_exit0),
@@ -541,6 +568,7 @@ class TestProcess : XCTestCase {
             ("test_redirect_stderr_using_null", test_redirect_stderr_using_null),
             ("test_redirect_all_using_null", test_redirect_all_using_null),
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
+            ("test_plutil", test_plutil),
         ]
     }
 }
@@ -549,6 +577,7 @@ private enum Error: Swift.Error {
     case TerminationStatus(Int32)
     case UnicodeDecodingError(Data)
     case InvalidEnvironmentVariable(String)
+    case ExternalBinaryNotFound(String)
 }
 
 // Run xdgTestHelper, wait for 'Ready' from the sub-process, then signal a semaphore.
