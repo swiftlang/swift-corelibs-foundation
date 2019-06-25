@@ -661,17 +661,19 @@ extension Decimal {
     public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not yet fully adopt FloatingPoint") }
 }
 
-extension Decimal: CustomStringConvertible {
+extension Decimal : CustomStringConvertible {
     public init?(string: String, locale: Locale? = nil) {
         let scan = Scanner(string: string)
-        scan.locale = locale
         var theDecimal = Decimal()
+        scan.locale = locale
         if !scan.scanDecimal(&theDecimal) {
             return nil
         }
         self = theDecimal
     }
 
+    // Note: In the Darwin overlay, `description` is implemented in terms of
+    // `NSDecimalString(_:_:)`; here, it's the other way around.
     public var description: String {
         if self.isNaN {
             return "NaN"
@@ -680,11 +682,11 @@ extension Decimal: CustomStringConvertible {
             return "0"
         }
         var copy = self
-        let ZERO : CChar = 0x30 // ASCII '0' == 0x30
-        let decimalChar : CChar = 0x2e // ASCII '.' == 0x2e
-        let MINUS : CChar = 0x2d // ASCII '-' == 0x2d
+        let ZERO: CChar = 0x30 // ASCII '0' == 0x30
+        let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
+        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
 
-        let bufferSize = 200 // max value : 39+128+sign+decimalpoint
+        let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
         var buffer = Array<CChar>(repeating: 0, count: bufferSize)
 
         var i = bufferSize - 1
@@ -702,10 +704,10 @@ extension Decimal: CustomStringConvertible {
             var remainder: UInt16 = 0
             if copy._exponent == 0 {
                 i -= 1
-                buffer[i] = decimalChar
+                buffer[i] = DECIMALPOINT
             }
             copy._exponent += 1
-            (remainder,_) = divideByShort(&copy, 10)
+            (remainder, _) = divideByShort(&copy, 10)
             i -= 1
             buffer[i] = Int8(remainder) + ZERO
         }
@@ -716,7 +718,7 @@ extension Decimal: CustomStringConvertible {
                 copy._exponent += 1
             }
             i -= 1
-            buffer[i] = decimalChar
+            buffer[i] = DECIMALPOINT
             i -= 1
             buffer[i] = ZERO
         }
@@ -724,7 +726,7 @@ extension Decimal: CustomStringConvertible {
             i -= 1
             buffer[i] = MINUS
         }
-        return String(cString: Array(buffer.suffix(from:i)))
+        return String(cString: Array(buffer.suffix(from: i)))
     }
 }
 
