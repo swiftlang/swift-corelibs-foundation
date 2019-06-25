@@ -344,6 +344,130 @@ extension Decimal : Hashable, Comparable {
     }
 }
 
+extension Decimal : CustomStringConvertible {
+    public init?(string: String, locale: Locale? = nil) {
+        let scan = Scanner(string: string)
+        var theDecimal = Decimal()
+        scan.locale = locale
+        if !scan.scanDecimal(&theDecimal) {
+            return nil
+        }
+        self = theDecimal
+    }
+
+    // Note: In the Darwin overlay, `description` is implemented in terms of
+    // `NSDecimalString(_:_:)`; here, it's the other way around.
+    public var description: String {
+        if self.isNaN {
+            return "NaN"
+        }
+        if _length == 0 {
+            return "0"
+        }
+        var copy = self
+        let ZERO: CChar = 0x30 // ASCII '0' == 0x30
+        let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
+        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
+
+        let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
+        var buffer = Array<CChar>(repeating: 0, count: bufferSize)
+
+        var i = bufferSize - 1
+        while copy._exponent > 0 {
+            i -= 1
+            buffer[i] = ZERO
+            copy._exponent -= 1
+        }
+
+        if copy._exponent == 0 {
+            copy._exponent = 1
+        }
+
+        while copy._length != 0 {
+            var remainder: UInt16 = 0
+            if copy._exponent == 0 {
+                i -= 1
+                buffer[i] = DECIMALPOINT
+            }
+            copy._exponent += 1
+            (remainder, _) = divideByShort(&copy, 10)
+            i -= 1
+            buffer[i] = Int8(remainder) + ZERO
+        }
+        if copy._exponent <= 0 {
+            while copy._exponent != 0 {
+                i -= 1
+                buffer[i] = ZERO
+                copy._exponent += 1
+            }
+            i -= 1
+            buffer[i] = DECIMALPOINT
+            i -= 1
+            buffer[i] = ZERO
+        }
+        if copy._isNegative != 0 {
+            i -= 1
+            buffer[i] = MINUS
+        }
+        return String(cString: Array(buffer.suffix(from: i)))
+    }
+}
+
+extension Decimal : Codable {
+    private enum CodingKeys : Int, CodingKey {
+        case exponent
+        case length
+        case isNegative
+        case isCompact
+        case mantissa
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let exponent = try container.decode(CInt.self, forKey: .exponent)
+        let length = try container.decode(CUnsignedInt.self, forKey: .length)
+        let isNegative = try container.decode(Bool.self, forKey: .isNegative)
+        let isCompact = try container.decode(Bool.self, forKey: .isCompact)
+
+        var mantissaContainer = try container.nestedUnkeyedContainer(forKey: .mantissa)
+        var mantissa: (CUnsignedShort, CUnsignedShort, CUnsignedShort, CUnsignedShort,
+            CUnsignedShort, CUnsignedShort, CUnsignedShort, CUnsignedShort) = (0,0,0,0,0,0,0,0)
+        mantissa.0 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.1 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.2 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.3 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.4 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.5 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.6 = try mantissaContainer.decode(CUnsignedShort.self)
+        mantissa.7 = try mantissaContainer.decode(CUnsignedShort.self)
+
+        self.init(_exponent: exponent,
+                  _length: length,
+                  _isNegative: CUnsignedInt(isNegative ? 1 : 0),
+                  _isCompact: CUnsignedInt(isCompact ? 1 : 0),
+                  _reserved: 0,
+                  _mantissa: mantissa)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(_exponent, forKey: .exponent)
+        try container.encode(_length, forKey: .length)
+        try container.encode(_isNegative == 0 ? false : true, forKey: .isNegative)
+        try container.encode(_isCompact == 0 ? false : true, forKey: .isCompact)
+
+        var mantissaContainer = container.nestedUnkeyedContainer(forKey: .mantissa)
+        try mantissaContainer.encode(_mantissa.0)
+        try mantissaContainer.encode(_mantissa.1)
+        try mantissaContainer.encode(_mantissa.2)
+        try mantissaContainer.encode(_mantissa.3)
+        try mantissaContainer.encode(_mantissa.4)
+        try mantissaContainer.encode(_mantissa.5)
+        try mantissaContainer.encode(_mantissa.6)
+        try mantissaContainer.encode(_mantissa.7)
+    }
+}
+
 extension Decimal : ExpressibleByFloatLiteral {
     public init(floatLiteral value: Double) {
         self.init(value)
@@ -427,30 +551,6 @@ extension Decimal : SignedNumeric {
         _isNegative = _isNegative == 0 ? 1 : 0
     }
 }
-
-
-extension Decimal: _ObjectiveCBridgeable {
-    public func _bridgeToObjectiveC() -> NSDecimalNumber {
-        return NSDecimalNumber(decimal: self)
-    }
-
-    public static func _forceBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) {
-        result = _unconditionallyBridgeFromObjectiveC(x)
-    }
-
-    public static func _conditionallyBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) -> Bool {
-        result = x.decimalValue
-        return true
-    }
-
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
-        var result: Decimal?
-        guard let src = source else { return Decimal(0) }
-        guard _conditionallyBridgeFromObjectiveC(src, result: &result) else { return Decimal(0) }
-        return result!
-    }
-}
-
 
 extension Decimal {
     @available(swift, obsoleted: 4, message: "Please use arithmetic operators instead")
@@ -661,72 +761,25 @@ extension Decimal {
     public mutating func formTruncatingRemainder(dividingBy other: Decimal) { fatalError("Decimal does not yet fully adopt FloatingPoint") }
 }
 
-extension Decimal : CustomStringConvertible {
-    public init?(string: String, locale: Locale? = nil) {
-        let scan = Scanner(string: string)
-        var theDecimal = Decimal()
-        scan.locale = locale
-        if !scan.scanDecimal(&theDecimal) {
-            return nil
-        }
-        self = theDecimal
+extension Decimal: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSDecimalNumber {
+        return NSDecimalNumber(decimal: self)
     }
 
-    // Note: In the Darwin overlay, `description` is implemented in terms of
-    // `NSDecimalString(_:_:)`; here, it's the other way around.
-    public var description: String {
-        if self.isNaN {
-            return "NaN"
-        }
-        if _length == 0 {
-            return "0"
-        }
-        var copy = self
-        let ZERO: CChar = 0x30 // ASCII '0' == 0x30
-        let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
-        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
+    public static func _forceBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) {
+        result = _unconditionallyBridgeFromObjectiveC(x)
+    }
 
-        let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
-        var buffer = Array<CChar>(repeating: 0, count: bufferSize)
+    public static func _conditionallyBridgeFromObjectiveC(_ x: NSDecimalNumber, result: inout Decimal?) -> Bool {
+        result = x.decimalValue
+        return true
+    }
 
-        var i = bufferSize - 1
-        while copy._exponent > 0 {
-            i -= 1
-            buffer[i] = ZERO
-            copy._exponent -= 1
-        }
-
-        if copy._exponent == 0 {
-            copy._exponent = 1
-        }
-
-        while copy._length != 0 {
-            var remainder: UInt16 = 0
-            if copy._exponent == 0 {
-                i -= 1
-                buffer[i] = DECIMALPOINT
-            }
-            copy._exponent += 1
-            (remainder, _) = divideByShort(&copy, 10)
-            i -= 1
-            buffer[i] = Int8(remainder) + ZERO
-        }
-        if copy._exponent <= 0 {
-            while copy._exponent != 0 {
-                i -= 1
-                buffer[i] = ZERO
-                copy._exponent += 1
-            }
-            i -= 1
-            buffer[i] = DECIMALPOINT
-            i -= 1
-            buffer[i] = ZERO
-        }
-        if copy._isNegative != 0 {
-            i -= 1
-            buffer[i] = MINUS
-        }
-        return String(cString: Array(buffer.suffix(from: i)))
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
+        var result: Decimal?
+        guard let src = source else { return Decimal(0) }
+        guard _conditionallyBridgeFromObjectiveC(src, result: &result) else { return Decimal(0) }
+        return result!
     }
 }
 
@@ -2193,60 +2246,5 @@ extension Scanner {
     private func decimalValue(_ ch: unichar) -> Int? {
         guard let s = UnicodeScalar(ch), s.isASCII else { return nil }
         return Character(s).wholeNumberValue
-    }
-}
-
-extension Decimal : Codable {
-    private enum CodingKeys : Int, CodingKey {
-        case exponent
-        case length
-        case isNegative
-        case isCompact
-        case mantissa
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let exponent = try container.decode(CInt.self, forKey: .exponent)
-        let length = try container.decode(CUnsignedInt.self, forKey: .length)
-        let isNegative = try container.decode(Bool.self, forKey: .isNegative)
-        let isCompact = try container.decode(Bool.self, forKey: .isCompact)
-        
-        var mantissaContainer = try container.nestedUnkeyedContainer(forKey: .mantissa)
-        var mantissa: (CUnsignedShort, CUnsignedShort, CUnsignedShort, CUnsignedShort,
-            CUnsignedShort, CUnsignedShort, CUnsignedShort, CUnsignedShort) = (0,0,0,0,0,0,0,0)
-        mantissa.0 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.1 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.2 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.3 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.4 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.5 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.6 = try mantissaContainer.decode(CUnsignedShort.self)
-        mantissa.7 = try mantissaContainer.decode(CUnsignedShort.self)
-        
-        self.init(_exponent: exponent,
-                  _length: length,
-                  _isNegative: CUnsignedInt(isNegative ? 1 : 0),
-                  _isCompact: CUnsignedInt(isCompact ? 1 : 0),
-                  _reserved: 0,
-                  _mantissa: mantissa)
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(_exponent, forKey: .exponent)
-        try container.encode(_length, forKey: .length)
-        try container.encode(_isNegative == 0 ? false : true, forKey: .isNegative)
-        try container.encode(_isCompact == 0 ? false : true, forKey: .isCompact)
-        
-        var mantissaContainer = container.nestedUnkeyedContainer(forKey: .mantissa)
-        try mantissaContainer.encode(_mantissa.0)
-        try mantissaContainer.encode(_mantissa.1)
-        try mantissaContainer.encode(_mantissa.2)
-        try mantissaContainer.encode(_mantissa.3)
-        try mantissaContainer.encode(_mantissa.4)
-        try mantissaContainer.encode(_mantissa.5)
-        try mantissaContainer.encode(_mantissa.6)
-        try mantissaContainer.encode(_mantissa.7)
     }
 }
