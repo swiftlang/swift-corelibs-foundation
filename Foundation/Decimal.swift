@@ -100,6 +100,13 @@ extension Decimal {
     public typealias CalculationError = NSDecimalNumber.CalculationError
 }
 
+public func pow(_ x: Decimal, _ y: Int) -> Decimal {
+    var x = x
+    var result = Decimal()
+    NSDecimalPower(&result, &x, y, .plain)
+    return result
+}
+
 extension Decimal : Hashable, Comparable {
     // (Used by VariableLengthNumber and doubleValue.)
     fileprivate subscript(index: UInt32) -> UInt16 {
