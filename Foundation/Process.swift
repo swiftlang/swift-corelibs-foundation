@@ -882,7 +882,7 @@ open class Process: NSObject {
     open func terminate() {
         precondition(hasStarted, "task not launched")
 #if os(Windows)
-        TerminateProcess(processHandle, UINT(SIGTERM))
+        TerminateProcess(processHandle, UINT(0xC0000000 | DWORD(SIGTERM)))
 #else
         kill(processIdentifier, SIGTERM)
 #endif
@@ -944,6 +944,9 @@ open class Process: NSObject {
 #if os(Windows)
     open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
     open var processIdentifier: Int32 {
+      guard processHandle != INVALID_HANDLE_VALUE else {
+          return 0
+      }
       return Int32(GetProcessId(processHandle))
     }
     open private(set) var isRunning: Bool = false
