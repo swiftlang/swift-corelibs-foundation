@@ -196,6 +196,37 @@ extension Decimal {
 }
 
 extension Decimal : Hashable, Comparable {
+    // (Used by VariableLengthNumber and doubleValue.)
+    fileprivate subscript(index: UInt32) -> UInt16 {
+        get {
+            switch index {
+            case 0: return _mantissa.0
+            case 1: return _mantissa.1
+            case 2: return _mantissa.2
+            case 3: return _mantissa.3
+            case 4: return _mantissa.4
+            case 5: return _mantissa.5
+            case 6: return _mantissa.6
+            case 7: return _mantissa.7
+            default: fatalError("Invalid index \(index) for _mantissa")
+            }
+        }
+        set {
+            switch index {
+            case 0: _mantissa.0 = newValue
+            case 1: _mantissa.1 = newValue
+            case 2: _mantissa.2 = newValue
+            case 3: _mantissa.3 = newValue
+            case 4: _mantissa.4 = newValue
+            case 5: _mantissa.5 = newValue
+            case 6: _mantissa.6 = newValue
+            case 7: _mantissa.7 = newValue
+            default: fatalError("Invalid index \(index) for _mantissa")
+            }
+        }
+    }
+
+    // (Used by NSDecimalNumber and hash(into:).)
     internal var doubleValue: Double {
         if _length == 0 {
             return _isNegative == 1 ? Double.nan : 0
@@ -218,13 +249,12 @@ extension Decimal : Hashable, Comparable {
         return _isNegative != 0 ? -d : d
     }
 
-    // Return the low 64bits of the integer part
+    // The low 64 bits of the integer part. (Used by uint64Value and int64Value.)
     private var _unsignedInt64Value: UInt64 {
         if _exponent < -20 || _exponent > 20 {
             return 0
         }
-
-        if _length == 0 || isZero || magnitude < Decimal(0) {
+        if _length == 0 || isZero || magnitude < (0 as Decimal) {
             return 0
         }
 
@@ -243,33 +273,33 @@ extension Decimal : Hashable, Comparable {
         return uint64
     }
 
-    // Perform a best effort conversion of the integer value, trying to match Darwin for
-    // values outside of UInt64.min .. UInt64.max. Used by NSDecimalNumber.
+    // A best-effort conversion of the integer value, trying to match Darwin for
+    // values outside of UInt64.min...UInt64.max. (Used by NSDecimalNumber.)
     internal var uint64Value: UInt64 {
         let value = _unsignedInt64Value
         if !self.isNegative {
             return value
         }
-
         if value == Int64.max.magnitude + 1 {
             return UInt64(bitPattern: Int64.min)
-        } else if value <= Int64.max.magnitude {
+        }
+        if value <= Int64.max.magnitude {
             var value = Int64(value)
             value.negate()
             return UInt64(bitPattern: value)
-        } else {
-            return value
         }
+        return value
     }
 
-    // Perform a best effort conversion of the integer value, trying to match Darwin for
-    // values outside of Int64.min .. Int64.max. Used by NSDecimalNumber.
+    // A best-effort conversion of the integer value, trying to match Darwin for
+    // values outside of Int64.min...Int64.max. (Used by NSDecimalNumber.)
     internal var int64Value: Int64 {
         let uint64Value = _unsignedInt64Value
         if self.isNegative {
             if uint64Value == Int64.max.magnitude + 1 {
                 return Int64.min
-            } else if uint64Value <= Int64.max.magnitude {
+            }
+            if uint64Value <= Int64.max.magnitude {
                 var value = Int64(uint64Value)
                 value.negate()
                 return value
@@ -1900,34 +1930,7 @@ extension Decimal {
         }
         return comparison
     }
-    fileprivate subscript(index:UInt32) -> UInt16 {
-        get {
-            switch index {
-            case 0: return _mantissa.0
-            case 1: return _mantissa.1
-            case 2: return _mantissa.2
-            case 3: return _mantissa.3
-            case 4: return _mantissa.4
-            case 5: return _mantissa.5
-            case 6: return _mantissa.6
-            case 7: return _mantissa.7
-            default: fatalError("Invalid index \(index) for _mantissa")
-            }
-        }
-        set {
-            switch index {
-            case 0: _mantissa.0 = newValue
-            case 1: _mantissa.1 = newValue
-            case 2: _mantissa.2 = newValue
-            case 3: _mantissa.3 = newValue
-            case 4: _mantissa.4 = newValue
-            case 5: _mantissa.5 = newValue
-            case 6: _mantissa.6 = newValue
-            case 7: _mantissa.7 = newValue
-            default: fatalError("Invalid index \(index) for _mantissa")
-            }
-        }
-    }
+
     fileprivate mutating func setNaN() {
         _length = 0
         _isNegative = 1
