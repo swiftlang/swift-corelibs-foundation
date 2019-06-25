@@ -375,6 +375,16 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(Decimal(68040), Decimal(386).advanced(by: Decimal(67654)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(1.234)))
         XCTAssertEqual(Decimal(1.234), abs(Decimal(-1.234)))
+        XCTAssertEqual((0 as Decimal).magnitude, 0 as Decimal)
+        XCTAssertEqual((1 as Decimal).magnitude, 1 as Decimal)
+        XCTAssertEqual((1 as Decimal).magnitude, abs(1 as Decimal))
+        XCTAssertEqual((1 as Decimal).magnitude, abs(-1 as Decimal))
+        XCTAssertEqual((-1 as Decimal).magnitude, abs(-1 as Decimal))
+        XCTAssertEqual((-1 as Decimal).magnitude, abs(1 as Decimal))
+        XCTAssertEqual(Decimal.leastFiniteMagnitude.magnitude, -Decimal.leastFiniteMagnitude) // A bit of a misnomer.
+        XCTAssertEqual(Decimal.greatestFiniteMagnitude.magnitude, Decimal.greatestFiniteMagnitude)
+        XCTAssertTrue(Decimal.nan.magnitude.isNaN)
+
         var a = Decimal(1234)
         var result = Decimal(0)
         XCTAssertEqual(.noError, NSDecimalMultiplyByPowerOf10(&result, &a, 1, .plain))
