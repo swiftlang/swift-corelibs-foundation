@@ -979,9 +979,12 @@ open class Pipe: NSObject {
 
     public override init() {
 #if os(Windows)
+        var saAttr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size), lpSecurityDescriptor: nil, bInheritHandle: true)
+
         var hReadPipe: HANDLE?
         var hWritePipe: HANDLE?
-        if !CreatePipe(&hReadPipe, &hWritePipe, nil, 0) {
+
+        if !CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0) {
           fatalError("CreatePipe failed")
         }
         self.fileHandleForReading = FileHandle(handle: hReadPipe!,
