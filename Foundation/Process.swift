@@ -469,13 +469,36 @@ open class Process: NSObject {
 
           WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
 
+          // On Windows, the top nibble of an NTSTATUS indicates severity, with
+          // the top two bits both being set (0b11) indicating an error. In
+          // addition, in a well formed NTSTATUS, the 4th bit must be 0.
+          // The third bit indicates if the error is a Microsoft defined error
+          // and may or may not be set.
+          //
+          // If we receive such an error, we'll indicate that the process
+          // exited abnormally (confusingly indicating "signalled" so we match
+          // POSIX behaviour for abnormal exits).
+          //
+          // However, we don't want user programs which normally exit -1, -2,
+          // etc to count as exited abnormally, so we specifically check for a
+          // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
+          // abnormal exit.
+          //
+          // Additionally, on Windows, an uncaught signal terminates the
+          // program with the magic exit code 3, regardless of the signal (I'd
+          // personally love to know the reason for this). So we also consider
+          // 3 to be an abnormal exit.
           var dwExitCode: DWORD = 0
-          // FIXME(compnerd) how do we handle errors here?
           GetExitCodeProcess(process.processHandle, &dwExitCode)
-
-          // TODO(compnerd) check if the process terminated abnormally
-          process._terminationStatus = Int32(dwExitCode)
-          process._terminationReason = .exit
+          if (dwExitCode & 0xF0000000) == 0xC0000000
+            || (dwExitCode & 0xF0000000) == 0xE0000000
+            || dwExitCode == 3 {
+              process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
+              process._terminationReason = .uncaughtSignal
+          } else {
+              process._terminationStatus = Int32(bitPattern: dwExitCode)
+              process._terminationReason = .exit
+          }
 
           if let handler = process.terminationHandler {
             let thread: Thread = Thread { handler(process) }
