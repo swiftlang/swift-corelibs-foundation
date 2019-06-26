@@ -391,8 +391,8 @@ add_swift_executable(plutil
                      CFLAGS
                        -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
+                       ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
-                       -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src
                        -lFoundation
                        ${Foundation_INTERFACE_LIBRARIES}
                        ${plutil_rpath}
