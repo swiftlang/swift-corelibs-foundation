@@ -1506,8 +1506,8 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
          
             // Finally, allocate!
 #if DEPLOYMENT_RUNTIME_SWIFT
-            // Swift.String is 3 pointers, so we have to allocate to the largest of the two (some variants of __CFString are smaller than swift Strings)
-            CFIndex swiftStringSize = sizeof(CFRuntimeBase) + (sizeof(void *) * 3);
+            // Swift.String is 2 pointers, so we have to allocate to the largest of the two (some variants of __CFString are smaller than swift Strings)
+            CFIndex swiftStringSize = sizeof(CFRuntimeBase) + (sizeof(void *) * 2);
             if (swiftStringSize > size) size = swiftStringSize;
 #endif
             str = (CFMutableStringRef)_CFRuntimeCreateInstance(alloc, _kCFRuntimeIDCFString, size, NULL);
