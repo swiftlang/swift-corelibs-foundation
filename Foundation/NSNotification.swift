@@ -160,10 +160,9 @@ open class NotificationCenter: NSObject {
         let receiverIdentifier: ObjectIdentifier = ObjectIdentifier(observer)
         
         _observersLock.synchronized({
-            if _observers[notificationNameIdentifier]?[senderIdentifier]?.count == 1 {
+            _observers[notificationNameIdentifier]?[senderIdentifier]?.removeValue(forKey: receiverIdentifier)
+            if _observers[notificationNameIdentifier]?[senderIdentifier]?.count == 0 {
                 _observers[notificationNameIdentifier]?.removeValue(forKey: senderIdentifier)
-            } else {
-                _observers[notificationNameIdentifier]?[senderIdentifier]?.removeValue(forKey: receiverIdentifier)
             }
         })
     }
