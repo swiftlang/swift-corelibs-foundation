@@ -83,63 +83,23 @@ open class NSNotification: NSObject, NSCopying, NSCoding {
 }
 
 private class NSNotificationReceiver : NSObject {
-    fileprivate weak var object: NSObject?
     fileprivate var name: Notification.Name?
     fileprivate var block: ((Notification) -> Void)?
     fileprivate var sender: AnyObject?
     fileprivate var queue: OperationQueue?
 }
 
-extension Sequence where Iterator.Element : NSNotificationReceiver {
-
-    /// Returns collection of `NSNotificationReceiver`.
-    ///
-    /// Will return:
-    ///  - elements that property `object` is not equal to `observerToFilter`
-    ///  - elements that property `name` is not equal to parameter `name` if specified.
-    ///  - elements that property `sender` is not equal to parameter `object` if specified.
-    ///
-    fileprivate func filterOutObserver(_ observerToFilter: AnyObject, name:Notification.Name? = nil, object: Any? = nil) -> [Iterator.Element] {
-        return self.filter { observer in
-
-            let differentObserver = observer.object !== observerToFilter
-            let nameSpecified = name != nil
-            let differentName = observer.name != name
-            let objectSpecified = object != nil
-            let differentSender = observer.sender !== __SwiftValue.store(object)
-
-            return differentObserver || (nameSpecified  && differentName) || (objectSpecified && differentSender)
-        }
-    }
-
-    /// Returns collection of `NSNotificationReceiver`.
-    ///
-    /// Will return:
-    ///  - elements that property `sender` is `nil` or equals specified parameter `sender`.
-    ///  - elements that property `name` is `nil` or equals specified parameter `name`.
-    ///
-    fileprivate func observersMatchingName(_ name:Notification.Name? = nil, sender: Any? = nil) -> [Iterator.Element] {
-        return self.filter { observer in
-
-            let emptyName = observer.name == nil
-            let sameName = observer.name == name
-            let emptySender = observer.sender == nil
-            let sameSender = observer.sender === __SwiftValue.store(sender)
-
-            return (emptySender || sameSender) && (emptyName || sameName)
-        }
-    }
-}
-
 private let _defaultCenter: NotificationCenter = NotificationCenter()
 
 open class NotificationCenter: NSObject {
+    private lazy var _nilIdentifier: ObjectIdentifier = ObjectIdentifier(_observersLock)
+    private lazy var _nilHashable: AnyHashable = AnyHashable(_nilIdentifier)
     
-    private var _observers: [NSNotificationReceiver]
+    private var _observers: [AnyHashable /* Notification.Name */ : [ObjectIdentifier /* object */ : [ObjectIdentifier /* notification receiver */ : NSNotificationReceiver]]]
     private let _observersLock = NSLock()
     
     public required override init() {
-        _observers = [NSNotificationReceiver]()
+        _observers = [AnyHashable: [ObjectIdentifier: [ObjectIdentifier: NSNotificationReceiver]]]()
     }
     
     open class var `default`: NotificationCenter {
@@ -147,21 +107,32 @@ open class NotificationCenter: NSObject {
     }
     
     open func post(_ notification: Notification) {
+        let notificationNameIdentifier: AnyHashable = AnyHashable(notification.name)
+        let senderIdentifier: ObjectIdentifier? = notification.object.map({ ObjectIdentifier(__SwiftValue.store($0)) })
+        
 
-        let sendTo = _observersLock.synchronized({
-            return _observers.observersMatchingName(notification.name, sender: notification.object)
+        let sendTo: [Dictionary<ObjectIdentifier, NSNotificationReceiver>.Values] = _observersLock.synchronized({
+            var retVal = [Dictionary<ObjectIdentifier, NSNotificationReceiver>.Values]()
+            (_observers[_nilHashable]?[_nilIdentifier]?.values).map({ retVal.append($0) })
+            senderIdentifier.flatMap({ _observers[_nilHashable]?[$0]?.values }).map({ retVal.append($0) })
+            (_observers[notificationNameIdentifier]?[_nilIdentifier]?.values).map({ retVal.append($0) })
+            senderIdentifier.flatMap({ _observers[notificationNameIdentifier]?[$0]?.values}).map({ retVal.append($0) })
+            
+            return retVal
         })
 
-        for observer in sendTo {
-            guard let block = observer.block else {
-                continue
-            }
-            
-            if let queue = observer.queue, queue != OperationQueue.current {
-                queue.addOperation { block(notification) }
-                queue.waitUntilAllOperationsAreFinished()
-            } else {
-                block(notification)
+        sendTo.forEach { observers in
+            observers.forEach { observer in
+                guard let block = observer.block else {
+                    return
+                }
+                
+                if let queue = observer.queue, queue != OperationQueue.current {
+                    queue.addOperation { block(notification) }
+                    queue.waitUntilAllOperationsAreFinished()
+                } else {
+                    block(notification)
+                }
             }
         }
     }
@@ -176,12 +147,24 @@ open class NotificationCenter: NSObject {
     }
 
     open func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
-        guard let observer = observer as? NSObject else {
+        guard let observer = observer as? NSNotificationReceiver,
+            // These 2 parameters would only be useful for removing notifications added by `addObserver:selector:name:object:`
+            observer.name == aName || aName == nil,
+            observer.sender === __SwiftValue.store(object) || object == nil
+        else {
             return
         }
 
+        let notificationNameIdentifier: AnyHashable = observer.name.map { AnyHashable($0) } ?? _nilHashable
+        let senderIdentifier: ObjectIdentifier = observer.sender.map { ObjectIdentifier($0) } ?? _nilIdentifier
+        let receiverIdentifier: ObjectIdentifier = ObjectIdentifier(observer)
+        
         _observersLock.synchronized({
-            self._observers = _observers.filterOutObserver(observer, name: aName, object: object)
+            if _observers[notificationNameIdentifier]?[senderIdentifier]?.count == 1 {
+                _observers[notificationNameIdentifier]?.removeValue(forKey: senderIdentifier)
+            } else {
+                _observers[notificationNameIdentifier]?[senderIdentifier]?.removeValue(forKey: receiverIdentifier)
+            }
         })
     }
 
@@ -191,20 +174,21 @@ open class NotificationCenter: NSObject {
     }
 
     open func addObserver(forName name: NSNotification.Name?, object obj: Any?, queue: OperationQueue?, using block: @escaping (Notification) -> Void) -> NSObjectProtocol {
-        let object = NSObject()
-        
         let newObserver = NSNotificationReceiver()
-        newObserver.object = object
         newObserver.name = name
         newObserver.block = block
         newObserver.sender = __SwiftValue.store(obj)
         newObserver.queue = queue
+        
+        let notificationNameIdentifier: AnyHashable = name.map({ AnyHashable($0) }) ?? _nilHashable
+        let senderIdentifier: ObjectIdentifier = newObserver.sender.map({ ObjectIdentifier($0) }) ?? _nilIdentifier
+        let receiverIdentifier: ObjectIdentifier = ObjectIdentifier(newObserver)
 
         _observersLock.synchronized({
-            _observers.append(newObserver)
+            _observers[notificationNameIdentifier, default: [:]][senderIdentifier, default: [:]][receiverIdentifier] = newObserver
         })
         
-        return object
+        return newObserver
     }
 
 }
