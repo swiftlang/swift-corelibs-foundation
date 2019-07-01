@@ -51,7 +51,7 @@ set(CF_DEPLOYMENT_SWIFT YES CACHE BOOL "Build for Swift" FORCE)
 
 set(SAVED_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS NO)
-add_subdirectory(CoreFoundation)
+add_subdirectory(CoreFoundation EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${SAVED_BUILD_SHARED_LIBS})
 
 # Setup include paths for uuid/uuid.h
