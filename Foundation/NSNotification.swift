@@ -149,8 +149,8 @@ open class NotificationCenter: NSObject {
     open func removeObserver(_ observer: Any, name aName: NSNotification.Name?, object: Any?) {
         guard let observer = observer as? NSNotificationReceiver,
             // These 2 parameters would only be useful for removing notifications added by `addObserver:selector:name:object:`
-            observer.name == aName || aName == nil,
-            observer.sender === __SwiftValue.store(object) || object == nil
+            aName == nil || observer.name == aName,
+            object == nil || observer.sender === __SwiftValue.store(object)
         else {
             return
         }
