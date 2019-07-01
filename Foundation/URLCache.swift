@@ -55,18 +55,21 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
         aCoder.encode(cachedURLResponse.data as NSData, forKey: "data")
         aCoder.encode(cachedURLResponse.storagePolicy.rawValue, forKey: "storagePolicy")
         aCoder.encode(cachedURLResponse.userInfo as NSDictionary?, forKey: "userInfo")
+        aCoder.encode(cachedURLResponse.date as NSDate, forKey: "date")
     }
     
     required init?(coder aDecoder: NSCoder) {
         guard let response = aDecoder.decodeObject(of: URLResponse.self, forKey: "response"),
               let data = aDecoder.decodeObject(of: NSData.self, forKey: "data"),
-            let storagePolicy = URLCache.StoragePolicy(rawValue: UInt(aDecoder.decodeInt64(forKey: "storagePolicy"))) else {
+              let storagePolicy = URLCache.StoragePolicy(rawValue: UInt(aDecoder.decodeInt64(forKey: "storagePolicy"))),
+              let date = aDecoder.decodeObject(of: NSDate.self, forKey: "date") else {
                 return nil
         }
         
         let userInfo = aDecoder.decodeObject(of: NSDictionary.self, forKey: "userInfo") as? [AnyHashable: Any]
         
         cachedURLResponse = CachedURLResponse(response: response, data: data as Data, userInfo: userInfo, storagePolicy: storagePolicy)
+        cachedURLResponse.date = date as Date
     }
     
     let cachedURLResponse: CachedURLResponse
@@ -178,6 +181,8 @@ open class CachedURLResponse : NSObject, NSCopying {
                 self.data == other.data &&
                 self.storagePolicy == other.storagePolicy
     }
+    
+    internal fileprivate(set) var date: Date = Date()
 
     open override var hash: Int {
         var hasher = Hasher()
@@ -212,12 +217,14 @@ open class URLCache : NSObject {
     */
     open class var shared: URLCache {
         get {
-            sharedLock.lock(); defer { sharedLock.unlock() }
-            return _shared
+            return sharedLock.performLocked {
+                return _shared
+            }
         }
         set {
-            sharedLock.lock(); defer { sharedLock.unlock() }
-            _shared = newValue
+            sharedLock.performLocked {
+                _shared = newValue
+            }
         }
     }
     
@@ -348,8 +355,22 @@ open class URLCache : NSObject {
     }
     
     private func identifier(for request: URLRequest) -> String? {
-        guard let url = request.url?.absoluteString else { return nil }
-        return Data(url.utf8).base64EncodedString()
+        guard let url = request.url else { return nil }
+        
+        if let host = url.host {
+            var data = Data()
+            data.append(Data(host.lowercased(with: NSLocale.system).utf8))
+            data.append(0)
+            let port = url.port ?? -1
+            data.append(Data("\(port)".utf8))
+            data.append(0)
+            data.append(Data(url.path.utf8))
+            data.append(0)
+        
+            return data.base64EncodedString()
+        } else {
+            return nil
+        }
     }
     
     private struct DiskEntry {

@@ -39,21 +39,21 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     // -init is silently incorrect in URLSessionCofiguration on the desktop. Ensure code that relied on swift-corelibs-foundation's init() being functional is redirected to the appropriate cross-platform class property.
     @available(*, deprecated, message: "Use .default instead.", renamed: "URLSessionConfiguration.default")
     public override init() {
-        self.requestCachePolicy = .useProtocolCachePolicy
-        self.timeoutIntervalForRequest = 60
-        self.timeoutIntervalForResource = 604800
-        self.networkServiceType = .default
-        self.allowsCellularAccess = true
-        self.isDiscretionary = false
-        self.httpShouldUsePipelining = false
-        self.httpShouldSetCookies = true
-        self.httpCookieAcceptPolicy = .onlyFromMainDocumentDomain
-        self.httpMaximumConnectionsPerHost = 6
-        self.httpCookieStorage = HTTPCookieStorage.shared
-        self.urlCredentialStorage = nil
-        self.urlCache = nil
-        self.shouldUseExtendedBackgroundIdleMode = false
-        self.protocolClasses = [_HTTPURLProtocol.self, _FTPURLProtocol.self]
+        self.requestCachePolicy = URLSessionConfiguration.default.requestCachePolicy
+        self.timeoutIntervalForRequest = URLSessionConfiguration.default.timeoutIntervalForRequest
+        self.timeoutIntervalForResource = URLSessionConfiguration.default.timeoutIntervalForResource
+        self.networkServiceType = URLSessionConfiguration.default.networkServiceType
+        self.allowsCellularAccess = URLSessionConfiguration.default.allowsCellularAccess
+        self.isDiscretionary = URLSessionConfiguration.default.isDiscretionary
+        self.httpShouldUsePipelining = URLSessionConfiguration.default.httpShouldUsePipelining
+        self.httpShouldSetCookies = URLSessionConfiguration.default.httpShouldSetCookies
+        self.httpCookieAcceptPolicy = URLSessionConfiguration.default.httpCookieAcceptPolicy
+        self.httpMaximumConnectionsPerHost = URLSessionConfiguration.default.httpMaximumConnectionsPerHost
+        self.httpCookieStorage = URLSessionConfiguration.default.httpCookieStorage
+        self.urlCredentialStorage = URLSessionConfiguration.default.urlCredentialStorage
+        self.urlCache = URLSessionConfiguration.default.urlCache
+        self.shouldUseExtendedBackgroundIdleMode = URLSessionConfiguration.default.shouldUseExtendedBackgroundIdleMode
+        self.protocolClasses = URLSessionConfiguration.default.protocolClasses
         super.init()
     }
     
@@ -73,7 +73,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                   httpMaximumConnectionsPerHost: 6,
                   httpCookieStorage: .shared,
                   urlCredentialStorage: nil, // Should be .shared once implemented.
-                  urlCache: nil,
+                  urlCache: .shared,
                   shouldUseExtendedBackgroundIdleMode: false,
                   protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self])
     }
@@ -149,10 +149,11 @@ open class URLSessionConfiguration : NSObject, NSCopying {
 
     open class var ephemeral: URLSessionConfiguration {
         // Return a new ephemeral URLSessionConfiguration every time this property is invoked
-        // TODO: urlCache and urlCredentialStorage should also be ephemeral/in-memory
-        // URLCache and URLCredentialStorage are still unimplemented
+        // TODO: urlCredentialStorage should also be ephemeral/in-memory
+        // URLCredentialStorage is still unimplemented
         let ephemeralConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         ephemeralConfiguration.httpCookieStorage = .ephemeralStorage()
+        ephemeralConfiguration.urlCache = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 0, diskPath: nil)
         return ephemeralConfiguration
     }
 
