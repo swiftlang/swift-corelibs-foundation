@@ -267,7 +267,7 @@ open class FileHandle : NSObject {
           var BytesRead: DWORD = 0
           if !ReadFile(_handle, buffer.advanced(by: total), BytesToRead, &BytesRead, nil) {
             let err = GetLastError()
-            if err == ERROR_BROKEN_PIPE && untilEOF {
+            if err == ERROR_BROKEN_PIPE {
                 break
             }
             free(buffer)
