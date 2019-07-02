@@ -100,7 +100,6 @@ endif()
 set(plutil_rpath)
 if(CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL Linux OR
     CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-  set(Foundation_RPATH -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN")
   set(XDG_TEST_HELPER_RPATH -Xlinker;-rpath;-Xlinker;${CMAKE_CURRENT_BINARY_DIR})
   set(plutil_rpath -Xlinker;-rpath;-Xlinker;"\\\$\$ORIGIN/../lib/swift/${swift_os}")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
@@ -279,7 +278,6 @@ add_swift_library(Foundation
                     ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     $<TARGET_FILE:uuid>
-                    ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     $<$<PLATFORM_ID:Windows>:-lDbgHelp>
                     $<$<PLATFORM_ID:Windows>:-lOle32>
@@ -352,7 +350,6 @@ add_swift_library(FoundationNetworking
                     ${Foundation_INTERFACE_LIBRARIES}
                     ${CFURLSessionInterface_LIBRARIES}
                     ${CURL_LIBRARIES}
-                    ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
                   SWIFT_FLAGS
