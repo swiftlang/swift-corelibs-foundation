@@ -123,14 +123,14 @@ open class JSONSerialization : NSObject {
     /* Generate JSON data from a Foundation object. If the object will not produce valid JSON then an exception will be thrown. Setting the NSJSONWritingPrettyPrinted option will generate JSON with whitespace designed to make the output more readable. If that option is not set, the most compact possible JSON will be generated. If an error occurs, the error parameter will be set and the return value will be nil. The resulting data is a encoded in UTF-8.
      */
     internal class func _data(withJSONObject value: Any, options opt: WritingOptions, stream: Bool) throws -> Data {
-        var jsonStr = String()
+        var jsonStr = [UInt8]()
         
         var writer = JSONWriter(
             pretty: opt.contains(.prettyPrinted),
             sortedKeys: opt.contains(.sortedKeys),
             writer: { (str: String?) in
                 if let str = str {
-                    jsonStr.append(str)
+                    jsonStr.append(contentsOf: Array(str.utf8))
                 }
             }
         )
@@ -147,10 +147,8 @@ open class JSONSerialization : NSObject {
             fatalError("Top-level object was not NSArray or NSDictionary") // This is a fatal error in objective-c too (it is an NSInvalidArgumentException)
         }
 
-        let count = jsonStr.utf8.count
-        return jsonStr.withCString {
-            Data(bytes: $0, count: count)
-        }
+        let count = jsonStr.count
+        return Data(bytes: &jsonStr, count: count)
     }
 
     open class func data(withJSONObject value: Any, options opt: WritingOptions = []) throws -> Data {
