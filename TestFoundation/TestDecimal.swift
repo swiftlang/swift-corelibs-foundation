@@ -417,6 +417,7 @@ class TestDecimal: XCTestCase {
                 XCTAssertEqual(.noError, NSDecimalPower(&actual, &power, j, .plain))
                 let expected = Decimal(pow(Double(i), Double(j)))
                 XCTAssertEqual(expected, actual, "\(actual) == \(i)^\(j)")
+                XCTAssertEqual(expected, pow(power, j))
             }
         }
     }
