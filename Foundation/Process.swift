@@ -386,6 +386,7 @@ open class Process: NSObject {
 
         var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
         siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
+        siStartupInfo.dwFlags = DWORD(STARTF_USESTDHANDLES)
 
         var _devNull: FileHandle?
         func devNullFd() throws -> HANDLE {
@@ -393,9 +394,22 @@ open class Process: NSObject {
             return _devNull!.handle
         }
 
+        var modifiedPipes: [(handle: HANDLE, prevValue: DWORD)] = []
+        defer { modifiedPipes.forEach { SetHandleInformation($0.handle, DWORD(HANDLE_FLAG_INHERIT), $0.prevValue) } }
+
+        func deferReset(handle: HANDLE) throws {
+            var handleInfo: DWORD = 0
+            guard GetHandleInformation(handle, &handleInfo) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+            modifiedPipes.append((handle: handle, prevValue: handleInfo & DWORD(HANDLE_FLAG_INHERIT)))
+        }
+
         switch standardInput {
         case let pipe as Pipe:
             siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
+            try deferReset(handle: pipe.fileHandleForWriting.handle)
+            SetHandleInformation(pipe.fileHandleForWriting.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -404,12 +418,16 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdInput = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardOutput {
         case let pipe as Pipe:
             siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
+            try deferReset(handle: pipe.fileHandleForReading.handle)
+            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -418,12 +436,16 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdOutput = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardError {
         case let pipe as Pipe:
             siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
+            try deferReset(handle: pipe.fileHandleForReading.handle)
+            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -432,6 +454,8 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdError = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
@@ -469,13 +493,36 @@ open class Process: NSObject {
 
           WaitForSingleObject(process.processHandle, WinSDK.INFINITE)
 
+          // On Windows, the top nibble of an NTSTATUS indicates severity, with
+          // the top two bits both being set (0b11) indicating an error. In
+          // addition, in a well formed NTSTATUS, the 4th bit must be 0.
+          // The third bit indicates if the error is a Microsoft defined error
+          // and may or may not be set.
+          //
+          // If we receive such an error, we'll indicate that the process
+          // exited abnormally (confusingly indicating "signalled" so we match
+          // POSIX behaviour for abnormal exits).
+          //
+          // However, we don't want user programs which normally exit -1, -2,
+          // etc to count as exited abnormally, so we specifically check for a
+          // top nibble of 0b11_0 so that e.g. 0xFFFFFFFF, won't trigger an
+          // abnormal exit.
+          //
+          // Additionally, on Windows, an uncaught signal terminates the
+          // program with the magic exit code 3, regardless of the signal (I'd
+          // personally love to know the reason for this). So we also consider
+          // 3 to be an abnormal exit.
           var dwExitCode: DWORD = 0
-          // FIXME(compnerd) how do we handle errors here?
           GetExitCodeProcess(process.processHandle, &dwExitCode)
-
-          // TODO(compnerd) check if the process terminated abnormally
-          process._terminationStatus = Int32(dwExitCode)
-          process._terminationReason = .exit
+          if (dwExitCode & 0xF0000000) == 0xC0000000
+            || (dwExitCode & 0xF0000000) == 0xE0000000
+            || dwExitCode == 3 {
+              process._terminationStatus = Int32(dwExitCode & 0x3FFFFFFF)
+              process._terminationReason = .uncaughtSignal
+          } else {
+              process._terminationStatus = Int32(bitPattern: dwExitCode)
+              process._terminationReason = .exit
+          }
 
           if let handler = process.terminationHandler {
             let thread: Thread = Thread { handler(process) }

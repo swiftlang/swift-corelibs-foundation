@@ -560,6 +560,20 @@
 			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
 			remoteInfo = SwiftFoundation;
 		};
+		B98F173F229AF5AF00F2B002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EA66F66E1BF56CCB00136161;
+			remoteInfo = plutil;
+		};
+		B98F1741229AF5F900F2B002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
+			remoteInfo = SwiftFoundation;
+		};
 		EA993CE21BEACD8E000969A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
@@ -2336,6 +2350,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B98F1740229AF5AF00F2B002 /* PBXTargetDependency */,
 				B90FD23020C2FF420087EF44 /* PBXTargetDependency */,
 				AE2FC5951CFEFC70008F7981 /* PBXTargetDependency */,
 			);
@@ -2374,6 +2389,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B98F1742229AF5F900F2B002 /* PBXTargetDependency */,
 			);
 			name = plutil;
 			productName = plutil;
@@ -2509,7 +2525,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILT_PRODUCTS_DIR}/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\n";
+			shellScript = "cp ${BUILT_PRODUCTS_DIR}/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\ncp ${BUILT_PRODUCTS_DIR}/plutil ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2963,6 +2979,16 @@
 			isa = PBXTargetDependency;
 			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
 			targetProxy = B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */;
+		};
+		B98F1740229AF5AF00F2B002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EA66F66E1BF56CCB00136161 /* plutil */;
+			targetProxy = B98F173F229AF5AF00F2B002 /* PBXContainerItemProxy */;
+		};
+		B98F1742229AF5F900F2B002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
+			targetProxy = B98F1741229AF5F900F2B002 /* PBXContainerItemProxy */;
 		};
 		EA993CE31BEACD8E000969A2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

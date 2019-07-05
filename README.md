@@ -32,7 +32,7 @@ Here is a simple `main.swift` file which uses Foundation. This guide assumes you
 ```swift
 import Foundation
 
-// Make an URLComponents instance
+// Make a URLComponents instance
 let swifty = URLComponents(string: "https://swift.org")!
 
 // Print something useful about the URL

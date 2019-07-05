@@ -266,8 +266,12 @@ open class FileHandle : NSObject {
 
           var BytesRead: DWORD = 0
           if !ReadFile(_handle, buffer.advanced(by: total), BytesToRead, &BytesRead, nil) {
+            let err = GetLastError()
+            if err == ERROR_BROKEN_PIPE {
+                break
+            }
             free(buffer)
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true)
+            throw _NSErrorWithWindowsError(err, reading: true)
           }
           total += Int(BytesRead)
           if BytesRead == 0 || !untilEOF {
@@ -975,9 +979,12 @@ open class Pipe: NSObject {
 
     public override init() {
 #if os(Windows)
+        var saAttr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES(nLength: DWORD(MemoryLayout<SECURITY_ATTRIBUTES>.size), lpSecurityDescriptor: nil, bInheritHandle: true)
+
         var hReadPipe: HANDLE?
         var hWritePipe: HANDLE?
-        if !CreatePipe(&hReadPipe, &hWritePipe, nil, 0) {
+
+        if !CreatePipe(&hReadPipe, &hWritePipe, &saAttr, 0) {
           fatalError("CreatePipe failed")
         }
         self.fileHandleForReading = FileHandle(handle: hReadPipe!,
