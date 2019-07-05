@@ -76,6 +76,7 @@
 		231503DB1D8AEE5D0061694D /* TestDecimal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231503DA1D8AEE5D0061694D /* TestDecimal.swift */; };
 		294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */; };
 		2EBE67A51C77BF0E006583D5 /* TestDateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */; };
+		393234D722BCA283003F562B /* TestMeasurementFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 393234D622BCA283003F562B /* TestMeasurementFormatter.swift */; };
 		3E55A2331F52463B00082000 /* TestUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E55A2321F52463B00082000 /* TestUnit.swift */; };
 		3EA9D6701EF0532D00B362D6 /* TestJSONEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */; };
 		3EDCE50C1EF04D8100C2EC04 /* Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EDCE5051EF04D8100C2EC04 /* Codable.swift */; };
@@ -560,20 +561,6 @@
 			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
 			remoteInfo = SwiftFoundation;
 		};
-		B98F173F229AF5AF00F2B002 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EA66F66E1BF56CCB00136161;
-			remoteInfo = plutil;
-		};
-		B98F1741229AF5F900F2B002 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
-			remoteInfo = SwiftFoundation;
-		};
 		EA993CE21BEACD8E000969A2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
@@ -664,6 +651,7 @@
 		231503DA1D8AEE5D0061694D /* TestDecimal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDecimal.swift; sourceTree = "<group>"; };
 		294E3C1C1CC5E19300E4F44C /* TestNSAttributedString.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSAttributedString.swift; sourceTree = "<group>"; };
 		2EBE67A31C77BF05006583D5 /* TestDateFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestDateFormatter.swift; sourceTree = "<group>"; };
+		393234D622BCA283003F562B /* TestMeasurementFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMeasurementFormatter.swift; sourceTree = "<group>"; };
 		3E55A2321F52463B00082000 /* TestUnit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUnit.swift; sourceTree = "<group>"; };
 		3EA9D66F1EF0532D00B362D6 /* TestJSONEncoder.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestJSONEncoder.swift; sourceTree = "<group>"; };
 		3EDCE5051EF04D8100C2EC04 /* Codable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Codable.swift; sourceTree = "<group>"; };
@@ -991,7 +979,7 @@
 		B91095791EEF237800A71930 /* NSString-UTF16-BE-data.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "NSString-UTF16-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79C1F3055F600FE6846 /* NSString-UTF32-BE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-BE-data.txt"; sourceTree = "<group>"; };
 		B933A79D1F3055F600FE6846 /* NSString-UTF32-LE-data.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NSString-UTF32-LE-data.txt"; sourceTree = "<group>"; };
-		B940492C223B146800FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestProgressFraction.swift; path = TestFoundation/TestProgressFraction.swift; sourceTree = "<group>"; };
+		B940492C223B146800FB4384 /* TestProgressFraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProgressFraction.swift; sourceTree = "<group>"; };
 		B951B5EB1F4E2A2000D8B332 /* TestNSLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestNSLock.swift; sourceTree = "<group>"; };
 		B98E33DC2136AA740044EBE9 /* TestFileWithZeros.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TestFileWithZeros.txt; sourceTree = "<group>"; };
 		B9974B8F1EDF4A22007F15B8 /* TransferState.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransferState.swift; sourceTree = "<group>"; };
@@ -1044,7 +1032,6 @@
 		E876A73D1C1180E000F279EC /* TestNSRange.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSRange.swift; sourceTree = "<group>"; };
 		EA01AAEB1DA839C4008F4E07 /* TestProgress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestProgress.swift; sourceTree = "<group>"; };
 		EA0812681DA71C8A00651B70 /* ProgressFraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressFraction.swift; sourceTree = "<group>"; };
-		EA08126A1DA80C3600651B70 /* TestNSProgressFraction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestNSProgressFraction.swift; sourceTree = "<group>"; };
 		EA313DFC1BE7F2E90060A403 /* CFURLComponents_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFURLComponents_Internal.h; sourceTree = "<group>"; };
 		EA313DFD1BE7F2E90060A403 /* CFURLComponents_URIParser.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents_URIParser.c; sourceTree = "<group>"; };
 		EA313DFE1BE7F2E90060A403 /* CFURLComponents.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFURLComponents.c; sourceTree = "<group>"; };
@@ -1237,7 +1224,6 @@
 		5B5D88531BBC938800234F36 = {
 			isa = PBXGroup;
 			children = (
-				B940492C223B146800FB4384 /* TestProgressFraction.swift */,
 				B167A6641ED7303F0040B09A /* README.md */,
 				5BDC3F2C1BCC5DB500ED97BB /* Foundation */,
 				EAB57B681BD1A255004AC5C5 /* CoreFoundation */,
@@ -1756,7 +1742,7 @@
 				BDFDF0A61DFF5B3E00C04CC5 /* TestPersonNameComponents.swift */,
 				4DC1D07F1C12EEEF00B5948A /* TestPipe.swift */,
 				7900433A1CACD33E00ECCBF1 /* TestNSPredicate.swift */,
-				EA08126A1DA80C3600651B70 /* TestNSProgressFraction.swift */,
+				B940492C223B146800FB4384 /* TestProgressFraction.swift */,
 				EA66F6401BF1619600136161 /* TestPropertyListSerialization.swift */,
 				E876A73D1C1180E000F279EC /* TestNSRange.swift */,
 				5B0C6C211C1E07E600705A0E /* TestNSRegularExpression.swift */,
@@ -1794,6 +1780,7 @@
 				03B6F5831F15F339004F25AF /* TestURLProtocol.swift */,
 				3E55A2321F52463B00082000 /* TestUnit.swift */,
 				7D8BD738225ED1480057CF37 /* TestMeasurement.swift */,
+				393234D622BCA283003F562B /* TestMeasurementFormatter.swift */,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -2350,7 +2337,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B98F1740229AF5AF00F2B002 /* PBXTargetDependency */,
 				B90FD23020C2FF420087EF44 /* PBXTargetDependency */,
 				AE2FC5951CFEFC70008F7981 /* PBXTargetDependency */,
 			);
@@ -2389,7 +2375,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				B98F1742229AF5F900F2B002 /* PBXTargetDependency */,
 			);
 			name = plutil;
 			productName = plutil;
@@ -2525,7 +2510,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp ${BUILT_PRODUCTS_DIR}/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\ncp ${BUILT_PRODUCTS_DIR}/plutil ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\n";
+			shellScript = "cp ${BUILT_PRODUCTS_DIR}/xdgTestHelper.app/Contents/MacOS/xdgTestHelper ${BUILT_PRODUCTS_DIR}/TestFoundation.app/Contents/MacOS/\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2895,6 +2880,7 @@
 				5B13B3501C582D4C00651CE2 /* TestUtils.swift in Sources */,
 				7D8BD739225ED1480057CF37 /* TestMeasurement.swift in Sources */,
 				CD1C7F7D1E303B47008E331C /* TestNSError.swift in Sources */,
+				393234D722BCA283003F562B /* TestMeasurementFormatter.swift in Sources */,
 				294E3C1D1CC5E19300E4F44C /* TestNSAttributedString.swift in Sources */,
 				1539391422A07007006DFF4F /* TestCachedURLResponse.swift in Sources */,
 				5B13B3431C582D4C00651CE2 /* TestScanner.swift in Sources */,
@@ -2979,16 +2965,6 @@
 			isa = PBXTargetDependency;
 			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
 			targetProxy = B90FD23120C2FF840087EF44 /* PBXContainerItemProxy */;
-		};
-		B98F1740229AF5AF00F2B002 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EA66F66E1BF56CCB00136161 /* plutil */;
-			targetProxy = B98F173F229AF5AF00F2B002 /* PBXContainerItemProxy */;
-		};
-		B98F1742229AF5F900F2B002 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
-			targetProxy = B98F1741229AF5F900F2B002 /* PBXContainerItemProxy */;
 		};
 		EA993CE31BEACD8E000969A2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3369,6 +3345,7 @@
 					__UNICODE,
 					r,
 					r,
+					"-lstdc++",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
@@ -3443,6 +3420,7 @@
 					__UNICODE,
 					r,
 					r,
+					"-lstdc++",
 				);
 				OTHER_SWIFT_FLAGS = "-DDEPLOYMENT_ENABLE_LIBDISPATCH -DDEPLOYMENT_RUNTIME_SWIFT -swift-version 4.2";
 				PRODUCT_BUNDLE_IDENTIFIER = org.swift.Foundation;
@@ -3488,6 +3466,7 @@
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 					"-Wno-format-security",
 				);
+				OTHER_LDFLAGS = "-lstdc++";
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
@@ -3529,6 +3508,7 @@
 					"-DCF_CHARACTERSET_BITMAP=\\\\\"CoreFoundation/CharacterSets/CFCharacterSetBitmaps.bitmap\\\\\"",
 					"-Wno-format-security",
 				);
+				OTHER_LDFLAGS = "-lstdc++";
 				PRIVATE_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PUBLIC_HEADERS_FOLDER_PATH = /usr/local/include/CoreFoundation;
