@@ -386,6 +386,7 @@ open class Process: NSObject {
 
         var siStartupInfo: STARTUPINFOW = STARTUPINFOW()
         siStartupInfo.cb = DWORD(MemoryLayout<STARTUPINFOW>.size)
+        siStartupInfo.dwFlags = DWORD(STARTF_USESTDHANDLES)
 
         var _devNull: FileHandle?
         func devNullFd() throws -> HANDLE {
@@ -393,9 +394,22 @@ open class Process: NSObject {
             return _devNull!.handle
         }
 
+        var modifiedPipes: [(handle: HANDLE, prevValue: DWORD)] = []
+        defer { modifiedPipes.forEach { SetHandleInformation($0.handle, DWORD(HANDLE_FLAG_INHERIT), $0.prevValue) } }
+
+        func deferReset(handle: HANDLE) throws {
+            var handleInfo: DWORD = 0
+            guard GetHandleInformation(handle, &handleInfo) else {
+                throw _NSErrorWithWindowsError(GetLastError(), reading: false)
+            }
+            modifiedPipes.append((handle: handle, prevValue: handleInfo & DWORD(HANDLE_FLAG_INHERIT)))
+        }
+
         switch standardInput {
         case let pipe as Pipe:
             siStartupInfo.hStdInput = pipe.fileHandleForReading.handle
+            try deferReset(handle: pipe.fileHandleForWriting.handle)
+            SetHandleInformation(pipe.fileHandleForWriting.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -404,12 +418,16 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdInput = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardOutput {
         case let pipe as Pipe:
             siStartupInfo.hStdOutput = pipe.fileHandleForWriting.handle
+            try deferReset(handle: pipe.fileHandleForReading.handle)
+            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -418,12 +436,16 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdOutput = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 
         switch standardError {
         case let pipe as Pipe:
             siStartupInfo.hStdError = pipe.fileHandleForWriting.handle
+            try deferReset(handle: pipe.fileHandleForReading.handle)
+            SetHandleInformation(pipe.fileHandleForReading.handle, DWORD(HANDLE_FLAG_INHERIT), 0)
 
         // nil or NullDevice maps to NUL
         case let handle as FileHandle where handle === FileHandle._nulldeviceFileHandle: fallthrough
@@ -432,6 +454,8 @@ open class Process: NSObject {
 
         case let handle as FileHandle:
             siStartupInfo.hStdError = handle.handle
+            try deferReset(handle: handle.handle)
+            SetHandleInformation(handle.handle, DWORD(HANDLE_FLAG_INHERIT), 1)
         default: break
         }
 

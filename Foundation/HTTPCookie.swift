@@ -69,6 +69,28 @@ extension HTTPCookiePropertyKey {
     internal static let created = HTTPCookiePropertyKey(rawValue: "Created")
 }
 
+internal extension HTTPCookiePropertyKey {
+    internal static let httpOnly = HTTPCookiePropertyKey(rawValue: "HttpOnly")
+
+    static private let _setCookieAttributes: [String: HTTPCookiePropertyKey] = {
+        // Only some attributes are valid in the Set-Cookie header.
+        let validProperties: [HTTPCookiePropertyKey] = [
+            .expires, .maximumAge, .domain, .path, .secure, .comment,
+            .commentURL, .discard, .port, .version, .httpOnly
+        ]
+        let canonicalNames = validProperties.map { $0.rawValue.lowercased() }
+        return Dictionary(uniqueKeysWithValues: zip(canonicalNames, validProperties))
+    }()
+
+    init?(attributeName: String) {
+        let canonical = attributeName.lowercased()
+        switch HTTPCookiePropertyKey._setCookieAttributes[canonical] {
+        case let property?: self = property
+        case nil: return nil
+        }
+    }
+}
+
 /// `HTTPCookie` represents an http cookie.
 ///
 /// An `HTTPCookie` instance represents a single http cookie. It is
@@ -122,11 +144,6 @@ open class HTTPCookie : NSObject {
 
     static let _allFormatters: [DateFormatter]
         = [_formatter1, _formatter2, _formatter3]
-
-    static let _attributes: [HTTPCookiePropertyKey]
-        = [.name, .value, .originURL, .version, .domain,
-           .path, .secure, .expires, .comment, .commentURL,
-           .discard, .maximumAge, .port]
 
     /// Initialize a HTTPCookie object with a dictionary of parameters
     ///
@@ -348,8 +365,12 @@ open class HTTPCookie : NSObject {
         } else {
             _commentURL = nil
         }
-        _HTTPOnly = false
 
+        if let httpOnlyString = properties[.httpOnly] as? String {
+            _HTTPOnly = httpOnlyString == "TRUE"
+        } else {
+            _HTTPOnly = false
+        }
 
         _properties = [
             .created : Date().timeIntervalSinceReferenceDate, // Cocoa Compatibility
@@ -412,30 +433,74 @@ open class HTTPCookie : NSObject {
     /// - Returns: An array of HTTPCookie objects
     open class func cookies(withResponseHeaderFields headerFields: [String : String], for URL: URL) -> [HTTPCookie] {
 
-        //HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
-        //Though RFC6265 suggests that multiple cookies cannot be folded into a single Set-Cookie field, this is
-        //pretty common. It also suggests that commas and semicolons among other characters, cannot be a part of 
+        // HTTP Cookie parsing based on RFC 6265: https://tools.ietf.org/html/rfc6265
+        // Though RFC6265 suggests that multiple cookies cannot be folded into a single Set-Cookie field, this is
+        // pretty common. It also suggests that commas and semicolons among other characters, cannot be a part of
         // names and values. This implementation takes care of multiple cookies in the same field, however it doesn't   
-        //support commas and semicolons in names and values(except for dates)
+        // support commas and semicolons in names and values(except for dates)
 
         guard let cookies: String = headerFields["Set-Cookie"]  else { return [] }
 
-        let nameValuePairs = cookies.components(separatedBy: ";")          //split the name/value and attribute/value pairs
-                                .map({$0.trim()})                           //trim whitespaces
-                                .map({removeCommaFromDate($0)})     //get rid of commas in dates
-                                .flatMap({$0.components(separatedBy: ",")}) //cookie boundaries are marked by commas
-                                .map({$0.trim()})                           //trim again
-                                .filter({$0.caseInsensitiveCompare("HTTPOnly") != .orderedSame})  //we don't use HTTPOnly, do we?
-                                .flatMap({createNameValuePair(pair: $0)})   //create Name and Value properties 
-
-        //mark cookie boundaries in the name-value array
-        var cookieIndices = (0..<nameValuePairs.count).filter({nameValuePairs[$0].hasPrefix("Name")})
-        cookieIndices.append(nameValuePairs.count)
-
-        //bake the cookies
         var httpCookies: [HTTPCookie] = []
-        for i in 0..<cookieIndices.count-1 {
-            if let aCookie = createHttpCookie(url: URL, pairs: nameValuePairs[cookieIndices[i]..<cookieIndices[i+1]]) {
+
+        // Let's do old school parsing, which should allow us to handle the
+        // embedded commas correctly.
+        var idx: String.Index = cookies.startIndex
+        let end: String.Index = cookies.endIndex
+        while idx < end {
+            // Skip leading spaces.
+            while idx < end && cookies[idx].isSpace {
+                idx = cookies.index(after: idx)
+            }
+            let cookieStartIdx: String.Index = idx
+            var cookieEndIdx: String.Index = idx
+
+            while idx < end {
+                // Scan to the next comma, but check that the comma is not a
+                // legal comma in a value, by looking ahead for the token,
+                // which indicates the comma was separating cookies.
+                let cookiesRest = cookies[idx..<end]
+                if let commaIdx = cookiesRest.firstIndex(of: ",") {
+                    // We are looking for WSP* TOKEN_CHAR+ WSP* '='
+                    var lookaheadIdx = cookies.index(after: commaIdx)
+                    // Skip whitespace
+                    while lookaheadIdx < end && cookies[lookaheadIdx].isSpace {
+                        lookaheadIdx = cookies.index(after: lookaheadIdx)
+                    }
+                    // Skip over the token characters
+                    var tokenLength = 0
+                    while lookaheadIdx < end && cookies[lookaheadIdx].isTokenCharacter {
+                        lookaheadIdx = cookies.index(after: lookaheadIdx)
+                        tokenLength += 1
+                    }
+                    // Skip whitespace
+                    while lookaheadIdx < end && cookies[lookaheadIdx].isSpace {
+                        lookaheadIdx = cookies.index(after: lookaheadIdx)
+                    }
+                    // Check there was a token, and there's an equals.
+                    if lookaheadIdx < end && cookies[lookaheadIdx] == "=" && tokenLength > 0 {
+                        // We found a token after the comma, this is a cookie
+                        // separator, and not an embedded comma.
+                        idx = cookies.index(after: commaIdx)
+                        cookieEndIdx = commaIdx
+                        break
+                    }
+                    // Otherwise, keep scanning from the comma.
+                    idx = cookies.index(after: commaIdx)
+                    cookieEndIdx = idx
+                } else {
+                    // No more commas, skip to the end.
+                    idx = end
+                    cookieEndIdx = end
+                    break
+                }
+            }
+
+            if cookieEndIdx <= cookieStartIdx {
+                continue
+            }
+
+            if let aCookie = createHttpCookie(url: URL, cookie: String(cookies[cookieStartIdx..<cookieEndIdx])) {
                 httpCookies.append(aCookie)
             }
         }
@@ -444,15 +509,65 @@ open class HTTPCookie : NSObject {
     }
 
     //Bake a cookie
-    private class func createHttpCookie(url: URL, pairs: ArraySlice<String>) -> HTTPCookie? {
+    private class func createHttpCookie(url: URL, cookie: String) -> HTTPCookie? {
         var properties: [HTTPCookiePropertyKey : Any] = [:]
-        for pair in pairs {
-            let name = pair.components(separatedBy: "=")[0]
-            var value = pair.components(separatedBy: "\(name)=")[1]  //a value can have an "="
-            if canonicalize(name) == .expires {
-                value = value.unmaskCommas()    //re-insert the comma
+        let scanner = Scanner(string: cookie)
+
+        guard let nameValuePair = scanner.scanUpToString(";") else {
+            // if the scanner does not read anything, there's no cookie
+            return nil
+        }
+
+        guard case (let name?, let value?) = splitNameValue(nameValuePair) else {
+            return nil
+        }
+
+        properties[.name] = name
+        properties[.value] = value
+        properties[.originURL] = url
+
+        while scanner.scanString(";") != nil {
+            if let attribute = scanner.scanUpToString(";") {
+                switch splitNameValue(attribute) {
+                case (nil, _):
+                    // ignore empty attribute names
+                    break
+                case (let name?, nil):
+                    switch HTTPCookiePropertyKey(attributeName: name) {
+                    case .secure?:
+                        properties[.secure] = "TRUE"
+                    case .discard?:
+                        properties[.discard] = "TRUE"
+                    case .httpOnly?:
+                        properties[.httpOnly] = "TRUE"
+                    default:
+                        // ignore unknown attributes
+                        break
+                    }
+                case (let name?, let value?):
+                    switch HTTPCookiePropertyKey(attributeName: name) {
+                    case .comment?:
+                        properties[.comment] = value
+                    case .commentURL?:
+                        properties[.commentURL] = value
+                    case .domain?:
+                        properties[.domain] = value
+                    case .maximumAge?:
+                        properties[.maximumAge] = value
+                    case .path?:
+                        properties[.path] = value
+                    case .port?:
+                        properties[.port] = value
+                    case .version?:
+                        properties[.version] = value
+                    case .expires?:
+                        properties[.expires] = value
+                    default:
+                        // ignore unknown attributes
+                        break
+                    }
+                }
             }
-            properties[canonicalize(name)] = value
         }
 
         // If domain wasn't provided, extract it from the URL
@@ -460,46 +575,35 @@ open class HTTPCookie : NSObject {
             properties[.domain] = url.host
         }
 
-        //the default Path is "/"
-        if properties[.path] == nil {
+        // the default Path is "/"
+        if let path = properties[.path] as? String, path.first == "/" {
+            // do nothing
+        } else {
             properties[.path] = "/"
         }
 
         return HTTPCookie(properties: properties)
     }
 
-    //we pass this to a map()
-    private class func removeCommaFromDate(_ value: String) -> String {
-        if value.hasPrefix("Expires") || value.hasPrefix("expires")  {
-            return value.maskCommas()
-        }
-        return value
-    }
+    private class func splitNameValue(_ pair: String) -> (name: String?, value: String?) {
+        let scanner = Scanner(string: pair)
 
-    //These cookie attributes are defined in RFC 6265 and 2965(which is obsolete)
-    //HTTPCookie supports these
-    private class func isCookieAttribute(_ string: String) -> Bool {
-        return _attributes.first(where: {$0.rawValue.caseInsensitiveCompare(string) == .orderedSame}) != nil
-    }
-
-    //Cookie attribute names are case-insensitive as per RFC6265: https://tools.ietf.org/html/rfc6265
-    //but HTTPCookie needs only the first letter of each attribute in uppercase
-    private class func canonicalize(_ name: String) -> HTTPCookiePropertyKey {
-        let idx = _attributes.firstIndex(where: {$0.rawValue.caseInsensitiveCompare(name) == .orderedSame})!
-        return _attributes[idx]
-    }
-
-    //A name=value pair should be translated to two properties, Name=name and Value=value
-    private class func createNameValuePair(pair: String) -> [String] {
-        if pair.caseInsensitiveCompare(HTTPCookiePropertyKey.secure.rawValue) == .orderedSame {
-            return ["Secure=TRUE"]
+        guard let name = scanner.scanUpToString("=")?.trim(),
+              !name.isEmpty else {
+            // if the scanner does not read anything, or the trimmed name is
+            // empty, there's no name=value
+            return (nil, nil)
         }
-        let name = pair.components(separatedBy: "=")[0]
-        let value = pair.components(separatedBy: "\(name)=")[1]
-        if !isCookieAttribute(name) {
-            return ["Name=\(name)", "Value=\(value)"]
+
+        guard scanner.scanString("=") != nil else {
+            // if the scanner does not find =, there's no value
+            return (name, nil)
         }
-        return [pair]
+
+        let location = scanner.scanLocation
+        let value = String(pair[pair.index(pair.startIndex, offsetBy: location)..<pair.endIndex]).trim()
+
+        return (name, value)
     }
 
     /// Returns a dictionary representation of the receiver.
@@ -654,12 +758,24 @@ fileprivate extension String {
     func trim() -> String {
         return self.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+}
 
-    func maskCommas() -> String {
-        return self.replacingOccurrences(of: ",", with: "&comma")
+fileprivate extension Character {
+    var isSpace: Bool {
+        return self == " " || self == "\t" || self == "\n" || self == "\r"
     }
 
-    func unmaskCommas() -> String {
-        return self.replacingOccurrences(of: "&comma", with: ",")
+    var isTokenCharacter: Bool {
+        guard let asciiValue = self.asciiValue else {
+            return false
+        }
+
+        // CTL, 0-31 and DEL (127)
+        if asciiValue <= 31 || asciiValue >= 127 {
+            return false
+        }
+
+        let nonTokenCharacters = "()<>@,;:\\\"/[]?={} \t"
+        return !nonTokenCharacters.contains(self)
     }
 }
