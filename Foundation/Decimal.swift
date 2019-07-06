@@ -267,61 +267,9 @@ extension Decimal : CustomStringConvertible {
         self = theDecimal
     }
 
-    // Note: In the Darwin overlay, `description` is implemented in terms of
-    // `NSDecimalString(_:_:)`; here, it's the other way around.
     public var description: String {
-        if self.isNaN {
-            return "NaN"
-        }
-        if _length == 0 {
-            return "0"
-        }
-        var copy = self
-        let ZERO: CChar = 0x30 // ASCII '0' == 0x30
-        let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
-        let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
-
-        let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
-        var buffer = Array<CChar>(repeating: 0, count: bufferSize)
-
-        var i = bufferSize - 1
-        while copy._exponent > 0 {
-            i -= 1
-            buffer[i] = ZERO
-            copy._exponent -= 1
-        }
-
-        if copy._exponent == 0 {
-            copy._exponent = 1
-        }
-
-        while copy._length != 0 {
-            var remainder: UInt16 = 0
-            if copy._exponent == 0 {
-                i -= 1
-                buffer[i] = DECIMALPOINT
-            }
-            copy._exponent += 1
-            (remainder, _) = divideByShort(&copy, 10)
-            i -= 1
-            buffer[i] = Int8(remainder) + ZERO
-        }
-        if copy._exponent <= 0 {
-            while copy._exponent != 0 {
-                i -= 1
-                buffer[i] = ZERO
-                copy._exponent += 1
-            }
-            i -= 1
-            buffer[i] = DECIMALPOINT
-            i -= 1
-            buffer[i] = ZERO
-        }
-        if copy._isNegative != 0 {
-            i -= 1
-            buffer[i] = MINUS
-        }
-        return String(cString: Array(buffer.suffix(from: i)))
+        var value = self
+        return NSDecimalString(&value, nil)
     }
 }
 
@@ -1691,10 +1639,73 @@ public func NSDecimalMultiplyByPowerOf10(_ result: UnsafeMutablePointer<Decimal>
 }
 
 public func NSDecimalString(_ dcm: UnsafePointer<Decimal>, _ locale: Any?) -> String {
-    guard locale == nil else {
-        fatalError("Locale not supported: \(locale!)")
+
+    var copy = dcm.pointee
+    if copy.isNaN {
+        return "NaN"
     }
-    return dcm.pointee.description
+    if copy._length == 0 {
+        return "0"
+    }
+
+    let ZERO: CChar = 0x30 // ASCII '0' == 0x30
+    let DECIMALPOINT: CChar = 0x2e // ASCII '.' == 0x2e
+    let MINUS: CChar = 0x2d // ASCII '-' == 0x2d
+    let bufferSize = 200 // Max value: 39 + 128 + sign + decimal point
+    var buffer = Array<CChar>(repeating: 0, count: bufferSize)
+
+    var i = bufferSize - 1
+    while copy._exponent > 0 {
+        i -= 1
+        buffer[i] = ZERO
+        copy._exponent -= 1
+    }
+
+    if copy._exponent == 0 {
+        copy._exponent = 1
+    }
+
+    while copy._length != 0 {
+        var remainder: UInt16 = 0
+        if copy._exponent == 0 {
+            i -= 1
+            buffer[i] = DECIMALPOINT
+        }
+        copy._exponent += 1
+        (remainder, _) = divideByShort(&copy, 10)
+        i -= 1
+        buffer[i] = Int8(remainder) + ZERO
+    }
+    if copy._exponent <= 0 {
+        while copy._exponent != 0 {
+            i -= 1
+            buffer[i] = ZERO
+            copy._exponent += 1
+        }
+        i -= 1
+        buffer[i] = DECIMALPOINT
+        i -= 1
+        buffer[i] = ZERO
+    }
+    if copy._isNegative != 0 {
+        i -= 1
+        buffer[i] = MINUS
+    }
+    let result = String(cString: Array(buffer.suffix(from: i)))
+
+    var decimalSeparator: String?
+    if let locale = locale as? Locale {
+        decimalSeparator = locale.decimalSeparator
+    } else if let dictionary = locale as? [NSLocale.Key: String] {
+        decimalSeparator = dictionary[NSLocale.Key.decimalSeparator]
+    } else if let dictionary = locale as? [String: String] {
+        decimalSeparator = dictionary[NSLocale.Key.decimalSeparator.rawValue]
+    }
+
+    if let dcm = decimalSeparator, dcm != "." {
+        return result.replacingOccurrences(of: ".", with: dcm)
+    }
+    return result
 }
 
 private func multiplyBy10(_ dcm: inout Decimal, andAdd extra:Int) -> NSDecimalNumber.CalculationError {
