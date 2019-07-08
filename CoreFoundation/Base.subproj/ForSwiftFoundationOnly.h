@@ -538,20 +538,21 @@ static inline unsigned int _dev_minor(dev_t rdev) {
 
 // There is no glibc statx() function, it must be called using syscall().
 
-static inline ssize_t
+static inline int
 _statx(int dfd, const char *filename, unsigned int flags, unsigned int mask, struct statx *buffer) {
-    return syscall(__NR_statx, dfd, filename, flags, mask, buffer);
+    int ret = syscall(__NR_statx, dfd, filename, flags, mask, buffer);
+    return ret == 0 ? ret : errno;
 }
 
 // At the moment the only extra information statx() is used for is to get the btime (file creation time).
 // This function is here instead of in FileManager.swift because there is no way of setting a conditional
 // define that could be used with a #if in the Swift code.
-static inline ssize_t
+static inline int
 _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *btime) {
     struct statx statx_buffer = {0};
     *btime = (struct timespec) {0};
 
-    ssize_t ret = _statx(AT_FDCWD, filename, AT_SYMLINK_NOFOLLOW | AT_STATX_SYNC_AS_STAT, STATX_ALL, &statx_buffer);
+    int ret = _statx(AT_FDCWD, filename, AT_SYMLINK_NOFOLLOW | AT_STATX_SYNC_AS_STAT, STATX_ALL, &statx_buffer);
     if (ret == 0) {
         *buffer = (struct stat) {
             .st_dev = makedev(statx_buffer.stx_dev_major, statx_buffer.stx_dev_minor),
@@ -587,10 +588,10 @@ _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *bti
 
 // Dummy version when compiled where struct statx is not defined in the headers.
 // Just calles lstat() instead.
-static inline ssize_t
+static inline int
 _stat_with_btime(const char *filename, struct stat *buffer, struct timespec *btime) {
     *btime = (struct timespec) {0};
-    return lstat(filename, buffer);
+    return lstat(filename, buffer) == 0 ? 0 : errno;
 }
 #endif // __NR_statx
 
