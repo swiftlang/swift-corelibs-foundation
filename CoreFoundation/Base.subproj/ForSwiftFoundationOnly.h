@@ -56,6 +56,7 @@
 #endif
 
 #if TARGET_OS_ANDROID
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #elif TARGET_OS_LINUX
