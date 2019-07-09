@@ -840,25 +840,35 @@ extension FileHandle {
         let token = NSObject()
         currentBackgroundActivityOwner = token
         privateAsyncVariablesLock.unlock()
-        
-        DispatchIO.read(fromFileDescriptor: fileDescriptor, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
+
+        let operation = { (_ data: DispatchData, _ error: Int32) in
             self.privateAsyncVariablesLock.lock()
             if self.currentBackgroundActivityOwner === token {
                 self.currentBackgroundActivityOwner = nil
             }
             self.privateAsyncVariablesLock.unlock()
-            
+
             var userInfo: [String: Any] = [:]
             if error == 0 {
                 userInfo[NSFileHandleNotificationDataItem] = Data(data)
             } else {
                 userInfo["NSFileHandleError"] = Int(error)
             }
-            
+
             DispatchQueue.main.async {
                 NotificationQueue.default.enqueue(Notification(name: FileHandle.readCompletionNotification, object: self, userInfo: userInfo), postingStyle: .asap, coalesceMask: .none, forModes: modes)
             }
         }
+
+#if os(Windows)
+        DispatchIO.read(fromHandle: handle, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
+          operation(data, error)
+        }
+#else
+        DispatchIO.read(fromFileDescriptor: fileDescriptor, maxLength: 1024 * 1024, runningHandlerOn: queue) { (data, error) in
+          operation(data, error)
+        }
+#endif
     }
     
     open func readToEndOfFileInBackgroundAndNotify() {
