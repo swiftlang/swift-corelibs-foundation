@@ -27,6 +27,9 @@
 #include <CoreFoundation/CFDateIntervalFormatter.h>
 #include <CoreFoundation/ForFoundationOnly.h>
 #include <CoreFoundation/CFCharacterSetPriv.h>
+#include <CoreFoundation/CFURLPriv.h>
+#include <CoreFoundation/CFURLComponents.h>
+#include <CoreFoundation/CFRunArray.h>
 
 #if TARGET_OS_WIN32
 #define NOMINMAX
