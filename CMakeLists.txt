@@ -358,8 +358,8 @@ add_swift_library(FoundationNetworking
                     ${deployment_enable_libdispatch}
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
-                    ${swift_enable_testing}
-                    ${swift_optimization_flags}
+                    $<$<BOOL:ENABLE_TESTING>:-enable-testing>
+                    $<$<NOT:$<CONFIG:Debug>>:-O>
                   DEPENDS
                     uuid
                     CoreFoundation
