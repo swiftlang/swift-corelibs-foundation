@@ -280,12 +280,8 @@ add_swift_library(Foundation
                     $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
-                    $<$<PLATFORM_ID:Windows>:-lDbgHelp>
                     $<$<PLATFORM_ID:Windows>:-lOle32>
-                    $<$<PLATFORM_ID:Windows>:-lShLwApi>
                     $<$<PLATFORM_ID:Windows>:-lShell32>
-                    $<$<PLATFORM_ID:Windows>:-lWS2_32>
-                    $<$<PLATFORM_ID:Windows>:-liphlpapi>
                     $<$<PLATFORM_ID:Windows>:-lpathcch>
                     $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
                   SWIFT_FLAGS
@@ -538,7 +534,6 @@ if(ENABLE_TESTING)
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                          ${WORKAROUND_SR9138}
-                         $<$<PLATFORM_ID:Windows>:-lWS2_32>
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist
