@@ -25,15 +25,9 @@ class TestThread : XCTestCase {
             ("test_currentThread", test_currentThread),
             ("test_threadStart", test_threadStart),
             ("test_mainThread", test_mainThread),
+            ("test_callStackSymbols", testExpectedToFailOnAndroid(test_callStackSymbols, "Android doesn't support backtraces at the moment.")),
+            ("test_callStackReturnAddresses", testExpectedToFailOnAndroid(test_callStackReturnAddresses, "Android doesn't support backtraces at the moment.")),
         ]
-
-#if !os(Android)
-        // Android doesn't support backtraces at the moment.
-        tests.append(contentsOf: [
-            ("test_callStackSymbols", test_callStackSymbols),
-            ("test_callStackReturnAddresses", test_callStackReturnAddresses),
-        ])
-#endif
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         tests.append(contentsOf: [

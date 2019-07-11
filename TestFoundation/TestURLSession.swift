@@ -313,9 +313,6 @@ class TestURLSession : LoopbackServerTest {
 
     // This test is buggy becuase the server could respond before the task is cancelled.
     func test_cancelTask() {
-#if os(Android)
-        XCTFail("Intermittent failures on Android")
-#else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         var urlRequest = URLRequest(url: URL(string: urlString)!)
         urlRequest.setValue("2.0", forHTTPHeaderField: "X-Pause")
@@ -324,7 +321,6 @@ class TestURLSession : LoopbackServerTest {
         d.run(with: urlRequest)
         d.cancel()
         waitForExpectations(timeout: 12)
-#endif
     }
     
     func test_verifyRequestHeaders() {

@@ -534,6 +534,14 @@ func shouldAttemptWindowsXFailTests(_ reason: String) -> Bool {
     #endif
 }
 
+func shouldAttemptAndroidXFailTests(_ reason: String) -> Bool {
+    #if os(Android)
+    return shouldAttemptXFailTests(reason)
+    #else
+    return true
+    #endif
+}
+
 func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
     if shouldAttemptXFailTests(reason) {
         array.append(testCase(allTests))
@@ -546,6 +554,10 @@ func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason
 
 func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
     return testExpectedToFailWithCheck(check: shouldAttemptWindowsXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailOnAndroid<T>(_ test: @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    testExpectedToFailWithCheck(check: shouldAttemptAndroidXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailWithCheck<T>(check: (String) -> Bool, _ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
