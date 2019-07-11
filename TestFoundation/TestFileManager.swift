@@ -69,7 +69,11 @@ class TestFileManager : XCTestCase {
             XCTFail("Failed to clean up file")
         }
 
+#if os(Windows)
+        let permissions = NSNumber(value: Int16(0o700))
+#else
         let permissions = NSNumber(value: Int16(0o753))
+#endif
         let attributes = [FileAttributeKey.posixPermissions: permissions]
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(),
                                     attributes: attributes))
@@ -155,7 +159,12 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: tmpDir.path, withIntermediateDirectories: false, attributes: nil)
             XCTAssertTrue(fm.createFile(atPath: testFile.path, contents: Data()))
             try fm.createSymbolicLink(atPath: goodSymLink.path, withDestinationPath: testFile.path)
+#if os(Windows)
+            // Creating a broken symlink is expected to fail on Windows
+            XCTAssertNil(try? fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file"))
+#else
             try fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file")
+#endif
             try fm.createSymbolicLink(atPath: dirSymLink.path, withDestinationPath: "..")
 
             var isDirFlag: ObjCBool = false
@@ -197,7 +206,12 @@ class TestFileManager : XCTestCase {
 
             // test unReadable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
+#if os(Windows)
+            // Files are always readable on Windows
+            XCTAssertTrue(fm.isReadableFile(atPath: path))
+#else
             XCTAssertFalse(fm.isReadableFile(atPath: path))
+#endif
 
             // test readable if file has read permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0400))], ofItemAtPath: path)
@@ -237,7 +251,12 @@ class TestFileManager : XCTestCase {
 
             // test unExecutable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
+#if os(Windows)
+            // Files are always executable on Windows
+            XCTAssertTrue(fm.isExecutableFile(atPath: path))
+#else
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
+#endif
 
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
@@ -300,8 +319,10 @@ class TestFileManager : XCTestCase {
             let fileSystemNumber = attrs[.systemNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemNumber!.int64Value, 0)
             
+#if !os(Windows)
             let fileSystemFileNumber = attrs[.systemFileNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemFileNumber!.int64Value, 0)
+#endif
             
             let fileType = attrs[.type] as? FileAttributeType
             XCTAssertEqual(fileType!, .typeRegular)
@@ -401,7 +422,11 @@ class TestFileManager : XCTestCase {
         //read back the attributes
         do {
             let attributes = try fm.attributesOfItem(atPath: path)
+#if os(Windows)
+            XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0700)
+#else
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
+#endif
         }
         catch { XCTFail("\(error)") }
 
