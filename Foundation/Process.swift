@@ -469,6 +469,12 @@ open class Process: NSObject {
           environment["PWD"] = currentDirectoryURL.path
         }
 
+        // On Windows, the PATH is required in order to locate dlls needed by
+        // the process so we should also pass that to the child
+        if environment["Path"] == nil, let path = ProcessInfo.processInfo.environment["Path"] {
+            environment["Path"] = path
+        }
+
         // NOTE(compnerd) the environment string must be terminated by a double
         // null-terminator.  Otherwise, CreateProcess will fail with
         // INVALID_PARMETER.
