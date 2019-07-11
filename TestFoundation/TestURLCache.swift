@@ -216,6 +216,25 @@ class TestURLCache : XCTestCase {
         }
     }
     
+    func testStoringTwiceOnlyHasOneEntry() throws {
+        let cache = try self.cache(memoryCapacity: lots, diskCapacity: lots)
+        
+        let url = "https://apple.com/"
+        let (requestA, responseA) = try cachePair(for: url, ofSize: aBit, startingWith: 1)
+        cache.storeCachedResponse(responseA, for: requestA)
+        
+        Thread.sleep(forTimeInterval: 3.0) // Enough to make the timestamp move forward.
+        
+        let (requestB, responseB) = try cachePair(for: url, ofSize: aBit, startingWith: 2)
+        cache.storeCachedResponse(responseB, for: requestB)
+        
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: writableTestDirectoryURL.path).count, 1)
+        
+        let response = cache.cachedResponse(for: requestB)
+        XCTAssertNotNil(response)
+        XCTAssertEqual((try response.unwrapped()).data, responseB.data)
+    }
+    
     // -----
     
     static var allTests: [(String, (TestURLCache) -> () throws -> Void)] {
@@ -229,6 +248,7 @@ class TestURLCache : XCTestCase {
             ("testRemovingOne", testRemovingOne),
             ("testRemovingAll", testRemovingAll),
             ("testRemovingSince", testRemovingSince),
+            ("testStoringTwiceOnlyHasOneEntry", testStoringTwiceOnlyHasOneEntry),
         ]
     }
     
@@ -239,11 +259,17 @@ class TestURLCache : XCTestCase {
         return URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: writableTestDirectoryURL.path)
     }
     
-    func cachePair(for urlString: String, ofSize size: Int, storagePolicy: URLCache.StoragePolicy = .allowed) throws -> (URLRequest, CachedURLResponse) {
+    func cachePair(for urlString: String, ofSize size: Int, storagePolicy: URLCache.StoragePolicy = .allowed, startingWith: UInt8 = 0) throws -> (URLRequest, CachedURLResponse) {
         let url = try URL(string: urlString).unwrapped()
         let request = URLRequest(url: url)
         let response = try HTTPURLResponse(url: url, statusCode: 200, httpVersion: "1.1", headerFields: [:]).unwrapped()
-        return (request, CachedURLResponse(response: response, data: Data(count: size), storagePolicy: storagePolicy))
+        
+        var data = Data(count: size)
+        if data.count > 0 {
+            data[0] = startingWith
+        }
+        
+        return (request, CachedURLResponse(response: response, data: data, storagePolicy: storagePolicy))
     }
     
     var writableTestDirectoryURL: URL!

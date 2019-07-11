@@ -53,7 +53,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
     func encode(with aCoder: NSCoder) {
         aCoder.encode(cachedURLResponse.response, forKey: "response")
         aCoder.encode(cachedURLResponse.data as NSData, forKey: "data")
-        aCoder.encode(cachedURLResponse.storagePolicy.rawValue, forKey: "storagePolicy")
+        aCoder.encode(Int(bitPattern: cachedURLResponse.storagePolicy.rawValue), forKey: "storagePolicy")
         aCoder.encode(cachedURLResponse.userInfo as NSDictionary?, forKey: "userInfo")
         aCoder.encode(cachedURLResponse.date as NSDate, forKey: "date")
     }
@@ -61,7 +61,7 @@ class StoredCachedURLResponse: NSObject, NSSecureCoding {
     required init?(coder aDecoder: NSCoder) {
         guard let response = aDecoder.decodeObject(of: URLResponse.self, forKey: "response"),
               let data = aDecoder.decodeObject(of: NSData.self, forKey: "data"),
-              let storagePolicy = URLCache.StoragePolicy(rawValue: UInt(aDecoder.decodeInt64(forKey: "storagePolicy"))),
+            let storagePolicy = URLCache.StoragePolicy(rawValue: UInt(bitPattern: aDecoder.decodeInteger(forKey: "storagePolicy"))),
               let date = aDecoder.decodeObject(of: NSDate.self, forKey: "date") else {
                 return nil
         }
@@ -196,7 +196,7 @@ open class CachedURLResponse : NSObject, NSCopying {
 open class URLCache : NSObject {
     
     private static let sharedLock = NSLock()
-    private static var _shared = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 20 * 1024 * 1024, diskPath: nil)
+    private static var _shared: URLCache?
     
     /*! 
         @method sharedURLCache
@@ -218,7 +218,13 @@ open class URLCache : NSObject {
     open class var shared: URLCache {
         get {
             return sharedLock.performLocked {
-                return _shared
+                if let shared = _shared {
+                    return shared
+                }
+                
+                let shared = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 20 * 1024 * 1024, diskPath: nil)
+                _shared = shared
+                return shared
             }
         }
         set {
@@ -258,58 +264,38 @@ open class URLCache : NSObject {
     private var inMemoryCacheContents: [String: CacheEntry] = [:]
     
     func evictFromMemoryCacheAssumingLockHeld(maximumSize: Int) {
-        let sizes: [Int] = inMemoryCacheOrder.map {
-            inMemoryCacheContents[$0]!.cost
-        }
+        var totalSize = inMemoryCacheContents.values.reduce(0) { $0 + $1.cost }
         
-        var totalSize = sizes.reduce(0, +)
-        
-        guard totalSize > maximumSize else { return }
-        
-        var identifiersToRemove: Set<String> = []
-        for (index, identifier) in inMemoryCacheOrder.enumerated() {
-            identifiersToRemove.insert(identifier)
-            totalSize -= sizes[index]
-            if totalSize < maximumSize {
+        var countEvicted = 0
+        for identifier in inMemoryCacheOrder {
+            if totalSize > maximumSize {
+                countEvicted += 1
+                let entry = inMemoryCacheContents.removeValue(forKey: identifier)!
+                totalSize -= entry.cost
+            } else {
                 break
             }
         }
         
-        for identifier in identifiersToRemove {
-            inMemoryCacheContents.removeValue(forKey: identifier)
-        }
-        inMemoryCacheOrder.removeAll(where: { identifiersToRemove.contains($0) })
+        inMemoryCacheOrder.removeSubrange(0 ..< countEvicted)
     }
     
     func evictFromDiskCache(maximumSize: Int) {
-        var entries: [DiskEntry] = []
-        enumerateDiskEntries(includingPropertiesForKeys: [.fileSizeKey]) { (entry, stop) in
-            entries.append(entry)
+        let entries = diskEntries(includingPropertiesForKeys: [.fileSizeKey]).sorted {
+            $0.date < $1.date
         }
         
-        entries.sort { (a, b) -> Bool in
-            a.date < b.date
+        let sizes = entries.map { (entry) in
+            (try? entry.url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         }
-        
-        let sizes: [Int] = entries.map {
-            return (try? $0.url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        }
-        
+
         var totalSize = sizes.reduce(0, +)
         
-        guard totalSize > maximumSize else { return }
-        
-        var urlsToRemove: [URL] = []
         for (index, entry) in entries.enumerated() {
-            urlsToRemove.append(entry.url)
-            totalSize -= sizes[index]
-            if totalSize < maximumSize {
-                break
+            if totalSize > maximumSize {
+                try? FileManager.default.removeItem(at: entry.url)
+                totalSize -= sizes[index]
             }
-        }
-        
-        for url in urlsToRemove {
-            try? FileManager.default.removeItem(at: url)
         }
     }
     
@@ -330,8 +316,10 @@ open class URLCache : NSObject {
         self.memoryCapacity = memoryCapacity
         self.diskCapacity = diskCapacity
         
+        let url: URL?
+        
         if let path = path {
-            cacheDirectory = URL(fileURLWithPath: path)
+            url = URL(fileURLWithPath: path)
         } else {
             do {
                 let caches = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -342,15 +330,23 @@ open class URLCache : NSObject {
 
                 // We append a Swift Foundation identifier to avoid clobbering a Darwin cache that may exist at the same path;
                 // the two on-disk cache formats aren't compatible.
-                let url = caches
-                    .appendingPathComponent("org.swift.Foundation.URLCache", isDirectory: true)
+                url = caches
+                    .appendingPathComponent("org.swift.foundation.URLCache", isDirectory: true)
                     .appendingPathComponent(directoryName, isDirectory: true)
+            } catch {
+                url = nil
+            }
+        }
+        
+        if let url = url {
+            do {
                 try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-                
                 cacheDirectory = url
             } catch {
                 cacheDirectory = nil
             }
+        } else {
+            cacheDirectory = nil
         }
     }
     
@@ -381,7 +377,7 @@ open class URLCache : NSObject {
         var identifier: String
         
         init?(_ url: URL) {
-            if url.pathExtension.localizedCompare(DiskEntry.pathExtension) != .orderedSame {
+            if url.pathExtension.caseInsensitiveCompare(DiskEntry.pathExtension) != .orderedSame {
                 return nil
             }
             
@@ -410,35 +406,42 @@ open class URLCache : NSObject {
         }
     }
     
-    private func diskContentsURL(for request: URLRequest, forCreationAt date: Date? = nil) -> URL? {
-        guard let identifier = self.identifier(for: request) else { return nil }
-        guard let directory = cacheDirectory else { return nil }
-        
-        var foundURL: URL?
-        
-        enumerateDiskEntries { (entry, stop) in
-            if entry.identifier == identifier {
-                foundURL = entry.url
-                stop = true
-            }
+    private func diskEntries(includingPropertiesForKeys keys: [URLResourceKey] = []) -> [DiskEntry] {
+        var entries: [DiskEntry] = []
+        enumerateDiskEntries(includingPropertiesForKeys: keys) { (entry, stop) in
+            entries.append(entry)
         }
+        return entries
+    }
+    
+    private func diskContentLocators(for request: URLRequest, forCreationAt date: Date? = nil) -> (identifier: String, url: URL)? {
+        guard let directory = cacheDirectory else { return nil }
+        guard let identifier = self.identifier(for: request) else { return nil }
         
         if let date = date {
-            // If we're trying to _create_ an entry and it already exists, then we can't -- we should evict the old one first.
-            if foundURL != nil {
-                return nil
+            // Create a new URL, which may or may not exist on disk.
+            let interval = Int64(date.timeIntervalSinceReferenceDate)
+            return (identifier, directory.appendingPathComponent("\(interval).\(identifier).\(DiskEntry.pathExtension)"))
+        } else {
+            var foundURL: URL?
+            
+            enumerateDiskEntries { (entry, stop) in
+                if entry.identifier == identifier {
+                    foundURL = entry.url
+                    stop = true
+                }
             }
             
-            // Create the new URL
-            let interval = Int64(date.timeIntervalSinceReferenceDate)
-            return directory.appendingPathComponent("\(interval).\(identifier).\(DiskEntry.pathExtension)")
-        } else {
-            return foundURL
+            if let foundURL = foundURL {
+                return (identifier, foundURL)
+            }
         }
+        
+        return nil
     }
     
     private func diskContents(for request: URLRequest) throws -> StoredCachedURLResponse? {
-        guard let url = diskContentsURL(for: request) else { return nil }
+        guard let url = diskContentLocators(for: request)?.url else { return nil }
         
         let data = try Data(contentsOf: url)
         return try NSKeyedUnarchiver.unarchivedObject(ofClasses: [StoredCachedURLResponse.self], from: data) as? StoredCachedURLResponse
@@ -505,13 +508,28 @@ open class URLCache : NSObject {
             do {
                 evictFromDiskCache(maximumSize: diskCapacity - entry.cost)
                 
-                if let oldURL = diskContentsURL(for: request) {
-                    try FileManager.default.removeItem(at: oldURL)
-                }
-                
-                if let newURL = diskContentsURL(for: request, forCreationAt: Date()) {
+                let locators = diskContentLocators(for: request, forCreationAt: Date())
+                if let newURL = locators?.url {
                     try serialized.write(to: newURL, options: .atomic)
                 }
+                
+                if let identifier = locators?.identifier {
+                    // Multiple threads and/or processes may be writing the same key at the same time. If writing the contents race for the exact same timestamp, we can't do much about that. (One of the two will exist, due to the .atomic; the other will error out.) But if the timestamps differ, we may end up with duplicate keys on disk.
+                    // If so, best-effort clear all entries except the one with the highest date.
+                    
+                    // Refetch a snapshot of the directory contents from disk; do not trust prior state:
+                    let entriesToRemove = diskEntries().filter {
+                        $0.identifier == identifier
+                    }.sorted {
+                        $1.date < $0.date
+                    }.dropFirst() // Keep the one with the latest date.
+                    
+                    for entry in entriesToRemove {
+                        // Do not interrupt cleanup if one fails.
+                        try? FileManager.default.removeItem(at: entry.url)
+                    }
+                }
+                
             } catch { /* Best effort -- do not store on error. */ }
         }
     }
@@ -534,7 +552,7 @@ open class URLCache : NSObject {
             }
         }
         
-        if let oldURL = diskContentsURL(for: request) {
+        if let oldURL = diskContentLocators(for: request)?.url {
             try? FileManager.default.removeItem(at: oldURL)
         }
     }
@@ -573,15 +591,12 @@ open class URLCache : NSObject {
         }
         
         do { // Disk cache:
-            var urlsToRemove: [URL] = []
-            enumerateDiskEntries { (entry, stop) in
-                if entry.date > date {
-                    urlsToRemove.append(entry.url)
-                }
+            let entriesToRemove = diskEntries().filter {
+                $0.date > date
             }
             
-            for url in urlsToRemove {
-                try? FileManager.default.removeItem(at: url)
+            for entry in entriesToRemove {
+                try? FileManager.default.removeItem(at: entry.url)
             }
         }
     }

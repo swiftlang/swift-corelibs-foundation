@@ -36,8 +36,9 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
         self.url = nsurl as URL
         
         
-        let nsmimetype = aDecoder.decodeObject(of: NSString.self, forKey: "NS.mimeType")
-        self.mimeType = nsmimetype as String?
+        if let mimetype = aDecoder.decodeObject(of: NSString.self, forKey: "NS.mimeType") {
+            self.mimeType = mimetype as String
+        }
         
         self.expectedContentLength = aDecoder.decodeInt64(forKey: "NS.expectedContentLength")
         
