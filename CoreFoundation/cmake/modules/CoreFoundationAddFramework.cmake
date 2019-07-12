@@ -22,24 +22,32 @@ function(add_framework NAME)
          NO_SOURCE_PERMISSIONS)
   endif()
   if(AF_PUBLIC_HEADERS)
-    file(COPY
-           ${AF_PUBLIC_HEADERS}
-         DESTINATION
-           ${CMAKE_BINARY_DIR}/${NAME}.framework/Headers
-         NO_SOURCE_PERMISSIONS)
+    foreach(HEADER IN LISTS AF_PUBLIC_HEADERS)
+      get_filename_component(HEADER_FILENAME ${HEADER} NAME)
+      set(DEST ${CMAKE_BINARY_DIR}/${NAME}.framework/Headers/${HEADER_FILENAME})
+      add_custom_command(OUTPUT ${DEST}
+                         DEPENDS ${HEADER}
+                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                         COMMAND ${CMAKE_COMMAND} -E copy ${HEADER} ${DEST})
+      list(APPEND PUBLIC_HEADER_PATHS ${DEST})
+    endforeach()
   endif()
   if(AF_PRIVATE_HEADERS)
-    file(COPY
-           ${AF_PRIVATE_HEADERS}
-         DESTINATION
-           ${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders
-         NO_SOURCE_PERMISSIONS)
+    foreach(HEADER IN LISTS AF_PRIVATE_HEADERS)
+      get_filename_component(HEADER_FILENAME ${HEADER} NAME)
+      set(DEST ${CMAKE_BINARY_DIR}/${NAME}.framework/PrivateHeaders/${HEADER_FILENAME})
+      add_custom_command(OUTPUT ${DEST}
+                         DEPENDS ${HEADER}
+                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                         COMMAND ${CMAKE_COMMAND} -E copy ${HEADER} ${DEST})
+      list(APPEND PRIVATE_HEADER_PATHS ${DEST})
+    endforeach()
   endif()
   add_custom_target(${NAME}_POPULATE_HEADERS
                     DEPENDS
                       ${AF_MODULE_MAP}
-                      ${AF_PUBLIC_HEADERS}
-                      ${AF_PRIVATE_HEADERS}
+                      ${PUBLIC_HEADER_PATHS}
+                      ${PRIVATE_HEADER_PATHS}
                     SOURCES
                       ${AF_MODULE_MAP}
                       ${AF_PUBLIC_HEADERS}
