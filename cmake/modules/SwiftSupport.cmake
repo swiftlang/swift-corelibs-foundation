@@ -133,7 +133,11 @@ function(add_swift_target target)
   file(WRITE ${rsp_file} ${rsp_text})
 
   if(AST_LIBRARY)
+    if(CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
       set(emit_library -emit-library)
+    else()
+      set(emit_library -emit-library -Xlinker -soname -Xlinker ${AST_OUTPUT})
+    endif()
   endif()
   if(NOT AST_LIBRARY OR library_kind STREQUAL SHARED)
     add_custom_command(OUTPUT
