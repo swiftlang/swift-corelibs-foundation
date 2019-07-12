@@ -1225,31 +1225,35 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 
 #if os(Windows)
     internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA, atPath path: String) {
-      if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-        self = .typeDirectory
-      } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DEVICE) == DWORD(FILE_ATTRIBUTE_DEVICE) {
-        self = .typeCharacterSpecial
-      } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-        // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
-        let fileHandle = path.withCString(encodedAs: UTF16.self) {
-          CreateFileW(/*lpFileName=*/$0,
-                      /*dwDesiredAccess=*/DWORD(0),
-                      /*dwShareMode=*/DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE),
-                      /*lpSecurityAttributes=*/nil,
-                      /*dwCreationDisposition=*/DWORD(OPEN_EXISTING),
-                      /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
-                      /*hTemplateFile=*/nil)
+        if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DEVICE) == DWORD(FILE_ATTRIBUTE_DEVICE) {
+            self = .typeCharacterSpecial
+        } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
+            // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
+            let handle = path.withCString(encodedAs: UTF16.self) {
+                CreateFileW($0, /*dwDesiredAccess=*/DWORD(0), DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE), /*lpSecurityAttributes=*/nil,
+                            DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), /*hTemplateFile=*/nil)
+            }
+            guard handle != INVALID_HANDLE_VALUE else {
+                self = .typeUnknown
+                return
+            }
+            defer { CloseHandle(handle) }
+            var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
+            guard GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tagInfo, DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
+                self = .typeUnknown
+                return
+            }
+            self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
+        } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+            // Note: Since Windows marks directory symlinks as both
+            // directories and reparse points, having this after the
+            // reparse point check implicitly encodes Windows
+            // directory symlinks as not directories, which matches
+            // POSIX behavior.
+            self = .typeDirectory
+        } else {
+            self = .typeRegular
         }
-        defer { CloseHandle(fileHandle) }
-        var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
-        guard GetFileInformationByHandleEx(fileHandle, FileAttributeTagInfo, &tagInfo, DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
-          self = .typeUnknown
-          return
-        }
-        self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
-      } else {
-        self = .typeRegular
-      }
     }
 #else
     internal init(statMode: mode_t) {
