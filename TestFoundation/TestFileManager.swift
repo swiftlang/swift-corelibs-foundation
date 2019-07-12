@@ -841,6 +841,9 @@ class TestFileManager : XCTestCase {
         let srcLink = srcPath + "/testlink"
         let destLink = destPath + "/testlink"
         do {
+#if os(Windows)
+            fm.createFile(atPath: srcPath.appendingPathComponent("linkdest"), contents: Data(), attributes: nil)
+#endif
             try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
             try fm.copyItem(atPath: srcLink, toPath: destLink)
             XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
@@ -925,6 +928,9 @@ class TestFileManager : XCTestCase {
         let srcLink = srcPath + "/testlink"
         let destLink = destPath + "/testlink"
         do {
+#if os(Windows)
+            fm.createFile(atPath: srcPath.appendingPathComponent("linkdest"), contents: Data(), attributes: nil)
+#endif
             try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
             try fm.linkItem(atPath: srcLink, toPath: destLink)
             XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
@@ -1009,8 +1015,10 @@ class TestFileManager : XCTestCase {
 
             // testDir1
             try fm.createDirectory(atPath: testDir1.path, withIntermediateDirectories: true)
+#if !os(Windows)
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("null1").path, withDestinationPath: "/dev/null")
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("zero1").path, withDestinationPath: "/dev/zero")
+#endif
             try "foo".write(toFile: testDir1.appendingPathComponent("foo.txt").path, atomically: false, encoding: .ascii)
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("foo1").path, withDestinationPath: "foo.txt")
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
@@ -1026,22 +1034,36 @@ class TestFileManager : XCTestCase {
 
             // testDir2
             try fm.createDirectory(atPath: testDir2.path, withIntermediateDirectories: true)
+#if os(Windows)
+            try "foo".write(toFile: testDir2.appendingPathComponent("foo1").path, atomically: false, encoding: .ascii)
+            try fm.createDirectory(atPath: testDir2.appendingPathComponent("../testDir1").path, withIntermediateDirectories: true)
+            try "foo".write(toFile: testDir2.appendingPathComponent("../testDir1/foo.txt").path, atomically: false, encoding: .ascii)
+#endif
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
 
             // testDir3
             try fm.createDirectory(atPath: testDir3.path, withIntermediateDirectories: true)
+#if os(Windows)
+            try fm.createDirectory(atPath: testDir3.appendingPathComponent("../testDir1").path, withIntermediateDirectories: true)
+            try "foo".write(toFile: testDir3.appendingPathComponent("../testDir1/foo.txt").path, atomically: false, encoding: .ascii)
+            try "foo".write(toFile: testDir3.appendingPathComponent("foo1").path, atomically: false, encoding: .ascii)
+#endif
             try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
         } catch {
             XCTFail(String(describing: error))
         }
 
+#if os(Windows)
+        XCTAssertFalse(fm.contentsEqual(atPath: "NUL", andPath: "NUL"))
+#else
         XCTAssertTrue(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/null"))
         XCTAssertTrue(fm.contentsEqual(atPath: "/dev/urandom", andPath: "/dev/urandom"))
         XCTAssertFalse(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/zero"))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("null1").path, andPath: "/dev/null"))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("zero").path, andPath: "/dev/zero"))
+#endif
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo1").path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo2").path))
         XCTAssertTrue(fm.contentsEqual(atPath: testDir1.appendingPathComponent("bar2").path, andPath: testDir2.appendingPathComponent("bar2").path))
@@ -1049,9 +1071,18 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: "/non_existent_file", andPath: "/non_existent_file"))
 
         let emptyFile = testDir1.appendingPathComponent("empty_file")
+#if os(Windows)
+        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "NUL"))
+#else
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "/dev/null"))
+#endif
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("null1").path))
+#if os(Windows)
+        // A file cannot be unreadable on Windows
+        XCTAssertTrue(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+#else
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+#endif
 
         XCTAssertTrue(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile1URL.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile2URL.path))
@@ -1774,6 +1805,7 @@ VIDEOS=StopgapVideos
             ("test_getRelationship", test_getRelationship),
             ("test_displayNames", test_displayNames),
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
+            ("test_contentsEqual", test_contentsEqual),
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
         ]
