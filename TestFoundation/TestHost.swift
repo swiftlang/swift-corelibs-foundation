@@ -28,7 +28,7 @@ class TestHost: XCTestCase {
         let dnsAddressesSecond = dns.addresses
         XCTAssertEqual(dnsAddressesSecond.count, dnsAddressesFirst.count)
         
-        let swift = Host(name: "swift.org")
+        let swift = Host(name: "localhost")
         let swiftAddressesFirst = swift.addresses
         let swiftAddressesSecond = swift.addresses
         XCTAssertEqual(swiftAddressesSecond.count, swiftAddressesFirst.count)
@@ -42,8 +42,8 @@ class TestHost: XCTestCase {
         let host2 = Host(address: "8.8.8.9")
         XCTAssertFalse(host0.isEqual(to: host2))
 
-        let swift0 = Host(name: "swift.org")
-        let swift1 = Host(name: "swift.org")
+        let swift0 = Host(name: "localhost")
+        let swift1 = Host(name: "localhost")
         XCTAssertTrue(swift0.isEqual(to: swift1))
 
         let google = Host(name: "google.com")
