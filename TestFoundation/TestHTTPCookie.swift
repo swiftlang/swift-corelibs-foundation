@@ -12,6 +12,7 @@ class TestHTTPCookie: XCTestCase {
     static var allTests: [(String, (TestHTTPCookie) -> () throws -> Void)] {
         return [
             ("test_BasicConstruction", test_BasicConstruction),
+            ("test_cookieDomainCanonicalization", test_cookieDomainCanonicalization),
             ("test_RequestHeaderFields", test_RequestHeaderFields),
             ("test_cookiesWithResponseHeader1cookie", test_cookiesWithResponseHeader1cookie),
             ("test_cookiesWithResponseHeader0cookies", test_cookiesWithResponseHeader0cookies),
@@ -303,6 +304,53 @@ class TestHTTPCookie: XCTestCase {
         }
     }
 
+    func test_cookieDomainCanonicalization() throws {
+        do {
+            let headers = [
+                "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=eXample.com"
+            ]
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            XCTAssertEqual(cookies.count, 1)
+            XCTAssertEqual(cookies.first?.domain, ".example.com")
+        }
+
+        do {
+            let headers = [
+                "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=.eXample.com"
+            ]
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            XCTAssertEqual(cookies.count, 1)
+            XCTAssertEqual(cookies.first?.domain, ".example.com")
+        }
+
+        do {
+            let headers = [
+                "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=a.eXample.com"
+            ]
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://a.eXample.com").unwrapped())
+            XCTAssertEqual(cookies.count, 1)
+            XCTAssertEqual(cookies.first?.domain, ".a.example.com")
+        }
+
+        do {
+            let headers = [
+                "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/"
+            ]
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://a.eXample.com").unwrapped())
+            XCTAssertEqual(cookies.count, 1)
+            XCTAssertEqual(cookies.first?.domain, "a.example.com")
+        }
+
+        do {
+            let headers = [
+                "Set-Cookie": "PREF=a=b; expires=\(formattedCookieTime(sinceNow: 100))); path=/; domain=1.2.3.4"
+            ]
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: headers, for: try URL(string: "http://eXample.com").unwrapped())
+            XCTAssertEqual(cookies.count, 1)
+            XCTAssertEqual(cookies.first?.domain, "1.2.3.4")
+        }
+    }
+
     func test_cookieExpiresDateFormats() {
         let testDate = Date(timeIntervalSince1970: 1577881800)
         let cookieString =
@@ -320,7 +368,7 @@ class TestHTTPCookie: XCTestCase {
         XCTAssertEqual(cookies.count, 3)
         cookies.forEach { cookie in
             XCTAssertEqual(cookie.expiresDate, testDate)
-            XCTAssertEqual(cookie.domain, "swift.org")
+            XCTAssertEqual(cookie.domain, ".swift.org")
             XCTAssertEqual(cookie.path, "/")
         }
     }
@@ -332,5 +380,12 @@ class TestHTTPCookie: XCTestCase {
         } else {
             XCTFail("Unable to create cookie with substring")
         }
+    }
+
+    private func formattedCookieTime(sinceNow seconds: TimeInterval) -> String {
+        let f = DateFormatter()
+        f.timeZone = TimeZone(abbreviation: "GMT")
+        f.dateFormat = "EEEE',' dd'-'MMM'-'yy HH':'mm':'ss z"
+        return f.string(from: Date(timeIntervalSinceNow: seconds))
     }
 }
