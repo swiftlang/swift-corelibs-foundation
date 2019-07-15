@@ -276,19 +276,30 @@ extension FileManager {
         return result
     }
 
-    internal func _createSymbolicLink(atPath path: String, withDestinationPath destPath: String) throws {
+    internal func _createSymbolicLink(atPath path: String, withDestinationPath destPath: String, isDirectory: Bool? = nil) throws {
         var dwFlags = DWORD(SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)
-        // Note: windowsfileAttributes will throw if the destPath is not found.
-        // Since on Windows, you are required to know the type of the symlink
-        // target (file or directory) during creation, and assuming one or the
-        // other doesn't make a lot of sense, we allow it to throw, thus
-        // disallowing the creation of broken symlinks on Windows (unlike with
-        // POSIX).
-        guard let faAttributes = try? windowsFileAttributes(atPath: destPath) else {
-            throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path, destPath])
-        }
-        if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-            dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
+        // If destPath is relative, we should look for it relative to `path`, not our current working directory
+        switch isDirectory {
+            case .some(true):
+                dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
+            case .some(false):
+                break;
+            case .none:
+                let resolvedDest = destPath.isAbsolutePath
+                    ? destPath
+                    : try joinPath(prefix: path.deletingLastPathComponent, suffix: destPath)
+                guard let faAttributes = try? windowsFileAttributes(atPath: resolvedDest) else {
+                    // Note: windowsfileAttributes will throw if the destPath is not found.
+                    // Since on Windows, you are required to know the type of the symlink
+                    // target (file or directory) during creation, and assuming one or the
+                    // other doesn't make a lot of sense, we allow it to throw, thus
+                    // disallowing the creation of broken symlinks on Windows is the target
+                    // is of unknown type.
+                    throw _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [path, resolvedDest])
+                }
+                if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+                    dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
+                }
         }
 
         try path.withCString(encodedAs: UTF16.self) { name in
@@ -349,14 +360,12 @@ extension FileManager {
             throw _NSErrorWithErrno(EINVAL, reading: true, path: srcPath, extraUserInfo: extraErrorInfo(srcPath: srcPath, dstPath: dstPath, userVariant: variant))
         }
 
-        let destination = try FileManager.default.destinationOfSymbolicLink(atPath: srcPath)
-
-        var dwFlags: DWORD = DWORD(SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)
-        if try windowsFileAttributes(atPath: destination).dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-            dwFlags |= DWORD(SYMBOLIC_LINK_FLAG_DIRECTORY)
+        let destination = try destinationOfSymbolicLink(atPath: srcPath)
+        let isDir = try windowsFileAttributes(atPath: srcPath).dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY)
+        if fileExists(atPath: dstPath) {
+            try removeItem(atPath: dstPath)
         }
-
-        try FileManager.default.createSymbolicLink(atPath: dstPath, withDestinationPath: destination)
+        try _createSymbolicLink(atPath: dstPath, withDestinationPath: destination, isDirectory: isDir)
     }
 
     internal func _copyOrLinkDirectoryHelper(atPath srcPath: String, toPath dstPath: String, variant: String = "Copy", _ body: (String, String, FileAttributeType) throws -> ()) throws {
@@ -539,7 +548,15 @@ extension FileManager {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-            do { try faAttributes = windowsFileAttributes(atPath: destinationOfSymbolicLink(atPath: path)) } catch { return false }
+            do {
+                let contents = try destinationOfSymbolicLink(atPath: path)
+                let resolvedPath = contents.isAbsolutePath
+                    ? contents
+                    : joinPath(prefix: path.deletingLastPathComponent, suffix: contents)
+                try faAttributes = windowsFileAttributes(atPath: resolvedPath)
+            } catch {
+                return false
+            }
         }
         if let isDirectory = isDirectory {
             isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
