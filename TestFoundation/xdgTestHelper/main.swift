@@ -240,7 +240,7 @@ case "--sleep":
 case "--signal-self":
     if let signalnum = arguments.next(), let signal = Int32(signalnum) {
 #if os(Windows)
-        TerminateProcess(GetCurrentProcess(), UINT(signal))
+        TerminateProcess(GetCurrentProcess(), UINT(0xC0000000 | UINT(signal)))
 #else
         kill(ProcessInfo.processInfo.processIdentifier, signal)
 #endif
