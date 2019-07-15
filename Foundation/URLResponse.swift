@@ -32,21 +32,21 @@ open class URLResponse : NSObject, NSSecureCoding, NSCopying {
             preconditionFailure("Unkeyed coding is unsupported.")
         }
         
-        if let encodedUrl = aDecoder.decodeObject(forKey: "NS.url") as? NSURL {
-            self.url = encodedUrl as URL
-        }
+        guard let nsurl = aDecoder.decodeObject(of: NSURL.self, forKey: "NS.url") else { return nil }
+        self.url = nsurl as URL
         
-        if let encodedMimeType = aDecoder.decodeObject(forKey: "NS.mimeType") as? NSString {
-            self.mimeType = encodedMimeType as String
+        
+        if let mimetype = aDecoder.decodeObject(of: NSString.self, forKey: "NS.mimeType") {
+            self.mimeType = mimetype as String
         }
         
         self.expectedContentLength = aDecoder.decodeInt64(forKey: "NS.expectedContentLength")
         
-        if let encodedEncodingName = aDecoder.decodeObject(forKey: "NS.textEncodingName") as? NSString {
+        if let encodedEncodingName = aDecoder.decodeObject(of: NSString.self, forKey: "NS.textEncodingName") {
             self.textEncodingName = encodedEncodingName as String
         }
         
-        if let encodedFilename = aDecoder.decodeObject(forKey: "NS.suggestedFilename") as? NSString {
+        if let encodedFilename = aDecoder.decodeObject(of: NSString.self, forKey: "NS.suggestedFilename") {
             self.suggestedFilename = encodedFilename as String
         }
     }
@@ -203,8 +203,8 @@ open class HTTPURLResponse : URLResponse {
         
         self.statusCode = aDecoder.decodeInteger(forKey: "NS.statusCode")
         
-        if let encodedHeaders = aDecoder.decodeObject(forKey: "NS.allHeaderFields") as? NSDictionary {
-            self.allHeaderFields = encodedHeaders as! [AnyHashable: Any]
+        if aDecoder.containsValue(forKey: "NS.allHeaderFields") {
+            self.allHeaderFields = aDecoder.decodeObject(of: NSDictionary.self, forKey: "NS.allHeaderFields") as! [AnyHashable: Any]
         } else {
             self.allHeaderFields = [:]
         }
@@ -216,7 +216,7 @@ open class HTTPURLResponse : URLResponse {
         super.encode(with: aCoder) //Will fail if .allowsKeyedCoding == false
         
         aCoder.encode(self.statusCode, forKey: "NS.statusCode")
-        aCoder.encode(self.allHeaderFields._bridgeToObjectiveC(), forKey: "NS.allHeaderFields")
+        aCoder.encode(self.allHeaderFields as NSDictionary, forKey: "NS.allHeaderFields")
         
     }
     

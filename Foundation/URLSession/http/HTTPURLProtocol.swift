@@ -60,6 +60,202 @@ internal class _HTTPURLProtocol: _NativeProtocol {
             return .abort
         }
     }
+    
+    // This implements a RFC 7234 <https://tools.ietf.org/html/rfc7231> cache with the following:
+    // - this is a private cache;
+    // - we conform to the specification for the Vary header by not caching responses that have a Vary header.
+    // - we do not implement a concept of staleness; we are unwilling to serve stale requests from the cache, and we are aggressively going to prune any storage that is used by stored stale data.
+    
+    struct CacheControlDirectives {
+        var maxAge: UInt?
+        var sharedMaxAge: UInt?
+        var noCache: Bool = false
+        var noStore: Bool = false
+        
+        init(headerValue: String) {
+            func isWithArgument<T>(_ part: String, named: String, converter: (String) -> T?) -> T? {
+                if part.hasPrefix("\(named)=") {
+                    let split = part.components(separatedBy: "=")
+                    if split.count == 2 {
+                        let argument = split[1]
+                        if argument.first == "\"" && argument.last == "\"" {
+                            if argument.count >= 2 {
+                                return converter(String(argument[argument.index(after: argument.startIndex) ..< argument.index(before: argument.endIndex)]))
+                            } else {
+                                return nil
+                            }
+                        } else {
+                            return converter(argument)
+                        }
+                    }
+                }
+                
+                return nil
+            }
+            
+            let parts = headerValue.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased(with: NSLocale.system) }
+            
+            for part in parts {
+                if part == "no-cache" {
+                    noCache = true
+                } else if part == "no-store" {
+                    noStore = true
+                } else if let maxAge = isWithArgument(part, named: "max-age", converter: { UInt($0) }) {
+                    self.maxAge = maxAge
+                } else if let sharedMaxAge = isWithArgument(part, named: "s-maxage", converter: { UInt($0) }) {
+                    self.sharedMaxAge = sharedMaxAge
+                }
+            }
+        }
+    }
+    
+    override func canCache(_ response: CachedURLResponse) -> Bool {
+        guard let httpRequest = task?.currentRequest else { return false }
+        guard let httpResponse = response.response as? HTTPURLResponse else { return false }
+        
+        let now = Date()
+        
+        // Figure out the date we should start counting expiration from.
+        let expirationStart: Date
+        
+        if let dateString = httpResponse.allHeaderFields["Date"] as? String,
+           let date = _HTTPURLProtocol.dateFormatter.date(from: dateString) {
+            expirationStart = min(date, response.date) // Do not accept a date in the future of the point where we stored it, or of now if we haven't stored it yet. That is: a Date header can only make a response expire _faster_ than if it was issued now, and can't be used to prolong its age.
+        } else {
+            expirationStart = response.date
+        }
+        
+        // We opt not to cache any requests or responses that contain authorization headers.
+        if httpResponse.allHeaderFields["WWW-Authenticate"] != nil ||
+           httpResponse.allHeaderFields["Proxy-Authenticate"] != nil ||
+           httpRequest.allHTTPHeaderFields?["Authorization"] != nil ||
+           httpRequest.allHTTPHeaderFields?["Proxy-Authorization"] != nil {
+            return false
+        }
+        
+        // HTTP Methods: https://tools.ietf.org/html/rfc7231#section-4.2.3
+        switch httpRequest.httpMethod {
+        case "GET":
+            break
+        case "HEAD":
+            if response.data.isEmpty {
+                break
+            } else {
+                return false
+            }
+        default:
+            return false
+        }
+        
+        // Cache-Control: https://tools.ietf.org/html/rfc7234#section-5.2
+        var hasCacheControl = false
+        var hasMaxAge = false
+        if let cacheControl = httpResponse.allHeaderFields["Cache-Control"] as? String {
+            let directives = CacheControlDirectives(headerValue: cacheControl)
+            
+            if directives.noCache || directives.noStore {
+                return false
+            }
+            
+            // We should not cache a response that has already expired. (This is also the expiration check for canRespondFromCaching(using:) below.)
+            if let maxAge = directives.maxAge {
+                hasMaxAge = true
+                
+                let expiration = expirationStart + TimeInterval(maxAge)
+                if now >= expiration {
+                    // Do not cache an expired response.
+                    return false
+                }
+            }
+            
+            // This is not a shared cache, but per <https://tools.ietf.org/html/rfc7234#section-5.3>,
+            // if a response has Cache-Control: s-maxage="…" set, we MUST ignore the Expires field below.
+            if directives.sharedMaxAge != nil {
+                hasMaxAge = true
+            }
+            
+            hasCacheControl = true
+        }
+        
+        // Pragma: https://tools.ietf.org/html/rfc7234#section-5.4
+        if !hasCacheControl, let pragma = httpResponse.allHeaderFields["Cache-Control"] as? String {
+            let parts = pragma.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased(with: NSLocale.system) }
+            if parts.contains("no-cache") {
+                return false
+            }
+        }
+        
+        // HTTP status codes: https://tools.ietf.org/html/rfc7231#section-6.1
+        switch httpResponse.statusCode {
+        case 200: fallthrough
+        case 203: fallthrough
+        case 204: fallthrough
+        case 206: fallthrough
+        case 300: fallthrough
+        case 301: fallthrough
+        case 404: fallthrough
+        case 405: fallthrough
+        case 410: fallthrough
+        case 414: fallthrough
+        case 501:
+            break
+            
+        default:
+            return false
+        }
+        
+        // Vary: https://tools.ietf.org/html/rfc7231#section-7.1.4
+        /*   "1.  To inform cache recipients that they MUST NOT use this response
+         to satisfy a later request unless the later request has the same
+         values for the listed fields as the original request (Section 4.1
+         of [RFC7234]).  In other words, Vary expands the cache key
+         required to match a new request to the stored cache entry."
+         
+         If we do not store this response, we will never use it to satisfy a later request, including a later request for which it would be incorrect.
+         */
+        if httpResponse.allHeaderFields["Vary"] != nil {
+            return false
+        }
+        
+        // Expires: <https://tools.ietf.org/html/rfc7234#section-5.3>
+        // We should not cache a response that has already expired. (This is also the expiration check for canRespondFromCaching(using:) below.)
+        // We MUST ignore this if we have Cache-Control: max-age or s-maxage.
+        if !hasMaxAge, let expires = httpResponse.allHeaderFields["Expires"] as? String {
+            guard let expiration = _HTTPURLProtocol.dateFormatter.date(from: expires) else {
+                // From the spec:
+                /* "A cache recipient MUST interpret invalid date formats, especially the
+                 value "0", as representing a time in the past (i.e., 'already
+                 expired')."
+                 */
+                return false
+            }
+            
+            if now >= expiration {
+                // Do not cache an expired response.
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    static let dateFormatter: DateFormatter = {
+        let x = DateFormatter()
+        x.locale = NSLocale.system
+        x.dateFormat = "EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss zzz"
+        return x
+    }()
+    
+    override func canRespondFromCache(using response: CachedURLResponse) -> Bool {
+        // If somehow cached a response that shouldn't have been, we should remove it.
+        guard canCache(response) else {
+            // Calling super removes it from the cache and returns false, which is the default.
+            return super.canRespondFromCache(using: response)
+        }
+        
+        // Expiration checks are done in canCache(…).
+        return true
+    }
 
     /// Set options on the easy handle to match the given request.
     ///
