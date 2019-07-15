@@ -548,7 +548,15 @@ extension FileManager {
         var faAttributes: WIN32_FILE_ATTRIBUTE_DATA = WIN32_FILE_ATTRIBUTE_DATA()
         do { faAttributes = try windowsFileAttributes(atPath: path) } catch { return false }
         if faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-            do { try faAttributes = windowsFileAttributes(atPath: destinationOfSymbolicLink(atPath: path)) } catch { return false }
+            do {
+                let contents = try destinationOfSymbolicLink(atPath: path)
+                let resolvedPath = contents.isAbsolutePath
+                    ? contents
+                    : joinPath(prefix: path.deletingLastPathComponent, suffix: contents)
+                try faAttributes = windowsFileAttributes(atPath: resolvedPath)
+            } catch {
+                return false
+            }
         }
         if let isDirectory = isDirectory {
             isDirectory.pointee = ObjCBool(faAttributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY))
