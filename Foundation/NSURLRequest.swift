@@ -564,6 +564,9 @@ open class NSMutableURLRequest : NSURLRequest {
         get { return super.httpShouldUsePipelining }
         set { super.httpShouldUsePipelining = newValue }
     }
+    
+    // These properties are settable using URLProtocol's class methods.
+    var protocolProperties: [String: Any] = [:]
 }
 
 /// Returns an existing key-value pair inside the header fields if it exists.

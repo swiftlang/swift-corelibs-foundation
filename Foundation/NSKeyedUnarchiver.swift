@@ -79,7 +79,11 @@ open class NSKeyedUnarchiver : NSCoder {
         unarchiver.requiresSecureCoding = true
         unarchiver.decodingFailurePolicy = .setErrorAndReturn
         
-        return try unarchiver.decodeObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
+        let result = unarchiver.decodeObject(of: classes, forKey: NSKeyedArchiveRootObjectKey)
+        if let error = unarchiver.error {
+            throw error
+        }
+        return result
     }
     
     @available(swift, deprecated: 9999, renamed: "unarchivedObject(ofClass:from:)")

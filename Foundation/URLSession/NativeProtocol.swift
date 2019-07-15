@@ -382,12 +382,43 @@ internal class _NativeProtocol: URLProtocol, _EasyHandleDelegate {
             guard let r = task?.originalRequest else {
                 fatalError("Task has no original request.")
             }
-            startNewTransfer(with: r)
+            
+            // Check if the cached response is good to use:
+            if let cachedResponse = cachedResponse, canRespondFromCache(using: cachedResponse) {
+                self.internalState = .fulfillingFromCache(cachedResponse)
+                task?.workQueue.async {
+                    self.client?.urlProtocol(self, cachedResponseIsValid: cachedResponse)
+                    self.client?.urlProtocol(self, didReceive: cachedResponse.response, cacheStoragePolicy: .notAllowed)
+                    if !cachedResponse.data.isEmpty {
+                        self.client?.urlProtocol(self, didLoad: cachedResponse.data)
+                    }
+                    
+                    self.client?.urlProtocolDidFinishLoading(self)
+                    
+                    self.internalState = .taskCompleted
+                }
+                
+            } else {
+                startNewTransfer(with: r)
+            }
         }
 
         if case .transferReady(let transferState) = self.internalState {
             self.internalState = .transferInProgress(transferState)
         }
+    }
+    
+    func canCache(_ response: CachedURLResponse) -> Bool {
+        return false
+    }
+    
+    /// Allows a native protocol to process a cached response. If `true` is returned, the protocol will replay the cached response instead of starting a new transfer. The default implementation invalidates the response in the cache and returns `false`.
+    func canRespondFromCache(using response: CachedURLResponse) -> Bool {
+        // By default, native protocols do not cache. Aggressively remove unexpected cached responses.
+        if let cache = task?.session.configuration.urlCache, let task = task as? URLSessionDataTask {
+            cache.removeCachedResponse(for: task)
+        }
+        return false
     }
 
     func suspend() {
@@ -492,6 +523,8 @@ extension _NativeProtocol {
     enum _InternalState {
         /// Task has been created, but nothing has been done, yet
         case initial
+        /// The task is being fulfilled from the cache rather than the network.
+        case fulfillingFromCache(CachedURLResponse)
         /// The easy handle has been fully configured. But it is not added to
         /// the multi handle.
         case transferReady(_TransferState)
@@ -531,6 +564,7 @@ extension _NativeProtocol._InternalState {
     var isEasyHandleAddedToMultiHandle: Bool {
         switch self {
         case .initial:                             return false
+        case .fulfillingFromCache:                 return false
         case .transferReady:                       return false
         case .transferInProgress:                  return true
         case .transferCompleted:                   return false
@@ -544,6 +578,7 @@ extension _NativeProtocol._InternalState {
     var isEasyHandlePaused: Bool {
         switch self {
         case .initial:                             return false
+        case .fulfillingFromCache:                 return false
         case .transferReady:                       return false
         case .transferInProgress:                  return false
         case .transferCompleted:                   return false
