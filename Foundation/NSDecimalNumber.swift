@@ -206,14 +206,13 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override var description: String {
-        return self.decimal.description
+        var number = self.decimal
+        return NSDecimalString(&number, nil)
     }
 
     open override func description(withLocale locale: Locale?) -> String {
-        guard locale == nil else {
-            fatalError("Locale not supported: \(locale!)")
-        }
-        return self.decimal.description
+        var number = self.decimal
+        return NSDecimalString(&number, locale)
     }
 
     open class var zero: NSDecimalNumber {
