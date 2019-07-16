@@ -1045,8 +1045,18 @@ open class FileManager : NSObject {
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
     }
+
+    @available(Windows, deprecated, message: "Not yet implemented")
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
+        NSUnimplemented()
+    }
+
     #else
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
+        return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
+    }
+
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
         return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
     }
     #endif
@@ -1064,17 +1074,7 @@ open class FileManager : NSObject {
         
         return _appendSymlinkDestination(destination, toPath: path)
     }
-    
 
-}
-
-extension FileManager {
-    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> NSURL? {
-        NSUnimplemented()
-    }
-}
-
-extension FileManager {
     open var homeDirectoryForCurrentUser: URL {
         return homeDirectory(forUser: NSUserName())!
     }
