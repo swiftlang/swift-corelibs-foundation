@@ -13,6 +13,10 @@ import SwiftFoundation
 import Foundation
 #endif
 
+#if os(Windows)
+import WinSDK
+#endif
+
 public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     
