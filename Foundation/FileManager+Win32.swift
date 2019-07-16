@@ -219,7 +219,8 @@ extension FileManager {
 
         try _contentsOfDir(atPath: path, { (entryName, entryType) throws in
             contents.append(entryName)
-            if entryType & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY {
+            if entryType & FILE_ATTRIBUTE_DIRECTORY == FILE_ATTRIBUTE_DIRECTORY
+                 && entryType & FILE_ATTRIBUTE_REPARSE_POINT != FILE_ATTRIBUTE_REPARSE_POINT {
                 let subPath: String = joinPath(prefix: path, suffix: entryName)
                 let entries = try subpathsOfDirectory(atPath: subPath)
                 contents.append(contentsOf: entries.map { joinPath(prefix: entryName, suffix: $0).standardizingPath })
