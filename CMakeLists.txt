@@ -109,6 +109,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(WORKAROUND_SR9138 -Xlinker;-ignore:4049;-Xlinker;-ignore:4217)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL Android)
+  set(WORKAROUND_PR26110 -Xclang-linker -nostdlib++)
+endif()
+
 # NOTE(compnerd) this is a horrible hack to work around the fact that we do not
 # have a proper library target for Foundation which can link against the
 # CoreFoundation target.  When we gain proper CMake support for Swift, we should
@@ -284,6 +288,7 @@ add_swift_library(Foundation
                     $<$<PLATFORM_ID:Windows>:-lShell32>
                     $<$<PLATFORM_ID:Windows>:-lpathcch>
                     $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
+                    ${WORKAROUND_PR26110}
                   SWIFT_FLAGS
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     -DDEPLOYMENT_RUNTIME_SWIFT
@@ -348,6 +353,7 @@ add_swift_library(FoundationNetworking
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
+                    ${WORKAROUND_PR26110}
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
@@ -513,6 +519,7 @@ if(ENABLE_TESTING)
                          TestFoundation/TestUnit.swift
                          TestFoundation/TestURLCache.swift
                          TestFoundation/TestURLCredential.swift
+                         TestFoundation/TestURLCredentialStorage.swift
                          TestFoundation/TestURLProtectionSpace.swift
                          TestFoundation/TestURLProtocol.swift
                          TestFoundation/TestURLRequest.swift

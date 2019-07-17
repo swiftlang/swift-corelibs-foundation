@@ -1143,6 +1143,25 @@ class TestDecimal: XCTestCase {
         XCTAssertEqual(NSDecimalString(&decimal, NSDictionary(dictionary: d4)), "-123456.789")
     }
 
+    func test_multiplyingByPowerOf10() {
+        let decimalNumber = NSDecimalNumber(string: "0.022829306361065572")
+        let d1 = decimalNumber.multiplying(byPowerOf10: 18)
+        XCTAssertEqual(d1.stringValue, "22829306361065572")
+        let d2 = d1.multiplying(byPowerOf10: -18)
+        XCTAssertEqual(d2.stringValue, "0.022829306361065572")
+
+        XCTAssertEqual(NSDecimalNumber(string: "0.01").multiplying(byPowerOf10: 0).stringValue, "0.01")
+        XCTAssertEqual(NSDecimalNumber(string: "0.01").multiplying(byPowerOf10: 1).stringValue, "0.1")
+        XCTAssertEqual(NSDecimalNumber(string: "0.01").multiplying(byPowerOf10: -1).stringValue, "0.001")
+        XCTAssertEqual(NSDecimalNumber(value: 0).multiplying(byPowerOf10: 0).stringValue, "0")
+        XCTAssertEqual(NSDecimalNumber(value: 0).multiplying(byPowerOf10: -1).stringValue, "0")
+        XCTAssertEqual(NSDecimalNumber(value: 0).multiplying(byPowerOf10: 1).stringValue, "0")
+
+        XCTAssertEqual(NSDecimalNumber(value: 1).multiplying(byPowerOf10: 128).stringValue, "NaN")
+        XCTAssertEqual(NSDecimalNumber(value: 1).multiplying(byPowerOf10: 127).stringValue, "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000")
+        XCTAssertEqual(NSDecimalNumber(value: 1).multiplying(byPowerOf10: -128).stringValue, "0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001")
+        XCTAssertEqual(NSDecimalNumber(value: 1).multiplying(byPowerOf10: -129).stringValue, "NaN")
+    }
 
     static var allTests : [(String, (TestDecimal) -> () throws -> Void)] {
         return [
@@ -1171,6 +1190,7 @@ class TestDecimal: XCTestCase {
             ("test_bridging", test_bridging),
             ("test_stringWithLocale", test_stringWithLocale),
             ("test_NSDecimalString", test_NSDecimalString),
+            ("test_multiplyingByPowerOf10", test_multiplyingByPowerOf10),
         ]
     }
 }

@@ -253,8 +253,12 @@ class TestURL : XCTestCase {
             } else {
                 if let url = url {
                         let results = generateResults(url, pathComponent: inPathComponent, pathExtension: inPathExtension)
-                        let (isEqual, differences) = compareResults(url, expected: expectedNSResult as! [String: Any], got: results)
-                        XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
+                        if let expected = expectedNSResult as? [String: Any] {
+                            let (isEqual, differences) = compareResults(url, expected: expected, got: results)
+                            XCTAssertTrue(isEqual, "\(title): \(differences.joined(separator: "\n"))")
+                        } else {
+                            XCTFail("\(url) should not be a valid url")
+                        }
                 } else {
                     XCTAssertEqual(expectedNSResult as? String, kNullURLString)
                 }
