@@ -74,7 +74,8 @@ open class URLCredentialStorage: NSObject {
     */
     open func set(_ credential: URLCredential, for space: URLProtectionSpace) {
         guard credential.persistence != .synchronizable else {
-            NSUnimplemented()
+            // Do what logged-out-from-iCloud Darwin does, and refuse to save synchronizable credentials when a sync service is not available (which, in s-c-f, is always)
+            return
         }
 
         guard credential.persistence != .none else {
@@ -172,7 +173,7 @@ open class URLCredentialStorage: NSObject {
     */
     open func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) {
         guard credential.persistence != .synchronizable else {
-            NSUnimplemented()
+            return
         }
 
         guard credential.persistence != .none else {

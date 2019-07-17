@@ -72,7 +72,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
                   httpAdditionalHeaders: nil,
                   httpMaximumConnectionsPerHost: 6,
                   httpCookieStorage: .shared,
-                  urlCredentialStorage: nil, // Should be .shared once implemented.
+                  urlCredentialStorage: .shared,
                   urlCache: .shared,
                   shouldUseExtendedBackgroundIdleMode: false,
                   protocolClasses: [_HTTPURLProtocol.self, _FTPURLProtocol.self])
@@ -148,11 +148,9 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     }
 
     open class var ephemeral: URLSessionConfiguration {
-        // Return a new ephemeral URLSessionConfiguration every time this property is invoked
-        // TODO: urlCredentialStorage should also be ephemeral/in-memory
-        // URLCredentialStorage is still unimplemented
         let ephemeralConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         ephemeralConfiguration.httpCookieStorage = .ephemeralStorage()
+        ephemeralConfiguration.urlCredentialStorage = URLCredentialStorage() // All credential storage in s-c-f are ephemeral.
         ephemeralConfiguration.urlCache = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 0, diskPath: nil)
         return ephemeralConfiguration
     }
