@@ -84,7 +84,7 @@ class _TCPSocket {
         self.port = port ?? 0
 
 #if os(Windows)
-        listenSocket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, 0))
+        listenSocket = try attempt("WSASocketW", valid: { $0 != INVALID_SOCKET }, WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP.rawValue, nil, 0, DWORD(WSA_FLAG_OVERLAPPED)))
 
         var value: Int8 = 1
         _ = try attempt("setsockopt", valid: { $0 == 0 }, setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &value, Int32(MemoryLayout.size(ofValue: value))))
