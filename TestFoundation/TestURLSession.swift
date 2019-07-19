@@ -56,6 +56,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
             ("test_getAllTasks", test_getAllTasks),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
+            ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
         ]
     }
     
@@ -963,6 +964,34 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 20)
     }
 
+    func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() throws {
+        let urlString = "failfast://bogus"
+        var callbackCount = 0
+        let callback1 = expectation(description: "Callback call #1")
+        let callback2 = expectation(description: "Callback call #2")
+        callback2.isInverted = true
+        let delegate = SessionDelegate()
+        let url = try URL(string: urlString).unwrapped()
+        let configuration = URLSessionConfiguration.default
+        configuration.protocolClasses = [FailFastProtocol.self]
+        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: url) { (_, _, error) in
+            callbackCount += 1
+            XCTAssertNotNil(error)
+            if let urlError = error as? URLError {
+                XCTAssertNotEqual(urlError._nsError.code, NSURLErrorCancelled)
+            }
+
+            if callbackCount == 1 {
+                callback1.fulfill()
+            } else {
+                callback2.fulfill()
+            }
+        }
+        task.resume()
+        session.invalidateAndCancel()
+        waitForExpectations(timeout: 1)
+    }
 }
 
 class SharedDelegate: NSObject {
@@ -1254,5 +1283,28 @@ extension HTTPUploadDelegate: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         XCTAssertEqual(self.totalBytesSent, 16*1024)
         uploadCompletedExpectation.fulfill()
+    }
+}
+
+class FailFastProtocol: URLProtocol {
+    enum Error: Swift.Error {
+    case fastError
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        return request.url?.scheme == "failfast"
+    }
+
+    override class func canInit(with task: URLSessionTask) -> Bool {
+        guard let request = task.currentRequest else { return false }
+        return canInit(with: request)
+    }
+
+    override func startLoading() {
+        client?.urlProtocol(self, didFailWithError: Error.fastError)
+    }
+
+    override func stopLoading() {
+        // Intentionally blank
     }
 }
