@@ -1480,12 +1480,14 @@ CF_PRIVATE CFStringRef __CFStringCreateImmutableFunnel3(
                 useInlineData = true;
                 size = numBytes;
 
-                if (hasLengthByte || (encoding != kCFStringEncodingUnicode && __CFCanUseLengthByte(numBytes))) {
+                if (hasLengthByte) {
                     useLengthByte = true;
-                    if (!hasLengthByte) size += 1;
+                } else if (encoding != kCFStringEncodingUnicode && __CFCanUseLengthByte(numBytes)) {
+                    useLengthByte = true;
+                    size += 1;
                 } else {
                     size += sizeof(CFIndex);	// Explicit length
-                }	    
+                }
                 if (hasNullByte || encoding != kCFStringEncodingUnicode) {
                     useNullByte = true;
                     size += 1;
