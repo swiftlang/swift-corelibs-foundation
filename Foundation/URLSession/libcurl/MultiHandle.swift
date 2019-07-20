@@ -122,7 +122,9 @@ fileprivate extension URLSession._MultiHandle {
         } else if socketSources != nil && action == .unregister {
             // We need to release the stored pointer:
             if let opaque = socketSourcePtr {
-                Unmanaged<_SocketSources>.fromOpaque(opaque).release()
+                let s: Unmanaged<_SocketSources> = Unmanaged<_SocketSources>.fromOpaque(opaque)
+                s.takeUnretainedValue().tearDown(socket: socket, queue: queue)
+                s.release()
             }
             socketSources = nil
         }
@@ -407,6 +409,7 @@ fileprivate extension URLSession._MultiHandle._Timeout {
 fileprivate class _SocketSources {
     var readSource: DispatchSource?
     var writeSource: DispatchSource?
+    let activeSockets = DispatchGroup()
 
     func createReadSource(socket: CFURLSession_socket_t, queue: DispatchQueue, handler: DispatchWorkItem) {
         guard readSource == nil else { return }
@@ -415,7 +418,13 @@ fileprivate class _SocketSources {
 #else
         let s = DispatchSource.makeReadSource(fileDescriptor: socket, queue: queue)
 #endif
+        activeSockets.enter()
         s.setEventHandler(handler: handler)
+        s.setCancelHandler(handler: DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.activeSockets.leave()
+        })
+
         readSource = s as? DispatchSource
         s.resume()
     }
@@ -427,12 +436,26 @@ fileprivate class _SocketSources {
 #else
         let s = DispatchSource.makeWriteSource(fileDescriptor: socket, queue: queue)
 #endif
+        activeSockets.enter()
+        s.setCancelHandler(handler: DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.activeSockets.leave()
+        })
         s.setEventHandler(handler: handler)
         writeSource = s as? DispatchSource
         s.resume()
     }
 
-    func tearDown() {
+    func tearDown(socket: CFURLSession_socket_t, queue: DispatchQueue) {
+        activeSockets.notify(queue: queue) {
+            withExtendedLifetime(self) {
+#if os(Windows)
+                closesocket(socket)
+#else
+                close(socket)
+#endif
+            }
+        }
         if let s = readSource {
             s.cancel()
         }
