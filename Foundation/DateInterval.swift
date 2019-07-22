@@ -218,3 +218,23 @@ extension DateInterval : _ObjectTypeBridgeable {
         return result!
     }
 }
+
+extension DateInterval : Codable {
+    enum CodingKeys: String, CodingKey {
+        case start
+        case duration
+    }
+  
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let start = try container.decode(Date.self, forKey: .start)
+        let duration = try container.decode(TimeInterval.self, forKey: .duration)
+        self.init(start: start, duration: duration)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.start, forKey: .start)
+        try container.encode(self.duration, forKey: .duration)
+    }
+}
