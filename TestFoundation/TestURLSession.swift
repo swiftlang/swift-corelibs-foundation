@@ -57,6 +57,7 @@ class TestURLSession : LoopbackServerTest {
             ("test_getAllTasks", test_getAllTasks),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
             ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
+            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
         ]
     }
     
@@ -990,6 +991,23 @@ class TestURLSession : LoopbackServerTest {
         }
         task.resume()
         session.invalidateAndCancel()
+        waitForExpectations(timeout: 1)
+    }
+
+    func test_cancelledTasksCannotBeResumed() throws {
+        let url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal").unwrapped()
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+        let task = session.dataTask(with: url)
+
+        task.cancel() // should set .cancelling and eventually .completed
+        task.resume() // should not change the task to .running
+
+        let e = expectation(description: "getAllTasks callback called")
+        session.getAllTasks { tasks in
+            XCTAssertEqual(tasks.count, 0)
+            e.fulfill()
+        }
+
         waitForExpectations(timeout: 1)
     }
 }
