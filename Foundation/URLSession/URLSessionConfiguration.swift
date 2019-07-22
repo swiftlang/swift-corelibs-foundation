@@ -150,7 +150,7 @@ open class URLSessionConfiguration : NSObject, NSCopying {
     open class var ephemeral: URLSessionConfiguration {
         let ephemeralConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         ephemeralConfiguration.httpCookieStorage = .ephemeralStorage()
-        ephemeralConfiguration.urlCredentialStorage = URLCredentialStorage() // All credential storage in s-c-f are ephemeral.
+        ephemeralConfiguration.urlCredentialStorage = URLCredentialStorage(ephemeral: true)
         ephemeralConfiguration.urlCache = URLCache(memoryCapacity: 4 * 1024 * 1024, diskCapacity: 0, diskPath: nil)
         return ephemeralConfiguration
     }

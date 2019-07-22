@@ -721,8 +721,7 @@ extension _ProtocolClient : URLProtocolClient {
         }
         
         if let storage = session.configuration.urlCredentialStorage,
-           let last = task._protocolLock.performLocked({ task._lastCredentialUsedFromStorageDuringAuthentication }),
-           last.credential.persistence != .none && last.credential.persistence != .forSession {
+           let last = task._protocolLock.performLocked({ task._lastCredentialUsedFromStorageDuringAuthentication }) {
             storage.set(last.credential, for: last.protectionSpace, task: task)
         }
         
