@@ -331,6 +331,7 @@ open class URLSessionTask : NSObject, NSCopying {
         // returns, but the actual suspend will be done asynchronous to avoid
         // dead-locks.
         workQueue.sync {
+            guard self.state != .canceling && self.state != .completed else { return }
             self.suspendCount += 1
             guard self.suspendCount < Int.max else { fatalError("Task suspended too many times \(Int.max).") }
             self.updateTaskState()
@@ -349,6 +350,7 @@ open class URLSessionTask : NSObject, NSCopying {
     /// - SeeAlso: `suspend()`
     open func resume() {
         workQueue.sync {
+            guard self.state != .canceling && self.state != .completed else { return }
             self.suspendCount -= 1
             guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
             self.updateTaskState()
