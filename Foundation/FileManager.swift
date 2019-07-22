@@ -825,6 +825,8 @@ open class FileManager : NSObject {
         guard let enumerator2 = enumerator(atPath: path2) else {
             return false
         }
+        enumerator1.skipDescendants()
+        enumerator2.skipDescendants()
 
         var path1entries = Set<String>()
         while let item = enumerator1.nextObject() as? String {
@@ -871,9 +873,36 @@ open class FileManager : NSObject {
     }()
 #endif
 
+    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
+        guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
+        guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
+
+        var buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        var buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        defer {
+            buffer1.deallocate()
+            buffer2.deallocate()
+        }
+        var bytesLeft = size
+        while bytesLeft > 0 {
+            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
+
+            guard let file1BytesRead = try? file1._readBytes(into: buffer1, length: bytesToRead), file1BytesRead == bytesToRead else {
+                return false
+            }
+            guard let file2BytesRead = try? file2._readBytes(into: buffer2, length: bytesToRead), file2BytesRead == bytesToRead else {
+                return false
+            }
+            guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
+                return false
+            }
+            bytesLeft -= Int64(bytesToRead)
+        }
+        return true
+    }
+
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
         return _contentsEqual(atPath: path1, andPath: path2)
     }
