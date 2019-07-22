@@ -74,8 +74,13 @@ extension NSString {
         public static let byLines = EnumerationOptions(rawValue: 0)
         public static let byParagraphs = EnumerationOptions(rawValue: 1)
         public static let byComposedCharacterSequences = EnumerationOptions(rawValue: 2)
+        
+        @available(*, unavailable, message: "Enumeration by words isn't supported in swift-corelibs-foundation")
         public static let byWords = EnumerationOptions(rawValue: 3)
+        
+        @available(*, unavailable, message: "Enumeration by sentences isn't supported in swift-corelibs-foundation")
         public static let bySentences = EnumerationOptions(rawValue: 4)
+        
         public static let reverse = EnumerationOptions(rawValue: 1 << 8)
         public static let substringNotRequired = EnumerationOptions(rawValue: 1 << 9)
         public static let localized = EnumerationOptions(rawValue: 1 << 10)
@@ -825,8 +830,95 @@ extension NSString {
         return NSRange(location: start, length: parEnd - start)
     }
     
+    private enum EnumerateBy {
+        case lines
+        case paragraphs
+        case composedCharacterSequences
+        
+        init?(parsing options: EnumerationOptions) {
+            var me: EnumerateBy?
+            
+            // We don't test for .byLines because .byLines.rawValue == 0, which unfortunately means _every_ NSString.EnumerationOptions contains .byLines.
+            // Instead, we just default to .lines below.
+            
+            if options.contains(.byParagraphs) {
+                guard me == nil else { return nil }
+                me = .paragraphs
+            }
+            
+            if options.contains(.byComposedCharacterSequences) {
+                guard me == nil else { return nil }
+                me = .composedCharacterSequences
+            }
+            
+            self = me ?? .lines
+        }
+    }
+    
     public func enumerateSubstrings(in range: NSRange, options opts: EnumerationOptions = [], using block: (String?, NSRange, NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        NSUnimplemented()
+        guard let enumerateBy = EnumerateBy(parsing: opts) else {
+            fatalError("You must specify only one of the .by… enumeration options.")
+        }
+        
+        // We do not heed the .localized flag because it affects only by-words and by-sentences enumeration, which we do not support in s-c-f.
+        
+        var currentIndex = opts.contains(.reverse) ? length - 1 : 0
+        
+        func shouldContinue() -> Bool {
+            opts.contains(.reverse) ? currentIndex >= 0 : currentIndex < length
+        }
+        
+        let reverse = opts.contains(.reverse)
+        
+        func nextIndex(after fullRange: NSRange, compensatingForLengthDifferenceFrom oldLength: Int) -> Int {
+            var index = reverse ? fullRange.location - 1 : fullRange.location + fullRange.length
+            
+            if !reverse {
+                index += (oldLength - length)
+            }
+            
+            return index
+        }
+        
+        while shouldContinue() {
+            var range = NSRange(location: currentIndex, length: 0)
+            var fullRange = range
+            
+            switch enumerateBy {
+            case .lines:
+                var start = 0, end = 0, contentsEnd = 0
+                getLineStart(&start, end: &end, contentsEnd: &contentsEnd, for: range)
+                range.location = start
+                range.length = contentsEnd - start
+                fullRange.location = start
+                fullRange.length = end - start
+            case .paragraphs:
+                var start = 0, end = 0, contentsEnd = 0
+                getParagraphStart(&start, end: &end, contentsEnd: &contentsEnd, for: range)
+                range.location = start
+                range.length = contentsEnd - start
+                fullRange.location = start
+                fullRange.length = end - start
+            case .composedCharacterSequences:
+                range = rangeOfComposedCharacterSequences(for: range)
+                fullRange = range
+            }
+            
+            var substring: String?
+            if !opts.contains(.substringNotRequired) {
+                substring = self.substring(with: range)
+            }
+            
+            let oldLength = length
+            
+            var stop: ObjCBool = false
+            block(substring, range, fullRange, &stop)
+            if stop.boolValue {
+                return
+            }
+            
+            currentIndex = nextIndex(after: fullRange, compensatingForLengthDifferenceFrom: oldLength)
+        }
     }
     
     public func enumerateLines(_ block: (String, UnsafeMutablePointer<ObjCBool>) -> Void) {

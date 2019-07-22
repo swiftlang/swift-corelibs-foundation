@@ -28,78 +28,6 @@ internal let kCFStringEncodingUTF32LE =  CFStringBuiltInEncodings.UTF32LE.rawVal
 
 
 class TestNSString: LoopbackServerTest {
-    
-    static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
-        return [
-            ("test_initData", test_initData),
-            ("test_boolValue", test_boolValue ),
-            ("test_BridgeConstruction", test_BridgeConstruction ),
-            ("test_integerValue", test_integerValue ),
-            ("test_intValue", test_intValue ),
-            ("test_doubleValue", test_doubleValue),
-            ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
-            ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
-            ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
-            ("test_FromASCIIData", test_FromASCIIData ),
-            ("test_FromUTF8Data", test_FromUTF8Data ),
-            ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
-            ("test_FromASCIINSData", test_FromASCIINSData ),
-            ("test_FromUTF8NSData", test_FromUTF8NSData ),
-            ("test_FromMalformedUTF8NSData", test_FromMalformedUTF8NSData ),
-            ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
-            ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
-            ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
-            ("test_uppercaseString", test_uppercaseString ),
-            ("test_lowercaseString", test_lowercaseString ),
-            ("test_capitalizedString", test_capitalizedString ),
-            ("test_longLongValue", test_longLongValue ),
-            ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
-            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
-            /* ⚠️ */ ("test_FromContentsOfURL", testExpectedToFail(test_FromContentsOfURL,
-            /* ⚠️ */     "test_FromContentsOfURL is flaky on CI, with unclear causes. https://bugs.swift.org/browse/SR-10514")),
-            ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
-            ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
-            ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
-            ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
-            ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
-            ("test_FromContentsOfURLUsedEncodingUTF32LE", test_FromContentsOfURLUsedEncodingUTF32LE),
-            ("test_FromContentOfFile",test_FromContentOfFile),
-            ("test_swiftStringUTF16", test_swiftStringUTF16),
-            // This test takes forever on build servers; it has been seen up to 1852.084 seconds
-//            ("test_completePathIntoString", test_completePathIntoString),
-            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
-            ("test_initializeWithFormat", test_initializeWithFormat),
-            ("test_initializeWithFormat2", test_initializeWithFormat2),
-            ("test_initializeWithFormat3", test_initializeWithFormat3),
-            ("test_appendingPathComponent", test_appendingPathComponent),
-            ("test_deletingLastPathComponent", test_deletingLastPathComponent),
-            ("test_getCString_simple", test_getCString_simple),
-            ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
-            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
-            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
-            ("test_expandingTildeInPath", test_expandingTildeInPath),
-            ("test_standardizingPath", test_standardizingPath),
-            ("test_addingPercentEncoding", test_addingPercentEncoding),
-            ("test_removingPercentEncodingInLatin", test_removingPercentEncodingInLatin),
-            ("test_removingPercentEncodingInNonLatin", test_removingPercentEncodingInNonLatin),
-            ("test_removingPersentEncodingWithoutEncoding", test_removingPersentEncodingWithoutEncoding),
-            ("test_addingPercentEncodingAndBack", test_addingPercentEncodingAndBack),
-            ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
-            ("test_deletingPathExtension", test_deletingPathExtension),
-            ("test_ExternalRepresentation", test_ExternalRepresentation),
-            ("test_mutableStringConstructor", test_mutableStringConstructor),
-            ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
-            ("test_reflection", { _ in test_reflection }),
-            ("test_replacingOccurrences", test_replacingOccurrences),
-            ("test_getLineStart", test_getLineStart),
-            ("test_substringWithRange", test_substringWithRange),
-            ("test_substringFromCFString", test_substringFromCFString),
-            ("test_createCopy", test_createCopy),
-            ("test_commonPrefix", test_commonPrefix),
-            ("test_lineRangeFor", test_lineRangeFor),
-            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
-        ]
-    }
 
     func test_initData() {
         let testString = "\u{00} This is a test string"
@@ -1423,5 +1351,163 @@ extension TestNSString {
     #if !DARWIN_COMPATIBILITY_TESTS // auto-released by Darwin's Foundation
         result.deallocate()
     #endif
+    }
+    
+    func test_enumerateSubstrings() {
+        // http://www.gutenberg.org/ebooks/12389, with a prefix addition by me.
+        // U+0300 COMBINING ACUTE ACCENT;
+        // U+0085 NEXT LINE (creates a new line that's not a new paragraph)
+        let text = "Questo e\u{0300} un poema.\n---\nCyprus, Paphos, or Panormus\u{0085}May detain thee with their splendour\u{0085}Of oblations on thine altars,\u{0085}O imperial Aphrodite.\n\nYet do thou regard, with pity\u{0085}For a nameless child of passion,\u{0085}This small unfrequented valley\u{0085}By the sea, O sea-born mother.\u{0085}"
+        let nstext = text as NSString
+        
+        let graphemes = ["Q", "u", "e", "s", "t", "o", " ", "e\u{0300}", " ", "u", "n", " ", "p", "o", "e", "m", "a", ".", "\n", "-", "-", "-", "\n", "C", "y", "p", "r", "u", "s", ",", " ", "P", "a", "p", "h", "o", "s", ",", " ", "o", "r", " ", "P", "a", "n", "o", "r", "m", "u", "s", "\u{0085}", "M", "a", "y", " ", "d", "e", "t", "a", "i", "n", " ", "t", "h", "e", "e", " ", "w", "i", "t", "h", " ", "t", "h", "e", "i", "r", " ", "s", "p", "l", "e", "n", "d", "o", "u", "r", "\u{0085}", "O", "f", " ", "o", "b", "l", "a", "t", "i", "o", "n", "s", " ", "o", "n", " ", "t", "h", "i", "n", "e", " ", "a", "l", "t", "a", "r", "s", ",", "\u{0085}", "O", " ", "i", "m", "p", "e", "r", "i", "a", "l", " ", "A", "p", "h", "r", "o", "d", "i", "t", "e", ".", "\n", "\n", "Y", "e", "t", " ", "d", "o", " ", "t", "h", "o", "u", " ", "r", "e", "g", "a", "r", "d", ",", " ", "w", "i", "t", "h", " ", "p", "i", "t", "y", "\u{0085}", "F", "o", "r", " ", "a", " ", "n", "a", "m", "e", "l", "e", "s", "s", " ", "c", "h", "i", "l", "d", " ", "o", "f", " ", "p", "a", "s", "s", "i", "o", "n", ",", "\u{0085}", "T", "h", "i", "s", " ", "s", "m", "a", "l", "l", " ", "u", "n", "f", "r", "e", "q", "u", "e", "n", "t", "e", "d", " ", "v", "a", "l", "l", "e", "y", "\u{0085}", "B", "y", " ", "t", "h", "e", " ", "s", "e", "a", ",", " ", "O", " ", "s", "e", "a", "-", "b", "o", "r", "n", " ", "m", "o", "t", "h", "e", "r", ".", "\u{0085}"]
+        
+        let lines = ["Questo e\u{0300} un poema.", "---", "Cyprus, Paphos, or Panormus", "May detain thee with their splendour", "Of oblations on thine altars,", "O imperial Aphrodite.", "", "Yet do thou regard, with pity", "For a nameless child of passion,", "This small unfrequented valley", "By the sea, O sea-born mother."]
+        
+        let paragraphs = ["Questo è un poema.", "---", "Cyprus, Paphos, or Panormus\u{0085}May detain thee with their splendour\u{0085}Of oblations on thine altars,\u{0085}O imperial Aphrodite.", "", "Yet do thou regard, with pity\u{0085}For a nameless child of passion,\u{0085}This small unfrequented valley\u{0085}By the sea, O sea-born mother.\u{0085}"]
+        
+        enum Result {
+            case substrings([String])
+            case count(Int)
+        }
+        
+        let expectations: [(options: NSString.EnumerationOptions, result: Result)] = [
+            (options: [.byComposedCharacterSequences],
+             result: .substrings(graphemes)),
+            (options: [.byComposedCharacterSequences, .reverse],
+             result: .substrings(graphemes.reversed())),
+            (options: [.byComposedCharacterSequences, .substringNotRequired],
+             result: .count(graphemes.count)),
+            (options: [.byComposedCharacterSequences, .substringNotRequired, .reverse],
+             result: .count(graphemes.count)),
+            (options: [.byLines],
+             result: .substrings(lines)),
+            (options: [.byLines, .reverse],
+             result: .substrings(lines.reversed())),
+            (options: [.byLines, .substringNotRequired],
+             result: .count(lines.count)),
+            (options: [.byLines, .substringNotRequired, .reverse],
+             result: .count(lines.count)),
+            (options: [.byParagraphs],
+             result: .substrings(paragraphs)),
+            (options: [.byParagraphs, .reverse],
+             result: .substrings(paragraphs.reversed())),
+            (options: [.byParagraphs, .substringNotRequired],
+             result: .count(paragraphs.count)),
+            (options: [.byParagraphs, .substringNotRequired, .reverse],
+             result: .count(paragraphs.count)),
+        ]
+        
+        for expectation in expectations {
+            var substrings: [String] = []
+            let requiresSubstrings = !expectation.options.contains(.substringNotRequired)
+            
+            var hasFailedSubstringPresence = false
+            var count = 0
+            
+            nstext.enumerateSubstrings(in: NSMakeRange(0, nstext.length), options: expectation.options) { (substring, range, fullRange, stop) in
+                // TODO: range, fullRange
+                
+                count += 1
+                
+                if requiresSubstrings {
+                    XCTAssertNotNil(substring, "Testing with options: \(expectation.options)")
+                    if let substring = substring {
+                        substrings.append(substring)
+                    } else {
+                        hasFailedSubstringPresence = true
+                    }
+                } else {
+                    XCTAssertNil(substring, "Testing with options: \(expectation.options)")
+                    if substring != nil {
+                        hasFailedSubstringPresence = true
+                    }
+                }
+            }
+            
+            if !hasFailedSubstringPresence {
+                switch expectation.result {
+                case .count(let expectedCount):
+                    XCTAssertEqual(count, expectedCount, "Testing with options: \(expectation.options)")
+                case .substrings(let expectedSubstrings):
+                    XCTAssertEqual(substrings, expectedSubstrings, "Testing with options: \(expectation.options)")
+                }
+            }
+        }
+    }
+    
+    static var allTests: [(String, (TestNSString) -> () throws -> Void)] {
+        return [
+            ("test_initData", test_initData),
+            ("test_boolValue", test_boolValue ),
+            ("test_BridgeConstruction", test_BridgeConstruction ),
+            ("test_integerValue", test_integerValue ),
+            ("test_intValue", test_intValue ),
+            ("test_doubleValue", test_doubleValue),
+            ("test_isEqualToStringWithSwiftString", test_isEqualToStringWithSwiftString ),
+            ("test_isEqualToObjectWithNSString", test_isEqualToObjectWithNSString ),
+            ("test_isNotEqualToObjectWithNSNumber", test_isNotEqualToObjectWithNSNumber ),
+            ("test_FromASCIIData", test_FromASCIIData ),
+            ("test_FromUTF8Data", test_FromUTF8Data ),
+            ("test_FromMalformedUTF8Data", test_FromMalformedUTF8Data ),
+            ("test_FromASCIINSData", test_FromASCIINSData ),
+            ("test_FromUTF8NSData", test_FromUTF8NSData ),
+            ("test_FromMalformedUTF8NSData", test_FromMalformedUTF8NSData ),
+            ("test_FromNullTerminatedCStringInASCII", test_FromNullTerminatedCStringInASCII ),
+            ("test_FromNullTerminatedCStringInUTF8", test_FromNullTerminatedCStringInUTF8 ),
+            ("test_FromMalformedNullTerminatedCStringInUTF8", test_FromMalformedNullTerminatedCStringInUTF8 ),
+            ("test_uppercaseString", test_uppercaseString ),
+            ("test_lowercaseString", test_lowercaseString ),
+            ("test_capitalizedString", test_capitalizedString ),
+            ("test_longLongValue", test_longLongValue ),
+            ("test_rangeOfCharacterFromSet", test_rangeOfCharacterFromSet ),
+            ("test_CFStringCreateMutableCopy", test_CFStringCreateMutableCopy),
+            
+            /* ⚠️ */ ("test_FromContentsOfURL", testExpectedToFail(test_FromContentsOfURL,
+            /* ⚠️ */     "test_FromContentsOfURL is flaky on CI, with unclear causes. https://bugs.swift.org/browse/SR-10514")),
+
+            ("test_FromContentOfFileUsedEncodingIgnored", test_FromContentOfFileUsedEncodingIgnored),
+            ("test_FromContentOfFileUsedEncodingUTF8", test_FromContentOfFileUsedEncodingUTF8),
+            ("test_FromContentsOfURLUsedEncodingUTF16BE", test_FromContentsOfURLUsedEncodingUTF16BE),
+            ("test_FromContentsOfURLUsedEncodingUTF16LE", test_FromContentsOfURLUsedEncodingUTF16LE),
+            ("test_FromContentsOfURLUsedEncodingUTF32BE", test_FromContentsOfURLUsedEncodingUTF32BE),
+            ("test_FromContentsOfURLUsedEncodingUTF32LE", test_FromContentsOfURLUsedEncodingUTF32LE),
+            ("test_FromContentOfFile",test_FromContentOfFile),
+            ("test_swiftStringUTF16", test_swiftStringUTF16),
+                         // This test takes forever on build servers; it has been seen up to 1852.084 seconds
+            //            ("test_completePathIntoString", test_completePathIntoString),
+            ("test_stringByTrimmingCharactersInSet", test_stringByTrimmingCharactersInSet),
+            ("test_initializeWithFormat", test_initializeWithFormat),
+            ("test_initializeWithFormat2", test_initializeWithFormat2),
+            ("test_initializeWithFormat3", test_initializeWithFormat3),
+            ("test_appendingPathComponent", test_appendingPathComponent),
+            ("test_deletingLastPathComponent", test_deletingLastPathComponent),
+            ("test_getCString_simple", test_getCString_simple),
+            ("test_getCString_nonASCII_withASCIIAccessor", test_getCString_nonASCII_withASCIIAccessor),
+            ("test_NSHomeDirectoryForUser", test_NSHomeDirectoryForUser),
+            ("test_resolvingSymlinksInPath", test_resolvingSymlinksInPath),
+            ("test_expandingTildeInPath", test_expandingTildeInPath),
+            ("test_standardizingPath", test_standardizingPath),
+            ("test_addingPercentEncoding", test_addingPercentEncoding),
+            ("test_removingPercentEncodingInLatin", test_removingPercentEncodingInLatin),
+            ("test_removingPercentEncodingInNonLatin", test_removingPercentEncodingInNonLatin),
+            ("test_removingPersentEncodingWithoutEncoding", test_removingPersentEncodingWithoutEncoding),
+            ("test_addingPercentEncodingAndBack", test_addingPercentEncodingAndBack),
+            ("test_stringByAppendingPathExtension", test_stringByAppendingPathExtension),
+            ("test_deletingPathExtension", test_deletingPathExtension),
+            ("test_ExternalRepresentation", test_ExternalRepresentation),
+            ("test_mutableStringConstructor", test_mutableStringConstructor),
+            ("test_emptyStringPrefixAndSuffix",test_emptyStringPrefixAndSuffix),
+            ("test_reflection", { _ in test_reflection }),
+            ("test_replacingOccurrences", test_replacingOccurrences),
+            ("test_getLineStart", test_getLineStart),
+            ("test_substringWithRange", test_substringWithRange),
+            ("test_substringFromCFString", test_substringFromCFString),
+            ("test_createCopy", test_createCopy),
+            ("test_commonPrefix", test_commonPrefix),
+            ("test_lineRangeFor", test_lineRangeFor),
+            ("test_fileSystemRepresentation", test_fileSystemRepresentation),
+            ("test_enumerateSubstrings", test_enumerateSubstrings),
+        ]
     }
 }
