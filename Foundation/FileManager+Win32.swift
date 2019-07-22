@@ -589,7 +589,7 @@ extension FileManager {
 
                     if ffd.dwFileAttributes & DWORD(FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY {
                         let readableAttributes = ffd.dwFileAttributes & DWORD(bitPattern: ~FILE_ATTRIBUTE_READONLY)
-                        guard file.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
+                        guard itemPath.withCString(encodedAs: UTF16.self, { SetFileAttributesW($0, readableAttributes) }) else {
                             throw _NSErrorWithWindowsError(GetLastError(), reading: false, paths: [file])
                         }
                     }
@@ -684,10 +684,6 @@ extension FileManager {
         return true
     }
 
-    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
-        NSUnimplemented()
-    }
-
     internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
         let _fsRep: UnsafePointer<Int8>
         if fsRep == nil {
@@ -749,7 +745,86 @@ extension FileManager {
     }
 
     internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        NSUnimplemented()
+        guard let path1Handle = path1.withCString(encodedAs: UTF16.self, {
+            CreateFileW($0, GENERIC_READ, DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nil,
+                        DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), nil)
+        }), path1Handle != INVALID_HANDLE_VALUE else {
+            return false
+        }
+
+        defer { CloseHandle(path1Handle) }
+
+        guard let path2Handle = path2.withCString(encodedAs: UTF16.self, {
+            CreateFileW($0, GENERIC_READ, DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nil,
+                        DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), nil)
+        }), path2Handle != INVALID_HANDLE_VALUE else {
+            return false
+        }
+        defer { CloseHandle(path2Handle) }
+
+        let file1Type = GetFileType(path1Handle)
+        guard GetLastError() == NO_ERROR else {
+            return false
+        }
+        let file2Type = GetFileType(path2Handle)
+        guard GetLastError() == NO_ERROR else {
+            return false
+        }
+
+        guard file1Type == FILE_TYPE_DISK, file2Type == FILE_TYPE_DISK else {
+            return false
+        }
+
+        var path1FileInfo = BY_HANDLE_FILE_INFORMATION()
+        var path2FileInfo = BY_HANDLE_FILE_INFORMATION()
+        guard GetFileInformationByHandle(path1Handle, &path1FileInfo),
+              GetFileInformationByHandle(path2Handle, &path2FileInfo) else {
+            return false
+        }
+
+        // If both paths point to the same volume/filenumber or they are both zero length
+        // then they are considered equal
+        if path1FileInfo.nFileIndexHigh == path2FileInfo.nFileIndexHigh
+              && path1FileInfo.nFileIndexLow == path2FileInfo.nFileIndexLow
+              && path1FileInfo.dwVolumeSerialNumber == path2FileInfo.dwVolumeSerialNumber {
+            return true
+        }
+
+        let path1Attrs = path1FileInfo.dwFileAttributes
+        let path2Attrs = path2FileInfo.dwFileAttributes
+        if path1Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT
+             || path2Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT {
+            guard path1Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT
+                    && path2Attrs & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == FILE_ATTRIBUTE_REPARSE_POINT else {
+                return false
+            }
+            guard let pathDest1 = try? _destinationOfSymbolicLink(atPath: path1),
+                  let pathDest2 = try? _destinationOfSymbolicLink(atPath: path2) else {
+                return false
+            }
+            return pathDest1 == pathDest2
+        } else if DWORD(FILE_ATTRIBUTE_DIRECTORY) & path1Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY)
+                    || DWORD(FILE_ATTRIBUTE_DIRECTORY) & path2Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+            guard DWORD(FILE_ATTRIBUTE_DIRECTORY) & path1Attrs == DWORD(FILE_ATTRIBUTE_DIRECTORY)
+                    && DWORD(FILE_ATTRIBUTE_DIRECTORY) & path2Attrs == FILE_ATTRIBUTE_DIRECTORY else {
+                return false
+            }
+            return _compareDirectories(atPath: path1, andPath: path2)
+        } else {
+            if path1FileInfo.nFileSizeHigh == 0 && path1FileInfo.nFileSizeLow == 0
+              && path2FileInfo.nFileSizeHigh == 0 && path2FileInfo.nFileSizeLow == 0 {
+                return true
+            }
+
+            let path1Fsr = fileSystemRepresentation(withPath: path1)
+            defer { path1Fsr.deallocate() }
+            let path2Fsr = fileSystemRepresentation(withPath: path2)
+            defer { path2Fsr.deallocate() }
+            return _compareFiles(withFileSystemRepresentation: path1Fsr,
+                                 andFileSystemRepresentation: path2Fsr,
+                                 size: (Int64(path1FileInfo.nFileSizeHigh) << 32) | Int64(path1FileInfo.nFileSizeLow),
+                                 bufSize: 0x1000)
+        }
     }
 
     internal func _appendSymlinkDestination(_ dest: String, toPath: String) -> String {
@@ -810,7 +885,7 @@ extension FileManager {
         override func nextObject() -> Any? {
             func firstValidItem() -> URL? {
                 while let url = _stack.popLast() {
-                    if !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
+                    if !FileManager.default.fileExists(atPath: url.path) {
                         guard let handler = _errorHandler,
                               handler(url, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [url.path]))
                         else { return nil }
@@ -823,15 +898,16 @@ extension FileManager {
             }
 
             // If we most recently returned a directory, decend into it
-            var isDir: ObjCBool = false
-            guard FileManager.default.fileExists(atPath: _lastReturned.path, isDirectory: &isDir) else {
-              guard let handler = _errorHandler,
+            guard let attrs = try? FileManager.default.windowsFileAttributes(atPath: _lastReturned.path) else {
+                guard let handler = _errorHandler,
                     handler(_lastReturned, _NSErrorWithWindowsError(GetLastError(), reading: true, paths: [_lastReturned.path]))
-              else { return nil }
-              return firstValidItem()
+                else { return nil }
+                return firstValidItem()
             }
 
-            if isDir.boolValue && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
+            let isDir = attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY)
+                    && attrs.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == 0
+            if isDir && (level == 0 || !_options.contains(.skipsSubdirectoryDescendants)) {
                 var ffd = WIN32_FIND_DATAW()
                 let dirPath = joinPath(prefix: _lastReturned.path, suffix: "*")
                 let handle = dirPath.withCString(encodedAs: UTF16.self) {
