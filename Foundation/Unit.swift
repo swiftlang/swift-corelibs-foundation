@@ -321,10 +321,12 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         case knot
         case meterPerSecond
         case milePerHour
+
         case celsius
         case fahrenheit
         case generic
         case kelvin
+
         case acreFoot
         case bushel
         case centiliter
@@ -332,6 +334,7 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         case cubicFoot
         case cubicInch
         case cubicKilometer
+        case cubicDecimeter
         case cubicMeter
         case cubicMile
         case cubicYard
@@ -339,15 +342,19 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         case cupMetric
         case deciliter
         case fluidOunce
+        case fluidOunceImperial
         case gallon
         case gallonImperial
         case hectoliter
         case liter
         case megaliter
+        case kiloliter
         case milliliter
         case pint
+        case pintImperial
         case pintMetric
         case quart
+        case quartImperial
         case tablespoon
         case teaspoon
 
@@ -2223,187 +2230,191 @@ public final class UnitVolume : Dimension {
     
     public class var megaliters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.megaliters, coefficient: Coefficient.megaliters)
+            return Unit.stored(at: .megaliter, newUnit: UnitVolume(symbol: Symbol.megaliters, coefficient: Coefficient.megaliters, storeIndex: .megaliter))
         }
     }
     
     public class var kiloliters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.kiloliters, coefficient: Coefficient.kiloliters)
+            return Unit.stored(at: .kiloliter, newUnit: UnitVolume(symbol: Symbol.megaliters, coefficient: Coefficient.kiloliters, storeIndex: .kiloliter))
         }
     }
     
     public class var liters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.liters, coefficient: Coefficient.liters)
+            return Unit.stored(at: .liter, newUnit: UnitVolume(symbol: Symbol.liters, coefficient: Coefficient.liters, storeIndex: .liter))
         }
     }
     
     public class var deciliters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.deciliters, coefficient: Coefficient.deciliters)
+            return Unit.stored(at: .deciliter, newUnit: UnitVolume(symbol: Symbol.deciliters, coefficient: Coefficient.deciliters, storeIndex: .deciliter))
         }
     }
     
     public class var centiliters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.centiliters, coefficient: Coefficient.centiliters)
+            return Unit.stored(at: .centiliter, newUnit: UnitVolume(symbol: Symbol.centiliters, coefficient: Coefficient.centiliters, storeIndex: .centiliter))
         }
     }
     
     public class var milliliters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.milliliters, coefficient: Coefficient.milliliters)
+            return Unit.stored(at: .milliliter, newUnit: UnitVolume(symbol: Symbol.milliliters, coefficient: Coefficient.milliliters, storeIndex: .milliliter))
         }
     }
     
     public class var cubicKilometers: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicKilometers, coefficient: Coefficient.cubicKilometers)
+            return Unit.stored(at: .cubicKilometer, newUnit: UnitVolume(symbol: Symbol.cubicKilometers, coefficient: Coefficient.cubicKilometers, storeIndex: .cubicKilometer))
         }
     }
     
     public class var cubicMeters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters)
+            return Unit.stored(at: .cubicMeter, newUnit: UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters, storeIndex: .cubicMeter))
         }
     }
     
     public class var cubicDecimeters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicDecimeters, coefficient: Coefficient.cubicDecimeters)
+            return Unit.stored(at: .cubicDecimeter, newUnit: UnitVolume(symbol: Symbol.cubicDecimeters, coefficient: Coefficient.cubicDecimeters, storeIndex: .cubicDecimeter))
         }
     }
     
     public class var cubicCentimeters: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicCentimeters, coefficient: Coefficient.cubicCentimeters)
+            return Unit.stored(at: .cubicCentimeter, newUnit: UnitVolume(symbol: Symbol.cubicCentimeters, coefficient: Coefficient.cubicCentimeters, storeIndex: .cubicCentimeter))
         }
     }
     
     public class var cubicMillimeters: UnitVolume {
         get {
+            return Unit.stored(at: .cubicMeter, newUnit: UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters, storeIndex: .cubicMeter))
             return UnitVolume(symbol: Symbol.cubicMillimeters, coefficient: Coefficient.cubicMillimeters)
         }
     }
     
     public class var cubicInches: UnitVolume {
         get {
+            return Unit.stored(at: .cubicMeter, newUnit: UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters, storeIndex: .cubicMeter))
             return UnitVolume(symbol: Symbol.cubicInches, coefficient: Coefficient.cubicInches)
         }
     }
     
     public class var cubicFeet: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicFeet, coefficient: Coefficient.cubicFeet)
+            return Unit.stored(at: .cubicFoot, newUnit: UnitVolume(symbol: Symbol.cubicFeet, coefficient: Coefficient.cubicFeet, storeIndex: .cubicFoot))
         }
     }
     
     public class var cubicYards: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicYards, coefficient: Coefficient.cubicYards)
+            return Unit.stored(at: .cubicYard, newUnit: UnitVolume(symbol: Symbol.cubicYards, coefficient: Coefficient.cubicYards, storeIndex: .cubicYard))
         }
     }
     
     public class var cubicMiles: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cubicMiles, coefficient: Coefficient.cubicMiles)
+            return Unit.stored(at: .cubicMile, newUnit: UnitVolume(symbol: Symbol.cubicMiles, coefficient: Coefficient.cubicMiles, storeIndex: .cubicMile))
         }
     }
     
     public class var acreFeet: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.acreFeet, coefficient: Coefficient.acreFeet)
+            return Unit.stored(at: .acreFoot, newUnit: UnitVolume(symbol: Symbol.acreFeet, coefficient: Coefficient.acreFeet, storeIndex: .acreFoot))
         }
     }
     
     public class var bushels: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.bushels, coefficient: Coefficient.bushels)
+            return Unit.stored(at: .bushel, newUnit: UnitVolume(symbol: Symbol.bushels, coefficient: Coefficient.bushels, storeIndex: .bushel))
         }
     }
     
     public class var teaspoons: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.teaspoons, coefficient: Coefficient.teaspoons)
+            return Unit.stored(at: .teaspoon, newUnit: UnitVolume(symbol: Symbol.teaspoons, coefficient: Coefficient.teaspoons, storeIndex: .teaspoon))
         }
     }
     
     public class var tablespoons: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.tablespoons, coefficient: Coefficient.tablespoons)
+            return Unit.stored(at: .tablespoon, newUnit: UnitVolume(symbol: Symbol.tablespoons, coefficient: Coefficient.tablespoons, storeIndex: .tablespoon))
         }
     }
     
     public class var fluidOunces: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.fluidOunces, coefficient: Coefficient.fluidOunces)
+            return Unit.stored(at: .fluidOunce, newUnit: UnitVolume(symbol: Symbol.fluidOunces, coefficient: Coefficient.fluidOunces, storeIndex: .fluidOunce))
         }
     }
     
     public class var cups: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.cups, coefficient: Coefficient.cups)
+            return Unit.stored(at: .cup, newUnit: UnitVolume(symbol: Symbol.cups, coefficient: Coefficient.cups, storeIndex: .cup))
         }
     }
     
     public class var pints: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.pints, coefficient: Coefficient.pints)
+            return Unit.stored(at: .pint, newUnit: UnitVolume(symbol: Symbol.pints, coefficient: Coefficient.pints, storeIndex: .pint))
         }
     }
     
     public class var quarts: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.quarts, coefficient: Coefficient.quarts)
+            return Unit.stored(at: .quart, newUnit: UnitVolume(symbol: Symbol.quarts, coefficient: Coefficient.quarts, storeIndex: .quart))
         }
     }
     
     public class var gallons: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.gallons, coefficient: Coefficient.gallons)
+            return Unit.stored(at: .gallon, newUnit: UnitVolume(symbol: Symbol.gallons, coefficient: Coefficient.gallons, storeIndex: .gallon))
         }
     }
     
     public class var imperialTeaspoons: UnitVolume {
         get {
+            return Unit.stored(at: .gallonImperial, newUnit: UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters, storeIndex: .cubicMeter))
             return UnitVolume(symbol: Symbol.imperialTeaspoons, coefficient: Coefficient.imperialTeaspoons)
         }
     }
     
     public class var imperialTablespoons: UnitVolume {
         get {
+            return Unit.stored(at: .cubicMeter, newUnit: UnitVolume(symbol: Symbol.cubicMeters, coefficient: Coefficient.cubicMeters, storeIndex: .cubicMeter))
             return UnitVolume(symbol: Symbol.imperialTablespoons, coefficient: Coefficient.imperialTablespoons)
         }
     }
     
     public class var imperialFluidOunces: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.imperialFluidOunces, coefficient: Coefficient.imperialFluidOunces)
+            return Unit.stored(at: .fluidOunceImperial, newUnit: UnitVolume(symbol: Symbol.imperialFluidOunces, coefficient: Coefficient.imperialFluidOunces, storeIndex: .fluidOunceImperial))
         }
     }
     
     public class var imperialPints: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.imperialPints, coefficient: Coefficient.imperialPints)
+            return Unit.stored(at: .pintImperial, newUnit: UnitVolume(symbol: Symbol.imperialPints, coefficient: Coefficient.imperialPints, storeIndex: .pintImperial))
         }
     }
     
     public class var imperialQuarts: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.imperialQuarts, coefficient: Coefficient.imperialQuarts)
+            return Unit.stored(at: .quartImperial, newUnit: UnitVolume(symbol: Symbol.imperialQuarts, coefficient: Coefficient.imperialQuarts, storeIndex: .quartImperial))
         }
     }
     
     public class var imperialGallons: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.imperialGallons, coefficient: Coefficient.imperialGallons)
+            return Unit.stored(at: .gallonImperial, newUnit: UnitVolume(symbol: Symbol.imperialGallons, coefficient: Coefficient.imperialGallons, storeIndex: .gallonImperial))
         }
     }
     
     public class var metricCups: UnitVolume {
         get {
-            return UnitVolume(symbol: Symbol.metricCups, coefficient: Coefficient.metricCups)
+            return Unit.stored(at: .cupMetric, newUnit: UnitVolume(symbol: Symbol.metricCups, coefficient: Coefficient.metricCups, storeIndex: .cupMetric))
         }
     }
     
