@@ -11,7 +11,7 @@ class TestUnitConverter: XCTestCase {
     
     static var allTests: [(String, (TestUnitConverter) -> () throws -> Void)] {
         return [
-            ("test_baseUnit", test_linearity),
+            ("test_baseUnit", test_baseUnit),
             ("test_linearity", test_linearity),
             ("test_bijectivity", test_bijectivity),
             ("test_equality", test_equality),
