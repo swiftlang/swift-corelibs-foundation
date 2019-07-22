@@ -51,9 +51,6 @@ open class URLCredential : NSObject, NSSecureCoding, NSCopying {
         @result The initialized URLCredential
      */
     public init(user: String, password: String, persistence: Persistence) {
-        guard persistence != .permanent && persistence != .synchronizable else {
-            NSUnimplemented()
-        }
         _user = user
         _password = password
         _persistence = persistence

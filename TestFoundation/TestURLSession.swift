@@ -56,6 +56,8 @@ class TestURLSession : LoopbackServerTest {
             ("test_sessionDelegateAfterInvalidateAndCancel", test_sessionDelegateAfterInvalidateAndCancel),
             ("test_getAllTasks", test_getAllTasks),
             ("test_getTasksWithCompletion", test_getTasksWithCompletion),
+            ("test_noDoubleCallbackWhenCancellingAndProtocolFailsFast", test_noDoubleCallbackWhenCancellingAndProtocolFailsFast),
+            ("test_cancelledTasksCannotBeResumed", test_cancelledTasksCannotBeResumed),
         ]
     }
     
@@ -313,9 +315,6 @@ class TestURLSession : LoopbackServerTest {
 
     // This test is buggy becuase the server could respond before the task is cancelled.
     func test_cancelTask() {
-#if os(Android)
-        XCTFail("Intermittent failures on Android")
-#else
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/Peru"
         var urlRequest = URLRequest(url: URL(string: urlString)!)
         urlRequest.setValue("2.0", forHTTPHeaderField: "X-Pause")
@@ -324,7 +323,6 @@ class TestURLSession : LoopbackServerTest {
         d.run(with: urlRequest)
         d.cancel()
         waitForExpectations(timeout: 12)
-#endif
     }
     
     func test_verifyRequestHeaders() {
@@ -967,6 +965,51 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 20)
     }
 
+    func test_noDoubleCallbackWhenCancellingAndProtocolFailsFast() throws {
+        let urlString = "failfast://bogus"
+        var callbackCount = 0
+        let callback1 = expectation(description: "Callback call #1")
+        let callback2 = expectation(description: "Callback call #2")
+        callback2.isInverted = true
+        let delegate = SessionDelegate()
+        let url = try URL(string: urlString).unwrapped()
+        let configuration = URLSessionConfiguration.default
+        configuration.protocolClasses = [FailFastProtocol.self]
+        let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: url) { (_, _, error) in
+            callbackCount += 1
+            XCTAssertNotNil(error)
+            if let urlError = error as? URLError {
+                XCTAssertNotEqual(urlError._nsError.code, NSURLErrorCancelled)
+            }
+
+            if callbackCount == 1 {
+                callback1.fulfill()
+            } else {
+                callback2.fulfill()
+            }
+        }
+        task.resume()
+        session.invalidateAndCancel()
+        waitForExpectations(timeout: 1)
+    }
+
+    func test_cancelledTasksCannotBeResumed() throws {
+        let url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/Nepal").unwrapped()
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+        let task = session.dataTask(with: url)
+
+        task.cancel() // should set .cancelling and eventually .completed
+        task.resume() // should not change the task to .running
+
+        let e = expectation(description: "getAllTasks callback called")
+        session.getAllTasks { tasks in
+            XCTAssertEqual(tasks.count, 0)
+            e.fulfill()
+        }
+
+        waitForExpectations(timeout: 1)
+    }
 }
 
 class SharedDelegate: NSObject {
@@ -1258,5 +1301,28 @@ extension HTTPUploadDelegate: URLSessionDataDelegate {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         XCTAssertEqual(self.totalBytesSent, 16*1024)
         uploadCompletedExpectation.fulfill()
+    }
+}
+
+class FailFastProtocol: URLProtocol {
+    enum Error: Swift.Error {
+    case fastError
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        return request.url?.scheme == "failfast"
+    }
+
+    override class func canInit(with task: URLSessionTask) -> Bool {
+        guard let request = task.currentRequest else { return false }
+        return canInit(with: request)
+    }
+
+    override func startLoading() {
+        client?.urlProtocol(self, didFailWithError: Error.fastError)
+    }
+
+    override func stopLoading() {
+        // Intentionally blank
     }
 }

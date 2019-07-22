@@ -22,6 +22,10 @@ import Foundation
 #endif
 import CoreFoundation
 
+private class Bag<Element> {
+    var values: [Element] = []
+}
+
 /// A cancelable object that refers to the lifetime
 /// of processing a given request.
 open class URLSessionTask : NSObject, NSCopying {
@@ -38,7 +42,101 @@ open class URLSessionTask : NSObject, NSCopying {
     internal var suspendCount = 1
     internal var session: URLSessionProtocol! //change to nil when task completes
     internal let body: _Body
-    fileprivate var _protocol: URLProtocol? = nil
+    
+    fileprivate enum ProtocolState {
+        case toBeCreated
+        case awaitingCacheReply(Bag<(URLProtocol?) -> Void>)
+        case existing(URLProtocol)
+        case invalidated
+    }
+    
+    fileprivate let _protocolLock = NSLock()
+    fileprivate var _protocolStorage: ProtocolState = .toBeCreated
+    
+    private var _protocolClass: URLProtocol.Type {
+        guard let request = currentRequest else { fatalError("A protocol class was requested, but we do not have a current request") }
+        let protocolClasses = session.configuration.protocolClasses ?? []
+        if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
+            guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("A protocol class specified in the URLSessionConfiguration's .protocolClasses array was not a URLProtocol subclass: \(urlProtocolClass)") }
+            return urlProtocol
+        } else {
+            let protocolClasses = URLProtocol.getProtocols() ?? []
+            if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
+                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError("A protocol class registered with URLProtocol.register… was not a URLProtocol subclass: \(urlProtocolClass)") }
+                return urlProtocol
+            }
+        }
+        
+        fatalError("Couldn't find a protocol appropriate for request: \(request)")
+    }
+    
+    func _getProtocol(_ callback: @escaping (URLProtocol?) -> Void) {
+        _protocolLock.lock() // Must be balanced below, before we call out ⬇
+        
+        switch _protocolStorage {
+        case .toBeCreated:
+            if let cache = session.configuration.urlCache, let me = self as? URLSessionDataTask {
+                let bag: Bag<(URLProtocol?) -> Void> = Bag()
+                bag.values.append(callback)
+                
+                _protocolStorage = .awaitingCacheReply(bag)
+                _protocolLock.unlock() // Balances above ⬆
+                
+                cache.getCachedResponse(for: me) { (response) in
+                    let urlProtocol = self._protocolClass.init(task: self, cachedResponse: response, client: nil)
+                    self._satisfyProtocolRequest(with: urlProtocol)
+                }
+            } else {
+                let urlProtocol = _protocolClass.init(task: self, cachedResponse: nil, client: nil)
+                _protocolStorage = .existing(urlProtocol)
+                _protocolLock.unlock() // Balances above ⬆
+                
+                callback(urlProtocol)
+            }
+            
+        case .awaitingCacheReply(let bag):
+            bag.values.append(callback)
+            _protocolLock.unlock() // Balances above ⬆
+        
+        case .existing(let urlProtocol):
+            _protocolLock.unlock() // Balances above ⬆
+            
+            callback(urlProtocol)
+        
+        case .invalidated:
+            _protocolLock.unlock() // Balances above ⬆
+            
+            callback(nil)
+        }
+    }
+    
+    func _satisfyProtocolRequest(with urlProtocol: URLProtocol) {
+        _protocolLock.lock() // Must be balanced below, before we call out ⬇
+        switch _protocolStorage {
+        case .toBeCreated:
+            _protocolStorage = .existing(urlProtocol)
+            _protocolLock.unlock() // Balances above ⬆
+            
+        case .awaitingCacheReply(let bag):
+            _protocolStorage = .existing(urlProtocol)
+            _protocolLock.unlock() // Balances above ⬆
+            
+            for callback in bag.values {
+                callback(urlProtocol)
+            }
+            
+        case .existing(_): fallthrough
+        case .invalidated:
+            _protocolLock.unlock() // Balances above ⬆
+        }
+    }
+    
+    func _invalidateProtocol() {
+        _protocolLock.performLocked {
+            _protocolStorage = .invalidated
+        }
+    }
+    
     private let syncQ = DispatchQueue(label: "org.swift.URLSessionTask.SyncQ")
     private var hasTriggeredResume: Bool = false
     internal var isSuspendedAfterResume: Bool {
@@ -80,25 +178,7 @@ open class URLSessionTask : NSObject, NSCopying {
         self.originalRequest = request
         self.body = body
         super.init()
-        if session.configuration.protocolClasses != nil {
-            guard let protocolClasses = session.configuration.protocolClasses else { fatalError() }
-            if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
-                self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
-            } else {
-                guard let protocolClasses = URLProtocol.getProtocols() else { fatalError() }
-                if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                    guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
-                    self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
-                }
-            }
-        } else {
-            guard let protocolClasses = URLProtocol.getProtocols() else { fatalError() }
-            if let urlProtocolClass = URLProtocol.getProtocolClass(protocols: protocolClasses, request: request) {
-                guard let urlProtocol = urlProtocolClass as? URLProtocol.Type else { fatalError() }
-                self._protocol = urlProtocol.init(task: self, cachedResponse: nil, client: nil)
-            }
-        }
+        self.currentRequest = request
     }
     deinit {
         //TODO: Do we remove the EasyHandle from the session here? This might run on the wrong thread / queue.
@@ -193,11 +273,15 @@ open class URLSessionTask : NSObject, NSCopying {
         workQueue.sync {
             guard self.state == .running || self.state == .suspended else { return }
             self.state = .canceling
-            self.workQueue.async {
-                let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
-                self.error = urlError
-                self._protocol?.stopLoading()
-                self._protocol?.client?.urlProtocol(self._protocol!, didFailWithError: urlError)
+            self._getProtocol { (urlProtocol) in
+                self.workQueue.async {
+                    let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled, userInfo: nil))
+                    self.error = urlError
+                    if let urlProtocol = urlProtocol {
+                        urlProtocol.stopLoading()
+                        urlProtocol.client?.urlProtocol(urlProtocol, didFailWithError: urlError)
+                    }
+                }
             }
         }
     }
@@ -247,13 +331,16 @@ open class URLSessionTask : NSObject, NSCopying {
         // returns, but the actual suspend will be done asynchronous to avoid
         // dead-locks.
         workQueue.sync {
+            guard self.state != .canceling && self.state != .completed else { return }
             self.suspendCount += 1
             guard self.suspendCount < Int.max else { fatalError("Task suspended too many times \(Int.max).") }
             self.updateTaskState()
             
             if self.suspendCount == 1 {
-                self.workQueue.async {
-                    self._protocol?.stopLoading()
+                self._getProtocol { (urlProtocol) in
+                    self.workQueue.async {
+                        urlProtocol?.stopLoading()
+                    }
                 }
             }
         }
@@ -263,26 +350,29 @@ open class URLSessionTask : NSObject, NSCopying {
     /// - SeeAlso: `suspend()`
     open func resume() {
         workQueue.sync {
+            guard self.state != .canceling && self.state != .completed else { return }
             self.suspendCount -= 1
             guard 0 <= self.suspendCount else { fatalError("Resuming a task that's not suspended. Calls to resume() / suspend() need to be matched.") }
             self.updateTaskState()
             if self.suspendCount == 0 {
                 self.hasTriggeredResume = true
-                self.workQueue.async {
-                    if let _protocol = self._protocol {
-                        _protocol.startLoading()
-                    }
-                    else if self.error == nil {
-                        var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "unsupported URL"]
-                        if let url = self.originalRequest?.url {
-                            userInfo[NSURLErrorFailingURLErrorKey] = url
-                            userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                self._getProtocol { (urlProtocol) in
+                    self.workQueue.async {
+                        if let _protocol = urlProtocol {
+                            _protocol.startLoading()
                         }
-                        let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
-                                                                  code: NSURLErrorUnsupportedURL,
-                                                                  userInfo: userInfo))
-                        self.error = urlError
-                        _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
+                        else if self.error == nil {
+                            var userInfo: [String: Any] = [NSLocalizedDescriptionKey: "unsupported URL"]
+                            if let url = self.originalRequest?.url {
+                                userInfo[NSURLErrorFailingURLErrorKey] = url
+                                userInfo[NSURLErrorFailingURLStringErrorKey] = url.absoluteString
+                            }
+                            let urlError = URLError(_nsError: NSError(domain: NSURLErrorDomain,
+                                                                      code: NSURLErrorUnsupportedURL,
+                                                                      userInfo: userInfo))
+                            self.error = urlError
+                            _ProtocolClient().urlProtocol(task: self, didFailWithError: urlError)
+                        }
                     }
                 }
             }
@@ -546,6 +636,22 @@ extension _ProtocolClient : URLProtocolClient {
         task.response = response
         let session = task.session as! URLSession
         guard let dataTask = task as? URLSessionDataTask else { return }
+        
+        // Only cache data tasks:
+        self.cachePolicy = policy
+        
+        if session.configuration.urlCache != nil {
+            switch policy {
+            case .allowed: fallthrough
+            case .allowedInMemoryOnly:
+                cacheableData = []
+                cacheableResponse = response
+                
+            case .notAllowed:
+                break
+            }
+        }
+        
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate as URLSessionDataDelegate):
             session.delegateQueue.addOperation {
@@ -572,8 +678,8 @@ extension _ProtocolClient : URLProtocolClient {
         }
     }
 
-    func urlProtocolDidFinishLoading(_ protocol: URLProtocol) {
-        guard let task = `protocol`.task else { fatalError() }
+    func urlProtocolDidFinishLoading(_ urlProtocol: URLProtocol) {
+        guard let task = urlProtocol.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
         guard let urlResponse = task.response else { fatalError("No response") }
         if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
@@ -581,20 +687,42 @@ extension _ProtocolClient : URLProtocolClient {
                 //TODO: Fetch and set proposed credentials if they exist
                 let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: nil,
                                                                      previousFailureCount: task.previousFailureCount, failureResponse: response, error: nil,
-                                                                     sender: `protocol` as! _HTTPURLProtocol)
+                                                                     sender: urlProtocol as! _HTTPURLProtocol)
                 task.previousFailureCount += 1
-                urlProtocol(`protocol`, didReceive: authenticationChallenge)
+                self.urlProtocol(urlProtocol, didReceive: authenticationChallenge)
                 return
             }
         }
+        
+        if let cache = session.configuration.urlCache,
+           let data = cacheableData,
+           let response = cacheableResponse,
+           let task = task as? URLSessionDataTask {
+            
+            let cacheable = CachedURLResponse(response: response, data: Data(data.joined()), storagePolicy: cachePolicy)
+            let protocolAllows = (urlProtocol as? _NativeProtocol)?.canCache(cacheable) ?? false
+            if protocolAllows {
+                if let delegate = task.session.delegate as? URLSessionDataDelegate {
+                    delegate.urlSession(task.session as! URLSession, dataTask: task, willCacheResponse: cacheable) { (actualCacheable) in
+                        if let actualCacheable = actualCacheable {
+                            cache.storeCachedResponse(actualCacheable, for: task)
+                        }
+                    }
+                } else {
+                    cache.storeCachedResponse(cacheable, for: task)
+                }
+            }
+        }
+        
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             if let downloadDelegate = delegate as? URLSessionDownloadDelegate, let downloadTask = task as? URLSessionDownloadTask {
                 session.delegateQueue.addOperation {
-                    downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: `protocol`.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL)
+                    downloadDelegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as! URL)
                 }
             }
             session.delegateQueue.addOperation {
+                guard task.state != .completed else { return }
                 delegate.urlSession(session, task: task, didCompleteWithError: nil)
                 task.state = .completed
                 session.workQueue.async {
@@ -602,13 +730,15 @@ extension _ProtocolClient : URLProtocolClient {
                 }
             }
         case .noDelegate:
+            guard task.state != .completed else { break }
             task.state = .completed
             session.workQueue.async {
                 session.taskRegistry.remove(task)
             }
         case .dataCompletionHandler(let completion):
             session.delegateQueue.addOperation {
-                completion(`protocol`.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
+                guard task.state != .completed else { return }
+                completion(urlProtocol.properties[URLProtocol._PropertyKey.responseData] as? Data ?? Data(), task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
@@ -616,14 +746,15 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
-                completion(`protocol`.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
+                guard task.state != .completed else { return }
+                completion(urlProtocol.properties[URLProtocol._PropertyKey.temporaryFileURL] as? URL, task.response, nil)
                 task.state = .completed
                 session.workQueue.async {
                     session.taskRegistry.remove(task)
                 }
             }
         }
-        task._protocol = nil
+        task._invalidateProtocol()
     }
 
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge) {
@@ -643,7 +774,11 @@ extension _ProtocolClient : URLProtocolClient {
                         fatalError("\(authScheme) is not supported")
                     }
                     handler(task, disposition, credential)
-                    task._protocol = _HTTPURLProtocol(task: task, cachedResponse: nil, client: nil)
+                    
+                    task._protocolLock.performLocked {
+                        task._protocolStorage = .existing(_HTTPURLProtocol(task: task, cachedResponse: nil, client: nil))
+                    }
+                    
                     task.resume()
                 }
             }
@@ -655,6 +790,16 @@ extension _ProtocolClient : URLProtocolClient {
         `protocol`.properties[.responseData] = data
         guard let task = `protocol`.task else { fatalError() }
         guard let session = task.session as? URLSession else { fatalError() }
+        
+        switch cachePolicy {
+        case .allowed: fallthrough
+        case .allowedInMemoryOnly:
+            cacheableData?.append(data)
+
+        case .notAllowed:
+            break
+        }
+        
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             let dataDelegate = delegate as? URLSessionDataDelegate
@@ -676,6 +821,7 @@ extension _ProtocolClient : URLProtocolClient {
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
+                guard task.state != .completed else { return }
                 delegate.urlSession(session, task: task, didCompleteWithError: error as Error)
                 task.state = .completed
                 session.workQueue.async {
@@ -683,12 +829,14 @@ extension _ProtocolClient : URLProtocolClient {
                 }
             }
         case .noDelegate:
+            guard task.state != .completed else { break }
             task.state = .completed
             session.workQueue.async {
                 session.taskRegistry.remove(task)
             }
         case .dataCompletionHandler(let completion):
             session.delegateQueue.addOperation {
+                guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed
                 session.workQueue.async {
@@ -697,6 +845,7 @@ extension _ProtocolClient : URLProtocolClient {
             }
         case .downloadCompletionHandler(let completion):
             session.delegateQueue.addOperation {
+                guard task.state != .completed else { return }
                 completion(nil, nil, error)
                 task.state = .completed
                 session.workQueue.async {
@@ -704,12 +853,10 @@ extension _ProtocolClient : URLProtocolClient {
                 }
             }
         }
-        task._protocol = nil
+        task._invalidateProtocol()
     }
 
-    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {
-        NSUnimplemented()
-    }
+    func urlProtocol(_ protocol: URLProtocol, cachedResponseIsValid cachedResponse: CachedURLResponse) {}
 
     func urlProtocol(_ protocol: URLProtocol, wasRedirectedTo request: URLRequest, redirectResponse: URLResponse) {
         NSUnimplemented()

@@ -94,6 +94,13 @@ open class NSKeyedArchiver : NSCoder {
     /// The archiver’s delegate.
     open weak var delegate: NSKeyedArchiverDelegate?
     
+    /// The latest error.
+    private var _error: Error?
+    open override var error: Error? {
+        get { return _error }
+        set { _error = newValue }
+    }
+    
     /// The format in which the receiver encodes its data.
     ///
     /// The available formats are `xml` and `binary`.

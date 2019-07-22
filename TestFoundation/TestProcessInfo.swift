@@ -38,6 +38,8 @@ class TestProcessInfo : XCTestCase {
         // just test that the initial name is not empty or something?
 #if DARWIN_COMPATIBILITY_TESTS
         let targetName = "xctest"
+#elseif os(Windows)
+        let targetName = "TestFoundation.exe"
 #else
         let targetName = "TestFoundation"
 #endif
@@ -71,7 +73,11 @@ class TestProcessInfo : XCTestCase {
 #if os(Windows)
         func setenv(_ key: String, _ value: String, _ overwrite: Int) -> Int32 {
           assert(overwrite == 1)
-          return putenv("\(key)=\(value)")
+          guard !key.contains("=") else {
+              errno = EINVAL
+              return -1
+          }
+          return _putenv("\(key)=\(value)")
         }
 #endif
 
@@ -104,7 +110,12 @@ class TestProcessInfo : XCTestCase {
         XCTAssertNil(env["bad3"])
         XCTAssertNil(env["bad3="])
 
+#if os(Windows)
+        // On Windows, adding an empty environment variable removes it from the environment
+        XCTAssertNil(env["var1"])
+#else
         XCTAssertEqual(env["var1"], "")
+#endif
         XCTAssertEqual(env["var2"], "=")
         XCTAssertEqual(env["var3"], "=x")
         XCTAssertEqual(env["var4"], "x=")

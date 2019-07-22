@@ -208,6 +208,28 @@ func expectEqual(
     XCTAssertTrue(expected == actual, message(), file: file, line: line)
 }
 
+func expectChanges<T: BinaryInteger>(_ check: @autoclosure () -> T, by difference: T? = nil, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line, _ expression: () throws -> ()) rethrows {
+    let valueBefore = check()
+    try expression()
+    let valueAfter = check()
+    if let difference = difference {
+        XCTAssertEqual(valueAfter, valueBefore + difference, message(), file: file, line: line)
+    } else {
+        XCTAssertNotEqual(valueAfter, valueBefore, message(), file: file, line: line)
+    }
+}
+
+func expectNoChanges<T: BinaryInteger>(_ check: @autoclosure () -> T, by difference: T? = nil, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line, _ expression: () throws -> ()) rethrows {
+    let valueBefore = check()
+    try expression()
+    let valueAfter = check()
+    if let difference = difference {
+        XCTAssertNotEqual(valueAfter, valueBefore + difference, message(), file: file, line: line)
+    } else {
+        XCTAssertEqual(valueAfter, valueBefore, message(), file: file, line: line)
+    }
+}
+
 extension Fixture where ValueType: NSObject & NSCoding {
     func loadEach(handler: (ValueType, FixtureVariant) throws -> Void) throws {
         try self.loadEach(fixtureRepository: try testBundle().url(forResource: "Fixtures", withExtension: nil).unwrapped(), handler: handler)
@@ -534,6 +556,14 @@ func shouldAttemptWindowsXFailTests(_ reason: String) -> Bool {
     #endif
 }
 
+func shouldAttemptAndroidXFailTests(_ reason: String) -> Bool {
+    #if os(Android)
+    return shouldAttemptXFailTests(reason)
+    #else
+    return true
+    #endif
+}
+
 func appendTestCaseExpectedToFail<T: XCTestCase>(_ reason: String, _ allTests: [(String, (T) -> () throws -> Void)], into array: inout [XCTestCaseEntry]) {
     if shouldAttemptXFailTests(reason) {
         array.append(testCase(allTests))
@@ -546,6 +576,10 @@ func testExpectedToFail<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason
 
 func testExpectedToFailOnWindows<T>(_ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
     testExpectedToFailWithCheck(check: shouldAttemptWindowsXFailTests(_:), test, reason)
+}
+
+func testExpectedToFailOnAndroid<T>(_ test: @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {
+    testExpectedToFailWithCheck(check: shouldAttemptAndroidXFailTests(_:), test, reason)
 }
 
 func testExpectedToFailWithCheck<T>(check: (String) -> Bool, _ test:  @escaping (T) -> () throws -> Void, _ reason: String) -> (T) -> () throws -> Void {

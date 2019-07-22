@@ -240,6 +240,15 @@ public struct URLRequest : ReferenceConvertible, Equatable, Hashable {
     public static func ==(lhs: URLRequest, rhs: URLRequest) -> Bool {
         return lhs._handle._uncopiedReference().isEqual(rhs._handle._uncopiedReference())
     }
+    
+    var protocolProperties: [String: Any] {
+        get {
+            return _handle.map { $0.protocolProperties }
+        }
+        set {
+            _applyMutation { $0.protocolProperties = newValue }
+        }
+    }
 }
 
 extension URLRequest : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {

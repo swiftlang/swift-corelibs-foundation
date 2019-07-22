@@ -825,6 +825,8 @@ open class FileManager : NSObject {
         guard let enumerator2 = enumerator(atPath: path2) else {
             return false
         }
+        enumerator1.skipDescendants()
+        enumerator2.skipDescendants()
 
         var path1entries = Set<String>()
         while let item = enumerator1.nextObject() as? String {
@@ -871,9 +873,36 @@ open class FileManager : NSObject {
     }()
 #endif
 
+    internal func _compareFiles(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64, bufSize: Int) -> Bool {
+        guard let file1 = FileHandle(fileSystemRepresentation: file1Rep, flags: O_RDONLY, createMode: 0) else { return false }
+        guard let file2 = FileHandle(fileSystemRepresentation: file2Rep, flags: O_RDONLY, createMode: 0) else { return false }
+
+        var buffer1 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        var buffer2 = UnsafeMutablePointer<UInt8>.allocate(capacity: bufSize)
+        defer {
+            buffer1.deallocate()
+            buffer2.deallocate()
+        }
+        var bytesLeft = size
+        while bytesLeft > 0 {
+            let bytesToRead = Int(min(Int64(bufSize), bytesLeft))
+
+            guard let file1BytesRead = try? file1._readBytes(into: buffer1, length: bytesToRead), file1BytesRead == bytesToRead else {
+                return false
+            }
+            guard let file2BytesRead = try? file2._readBytes(into: buffer2, length: bytesToRead), file2BytesRead == bytesToRead else {
+                return false
+            }
+            guard memcmp(buffer1, buffer2, bytesToRead) == 0 else {
+                return false
+            }
+            bytesLeft -= Int64(bytesToRead)
+        }
+        return true
+    }
+
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
-    @available(Windows, deprecated, message: "Not Yet Implemented")
     open func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
         return _contentsEqual(atPath: path1, andPath: path2)
     }
@@ -1045,8 +1074,18 @@ open class FileManager : NSObject {
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
         NSUnimplemented()
     }
+
+    @available(Windows, deprecated, message: "Not yet implemented")
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
+        NSUnimplemented()
+    }
+
     #else
     open func replaceItem(at originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String?, options: ItemReplacementOptions = []) throws -> URL? {
+        return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
+    }
+
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> URL? {
         return try _replaceItem(at: originalItemURL, withItemAt: newItemURL, backupItemName: backupItemName, options: options)
     }
     #endif
@@ -1064,17 +1103,7 @@ open class FileManager : NSObject {
         
         return _appendSymlinkDestination(destination, toPath: path)
     }
-    
 
-}
-
-extension FileManager {
-    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil, options: ItemReplacementOptions = []) throws -> NSURL? {
-        NSUnimplemented()
-    }
-}
-
-extension FileManager {
     open var homeDirectoryForCurrentUser: URL {
         return homeDirectory(forUser: NSUserName())!
     }
@@ -1225,31 +1254,35 @@ public struct FileAttributeType : RawRepresentable, Equatable, Hashable {
 
 #if os(Windows)
     internal init(attributes: WIN32_FILE_ATTRIBUTE_DATA, atPath path: String) {
-      if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
-        self = .typeDirectory
-      } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DEVICE) == DWORD(FILE_ATTRIBUTE_DEVICE) {
-        self = .typeCharacterSpecial
-      } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
-        // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
-        let fileHandle = path.withCString(encodedAs: UTF16.self) {
-          CreateFileW(/*lpFileName=*/$0,
-                      /*dwDesiredAccess=*/DWORD(0),
-                      /*dwShareMode=*/DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE),
-                      /*lpSecurityAttributes=*/nil,
-                      /*dwCreationDisposition=*/DWORD(OPEN_EXISTING),
-                      /*dwFlagsAndAttributes=*/DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS),
-                      /*hTemplateFile=*/nil)
+        if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DEVICE) == DWORD(FILE_ATTRIBUTE_DEVICE) {
+            self = .typeCharacterSpecial
+        } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_REPARSE_POINT) == DWORD(FILE_ATTRIBUTE_REPARSE_POINT) {
+            // A reparse point may or may not actually be a symbolic link, we need to read the reparse tag
+            let handle = path.withCString(encodedAs: UTF16.self) {
+                CreateFileW($0, /*dwDesiredAccess=*/DWORD(0), DWORD(FILE_SHARE_READ | FILE_SHARE_WRITE), /*lpSecurityAttributes=*/nil,
+                            DWORD(OPEN_EXISTING), DWORD(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS), /*hTemplateFile=*/nil)
+            }
+            guard handle != INVALID_HANDLE_VALUE else {
+                self = .typeUnknown
+                return
+            }
+            defer { CloseHandle(handle) }
+            var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
+            guard GetFileInformationByHandleEx(handle, FileAttributeTagInfo, &tagInfo, DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
+                self = .typeUnknown
+                return
+            }
+            self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
+        } else if attributes.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+            // Note: Since Windows marks directory symlinks as both
+            // directories and reparse points, having this after the
+            // reparse point check implicitly encodes Windows
+            // directory symlinks as not directories, which matches
+            // POSIX behavior.
+            self = .typeDirectory
+        } else {
+            self = .typeRegular
         }
-        defer { CloseHandle(fileHandle) }
-        var tagInfo = FILE_ATTRIBUTE_TAG_INFO()
-        guard GetFileInformationByHandleEx(fileHandle, FileAttributeTagInfo, &tagInfo, DWORD(MemoryLayout<FILE_ATTRIBUTE_TAG_INFO>.size)) else {
-          self = .typeUnknown
-          return
-        }
-        self = tagInfo.ReparseTag == IO_REPARSE_TAG_SYMLINK ? .typeSymbolicLink : .typeRegular
-      } else {
-        self = .typeRegular
-      }
     }
 #else
     internal init(statMode: mode_t) {

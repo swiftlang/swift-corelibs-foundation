@@ -469,6 +469,12 @@ open class Process: NSObject {
           environment["PWD"] = currentDirectoryURL.path
         }
 
+        // On Windows, the PATH is required in order to locate dlls needed by
+        // the process so we should also pass that to the child
+        if environment["Path"] == nil, let path = ProcessInfo.processInfo.environment["Path"] {
+            environment["Path"] = path
+        }
+
         // NOTE(compnerd) the environment string must be terminated by a double
         // null-terminator.  Otherwise, CreateProcess will fail with
         // INVALID_PARMETER.
@@ -882,7 +888,7 @@ open class Process: NSObject {
     open func terminate() {
         precondition(hasStarted, "task not launched")
 #if os(Windows)
-        TerminateProcess(processHandle, UINT(SIGTERM))
+        TerminateProcess(processHandle, UINT(0xC0000000 | DWORD(SIGTERM)))
 #else
         kill(processIdentifier, SIGTERM)
 #endif
@@ -944,6 +950,9 @@ open class Process: NSObject {
 #if os(Windows)
     open private(set) var processHandle: HANDLE = INVALID_HANDLE_VALUE
     open var processIdentifier: Int32 {
+      guard processHandle != INVALID_HANDLE_VALUE else {
+          return 0
+      }
       return Int32(GetProcessId(processHandle))
     }
     open private(set) var isRunning: Bool = false

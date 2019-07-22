@@ -206,14 +206,13 @@ open class NSDecimalNumber : NSNumber {
     }
 
     open override var description: String {
-        return self.decimal.description
+        var number = self.decimal
+        return NSDecimalString(&number, nil)
     }
 
     open override func description(withLocale locale: Locale?) -> String {
-        guard locale == nil else {
-            fatalError("Locale not supported: \(locale!)")
-        }
-        return self.decimal.description
+        var number = self.decimal
+        return NSDecimalString(&number, locale)
     }
 
     open class var zero: NSDecimalNumber {
@@ -304,12 +303,13 @@ open class NSDecimalNumber : NSNumber {
     open func multiplying(byPowerOf10 power: Int16) -> NSDecimalNumber {
         return multiplying(byPowerOf10: power, withBehavior: nil)
     }
+
     open func multiplying(byPowerOf10 power: Int16, withBehavior b: NSDecimalNumberBehaviors?) -> NSDecimalNumber {
         var result = Decimal()
         var input = self.decimal
         let behavior = b ?? NSDecimalNumber.defaultBehavior
         let roundingMode = behavior.roundingMode()
-        let error = NSDecimalPower(&result, &input, Int(power), roundingMode)
+        let error = NSDecimalMultiplyByPowerOf10(&result, &input, power, roundingMode)
         handle(error,behavior)
         return NSDecimalNumber(decimal: result)
     }

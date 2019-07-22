@@ -116,7 +116,8 @@ class TestProcess : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n"])), FileManager.default.currentDirectoryPath)
+
+        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n", "\r"])), FileManager.default.currentDirectoryPath)
     }
 
     func test_pipe_stderr() throws {
@@ -194,7 +195,7 @@ class TestProcess : XCTestCase {
             XCTFail("Could not read stdout")
             return
         }
-        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\n"])), FileManager.default.currentDirectoryPath)
+        XCTAssertEqual(string.trimmingCharacters(in: CharacterSet(["\r", "\n"])), FileManager.default.currentDirectoryPath)
     }
     
     func test_passthrough_environment() {
@@ -213,7 +214,12 @@ class TestProcess : XCTestCase {
         do {
             let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: [:])
             let env = try parseEnv(output)
+#if os(Windows)
+            // On Windows, Path is always passed to the sub process
+            XCTAssertEqual(env.count, 1)
+#else
             XCTAssertEqual(env.count, 0)
+#endif
         } catch {
             XCTFail("Test failed: \(error)")
         }
@@ -223,15 +229,23 @@ class TestProcess : XCTestCase {
         do {
             let input = ["HELLO": "WORLD", "HOME": "CUPERTINO"]
             let (output, _) = try runTask([xdgTestHelperURL().path, "--env"], environment: input)
-            let env = try parseEnv(output)
+            var env = try parseEnv(output)
+#if os(Windows)
+            // On Windows, Path is always passed to the sub process, remove it
+            // before comparing.
+            env.removeValue(forKey: "Path")
+#endif
             XCTAssertEqual(env, input)
         } catch {
             XCTFail("Test failed: \(error)")
         }
     }
 
-    func test_current_working_directory() {
-        let tmpDir = "/tmp" //.standardizingPath
+    func test_current_working_directory() throws {
+        var tmpDir = NSTemporaryDirectory()
+        if let lastChar = tmpDir.last, lastChar == "/" || lastChar == "\\" {
+            tmpDir.removeLast()
+        }
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
@@ -310,7 +324,7 @@ class TestProcess : XCTestCase {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/..", isDirectory: false)
             process.arguments = []
-            process.currentDirectoryURL = URL(fileURLWithPath: "/tmp")
+            process.currentDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
             try process.run()
             XCTFail("Somehow executed a directory!")
             process.terminate()
@@ -537,12 +551,12 @@ class TestProcess : XCTestCase {
         if let d = try stdoutPipe.fileHandleForReading.readToEnd() {
             stdoutData.append(d)
         }
-        XCTAssertEqual(String(data: stdoutData, encoding: .utf8), "No files specified.\n")
+        XCTAssertEqual(String(data: stdoutData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines), "No files specified.")
     }
 
 
     static var allTests: [(String, (TestProcess) -> () throws -> Void)] {
-        return [
+        var tests = [
             ("test_exit0" , test_exit0),
             ("test_exit1" , test_exit1),
             ("test_exit100" , test_exit100),
@@ -559,9 +573,7 @@ class TestProcess : XCTestCase {
             ("test_custom_environment", test_custom_environment),
             ("test_run", test_run),
             ("test_preStartEndState", test_preStartEndState),
-            ("test_interrupt", test_interrupt),
             ("test_terminate", test_terminate),
-            ("test_suspend_resume", test_suspend_resume),
             ("test_redirect_stdin_using_null", test_redirect_stdin_using_null),
             ("test_redirect_stdout_using_null", test_redirect_stdout_using_null),
             ("test_redirect_stdin_stdout_using_null", test_redirect_stdin_stdout_using_null),
@@ -570,6 +582,15 @@ class TestProcess : XCTestCase {
             ("test_redirect_all_using_nil", test_redirect_all_using_nil),
             ("test_plutil", test_plutil),
         ]
+
+#if !os(Windows)
+        // Windows doesn't have signals
+        tests += [
+            ("test_interrupt", test_interrupt),
+            ("test_suspend_resume", test_suspend_resume),
+        ]
+#endif
+        return tests
     }
 }
 
@@ -726,7 +747,7 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
 
 private func parseEnv(_ env: String) throws -> [String: String] {
     var result = [String: String]()
-    for line in env.components(separatedBy: "\n") where line != "" {
+    for line in env.components(separatedBy: .newlines) where line != "" {
         guard let range = line.range(of: "=") else {
             throw Error.InvalidEnvironmentVariable(line)
         }

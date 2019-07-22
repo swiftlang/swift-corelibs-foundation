@@ -21,16 +21,12 @@
 
 class TestThread : XCTestCase {
     static var allTests: [(String, (TestThread) -> () throws -> Void)] {
-#if os(Android)
-        return []
-#endif
-
         var tests: [(String, (TestThread) -> () throws -> Void)] = [
-            ("test_currentThread", test_currentThread ),
+            ("test_currentThread", test_currentThread),
             ("test_threadStart", test_threadStart),
             ("test_mainThread", test_mainThread),
-            ("test_callStackSymbols", test_callStackSymbols),
-            ("test_callStackReurnAddresses", test_callStackReturnAddresses),
+            ("test_callStackSymbols", testExpectedToFailOnAndroid(test_callStackSymbols, "Android doesn't support backtraces at the moment.")),
+            ("test_callStackReturnAddresses", testExpectedToFailOnAndroid(test_callStackReturnAddresses, "Android doesn't support backtraces at the moment.")),
         ]
 
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
@@ -68,7 +64,7 @@ class TestThread : XCTestCase {
     
 #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
     func test_threadName() {
-#if os(Linux) // Linux sets the initial thread name to the process name.
+#if os(Linux) || os(Android) // Linux sets the initial thread name to the process name.
         XCTAssertEqual(Thread.current.name, "TestFoundation")
         XCTAssertEqual(Thread.current._name, "TestFoundation")
 #else
@@ -94,7 +90,7 @@ class TestThread : XCTestCase {
             XCTAssertEqual(Thread.current.name, "12345678901234567890")
 #if os(macOS) || os(iOS)
             XCTAssertEqual(Thread.current._name, Thread.current.name)
-#elseif os(Linux)
+#elseif os(Linux) || os(Android)
             // pthread_setname_np() only allows 15 characters on Linux, so setting it fails
             // and the previous name will still be there.
             XCTAssertEqual(Thread.current._name, "Thread2-2")

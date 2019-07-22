@@ -486,6 +486,14 @@ fileprivate extension _EasyHandle {
                 return 1
             }
         }.asError()
+
+        try! CFURLSession_easy_setopt_csf(rawHandle, CFURLSessionOptionCLOSESOCKETFUNCTION) { (clientp: UnsafeMutableRawPointer?, socket: CFURLSession_socket_t) -> Int32 in
+            // Don't let CURL close the socket here because the
+            // dispatch sources are associated with it and we need to
+            // cancel them before closing the file descriptor.
+            return 0
+        }.asError()
+
         // seeking in input stream
         try! CFURLSession_easy_setopt_ptr(rawHandle, CFURLSessionOptionSEEKDATA, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())).asError()
         try! CFURLSession_easy_setopt_seek(rawHandle, CFURLSessionOptionSEEKFUNCTION, { (userdata, offset, origin) -> Int32 in

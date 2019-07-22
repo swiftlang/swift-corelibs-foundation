@@ -629,6 +629,8 @@ internal protocol URLSessionProtocol: class {
     func add(handle: _EasyHandle)
     func remove(handle: _EasyHandle)
     func behaviour(for: URLSessionTask) -> URLSession._TaskBehaviour
+    var configuration: URLSessionConfiguration { get }
+    var delegate: URLSessionDelegate? { get }
 }
 extension URLSession: URLSessionProtocol {
     func add(handle: _EasyHandle) {
@@ -642,6 +644,12 @@ extension URLSession: URLSessionProtocol {
 ///
 /// - SeeAlso: URLSessionTask.init()
 final internal class _MissingURLSession: URLSessionProtocol {
+    var delegate: URLSessionDelegate? {
+        fatalError()
+    }
+    var configuration: URLSessionConfiguration {
+        fatalError()
+    }
     func add(handle: _EasyHandle) {
         fatalError()
     }

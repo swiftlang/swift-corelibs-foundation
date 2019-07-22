@@ -148,7 +148,11 @@ public protocol URLProtocolClient : NSObjectProtocol {
     func urlProtocol(_ protocol: URLProtocol, didCancel challenge: URLAuthenticationChallenge)
 }
 
-internal class _ProtocolClient : NSObject { }
+internal class _ProtocolClient : NSObject {
+    var cachePolicy: URLCache.StoragePolicy = .notAllowed
+    var cacheableData: [Data]?
+    var cacheableResponse: URLResponse?
+}
 
 /*!
     @class NSURLProtocol
@@ -308,7 +312,9 @@ open class URLProtocol : NSObject {
         @result The property stored with the given key, or nil if no property
         had previously been stored with the given key in the given request.
     */
-    open class func property(forKey key: String, in request: URLRequest) -> Any? { NSUnimplemented() }
+    open class func property(forKey key: String, in request: URLRequest) -> Any? {
+        return request.protocolProperties[key]
+    }
     
     /*! 
         @method setProperty:forKey:inRequest:
@@ -321,7 +327,9 @@ open class URLProtocol : NSObject {
         @param key The string to use for the property storage. 
         @param request The request in which to store the property. 
     */
-    open class func setProperty(_ value: Any, forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
+    open class func setProperty(_ value: Any, forKey key: String, in request: NSMutableURLRequest) {
+        request.protocolProperties[key] = value
+    }
     
     /*!
         @method removePropertyForKey:inRequest:
@@ -332,7 +340,9 @@ open class URLProtocol : NSObject {
         @param key The key whose value should be removed
         @param request The request to be modified
     */
-    open class func removeProperty(forKey key: String, in request: NSMutableURLRequest) { NSUnimplemented() }
+    open class func removeProperty(forKey key: String, in request: NSMutableURLRequest) {
+        request.protocolProperties.removeValue(forKey: key)
+    }
     
     /*! 
         @method registerClass:
@@ -408,7 +418,10 @@ open class URLProtocol : NSObject {
         _classesLock.unlock()
     }
 
-    open class func canInit(with task: URLSessionTask) -> Bool { NSUnimplemented() }
+    open class func canInit(with task: URLSessionTask) -> Bool {
+        guard let request = task.currentRequest else { return false }
+        return canInit(with: request)
+    }
     public required convenience init(task: URLSessionTask, cachedResponse: CachedURLResponse?, client: URLProtocolClient?) {
         let urlRequest = task.originalRequest
         self.init(request: urlRequest!, cachedResponse: cachedResponse, client: client)

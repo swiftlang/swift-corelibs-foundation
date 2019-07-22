@@ -211,7 +211,7 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
 // https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes
 internal let _NSWindowsErrorDomain = "org.swift.Foundation.WindowsError"
 
-internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> NSError {
+internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool, paths: [String]? = nil) -> NSError {
     var cocoaError : CocoaError.Code
     switch Int32(bitPattern: windowsError) {
         case ERROR_LOCK_VIOLATION: cocoaError = .fileLocking
@@ -225,8 +225,12 @@ internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> 
         default:
             if reading {
                 switch Int32(bitPattern: windowsError) {
-                    case ERROR_FILE_NOT_FOUND: cocoaError = .fileReadNoSuchFile
-                    case ERROR_PATH_NOT_FOUND: cocoaError = .fileReadNoSuchFile
+                    case ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND:
+                        // On an empty path, Windows will return FILE/PATH_NOT_FOUND
+                        // rather than invalid path as posix does
+                        cocoaError = paths?.contains("") ?? false
+                            ? .fileReadInvalidFileName
+                            : .fileReadNoSuchFile
                     case ERROR_ACCESS_DENIED: cocoaError = .fileReadNoPermission
                     case ERROR_INVALID_ACCESS: cocoaError = .fileReadNoPermission
                     case ERROR_INVALID_DRIVE: cocoaError = .fileReadNoSuchFile
@@ -240,8 +244,12 @@ internal func _NSErrorWithWindowsError(_ windowsError: DWORD, reading: Bool) -> 
                 }
             } else {
                 switch Int32(bitPattern: windowsError) {
-                    case ERROR_FILE_NOT_FOUND: cocoaError = .fileNoSuchFile
-                    case ERROR_PATH_NOT_FOUND: cocoaError = .fileNoSuchFile
+                    case ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND:
+                        // On an empty path, Windows will return FILE/PATH_NOT_FOUND
+                        // rather than invalid path as posix does
+                        cocoaError = paths?.contains("") ?? false
+                            ? .fileReadInvalidFileName
+                            : .fileReadNoSuchFile
                     case ERROR_ACCESS_DENIED: cocoaError = .fileWriteNoPermission
                     case ERROR_INVALID_ACCESS: cocoaError = .fileWriteNoPermission
                     case ERROR_INVALID_DRIVE: cocoaError = .fileNoSuchFile

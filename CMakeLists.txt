@@ -93,6 +93,7 @@ if(FOUNDATION_ENABLE_LIBDISPATCH)
   set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
   set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
   if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+    file(TO_CMAKE_PATH "${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}" FOUNDATION_PATH_TO_LIBDISPATCH_BUILD)
     list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
   endif()
 endif()
@@ -271,8 +272,6 @@ add_swift_library(Foundation
                     Foundation/XMLParser.swift
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
-                  CFLAGS
-                    -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
                     ${CoreFoundation_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
@@ -281,15 +280,12 @@ add_swift_library(Foundation
                     $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
-                    $<$<PLATFORM_ID:Windows>:-lDbgHelp>
                     $<$<PLATFORM_ID:Windows>:-lOle32>
-                    $<$<PLATFORM_ID:Windows>:-lShLwApi>
                     $<$<PLATFORM_ID:Windows>:-lShell32>
-                    $<$<PLATFORM_ID:Windows>:-lWS2_32>
-                    $<$<PLATFORM_ID:Windows>:-liphlpapi>
                     $<$<PLATFORM_ID:Windows>:-lpathcch>
                     $<$<PLATFORM_ID:Windows>:$<TARGET_OBJECTS:CoreFoundationResources>>
                   SWIFT_FLAGS
+                    -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
                     -I;${ICU_INCLUDE_DIR}
@@ -341,9 +337,6 @@ add_swift_library(FoundationNetworking
                   Foundation/URLSession/URLSessionTask.swift
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
-                  CFLAGS
-                    ${MSVCRT_C_FLAGS}
-                    -F${CMAKE_CURRENT_BINARY_DIR}
                   LINK_FLAGS
                     ${MSVCRT_LINK_FLAGS}
                     -L${CMAKE_CURRENT_BINARY_DIR}
@@ -358,11 +351,12 @@ add_swift_library(FoundationNetworking
                   SWIFT_FLAGS
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
+                    -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     ${deployment_enable_libdispatch}
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
-                    ${swift_enable_testing}
-                    ${swift_optimization_flags}
+                    $<$<BOOL:ENABLE_TESTING>:-enable-testing>
+                    $<$<NOT:$<CONFIG:Debug>>:-O>
                   DEPENDS
                     uuid
                     CoreFoundation
@@ -388,8 +382,6 @@ add_swift_executable(plutil
                        Tools/plutil/main.swift
                      TARGET
                        ${CMAKE_C_COMPILER_TARGET}
-                     CFLAGS
-                       -F${CMAKE_CURRENT_BINARY_DIR}
                      LINK_FLAGS
                        ${libdispatch_ldflags}
                        -L${CMAKE_CURRENT_BINARY_DIR}
@@ -397,6 +389,7 @@ add_swift_executable(plutil
                        ${Foundation_INTERFACE_LIBRARIES}
                        ${plutil_rpath}
                      SWIFT_FLAGS
+                       -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                        -DDEPLOYMENT_RUNTIME_SWIFT
                        -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                        -I;${ICU_INCLUDE_DIR}
@@ -413,8 +406,6 @@ if(ENABLE_TESTING)
   add_swift_executable(xdgTestHelper
                        TARGET
                          ${CMAKE_C_COMPILER_TARGET}
-                       CFLAGS
-                         -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -424,6 +415,7 @@ if(ENABLE_TESTING)
                        SOURCES
                          TestFoundation/xdgTestHelper/main.swift
                        SWIFT_FLAGS
+                         -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${ICU_INCLUDE_DIR}
                          ${libdispatch_cflags}
@@ -519,7 +511,9 @@ if(ENABLE_TESTING)
                          TestFoundation/TestTimeZone.swift
                          TestFoundation/TestUnitConverter.swift
                          TestFoundation/TestUnit.swift
+                         TestFoundation/TestURLCache.swift
                          TestFoundation/TestURLCredential.swift
+                         TestFoundation/TestURLCredentialStorage.swift
                          TestFoundation/TestURLProtectionSpace.swift
                          TestFoundation/TestURLProtocol.swift
                          TestFoundation/TestURLRequest.swift
@@ -534,8 +528,6 @@ if(ENABLE_TESTING)
                          TestFoundation/TestXMLParser.swift
                        TARGET
                          ${CMAKE_C_COMPILER_TARGET}
-                       CFLAGS
-                         -F${CMAKE_CURRENT_BINARY_DIR}
                        LINK_FLAGS
                          ${libdispatch_ldflags}
                          -L${CMAKE_CURRENT_BINARY_DIR}
@@ -544,7 +536,6 @@ if(ENABLE_TESTING)
                          -L${FOUNDATION_PATH_TO_XCTEST_BUILD}
                          -lXCTest
                          ${WORKAROUND_SR9138}
-                         $<$<PLATFORM_ID:Windows>:-lWS2_32>
                        RESOURCES
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/Info.plist
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/NSURLTestData.plist
@@ -571,6 +562,7 @@ if(ENABLE_TESTING)
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Resources/TestFileWithZeros.txt
                          ${CMAKE_SOURCE_DIR}/TestFoundation/Fixtures
                        SWIFT_FLAGS
+                         -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                          -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                          -I;${FOUNDATION_PATH_TO_XCTEST_BUILD}/swift
                          -I;${ICU_INCLUDE_DIR}

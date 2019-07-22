@@ -13,6 +13,10 @@ import SwiftFoundation
 import Foundation
 #endif
 
+#if os(Windows)
+import WinSDK
+#endif
+
 public struct HTTPCookiePropertyKey : RawRepresentable, Equatable, Hashable {
     public private(set) var rawValue: String
     
@@ -70,7 +74,7 @@ extension HTTPCookiePropertyKey {
 }
 
 internal extension HTTPCookiePropertyKey {
-    internal static let httpOnly = HTTPCookiePropertyKey(rawValue: "HttpOnly")
+    static let httpOnly = HTTPCookiePropertyKey(rawValue: "HttpOnly")
 
     static private let _setCookieAttributes: [String: HTTPCookiePropertyKey] = {
         // Only some attributes are valid in the Set-Cookie header.
@@ -570,9 +574,21 @@ open class HTTPCookie : NSObject {
             }
         }
 
-        // If domain wasn't provided, extract it from the URL
-        if properties[.domain] == nil {
+        if let domain = properties[.domain] as? String {
+            // The provided domain string has to be prepended with a dot,
+            // because the domain field indicates that it can be sent
+            // subdomains of the domain (but only if it is not an IP address).
+            if (!domain.hasPrefix(".") && !isIPv4Address(domain)) {
+                properties[.domain] = ".\(domain)"
+            }
+        } else {
+            // If domain wasn't provided, extract it from the URL. No dots in
+            // this case, only exact matching.
             properties[.domain] = url.host
+        }
+        // Always lowercase the domain.
+        if let domain = properties[.domain] as? String {
+            properties[.domain] = domain.lowercased()
         }
 
         // the default Path is "/"
@@ -604,6 +620,11 @@ open class HTTPCookie : NSObject {
         let value = String(pair[pair.index(pair.startIndex, offsetBy: location)..<pair.endIndex]).trim()
 
         return (name, value)
+    }
+
+    private class func isIPv4Address(_ string: String) -> Bool {
+        var x = in_addr()
+        return inet_pton(AF_INET, string, &x) == 1
     }
 
     /// Returns a dictionary representation of the receiver.

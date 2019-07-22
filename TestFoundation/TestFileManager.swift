@@ -69,7 +69,11 @@ class TestFileManager : XCTestCase {
             XCTFail("Failed to clean up file")
         }
 
+#if os(Windows)
+        let permissions = NSNumber(value: Int16(0o700))
+#else
         let permissions = NSNumber(value: Int16(0o753))
+#endif
         let attributes = [FileAttributeKey.posixPermissions: permissions]
         XCTAssertTrue(fm.createFile(atPath: path, contents: Data(),
                                     attributes: attributes))
@@ -155,7 +159,12 @@ class TestFileManager : XCTestCase {
             try fm.createDirectory(atPath: tmpDir.path, withIntermediateDirectories: false, attributes: nil)
             XCTAssertTrue(fm.createFile(atPath: testFile.path, contents: Data()))
             try fm.createSymbolicLink(atPath: goodSymLink.path, withDestinationPath: testFile.path)
+#if os(Windows)
+            // Creating a broken symlink is expected to fail on Windows
+            XCTAssertNil(try? fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file"))
+#else
             try fm.createSymbolicLink(atPath: badSymLink.path, withDestinationPath: "no_such_file")
+#endif
             try fm.createSymbolicLink(atPath: dirSymLink.path, withDestinationPath: "..")
 
             var isDirFlag: ObjCBool = false
@@ -197,7 +206,12 @@ class TestFileManager : XCTestCase {
 
             // test unReadable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
+#if os(Windows)
+            // Files are always readable on Windows
+            XCTAssertTrue(fm.isReadableFile(atPath: path))
+#else
             XCTAssertFalse(fm.isReadableFile(atPath: path))
+#endif
 
             // test readable if file has read permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0400))], ofItemAtPath: path)
@@ -237,7 +251,12 @@ class TestFileManager : XCTestCase {
 
             // test unExecutable if file has no permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0000))], ofItemAtPath: path)
+#if os(Windows)
+            // Files are always executable on Windows
+            XCTAssertTrue(fm.isExecutableFile(atPath: path))
+#else
             XCTAssertFalse(fm.isExecutableFile(atPath: path))
+#endif
 
             // test executable if file has execute permissions
             try fm.setAttributes([.posixPermissions : NSNumber(value: Int16(0o0100))], ofItemAtPath: path)
@@ -300,8 +319,10 @@ class TestFileManager : XCTestCase {
             let fileSystemNumber = attrs[.systemNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemNumber!.int64Value, 0)
             
+#if !os(Windows)
             let fileSystemFileNumber = attrs[.systemFileNumber] as? NSNumber
             XCTAssertNotEqual(fileSystemFileNumber!.int64Value, 0)
+#endif
             
             let fileType = attrs[.type] as? FileAttributeType
             XCTAssertEqual(fileType!, .typeRegular)
@@ -401,7 +422,11 @@ class TestFileManager : XCTestCase {
         //read back the attributes
         do {
             let attributes = try fm.attributesOfItem(atPath: path)
+#if os(Windows)
+            XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0700)
+#else
             XCTAssert((attributes[.posixPermissions] as? NSNumber)?.int16Value == 0o0600)
+#endif
         }
         catch { XCTFail("\(error)") }
 
@@ -816,6 +841,9 @@ class TestFileManager : XCTestCase {
         let srcLink = srcPath + "/testlink"
         let destLink = destPath + "/testlink"
         do {
+#if os(Windows)
+            fm.createFile(atPath: srcPath.appendingPathComponent("linkdest"), contents: Data(), attributes: nil)
+#endif
             try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
             try fm.copyItem(atPath: srcLink, toPath: destLink)
             XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
@@ -900,6 +928,9 @@ class TestFileManager : XCTestCase {
         let srcLink = srcPath + "/testlink"
         let destLink = destPath + "/testlink"
         do {
+#if os(Windows)
+            fm.createFile(atPath: srcPath.appendingPathComponent("linkdest"), contents: Data(), attributes: nil)
+#endif
             try fm.createSymbolicLink(atPath: srcLink, withDestinationPath: "linkdest")
             try fm.linkItem(atPath: srcLink, toPath: destLink)
             XCTAssertEqual(try fm.destinationOfSymbolicLink(atPath: destLink), "linkdest")
@@ -984,8 +1015,10 @@ class TestFileManager : XCTestCase {
 
             // testDir1
             try fm.createDirectory(atPath: testDir1.path, withIntermediateDirectories: true)
+#if !os(Windows)
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("null1").path, withDestinationPath: "/dev/null")
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("zero1").path, withDestinationPath: "/dev/zero")
+#endif
             try "foo".write(toFile: testDir1.appendingPathComponent("foo.txt").path, atomically: false, encoding: .ascii)
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("foo1").path, withDestinationPath: "foo.txt")
             try fm.createSymbolicLink(atPath: testDir1.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
@@ -1001,22 +1034,36 @@ class TestFileManager : XCTestCase {
 
             // testDir2
             try fm.createDirectory(atPath: testDir2.path, withIntermediateDirectories: true)
+#if os(Windows)
+            try "foo".write(toFile: testDir2.appendingPathComponent("foo1").path, atomically: false, encoding: .ascii)
+            try fm.createDirectory(atPath: testDir2.appendingPathComponent("../testDir1").path, withIntermediateDirectories: true)
+            try "foo".write(toFile: testDir2.appendingPathComponent("../testDir1/foo.txt").path, atomically: false, encoding: .ascii)
+#endif
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             try fm.createSymbolicLink(atPath: testDir2.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
 
             // testDir3
             try fm.createDirectory(atPath: testDir3.path, withIntermediateDirectories: true)
+#if os(Windows)
+            try fm.createDirectory(atPath: testDir3.appendingPathComponent("../testDir1").path, withIntermediateDirectories: true)
+            try "foo".write(toFile: testDir3.appendingPathComponent("../testDir1/foo.txt").path, atomically: false, encoding: .ascii)
+            try "foo".write(toFile: testDir3.appendingPathComponent("foo1").path, atomically: false, encoding: .ascii)
+#endif
             try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("bar2").path, withDestinationPath: "foo1")
             try fm.createSymbolicLink(atPath: testDir3.appendingPathComponent("foo2").path, withDestinationPath: "../testDir1/foo.txt")
         } catch {
             XCTFail(String(describing: error))
         }
 
+#if os(Windows)
+        XCTAssertFalse(fm.contentsEqual(atPath: "NUL", andPath: "NUL"))
+#else
         XCTAssertTrue(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/null"))
         XCTAssertTrue(fm.contentsEqual(atPath: "/dev/urandom", andPath: "/dev/urandom"))
         XCTAssertFalse(fm.contentsEqual(atPath: "/dev/null", andPath: "/dev/zero"))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("null1").path, andPath: "/dev/null"))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("zero").path, andPath: "/dev/zero"))
+#endif
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo1").path))
         XCTAssertFalse(fm.contentsEqual(atPath: testDir1.appendingPathComponent("foo.txt").path, andPath: testDir1.appendingPathComponent("foo2").path))
         XCTAssertTrue(fm.contentsEqual(atPath: testDir1.appendingPathComponent("bar2").path, andPath: testDir2.appendingPathComponent("bar2").path))
@@ -1024,9 +1071,18 @@ class TestFileManager : XCTestCase {
         XCTAssertFalse(fm.contentsEqual(atPath: "/non_existent_file", andPath: "/non_existent_file"))
 
         let emptyFile = testDir1.appendingPathComponent("empty_file")
+#if os(Windows)
+        XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "NUL"))
+#else
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: "/dev/null"))
+#endif
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("null1").path))
+#if os(Windows)
+        // A file cannot be unreadable on Windows
+        XCTAssertTrue(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+#else
         XCTAssertFalse(fm.contentsEqual(atPath: emptyFile.path, andPath: testDir1.appendingPathComponent("unreadable_file").path))
+#endif
 
         XCTAssertTrue(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile1URL.path))
         XCTAssertFalse(fm.contentsEqual(atPath: testFile1URL.path, andPath: testFile2URL.path))
@@ -1676,13 +1732,18 @@ VIDEOS=StopgapVideos
             try runSingleTest(aIsDirectory: true, bIsDirectory: false, options: [.withoutDeletingBackupItem, .usingNewMetadataOnly])
         }
 
+        print("Testing Darwin Foundation compatible replace", to: &stderr)
+        try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
+            try fm.replaceItemAt(a, withItemAt: b, backupItemName: backupItemName, options: options)
+        }
+
         #if !DARWIN_COMPATIBILITY_TESTS
         print("note: Testing platform-specific replace implementation.", to: &stderr)
         try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
             try fm.replaceItem(at: a, withItemAt: b, backupItemName: backupItemName, options: options)
         }
         #endif
-        
+
         #if NS_FOUNDATION_ALLOWS_TESTABLE_IMPORT
         print("note: Testing cross-platform replace implementation.", to: &stderr)
         try testReplaceMethod { (a, b, backupItemName, options) -> URL? in
@@ -1734,7 +1795,7 @@ VIDEOS=StopgapVideos
             ("test_contentsOfDirectoryAtPath", test_contentsOfDirectoryAtPath),
             ("test_subpathsOfDirectoryAtPath", test_subpathsOfDirectoryAtPath),
             ("test_copyItemAtPathToPath", test_copyItemAtPathToPath),
-            ("test_linkItemAtPathToPath", test_linkItemAtPathToPath),
+            ("test_linkItemAtPathToPath", testExpectedToFailOnAndroid(test_linkItemAtPathToPath, "Android doesn't allow hard links")),
             ("test_homedirectoryForUser", test_homedirectoryForUser),
             ("test_temporaryDirectoryForUser", test_temporaryDirectoryForUser),
             ("test_creatingDirectoryWithShortIntermediatePath", test_creatingDirectoryWithShortIntermediatePath),
@@ -1744,6 +1805,7 @@ VIDEOS=StopgapVideos
             ("test_getRelationship", test_getRelationship),
             ("test_displayNames", test_displayNames),
             ("test_getItemReplacementDirectory", test_getItemReplacementDirectory),
+            ("test_contentsEqual", test_contentsEqual),
             /* ⚠️  */ ("test_replacement", testExpectedToFail(test_replacement,
             /* ⚠️  */     "<https://bugs.swift.org/browse/SR-10819> Re-enable Foundation test TestFileManager.test_replacement")),
         ]
