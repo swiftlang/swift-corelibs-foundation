@@ -149,7 +149,7 @@ struct __notInlineMutable {
 
 /* !!! Never do sizeof(CFString); the union is here just to make it easier to access some fields.
 */
-struct __CFString {
+struct __attribute__((__aligned__(8))) __CFString {
     CFRuntimeBase base;
     union {	// In many cases the allocated structs are smaller than these
 	struct __inline1 {
