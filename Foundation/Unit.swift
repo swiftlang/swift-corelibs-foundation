@@ -154,11 +154,14 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
     fileprivate enum StoreIndex: Int {
         case gForce
         case meterPerSecondSquared
+
         case arcMinute
         case arcSecond
         case degree
         case radian
+        case gradian
         case revolution
+
         case are
         case acre
         case hectare
@@ -173,15 +176,17 @@ open class Unit : NSObject, NSCopying, NSSecureCoding {
         case squareNanometer
         case squareMile
         case squareYard
-        case karat
+
         case gramPerLiter
         case milligramPerDeciliter
         case millimolePerLiter
         case partPerMillion
+
         case literPer100kilometers
         case literPerKilometer
         case milePerGallon
         case milePerGallonImperial
+
         case bit
         case byte
         case gigabit
@@ -523,7 +528,7 @@ public final class UnitAcceleration : Dimension {
     
     public class var gravity: UnitAcceleration {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAcceleration(symbol: Symbol.gravity, coefficient: Coefficient.gravity, storeIndex: .gForce))
+            return Unit.stored(at: .gForce, newUnit: UnitAcceleration(symbol: Symbol.gravity, coefficient: Coefficient.gravity, storeIndex: .gForce))
         }
     }
     
@@ -576,31 +581,31 @@ public final class UnitAngle : Dimension {
     
     public class var arcMinutes: UnitAngle {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.arcMinutes, coefficient: Coefficient.arcMinutes, storeIndex: .arcMinute))
+            return Unit.stored(at: .arcMinute, newUnit: UnitAngle(symbol: Symbol.arcMinutes, coefficient: Coefficient.arcMinutes, storeIndex: .arcMinute))
         }
     }
     
     public class var arcSeconds: UnitAngle {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.arcSeconds, coefficient: Coefficient.arcSeconds, storeIndex: .arcSecond))
+            return Unit.stored(at: .arcSecond, newUnit: UnitAngle(symbol: Symbol.arcSeconds, coefficient: Coefficient.arcSeconds, storeIndex: .arcSecond))
         }
     }
     
     public class var radians: UnitAngle {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.radians, coefficient: Coefficient.radians, storeIndex: .radian))
+            return Unit.stored(at: .radian, newUnit: UnitAngle(symbol: Symbol.radians, coefficient: Coefficient.radians, storeIndex: .radian))
         }
     }
     
     public class var gradians: UnitAngle {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.gradians, coefficient: Coefficient.gradians))
+            return Unit.stored(at: .gradian, newUnit: UnitAngle(symbol: Symbol.gradians, coefficient: Coefficient.gradians))
         }
     }
     
     public class var revolutions: UnitAngle {
         get {
-            return Unit.stored(at: .meterPerSecondSquared, newUnit: UnitAngle(symbol: Symbol.revolutions, coefficient: Coefficient.revolutions, storeIndex: .revolution))
+            return Unit.stored(at: .revolution, newUnit: UnitAngle(symbol: Symbol.revolutions, coefficient: Coefficient.revolutions, storeIndex: .revolution))
         }
     }
     
