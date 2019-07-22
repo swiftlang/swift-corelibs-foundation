@@ -130,7 +130,7 @@ open class JSONSerialization : NSObject {
             sortedKeys: opt.contains(.sortedKeys),
             writer: { (str: String?) in
                 if let str = str {
-                    jsonStr.append(contentsOf: Array(str.utf8))
+                    jsonStr.append(contentsOf: str.utf8)
                 }
             }
         )
