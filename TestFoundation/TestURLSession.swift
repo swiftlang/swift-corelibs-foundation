@@ -826,18 +826,20 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 12, handler: nil)
     }
 
-    func test_checkErrorTypeAfterInvalidateAndCancel() {
-        let urlString = "https://developer.apple.com"
+    func test_checkErrorTypeAfterInvalidateAndCancel() throws {
+        let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
+        let url = try URL(string: urlString).unwrapped()
+        var urlRequest = URLRequest(url: url)
+        urlRequest.addValue("5", forHTTPHeaderField: "X-Pause")
         let expect = expectation(description: "Check error code of tasks after invalidateAndCancel")
         let delegate = SessionDelegate()
-        let url = URL(string: urlString)!
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-        let task = session.dataTask(with: url) { (_, _, error) in
+        let task = session.dataTask(with: urlRequest) { (_, _, error) in
             XCTAssertNotNil(error as? URLError)
             if let urlError = error as? URLError {
                 XCTAssertEqual(urlError._nsError.code, NSURLErrorCancelled)
             }
-            
+
             expect.fulfill()
         }
         task.resume()
@@ -845,18 +847,21 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 5)
     }
 
-    func test_taskCountAfterInvalidateAndCancel() {
+    func test_taskCountAfterInvalidateAndCancel() throws {
         let expect = expectation(description: "Check task count after invalidateAndCancel")
 
         let session = URLSession(configuration: .default)
-        let task1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
-        let task2 = session.dataTask(with: URL(string: "https://developer.apple.com")!)
-        let task3 = session.dataTask(with: URL(string: "https://developer.apple.com/swift")!)
+        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        request.addValue("5", forHTTPHeaderField: "X-Pause")
+        let task1 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        let task2 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        let task3 = session.dataTask(with: request)
 
         task1.resume()
         task2.resume()
         session.invalidateAndCancel()
-        Thread.sleep(forTimeInterval: 1)
 
         session.getAllTasks { tasksBeforeResume in
             XCTAssertEqual(tasksBeforeResume.count, 0)
@@ -880,13 +885,17 @@ class TestURLSession : LoopbackServerTest {
         XCTAssertNil(session.delegate)
     }
 
-    func test_getAllTasks() {
+    func test_getAllTasks() throws {
         let expect = expectation(description: "Tasks URLSession.getAllTasks")
 
         let session = URLSession(configuration: .default)
-        let dataTask1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
-        let dataTask2 = session.dataTask(with: URL(string: "https://developer.apple.com")!)
-        let dataTask3 = session.dataTask(with: URL(string: "https://developer.apple.com/swift")!)
+        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        request.addValue("5", forHTTPHeaderField: "X-Pause")
+        let dataTask1 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        let dataTask2 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        let dataTask3 = session.dataTask(with: request)
 
         session.getAllTasks { (tasksBeforeResume) in
             XCTAssertEqual(tasksBeforeResume.count, 0)
@@ -924,18 +933,25 @@ class TestURLSession : LoopbackServerTest {
         waitForExpectations(timeout: 20)
     }
 
-    func test_getTasksWithCompletion() {
+    func test_getTasksWithCompletion() throws {
         let expect = expectation(description: "Test URLSession.getTasksWithCompletion")
 
         let session = URLSession(configuration: .default)
-        let dataTask1 = session.dataTask(with: URL(string: "https://www.apple.com")!)
-        let dataTask2 = session.dataTask(with: URL(string: "https://developer.apple.com")!)
-        let dataTask3 = session.dataTask(with: URL(string: "https://developer.apple.com/swift")!)
+        var request = URLRequest(url: try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt").unwrapped())
+        request.addValue("5", forHTTPHeaderField: "X-Pause")
+        let dataTask1 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/requestHeaders").unwrapped()
+        let dataTask2 = session.dataTask(with: request)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/emptyPost").unwrapped()
+        let dataTask3 = session.dataTask(with: request)
 
-        let uploadTask1 = session.uploadTask(with: URLRequest(url: URL(string: "https://developer.apple.com")!), from: Data())
-        let uploadTask2 = session.uploadTask(with: URLRequest(url: URL(string: "https://developer.apple.com/swift")!), from: Data())
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/upload").unwrapped()
+        let uploadTask1 = session.uploadTask(with: request, from: Data())
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/echo").unwrapped()
+        let uploadTask2 = session.uploadTask(with: request, from: Data())
 
-        let downloadTask1 = session.downloadTask(with: URL(string: "https://developer.apple.com/assets/elements/icons/brandmark/apple-developer-brandmark.svg")!)
+        request.url = try URL(string: "http://127.0.0.1:\(TestURLSession.serverPort)/DTDs/PropertyList-1.0.dtd").unwrapped()
+        let downloadTask1 = session.downloadTask(with: request)
 
         session.getTasksWithCompletionHandler { (dataTasksBeforeCancel, uploadTasksBeforeCancel, downloadTasksBeforeCancel) in
             XCTAssertEqual(dataTasksBeforeCancel.count, 0)
