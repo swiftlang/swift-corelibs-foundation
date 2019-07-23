@@ -155,7 +155,8 @@ open class URLSessionConfiguration : NSObject, NSCopying {
         return ephemeralConfiguration
     }
 
-    open class func background(withIdentifier identifier: String) -> URLSessionConfiguration { NSUnimplemented() }
+    @available(*, unavailable, message: "Not available on non-Darwin platforms")
+    open class func background(withIdentifier identifier: String) -> URLSessionConfiguration { NSUnsupported() }
     
     /* identifier for the background session configuration */
     open var identifier: String?
