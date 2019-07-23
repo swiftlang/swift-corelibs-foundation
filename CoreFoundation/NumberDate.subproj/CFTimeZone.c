@@ -889,7 +889,7 @@ static CFTimeZoneRef __CFTimeZoneCreateSystem(void) {
     }
 #endif
     if (name) {
-        result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, false);
+        result = CFTimeZoneCreateWithName(kCFAllocatorSystemDefault, name, true);
         CFRelease(name);
         if (result) return result;
     }
