@@ -52,7 +52,7 @@ class _TCPSocket {
 #endif
     private var listenSocket: SOCKET!
     private var socketAddress = UnsafeMutablePointer<sockaddr_in>.allocate(capacity: 1) 
-    private var connectionSocket: SOCKET!
+    private var connectionSocket: SOCKET?
     
     private func isNotNegative(r: CInt) -> Bool {
         return r != -1
@@ -143,22 +143,28 @@ class _TCPSocket {
 #else
             connectionSocket = try attempt("accept", valid: { $0 >= 0 }, accept(listenSocket, addr, &sockLen))
 #endif
-#if canImport(Dawin)
+#if canImport(Darwin)
             // Disable SIGPIPEs when writing to closed sockets
             var on: CInt = 1
-            _ = try attempt("setsockopt", valid: isZero, setsockopt(connectionSocket, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<CInt>.size)))
+            if let connectionSocket = connectionSocket {
+                _ = try attempt("setsockopt", valid: isZero, setsockopt(connectionSocket, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<CInt>.size)))
+            }
 #endif
         })
     }
  
     func readData() throws -> String {
+        guard let connectionSocket = connectionSocket else {
+            throw InternalServerError.socketAlreadyClosed
+        }
+
         var buffer = [CChar](repeating: 0, count: 4096)
 #if os(Windows)
         var dwNumberOfBytesRecieved: DWORD = 0;
         try buffer.withUnsafeMutableBufferPointer {
-          var wsaBuffer: WSABUF = WSABUF(len: ULONG($0.count), buf: $0.baseAddress)
-          var flags: DWORD = 0
-          _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, &flags, nil, nil))
+            var wsaBuffer: WSABUF = WSABUF(len: ULONG($0.count), buf: $0.baseAddress)
+            var flags: DWORD = 0
+            _ = try attempt("WSARecv", valid: { $0 != SOCKET_ERROR }, WSARecv(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesRecieved, &flags, nil, nil))
         }
 #else
         _ = try attempt("read", valid: { $0 >= 0 }, read(connectionSocket, &buffer, buffer.count))
@@ -167,11 +173,15 @@ class _TCPSocket {
     }
 
     func writeRawData(_ data: Data) throws {
+        guard let connectionSocket = connectionSocket else {
+            throw InternalServerError.socketAlreadyClosed
+        }
+
 #if os(Windows)
         _ = try data.withUnsafeBytes {
-          var dwNumberOfBytesSent: DWORD = 0
-          var wsaBuffer: WSABUF = WSABUF(len: ULONG(data.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
-          _ = try attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil))
+            var dwNumberOfBytesSent: DWORD = 0
+            var wsaBuffer: WSABUF = WSABUF(len: ULONG(data.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
+            _ = try attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil))
         }
 #else
         _ = try data.withUnsafeBytes { ptr in
@@ -181,16 +191,20 @@ class _TCPSocket {
     }
 
     private func _send(_ bytes: [UInt8]) throws -> Int {
+        guard let connectionSocket = connectionSocket else {
+            throw InternalServerError.socketAlreadyClosed
+        }
+
 #if os(Windows)
-      return try bytes.withUnsafeBytes {
-        var dwNumberOfBytesSent: DWORD = 0
-        var wsaBuffer: WSABUF = WSABUF(len: ULONG(bytes.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
-        return try Int(attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil)))
-      }
+        return try bytes.withUnsafeBytes {
+            var dwNumberOfBytesSent: DWORD = 0
+            var wsaBuffer: WSABUF = WSABUF(len: ULONG(bytes.count), buf: UnsafeMutablePointer<CHAR>(mutating: $0.bindMemory(to: CHAR.self).baseAddress))
+            return try Int(attempt("WSASend", valid: { $0 != SOCKET_ERROR }, WSASend(connectionSocket, &wsaBuffer, 1, &dwNumberOfBytesSent, 0, nil, nil)))
+        }
 #else
-      return try bytes.withUnsafeBufferPointer {
-        try attempt("send", valid: { $0 >= 0 }, send(connectionSocket, $0.baseAddress, $0.count, sendFlags))
-      }
+        return try bytes.withUnsafeBufferPointer {
+            try attempt("send", valid: { $0 >= 0 }, send(connectionSocket, $0.baseAddress, $0.count, sendFlags))
+        }
 #endif
     }
 
@@ -680,6 +694,10 @@ extension ServerError : CustomStringConvertible {
         let s = String(validatingUTF8: strerror(errno)) ?? ""
         return "\(operation) failed: \(s) (\(_code))"
     }
+}
+
+enum InternalServerError : Error {
+    case socketAlreadyClosed
 }
 
 public class ServerSemaphore {

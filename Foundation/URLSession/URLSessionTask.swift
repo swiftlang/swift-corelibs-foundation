@@ -50,8 +50,9 @@ open class URLSessionTask : NSObject, NSCopying {
         case invalidated
     }
     
-    fileprivate let _protocolLock = NSLock()
+    fileprivate let _protocolLock = NSLock() // protects:
     fileprivate var _protocolStorage: ProtocolState = .toBeCreated
+    internal    var _lastCredentialUsedFromStorageDuringAuthentication: (protectionSpace: URLProtectionSpace, credential: URLCredential)?
     
     private var _protocolClass: URLProtocol.Type {
         guard let request = currentRequest else { fatalError("A protocol class was requested, but we do not have a current request") }
@@ -684,14 +685,46 @@ extension _ProtocolClient : URLProtocolClient {
         guard let urlResponse = task.response else { fatalError("No response") }
         if let response = urlResponse as? HTTPURLResponse, response.statusCode == 401 {
             if let protectionSpace = createProtectionSpace(response) {
-                //TODO: Fetch and set proposed credentials if they exist
-                let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: nil,
-                                                                     previousFailureCount: task.previousFailureCount, failureResponse: response, error: nil,
-                                                                     sender: urlProtocol as! _HTTPURLProtocol)
-                task.previousFailureCount += 1
-                self.urlProtocol(urlProtocol, didReceive: authenticationChallenge)
+
+                func proceed(proposing credential: URLCredential?) {
+                    let proposedCredential: URLCredential?
+                    let last = task._protocolLock.performLocked { task._lastCredentialUsedFromStorageDuringAuthentication }
+                    
+                    if last?.credential != credential {
+                        proposedCredential = credential
+                    } else {
+                        proposedCredential = nil
+                    }
+                    
+                    let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: proposedCredential,
+                                                                             previousFailureCount: task.previousFailureCount, failureResponse: response, error: nil,
+                                                                             sender: urlProtocol as! _HTTPURLProtocol)
+                    task.previousFailureCount += 1
+                    self.urlProtocol(urlProtocol, didReceive: authenticationChallenge)
+                }
+                
+                if let storage = session.configuration.urlCredentialStorage {
+                    storage.getCredentials(for: protectionSpace, task: task) { (credentials) in
+                        if let credentials = credentials,
+                            let firstKeyLexicographically = credentials.keys.sorted().first {
+                            proceed(proposing: credentials[firstKeyLexicographically])
+                        } else {
+                            storage.getDefaultCredential(for: protectionSpace, task: task) { (credential) in
+                                proceed(proposing: credential)
+                            }
+                        }
+                    }
+                } else {
+                    proceed(proposing: nil)
+                }
+                
                 return
             }
+        }
+        
+        if let storage = session.configuration.urlCredentialStorage,
+           let last = task._protocolLock.performLocked({ task._lastCredentialUsedFromStorageDuringAuthentication }) {
+            storage.set(last.credential, for: last.protectionSpace, task: task)
         }
         
         if let cache = session.configuration.urlCache,
@@ -764,25 +797,65 @@ extension _ProtocolClient : URLProtocolClient {
     func urlProtocol(_ protocol: URLProtocol, didReceive challenge: URLAuthenticationChallenge) {
         guard let task = `protocol`.task else { fatalError("Received response, but there's no task.") }
         guard let session = task.session as? URLSession else { fatalError("Task not associated with URLSession.") }
+        
+        func proceed(using credential: URLCredential?) {
+            let protectionSpace = challenge.protectionSpace
+            let authScheme = protectionSpace.authenticationMethod
+
+            task.suspend()
+            
+            guard let handler = URLSessionTask.authHandler(for: authScheme) else {
+                fatalError("\(authScheme) is not supported")
+            }
+            handler(task, .useCredential, credential)
+
+            task._protocolLock.performLocked {
+                if let credential = credential {
+                    task._lastCredentialUsedFromStorageDuringAuthentication = (protectionSpace: protectionSpace, credential: credential)
+                } else {
+                    task._lastCredentialUsedFromStorageDuringAuthentication = nil
+                }
+                task._protocolStorage = .existing(_HTTPURLProtocol(task: task, cachedResponse: nil, client: nil))
+            }
+            
+            task.resume()
+        }
+        
+        func attemptProceedingWithDefaultCredential() {
+            if let credential = challenge.proposedCredential {
+                let last = task._protocolLock.performLocked { task._lastCredentialUsedFromStorageDuringAuthentication }
+                
+                if last?.credential != credential {
+                    proceed(using: credential)
+                } else {
+                    task.cancel()
+                }
+            }
+        }
+        
         switch session.behaviour(for: task) {
         case .taskDelegate(let delegate):
             session.delegateQueue.addOperation {
-                let authScheme = challenge.protectionSpace.authenticationMethod
                 delegate.urlSession(session, task: task, didReceive: challenge) { disposition, credential in
-                    task.suspend()
-                    guard let handler = URLSessionTask.authHandler(for: authScheme) else {
-                        fatalError("\(authScheme) is not supported")
-                    }
-                    handler(task, disposition, credential)
                     
-                    task._protocolLock.performLocked {
-                        task._protocolStorage = .existing(_HTTPURLProtocol(task: task, cachedResponse: nil, client: nil))
+                    switch disposition {
+                    case .useCredential:
+                        proceed(using: credential!)
+                        
+                    case .performDefaultHandling:
+                        attemptProceedingWithDefaultCredential()
+                        
+                    case .rejectProtectionSpace:
+                        // swift-corelibs-foundation currently supports only a single protection space per request.
+                        fallthrough
+                    case .cancelAuthenticationChallenge:
+                        task.cancel()
                     }
                     
-                    task.resume()
                 }
             }
-        default: return
+        default:
+            attemptProceedingWithDefaultCredential()
         }
     }
 

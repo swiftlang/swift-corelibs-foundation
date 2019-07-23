@@ -190,7 +190,7 @@ CF_EXPORT void _CFRuntimeUnregisterClassWithTypeID(CFTypeID typeID);
  */
 #if DEPLOYMENT_RUNTIME_SWIFT
 
-typedef struct __CFRuntimeBase {
+typedef struct __attribute__((__aligned__(8))) __CFRuntimeBase {
     // This matches the isa and retain count storage in Swift
     uintptr_t _cfisa;
     uintptr_t _swift_rc;

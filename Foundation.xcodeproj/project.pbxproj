@@ -17,6 +17,7 @@
 		153E951120111DC500F250BE /* CFKnownLocations.h in Headers */ = {isa = PBXBuildFile; fileRef = 153E950F20111DC500F250BE /* CFKnownLocations.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		153E951220111DC500F250BE /* CFKnownLocations.c in Sources */ = {isa = PBXBuildFile; fileRef = 153E951020111DC500F250BE /* CFKnownLocations.c */; };
 		15496CF1212CAEBA00450F5A /* CFAttributedStringPriv.h in Headers */ = {isa = PBXBuildFile; fileRef = 15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */; };
+		155B77AC22E63D2D00D901DE /* TestURLCredentialStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155B77AB22E63D2D00D901DE /* TestURLCredentialStorage.swift */; };
 		155D3BBC22401D1100B0D38E /* FixtureValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155D3BBB22401D1100B0D38E /* FixtureValues.swift */; };
 		1569BFA12187D04C009518FA /* CFCalendar_Enumerate.c in Sources */ = {isa = PBXBuildFile; fileRef = 1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */; };
 		1569BFA22187D04F009518FA /* CFCalendar_Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -638,6 +639,7 @@
 		153E950F20111DC500F250BE /* CFKnownLocations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CFKnownLocations.h; sourceTree = "<group>"; };
 		153E951020111DC500F250BE /* CFKnownLocations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CFKnownLocations.c; sourceTree = "<group>"; };
 		15496CF0212CAEBA00450F5A /* CFAttributedStringPriv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFAttributedStringPriv.h; sourceTree = "<group>"; };
+		155B77AB22E63D2D00D901DE /* TestURLCredentialStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestURLCredentialStorage.swift; sourceTree = "<group>"; };
 		155D3BBB22401D1100B0D38E /* FixtureValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureValues.swift; sourceTree = "<group>"; };
 		1569BF9D2187CFFF009518FA /* CFCalendar_Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFCalendar_Internal.h; sourceTree = "<group>"; };
 		1569BF9F2187D003009518FA /* CFCalendar_Enumerate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CFCalendar_Enumerate.c; sourceTree = "<group>"; };
@@ -1779,6 +1781,7 @@
 				DAA79BD820D42C07004AF044 /* TestURLProtectionSpace.swift */,
 				7A7D6FBA1C16439400957E2E /* TestURLResponse.swift */,
 				5B1FD9E21D6D17B80080E83C /* TestURLSession.swift */,
+				155B77AB22E63D2D00D901DE /* TestURLCredentialStorage.swift */,
 				555683BC1C1250E70041D4C6 /* TestUserDefaults.swift */,
 				C2A9D75B1C15C08B00993803 /* TestNSUUID.swift */,
 				D3047AEB1C38BC3300295652 /* TestNSValue.swift */,
@@ -2912,6 +2915,7 @@
 				684C79011F62B611005BD73E /* TestNSNumberBridging.swift in Sources */,
 				DAA79BD920D42C07004AF044 /* TestURLProtectionSpace.swift in Sources */,
 				616068F5225DE606004FCC54 /* TestURLSessionFTP.swift in Sources */,
+				155B77AC22E63D2D00D901DE /* TestURLCredentialStorage.swift in Sources */,
 				B951B5EC1F4E2A2000D8B332 /* TestNSLock.swift in Sources */,
 				5B13B33A1C582D4C00651CE2 /* TestNSNumber.swift in Sources */,
 				5B13B3521C582D4C00651CE2 /* TestNSValue.swift in Sources */,

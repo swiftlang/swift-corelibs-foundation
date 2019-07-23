@@ -379,18 +379,26 @@ class TestXMLDocument : LoopbackServerTest {
     }
     
     func test_addNamespace() {
-        let doc = XMLDocument(rootElement: XMLElement(name: "Foo"))
-        let ns = XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode
-        doc.rootElement()?.addNamespace(ns)
-        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(ns.stringValue ?? "bar"), "namespaces didn't include the added namespace!")
-        XCTAssert(doc.rootElement()?.uri == "http://example.com/fakenamespace", "uri was \(doc.rootElement()?.uri ?? "null") instead of http://example.com/fakenamespace")
+        let element = XMLElement(name: "foo")
+        let xmlnsURI = "http://example.com/fakexmlns"
+        let xmlns = XMLNode.namespace(withName: "", stringValue: xmlnsURI) as! XMLNode
+        element.addNamespace(xmlns)
+        XCTAssert((element.namespaces ?? []).compactMap({ $0.stringValue }).contains(xmlnsURI), "namespaces didn't include the added namespace!")
+        XCTAssertEqual(element.uri, xmlnsURI, "uri was \(element.uri ?? "null") instead of \(xmlnsURI)")
+        XCTAssertEqual(element.xmlString(options:.nodeCompactEmptyElement), #"<foo xmlns="\#(xmlnsURI)"/>"#, "invalid namespace declaration.")
         
-        let otherNS = XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode
-        doc.rootElement()?.addNamespace(otherNS)
-        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(ns.stringValue ?? "bar"), "lost original namespace")
-        XCTAssert((doc.rootElement()?.namespaces ?? []).map({ $0.stringValue ?? "foo" }).contains(otherNS.stringValue ?? "bar"), "Lost new namespace")
-        doc.rootElement()?.addNamespace(XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode)
-        XCTAssert(doc.rootElement()?.namespaces?.count == 2, "incorrectly added a namespace with duplicate name!")
+        let otherURI = "http://example.com/fakenamespace"
+        let otherNS = XMLNode.namespace(withName: "other", stringValue: otherURI) as! XMLNode
+        element.addNamespace(otherNS)
+        XCTAssert((element.namespaces ?? []).compactMap({ $0.stringValue }).contains(xmlnsURI), "lost original namespace")
+        XCTAssert((element.namespaces ?? []).compactMap({ $0.stringValue }).contains(otherURI), "Lost new namespace")
+        
+        let otherNS2 = XMLNode.namespace(withName: "other", stringValue: otherURI) as! XMLNode
+        element.addNamespace(otherNS2)
+        XCTAssertEqual(element.namespaces?.count, 2, "incorrectly added a namespace with duplicate name!")
+        
+        let xmlString = element.xmlString(options:.nodeCompactEmptyElement)
+        XCTAssert(xmlString == #"<foo xmlns="\#(xmlnsURI)" xmlns:other="\#(otherURI)"/>"# || xmlString == #"<foo xmlns:other="\#(otherURI)" xmlns="\#(xmlnsURI)"/>"#, "unexpected namespace declaration: \(xmlString)")
         
         let otherDoc = XMLDocument(rootElement: XMLElement(name: "Bar"))
         otherDoc.rootElement()?.namespaces = [XMLNode.namespace(withName: "R", stringValue: "http://example.com/rnamespace") as! XMLNode, XMLNode.namespace(withName: "F", stringValue: "http://example.com/fakenamespace") as! XMLNode]

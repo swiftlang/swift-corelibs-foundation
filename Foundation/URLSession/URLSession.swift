@@ -212,8 +212,6 @@ open class URLSession : NSObject {
     fileprivate static let _shared: URLSession = {
         var configuration = URLSessionConfiguration.default
         configuration.httpCookieStorage = HTTPCookieStorage.shared
-        //TODO: Set urlCache to URLCache.shared. Needs implementation of URLCache.
-        //TODO: Set urlCredentialStorage to `URLCredentialStorage.shared`. Needs implementation of URLCredentialStorage.
         configuration.protocolClasses = URLProtocol.getProtocols()
         return URLSession(configuration: configuration, delegate: nil, delegateQueue: nil)
     }()
