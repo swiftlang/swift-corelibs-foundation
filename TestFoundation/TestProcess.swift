@@ -7,7 +7,6 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !os(Android)
 class TestProcess : XCTestCase {
     
     func test_exit0() throws {
@@ -21,7 +20,7 @@ class TestProcess : XCTestCase {
         }
         XCTAssertEqual(executableURL.path, process.launchPath)
         process.arguments = ["--exit", "0"]
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         
         XCTAssertEqual(process.terminationStatus, 0)
@@ -33,7 +32,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "1"]
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -44,7 +43,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--exit", "100"]
         
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 100)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -55,7 +54,7 @@ class TestProcess : XCTestCase {
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--sleep", "2"]
         
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
         XCTAssertEqual(process.terminationReason, .exit)
@@ -65,7 +64,7 @@ class TestProcess : XCTestCase {
         let process = Process()
         process.executableURL = xdgTestHelperURL()
         process.arguments = ["--signal-self", SIGTERM.description]
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, SIGTERM)
         XCTAssertEqual(process.terminationReason, .uncaughtSignal)
@@ -81,7 +80,7 @@ class TestProcess : XCTestCase {
 
         let inputPipe = Pipe()
         process.standardInput = inputPipe
-        try? process.run()
+        try process.run()
         inputPipe.fileHandleForWriting.write("Hello, 🐶.\n".data(using: .utf8)!)
 
         // Close the input pipe to send EOF to cat.
@@ -107,7 +106,7 @@ class TestProcess : XCTestCase {
         process.standardOutput = pipe
         process.standardError = nil
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
@@ -129,7 +128,7 @@ class TestProcess : XCTestCase {
         let errorPipe = Pipe()
         process.standardError = errorPipe
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -156,7 +155,14 @@ class TestProcess : XCTestCase {
         // Clear the environment to stop the malloc debug flags used in Xcode debug being
         // set in the subprocess.
         process.environment = [:]
-        try? process.run()
+#if os(Android)
+        // In Android, we have to provide at least an LD_LIBRARY_PATH, or
+        // xdgTestHelper will not be able to find the Swift libraries.
+        if let ldLibraryPath = ProcessInfo.processInfo.environment["LD_LIBRARY_PATH"] {
+            process.environment?["LD_LIBRARY_PATH"] = ldLibraryPath
+        }
+#endif
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 1)
 
@@ -185,7 +191,7 @@ class TestProcess : XCTestCase {
 
         process.standardOutput = handle
 
-        try? process.run()
+        try process.run()
         process.waitUntilExit()
         XCTAssertEqual(process.terminationStatus, 0)
 
@@ -242,10 +248,15 @@ class TestProcess : XCTestCase {
     }
 
     func test_current_working_directory() throws {
-        var tmpDir = NSTemporaryDirectory()
-        if let lastChar = tmpDir.last, lastChar == "/" || lastChar == "\\" {
-            tmpDir.removeLast()
-        }
+        let tmpDir = { () -> String in
+            // NSTemporaryDirectory might return a final slash, but
+            // FileManager.currentDirectoryPath seems to avoid it.
+            var dir = NSTemporaryDirectory()
+            if (dir.hasSuffix("/") && dir != "/") || dir.hasSuffix("\\") {
+               dir.removeLast()
+            }
+            return dir
+        }()
 
         let fm = FileManager.default
         let previousWorkingDirectory = fm.currentDirectoryPath
@@ -687,7 +698,16 @@ internal func runTask(_ arguments: [String], environment: [String: String]? = ni
     process.arguments = arguments
     // Darwin Foundation doesnt allow .environment to be set to nil although the documentation
     // says it is an optional. https://developer.apple.com/documentation/foundation/process/1409412-environment
-    if let e = environment {
+    if var e = environment {
+#if os(Android)
+        // In Android, we have to provide at least an LD_LIBRARY_PATH, or
+        // xdgTestHelper will not be able to find the Swift libraries.
+        if e["LD_LIBRARY_PATH"] == nil {
+            if let ldLibraryPath = ProcessInfo.processInfo.environment["LD_LIBRARY_PATH"] {
+                e["LD_LIBRARY_PATH"] = ldLibraryPath
+            }
+        }
+#endif
         process.environment = e
     }
 
@@ -751,9 +771,16 @@ private func parseEnv(_ env: String) throws -> [String: String] {
         guard let range = line.range(of: "=") else {
             throw Error.InvalidEnvironmentVariable(line)
         }
-        result[String(line[..<range.lowerBound])] = String(line[range.upperBound...])
+        let key = String(line[..<range.lowerBound])
+#if os(Android)
+        // NOTE: this works because the results of parseEnv are never checked
+        // against the parent environment, where this key will be set. If that
+        // ever happen, the checks should be changed.
+        if key == "LD_LIBRARY_PATH" {
+            continue
+        }
+#endif
+        result[key] = String(line[range.upperBound...])
     }
     return result
 }
-#endif // !os(Android)
-

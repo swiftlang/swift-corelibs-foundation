@@ -1546,4 +1546,374 @@ CF_CROSS_PLATFORM_EXPORT void *_CFReallocf(void *ptr, size_t size) {
 #endif
 }
 
+#if TARGET_OS_ANDROID
+
+#include <dlfcn.h>
+#include <spawn.h>
+
+// Android doesn't provide posix_spawn APIs until recent API level, so we cannot
+// depend on them, but we can imitate the API, and perform the same work.
+
+static pthread_once_t posixSpawnOnce = PTHREAD_ONCE_INIT;
+static _CFPosixSpawnFileActionsRef (*_CFPosixSpawnFileActionsAllocImpl)(void);
+static int (*_CFPosixSpawnFileActionsInitImpl)(_CFPosixSpawnFileActionsRef);
+static int (*_CFPosixSpawnFileActionsDestroyImpl)(_CFPosixSpawnFileActionsRef);
+static void (*_CFPosixSpawnFileActionsDeallocImpl)(_CFPosixSpawnFileActionsRef);
+static int (*_CFPosixSpawnFileActionsAddDup2Impl)(_CFPosixSpawnFileActionsRef, int, int);
+static int (*_CFPosixSpawnFileActionsAddCloseImpl)(_CFPosixSpawnFileActionsRef, int);
+static int (*_CFPosixSpawnImpl)(pid_t *_CF_RESTRICT, const char *_CF_RESTRICT, _CFPosixSpawnFileActionsRef, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT, char *_Nullable const[_Nullable _CF_RESTRICT], char *_Nullable const[_Nullable _CF_RESTRICT]);
+
+static _CFPosixSpawnFileActionsRef _CFPosixSpawnFileActionsAllocImplPost28() {
+    _CFPosixSpawnFileActionsRef actions = malloc(sizeof(posix_spawn_file_actions_t));
+    CFAssert(actions != NULL, __kCFLogAssertion, "malloc failed");
+    return actions;
+}
+
+static void _CFPosixSpawnFileActionsDeallocImplBoth(_CFPosixSpawnFileActionsRef file_actions) {
+    free(file_actions);
+}
+
+enum _CFPosixSpawnFileActionTypePre28 {
+    _CFPosixSpawnFileActionDup2Pre28,
+    _CFPosixSpawnFileActionClosePre28,
+};
+
+struct _CFPosixSpawnFileActionPre28 {
+    enum _CFPosixSpawnFileActionTypePre28 type;
+    union {
+        struct {
+            int filedes;
+            int newfiledes;
+        } dup2Action;
+        struct {
+            int filedes;
+        } closeAction;
+    };
+};
+
+struct _CFPosixSpawnFileActionsPre28 {
+    struct _CFPosixSpawnFileActionPre28 *actions;
+    size_t actionsCount;
+    size_t actionsCapacity;
+    int32_t isValid;
+};
+
+static const int32_t _CFPosixSpawnFileActionsPre28Valid = 0x600D600D;
+
+static _CFPosixSpawnFileActionsRef _CFPosixSpawnFileActionsAllocImplPre28() {
+    _CFPosixSpawnFileActionsRef actions = calloc(1, sizeof(struct _CFPosixSpawnFileActionsPre28));
+    CFAssert(actions != NULL, __kCFLogAssertion, "malloc failed");
+    return actions;
+}
+
+static int _CFPosixSpawnFileActionsInitImplPre28(_CFPosixSpawnFileActionsRef file_actions) {
+    if (file_actions == NULL) {
+        return EINVAL;
+    }
+
+    struct _CFPosixSpawnFileActionsPre28 *actions = (struct _CFPosixSpawnFileActionsPre28 *)file_actions;
+
+    actions->actions = malloc(8 * sizeof(struct _CFPosixSpawnFileActionPre28));
+    if (actions->actions == NULL) {
+        return ENOMEM;
+    }
+    actions->actionsCount = 0;
+    actions->actionsCapacity = 8;
+
+    actions->isValid = _CFPosixSpawnFileActionsPre28Valid;
+
+    return 0;
+}
+
+static int _CFPosixSpawnFileActionsDestroyImplPre28(_CFPosixSpawnFileActionsRef file_actions) {
+    if (file_actions == NULL) {
+        return EINVAL;
+    }
+
+    struct _CFPosixSpawnFileActionsPre28 *actions = (struct _CFPosixSpawnFileActionsPre28 *)file_actions;
+    if (actions->isValid != _CFPosixSpawnFileActionsPre28Valid) {
+        return EINVAL;
+    }
+
+    free(actions->actions);
+    actions->actionsCount = 0;
+    actions->actionsCapacity = 0;
+
+    actions->isValid = 0;
+
+    return 0;
+}
+
+static int _CFPosixSpawnFileActionsAddDup2ImplPre28(_CFPosixSpawnFileActionsRef file_actions, int filedes, int newfiledes) {
+    if (file_actions == NULL) {
+        return EINVAL;
+    }
+
+    if (filedes < 0 || newfiledes < 0) {
+        return EBADF;
+    }
+
+    struct _CFPosixSpawnFileActionsPre28 *actions = (struct _CFPosixSpawnFileActionsPre28 *)file_actions;
+    if (actions->isValid != _CFPosixSpawnFileActionsPre28Valid) {
+        return EINVAL;
+    }
+
+    if (actions->actionsCount == actions->actionsCapacity) {
+        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, actions->actionsCapacity * 2);
+        if (newActions == NULL) {
+            return ENOMEM;
+        }
+        actions->actions = newActions;
+        actions->actionsCapacity *= 2;
+    }
+
+    actions->actions[actions->actionsCount++] = (struct _CFPosixSpawnFileActionPre28) {
+        .type = _CFPosixSpawnFileActionDup2Pre28,
+        .dup2Action = {
+            .filedes = filedes,
+            .newfiledes = newfiledes
+        }
+    };
+
+    return 0;
+}
+
+static int _CFPosixSpawnFileActionsAddCloseImplPre28(_CFPosixSpawnFileActionsRef file_actions, int filedes) {
+    if (file_actions == NULL) {
+        return EINVAL;
+    }
+
+    if (filedes < 0) {
+        return EBADF;
+    }
+
+    struct _CFPosixSpawnFileActionsPre28 *actions = (struct _CFPosixSpawnFileActionsPre28 *)file_actions;
+    if (actions->isValid != _CFPosixSpawnFileActionsPre28Valid) {
+        return EINVAL;
+    }
+
+    if (actions->actionsCount == actions->actionsCapacity) {
+        struct _CFPosixSpawnFileActionPre28 *newActions = realloc(actions->actions, actions->actionsCapacity * 2);
+        if (newActions == NULL) {
+            return ENOMEM;
+        }
+        actions->actions = newActions;
+        actions->actionsCapacity *= 2;
+    }
+
+    actions->actions[actions->actionsCount++] = (struct _CFPosixSpawnFileActionPre28) {
+        .type = _CFPosixSpawnFileActionClosePre28,
+        .closeAction = {
+            .filedes = filedes
+        }
+    };
+
+    return 0;
+}
+
+static int _CFPosixSpawnImplPre28(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
+    // TODO: We completely ignore attrp, because at the moment, the only
+    // invocation doesn't pass a value.
+    if (attrp != NULL) {
+        return EINVAL;
+    }
+
+    struct _CFPosixSpawnFileActionsPre28 *actions = (struct _CFPosixSpawnFileActionsPre28 *)file_actions;
+    if (actions != NULL && actions->isValid != _CFPosixSpawnFileActionsPre28Valid) {
+        return EINVAL;
+    }
+
+    // Block signals during this fork/execv dance.
+    sigset_t signalSet;
+    sigfillset(&signalSet);
+    sigset_t oldMask;
+    if (sigprocmask(SIG_BLOCK, &signalSet, &oldMask) != 0) {
+        CFAssert1(FALSE, __kCFLogAssertion, "sigprocmask() failed: %d", errno);
+    }
+
+    pid_t forkPid = fork();
+    if (forkPid != 0) {
+        // This is the parent. fork call might have been successful or not.
+
+        // Unblock signals.
+        if (sigprocmask(SIG_SETMASK, &oldMask, NULL) != 0) {
+            CFAssert1(FALSE, __kCFLogAssertion, "sigprocmask() failed: %d", errno);
+        }
+
+        if (forkPid < 0) {
+            return forkPid;
+        }
+
+        if (pid != NULL) {
+            *pid = forkPid;
+        }
+
+        return 0;
+    }
+
+    // This is the child.
+
+    // Clean up the parent signal handlers
+    for (int idx = 1; idx < NSIG; idx++) {
+        // Seems that SIGKILL/SIGSTOP are sometimes silently ignored, and
+        // sometimes return EINVAL. Since one cannot change the handlers anyway,
+        // skip them.
+        if (idx == SIGKILL || idx == SIGSTOP) {
+            continue;
+        }
+
+        struct sigaction sigAction;
+        if (sigaction(idx, NULL, &sigAction) != 0) {
+            exit(127);
+        }
+
+        if (sigAction.sa_handler != SIG_IGN) {
+            sigAction.sa_handler = SIG_DFL;
+            if (sigaction(idx, &sigAction, NULL) != 0) {
+                exit(127);
+            }
+        }
+    }
+
+    // Perform the actions
+    if (actions != NULL) {
+        for (size_t idx = 0; idx < actions->actionsCount; idx++) {
+            struct _CFPosixSpawnFileActionPre28 *action = &(actions->actions[idx]);
+            if (action->type == _CFPosixSpawnFileActionDup2Pre28) {
+                if (dup2(action->dup2Action.filedes, action->dup2Action.newfiledes) < 0) {
+                    exit(127);
+                }
+            } else if (actions->actions[idx].type == _CFPosixSpawnFileActionClosePre28) {
+                if (close(action->closeAction.filedes) != 0) {
+                    exit(127);
+                }
+            }
+        }
+    }
+
+    // Unblock the signals
+    if (sigprocmask(SIG_SETMASK, &oldMask, NULL) != 0) {
+        CFAssert1(FALSE, __kCFLogAssertion, "sigprocmask() failed: %d", errno);
+    }
+
+    // If execv fails, we will simply exit 127 as the standard says.
+    execve(path, argv, envp ?: environ);
+    exit(127);
+    // no need for return here
+}
+
+static void _CFPosixSpawnInitializeCallback() {
+    // Let's check if the posix_spawn is present.
+    (void)dlerror(); // Clean up the error.
+    _CFPosixSpawnImpl = (int (*)(pid_t *_CF_RESTRICT, const char *_CF_RESTRICT, void *, void *_CF_RESTRICT, char *const *_CF_RESTRICT, char *const *_CF_RESTRICT))dlsym(RTLD_DEFAULT, "posix_spawn");
+    char *dlsymError = dlerror();
+    CFAssert1(dlsymError == NULL, __kCFLogAssertion, "dlsym failed: %s", dlsymError);
+    if (_CFPosixSpawnImpl != NULL) {
+        // posix_spawn_fn is available, so use it
+        _CFPosixSpawnFileActionsAllocImpl = _CFPosixSpawnFileActionsAllocImplPost28;
+        _CFPosixSpawnFileActionsDeallocImpl = _CFPosixSpawnFileActionsDeallocImplBoth;
+
+        _CFPosixSpawnFileActionsInitImpl = (int (*)(void *))dlsym(RTLD_DEFAULT, "posix_spawn_file_actions_init");
+        dlsymError = dlerror();
+        CFAssert1(_CFPosixSpawnFileActionsInitImpl != NULL, __kCFLogAssertion, "loading posix_spawn_file_actions_init failed: %s", dlsymError);
+
+        _CFPosixSpawnFileActionsDestroyImpl = (int (*)(void *))dlsym(RTLD_DEFAULT, "posix_spawn_file_actions_destroy");
+        dlsymError = dlerror();
+        CFAssert1(_CFPosixSpawnFileActionsDestroyImpl != NULL, __kCFLogAssertion, "loading posix_spawn_file_actions_destroy failed: %s", dlsymError);
+
+        _CFPosixSpawnFileActionsAddDup2Impl = (int (*)(void *, int, int))dlsym(RTLD_DEFAULT, "posix_spawn_file_actions_adddup2");
+        dlsymError = dlerror();
+        CFAssert1(_CFPosixSpawnFileActionsAddDup2Impl != NULL, __kCFLogAssertion, "loading posix_spawn_file_actions_adddup2 failed: %s", dlsymError);
+
+        _CFPosixSpawnFileActionsAddCloseImpl = (int (*)(void *, int))dlsym(RTLD_DEFAULT, "posix_spawn_file_actions_addclose");
+        dlsymError = dlerror();
+        CFAssert1(_CFPosixSpawnFileActionsAddCloseImpl != NULL, __kCFLogAssertion, "loading posix_spawn_file_actions_addclose failed: %s", dlsymError);
+    } else {
+        // posix_spawn_fn is not available, setup our workaround
+        _CFPosixSpawnFileActionsAllocImpl = _CFPosixSpawnFileActionsAllocImplPre28;
+        _CFPosixSpawnFileActionsDeallocImpl = _CFPosixSpawnFileActionsDeallocImplBoth;
+        _CFPosixSpawnFileActionsInitImpl = _CFPosixSpawnFileActionsInitImplPre28;
+        _CFPosixSpawnFileActionsDestroyImpl = _CFPosixSpawnFileActionsDestroyImplPre28;
+        _CFPosixSpawnFileActionsAddDup2Impl = _CFPosixSpawnFileActionsAddDup2ImplPre28;
+        _CFPosixSpawnFileActionsAddCloseImpl = _CFPosixSpawnFileActionsAddCloseImplPre28;
+        _CFPosixSpawnImpl = _CFPosixSpawnImplPre28;
+    }
+}
+
+static void _CFPosixSpawnInitialize() {
+    int r = pthread_once(&posixSpawnOnce, _CFPosixSpawnInitializeCallback);
+    CFAssert(r == 0, __kCFLogAssertion, "pthread_once failed");
+}
+
+CF_EXPORT _CFPosixSpawnFileActionsRef _CFPosixSpawnFileActionsAlloc() {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnFileActionsAllocImpl();
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsInit(_CFPosixSpawnFileActionsRef file_actions) {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnFileActionsInitImpl(file_actions);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsDestroy(_CFPosixSpawnFileActionsRef file_actions) {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnFileActionsDestroyImpl(file_actions);
+}
+
+CF_EXPORT void _CFPosixSpawnFileActionsDealloc(_CFPosixSpawnFileActionsRef file_actions) {
+    _CFPosixSpawnInitialize();
+    _CFPosixSpawnFileActionsDeallocImpl(file_actions);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsAddDup2(_CFPosixSpawnFileActionsRef file_actions, int filedes, int newfiledes) {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnFileActionsAddDup2Impl(file_actions, filedes, newfiledes);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_actions, int filedes) {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnFileActionsAddCloseImpl(file_actions, filedes);
+}
+
+CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
+    _CFPosixSpawnInitialize();
+    return _CFPosixSpawnImpl(pid, path, file_actions, attrp, argv, envp);
+}
+
+#elif !TARGET_OS_WIN32
+
+#include <spawn.h>
+
+CF_EXPORT _CFPosixSpawnFileActionsRef _CFPosixSpawnFileActionsAlloc() {
+  _CFPosixSpawnFileActionsRef actions = malloc(sizeof(posix_spawn_file_actions_t));
+  CFAssert(actions != NULL, __kCFLogAssertion, "malloc failed");
+  return actions;
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsInit(_CFPosixSpawnFileActionsRef file_actions) {
+  return posix_spawn_file_actions_init((posix_spawn_file_actions_t *)file_actions);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsDestroy(_CFPosixSpawnFileActionsRef file_actions) {
+  return posix_spawn_file_actions_destroy((posix_spawn_file_actions_t *)file_actions);
+}
+
+CF_EXPORT void _CFPosixSpawnFileActionsDealloc(_CFPosixSpawnFileActionsRef file_actions) {
+  free(file_actions);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsAddDup2(_CFPosixSpawnFileActionsRef file_actions, int filedes, int newfiledes) {
+  return posix_spawn_file_actions_adddup2((posix_spawn_file_actions_t *)file_actions, filedes, newfiledes);
+}
+
+CF_EXPORT int _CFPosixSpawnFileActionsAddClose(_CFPosixSpawnFileActionsRef file_actions, int filedes) {
+  return posix_spawn_file_actions_addclose((posix_spawn_file_actions_t *)file_actions, filedes);
+}
+
+CF_EXPORT int _CFPosixSpawn(pid_t *_CF_RESTRICT pid, const char *_CF_RESTRICT path, _CFPosixSpawnFileActionsRef file_actions, _CFPosixSpawnAttrRef _Nullable _CF_RESTRICT attrp, char *_Nullable const argv[_Nullable _CF_RESTRICT], char *_Nullable const envp[_Nullable _CF_RESTRICT]) {
+  return posix_spawn(pid, path, (posix_spawn_file_actions_t *)file_actions, (posix_spawnattr_t *)attrp, argv, envp);
+}
+
+#endif
+
 #endif
