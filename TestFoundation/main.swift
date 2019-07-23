@@ -85,6 +85,7 @@ var allTestCases = [
     testCase(TestURLCache.allTests),
     testCase(TestURLComponents.allTests),
     testCase(TestURLCredential.allTests),
+    testCase(TestURLCredentialStorage.allTests),
     testCase(TestURLProtectionSpace.allTests),
     testCase(TestURLProtocol.allTests),
     testCase(TestNSURLRequest.allTests),

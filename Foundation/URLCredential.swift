@@ -28,6 +28,8 @@ extension URLCredential {
         case none
         case forSession
         case permanent
+        
+        @available(*, deprecated, message: "Synchronizable credential storage is not available in swift-corelibs-foundation. If you rely on synchronization for your functionality, please audit your code.")
         case synchronizable
     }
 }

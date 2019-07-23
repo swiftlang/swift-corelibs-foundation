@@ -38,6 +38,12 @@ open class URLCredentialStorage: NSObject {
         _defaultCredentials = [:]
     }
 
+    convenience init(ephemeral: Bool) {
+        // Some URLCredentialStorages must be ephemeral, to support ephemeral URLSessions. They should not write anything to persistent storage.
+        // All URLCredentialStorage instances are _currently_ ephemeral, so there's no need to record the value of 'ephemeral' here, but if we implement persistent storage in the future using platform secure storage, implementers of that functionality will have to heed this flag here.
+        self.init()
+    }
+    
     /*!
         @method credentialsForProtectionSpace:
         @abstract Get a dictionary mapping usernames to credentials for the specified protection space.
@@ -74,7 +80,8 @@ open class URLCredentialStorage: NSObject {
     */
     open func set(_ credential: URLCredential, for space: URLProtectionSpace) {
         guard credential.persistence != .synchronizable else {
-            NSUnimplemented()
+            // Do what logged-out-from-iCloud Darwin does, and refuse to save synchronizable credentials when a sync service is not available (which, in s-c-f, is always)
+            return
         }
 
         guard credential.persistence != .none else {
@@ -172,7 +179,7 @@ open class URLCredentialStorage: NSObject {
     */
     open func setDefaultCredential(_ credential: URLCredential, for space: URLProtectionSpace) {
         guard credential.persistence != .synchronizable else {
-            NSUnimplemented()
+            return
         }
 
         guard credential.persistence != .none else {

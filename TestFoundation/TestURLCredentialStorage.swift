@@ -9,39 +9,6 @@
 
 class TestURLCredentialStorage : XCTestCase {
 
-    static var allTests: [(String, (TestURLCredentialStorage) -> () throws -> Void)] {
-        return [
-            ("test_storageStartsEmpty", test_storageStartsEmpty),
-            ("test_sessionCredentialGetsReturnedForTheRightProtectionSpace", test_sessionCredentialGetsReturnedForTheRightProtectionSpace),
-            ("test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace", test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace),
-            ("test_sessionCredentialBecomesDefaultForProtectionSpace", test_sessionCredentialBecomesDefaultForProtectionSpace),
-            ("test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace),
-            ("test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace),
-            ("test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace", test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace),
-            ("test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault", test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault),
-            ("test_sessionCredentialCanBeRemovedFromSpace", test_sessionCredentialCanBeRemovedFromSpace),
-            ("test_sessionDefaultCredentialCanBeRemovedFromSpace", test_sessionDefaultCredentialCanBeRemovedFromSpace),
-            ("test_synchronizableCredentialCanBeRemovedWithRightOptions", test_synchronizableCredentialCanBeRemovedWithRightOptions),
-            ("test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions", test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions),
-            ("test_storageCanRemoveArbitraryCredentialWithoutFailing", test_storageCanRemoveArbitraryCredentialWithoutFailing),
-            ("test_storageWillNotSaveCredentialsWithoutPersistence", test_storageWillNotSaveCredentialsWithoutPersistence),
-            ("test_storageWillSendNotificationWhenAddingNewCredential", test_storageWillSendNotificationWhenAddingNewCredential),
-            ("test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace", test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace),
-            ("test_storageWillNotSendNotificationWhenAddingExistingCredential", test_storageWillNotSendNotificationWhenAddingExistingCredential),
-            ("test_storageWillSendNotificationWhenAddingNewDefaultCredential", test_storageWillSendNotificationWhenAddingNewDefaultCredential),
-            ("test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential", test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential),
-            ("test_storageWillSendNotificationWhenAddingDifferentDefaultCredential", test_storageWillSendNotificationWhenAddingDifferentDefaultCredential),
-            ("test_storageWillSendNotificationWhenRemovingExistingCredential", test_storageWillSendNotificationWhenRemovingExistingCredential),
-            ("test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace", test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace),
-            ("test_storageWillSendNotificationWhenRemovingDefaultNotification", test_storageWillSendNotificationWhenRemovingDefaultNotification),
-            ("test_taskBasedGetCredentialsReturnsCredentialsForSpace", test_taskBasedGetCredentialsReturnsCredentialsForSpace),
-            ("test_taskBasedSetCredentialStoresGivenCredentials", test_taskBasedSetCredentialStoresGivenCredentials),
-            ("test_taskBasedRemoveCredentialDeletesCredentialsFromSpace", test_taskBasedRemoveCredentialDeletesCredentialsFromSpace),
-            ("test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential", test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential),
-            ("test_taskBasedSetDefaultCredentialStoresTheDefaultCredential", test_taskBasedSetDefaultCredentialStoresTheDefaultCredential),
-        ]
-    }
-
     func test_storageStartsEmpty() {
         let storage = URLCredentialStorage.shared
         XCTAssertEqual(storage.allCredentials.count, 0)
@@ -185,6 +152,12 @@ class TestURLCredentialStorage : XCTestCase {
         storage.remove(credential2, for: space)
     }
 
+    #if NS_FOUNDATION_NETWORKING_URLCREDENTIALSTORAGE_SYNCHRONIZABLE_ALLOWED
+    /*
+     swift-corelibs-foundation does not support synchronizable credentials, refusing to save them much like Darwin when logged out of iCloud.
+     Thus, these tests cannot succeed — there is never a credential to remove.
+     If we ever implement synchronizable credentials, uncomment this.
+     */
     func test_synchronizableCredentialCanBeRemovedWithRightOptions() {
         let storage = URLCredentialStorage.shared
 
@@ -196,7 +169,7 @@ class TestURLCredentialStorage : XCTestCase {
             storage.remove(credential, for: space, options: [NSURLCredentialStorageRemoveSynchronizableCredentials: NSNumber(value: true)])
         }
     }
-
+    
     func test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions() {
         let storage = URLCredentialStorage.shared
 
@@ -223,7 +196,8 @@ class TestURLCredentialStorage : XCTestCase {
 
         storage.remove(credential, for: space, options: [NSURLCredentialStorageRemoveSynchronizableCredentials: NSNumber(value: true)])
     }
-
+    #endif
+    
     func test_storageCanRemoveArbitraryCredentialWithoutFailing() {
         let storage = URLCredentialStorage.shared
 
@@ -481,13 +455,20 @@ class TestURLCredentialStorage : XCTestCase {
 
         storage.set(credential, for: space, task: task)
 
-        guard let credentials = storage.credentials(for: space),
-              let recovered = credentials[try credential.user.unwrapped()] else {
-            XCTFail("Credential not found in storage")
-            return
+        let expectation = self.expectation(description: "Done")
+        
+        storage.getCredentials(for: space, task: task) { credentials in
+            guard let credentials = credentials,
+                  let user = credential.user,
+                  let recovered = credentials[user] else {
+                    XCTFail("Credential not found in storage")
+                    return
+            }
+            XCTAssertEqual(recovered, credential)
+            expectation.fulfill()
         }
-        XCTAssertEqual(recovered, credential)
 
+        waitForExpectations(timeout: 10)
         storage.remove(credential, for: space)
     }
 
@@ -545,5 +526,47 @@ class TestURLCredentialStorage : XCTestCase {
         XCTAssertEqual(storage.defaultCredential(for: space), credential)
 
         storage.remove(credential, for: space)
+    }
+    
+    
+    static var allTests: [(String, (TestURLCredentialStorage) -> () throws -> Void)] {
+        var tests: [(String, (TestURLCredentialStorage) -> () throws -> Void)] = [
+            ("test_storageStartsEmpty", test_storageStartsEmpty),
+            ("test_sessionCredentialGetsReturnedForTheRightProtectionSpace", test_sessionCredentialGetsReturnedForTheRightProtectionSpace),
+            ("test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace", test_sessionCredentialDoesNotGetReturnedForTheWrongProtectionSpace),
+            ("test_sessionCredentialBecomesDefaultForProtectionSpace", test_sessionCredentialBecomesDefaultForProtectionSpace),
+            ("test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedAsDefaultIfSetAsDefaultForSpace),
+            ("test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace", test_sessionCredentialGetsReturnedIfSetAsDefaultForSpace),
+            ("test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace", test_sessionCredentialDoesNotGetReturnedIfSetAsDefaultForOtherSpace),
+            ("test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault", test_sessionCredentialDoesNotGetReturnedWhenNotAddedAsDefault),
+            ("test_sessionCredentialCanBeRemovedFromSpace", test_sessionCredentialCanBeRemovedFromSpace),
+            ("test_sessionDefaultCredentialCanBeRemovedFromSpace", test_sessionDefaultCredentialCanBeRemovedFromSpace),
+            ("test_storageCanRemoveArbitraryCredentialWithoutFailing", test_storageCanRemoveArbitraryCredentialWithoutFailing),
+            ("test_storageWillNotSaveCredentialsWithoutPersistence", test_storageWillNotSaveCredentialsWithoutPersistence),
+            ("test_storageWillSendNotificationWhenAddingNewCredential", test_storageWillSendNotificationWhenAddingNewCredential),
+            ("test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace", test_storageWillSendNotificationWhenAddingExistingCredentialToDifferentSpace),
+            ("test_storageWillNotSendNotificationWhenAddingExistingCredential", test_storageWillNotSendNotificationWhenAddingExistingCredential),
+            ("test_storageWillSendNotificationWhenAddingNewDefaultCredential", test_storageWillSendNotificationWhenAddingNewDefaultCredential),
+            ("test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential", test_storageWillNotSendNotificationWhenAddingExistingDefaultCredential),
+            ("test_storageWillSendNotificationWhenAddingDifferentDefaultCredential", test_storageWillSendNotificationWhenAddingDifferentDefaultCredential),
+            ("test_storageWillSendNotificationWhenRemovingExistingCredential", test_storageWillSendNotificationWhenRemovingExistingCredential),
+            ("test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace", test_storageWillNotSendNotificationWhenRemovingExistingCredentialInOtherSpace),
+            ("test_storageWillSendNotificationWhenRemovingDefaultNotification", test_storageWillSendNotificationWhenRemovingDefaultNotification),
+            ("test_taskBasedGetCredentialsReturnsCredentialsForSpace", test_taskBasedGetCredentialsReturnsCredentialsForSpace),
+            ("test_taskBasedSetCredentialStoresGivenCredentials", test_taskBasedSetCredentialStoresGivenCredentials),
+            ("test_taskBasedRemoveCredentialDeletesCredentialsFromSpace", test_taskBasedRemoveCredentialDeletesCredentialsFromSpace),
+            ("test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential", test_taskBasedGetDefaultCredentialReturnsTheDefaultCredential),
+            ("test_taskBasedSetDefaultCredentialStoresTheDefaultCredential", test_taskBasedSetDefaultCredentialStoresTheDefaultCredential),
+        ]
+        
+        #if NS_FOUNDATION_NETWORKING_URLCREDENTIALSTORAGE_SYNCHRONIZABLE_ALLOWED
+        // See these test methods for why they aren't added by default.
+        tests.append(contentsOf: [
+            ("test_synchronizableCredentialCanBeRemovedWithRightOptions", test_synchronizableCredentialCanBeRemovedWithRightOptions),
+            ("test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions", test_synchronizableCredentialWillNotBeRemovedWithoutRightOptions),
+        ])
+        #endif
+        
+        return tests
     }
 }
