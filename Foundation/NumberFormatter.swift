@@ -121,34 +121,47 @@ open class NumberFormatter : Formatter {
     }
 
     private func _setFormatterAttributes(_ formatter: CFNumberFormatter) {
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: _currencyCode?._cfObject)
+        if numberStyle == .currency {
+          let symbol = _currencySymbol ?? _currencyCode ?? locale.currencySymbol ?? locale.currencyCode
+           _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: symbol?._cfObject)
+       }
+       if numberStyle == .currencyISOCode {
+          let code = _currencyCode ?? _currencySymbol ?? locale.currencyCode ?? locale.currencySymbol
+           _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyCode, value: code?._cfObject)
+        }
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterDecimalSeparator, value: _decimalSeparator?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyDecimalSeparator, value: _currencyDecimalSeparator?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterAlwaysShowDecimalSeparator, value: _alwaysShowsDecimalSeparator._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterGroupingSeparator, value: _groupingSeparator?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseGroupingSeparator, value: _usesGroupingSeparator._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseGroupingSeparator, value: usesGroupingSeparator._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPercentSymbol, value: _percentSymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterZeroSymbol, value: _zeroSymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterNaNSymbol, value: _notANumberSymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterInfinitySymbol, value: _positiveInfinitySymbol._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinusSign, value: _minusSign?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPlusSign, value: _plusSign?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencySymbol, value: _currencySymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterExponentSymbol, value: _exponentSymbol?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: minimumIntegerDigits._bridgeToObjectiveC()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxIntegerDigits, value: _maximumIntegerDigits._bridgeToObjectiveC()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinFractionDigits, value: _minimumFractionDigits._bridgeToObjectiveC()._cfObject)
-        if _minimumFractionDigits <= 0 {
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxFractionDigits, value: _maximumFractionDigits._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinIntegerDigits, value: _minimumIntegerDigits?._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxIntegerDigits, value: _maximumIntegerDigits?._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinFractionDigits, value: _minimumFractionDigits?._bridgeToObjectiveC()._cfObject)
+        if minimumFractionDigits <= 0 {
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxFractionDigits, value: maximumFractionDigits._bridgeToObjectiveC()._cfObject)
         }
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterGroupingSize, value: _groupingSize._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterGroupingSize, value: groupingSize._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterSecondaryGroupingSize, value: _secondaryGroupingSize._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingMode, value: _roundingMode.rawValue._bridgeToObjectiveC()._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterRoundingIncrement, value: _roundingIncrement?._cfObject)
+
+        var width: Int = 0
+        CFNumberGetValue(_formatWidth._bridgeToObjectiveC()._cfObject, kCFNumberLongType, &width)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterFormatWidth, value: _formatWidth._bridgeToObjectiveC()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: _paddingCharacter?._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingPosition, value: _paddingPosition.rawValue._bridgeToObjectiveC()._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMultiplier, value: _multiplier?._cfObject)
+        if width > 0 {
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: _paddingCharacter?._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingPosition, value: _paddingPosition.rawValue._bridgeToObjectiveC()._cfObject)
+        } else {
+           _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPaddingCharacter, value: ""._cfObject)
+        }
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMultiplier, value: multiplier?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositivePrefix, value: _positivePrefix?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterPositiveSuffix, value: _positiveSuffix?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterNegativePrefix, value: _negativePrefix?._cfObject)
@@ -157,10 +170,10 @@ open class NumberFormatter : Formatter {
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterInternationalCurrencySymbol, value: _internationalCurrencySymbol?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterCurrencyGroupingSeparator, value: _currencyGroupingSeparator?._cfObject)
         _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterIsLenient, value: _lenient._cfObject)
-        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseSignificantDigits, value: _usesSignificantDigits._cfObject)
-        if _usesSignificantDigits {
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinSignificantDigits, value: _minimumSignificantDigits._bridgeToObjectiveC()._cfObject)
-            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxSignificantDigits, value: _maximumSignificantDigits._bridgeToObjectiveC()._cfObject)
+        _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterUseSignificantDigits, value: usesSignificantDigits._cfObject)
+        if usesSignificantDigits {
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMinSignificantDigits, value: minimumSignificantDigits._bridgeToObjectiveC()._cfObject)
+            _setFormatterAttribute(formatter, attributeName: kCFNumberFormatterMaxSignificantDigits, value: maximumSignificantDigits._bridgeToObjectiveC()._cfObject)
         }
     }
 
@@ -174,8 +187,105 @@ open class NumberFormatter : Formatter {
         return CFNumberFormatterCopyProperty(formatter, attributeName) as? String
     }
 
+    // Attributes of a NumberFormatter. Many attributes have default values but if they are set by the caller
+    // the new value needs to be retained even if the .numberStyle is changed. Attributes are backed by an optional
+    // to indicate to use the default value (if nil) or the caller-supplied value (if not nil).
+    private func defaultMinimumIntegerDigits() -> Int {
+        switch numberStyle {
+        case .none, .ordinal, .spellOut, .currencyPlural, .scientific:
+            return 0
 
-    // Attributes of a NumberFormatter
+        case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
+            return 1
+        }
+    }
+
+    private func defaultMaximumIntegerDigits() -> Int {
+        switch numberStyle {
+        case .none:
+            return 42
+
+        case .ordinal, .spellOut, .currencyPlural:
+            return 0
+
+        case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
+            return 2_000_000_000
+
+        case .scientific:
+            return 1
+        }
+    }
+
+    private func defaultMinimumFractionDigits() -> Int {
+        switch numberStyle {
+        case .none, .ordinal, .spellOut, .currencyPlural, .decimal, .percent, .scientific:
+            return 0
+
+        case .currency, .currencyISOCode, .currencyAccounting:
+            return 2
+        }
+    }
+
+    private func defaultMaximumFractionDigits() -> Int {
+        switch numberStyle {
+        case .none, .ordinal, .spellOut, .currencyPlural, .percent, .scientific:
+            return 0
+
+        case .currency, .currencyISOCode, .currencyAccounting:
+            return 2
+
+        case .decimal:
+            return 3
+        }
+    }
+
+    private func defaultMinimumSignificantDigits() -> Int {
+        switch numberStyle {
+        case .ordinal, .spellOut, .currencyPlural:
+            return 0
+
+        case .currency, .none, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
+            return 1
+        }
+    }
+
+    private func defaultMaximumSignificantDigits() -> Int {
+        switch numberStyle {
+        case .none, .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent, .scientific:
+            return 6
+
+        case .ordinal, .spellOut, .currencyPlural:
+            return 0
+        }
+    }
+
+    private func defaultUsesGroupingSeparator() -> Bool {
+        switch numberStyle {
+        case .none, .scientific, .spellOut, .ordinal, .currencyPlural:
+            return false
+
+        case .decimal, .currency, .percent, .currencyAccounting, .currencyISOCode:
+            return true
+        }
+    }
+
+    private func defaultGroupingSize() -> Int {
+        switch numberStyle {
+        case .none, .ordinal, .spellOut, .currencyPlural, .scientific:
+            return 0
+
+        case .currency, .currencyISOCode, .currencyAccounting, .decimal, .percent:
+            return 3
+        }
+    }
+
+    private func defaultMultiplier() -> NSNumber? {
+        switch numberStyle {
+        case .percent:  return NSNumber(100)
+        default:        return nil
+        }
+    }
+
     private var _numberStyle: Style = .none
     open var numberStyle: Style {
         get {
@@ -183,58 +293,6 @@ open class NumberFormatter : Formatter {
         }
 
         set {
-            switch newValue {
-            case .none, .ordinal, .spellOut:
-                _usesSignificantDigits = false
-
-            case .currency, .currencyISOCode, .currencyAccounting:
-                _usesSignificantDigits = false
-                _usesGroupingSeparator = true
-                if _minimumIntegerDigits == nil {
-                    _minimumIntegerDigits = 1
-                }
-                if _groupingSize == 0 {
-                    _groupingSize = 3
-                }
-                _minimumFractionDigits = 2
-
-            case .currencyPlural:
-                _usesSignificantDigits = false
-                _usesGroupingSeparator = true
-                if _minimumIntegerDigits == nil {
-                    _minimumIntegerDigits = 0
-                }
-                _minimumFractionDigits = 2
-
-            case .decimal:
-                _usesGroupingSeparator = true
-                _maximumFractionDigits = 3
-                if _minimumIntegerDigits == nil {
-                    _minimumIntegerDigits = 1
-                }
-                if _groupingSize == 0 {
-                    _groupingSize = 3
-                }
-
-            case .percent:
-                _usesSignificantDigits = false
-                _usesGroupingSeparator = true
-                if _minimumIntegerDigits == nil {
-                    _minimumIntegerDigits = 1
-                }
-                if _groupingSize == 0 {
-                    _groupingSize = 3
-                }
-                _minimumFractionDigits = 0
-                _maximumFractionDigits = 0
-
-            case .scientific:
-                _usesSignificantDigits = false
-                _usesGroupingSeparator = false
-                if _minimumIntegerDigits == nil {
-                    _minimumIntegerDigits = 0
-                }
-            }
             _reset()
             _numberStyle = newValue
         }
@@ -328,10 +386,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _usesGroupingSeparator: Bool = false
+    private var _usesGroupingSeparator: Bool?
     open var usesGroupingSeparator: Bool {
         get {
-            return _usesGroupingSeparator
+            return _usesGroupingSeparator ?? defaultUsesGroupingSeparator()
         }
         set {
             _reset()
@@ -592,10 +650,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _groupingSize: Int = 0
+    private var _groupingSize: Int?
     open var groupingSize: Int {
         get {
-            return _groupingSize
+            return _groupingSize ?? defaultGroupingSize()
         }
         set {
             _reset()
@@ -617,7 +675,7 @@ open class NumberFormatter : Formatter {
     private var _multiplier: NSNumber?
     /*@NSCopying*/ open var multiplier: NSNumber? {
         get {
-            return _multiplier
+            return _multiplier ?? defaultMultiplier()
         }
         set {
             _reset()
@@ -636,7 +694,7 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _paddingCharacter: String!
+    private var _paddingCharacter: String! = " "
     open var paddingCharacter: String! {
         get {
             return _paddingCharacter ?? _getFormatterAttribute(_cfFormatter, attributeName: kCFNumberFormatterPaddingCharacter)
@@ -686,7 +744,7 @@ open class NumberFormatter : Formatter {
     private var _minimumIntegerDigits: Int?
     open var minimumIntegerDigits: Int {
         get {
-            return _minimumIntegerDigits ?? 0
+            return _minimumIntegerDigits ?? defaultMinimumIntegerDigits()
         }
         set {
             _reset()
@@ -694,10 +752,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _maximumIntegerDigits: Int = 42
+    private var _maximumIntegerDigits: Int?
     open var maximumIntegerDigits: Int {
         get {
-            return _maximumIntegerDigits
+            return _maximumIntegerDigits ?? defaultMaximumIntegerDigits()
         }
         set {
             _reset()
@@ -705,10 +763,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _minimumFractionDigits: Int = 0
+    private var _minimumFractionDigits: Int?
     open var minimumFractionDigits: Int {
         get {
-            return _minimumFractionDigits
+            return _minimumFractionDigits ?? defaultMinimumFractionDigits()
         }
         set {
             _reset()
@@ -716,10 +774,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _maximumFractionDigits: Int = 0
+    private var _maximumFractionDigits: Int?
     open var maximumFractionDigits: Int {
         get {
-            return _maximumFractionDigits
+            return _maximumFractionDigits ?? defaultMaximumFractionDigits()
         }
         set {
             _reset()
@@ -771,10 +829,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _usesSignificantDigits: Bool = false
+    private var _usesSignificantDigits: Bool?
     open var usesSignificantDigits: Bool {
         get {
-            return _usesSignificantDigits
+            return _usesSignificantDigits ?? false
         }
         set {
             _reset()
@@ -782,10 +840,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _minimumSignificantDigits: Int = 1
+    private var _minimumSignificantDigits: Int?
     open var minimumSignificantDigits: Int {
         get {
-            return _minimumSignificantDigits
+            return _minimumSignificantDigits ?? defaultMinimumSignificantDigits()
         }
         set {
             _reset()
@@ -794,10 +852,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private var _maximumSignificantDigits: Int = 6
+    private var _maximumSignificantDigits: Int?
     open var maximumSignificantDigits: Int {
         get {
-            return _maximumSignificantDigits
+            return _maximumSignificantDigits ?? defaultMaximumSignificantDigits()
         }
         set {
             _reset()
@@ -850,8 +908,10 @@ open class NumberFormatter : Formatter {
         }
     }
 
-    private func getFormatterComponents() -> (String, String) {
-        let format = CFNumberFormatterGetFormat(_cfFormatter)._swiftObject
+    private func getFormatterComponents() -> (String?, String?) {
+        guard let format = CFNumberFormatterGetFormat(_cfFormatter)?._swiftObject else {
+            return (nil, nil)
+        }
         let components = format.components(separatedBy: ";")
         let positive = _positiveFormat ?? components.first ?? "#"
         let negative = _negativeFormat ?? components.last ?? "#"
@@ -866,7 +926,7 @@ open class NumberFormatter : Formatter {
         get {
             let (p, n) = getFormatterComponents()
             let z = _zeroSymbol ?? getZeroFormat()
-            return "\(p);\(z);\(n)"
+            return "\(p ?? "(null)");\(z);\(n ?? "(null)")"
         }
         set {
             // Special case empty string

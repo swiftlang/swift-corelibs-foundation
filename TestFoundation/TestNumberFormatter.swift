@@ -7,61 +7,251 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+
 class TestNumberFormatter: XCTestCase {
 
-    static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
-        return [
-            ("test_currencyCode", test_currencyCode),
-            ("test_decimalSeparator", test_decimalSeparator),
-            ("test_currencyDecimalSeparator", test_currencyDecimalSeparator),
-            ("test_alwaysShowDecimalSeparator", test_alwaysShowDecimalSeparator),
-            ("test_groupingSeparator", test_groupingSeparator),
-            ("test_percentSymbol", test_percentSymbol),
-            ("test_zeroSymbol", test_zeroSymbol),
-            ("test_notANumberSymbol", test_notANumberSymbol),
-            ("test_positiveInfinitySymbol", test_positiveInfinitySymbol),
-            ("test_minusSignSymbol", test_minusSignSymbol),
-            ("test_plusSignSymbol", test_plusSignSymbol),
-            ("test_currencySymbol", test_currencySymbol),
-            ("test_exponentSymbol", test_exponentSymbol),
-            ("test_decimalMinimumIntegerDigits", test_decimalMinimumIntegerDigits),
-            ("test_currencyMinimumIntegerDigits", test_currencyMinimumIntegerDigits),
-            ("test_percentMinimumIntegerDigits", test_percentMinimumIntegerDigits),
-            ("test_scientificMinimumIntegerDigits", test_scientificMinimumIntegerDigits),
-            ("test_spellOutMinimumIntegerDigits", test_spellOutMinimumIntegerDigits),
-            ("test_ordinalMinimumIntegerDigits", test_ordinalMinimumIntegerDigits),
-            ("test_currencyPluralMinimumIntegerDigits", test_currencyPluralMinimumIntegerDigits),
-            ("test_currencyISOCodeMinimumIntegerDigits", test_currencyISOCodeMinimumIntegerDigits),
-            ("test_currencyAccountingMinimumIntegerDigits", test_currencyAccountingMinimumIntegerDigits),
-            ("test_maximumIntegerDigits", test_maximumIntegerDigits),
-            ("test_minimumFractionDigits", test_minimumFractionDigits),
-            ("test_maximumFractionDigits", test_maximumFractionDigits),
-            ("test_groupingSize", test_groupingSize),
-            ("test_secondaryGroupingSize", test_secondaryGroupingSize),
-            ("test_roundingMode", test_roundingMode),
-            ("test_roundingIncrement", test_roundingIncrement),
-            ("test_formatWidth", test_formatWidth),
-            ("test_formatPosition", test_formatPosition),
-            ("test_multiplier", test_multiplier),
-            ("test_positivePrefix", test_positivePrefix),
-            ("test_positiveSuffix", test_positiveSuffix),
-            ("test_negativePrefix", test_negativePrefix),
-            ("test_negativeSuffix", test_negativeSuffix),
-            ("test_internationalCurrencySymbol", test_internationalCurrencySymbol),
-            ("test_currencyGroupingSeparator", test_currencyGroupingSeparator),
-            ("test_lenient", test_lenient),
-            ("test_minimumSignificantDigits", test_minimumSignificantDigits),
-            ("test_maximumSignificantDigits", test_maximumSignificantDigits),
-            ("test_stringFor", test_stringFor),
-            ("test_numberFrom", test_numberFrom),
-            ("test_en_US_initialValues", test_en_US_initialValues),
-            ("test_pt_BR_initialValues", test_pt_BR_initialValues),
-            ("test_changingLocale", test_changingLocale),
-            ("test_settingFormat", test_settingFormat),
-            ("test_usingFormat", test_usingFormat),
-        ]
+    func test_defaultPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.numberStyle, .none)
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 42)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
+        XCTAssertEqual(numberFormatter.positiveFormat, "#")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
     }
-    
+
+    func test_defaultDecimalPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 3)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "#,##0.###;0;#,##0.###")
+        XCTAssertEqual(numberFormatter.positiveFormat, "#,##0.###")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#,##0.###")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertTrue(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultCurrencyPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        let currency = Locale.current.currencySymbol ?? ""
+        numberFormatter.numberStyle = .currency
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;\(currency)0.00;¤#,##0.00")
+        XCTAssertEqual(numberFormatter.positiveFormat, "¤#,##0.00")
+        XCTAssertEqual(numberFormatter.negativeFormat, "¤#,##0.00")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertTrue(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultPercentPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .percent
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "#,##0%;0%;#,##0%")
+        XCTAssertEqual(numberFormatter.positiveFormat, "#,##0%")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#,##0%")
+        XCTAssertEqual(numberFormatter.multiplier, NSNumber(100))
+        XCTAssertTrue(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultScientificPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .scientific
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+#if !DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual(numberFormatter.format, "#E0;0E0;#E0")
+#else
+        XCTAssertEqual(numberFormatter.format, "#E0;1E-100;#E0")
+#endif
+        XCTAssertEqual(numberFormatter.positiveFormat, "#E0")
+        XCTAssertEqual(numberFormatter.negativeFormat, "#E0")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultSpelloutPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .spellOut
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+#if !DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual(numberFormatter.format, "(null);zero;(null)")
+#else
+        XCTAssertEqual(numberFormatter.format, "(null);zero point zero;(null)")
+#endif
+        XCTAssertEqual(numberFormatter.positiveFormat, nil)
+        XCTAssertEqual(numberFormatter.negativeFormat, nil)
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultOrdinalPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .ordinal
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "(null);0th;(null)")
+        XCTAssertEqual(numberFormatter.positiveFormat, nil)
+        XCTAssertEqual(numberFormatter.negativeFormat, nil)
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultCurrencyISOCodePropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .currencyISOCode
+        numberFormatter.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale(identifier: "en_US"))
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "¤¤#,##0.00;USD0.00;¤¤#,##0.00")
+        XCTAssertEqual(numberFormatter.positiveFormat, "¤¤#,##0.00")
+        XCTAssertEqual(numberFormatter.negativeFormat, "¤¤#,##0.00")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertTrue(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+        XCTAssertEqual(numberFormatter.string(from: NSNumber(1234567890)), "USD1,234,567,890.00")
+    }
+
+    func test_defaultCurrencyPluralPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .currencyPlural
+        numberFormatter.locale = Locale(identifier: "en_GB")
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale(identifier: "en_GB"))
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 0)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "(null);0.00 British pounds;(null)")
+        XCTAssertEqual(numberFormatter.positiveFormat, nil)
+        XCTAssertEqual(numberFormatter.negativeFormat, nil)
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertFalse(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 0)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
+    func test_defaultCurrenyAccountingPropertyValues() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .currencyAccounting
+        numberFormatter.locale = Locale(identifier: "en_US")
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 2_000_000_000)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 2)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "¤#,##0.00;$0.00;(¤#,##0.00)")
+        XCTAssertEqual(numberFormatter.positiveFormat, "¤#,##0.00")
+        XCTAssertEqual(numberFormatter.negativeFormat, "(¤#,##0.00)")
+        XCTAssertNil(numberFormatter.multiplier)
+        XCTAssertTrue(numberFormatter.usesGroupingSeparator)
+        XCTAssertEqual(numberFormatter.groupingSize, 3)
+        XCTAssertEqual(numberFormatter.secondaryGroupingSize, 0)
+    }
+
     func test_currencyCode() {
         let numberFormatter = NumberFormatter()
         numberFormatter.locale = Locale(identifier: "en_GB")
@@ -151,6 +341,19 @@ class TestNumberFormatter: XCTestCase {
     
     func test_zeroSymbol() {
         let numberFormatter = NumberFormatter()
+        XCTAssertEqual(numberFormatter.numberStyle, .none)
+        XCTAssertEqual(numberFormatter.generatesDecimalNumbers, false)
+        XCTAssertEqual(numberFormatter.localizesFormat, true)
+        XCTAssertEqual(numberFormatter.locale, Locale.current)
+        XCTAssertEqual(numberFormatter.minimumIntegerDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumIntegerDigits, 42)
+        XCTAssertEqual(numberFormatter.minimumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.maximumFractionDigits, 0)
+        XCTAssertEqual(numberFormatter.minimumSignificantDigits, 1)
+        XCTAssertEqual(numberFormatter.maximumSignificantDigits, 6)
+        XCTAssertEqual(numberFormatter.usesSignificantDigits, false)
+        XCTAssertEqual(numberFormatter.formatWidth, 0)
+        XCTAssertEqual(numberFormatter.format, "#;0;#")
         numberFormatter.zeroSymbol = "⚽️"
         XCTAssertEqual(numberFormatter.format, "#;⚽️;#")
 
@@ -193,10 +396,16 @@ class TestNumberFormatter: XCTestCase {
         let format = "#E+0"
         numberFormatter.format = format
         XCTAssertEqual(numberFormatter.positiveFormat, "#E+0")
-        XCTAssertEqual(numberFormatter.zeroSymbol, "0E+0")
         XCTAssertEqual(numberFormatter.negativeFormat, "-#E+0")
+#if !DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual(numberFormatter.zeroSymbol, "0E+0")
         XCTAssertEqual(numberFormatter.format, "#E+0;0E+0;-#E+0")
         XCTAssertEqual(numberFormatter.string(from: 0), "0E+0")
+#else
+        XCTAssertEqual(numberFormatter.zeroSymbol, "1E-100")
+        XCTAssertEqual(numberFormatter.format, "#E+0;1E-100;-#E+0")
+        XCTAssertEqual(numberFormatter.string(from: 0), "1E-100")
+#endif
         XCTAssertEqual(numberFormatter.plusSign, "+")
         let sign = "👍"
         numberFormatter.plusSign = sign
@@ -229,7 +438,11 @@ class TestNumberFormatter: XCTestCase {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .scientific
         numberFormatter.exponentSymbol = "⬆️"
+#if DARWIN_COMPATIBILITY_TESTS
+        XCTAssertEqual(numberFormatter.format, "#E0;1⬆️-100;#E0")
+#else
         XCTAssertEqual(numberFormatter.format, "#E0;0⬆️0;#E0")
+#endif
         let formattedString = numberFormatter.string(from: 42)
         XCTAssertEqual(formattedString, "4.2⬆️1")
     }
@@ -833,9 +1046,14 @@ class TestNumberFormatter: XCTestCase {
 
         // Test setting only first 2 parts
         formatter.format = "+##.##;0.00"
+#if !DARWIN_COMPATIBILITY_TESTS
         XCTAssertEqual(formatter.format, "+##.##;00;0.00")
-        XCTAssertEqual(formatter.positiveFormat, "+##.##")
         XCTAssertEqual(formatter.zeroSymbol, "00")
+#else
+        XCTAssertEqual(formatter.format, "+##.##;+0;0.00")
+        XCTAssertEqual(formatter.zeroSymbol, "+0")
+#endif
+        XCTAssertEqual(formatter.positiveFormat, "+##.##")
         XCTAssertEqual(formatter.negativeFormat, "0.00")
 
         formatter.format = "+##.##;+0;0.00"
@@ -864,9 +1082,14 @@ class TestNumberFormatter: XCTestCase {
         XCTAssertEqual(formatter.negativeFormat, "3")
 
         formatter.format = ""
+#if !DARWIN_COMPATIBILITY_TESTS
         XCTAssertEqual(formatter.format, ";0;-")
-        XCTAssertEqual(formatter.positiveFormat, "")
         XCTAssertEqual(formatter.zeroSymbol, "0")
+#else
+        XCTAssertEqual(formatter.format, ";0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001;-")
+        XCTAssertEqual(formatter.zeroSymbol, "0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001")
+#endif
+        XCTAssertEqual(formatter.positiveFormat, "")
         XCTAssertEqual(formatter.negativeFormat, "-")
     }
 
@@ -908,5 +1131,84 @@ class TestNumberFormatter: XCTestCase {
         formatter.positiveFormat = "#.#########"
         XCTAssertEqual(formatter.string(from: NSNumber(value: 0.5)), "0.5")
         XCTAssertEqual(formatter.string(from: NSNumber(value: -0.5)), "-0.5")
+    }
+
+    func test_propertyChanges() {
+        let formatter = NumberFormatter()
+        XCTAssertNil(formatter.multiplier)
+        formatter.numberStyle = .percent
+        XCTAssertEqual(formatter.multiplier, NSNumber(100))
+        formatter.numberStyle = .decimal
+        XCTAssertNil(formatter.multiplier)
+        formatter.multiplier = NSNumber(1)
+        formatter.numberStyle = .percent
+        XCTAssertEqual(formatter.multiplier, NSNumber(1))
+        formatter.multiplier = NSNumber(27)
+        formatter.numberStyle = .decimal
+        XCTAssertEqual(formatter.multiplier, NSNumber(27))
+    }
+
+    static var allTests: [(String, (TestNumberFormatter) -> () throws -> Void)] {
+        return [
+            ("test_defaultPropertyValues", test_defaultPropertyValues),
+            ("test_defaultDecimalPropertyValues", test_defaultDecimalPropertyValues),
+            ("test_defaultCurrencyPropertyValues", test_defaultCurrencyPropertyValues),
+            ("test_defaultPercentPropertyValues", test_defaultPercentPropertyValues),
+            ("test_defaultScientificPropertyValues", test_defaultScientificPropertyValues),
+            ("test_defaultSpelloutPropertyValues", test_defaultSpelloutPropertyValues),
+            ("test_defaultOrdinalPropertyValues", test_defaultOrdinalPropertyValues),
+            ("test_defaultCurrencyISOCodePropertyValues", test_defaultCurrencyISOCodePropertyValues),
+            ("test_defaultCurrencyPluralPropertyValues", test_defaultCurrencyPluralPropertyValues),
+            ("test_defaultCurrenyAccountingPropertyValues", test_defaultCurrenyAccountingPropertyValues),
+            ("test_currencyCode", test_currencyCode),
+            ("test_decimalSeparator", test_decimalSeparator),
+            ("test_currencyDecimalSeparator", test_currencyDecimalSeparator),
+            ("test_alwaysShowDecimalSeparator", test_alwaysShowDecimalSeparator),
+            ("test_groupingSeparator", test_groupingSeparator),
+            ("test_percentSymbol", test_percentSymbol),
+            ("test_zeroSymbol", test_zeroSymbol),
+            ("test_notANumberSymbol", test_notANumberSymbol),
+            ("test_positiveInfinitySymbol", test_positiveInfinitySymbol),
+            ("test_minusSignSymbol", test_minusSignSymbol),
+            ("test_plusSignSymbol", test_plusSignSymbol),
+            ("test_currencySymbol", test_currencySymbol),
+            ("test_exponentSymbol", test_exponentSymbol),
+            ("test_decimalMinimumIntegerDigits", test_decimalMinimumIntegerDigits),
+            ("test_currencyMinimumIntegerDigits", test_currencyMinimumIntegerDigits),
+            ("test_percentMinimumIntegerDigits", test_percentMinimumIntegerDigits),
+            ("test_scientificMinimumIntegerDigits", test_scientificMinimumIntegerDigits),
+            ("test_spellOutMinimumIntegerDigits", test_spellOutMinimumIntegerDigits),
+            ("test_ordinalMinimumIntegerDigits", test_ordinalMinimumIntegerDigits),
+            ("test_currencyPluralMinimumIntegerDigits", test_currencyPluralMinimumIntegerDigits),
+            ("test_currencyISOCodeMinimumIntegerDigits", test_currencyISOCodeMinimumIntegerDigits),
+            ("test_currencyAccountingMinimumIntegerDigits", test_currencyAccountingMinimumIntegerDigits),
+            ("test_maximumIntegerDigits", test_maximumIntegerDigits),
+            ("test_minimumFractionDigits", test_minimumFractionDigits),
+            ("test_maximumFractionDigits", test_maximumFractionDigits),
+            ("test_groupingSize", test_groupingSize),
+            ("test_secondaryGroupingSize", test_secondaryGroupingSize),
+            ("test_roundingMode", test_roundingMode),
+            ("test_roundingIncrement", test_roundingIncrement),
+            ("test_formatWidth", test_formatWidth),
+            ("test_formatPosition", test_formatPosition),
+            ("test_multiplier", test_multiplier),
+            ("test_positivePrefix", test_positivePrefix),
+            ("test_positiveSuffix", test_positiveSuffix),
+            ("test_negativePrefix", test_negativePrefix),
+            ("test_negativeSuffix", test_negativeSuffix),
+            ("test_internationalCurrencySymbol", test_internationalCurrencySymbol),
+            ("test_currencyGroupingSeparator", test_currencyGroupingSeparator),
+            ("test_lenient", test_lenient),
+            ("test_minimumSignificantDigits", test_minimumSignificantDigits),
+            ("test_maximumSignificantDigits", test_maximumSignificantDigits),
+            ("test_stringFor", test_stringFor),
+            ("test_numberFrom", test_numberFrom),
+            ("test_en_US_initialValues", test_en_US_initialValues),
+            ("test_pt_BR_initialValues", test_pt_BR_initialValues),
+            ("test_changingLocale", test_changingLocale),
+            ("test_settingFormat", test_settingFormat),
+            ("test_usingFormat", test_usingFormat),
+            ("test_propertyChanges", test_propertyChanges),
+        ]
     }
 }
