@@ -314,7 +314,7 @@ open class XMLNode: NSObject, NSCopying {
     open var name: String? {
         get {
             if case .namespace = kind {
-                return _CFXMLNamespaceCopyPrefix(_xmlNode)?._swiftObject
+                return _CFXMLNamespaceCopyPrefix(_xmlNode)?._swiftObject ?? ""
             }
 
             return _CFXMLNodeCopyName(_xmlNode)?._swiftObject
