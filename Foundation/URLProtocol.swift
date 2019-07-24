@@ -261,7 +261,9 @@ open class URLProtocol : NSObject {
         @param request A request to make canonical.
         @result The canonical form of the given request. 
     */
-    open class func canonicalRequest(for request: URLRequest) -> URLRequest { NSUnimplemented() }
+    open class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        NSRequiresConcreteImplementation()
+    }
     
     /*!
         @method requestIsCacheEquivalent:toRequest:
@@ -272,7 +274,9 @@ open class URLProtocol : NSObject {
         implementation-specific checks.
         @result YES if the two requests are cache-equivalent, NO otherwise.
     */
-    open class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool { NSUnimplemented() }
+    open class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool {
+        NSRequiresConcreteImplementation()
+    }
     
     /*! 
         @method startLoading
