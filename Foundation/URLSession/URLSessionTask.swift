@@ -31,11 +31,66 @@ private class Bag<Element> {
 open class URLSessionTask : NSObject, NSCopying {
     
     // These properties aren't heeded in swift-corelibs-foundation, but we may heed them in the future. They exist for source compatibility.
-    open var countOfBytesClientExpectsToReceive: Int64 = NSURLSessionTransferSizeUnknown
-    open var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown
+    open var countOfBytesClientExpectsToReceive: Int64 = NSURLSessionTransferSizeUnknown {
+        didSet { updateProgress() }
+    }
+    open var countOfBytesClientExpectsToSend: Int64 = NSURLSessionTransferSizeUnknown {
+        didSet { updateProgress() }
+    }
+    
+    open private(set) var progress = Progress(totalUnitCount: -1)
+    
+    func updateProgress() {
+        self.workQueue.async {
+            let progress = self.progress
+            
+            switch self.state {
+            case .canceling: fallthrough
+            case .completed:
+                let total = progress.totalUnitCount
+                let finalTotal = total < 0 ? 1 : total
+                progress.totalUnitCount = finalTotal
+                progress.completedUnitCount = finalTotal
+                
+            default:
+                let toBeSent: Int64?
+                if let bodyLength = try? self.body.getBodyLength() {
+                    toBeSent = Int64(clamping: bodyLength)
+                } else if self.countOfBytesExpectedToSend > 0 {
+                    toBeSent = Int64(clamping: self.countOfBytesExpectedToSend)
+                } else if self.countOfBytesClientExpectsToSend != NSURLSessionTransferSizeUnknown && self.countOfBytesClientExpectsToSend > 0 {
+                    toBeSent = Int64(clamping: self.countOfBytesClientExpectsToSend)
+                } else {
+                    toBeSent = nil
+                }
+                
+                let sent = self.countOfBytesSent
+                
+                let toBeReceived: Int64?
+                if self.countOfBytesExpectedToReceive > 0 {
+                    toBeReceived = Int64(clamping: self.countOfBytesClientExpectsToReceive)
+                } else if self.countOfBytesClientExpectsToReceive != NSURLSessionTransferSizeUnknown && self.countOfBytesClientExpectsToReceive > 0 {
+                    toBeReceived = Int64(clamping: self.countOfBytesClientExpectsToReceive)
+                } else {
+                    toBeReceived = nil
+                }
+                
+                let received = self.countOfBytesReceived
+                
+                progress.completedUnitCount = sent.addingReportingOverflow(received).partialValue
+                
+                if let toBeSent = toBeSent, let toBeReceived = toBeReceived {
+                    progress.totalUnitCount = toBeSent.addingReportingOverflow(toBeReceived).partialValue
+                } else {
+                    progress.totalUnitCount = -1
+                }
+                
+            }
+        }
+    }
     
     // We're not going to heed this one. If someone is setting it in Linux code, they may be relying on behavior that isn't there; warn.
-    @available(*, deprecated, message: "swift-corelibs-foundation does not support URLSession instances, and this property is documented to have no effect when set on tasks created from non-background URLSession instances. Modifying this property has no effect in swift-corelibs-foundation and shouldn't be relied upon; resume tasks at the appropriate time instead.")
+    @available(*, deprecated, message: "swift-corelibs-foundation does not support background URLSession instances, and this property is documented to have no effect when set on tasks created from non-background URLSession instances. Modifying this property has no effect in swift-corelibs-foundation and shouldn't be relied upon; resume tasks at the appropriate time instead.")
     open var earliestBeginDate: Date? = nil
     
     /// How many times the task has been suspended, 0 indicating a running task.
@@ -180,6 +235,9 @@ open class URLSessionTask : NSObject, NSCopying {
         self.body = body
         super.init()
         self.currentRequest = request
+        self.progress.cancellationHandler = { [weak self] in
+            self?.cancel()
+        }
     }
     deinit {
         //TODO: Do we remove the EasyHandle from the session here? This might run on the wrong thread / queue.
@@ -238,6 +296,7 @@ open class URLSessionTask : NSObject, NSCopying {
         }
         set {
             self.syncQ.sync { self._countOfBytesReceived = newValue }
+            updateProgress()
         }
     }
     fileprivate var _countOfBytesReceived: Int64 = 0
@@ -249,16 +308,21 @@ open class URLSessionTask : NSObject, NSCopying {
         }
         set {
             self.syncQ.sync { self._countOfBytesSent = newValue }
+            updateProgress()
         }
     }
     
     fileprivate var _countOfBytesSent: Int64 = 0
     
     /// Number of body bytes we expect to send, derived from the Content-Length of the HTTP request */
-    open internal(set) var countOfBytesExpectedToSend: Int64 = 0
+    open internal(set) var countOfBytesExpectedToSend: Int64 = 0 {
+        didSet { updateProgress() }
+    }
     
     /// Number of bytes we expect to receive, usually derived from the Content-Length header of an HTTP response. */
-    open internal(set) var countOfBytesExpectedToReceive: Int64 = 0
+    open internal(set) var countOfBytesExpectedToReceive: Int64 = 0 {
+        didSet { updateProgress() }
+    }
     
     /// The taskDescription property is available for the developer to
     /// provide a descriptive label for the task.
@@ -418,11 +482,7 @@ extension URLSessionTask {
     }
 }
 
-extension URLSessionTask : ProgressReporting {
-    public var progress: Progress {
-        NSUnimplemented()
-    }
-}
+extension URLSessionTask : ProgressReporting {}
 
 extension URLSessionTask {
     /// Updates the (public) state based on private / internal state.
