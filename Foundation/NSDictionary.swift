@@ -148,7 +148,22 @@ open class NSDictionary : NSObject, NSCopying, NSMutableCopying, NSSecureCoding,
             keyedArchiver._encodeArrayOfObjects(self.allKeys._nsObject, forKey:"NS.keys")
             keyedArchiver._encodeArrayOfObjects(self.allValues._nsObject, forKey:"NS.objects")
         } else {
-            NSUnimplemented()
+            guard aCoder.allowsKeyedCoding else {
+                preconditionFailure("Unkeyed decoding is unsupported.")
+            }
+            
+            var count = 0
+            var keyKey: String {
+                "NS.key.\(count)"
+            }
+            var objectKey: String {
+                "NS.object.\(count)"
+            }
+            for key in self.allKeys {
+                aCoder.encode(key as AnyObject, forKey: keyKey)
+                aCoder.encode(self[key] as AnyObject, forKey: objectKey)
+                count += 1
+            }
         }
     }
     
