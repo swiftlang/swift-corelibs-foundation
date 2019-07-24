@@ -54,7 +54,7 @@ open class URLSessionTask : NSObject, NSCopying {
                 
             default:
                 let toBeSent: Int64?
-                if let bodyLength = try? self.body.getBodyLength() {
+                if let bodyLength = try? self.knownBody?.getBodyLength() {
                     toBeSent = Int64(clamping: bodyLength)
                 } else if self.countOfBytesExpectedToSend > 0 {
                     toBeSent = Int64(clamping: self.countOfBytesExpectedToSend)
