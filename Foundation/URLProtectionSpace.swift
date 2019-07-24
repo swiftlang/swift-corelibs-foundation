@@ -96,12 +96,14 @@ public let NSURLAuthenticationMethodNegotiate: String = "NSURLAuthenticationMeth
     @const NSURLAuthenticationMethodClientCertificate
     @abstract SSL Client certificate.  Applies to any protocol.
  */
+@available(*, deprecated, message: "swift-corelibs-foundation does not currently support certificate authentication.")
 public let NSURLAuthenticationMethodClientCertificate: String = "NSURLAuthenticationMethodClientCertificate"
 
 /*!
     @const NSURLAuthenticationMethodServerTrust
     @abstract SecTrustRef validation required.  Applies to any protocol.
  */
+@available(*, deprecated, message: "swift-corelibs-foundation does not support methods of authentication that rely on the Darwin Security framework.")
 public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMethodServerTrust"
 
 
@@ -109,7 +111,7 @@ public let NSURLAuthenticationMethodServerTrust: String = "NSURLAuthenticationMe
     @class URLProtectionSpace
     @discussion This class represents a protection space requiring authentication.
 */
-open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
+open class URLProtectionSpace : NSObject, NSCopying {
 
     private let _host: String
     private let _isProxy: Bool
@@ -123,16 +125,9 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         return copy(with: nil)
     }
     
-    open func copy(with zone: NSZone? = nil) -> Any { NSUnimplemented() }
-    public static var supportsSecureCoding: Bool { return true }
-
-    open func encode(with aCoder: NSCoder) {
-        NSUnimplemented()
+    open func copy(with zone: NSZone? = nil) -> Any {
+        return self // These instances are immutable.
     }
-    public required init?(coder aDecoder: NSCoder) {
-        NSUnimplemented()
-    }
-    
     
     /*!
         @method initWithHost:port:protocol:realm:authenticationMethod:
@@ -199,7 +194,34 @@ open class URLProtectionSpace : NSObject, NSSecureCoding, NSCopying {
         @abstract Determine if the password for this protection space can be sent securely
         @result YES if a secure authentication method or protocol will be used, NO otherwise
     */
-    open var receivesCredentialSecurely: Bool { NSUnimplemented() }
+    open var receivesCredentialSecurely: Bool {
+        switch self.protocol {
+        // The documentation is ambiguous whether a protection space needs to use the NSURLProtectionSpace… constants, or URL schemes.
+        // Allow both.
+        case NSURLProtectionSpaceHTTPS: fallthrough
+        case "https": fallthrough
+        case "ftps":
+            return true
+            
+        default:
+            switch authenticationMethod {
+            case NSURLAuthenticationMethodDefault: fallthrough
+            case NSURLAuthenticationMethodHTTPBasic: fallthrough
+            case NSURLAuthenticationMethodHTTPDigest: fallthrough
+            case NSURLAuthenticationMethodHTMLForm:
+                return false
+                
+            case NSURLAuthenticationMethodNTLM: fallthrough
+            case NSURLAuthenticationMethodNegotiate: fallthrough
+            case NSURLAuthenticationMethodClientCertificate: fallthrough
+            case NSURLAuthenticationMethodServerTrust:
+                return true
+                
+            default:
+                return false
+            }
+        }
+    }
     
     /*!
         @method host
@@ -333,18 +355,14 @@ extension URLProtectionSpace {
         @abstract Returns an array of acceptable certificate issuing authorities for client certification authentication. Issuers are identified by their distinguished name and returned as a DER encoded data.
         @result An array of NSData objects.  (Nil if the authenticationMethod is not NSURLAuthenticationMethodClientCertificate)
      */
-    public var distinguishedNames: [Data]? { NSUnimplemented() }
-}
-
-// TODO: Currently no implementation of Security.framework
-/*
-extension URLProtectionSpace {
+    @available(*, deprecated, message: "swift-corelibs-foundation does not currently support certificate authentication.")
+    public var distinguishedNames: [Data]? { return nil }
     
     /*!
         @method serverTrust
         @abstract Returns a SecTrustRef which represents the state of the servers SSL transaction state
         @result A SecTrustRef from Security.framework.  (Nil if the authenticationMethod is not NSURLAuthenticationMethodServerTrust)
      */
-    public var serverTrust: SecTrust? { NSUnimplemented() }
+    @available(*, unavailable, message: "swift-corelibs-foundation does not support methods of authentication that rely on the Darwin Security framework.")
+    public var serverTrust: Any? { NSUnsupported() }
 }
-*/
