@@ -98,8 +98,7 @@ open class URLSessionTask : NSObject, NSCopying {
     
     internal var actualSession: URLSession? { return session as? URLSession }
     internal var session: URLSessionProtocol! //change to nil when task completes
-    internal let body: _Body
-    
+
     fileprivate enum ProtocolState {
         case toBeCreated
         case awaitingCacheReply(Bag<(URLProtocol?) -> Void>)
@@ -611,6 +610,17 @@ open class URLSessionUploadTask : URLSessionDataTask {
  * local storage.
  */
 open class URLSessionDownloadTask : URLSessionTask {
+    
+    var createdFromInvalidResumeData = false
+    
+    // If a task is created from invalid resume data, prevent attempting creation of the protocol object.
+    override func _getProtocol(_ callback: @escaping (URLProtocol?) -> Void) {
+        if createdFromInvalidResumeData {
+            callback(nil)
+        } else {
+            super._getProtocol(callback)
+        }
+    }
     
     internal var fileLength = -1.0
     

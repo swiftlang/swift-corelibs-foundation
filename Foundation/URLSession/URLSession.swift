@@ -545,6 +545,7 @@ fileprivate extension URLSession {
         
         guard !self.invalidated else { fatalError("Session invalidated") }
         let task = URLSessionDownloadTask()
+        task.createdFromInvalidResumeData = true
         task.taskIdentifier = createNextTaskIdentifier()
         task.session = self
         workQueue.async {
