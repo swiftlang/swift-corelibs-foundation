@@ -147,7 +147,11 @@ internal func _CFSwiftDictionaryGetCountOfValue(_ dictionary: AnyObject, value: 
 }
 
 internal func _CFSwiftDictionaryContainsValue(_ dictionary: AnyObject, value: AnyObject) -> Bool {
-    NSUnimplemented()
+    if let value = value as? AnyHashable {
+        return (dictionary as! NSDictionary).allValues.lazy.compactMap { $0 as? AnyHashable }.contains(value)
+    } else {
+        return false
+    }
 }
 
 // HAZARD! WARNING!
