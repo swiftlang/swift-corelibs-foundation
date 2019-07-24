@@ -758,7 +758,7 @@ extension _ProtocolClient : URLProtocolClient {
                     
                     let authenticationChallenge = URLAuthenticationChallenge(protectionSpace: protectionSpace, proposedCredential: proposedCredential,
                                                                              previousFailureCount: task.previousFailureCount, failureResponse: response, error: nil,
-                                                                             sender: urlProtocol as! _HTTPURLProtocol)
+                                                                             sender: URLSessionAuthenticationChallengeSender())
                     task.previousFailureCount += 1
                     self.urlProtocol(urlProtocol, didReceive: authenticationChallenge)
                 }
