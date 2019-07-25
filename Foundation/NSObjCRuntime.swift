@@ -234,7 +234,7 @@ internal struct _CFInfo {
 // NSStringFromClass(_:) will return the ObjC name when passed one of these classes, and NSClassFromString(_:) will return the class when passed the ObjC name.
 // This is important for NSCoding archives created on Apple OSes to decode with swift-corelibs-foundation and for general source and data format compatibility.
 
-internal let _NSClassesRenamedByObjCAPINotesInNetworking: [(swiftName: String, objCName: String)] = [
+internal let _NSClassesRenamedByObjCAPINotesInNetworkingOrXML: [(swiftName: String, objCName: String)] = [
     (_SwiftFoundationNetworkingModuleName + ".CachedURLResponse", "NSCachedURLResponse"),
     (_SwiftFoundationNetworkingModuleName + ".HTTPCookie", "NSHTTPCookie"),
     (_SwiftFoundationNetworkingModuleName + ".HTTPCookieStorage", "NSHTTPCookieStorage"),
@@ -253,6 +253,12 @@ internal let _NSClassesRenamedByObjCAPINotesInNetworking: [(swiftName: String, o
     (_SwiftFoundationNetworkingModuleName + ".URLCredentialStorage", "NSURLCredentialStorage"),
     (_SwiftFoundationNetworkingModuleName + ".URLProtectionSpace", "NSURLProtectionSpace"),
     (_SwiftFoundationNetworkingModuleName + ".URLProtocol", "NSURLProtocol"),
+    (_SwiftFoundationXMLModuleName + ".XMLDTD", "NSXMLDTD"),
+    (_SwiftFoundationXMLModuleName + ".XMLDTDNode", "NSXMLDTDNode"),
+    (_SwiftFoundationXMLModuleName + ".XMLDocument", "NSXMLDocument"),
+    (_SwiftFoundationXMLModuleName + ".XMLElement", "NSXMLElement"),
+    (_SwiftFoundationXMLModuleName + ".XMLNode", "NSXMLNode"),
+    (_SwiftFoundationXMLModuleName + ".XMLParser", "NSXMLParser"),
 ]
 
 internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: String)] = {
@@ -262,12 +268,6 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
         (Port.self, "NSPort"),
         (PortMessage.self, "NSPortMessage"),
         (SocketPort.self, "NSSocketPort"),
-        (XMLDTD.self, "NSXMLDTD"),
-        (XMLDTDNode.self, "NSXMLDTDNode"),
-        (XMLDocument.self, "NSXMLDocument"),
-        (XMLElement.self, "NSXMLElement"),
-        (XMLNode.self, "NSXMLNode"),
-        (XMLParser.self, "NSXMLParser"),
         (Bundle.self, "NSBundle"),
         (ByteCountFormatter.self, "NSByteCountFormatter"),
         (Host.self, "NSHost"),
@@ -332,7 +332,7 @@ internal let _NSClassesRenamedByObjCAPINotes: [(class: AnyClass, objCName: Strin
 
 fileprivate var mapFromObjCNameToKnownName: [String: String] = {
     var map: [String: String] = [:]
-    for entry in _NSClassesRenamedByObjCAPINotesInNetworking {
+    for entry in _NSClassesRenamedByObjCAPINotesInNetworkingOrXML {
         map[entry.objCName] = entry.swiftName
     }
     return map
@@ -340,7 +340,7 @@ fileprivate var mapFromObjCNameToKnownName: [String: String] = {
 
 fileprivate var mapFromKnownNameToObjCName: [String: String] = {
     var map: [String: String] = [:]
-    for entry in _NSClassesRenamedByObjCAPINotesInNetworking {
+    for entry in _NSClassesRenamedByObjCAPINotesInNetworkingOrXML {
         map[entry.swiftName] = entry.objCName
     }
     return map
@@ -369,6 +369,7 @@ private let _SwiftFoundationModuleName = "Foundation"
 #endif
 
 internal let _SwiftFoundationNetworkingModuleName = _SwiftFoundationModuleName + "Networking"
+internal let _SwiftFoundationXMLModuleName = _SwiftFoundationModuleName + "XML"
 
 /**
     Returns the class name for a class. For compatibility with Foundation on Darwin,
@@ -393,7 +394,7 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String {
     
     if components[0] == _SwiftFoundationModuleName {
         return components[1]
-    } else if components[0] == _SwiftFoundationNetworkingModuleName, let actualName = mapFromKnownNameToObjCName[classNameString] {
+    } else if components[0] == _SwiftFoundationNetworkingModuleName || components[0] == _SwiftFoundationXMLModuleName, let actualName = mapFromKnownNameToObjCName[classNameString] {
         return actualName
     } else {
         return String(describing: aClassName)

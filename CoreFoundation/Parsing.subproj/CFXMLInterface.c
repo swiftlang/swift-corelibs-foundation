@@ -25,6 +25,8 @@
 #include <libxml/dict.h>
 #include "CFXMLInterface.h"
 
+struct _NSXMLParserBridge __CFSwiftXMLParserBridge = { 0 };
+
 /*
  libxml2 does not have nullability annotations and does not import well into swift when given potentially differing versions of the library that might be installed on the host operating system. This is a simple C wrapper to simplify some of that interface layer to libxml2.
  */
@@ -118,9 +120,9 @@ typedef struct {
 static xmlExternalEntityLoader __originalLoader = NULL;
 
 static xmlParserInputPtr _xmlExternalEntityLoader(const char *urlStr, const char * ID, xmlParserCtxtPtr context) {
-    _CFXMLInterface parser = __CFSwiftBridge.NSXMLParser.currentParser();
+    _CFXMLInterface parser = __CFSwiftXMLParserBridge.currentParser();
     if (parser != NULL) {
-        return __CFSwiftBridge.NSXMLParser._xmlExternalEntityWithURL(parser, urlStr, ID, context, __originalLoader);
+        return __CFSwiftXMLParserBridge._xmlExternalEntityWithURL(parser, urlStr, ID, context, __originalLoader);
     }
     return __originalLoader(urlStr, ID, context);
 }
@@ -138,13 +140,20 @@ void _CFSetupXMLInterface(void) {
 #endif // DEPLOYMENT_RUNTIME_SWIFT
 }
 
+void _CFSetupXMLBridgeIfNeededUsingBlock(dispatch_block_t block) {
+#if DEPLOYMENT_RUNTIME_SWIFT
+    static dispatch_once_t bridgeInitGuard;
+    dispatch_once(&bridgeInitGuard, block);
+#endif // DEPLOYMENT_RUNTIME_SWIFT
+}
+
 _CFXMLInterfaceParserInput _CFXMLInterfaceNoNetExternalEntityLoader(const char *URL, const char *ID, _CFXMLInterfaceParserContext ctxt) {
     return xmlNoNetExternalEntityLoader(URL, ID, ctxt);
 }
 
 #if DEPLOYMENT_RUNTIME_SWIFT
 static void _errorCallback(void *ctx, const char *msg, ...) {
-    xmlParserCtxtPtr context = __CFSwiftBridge.NSXMLParser.getContext((_CFXMLInterface)ctx);
+    xmlParserCtxtPtr context = __CFSwiftXMLParserBridge.getContext((_CFXMLInterface)ctx);
     xmlErrorPtr error = xmlCtxtGetLastError(context);
 // TODO: reporting
 //    _reportError(error, (_CFXMLInterface)ctx);
@@ -154,29 +163,29 @@ static void _errorCallback(void *ctx, const char *msg, ...) {
 _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler() {
     _CFXMLInterfaceSAXHandler saxHandler = (_CFXMLInterfaceSAXHandler)calloc(1, sizeof(struct _xmlSAXHandler));
 #if DEPLOYMENT_RUNTIME_SWIFT
-    saxHandler->internalSubset = (internalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.internalSubset;
-    saxHandler->isStandalone = (isStandaloneSAXFunc)__CFSwiftBridge.NSXMLParser.isStandalone;
+    saxHandler->internalSubset = (internalSubsetSAXFunc)__CFSwiftXMLParserBridge.internalSubset;
+    saxHandler->isStandalone = (isStandaloneSAXFunc)__CFSwiftXMLParserBridge.isStandalone;
     
-    saxHandler->hasInternalSubset = (hasInternalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.hasInternalSubset;
-    saxHandler->hasExternalSubset = (hasExternalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.hasExternalSubset;
+    saxHandler->hasInternalSubset = (hasInternalSubsetSAXFunc)__CFSwiftXMLParserBridge.hasInternalSubset;
+    saxHandler->hasExternalSubset = (hasExternalSubsetSAXFunc)__CFSwiftXMLParserBridge.hasExternalSubset;
     
-    saxHandler->getEntity = (getEntitySAXFunc)__CFSwiftBridge.NSXMLParser.getEntity;
+    saxHandler->getEntity = (getEntitySAXFunc)__CFSwiftXMLParserBridge.getEntity;
     
-    saxHandler->notationDecl = (notationDeclSAXFunc)__CFSwiftBridge.NSXMLParser.notationDecl;
-    saxHandler->attributeDecl = (attributeDeclSAXFunc)__CFSwiftBridge.NSXMLParser.attributeDecl;
-    saxHandler->elementDecl = (elementDeclSAXFunc)__CFSwiftBridge.NSXMLParser.elementDecl;
-    saxHandler->unparsedEntityDecl = (unparsedEntityDeclSAXFunc)__CFSwiftBridge.NSXMLParser.unparsedEntityDecl;
-    saxHandler->startDocument = (startDocumentSAXFunc)__CFSwiftBridge.NSXMLParser.startDocument;
-    saxHandler->endDocument = (endDocumentSAXFunc)__CFSwiftBridge.NSXMLParser.endDocument;
-    saxHandler->startElementNs = (startElementNsSAX2Func)__CFSwiftBridge.NSXMLParser.startElementNs;
-    saxHandler->endElementNs = (endElementNsSAX2Func)__CFSwiftBridge.NSXMLParser.endElementNs;
-    saxHandler->characters = (charactersSAXFunc)__CFSwiftBridge.NSXMLParser.characters;
-    saxHandler->processingInstruction = (processingInstructionSAXFunc)__CFSwiftBridge.NSXMLParser.processingInstruction;
+    saxHandler->notationDecl = (notationDeclSAXFunc)__CFSwiftXMLParserBridge.notationDecl;
+    saxHandler->attributeDecl = (attributeDeclSAXFunc)__CFSwiftXMLParserBridge.attributeDecl;
+    saxHandler->elementDecl = (elementDeclSAXFunc)__CFSwiftXMLParserBridge.elementDecl;
+    saxHandler->unparsedEntityDecl = (unparsedEntityDeclSAXFunc)__CFSwiftXMLParserBridge.unparsedEntityDecl;
+    saxHandler->startDocument = (startDocumentSAXFunc)__CFSwiftXMLParserBridge.startDocument;
+    saxHandler->endDocument = (endDocumentSAXFunc)__CFSwiftXMLParserBridge.endDocument;
+    saxHandler->startElementNs = (startElementNsSAX2Func)__CFSwiftXMLParserBridge.startElementNs;
+    saxHandler->endElementNs = (endElementNsSAX2Func)__CFSwiftXMLParserBridge.endElementNs;
+    saxHandler->characters = (charactersSAXFunc)__CFSwiftXMLParserBridge.characters;
+    saxHandler->processingInstruction = (processingInstructionSAXFunc)__CFSwiftXMLParserBridge.processingInstruction;
     saxHandler->error = _errorCallback;
-    saxHandler->cdataBlock = (cdataBlockSAXFunc)__CFSwiftBridge.NSXMLParser.cdataBlock;
-    saxHandler->comment = (commentSAXFunc)__CFSwiftBridge.NSXMLParser.comment;
+    saxHandler->cdataBlock = (cdataBlockSAXFunc)__CFSwiftXMLParserBridge.cdataBlock;
+    saxHandler->comment = (commentSAXFunc)__CFSwiftXMLParserBridge.comment;
     
-    saxHandler->externalSubset = (externalSubsetSAXFunc)__CFSwiftBridge.NSXMLParser.externalSubset;
+    saxHandler->externalSubset = (externalSubsetSAXFunc)__CFSwiftXMLParserBridge.externalSubset;
     
     saxHandler->initialized = XML_SAX2_MAGIC; // make sure start/endElementNS are used
 #endif //if DEPLOYMENT_RUNTIME_SWIFT

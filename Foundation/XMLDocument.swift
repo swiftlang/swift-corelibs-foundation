@@ -7,7 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
+import CFXMLInterface
+
 // Input options
 //  NSXMLNodeOptionsNone
 //  NSXMLNodePreserveAll
@@ -92,7 +99,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
     public init(data: Data, options mask: XMLNode.Options = []) throws {
-        let docPtr = _CFXMLDocPtrFromDataWithOptions(data._cfObject, UInt32(mask.rawValue))
+        let docPtr = _CFXMLDocPtrFromDataWithOptions((data as AnyObject) as! CFData, UInt32(mask.rawValue))
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
         if mask.contains(.documentValidate) {
@@ -124,7 +131,8 @@ open class XMLDocument : XMLNode {
     */
     open var characterEncoding: String? {
         get {
-            return _CFXMLDocCopyCharacterEncoding(_xmlDoc)?._swiftObject
+            let returned = _CFXMLDocCopyCharacterEncoding(_xmlDoc)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             if let value = newValue {
@@ -141,7 +149,8 @@ open class XMLDocument : XMLNode {
     */
     open var version: String? {
         get {
-            return _CFXMLDocCopyVersion(_xmlDoc)?._swiftObject
+            let returned = _CFXMLDocCopyVersion(_xmlDoc)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             if let value = newValue {
@@ -354,7 +363,7 @@ open class XMLDocument : XMLNode {
         if !result,
             let unmanagedError = unmanagedError {
             let error = unmanagedError.takeRetainedValue()
-            throw error._nsObject
+            throw _CFErrorSPIForFoundationXMLUseOnly(error)._nsObject
         }
     }
 
@@ -362,7 +371,7 @@ open class XMLDocument : XMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDocument)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return XMLDocument.unretainedReference(privateData)
+            return unsafeBitCast(privateData, to: XMLDocument.self)
         }
 
         return XMLDocument(ptr: node)

@@ -9,14 +9,18 @@
 
 // Centralized conditional imports for all test sources
 
-#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftFoundationNetworking) && canImport(SwiftXCTest) 
+#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftFoundationNetworking) && canImport(SwiftFoundationXML) && canImport(SwiftXCTest) 
 @_exported import SwiftFoundation
 @_exported import SwiftFoundationNetworking
+@_exported import SwiftFoundationXML
 @_exported import SwiftXCTest
 #else
 @_exported import Foundation
 #if canImport(FoundationNetworking)
 @_exported import FoundationNetworking
+#endif
+#if canImport(FoundationXML)
+@_exported import FoundationXML
 #endif
 @_exported import XCTest
 #endif

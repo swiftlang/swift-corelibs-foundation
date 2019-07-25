@@ -21,7 +21,6 @@
 #include <CoreFoundation/CFLocaleInternal.h>
 #include <CoreFoundation/CFCalendar.h>
 #include <CoreFoundation/CFPriv.h>
-#include <CoreFoundation/CFXMLInterface.h>
 #include <CoreFoundation/CFRegularExpression.h>
 #include <CoreFoundation/CFLogUtilities.h>
 #include <CoreFoundation/CFDateIntervalFormatter.h>
@@ -187,68 +186,6 @@ struct _NSMutableStringBridge {
     void (*_cfAppendCString)(CFTypeRef str, const char *chars, CFIndex appendLength);
 };
 
-struct _NSXMLParserBridge {
-    _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
-    _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface /*interface*/, const char * /*url*/, const char * /*identifier*/, _CFXMLInterfaceParserContext /*context*/, _CFXMLInterfaceExternalEntityLoader /*originalLoaderFunction*/);
-    
-    _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
-    
-    void (*internalSubset)(_CFXMLInterface ctx, const unsigned char *name, const unsigned char *ExternalID, const unsigned char *SystemID);
-    int (*isStandalone)(_CFXMLInterface ctx);
-    int (*hasInternalSubset)(_CFXMLInterface ctx);
-    int (*hasExternalSubset)(_CFXMLInterface ctx);
-    _CFXMLInterfaceEntity _Nullable (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
-    void (*notationDecl)(_CFXMLInterface ctx,
-                         const unsigned char *name,
-                         const unsigned char *publicId,
-                         const unsigned char *systemId);
-    void (*attributeDecl)(_CFXMLInterface ctx,
-                          const unsigned char *elem,
-                          const unsigned char *fullname,
-                          int type,
-                          int def,
-                          const unsigned char *defaultValue,
-                          _CFXMLInterfaceEnumeration tree);
-    void (*elementDecl)(_CFXMLInterface ctx,
-                        const unsigned char *name,
-                        int type,
-                        _CFXMLInterfaceElementContent content);
-    void (*unparsedEntityDecl)(_CFXMLInterface ctx,
-                               const unsigned char *name,
-                               const unsigned char *publicId,
-                               const unsigned char *systemId,
-                               const unsigned char *notationName);
-    void (*startDocument)(_CFXMLInterface ctx);
-    void (*endDocument)(_CFXMLInterface ctx);
-    void (*startElementNs)(_CFXMLInterface ctx,
-                           const unsigned char *localname,
-                           const unsigned char *_Nullable prefix,
-                           const unsigned char *_Nullable URI,
-                           int nb_namespaces,
-                           const unsigned char *_Nullable *_Nonnull namespaces,
-                           int nb_attributes,
-                           int nb_defaulted,
-                           const unsigned char *_Nullable *_Nonnull attributes);
-    void (*endElementNs)(_CFXMLInterface ctx,
-                         const unsigned char *localname,
-                         const unsigned char *_Nullable prefix,
-                         const unsigned char *_Nullable URI);
-    void (*characters)(_CFXMLInterface ctx,
-                       const unsigned char *ch,
-                       int len);
-    void (*processingInstruction)(_CFXMLInterface ctx,
-                                  const unsigned char *target,
-                                  const unsigned char *data);
-    void (*cdataBlock)(_CFXMLInterface ctx,
-                       const unsigned char *value,
-                       int len);
-    void (*comment)(_CFXMLInterface ctx, const unsigned char *value);
-    void (*externalSubset)(_CFXMLInterface ctx,
-                           const unsigned char *name,
-                           const unsigned char *ExternalID,
-                           const unsigned char *SystemID);
-};
-
 struct _NSRunLoop {
     _Nonnull CFTypeRef (*_Nonnull _new)(CFRunLoopRef rl);
 };
@@ -327,7 +264,6 @@ struct _CFSwiftBridge {
     struct _NSMutableSetBridge NSMutableSet;
     struct _NSStringBridge NSString;
     struct _NSMutableStringBridge NSMutableString;
-    struct _NSXMLParserBridge NSXMLParser;
     struct _NSRunLoop NSRunLoop;
     struct _NSCharacterSetBridge NSCharacterSet;
     struct _NSMutableCharacterSetBridge NSMutableCharacterSet;

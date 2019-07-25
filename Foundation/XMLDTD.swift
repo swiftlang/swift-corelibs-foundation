@@ -7,7 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
+import CFXMLInterface
+
 /*!
     @class XMLDTD
     @abstract Defines the order, repetition, and allowable values for a document
@@ -35,9 +42,9 @@ open class XMLDTD : XMLNode {
     public convenience init(data: Data, options mask: XMLNode.Options = []) throws {
         var unmanagedError: Unmanaged<CFError>? = nil
         
-        guard let node = _CFXMLParseDTDFromData(data._cfObject, &unmanagedError) else {
-            if let error = unmanagedError?.takeRetainedValue()._nsObject {
-                throw error
+        guard let node = _CFXMLParseDTDFromData(unsafeBitCast(data as NSData, to: CFData.self), &unmanagedError) else {
+            if let error = unmanagedError?.takeRetainedValue() {
+                throw _CFErrorSPIForFoundationXMLUseOnly(error)._nsObject
             }
             //TODO: throw a generic error?
             fatalError("parsing dtd from data failed")
@@ -52,7 +59,8 @@ open class XMLDTD : XMLNode {
     */
     open var publicID: String? {
         get {
-            return _CFXMLDTDCopyExternalID(_xmlDTD)?._swiftObject
+            let returned = _CFXMLDTDCopyExternalID(_xmlDTD)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
 
         set {
@@ -70,7 +78,8 @@ open class XMLDTD : XMLNode {
     */
     open var systemID: String? {
         get {
-            return _CFXMLDTDCopySystemID(_xmlDTD)?._swiftObject
+            let returned = _CFXMLDTDCopySystemID(_xmlDTD)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
 
         set {
@@ -181,7 +190,7 @@ open class XMLDTD : XMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeDTD)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return XMLDTD.unretainedReference(privateData)
+            return unsafeBitCast(privateData, to: XMLDTD.self)
         }
         
         return XMLDTD(ptr: node)

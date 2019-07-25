@@ -220,6 +220,17 @@ extension CFError : _NSBridgeable {
     }
 }
 
+public struct _CFErrorSPIForFoundationXMLUseOnly {
+    let error: CFError
+    public init(_ error: AnyObject) {
+        self.error = error as! CFError
+    }
+    
+    public var _nsObject: NSError {
+        return error._nsObject
+    }
+}
+
 /// Describes an error that provides localized messages describing why
 /// an error occurred and provides more information about the error.
 public protocol LocalizedError : Error {
