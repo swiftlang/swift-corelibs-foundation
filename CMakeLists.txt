@@ -27,7 +27,7 @@ option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
 option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
 
-find_package(CURL REQUIRED)
+find_package(CURL COMPONENTS libz REQUIRED)
 find_package(ICU COMPONENTS uc i18n REQUIRED)
 find_package(LibXml2 REQUIRED)
 
@@ -123,6 +123,12 @@ foreach(library ${CoreFoundation_LINK_LIBRARIES})
     list(APPEND CFURLSessionInterface_LIBRARIES -l${library})
   endif()
 endforeach()
+
+if (CURL_LIBRARIES MATCHES "${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+  set(CURL_LINK_FLAGS ${CURL_LIBRARIES} ${CMAKE_LINK_LIBRARY_FLAG}z)
+else()
+  set(CURL_LINK_FLAGS ${CURL_LIBRARIES})
+endif()
 
 add_swift_library(Foundation
                   MODULE_NAME
@@ -275,7 +281,6 @@ add_swift_library(Foundation
                   LINK_FLAGS
                     ${CoreFoundation_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
-                    ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
@@ -344,7 +349,7 @@ add_swift_library(FoundationNetworking
                     -lFoundation
                     ${Foundation_INTERFACE_LIBRARIES}
                     ${CFURLSessionInterface_LIBRARIES}
-                    ${CURL_LIBRARIES}
+                    ${CURL_LINK_FLAGS}
                     ${Foundation_RPATH}
                     ${WORKAROUND_SR9138}
                     ${WORKAROUND_SR9995}
@@ -371,7 +376,6 @@ if(NOT BUILD_SHARED_LIBS)
       -lCoreFoundation
       -L${CMAKE_CURRENT_BINARY_DIR}
       -luuid
-      ${CURL_LIBRARIES}
       ${ICU_UC_LIBRARY}
       ${ICU_I18N_LIBRARY}
       ${LIBXML2_LIBRARIES})

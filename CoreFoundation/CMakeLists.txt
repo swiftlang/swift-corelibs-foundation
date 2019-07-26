@@ -421,7 +421,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_include_directories(CoreFoundation
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
-  find_package(CURL REQUIRED)
+  find_package(CURL COMPONENTS libz REQUIRED)
   target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
