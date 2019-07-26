@@ -777,12 +777,12 @@ public func tgamma(_ x: CGFloat) -> CGFloat {
 
 @_transparent
 public func nearbyint(_ x: CGFloat) -> CGFloat {
-    return CGFloat(nearbyint(x.native))
+    return CGFloat(x.native.rounded(.toNearestOrEven))
 }
 
 @_transparent
 public func rint(_ x: CGFloat) -> CGFloat {
-    return CGFloat(rint(x.native))
+    return CGFloat(x.native.rounded(.toNearestOrEven))
 }
 
 @_transparent
