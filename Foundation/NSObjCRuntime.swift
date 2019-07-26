@@ -438,7 +438,7 @@ public func NSClassFromString(_ aClassName: String) -> AnyClass? {
     return _typeByName(aClassNameWithPrefix) as? AnyClass
 }
 
-// The following types have been moved to FoundationNetworking. They exist here only to allow appropriate diagnostics to surface in the compiler.
+// The following types have been moved to FoundationNetworking or FoundationXML. They exist here only to allow appropriate diagnostics to surface in the compiler.
 
 @available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias CachedURLResponse = AnyObject
@@ -493,3 +493,21 @@ public typealias URLProtectionSpace = AnyObject
 
 @available(*, unavailable, message: "This type has moved to the FoundationNetworking module. Import that module to use it.")
 public typealias URLProtocol = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLDTD = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLDTDNode = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLDocument = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLElement = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLNode = AnyObject
+
+@available(*, unavailable, message: "This type has moved to the FoundationXML module. Import that module to use it.")
+public typealias XMLParser = AnyObject

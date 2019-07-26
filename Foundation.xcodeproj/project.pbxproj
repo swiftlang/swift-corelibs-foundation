@@ -524,13 +524,6 @@
 			remoteGlobalIDString = 15500FA722EA24D10088F082;
 			remoteInfo = CFXMLInterface;
 		};
-		1550111522EA42780088F082 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 15500FA722EA24D10088F082;
-			remoteInfo = CFXMLInterface;
-		};
 		1550111922EA43E00088F082 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
@@ -560,6 +553,13 @@
 			remoteInfo = CoreFoundation;
 		};
 		15B80445228F39B200B30FF6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B5D885C1BBC938800234F36;
+			remoteInfo = SwiftFoundation;
+		};
+		15F14D3922EB9F80001598B5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B5D88541BBC938800234F36 /* Project object */;
 			proxyType = 1;
@@ -2402,8 +2402,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				15F14D3A22EB9F80001598B5 /* PBXTargetDependency */,
 				1550110C22EA26780088F082 /* PBXTargetDependency */,
-				1550111622EA42780088F082 /* PBXTargetDependency */,
 			);
 			name = SwiftFoundationXML;
 			productName = CoreFoundation;
@@ -3125,11 +3125,6 @@
 			target = 15500FA722EA24D10088F082 /* CFXMLInterface */;
 			targetProxy = 1550110B22EA26780088F082 /* PBXContainerItemProxy */;
 		};
-		1550111622EA42780088F082 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 15500FA722EA24D10088F082 /* CFXMLInterface */;
-			targetProxy = 1550111522EA42780088F082 /* PBXContainerItemProxy */;
-		};
 		1550111A22EA43E00088F082 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1550106E22EA266B0088F082 /* SwiftFoundationXML */;
@@ -3154,6 +3149,11 @@
 			isa = PBXTargetDependency;
 			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
 			targetProxy = 15B80445228F39B200B30FF6 /* PBXContainerItemProxy */;
+		};
+		15F14D3A22EB9F80001598B5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B5D885C1BBC938800234F36 /* SwiftFoundation */;
+			targetProxy = 15F14D3922EB9F80001598B5 /* PBXContainerItemProxy */;
 		};
 		15FF00D022934C39004AD205 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
