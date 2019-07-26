@@ -853,24 +853,27 @@ extension FileManager {
         }
     }
 
-    private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size: Int64) -> Bool {
-        let bufSize = Int(size)
+    private func _compareSymlinks(withFileSystemRepresentation file1Rep: UnsafePointer<Int8>, andFileSystemRepresentation file2Rep: UnsafePointer<Int8>, size fileSize: Int64) -> Bool {
+        let bufSize = Int(fileSize)
         let buffer1 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
+        defer { buffer1.deallocate() }
         let buffer2 = UnsafeMutablePointer<CChar>.allocate(capacity: bufSize)
+        defer { buffer2.deallocate() }
 
         let size1 = readlink(file1Rep, buffer1, bufSize)
+        guard size1 >= 0 else { return false }
+
         let size2 = readlink(file2Rep, buffer2, bufSize)
+        guard size2 >= 0 else { return false }
 
-        let compare: Bool
-        if size1 < 0 || size2 < 0 || size1 != size || size1 != size2 {
-            compare = false
-        } else {
-            compare = memcmp(buffer1, buffer2, size1) == 0
-        }
+        #if !os(Android)
+            // In Android the reported size doesn't match the contents.
+            // Other platforms seems to follow that rule.
+            guard fileSize == size1 else { return false }
+        #endif
 
-        buffer1.deallocate()
-        buffer2.deallocate()
-        return compare
+        guard size1 == size2  else { return false }
+        return memcmp(buffer1, buffer2, size1) == 0
     }
 
     internal func _lstatFile(atPath path: String, withFileSystemRepresentation fsRep: UnsafePointer<Int8>? = nil) throws -> stat {
@@ -938,7 +941,7 @@ extension FileManager {
 
     /* -contentsEqualAtPath:andPath: does not take into account data stored in the resource fork or filesystem extended attributes.
      */
-internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
+    internal func _contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
         do {
             let fsRep1 = try __fileSystemRepresentation(withPath: path1)
             defer { fsRep1.deallocate() }
