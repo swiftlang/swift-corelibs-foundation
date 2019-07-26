@@ -99,7 +99,7 @@ open class XMLDocument : XMLNode {
         @abstract Returns a document created from data. Parse errors are returned in <tt>error</tt>.
     */
     public init(data: Data, options mask: XMLNode.Options = []) throws {
-        let docPtr = _CFXMLDocPtrFromDataWithOptions((data as AnyObject) as! CFData, UInt32(mask.rawValue))
+        let docPtr = _CFXMLDocPtrFromDataWithOptions(unsafeBitCast(data as NSData, to: CFData.self), UInt32(mask.rawValue))
         super.init(ptr: _CFXMLNodePtr(docPtr))
 
         if mask.contains(.documentValidate) {
