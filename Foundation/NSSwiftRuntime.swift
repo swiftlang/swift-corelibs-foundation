@@ -32,7 +32,7 @@ import WinSDK
 /// On 64-bit iOS, the Objective-C BOOL type is a typedef of C/C++
 /// bool. Elsewhere, it is "signed char". The Clang importer imports it as
 /// ObjCBool.
-@_fixed_layout
+@frozen
 public struct ObjCBool : ExpressibleByBooleanLiteral {
     #if os(macOS) || (os(iOS) && (arch(i386) || arch(arm)))
     // On macOS and 32-bit iOS, Objective-C's BOOL type is a "signed char".

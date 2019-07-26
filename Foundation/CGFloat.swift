@@ -7,7 +7,7 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-@_fixed_layout
+@frozen
 public struct CGFloat {
 #if arch(i386) || arch(arm)
     /// The native type used to store the CGFloat, which is Float on
