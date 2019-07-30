@@ -7,7 +7,7 @@ list(APPEND CMAKE_MODULE_PATH
 # NOTE(compnerd) enable CMP0091 - select MSVC runtime based on
 # CMAKE_MSVC_RUNTIME_LIBRARY.  Requires CMake 3.15 or newer
 if(POLICY CMP0091)
-  cmake_policy(CMP0091 NEW)
+  cmake_policy(SET CMP0091 NEW)
 endif()
 
 project(Foundation
