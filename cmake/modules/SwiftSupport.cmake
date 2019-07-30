@@ -197,13 +197,13 @@ function(add_swift_target target)
                          ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}/${resources_dir})
     foreach(resource ${AST_RESOURCES})
       if(IS_DIRECTORY ${resource})
-        get_filename_component(resource_basename ${resource} NAME)             
+        get_filename_component(resource_basename ${resource} NAME)
         add_custom_command(TARGET
                              ${target}
                            POST_BUILD
                            COMMAND
                              ${CMAKE_COMMAND} -E copy_directory ${resource} ${CMAKE_CURRENT_BINARY_DIR}/${target}/${resources_dir}/${resource_basename})
-      else()               
+      else()
         add_custom_command(TARGET
                              ${target}
                            POST_BUILD
