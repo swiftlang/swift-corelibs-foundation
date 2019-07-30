@@ -153,7 +153,7 @@ static void _runLoopTimerWithBlockContext(CFRunLoopTimerRef timer, void *opaqueB
 #if TARGET_OS_WIN32
 
 static _CFThreadRef const kNilPthreadT = INVALID_HANDLE_VALUE;
-#define pthreadPointer(a) a
+#define pthreadPointer(a) (GetThreadId(a))
 typedef	int kern_return_t;
 #define KERN_SUCCESS 0
 
