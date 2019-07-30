@@ -140,6 +140,11 @@ open class Host: NSObject {
           pAdapter = pAdapter!.pointee.Next
         }
         _resolved = true
+#elseif os(Android)
+        // Android 5.0 doesn't contain an implementation of `getifaddrs`
+        // and therefore crashes when trying to load libFoundation.so.
+        // The existing code, below, may work on higher Android versions.
+        NSUnimplemented()
 #else
         var ifaddr: UnsafeMutablePointer<ifaddrs>? = nil
         if getifaddrs(&ifaddr) != 0 {
