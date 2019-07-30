@@ -852,7 +852,24 @@ extension FileHandle {
             if error == 0 {
                 userInfo[NSFileHandleNotificationDataItem] = Data(data)
             } else {
+#if os(Windows)
+                // On Windows, reading from a directory results in an
+                // ERROR_ACCESS_DENIED. If we get ERROR_ACCESS_DENIED
+                // and the handle we attempt to read from is a
+                // directory, replace it with
+                // ERROR_DIRECTORY_NOT_SUPPORTED to match POSIX's EISDIR
+                var translatedError = error
+                if error == ERROR_ACCESS_DENIED {
+                    var fileInfo = BY_HANDLE_FILE_INFORMATION()
+                    GetFileInformationByHandle(self.handle, &fileInfo)
+                    if fileInfo.dwFileAttributes & DWORD(FILE_ATTRIBUTE_DIRECTORY) == DWORD(FILE_ATTRIBUTE_DIRECTORY) {
+                        translatedError = ERROR_DIRECTORY_NOT_SUPPORTED
+                    }
+                }
+                userInfo["NSFileHandleError"] = Int(translatedError)
+#else
                 userInfo["NSFileHandleError"] = Int(error)
+#endif
             }
 
             DispatchQueue.main.async {

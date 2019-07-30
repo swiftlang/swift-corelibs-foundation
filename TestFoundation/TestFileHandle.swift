@@ -145,7 +145,11 @@ class TestFileHandle : XCTestCase {
         return fh
     }
     
+#if os(Windows)
+    let readError = NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: [ NSUnderlyingErrorKey: NSError(domain: "org.swift.Foundation.WindowsError", code: 1, userInfo: [:])])
+#else
     let readError = NSError(domain: NSCocoaErrorDomain, code: NSFileReadUnknownError, userInfo: [ NSUnderlyingErrorKey: NSError(domain: NSPOSIXErrorDomain, code: Int(EISDIR), userInfo: [:])])
+#endif
     
     override func tearDown() {
         for handle in allHandles {
@@ -463,7 +467,11 @@ class TestFileHandle : XCTestCase {
             }
             
             XCTAssertNil(notification.userInfo?[NSFileHandleNotificationDataItem])
+#if os(Windows)
+            XCTAssertEqual(error, NSNumber(value: ERROR_DIRECTORY_NOT_SUPPORTED))
+#else
             XCTAssertEqual(error, NSNumber(value: EISDIR))
+#endif
             return true
         }
         
