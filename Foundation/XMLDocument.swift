@@ -363,7 +363,7 @@ open class XMLDocument : XMLNode {
         if !result,
             let unmanagedError = unmanagedError {
             let error = unmanagedError.takeRetainedValue()
-            throw _CFErrorSPIForFoundationXMLUseOnly(error)._nsObject
+            throw _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: error)._nsObject
         }
     }
 

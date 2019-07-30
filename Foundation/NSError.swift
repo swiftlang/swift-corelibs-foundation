@@ -222,8 +222,8 @@ extension CFError : _NSBridgeable {
 
 public struct _CFErrorSPIForFoundationXMLUseOnly {
     let error: CFError
-    public init(_ error: AnyObject) {
-        self.error = error as! CFError
+    public init(unsafelyAssumingIsCFError error: AnyObject) {
+        self.error = unsafeBitCast(error, to: CFError.self)
     }
     
     public var _nsObject: NSError {

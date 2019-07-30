@@ -384,7 +384,7 @@ internal func _NSXMLParserExternalSubset(_ ctx: _CFXMLInterface, name: UnsafePoi
 
 internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLInterfaceError) {
     let cferr = _CFErrorCreateFromXMLInterface(error)
-    let err = _CFErrorSPIForFoundationXMLUseOnly(cferr)._nsObject
+    let err = _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: cferr)._nsObject
     let parser = interface.parser
     parser._parserError = err
     if let delegate = parser.delegate {

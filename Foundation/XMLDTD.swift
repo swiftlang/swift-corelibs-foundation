@@ -44,7 +44,7 @@ open class XMLDTD : XMLNode {
         
         guard let node = _CFXMLParseDTDFromData(unsafeBitCast(data as NSData, to: CFData.self), &unmanagedError) else {
             if let error = unmanagedError?.takeRetainedValue() {
-                throw _CFErrorSPIForFoundationXMLUseOnly(error)._nsObject
+                throw _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: error)._nsObject
             }
             //TODO: throw a generic error?
             fatalError("parsing dtd from data failed")
