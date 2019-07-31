@@ -721,7 +721,7 @@ install(DIRECTORY
           lib/swift/CFXMLInterface
         FILES_MATCHING PATTERN "*.h")
 install(FILES
-          CoreFoundation/Parser.subproj/module.map
+          CoreFoundation/Parsing.subproj/module.map
         DESTINATION
           lib/swift/CFXMLInterface)
 install(PROGRAMS
