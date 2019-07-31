@@ -14,6 +14,7 @@
 #include <CoreFoundation/CFSet.h>
 #include <CoreFoundation/CFURLAccess.h>
 #include <CoreFoundation/CFError.h>
+#include <CoreFoundation/CFError_Private.h>
 #include <string.h>
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
@@ -1122,7 +1123,7 @@ CF_PRIVATE CFErrorRef _CFBundleCreateErrorDebug(CFAllocatorRef allocator, CFBund
         numKeys++;
     }
     if (debugString) {
-        userInfoKeys[numKeys] = CFSTR("NSDebugDescription");
+        userInfoKeys[numKeys] = kCFErrorDebugDescriptionKey;
         userInfoValues[numKeys] = debugString;
         numKeys++;
     }

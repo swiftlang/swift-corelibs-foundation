@@ -732,7 +732,7 @@ open class NSCoder : NSObject {
     }
     
     open func failWithError(_ error: Error) {
-        if let debugDescription = (error as? NSError)?.userInfo["NSDebugDescription"] {
+        if let debugDescription = (error as? NSError)?.userInfo[NSDebugDescriptionErrorKey] {
             NSLog("*** NSKeyedUnarchiver.init: \(debugDescription)")
         } else {
             NSLog("*** NSKeyedUnarchiver.init: decoding error")
