@@ -220,19 +220,20 @@ CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error) {
 CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamError *streamError) {
     CFErrorRef result;
     Boolean canUpCall;
-    
+
     __CFLock(&(CFNetworkSupport.lock));
     if (!__CFBitIsSet(CFNetworkSupport.flags, kTriedToLoad)) initializeCFNetworkSupport();
     canUpCall = (CFNetworkSupport._CFErrorCreateWithStreamError != NULL);
     __CFUnlock(&(CFNetworkSupport.lock));
 
+    
     if (canUpCall) {
         result = CFNETWORK_CALL(_CFErrorCreateWithStreamError, (alloc, streamError));
     } else {
         if (streamError->domain == kCFStreamErrorDomainPOSIX) {
-            return CFErrorCreate(alloc, kCFErrorDomainPOSIX, streamError->error, NULL);
+            result = CFErrorCreate(alloc, kCFErrorDomainPOSIX, streamError->error, NULL);
         } else if (streamError->domain == kCFStreamErrorDomainMacOSStatus) {
-            return CFErrorCreate(alloc, kCFErrorDomainOSStatus, streamError->error, NULL);
+            result = CFErrorCreate(alloc, kCFErrorDomainOSStatus, streamError->error, NULL);
         } else {
             CFStringRef key = CFSTR("CFStreamErrorDomainKey");
             CFNumberRef value = CFNumberCreate(alloc, kCFNumberCFIndexType, &streamError->domain);
