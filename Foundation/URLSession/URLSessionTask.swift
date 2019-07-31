@@ -234,7 +234,7 @@ open class URLSessionTask : NSObject, NSCopying {
         session = _MissingURLSession()
         taskIdentifier = 0
         originalRequest = nil
-        knownBody = .none
+        knownBody = URLSessionTask._Body.none
         workQueue = DispatchQueue(label: "URLSessionTask.notused.0")
         super.init()
     }

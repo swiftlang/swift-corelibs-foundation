@@ -147,7 +147,7 @@ class TestURLSession : LoopbackServerTest {
     func test_downloadTaskWithURL() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let url = URL(string: urlString)!
-        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
         d.run(with: url)
         waitForExpectations(timeout: 12)
     }
@@ -155,7 +155,7 @@ class TestURLSession : LoopbackServerTest {
     func test_downloadTaskWithURLRequest() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/country.txt"
         let urlRequest = URLRequest(url: URL(string: urlString)!)
-        let d = DownloadTask(with: expectation(description: "Download GET \(urlString): with a delegate"))
+        let d = DownloadTask(testCase: self, description: "Download GET \(urlString): with a delegate")
         d.run(with: urlRequest)
         waitForExpectations(timeout: 12)
     }
@@ -203,7 +203,7 @@ class TestURLSession : LoopbackServerTest {
     func test_gzippedDownloadTask() {
         let urlString = "http://127.0.0.1:\(TestURLSession.serverPort)/gzipped-response"
         let url = URL(string: urlString)!
-        let d = DownloadTask(with: expectation(description: "GET \(urlString): gzipped response"))
+        let d = DownloadTask(testCase: self, description: "GET \(urlString): gzipped response")
         d.run(with: url)
         waitForExpectations(timeout: 12)
         if d.totalBytesWritten != "Hello World!".utf8.count {
@@ -986,7 +986,7 @@ class TestURLSession : LoopbackServerTest {
         }.resume()
         waitForExpectations(timeout: 20)
         
-        let d = DownloadTask(with: expectation(description: "Invalid resume data for download task (with delegate)"))
+        let d = DownloadTask(testCase: self, description: "Invalid resume data for download task")
         d.run { (session) -> DownloadTask.Configuration in
             return DownloadTask.Configuration(task: session.downloadTask(withResumeData: Data()),
                                               errorExpectation:
@@ -1234,16 +1234,28 @@ extension DataTask : URLSessionTaskDelegate {
 
 class DownloadTask : NSObject {
     var totalBytesWritten: Int64 = 0
-    let dwdExpectation: XCTestExpectation!
+    var didDownloadExpectation: XCTestExpectation?
+    let didCompleteExpectation: XCTestExpectation
     var session: URLSession! = nil
     var task: URLSessionDownloadTask! = nil
     var errorExpectation: ((Error) -> Void)?
+    weak var testCase: XCTestCase?
+    var expectationsDescription: String
     
-    init(with expectation: XCTestExpectation) {
-        dwdExpectation = expectation
+    init(testCase: XCTestCase, description: String) {
+        self.expectationsDescription = description
+        self.testCase = testCase
+        self.didCompleteExpectation = testCase.expectation(description: "Did complete \(description)")
+    }
+    
+    private func makeDownloadExpectation() {
+        guard didDownloadExpectation == nil else { return }
+        self.didDownloadExpectation = testCase!.expectation(description: "Did finish download: \(description)")
+        self.testCase = nil // No need for it any more here.
     }
     
     func run(with url: URL) {
+        makeDownloadExpectation()
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
@@ -1252,6 +1264,7 @@ class DownloadTask : NSObject {
     }
     
     func run(with urlRequest: URLRequest) {
+        makeDownloadExpectation()
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 8
         session = URLSession(configuration: config, delegate: self, delegateQueue: nil)
@@ -1272,6 +1285,9 @@ class DownloadTask : NSObject {
         
         task = taskConfiguration.task
         errorExpectation = taskConfiguration.errorExpectation
+        if errorExpectation == nil {
+            makeDownloadExpectation()
+        }
         task.resume()
     }
 }
@@ -1284,7 +1300,7 @@ extension DownloadTask : URLSessionDownloadDelegate {
     }
     
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        defer { dwdExpectation.fulfill() }
+        defer { didDownloadExpectation?.fulfill() }
         
         guard self.errorExpectation == nil else {
             XCTFail("Expected an error, but got …didFinishDownloadingTo… from download task \(downloadTask) (at \(location))")
@@ -1302,7 +1318,7 @@ extension DownloadTask : URLSessionDownloadDelegate {
 
 extension DownloadTask : URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        defer { dwdExpectation.fulfill() }
+        defer { didCompleteExpectation.fulfill() }
         
         if let errorExpectation = self.errorExpectation {
             if let error = error {
