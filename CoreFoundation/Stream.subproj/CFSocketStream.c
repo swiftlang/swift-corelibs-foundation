@@ -201,7 +201,7 @@ CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error) {
     if (canUpCall) {
         return CFNETWORK_CALL(_CFStreamErrorFromCFError, (error));
     } 
-    
+
     CFStreamError result;
     CFStringRef domain = CFErrorGetDomain(error); 
     if (CFEqual(domain, kCFErrorDomainPOSIX)) {
@@ -243,6 +243,5 @@ CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamErro
     CFRelease(value);
     CFRelease(dict);
     return result;
-        
     }
 }
