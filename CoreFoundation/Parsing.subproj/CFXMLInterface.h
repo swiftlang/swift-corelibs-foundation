@@ -15,6 +15,7 @@
 #define __COREFOUNDATION_CFXMLINTERFACE__ 1
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 CF_IMPLICIT_BRIDGING_ENABLED
