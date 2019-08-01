@@ -215,7 +215,6 @@ CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error) {
     }
     result.error = CFErrorGetCode(error);
     return result;
-    
 }
 
 CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamError *streamError) {
