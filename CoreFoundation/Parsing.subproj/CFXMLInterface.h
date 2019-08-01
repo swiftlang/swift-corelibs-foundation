@@ -97,7 +97,7 @@ typedef _CFXMLInterfaceParserInput _Nonnull (*_CFXMLInterfaceExternalEntityLoade
 typedef void (*_CFXMLInterfaceStructuredErrorFunc)(_CFXMLInterface ctx, _CFXMLInterfaceError error);
 
 void _CFSetupXMLInterface(void);
-void _CFSetupXMLBridgeIfNeededUsingBlock(dispatch_block_t block);
+void _CFSetupXMLBridgeIfNeededUsingBlock(void (^block)(void));
 
 _CFXMLInterfaceParserInput _CFXMLInterfaceNoNetExternalEntityLoader(const char *URL, const char *ID, _CFXMLInterfaceParserContext ctxt);
 _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler(void);

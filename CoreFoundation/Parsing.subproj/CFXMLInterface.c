@@ -140,7 +140,7 @@ void _CFSetupXMLInterface(void) {
 #endif // DEPLOYMENT_RUNTIME_SWIFT
 }
 
-void _CFSetupXMLBridgeIfNeededUsingBlock(dispatch_block_t block) {
+void _CFSetupXMLBridgeIfNeededUsingBlock(void (^block)(void)) {
 #if DEPLOYMENT_RUNTIME_SWIFT
     static dispatch_once_t bridgeInitGuard;
     dispatch_once(&bridgeInitGuard, block);
