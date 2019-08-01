@@ -209,7 +209,7 @@ CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error) {
     } else if (CFEqual(domain, kCFErrorDomainOSStatus)) {
         result.domain = kCFStreamErrorDomainMacOSStatus;
     } else if (CFEqual(domain, kCFErrorDomainMach)) {
-         result.domain = 11; // kCFStreamErrorDomainMach, but that symbol is in CFNetwork
+        result.domain = 11; // kCFStreamErrorDomainMach, but that symbol is in CFNetwork
     } else {
         result.domain = kCFStreamErrorDomainCustom;
     }
@@ -242,5 +242,4 @@ CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamErro
     CFRelease(value);
     CFRelease(dict);
     return result;
-    }
 }
