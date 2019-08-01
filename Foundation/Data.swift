@@ -661,6 +661,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
         @usableFromInline typealias Buffer = (UInt8, UInt8, UInt8, UInt8,
                                               UInt8, UInt8) //len  //enum
         @usableFromInline var bytes: Buffer
+#else
+    #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
 #endif
         @usableFromInline var length: UInt8
 
@@ -686,6 +688,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
 #elseif arch(i386) || arch(arm)
             bytes = (UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0), UInt8(0))
+#else
+    #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
 #endif
             length = UInt8(count)
         }
@@ -867,6 +871,8 @@ public struct Data : ReferenceConvertible, Equatable, Hashable, RandomAccessColl
     @usableFromInline internal typealias HalfInt = Int32
 #elseif arch(i386) || arch(arm)
     @usableFromInline internal typealias HalfInt = Int16
+#else
+    #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
 #endif
 
     // A buffer of bytes too large to fit in an InlineData, but still small enough to fit a storage pointer + range in two words.

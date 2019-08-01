@@ -384,7 +384,7 @@ extension NSRange: NSSpecialValueCoding {
 #elseif arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
         return "{_NSRange=QQ}"
 #else
-        NSUnimplemented()
+        #error("This architecture isn't known. Add it to the 32-bit or 64-bit line.")
 #endif
     }
     
