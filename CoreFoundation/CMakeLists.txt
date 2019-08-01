@@ -454,7 +454,15 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
   target_include_directories(CFXMLInterface
                              PRIVATE
                                ${LIBXML2_INCLUDE_DIR})
-  find_package(CURL REQUIRED)
+  find_package(CURL CONFIG)
+  if(NOT CURL_FOUND)
+    find_package(CURL REQUIRED)
+    if(NOT TARGET CURL::libcurl)
+      add_library(CURL::libcurl UNKNOWN IMPORTED)
+      set_target_properties(CURL::libcurl PROPERTIES
+        IMPORTED_LOCATION ${CURL_LIBRARIES})
+    endif()
+  endif()
   target_include_directories(CFURLSessionInterface
                              PRIVATE
                                ${CURL_INCLUDE_DIRS})
@@ -606,7 +614,7 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
                           ${LIBXML2_LIBRARIES})
   target_link_libraries(CFURLSessionInterface
                         PRIVATE
-                          ${CURL_LIBRARIES})
+                          CURL::libcurl)
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL Android)
   target_link_libraries(CoreFoundation
