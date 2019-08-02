@@ -7,9 +7,10 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
-#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftFoundationNetworking)
+#if !DEPLOYMENT_RUNTIME_OBJC && canImport(SwiftFoundation) && canImport(SwiftFoundationNetworking) && canImport(SwiftFoundationXML)
 import SwiftFoundation
 import SwiftFoundationNetworking
+import SwiftFoundationXML
 #else
 import Foundation
 #if canImport(FoundationNetworking)

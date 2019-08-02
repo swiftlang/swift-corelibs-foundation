@@ -7,7 +7,13 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
+import CFXMLInterface
 
 extension XMLParser {
     public enum ExternalEntityResolvingPolicy : UInt {
@@ -377,7 +383,8 @@ internal func _NSXMLParserExternalSubset(_ ctx: _CFXMLInterface, name: UnsafePoi
 }
 
 internal func _structuredErrorFunc(_ interface: _CFXMLInterface, error: _CFXMLInterfaceError) {
-    let err = _CFErrorCreateFromXMLInterface(error)._nsObject
+    let cferr = _CFErrorCreateFromXMLInterface(error)
+    let err = _CFErrorSPIForFoundationXMLUseOnly(unsafelyAssumingIsCFError: cferr)._nsObject
     let parser = interface.parser
     parser._parserError = err
     if let delegate = parser.delegate {
@@ -421,7 +428,7 @@ open class XMLParser : NSObject {
     
     // create the parser from data
     public init(data: Data) {
-        _CFSetupXMLInterface()
+        setupXMLParsing()
         _data = data
         _handler = _CFXMLInterfaceCreateSAXHandler()
         _parserContext = nil
@@ -434,7 +441,7 @@ open class XMLParser : NSObject {
     
     //create a parser that incrementally pulls data from the specified stream and parses it.
     public init(stream: InputStream) {
-        _CFSetupXMLInterface()
+        setupXMLParsing()
         _stream = stream
         _handler = _CFXMLInterfaceCreateSAXHandler()
         _parserContext = nil
@@ -945,5 +952,51 @@ extension XMLParser {
         case noDTDError
         
         case delegateAbortedParseError
+    }
+}
+
+internal func NSUnimplemented(_ fn: String = #function, file: StaticString = #file, line: UInt = #line) -> Never {
+    #if os(Android)
+    NSLog("\(fn) is not yet implemented. \(file):\(line)")
+    #endif
+    fatalError("\(fn) is not yet implemented", file: file, line: line)
+}
+
+extension NSObject {
+    func withUnretainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
+        return work(selfPtr)
+    }
+    
+    func withOpaqueUnretainedReference<R>(_ work: (UnsafeMutableRawPointer) -> R) -> R {
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+        return work(selfPtr)
+    }
+}
+
+func setupXMLParsing() {
+    _CFSetupXMLInterface()
+    _CFSetupXMLBridgeIfNeededUsingBlock {
+        __CFSwiftXMLParserBridge.currentParser = _NSXMLParserCurrentParser
+        __CFSwiftXMLParserBridge._xmlExternalEntityWithURL = _NSXMLParserExternalEntityWithURL
+        __CFSwiftXMLParserBridge.getContext = _NSXMLParserGetContext
+        __CFSwiftXMLParserBridge.internalSubset = _NSXMLParserInternalSubset
+        __CFSwiftXMLParserBridge.isStandalone = _NSXMLParserIsStandalone
+        __CFSwiftXMLParserBridge.hasInternalSubset = _NSXMLParserHasInternalSubset
+        __CFSwiftXMLParserBridge.hasExternalSubset = _NSXMLParserHasExternalSubset
+        __CFSwiftXMLParserBridge.getEntity = _NSXMLParserGetEntity
+        __CFSwiftXMLParserBridge.notationDecl = _NSXMLParserNotationDecl
+        __CFSwiftXMLParserBridge.attributeDecl = _NSXMLParserAttributeDecl
+        __CFSwiftXMLParserBridge.elementDecl = _NSXMLParserElementDecl
+        __CFSwiftXMLParserBridge.unparsedEntityDecl = _NSXMLParserUnparsedEntityDecl
+        __CFSwiftXMLParserBridge.startDocument = _NSXMLParserStartDocument
+        __CFSwiftXMLParserBridge.endDocument = _NSXMLParserEndDocument
+        __CFSwiftXMLParserBridge.startElementNs = _NSXMLParserStartElementNs
+        __CFSwiftXMLParserBridge.endElementNs = _NSXMLParserEndElementNs
+        __CFSwiftXMLParserBridge.characters = _NSXMLParserCharacters
+        __CFSwiftXMLParserBridge.processingInstruction = _NSXMLParserProcessingInstruction
+        __CFSwiftXMLParserBridge.cdataBlock = _NSXMLParserCdataBlock
+        __CFSwiftXMLParserBridge.comment = _NSXMLParserComment
+        __CFSwiftXMLParserBridge.externalSubset = _NSXMLParserExternalSubset
     }
 }

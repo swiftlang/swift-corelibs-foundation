@@ -7,7 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
+import CFXMLInterface
+
 /*!
     @typedef XMLDTDNodeKind
 	@abstract The subkind of a DTD node kind.
@@ -200,7 +207,8 @@ open class XMLDTDNode: XMLNode {
     */
     open var publicID: String? {
         get {
-            return _CFXMLDTDNodeCopyPublicID(_xmlNode)?._swiftObject
+            let returned = _CFXMLDTDNodeCopyPublicID(_xmlNode)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             if let value = newValue {
@@ -217,7 +225,8 @@ open class XMLDTDNode: XMLNode {
     */
     open var systemID: String? {
         get {
-            return _CFXMLDTDNodeCopySystemID(_xmlNode)?._swiftObject
+            let returned = _CFXMLDTDNodeCopySystemID(_xmlNode)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             if let value = newValue {
@@ -238,7 +247,8 @@ open class XMLDTDNode: XMLNode {
                 return nil
             }
 
-            return _CFXMLCopyEntityContent(_xmlNode)?._swiftObject
+            let returned = _CFXMLCopyEntityContent(_xmlNode)
+            return returned == nil ? nil : unsafeBitCast(returned!, to: NSString.self) as String
         }
         set {
             guard dtdKind == .unparsed else {
@@ -261,7 +271,7 @@ open class XMLDTDNode: XMLNode {
                      type == _kCFXMLDTDNodeTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return XMLDTDNode.unretainedReference(privateData)
+            return unsafeBitCast(privateData, to: XMLDTDNode.self)
         }
 
         return XMLDTDNode(ptr: node)

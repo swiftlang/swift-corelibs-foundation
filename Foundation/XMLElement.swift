@@ -7,7 +7,14 @@
 // See http://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+import SwiftFoundation
+#else
+import Foundation
+#endif
 import CoreFoundation
+import CFXMLInterface
+
 /*!
     @class XMLElement
     @abstract An XML element
@@ -85,9 +92,11 @@ open class XMLElement: XMLNode {
         @abstract Adds an attribute. Attributes with duplicate names replace the old one.
     */
     open func addAttribute(_ attribute: XMLNode) {
-        guard let name = _CFXMLNodeCopyName(attribute._xmlNode)?._swiftObject else {
+        guard let cfname = _CFXMLNodeCopyName(attribute._xmlNode) else {
             fatalError("Attributes must have a name!")
         }
+        
+        let name = unsafeBitCast(cfname, to: NSString.self) as String
 
         removeAttribute(forName: name)
         _CFXMLCompletePropURI(attribute._xmlNode, _xmlNode);        
@@ -140,7 +149,7 @@ open class XMLElement: XMLNode {
         while let attribute = nextAttribute {
             var shouldFreeNode = true
             if let privateData = _CFXMLNodeGetPrivateData(attribute) {
-                _childNodes.remove(XMLNode.unretainedReference(privateData))
+                _childNodes.remove(unsafeBitCast(privateData, to: XMLNode.self))
 
                 shouldFreeNode = false
             }
@@ -314,7 +323,7 @@ open class XMLElement: XMLNode {
         precondition(_CFXMLNodeGetType(node) == _kCFXMLTypeElement)
 
         if let privateData = _CFXMLNodeGetPrivateData(node) {
-            return XMLElement.unretainedReference(privateData)
+            return unsafeBitCast(privateData, to: XMLElement.self)
         }
 
         return XMLElement(ptr: node)

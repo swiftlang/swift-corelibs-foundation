@@ -14,12 +14,9 @@
 #if !defined(__COREFOUNDATION_CFXMLINTERFACE__)
 #define __COREFOUNDATION_CFXMLINTERFACE__ 1
 
-#include <CoreFoundation/CFBase.h>
-#include <CoreFoundation/CFArray.h>
-#include <CoreFoundation/CFData.h>
-#include <CoreFoundation/CFDictionary.h>
-#include <CoreFoundation/CFTree.h>
-#include <CoreFoundation/CFURL.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <stdint.h>
+#include <sys/types.h>
 
 CF_IMPLICIT_BRIDGING_ENABLED
 CF_ASSUME_NONNULL_BEGIN
@@ -102,6 +99,8 @@ typedef _CFXMLInterfaceParserInput _Nonnull (*_CFXMLInterfaceExternalEntityLoade
 typedef void (*_CFXMLInterfaceStructuredErrorFunc)(_CFXMLInterface ctx, _CFXMLInterfaceError error);
 
 void _CFSetupXMLInterface(void);
+void _CFSetupXMLBridgeIfNeededUsingBlock(void (^block)(void));
+
 _CFXMLInterfaceParserInput _CFXMLInterfaceNoNetExternalEntityLoader(const char *URL, const char *ID, _CFXMLInterfaceParserContext ctxt);
 _CFXMLInterfaceSAXHandler _CFXMLInterfaceCreateSAXHandler(void);
 void _CFXMLInterfaceDestroySAXHandler(_CFXMLInterfaceSAXHandler handler);
@@ -252,6 +251,72 @@ void _CFXMLFreeNode(_CFXMLNodePtr node);
 void _CFXMLFreeDocument(_CFXMLDocPtr doc);
 void _CFXMLFreeDTD(_CFXMLDTDPtr dtd);
 void _CFXMLFreeProperty(_CFXMLNodePtr prop);
+
+// Bridging
+
+struct _NSXMLParserBridge {
+    _CFXMLInterface _Nullable (*_Nonnull currentParser)(void);
+    _CFXMLInterfaceParserInput _Nullable (*_Nonnull _xmlExternalEntityWithURL)(_CFXMLInterface /*interface*/, const char * /*url*/, const char * /*identifier*/, _CFXMLInterfaceParserContext /*context*/, _CFXMLInterfaceExternalEntityLoader /*originalLoaderFunction*/);
+    
+    _CFXMLInterfaceParserContext _Nonnull (*_Nonnull getContext)(_CFXMLInterface ctx);
+    
+    void (*internalSubset)(_CFXMLInterface ctx, const unsigned char *name, const unsigned char *ExternalID, const unsigned char *SystemID);
+    int (*isStandalone)(_CFXMLInterface ctx);
+    int (*hasInternalSubset)(_CFXMLInterface ctx);
+    int (*hasExternalSubset)(_CFXMLInterface ctx);
+    _CFXMLInterfaceEntity _Nullable (*_Nonnull getEntity)(_CFXMLInterface ctx, const unsigned char *name);
+    void (*notationDecl)(_CFXMLInterface ctx,
+                         const unsigned char *name,
+                         const unsigned char *publicId,
+                         const unsigned char *systemId);
+    void (*attributeDecl)(_CFXMLInterface ctx,
+                          const unsigned char *elem,
+                          const unsigned char *fullname,
+                          int type,
+                          int def,
+                          const unsigned char *defaultValue,
+                          _CFXMLInterfaceEnumeration tree);
+    void (*elementDecl)(_CFXMLInterface ctx,
+                        const unsigned char *name,
+                        int type,
+                        _CFXMLInterfaceElementContent content);
+    void (*unparsedEntityDecl)(_CFXMLInterface ctx,
+                               const unsigned char *name,
+                               const unsigned char *publicId,
+                               const unsigned char *systemId,
+                               const unsigned char *notationName);
+    void (*startDocument)(_CFXMLInterface ctx);
+    void (*endDocument)(_CFXMLInterface ctx);
+    void (*startElementNs)(_CFXMLInterface ctx,
+                           const unsigned char *localname,
+                           const unsigned char *_Nullable prefix,
+                           const unsigned char *_Nullable URI,
+                           int nb_namespaces,
+                           const unsigned char *_Nullable *_Nonnull namespaces,
+                           int nb_attributes,
+                           int nb_defaulted,
+                           const unsigned char *_Nullable *_Nonnull attributes);
+    void (*endElementNs)(_CFXMLInterface ctx,
+                         const unsigned char *localname,
+                         const unsigned char *_Nullable prefix,
+                         const unsigned char *_Nullable URI);
+    void (*characters)(_CFXMLInterface ctx,
+                       const unsigned char *ch,
+                       int len);
+    void (*processingInstruction)(_CFXMLInterface ctx,
+                                  const unsigned char *target,
+                                  const unsigned char *data);
+    void (*cdataBlock)(_CFXMLInterface ctx,
+                       const unsigned char *value,
+                       int len);
+    void (*comment)(_CFXMLInterface ctx, const unsigned char *value);
+    void (*externalSubset)(_CFXMLInterface ctx,
+                           const unsigned char *name,
+                           const unsigned char *ExternalID,
+                           const unsigned char *SystemID);
+};
+
+CF_EXPORT struct _NSXMLParserBridge __CFSwiftXMLParserBridge;
 
 CF_EXTERN_C_END
 CF_ASSUME_NONNULL_END
