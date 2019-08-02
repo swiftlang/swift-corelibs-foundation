@@ -116,11 +116,13 @@ endif()
 # `target_link_libraries(Foundation PRIVATE CoreFoundation)`.
 set(CoreFoundation_LIBRARIES $<TARGET_FILE:CoreFoundation>)
 set(CFURLSessionInterface_LIBRARIES $<TARGET_FILE:CFURLSessionInterface>)
+set(CFXMLInterface_LIBRARIES $<TARGET_FILE:CFXMLInterface>)
 get_target_property(CoreFoundation_LINK_LIBRARIES CoreFoundation LINK_LIBRARIES)
 foreach(library ${CoreFoundation_LINK_LIBRARIES})
   if(NOT library STREQUAL Threads::Threads)
     list(APPEND CoreFoundation_LIBRARIES -l${library})
     list(APPEND CFURLSessionInterface_LIBRARIES -l${library})
+    list(APPEND CFXMLInterface_LIBRARIES -l${library})
   endif()
 endforeach()
 
@@ -264,18 +266,11 @@ add_swift_library(Foundation
                     Foundation/URLComponents.swift
                     Foundation/UserDefaults.swift
                     Foundation/UUID.swift
-                    Foundation/XMLDocument.swift
-                    Foundation/XMLDTD.swift
-                    Foundation/XMLDTDNode.swift
-                    Foundation/XMLElement.swift
-                    Foundation/XMLNode.swift
-                    Foundation/XMLParser.swift
                   TARGET
                     ${CMAKE_C_COMPILER_TARGET}
                   LINK_FLAGS
                     ${CoreFoundation_LIBRARIES}
                     ${ICU_UC_LIBRARY} ${ICU_I18N_LIBRARY}
-                    ${LIBXML2_LIBRARIES}
                     ${libdispatch_ldflags}
                     $<TARGET_FILE:uuid>
                     ${Foundation_RPATH}
@@ -363,6 +358,48 @@ add_swift_library(FoundationNetworking
                     $<$<PLATFORM_ID:Windows>:CoreFoundationResources>
                     Foundation)
 
+add_swift_library(FoundationXML
+                  MODULE_NAME
+                    FoundationXML
+                  MODULE_LINK_NAME
+                    FoundationXML
+                  MODULE_PATH
+                    ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationXML.swiftmodule
+                  SOURCES
+                  Foundation/XMLDocument.swift
+                  Foundation/XMLDTD.swift
+                  Foundation/XMLDTDNode.swift
+                  Foundation/XMLElement.swift
+                  Foundation/XMLNode.swift
+                  Foundation/XMLParser.swift
+                  TARGET
+                    ${CMAKE_C_COMPILER_TARGET}
+                  LINK_FLAGS
+                    ${MSVCRT_LINK_FLAGS}
+                    -L${CMAKE_CURRENT_BINARY_DIR}
+                    ${libdispatch_ldflags}
+                    -lFoundation
+                    ${Foundation_INTERFACE_LIBRARIES}
+                    ${CFXMLInterface_LIBRARIES}
+                    ${LIBXML2_LIBRARIES}
+                    ${Foundation_RPATH}
+                    ${WORKAROUND_SR9138}
+                    ${WORKAROUND_SR9995}
+                  SWIFT_FLAGS
+                    -DDEPLOYMENT_RUNTIME_SWIFT
+                    -DNS_BUILDING_FOUNDATION_NETWORKING
+                    -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
+                    ${deployment_enable_libdispatch}
+                    -I;${CMAKE_CURRENT_BINARY_DIR}/swift
+                    ${libdispatch_cflags}
+                    $<$<BOOL:ENABLE_TESTING>:-enable-testing>
+                    $<$<NOT:$<CONFIG:Debug>>:-O>
+                  DEPENDS
+                    uuid
+                    CoreFoundation
+                    $<$<PLATFORM_ID:Windows>:CoreFoundationResources>
+                    Foundation)
+
 
 
 if(NOT BUILD_SHARED_LIBS)
@@ -423,6 +460,7 @@ if(ENABLE_TESTING)
                          uuid
                          Foundation
                          FoundationNetworking
+                         FoundationXML
                          CoreFoundation)
 
   add_swift_executable(TestFoundation
@@ -572,6 +610,7 @@ if(ENABLE_TESTING)
                        DEPENDS
                          Foundation
                          FoundationNetworking
+                         FoundationXML
                          CoreFoundation
                          xdgTestHelper)
 
@@ -622,6 +661,8 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/swift/Foundation.swiftmodule
           ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationNetworking.swiftdoc
           ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationNetworking.swiftmodule
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationXML.swiftdoc
+          ${CMAKE_CURRENT_BINARY_DIR}/swift/FoundationXML.swiftmodule
         DESTINATION
           lib/${swift_dir}/${swift_os}/${swift_arch})
 
@@ -630,22 +671,27 @@ set(Foundation_OUTPUT_FILE
   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}Foundation${CMAKE_${library_kind}_LIBRARY_SUFFIX})
 set(FoundationNetworking_OUTPUT_FILE
   ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}FoundationNetworking${CMAKE_${library_kind}_LIBRARY_SUFFIX})
+set(FoundationXML_OUTPUT_FILE
+  ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_${library_kind}_LIBRARY_PREFIX}FoundationXML${CMAKE_${library_kind}_LIBRARY_SUFFIX})
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows AND BUILD_SHARED_LIBS)
   install(FILES
             ${Foundation_OUTPUT_FILE}
             ${FoundationNetworking_OUTPUT_FILE}
+            ${FoundationXML_OUTPUT_FILE}
           DESTINATION
             bin)
   install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}Foundation${CMAKE_IMPORT_LIBRARY_SUFFIX}
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}FoundationNetworking${CMAKE_IMPORT_LIBRARY_SUFFIX}
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_IMPORT_LIBRARY_PREFIX}FoundationXML${CMAKE_IMPORT_LIBRARY_SUFFIX}
           DESTINATION
             lib/${swift_dir}/${swift_os})
 else()
   install(FILES
             ${Foundation_OUTPUT_FILE}
             ${FoundationNetworking_OUTPUT_FILE}
+            ${FoundationXML_OUTPUT_FILE}
           DESTINATION
             lib/${swift_dir}/${swift_os})
 endif()
@@ -669,6 +715,15 @@ install(FILES
           CoreFoundation/URL.subproj/module.map
         DESTINATION
           lib/swift/CFURLSessionInterface)
+install(DIRECTORY
+          ${CMAKE_CURRENT_BINARY_DIR}/CFXMLInterface.framework/Headers/
+        DESTINATION
+          lib/swift/CFXMLInterface
+        FILES_MATCHING PATTERN "*.h")
+install(FILES
+          CoreFoundation/Parsing.subproj/module.map
+        DESTINATION
+          lib/swift/CFXMLInterface)
 install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/plutil${CMAKE_EXECUTABLE_SUFFIX}
         DESTINATION

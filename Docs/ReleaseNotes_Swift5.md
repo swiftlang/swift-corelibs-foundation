@@ -2,6 +2,86 @@
 
 swift-corelibs-foundation contains new features and API in the Swift 5.x family of releases. These release notes complement the [Foundation release notes](https://developer.apple.com/documentation/ios_release_notes/ios_12_release_notes/foundation_release_notes) with information that is specific to swift-corelibs-foundation. Check both documents for a full overview.
 
+## Dependency Management
+
+On Darwin, the OS provides prepackaged dependency libraries that allow Foundation to offer a range of disparate functionalities without the need for a developer to fine-tune their dependency usage. Applications that use swift-corelibs-foundation do not have access to this functionality, and thus have to contend with managing additional system dependencies on top of what the Swift runtime and standard library already requires. This hinders packaging Swift applications that port or use Foundation in constrained environments where these dependencies are an issue.
+
+To aid in porting and dependency management, starting in Swift 5.1, some functionality has been moved from Foundation to other related modules. Foundation vends three modules:
+
+ - `Foundation`
+ - `FoundationNetworking`
+ - `FoundationXML`
+ 
+ On Linux, the `Foundation` module now only has the same set of dependencies as the Swift standard library itself, rather than requiring linking the  `libcurl` and `libxml2` libraries (and their indirect dependencies). The other modules will require additional linking.
+ 
+The following types, and related functionality, are now only offered if you import the `FoundationNetworking` module:
+
+- `CachedURLResponse`
+- `HTTPCookie`
+- `HTTPCookieStorage`
+- `HTTPURLResponse`
+- `URLResponse`
+- `URLSession`
+- `URLSessionConfiguration`
+- `URLSessionDataTask`
+- `URLSessionDownloadTask`
+- `URLSessionStreamTask`
+- `URLSessionTask`
+- `URLSessionUploadTask`
+- `URLAuthenticationChallenge`
+- `URLCache`
+- `URLCredential`
+- `URLCredentialStorage`
+- `URLProtectionSpace`
+- `URLProtocol`
+
+Using this module will cause you to link the `libcurl` library and its dependencies.  Note that the `URL` structure and the `NSURL` type are still offered by the `Foundation` module, and that, with one exception mentioned below, the full range of functionality related to these types is available without additional imports.
+
+The following types, and related functionality, are now only offered if you import the `FoundationXML` module:
+
+- `XMLDTD`
+- `XMLDTDNode`
+- `XMLDocument`
+- `XMLElement`
+- `XMLNode`
+- `XMLParser`
+
+Using this module will cause you to link the `libxml2` library and its dependencies. Note that property list functionality is available using the `Foundation` without additional imports, even if they are serialized in the `xml1` format. Only direct use of these types requires importing the `FoundationXML` module.
+
+The recommended way to import these modules in your source file is:
+    
+    #if canImport(FoundationNetworking)
+    import FoundationNetworking
+    #endif
+    
+    #if canImport(FoundationXML)
+    import FoundationXML
+    #endif
+    
+This allows source that runs on Darwin and on previous versions of Swift to transition to Swift 5.1 correctly.
+
+There are two consequences of this new organization that may affect your code:
+
+ - The module-qualified name for the classes mentioned above has changed. For example, the `URLSession` class's module-qualified name was `Foundation.URLSession` in Swift 5.0 and earlier, and `FoundationNetworking.URLSession` in Swift 5.1. This may affect your use of `NSClassFromString`, `import class…` statements and module-name disambiguation in existing source code. See the 'Objective-C Runtime Simulation' section below for more information.
+
+- `Foundation` provides `Data(contentsOf:)`, `String(contentsOf:…)`, `Dictionary(contentsOf:…)` and other initializers on model classes that take `URL` arguments. These continue to work with no further dependencies for URLs that have the `file` scheme (i.e., for which `.isFileURL` returns `true`). If you used other URL schemes, these methods would previously cause a download to occur, blocking the current thread until the download finished. If you require this functionality to work in Swift 5.1, your application must link or dynamically load the `FoundationNetworking` module, or the process will stop with an error message to this effect. **Please avoid this usage of the methods.** These methods block a thread in your application while networking occurs, which may cause performance degradation and unexpected threading issues if used in concert with the `Dispatch` module or from the callbacks of a `URLSessionTask`. Instead, where possible, please migrate to using a `URLSession` directly.
+
+## Objective-C Runtime Simulation
+
+Foundation provides facilities that simulate certain Objective-C features in Swift for Linux, such as the `NSClassFromString` and `NSStringFromClass` functions. Starting in Swift 5.1, these functions now more accurately reflect the behavior of their Darwin counterparts by allowing you to use Objective-C names for Foundation classes. Code such as the following now will now behave in the same way on both Darwin and Swift for Linux:
+
+    let someClass = NSClassFromString("NSTask")
+    assert(someClass == Process.self)
+    let someName = NSStringFromClass(someClass)
+    assert(someName == "NSTask")
+    
+It is recommended that you use Objective-C names for Foundation classes in your code. Starting from Swift 5.1, these names will work, and will be treated as the canonical names for classes originating from any of the Foundation modules. This may affect `NSCoding` archives you created in Swift for Linux 5.0 and later; you may have to recreate these archives with Darwin or with Swift for Linux 5.1 for forward compatibility. See 'Improvements to NSCoder' below for more information.
+
+While the use of module-qualified names is still supported for classes in the `Foundation` module, e.g. `"Foundation.Process"`, it is now heavily discouraged:
+
+- Please use the Objective-C name instead wherever possible, e.g. `"NSTask"`;
+- Classes moved to the `FoundationNetworking` and `FoundationXML` modules have new module-qualified names, e.g. `"FoundationNetworking.URLSession"` (which used to be `"Foundation.URLSession"` in Swift 5.0). You should use the Objective-C names instead, e.g. `"NSURLSession"`; both module-qualified and Objective-C names will work if your application links the appropriate modules, or will return `nil` if you do not.
+
 ## Improvements to NSCoder
 
 In this release, the implementation of `NSCoder` and related classes has been brought closer to the behavior of their Darwin counterparts. There are a number of differences from previous versions of swift-corelibs-foundation that you should keep in mind while writing code that uses `NSKeyedArchiver` and `NSKeyedUnarchiver`:
