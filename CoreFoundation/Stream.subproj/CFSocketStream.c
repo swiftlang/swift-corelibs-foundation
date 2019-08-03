@@ -200,22 +200,21 @@ CF_PRIVATE CFStreamError _CFStreamErrorFromError(CFErrorRef error) {
 
     if (canUpCall) {
         return CFNETWORK_CALL(_CFStreamErrorFromCFError, (error));
-    } 
-    
-    CFStreamError result;
-    CFStringRef domain = CFErrorGetDomain(error); 
-    if (CFEqual(domain, kCFErrorDomainPOSIX)) {
-        result.domain = kCFStreamErrorDomainPOSIX;
-    } else if (CFEqual(domain, kCFErrorDomainOSStatus)) {
-        result.domain = kCFStreamErrorDomainMacOSStatus;
-    } else if (CFEqual(domain, kCFErrorDomainMach)) {
-         result.domain = 11; // kCFStreamErrorDomainMach, but that symbol is in CFNetwork
     } else {
-        result.domain = kCFStreamErrorDomainCustom;
+        CFStreamError result;
+        CFStringRef domain = CFErrorGetDomain(error); 
+        if (CFEqual(domain, kCFErrorDomainPOSIX)) {
+            result.domain = kCFStreamErrorDomainPOSIX;
+        } else if (CFEqual(domain, kCFErrorDomainOSStatus)) {
+            result.domain = kCFStreamErrorDomainMacOSStatus;
+        } else if (CFEqual(domain, kCFErrorDomainMach)) {
+            result.domain = 11; // kCFStreamErrorDomainMach, but that symbol is in CFNetwork
+        } else {
+            result.domain = kCFStreamErrorDomainCustom;
+        }
+        result.error = CFErrorGetCode(error);
+        return result;
     }
-    result.error = CFErrorGetCode(error);
-    return result;
-    
 }
 
 CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamError *streamError) {
@@ -228,21 +227,19 @@ CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamErro
 
     if (canUpCall) {
         return CFNETWORK_CALL(_CFErrorCreateWithStreamError, (alloc, streamError));
-    }
-    if (streamError->domain == kCFStreamErrorDomainPOSIX) {
-        return CFErrorCreate(alloc, kCFErrorDomainPOSIX, streamError->error, NULL);
-    }
-    if (streamError->domain == kCFStreamErrorDomainMacOSStatus) {
-        return CFErrorCreate(alloc, kCFErrorDomainOSStatus, streamError->error, NULL);
-    }
-    
-    CFStringRef key = CFSTR("CFStreamErrorDomainKey");
-    CFNumberRef value = CFNumberCreate(alloc, kCFNumberCFIndexType, &streamError->domain);
-    CFDictionaryRef dict = CFDictionaryCreate(alloc, (const void **)(&key), (const void **)(&value), 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-    CFErrorRef result = CFErrorCreate(alloc, CFSTR("BogusCFStreamErrorCompatibilityDomain"), streamError->error, dict);
-    CFRelease(value);
-    CFRelease(dict);
-    return result;
-        
+    } else {
+        if (streamError->domain == kCFStreamErrorDomainPOSIX) {
+            return CFErrorCreate(alloc, kCFErrorDomainPOSIX, streamError->error, NULL);
+        } else if (streamError->domain == kCFStreamErrorDomainMacOSStatus) {
+            return CFErrorCreate(alloc, kCFErrorDomainOSStatus, streamError->error, NULL);
+        } else {
+            CFStringRef key = CFSTR("CFStreamErrorDomainKey");
+            CFNumberRef value = CFNumberCreate(alloc, kCFNumberCFIndexType, &streamError->domain);
+            CFDictionaryRef dict = CFDictionaryCreate(alloc, (const void **)(&key), (const void **)(&value), 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+            CFErrorRef result = CFErrorCreate(alloc, CFSTR("BogusCFStreamErrorCompatibilityDomain"), streamError->error, dict);
+            CFRelease(value);
+            CFRelease(dict);
+            return result;
+        }
     }
 }
