@@ -226,6 +226,7 @@ CF_PRIVATE CFErrorRef _CFErrorFromStreamError(CFAllocatorRef alloc, CFStreamErro
     canUpCall = (CFNetworkSupport._CFErrorCreateWithStreamError != NULL);
     __CFUnlock(&(CFNetworkSupport.lock));
 
+    
     if (canUpCall) {
         result = CFNETWORK_CALL(_CFErrorCreateWithStreamError, (alloc, streamError));
     } else {
