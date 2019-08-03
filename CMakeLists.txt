@@ -22,7 +22,6 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE
 
 option(BUILD_SHARED_LIBS "build shared libraries" ON)
 
-option(FOUNDATION_ENABLE_LIBDISPATCH "Enable GCD Support" YES)
 option(FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE "Path to libdispatch source" "")
 option(FOUNDATION_PATH_TO_LIBDISPATCH_BUILD "Path to libdispatch build" "")
 option(FOUNDATION_PATH_TO_XCTEST_BUILD "Path to XCTest build" "")
@@ -79,15 +78,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   endif()
 endif()
 
-set(libdispatch_cflags)
-set(libdispatch_ldflags)
-if(FOUNDATION_ENABLE_LIBDISPATCH)
-  set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
-  set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
-  if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-    file(TO_CMAKE_PATH "${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}" FOUNDATION_PATH_TO_LIBDISPATCH_BUILD)
-    list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
-  endif()
+set(libdispatch_cflags -I;${FOUNDATION_PATH_TO_LIBDISPATCH_SOURCE};-I;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src/swift;-Xcc;-fblocks)
+set(libdispatch_ldflags -L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD};-L;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src;-ldispatch;-lswiftDispatch)
+if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android OR CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
+  file(TO_CMAKE_PATH "${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}" FOUNDATION_PATH_TO_LIBDISPATCH_BUILD)
+  list(APPEND libdispatch_ldflags -Xlinker;-rpath;-Xlinker;${FOUNDATION_PATH_TO_LIBDISPATCH_BUILD}/src)
 endif()
 
 set(plutil_rpath)
@@ -274,7 +269,7 @@ add_swift_library(Foundation
                   SWIFT_FLAGS
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     -DDEPLOYMENT_RUNTIME_SWIFT
-                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
+                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -339,7 +334,7 @@ add_swift_library(FoundationNetworking
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
+                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -381,7 +376,7 @@ add_swift_library(FoundationXML
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
+                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
