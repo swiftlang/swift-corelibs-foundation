@@ -450,7 +450,7 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
             }
 
             xmlSetNs(nodePtr, ns);
-            break;
+            return;
 
         case XML_DOCUMENT_NODE:
         {
@@ -459,9 +459,8 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
                 xmlFree((xmlChar*)doc->URL);
             }
             doc->URL = xmlStrdup(URI);
+            return;
         }
-            break;
-
         default:
             return;
     }
@@ -469,10 +468,8 @@ void _CFXMLNodeSetURI(_CFXMLNodePtr node, const unsigned char* URI) {
 
 void _CFXMLNodeSetPrivateData(_CFXMLNodePtr node, void* data) {
     if (!node) {
-        return;
+        ((xmlNodePtr)node)->_private = data;
     }
-    
-    ((xmlNodePtr)node)->_private = data;
 }
 
 void* _Nullable  _CFXMLNodeGetPrivateData(_CFXMLNodePtr node) {
@@ -484,10 +481,10 @@ _CFXMLNodePtr _CFXMLNodeProperties(_CFXMLNodePtr node) {
 }
 
 CFIndex _CFXMLNodeGetType(_CFXMLNodePtr node) {
-    if (!node) {
-        return _kCFXMLTypeInvalid;
+    if (node) {
+        return ((xmlNodePtr)node)->type;
     }
-    return ((xmlNodePtr)node)->type;
+    return _kCFXMLTypeInvalid; 
 }
 
 static inline xmlChar* _getQName(xmlNodePtr node) {
@@ -495,6 +492,7 @@ static inline xmlChar* _getQName(xmlNodePtr node) {
     const xmlChar* ncname = node->name;
     
     switch (node->type) {
+        case XML_DOCUMENT_NODE:
         case XML_NOTATION_NODE:
         case XML_DTD_NODE:
         case XML_ELEMENT_DECL:

@@ -40,6 +40,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_optionPreserveAll", test_optionPreserveAll),
             ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
             ("test_nodeKinds", test_nodeKinds),
+             ("test_sr10776_documentName", test_sr10776_documentName),
         ]
     }
 
@@ -640,6 +641,13 @@ class TestXMLDocument : LoopbackServerTest {
         XCTAssertEqual(XMLDTDNode(xmlString: "<!ELEMENT E EMPTY>")?.kind, .elementDeclaration)
         XCTAssertEqual(XMLDTDNode(xmlString: #"<!NOTATION f SYSTEM "F">"#)?.kind, .notationDeclaration)
     }
+    func test_SR10776_documentName() {
+         let doc = XMLDocument(rootElement: nil)
+         XCTAssertNil(doc.name)
+
+          doc.name = "name"
+         XCTAssertNil(doc.name) // `name` of XMLDocument is always nil.
+     }
 }
 
 fileprivate extension XMLNode {
