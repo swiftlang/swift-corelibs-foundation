@@ -347,7 +347,7 @@ add_swift_library(FoundationNetworking
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    ${deployment_enable_libdispatch}
+                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -389,7 +389,7 @@ add_swift_library(FoundationXML
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    ${deployment_enable_libdispatch}
+                    $<$<BOOL:FOUNDATION_ENABLE_LIBDISPATCH>:-DDEPLOYMENT_ENABLE_LIBDISPATCH>
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
