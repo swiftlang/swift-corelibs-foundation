@@ -312,9 +312,13 @@ open class XMLNode: NSObject, NSCopying {
             return _CFXMLNodeCopyName(_xmlNode)?._swiftObject
         }
         set {
-            if case .namespace = kind {
+            switch kind {
+            case .document:
+                // As with Darwin, ignore the name when the node is document.
+                break
+            case .namespace:
                 _CFXMLNamespaceSetPrefix(_xmlNode, newValue, Int64(newValue?.utf8.count ?? 0))
-            } else {
+            default:
                 if let newName = newValue {
                     _CFXMLNodeSetName(_xmlNode, newName)
                 } else {

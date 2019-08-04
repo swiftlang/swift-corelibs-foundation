@@ -35,6 +35,7 @@ class TestXMLDocument : LoopbackServerTest {
             ("test_removeNamespace", test_removeNamespace),
             ("test_optionPreserveAll", test_optionPreserveAll),
             ("test_rootElementRetainsDocument", test_rootElementRetainsDocument),
+            ("test_sr10776_documentName", test_SR10776_documentName),
         ]
     }
 
@@ -543,6 +544,13 @@ class TestXMLDocument : LoopbackServerTest {
         }
 
         XCTAssertEqual(try? test(), "plans")
+    }
+    func test_SR10776_documentName() {
+        let doc = XMLDocument(rootElement: nil)
+        XCTAssertNil(doc.name)
+
+        doc.name = "name"
+        XCTAssertNil(doc.name) // `name` of XMLDocument is always nil.
     }
 }
 
