@@ -269,7 +269,6 @@ add_swift_library(Foundation
                   SWIFT_FLAGS
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
                     -DDEPLOYMENT_RUNTIME_SWIFT
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${ICU_INCLUDE_DIR}
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -334,7 +333,6 @@ add_swift_library(FoundationNetworking
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
@@ -376,7 +374,6 @@ add_swift_library(FoundationXML
                     -DDEPLOYMENT_RUNTIME_SWIFT
                     -DNS_BUILDING_FOUNDATION_NETWORKING
                     -Xcc -F${CMAKE_CURRENT_BINARY_DIR}
-                    -DDEPLOYMENT_ENABLE_LIBDISPATCH
                     -I;${CMAKE_CURRENT_BINARY_DIR}/swift
                     ${libdispatch_cflags}
                     $<$<BOOL:ENABLE_TESTING>:-enable-testing>
