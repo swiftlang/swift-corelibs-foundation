@@ -368,6 +368,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Android)
   target_compile_definitions(CFXMLInterface
                              PRIVATE
                                -D_GNU_SOURCE)
+
+  if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    include(CheckSymbolExists)
+    include(CheckIncludeFile)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
+    check_include_file("sched.h" HAVE_SCHED_H)
+    if(HAVE_SCHED_H)
+      check_symbol_exists(sched_getaffinity "sched.h" HAVE_SCHED_GETAFFINITY)
+    endif()
+  endif()
+
   if(HAVE_SCHED_GETAFFINITY)
     target_compile_definitions(CoreFoundation
                                PRIVATE
