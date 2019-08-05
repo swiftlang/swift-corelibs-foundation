@@ -434,11 +434,7 @@ CF_EXPORT void * __CFConstantStringClassReferencePtr;
 #define CONST_STRING_SECTION
 #endif
 
-#if __BIG_ENDIAN__
-#define _CF_CONST_STR_CFINFOA 0x00000000C8070000
-#else // Little endian:
 #define _CF_CONST_STR_CFINFOA 0x07C8
-#endif // __BIG_ENDIAN__
 
 #define _CF_CONST_STR_CONTENTS(cStr) {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, _CF_CONST_STR_CFINFOA}, (uint8_t *)(cStr), sizeof(cStr) - 1}
 

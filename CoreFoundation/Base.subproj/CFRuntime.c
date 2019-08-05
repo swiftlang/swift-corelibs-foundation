@@ -362,17 +362,10 @@ void _CFEnableZombies(void) {
  On 64 bit, also includes 32 bits more of retain count from 32-63
  */
 
-#if __CF_BIG_ENDIAN__
-#define RC_INCREMENT		(1ULL)
-#define RC_CUSTOM_RC_BIT	(0x800000ULL << 32)
-#define RC_DEALLOCATING_BIT	(0x400000ULL << 32)
-#define RC_DEALLOCATED_BIT	(0x200000ULL << 32)
-#else
 #define RC_INCREMENT		(1ULL << 32)
 #define RC_CUSTOM_RC_BIT	(0x800000ULL)
 #define RC_DEALLOCATING_BIT	(0x400000ULL)
 #define RC_DEALLOCATED_BIT	(0x200000ULL)
-#endif
 
 #if TARGET_RT_64_BIT
 #define HIGH_RC_START 32

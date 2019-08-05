@@ -215,17 +215,33 @@ internal func NSInvalidArgument(_ message: String, method: String = #function, f
 
 internal struct _CFInfo {
     // This must match _CFRuntimeBase
+#if arch(x86_64) || arch(arm64) || arch(s390x) || arch(powerpc64) || arch(powerpc64le)
+    // 64-bit
+    var info: UInt64
+    init(typeID: CFTypeID) {
+        // This matches what _CFRuntimeCreateInstance does to initialize the info value
+        info = UInt64((UInt32(typeID) << 8) | 0x80)
+    }
+    init(typeID: CFTypeID, extra: UInt32) {
+        info = UInt64((UInt32(typeID) << 8) | 0x80)
+        info |= UInt64(extra) << 32
+    }
+#elseif arch(arm) || arch(i386)
+    // 32-bit
     var info: UInt32
     var pad : UInt32
     init(typeID: CFTypeID) {
         // This matches what _CFRuntimeCreateInstance does to initialize the info value
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        info = (UInt32(typeID) << 8) | 0x80
         pad = 0
     }
     init(typeID: CFTypeID, extra: UInt32) {
-        info = UInt32((UInt32(typeID) << 8) | (UInt32(0x80)))
+        info = (UInt32(typeID) << 8) | 0x80
         pad = extra
     }
+#else
+#error("unknown architecture")
+#endif
 }
 
 // MARK: Classes to strings

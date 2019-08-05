@@ -167,24 +167,21 @@ struct __CFConstStr {
         uint64_t _cfinfoa;
     } _base;
     uint8_t *_ptr;
-#if TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
-    uint64_t _length;
-#else // 32-bit:
     uint32_t _length;
-#endif // TARGET_RT_64_BIT && defined(__BIG_ENDIAN__)
 };
 
-#if __BIG_ENDIAN__
 #define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x00000000C8070000}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
+    static struct __CFConstStr str = { \
+        _base: { \
+            _cfisa: (uintptr_t)(&_CF_CONSTANT_STRING_SWIFT_CLASS), \
+            _swift_rc: _CF_CONSTANT_OBJECT_STRONG_RC, \
+            _cfinfoa: _CF_CONST_STR_CFINFOA \
+        }, \
+        _ptr: (uint8_t *)(cStr), \
+        _length: sizeof(cStr) - 1 \
+    }; \
     (CFStringRef)&str; \
 })
-#else // Little endian:
-#define CFSTR(cStr)  ({ \
-    static struct __CFConstStr str = {{(uintptr_t)&_CF_CONSTANT_STRING_SWIFT_CLASS, _CF_CONSTANT_OBJECT_STRONG_RC, 0x07C8}, (uint8_t *)(cStr), sizeof(cStr) - 1}; \
-    (CFStringRef)&str; \
-})
-#endif // __BIG_ENDIAN__
 
 #else
 
