@@ -9,6 +9,10 @@
 
 #include <CoreFoundation/CFAsmMacros.h>
 
+#if defined(__ELF__)
+.section .rodata
+#endif
+
 #if defined(__BIG_ENDIAN__)
     .global _C_LABEL(__CFUnicodeDataB)
 _C_LABEL(__CFUnicodeDataB):
