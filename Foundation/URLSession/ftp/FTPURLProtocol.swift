@@ -51,7 +51,7 @@ internal class _FTPURLProtocol: _NativeProtocol {
         }
     }
 
-    override func configureEasyHandle(for request: URLRequest, body: _Body) {
+    override func configureEasyHandle(for request: URLRequest) {
         easyHandle.set(verboseModeOn: enableLibcurlDebugOutput)
         easyHandle.set(debugOutputOn: enableLibcurlDebugOutput, task: task!)
         easyHandle.set(skipAllSignalHandling: true)
@@ -59,8 +59,8 @@ internal class _FTPURLProtocol: _NativeProtocol {
         easyHandle.set(url: url)
         easyHandle.set(preferredReceiveBufferSize: Int.max)
         do {
-            switch (body, try body.getBodyLength()) {
-            case (.none, _):
+            switch (task?.body, try task?.body.getBodyLength()) {
+            case (.some(URLSessionTask._Body.none), _):
                 set(requestBodyLength: .noBody)
             case (_, .some(let length)):
                 set(requestBodyLength: .length(length))
