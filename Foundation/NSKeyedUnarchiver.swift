@@ -407,7 +407,7 @@ open class NSKeyedUnarchiver : NSCoder {
     
     private func _decodingError(_ code: CocoaError.Code, withDescription description: String) -> NSError {
         return NSError(domain: NSCocoaErrorDomain,
-                               code: code.rawValue, userInfo: [ "NSDebugDescription" : description ])
+                               code: code.rawValue, userInfo: [ NSDebugDescriptionErrorKey : description ])
     }
     
     private func _replacementObject(_ decodedObject: Any?) -> Any? {

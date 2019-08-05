@@ -1376,7 +1376,7 @@ extension NSString {
         let bytePtr = readResult.bytes.bindMemory(to: UInt8.self, capacity: readResult.length)
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr, readResult.length, CFStringConvertNSStringEncodingToEncoding(numericCast(enc)), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to create a string using the specified encoding."
+                NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
                 ])
         }
         var str: String?
@@ -1384,7 +1384,7 @@ extension NSString {
             self.init(str!)
         } else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to bridge CFString to String."
+                NSDebugDescriptionErrorKey : "Unable to bridge CFString to String."
                 ])
         }
     }
@@ -1431,7 +1431,7 @@ extension NSString {
         guard let cf = CFStringCreateWithBytes(kCFAllocatorDefault, bytePtr + offset, readResult.length - offset,
                                                CFStringConvertNSStringEncodingToEncoding(numericCast(encoding)), true) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to create a string using the specified encoding."
+                NSDebugDescriptionErrorKey : "Unable to create a string using the specified encoding."
                 ])
         }
         var str: String?
@@ -1439,7 +1439,7 @@ extension NSString {
             self.init(str!)
         } else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadInapplicableStringEncoding.rawValue, userInfo: [
-                "NSDebugDescription" : "Unable to bridge CFString to String."
+                NSDebugDescriptionErrorKey : "Unable to bridge CFString to String."
                 ])
         }
         enc?.pointee = encoding

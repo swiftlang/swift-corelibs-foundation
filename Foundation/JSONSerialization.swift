@@ -183,7 +183,7 @@ open class JSONSerialization : NSObject {
                 return value
             }
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "JSON text did not start with array or object and option to allow fragments not set."
+                NSDebugDescriptionErrorKey : "JSON text did not start with array or object and option to allow fragments not set."
             ])
         }
         
@@ -353,7 +353,7 @@ private struct JSONWriter {
             let num = __SwiftValue.store(obj) as! NSNumber
             writer(num.description)
         default:
-            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid object cannot be serialized"])
+            throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [NSDebugDescriptionErrorKey : "Invalid object cannot be serialized"])
         }
     }
 
@@ -390,7 +390,7 @@ private struct JSONWriter {
 
     private func serializeFloat<T: FloatingPoint & LosslessStringConvertible>(_ num: T) throws {
         guard num.isFinite else {
-             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "Invalid number value (\(num)) in JSON write"])
+             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [NSDebugDescriptionErrorKey : "Invalid number value (\(num)) in JSON write"])
         }
         var str = num.description
         if str.hasSuffix(".0") {
@@ -460,7 +460,7 @@ private struct JSONWriter {
             if let key = key as? String {
                 try serializeString(key)
             } else {
-                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [NSDebugDescriptionErrorKey : "NSDictionary key must be NSString"])
             }
             pretty ? writer(" : ") : writer(":")
             try serializeJSON(value)
@@ -470,7 +470,7 @@ private struct JSONWriter {
             let elems = try dict.sorted(by: { a, b in
                 guard let a = a.key as? String,
                     let b = b.key as? String else {
-                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: ["NSDebugDescription" : "NSDictionary key must be NSString"])
+                        throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [NSDebugDescriptionErrorKey : "NSDictionary key must be NSString"])
                 }
                 let options: NSString.CompareOptions = [.numeric, .caseInsensitive, .forcedOrdering]
                 let range: Range<String.Index>  = a.startIndex..<a.endIndex
@@ -593,7 +593,7 @@ private struct JSONReader {
             
             guard let chunk = String(data: Data(bytes: buffer.baseAddress!.advanced(by: begin), count: byteLength), encoding: encoding) else {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                    "NSDebugDescription" : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
+                    NSDebugDescriptionErrorKey : "Unable to convert data to a string using the detected encoding. The data may be corrupt."
                     ])
             }
             return chunk
@@ -627,7 +627,7 @@ private struct JSONReader {
             switch self.source.takeASCII(input) {
             case nil:
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                    "NSDebugDescription" : "Unexpected end of file during JSON parse."
+                    NSDebugDescriptionErrorKey : "Unexpected end of file during JSON parse."
                     ])
             case let (taken, index)? where taken == ascii:
                 return index
@@ -686,7 +686,7 @@ private struct JSONReader {
                 }
                 else {
                     throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                        "NSDebugDescription" : "Invalid escape sequence at position \(source.distanceFromStart(currentIndex))"
+                        NSDebugDescriptionErrorKey : "Invalid escape sequence at position \(source.distanceFromStart(currentIndex))"
                     ])
                 }
             default:
@@ -694,14 +694,14 @@ private struct JSONReader {
             }
         }
         throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-            "NSDebugDescription" : "Unexpected end of file during string parse."
+            NSDebugDescriptionErrorKey : "Unexpected end of file during string parse."
         ])
     }
 
     func parseEscapeSequence(_ input: Index) throws -> (String, Index)? {
         guard let (byte, index) = source.takeASCII(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Early end of unicode escape sequence around character"
+                NSDebugDescriptionErrorKey : "Early end of unicode escape sequence around character"
             ])
         }
         let output: String
@@ -741,7 +741,7 @@ private struct JSONReader {
             // Trail surrogate must come after lead surrogate
             throw CocoaError.error(.propertyListReadCorrupt,
                                    userInfo: [
-                                     "NSDebugDescription" : """
+                                     NSDebugDescriptionErrorKey : """
                                       Unable to convert unicode escape sequence (no high-surrogate code point) \
                                       to UTF8-encoded character at position \(source.distanceFromStart(input))
                                       """
@@ -752,7 +752,7 @@ private struct JSONReader {
               UTF16.isTrailSurrogate(trailCodeUnit) else {
             throw CocoaError.error(.propertyListReadCorrupt,
                                    userInfo: [
-                                     "NSDebugDescription" : """
+                                     NSDebugDescriptionErrorKey : """
                                       Unable to convert unicode escape sequence (no low-surrogate code point) \
                                       to UTF8-encoded character at position \(source.distanceFromStart(input))
                                       """
@@ -852,7 +852,7 @@ private struct JSONReader {
                 guard nextASCII() else { return true }
             } else {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
-                              userInfo: ["NSDebugDescription" : "Numbers must start with a 1-9 at character \(input)." ])
+                              userInfo: [NSDebugDescriptionErrorKey : "Numbers must start with a 1-9 at character \(input)." ])
             }
 
             if ascii == JSONReader.DECIMAL_SEPARATOR {
@@ -861,7 +861,7 @@ private struct JSONReader {
                 guard nextASCII() else { return true }
             } else if JSONReader.allDigits.contains(ascii) {
                 throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue,
-                              userInfo: ["NSDebugDescription" : "Leading zeros not allowed at character \(input)." ])
+                              userInfo: [NSDebugDescriptionErrorKey : "Leading zeros not allowed at character \(input)." ])
             }
 
             digitCount = string.count - (isInteger ? 0 : 1) - (isNegative ? 1 : 0)
@@ -982,17 +982,17 @@ private struct JSONReader {
     func parseObjectMember(_ input: Index, options opt: JSONSerialization.ReadingOptions) throws -> (String, Any, Index)? {
         guard let (name, index) = try parseString(input) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Missing object key at location \(source.distanceFromStart(input))"
+                NSDebugDescriptionErrorKey : "Missing object key at location \(source.distanceFromStart(input))"
             ])
         }
         guard let separatorIndex = try consumeStructure(Structure.NameSeparator, input: index) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid separator at location \(source.distanceFromStart(index))"
+                NSDebugDescriptionErrorKey : "Invalid separator at location \(source.distanceFromStart(index))"
             ])
         }
         guard let (value, finalIndex) = try parseValue(separatorIndex, options: opt) else {
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
+                NSDebugDescriptionErrorKey : "Invalid value at location \(source.distanceFromStart(separatorIndex))"
             ])
         }
         
@@ -1023,7 +1023,7 @@ private struct JSONReader {
                 }
             }
             throw NSError(domain: NSCocoaErrorDomain, code: CocoaError.propertyListReadCorrupt.rawValue, userInfo: [
-                "NSDebugDescription" : "Badly formed array at location \(source.distanceFromStart(index))"
+                NSDebugDescriptionErrorKey : "Badly formed array at location \(source.distanceFromStart(index))"
             ])
         }
     }
